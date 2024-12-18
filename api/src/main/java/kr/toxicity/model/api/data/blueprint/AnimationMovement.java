@@ -11,8 +11,51 @@ public record AnimationMovement(
         @Nullable Vector3f rotation
 ) implements Comparable<AnimationMovement> {
 
+    private static final Vector3f ONE = new Vector3f();
+
     @Override
     public int compareTo(@NotNull AnimationMovement o) {
         return Long.compare(time, o.time);
+    }
+
+    public @NotNull AnimationMovement set(long newTime) {
+        if (newTime == time) return this;
+        if (newTime == 0 || time == 0) return this;
+        return new AnimationMovement(
+                newTime,
+                transform != null ? new Vector3f(transform)
+                        .mul(newTime)
+                        .div(time) : null,
+                scale != null ? new Vector3f(scale)
+                        .sub(ONE)
+                        .mul(newTime)
+                        .div(time)
+                        .add(ONE) : null,
+                rotation != null ? new Vector3f(rotation)
+                        .mul(newTime)
+                        .div(time) : null
+        );
+    }
+
+    private @Nullable Vector3f plus(@Nullable Vector3f one, @Nullable Vector3f two) {
+        if (one != null && two != null) {
+            return new Vector3f(one).add(two);
+        } else if (one != null) return one;
+        else return two;
+    }
+    private @Nullable Vector3f mul(@Nullable Vector3f one, @Nullable Vector3f two) {
+        if (one != null && two != null) {
+            return new Vector3f(one).mul(two);
+        } else if (one != null) return one;
+        else return two;
+    }
+
+    public @NotNull AnimationMovement plus(@NotNull AnimationMovement other) {
+        return new AnimationMovement(
+                time,
+                plus(transform, other.transform),
+                mul(scale, other.scale),
+                plus(rotation, other.rotation)
+        );
     }
 }

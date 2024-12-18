@@ -48,7 +48,7 @@ public class RenderedEntity {
                 if (check) {
                     if (delay <= 0) {
                         keyFrame = next.next();
-                        delay = keyFrame.time();
+                        delay = 0;
                     }
                     check = false;
                 } else {
@@ -56,11 +56,15 @@ public class RenderedEntity {
                 }
             }
         }
-        if (check) keyFrame = null;
+        if (check) {
+            keyFrame = null;
+        }
         var d = display;
-        if ((keyFrame == null || keyFrame.time() == delay) && d != null) {
+        if (delay <= 0 && d != null) {
             var entityMovement = relativeOffset().plus(movement);
-            d.frame(Math.max(frame(), parent != null ? parent.frame() : 1));
+            var f = frame();
+            delay = f;
+            d.frame(f);
             d.transform(new Transformation(
                     entityMovement.transform(),
                     entityMovement.rotation(),
@@ -74,8 +78,19 @@ public class RenderedEntity {
         }
     }
 
+    private Vector3f localTransform() {
+        var trans = new Vector3f();
+        var entity = parent;
+        while (entity != null) {
+            var k = entity.keyFrame;
+            if (k != null && k.transform() != null) trans.add(k.transform());
+            entity = entity.parent;
+        }
+        return trans;
+    }
+
     private int frame() {
-        return keyFrame != null ? (int) keyFrame.time() : 1;
+        return keyFrame != null ? (int) Math.max(keyFrame.time(), 1) : (parent != null ? parent.frame() : 1);
     }
 
     private EntityMovement defaultFrame() {
@@ -158,6 +173,11 @@ public class RenderedEntity {
         @Override
         public void clear() {
             iterator.clear();
+        }
+
+        @Override
+        public int length() {
+            return iterator.length();
         }
 
         @Override

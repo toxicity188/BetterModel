@@ -4,9 +4,6 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static java.lang.Math.*;
 
 public final class MathUtil {
@@ -49,15 +46,5 @@ public final class MathUtil {
         q.z = (float) (cr * cp * sy - sr * sp * cy);
 
         return q;
-    }
-
-    public static @NotNull List<Vector3f> split(@NotNull Vector3f target, int time) {
-        var list = new ArrayList<Vector3f>();
-        for (int i = 0; i <= time; ++i) {
-            list.add(new Vector3f(target)
-                    .mul(i)
-                    .div(time));
-        }
-        return list;
     }
 }
