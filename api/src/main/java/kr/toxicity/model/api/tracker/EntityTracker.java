@@ -6,13 +6,17 @@ import kr.toxicity.model.api.entity.TrackerMovement;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import lombok.Getter;
 import org.bukkit.Location;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 import java.util.List;
+import java.util.Optional;
 
 @Getter
 public class EntityTracker extends Tracker {
@@ -37,7 +41,12 @@ public class EntityTracker extends Tracker {
                             ), 0);
                         }
                     });
-            instance.animateLoop("walk", () -> entity.isOnGround() && entity.getVelocity().length() > 0.08);
+            instance.animateLoop("walk", () -> {
+                double speed = Optional.ofNullable(livingEntity.getAttribute(Attribute.MOVEMENT_SPEED))
+                        .map(AttributeInstance::getValue)
+                        .orElse(0.2);
+                return entity.isOnGround() && entity.getVelocity().length() / speed > 0.4;
+            });
         }
     }
 
