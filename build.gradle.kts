@@ -21,6 +21,7 @@ allprojects {
     }
     dependencies {
         testImplementation(kotlin("test"))
+        implementation("dev.jorel:commandapi-bukkit-shade:9.7.0")
     }
     tasks {
         test {
@@ -96,6 +97,7 @@ tasks {
             relocate(pattern, "${project.group}.shaded.$pattern")
         }
         prefix("kotlin")
+        prefix("dev.jorel.commandapi")
     }
 }
 

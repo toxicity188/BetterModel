@@ -12,14 +12,27 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
 public class EntityTracker extends Tracker {
     private final @NotNull Entity entity;
+
+    private static final Map<UUID, EntityTracker> TRACKER_MAP = new ConcurrentHashMap<>();
+
+    public static @Nullable EntityTracker tracker(@NotNull Entity entity) {
+        return tracker(entity.getUniqueId());
+    }
+    public static @Nullable EntityTracker tracker(@NotNull UUID uuid) {
+        return TRACKER_MAP.get(uuid);
+    }
 
     public EntityTracker(@NotNull Entity entity, @NotNull RenderInstance instance) {
         super(() -> new TrackerMovement(
@@ -32,7 +45,7 @@ public class EntityTracker extends Tracker {
             instance.addAnimationMovementModifier(
                     r -> r.getName().startsWith("h_"),
                     a -> {
-                        if (a.rotation() != null) {
+                        if (a.rotation() != null && isRunningSingleAnimation()) {
                             a.rotation().add(-entity.getPitch(), Math.clamp(
                                     -livingEntity.getYaw() + livingEntity.getBodyYaw(),
                                     -45,
@@ -46,18 +59,31 @@ public class EntityTracker extends Tracker {
                         .orElse(0.2);
                 return entity.isOnGround() && entity.getVelocity().length() / speed > 0.4;
             });
+            instance.animateLoop("run", () -> {
+                double speed = Optional.ofNullable(livingEntity.getAttribute(Attribute.MOVEMENT_SPEED))
+                        .map(AttributeInstance::getValue)
+                        .orElse(0.2);
+                return entity.isOnGround() && entity.getVelocity().length() / speed > 0.45;
+            });
         }
+        TRACKER_MAP.put(entity.getUniqueId(), this);
     }
 
     @Override
     public void close() throws Exception {
         super.close();
-        entity.remove();
+        if (entity.isValid()) entity.remove();
+        TRACKER_MAP.remove(entity.getUniqueId());
     }
 
     @Override
     public @NotNull Location location() {
         return entity.getLocation();
+    }
+
+    @Override
+    public @NotNull UUID uuid() {
+        return entity.getUniqueId();
     }
 
     @Override
@@ -75,4 +101,5 @@ public class EntityTracker extends Tracker {
         super.remove(player);
         ModelRenderer.inst().playerManager().player(player).endTrack(this);
     }
+
 }

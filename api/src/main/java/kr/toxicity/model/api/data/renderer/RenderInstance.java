@@ -33,7 +33,10 @@ public final class RenderInstance implements AutoCloseable {
     }
 
     @Override
-    public void close() {
+    public void close() throws Exception {
+        for (RenderedEntity value : entityMap.values()) {
+            value.close();
+        }
         for (Player value : playerMap.values()) {
             remove0(value);
         }
@@ -72,10 +75,31 @@ public final class RenderInstance implements AutoCloseable {
     }
 
     public boolean animateLoop(@NotNull String animation, Supplier<Boolean> predicate) {
+        return animateLoop(animation, predicate, () -> {});
+    }
+
+    public boolean animateLoop(@NotNull String animation, Supplier<Boolean> predicate, Runnable removeTask) {
         var get = animationMap.get(animation);
         if (get == null) return false;
         for (RenderedEntity value : entityMap.values()) {
-            value.addLoop(animation, get, predicate);
+            value.addLoop(animation, get, predicate, removeTask);
+        }
+        return true;
+    }
+
+    public boolean animateSingle(@NotNull String animation) {
+        return animateSingle(animation, () -> true);
+    }
+
+    public boolean animateSingle(@NotNull String animation, Supplier<Boolean> predicate) {
+        return animateSingle(animation, predicate, () -> {});
+    }
+
+    public boolean animateSingle(@NotNull String animation, Supplier<Boolean> predicate, Runnable removeTask) {
+        var get = animationMap.get(animation);
+        if (get == null) return false;
+        for (RenderedEntity value : entityMap.values()) {
+            value.addSingle(animation, get, predicate, removeTask);
         }
         return true;
     }

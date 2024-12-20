@@ -7,11 +7,14 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 import java.util.Objects;
+import java.util.UUID;
 
 public class VoidTracker extends Tracker {
     private Location location;
-    public VoidTracker(@NotNull RenderInstance instance, @NotNull Location location) {
+    private final UUID uuid;
+    public VoidTracker(@NotNull UUID uuid, @NotNull RenderInstance instance, @NotNull Location location) {
         super(() -> new TrackerMovement(new Vector3f(), new Vector3f(1), new Vector3f()), instance);
+        this.uuid = uuid;
         this.location = location;
     }
     public void setLocation(Location location) {
@@ -21,5 +24,10 @@ public class VoidTracker extends Tracker {
     @Override
     public @NotNull Location location() {
         return location;
+    }
+
+    @Override
+    public @NotNull UUID uuid() {
+        return uuid;
     }
 }

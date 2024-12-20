@@ -118,7 +118,8 @@ public record BlueprintAnimator(@NotNull String name, int length, @NotNull @Unmo
 
 
     private class SingleIterator implements AnimatorIterator {
-        private final Iterator<AnimationMovement> delegate = keyFrame.iterator();
+
+        private int index = 0;
 
         @Override
         public int length() {
@@ -127,17 +128,17 @@ public record BlueprintAnimator(@NotNull String name, int length, @NotNull @Unmo
 
         @Override
         public void clear() {
-
+            index = Integer.MAX_VALUE;
         }
 
         @Override
         public boolean hasNext() {
-            return delegate.hasNext();
+            return index < keyFrame.size();
         }
 
         @Override
         public AnimationMovement next() {
-            return delegate.next();
+            return keyFrame.get(index++);
         }
     }
     private class LoopIterator implements AnimatorIterator {

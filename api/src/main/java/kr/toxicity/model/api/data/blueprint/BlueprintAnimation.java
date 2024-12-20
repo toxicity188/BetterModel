@@ -12,7 +12,7 @@ public record BlueprintAnimation(
         @NotNull String name,
         int length,
         @NotNull @Unmodifiable Map<String, BlueprintAnimator> animator,
-        BlueprintAnimator.AnimatorIterator emptyIterator
+        List<AnimationMovement> emptyAnimator
 ) {
     public static @NotNull BlueprintAnimation from(@NotNull ModelAnimation animation) {
         var map = new HashMap<String, BlueprintAnimator>();
@@ -28,14 +28,13 @@ public record BlueprintAnimation(
             map.put(name, builder.build(name));
         }
         var newMap = newMap(map);
-        var emptyIterator = iterator(length, newMap.values()
+        return new BlueprintAnimation(animation.name(), length, newMap, newMap.values()
                 .iterator()
                 .next()
                 .keyFrame()
                 .stream()
                 .map(a -> new AnimationMovement(a.time(), null, null, null))
                 .toList());
-        return new BlueprintAnimation(animation.name(), length, newMap, emptyIterator);
     }
 
     private static Map<String, BlueprintAnimator> newMap(@NotNull Map<String, BlueprintAnimator> oldMap) {
@@ -86,7 +85,7 @@ public record BlueprintAnimation(
         return list;
     }
 
-    private static BlueprintAnimator.AnimatorIterator iterator(int length, List<AnimationMovement> list) {
+    public BlueprintAnimator.AnimatorIterator emptyLoopIterator() {
         return new BlueprintAnimator.AnimatorIterator() {
 
             private int index = 0;
@@ -108,8 +107,34 @@ public record BlueprintAnimation(
 
             @Override
             public AnimationMovement next() {
-                if (index >= list.size()) index = 0;
-                return list.get(index++);
+                if (index >= emptyAnimator.size()) index = 0;
+                return emptyAnimator.get(index++);
+            }
+        };
+    }
+    public BlueprintAnimator.AnimatorIterator emptySingleIterator() {
+        return new BlueprintAnimator.AnimatorIterator() {
+
+            private int index = 0;
+
+            @Override
+            public void clear() {
+                index = Integer.MAX_VALUE;
+            }
+
+            @Override
+            public int length() {
+                return length;
+            }
+
+            @Override
+            public boolean hasNext() {
+                return index < emptyAnimator.size();
+            }
+
+            @Override
+            public AnimationMovement next() {
+                return emptyAnimator.get(index++);
             }
         };
     }

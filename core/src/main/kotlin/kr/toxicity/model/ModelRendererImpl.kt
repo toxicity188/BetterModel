@@ -4,20 +4,16 @@ import kr.toxicity.model.api.ModelRenderer
 import kr.toxicity.model.api.ModelRenderer.ReloadResult.Failure
 import kr.toxicity.model.api.ModelRenderer.ReloadResult.OnReload
 import kr.toxicity.model.api.ModelRenderer.ReloadResult.Success
+import kr.toxicity.model.api.manager.CommandManager
+import kr.toxicity.model.api.manager.EntityManager
 import kr.toxicity.model.api.manager.ModelManager
 import kr.toxicity.model.api.manager.PlayerManager
 import kr.toxicity.model.api.nms.NMS
 import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.api.version.MinecraftVersion.*
-import kr.toxicity.model.manager.GlobalManagerImpl
-import kr.toxicity.model.manager.ModelManagerImpl
-import kr.toxicity.model.manager.PlayerManagerImpl
+import kr.toxicity.model.manager.*
 import kr.toxicity.model.util.warn
 import org.bukkit.Bukkit
-import org.bukkit.entity.EntityType
-import org.bukkit.event.EventHandler
-import org.bukkit.event.Listener
-import org.bukkit.event.player.PlayerJoinEvent
 import java.util.concurrent.atomic.AtomicBoolean
 
 @Suppress("UNUSED")
@@ -30,7 +26,9 @@ class ModelRendererImpl : ModelRenderer() {
     private val managers by lazy {
         listOf(
             ModelManagerImpl,
-            PlayerManagerImpl
+            PlayerManagerImpl,
+            EntityManagerImpl,
+            CommandManagerImpl
         )
     }
 
@@ -49,13 +47,6 @@ class ModelRendererImpl : ModelRenderer() {
         }
         managers.forEach(GlobalManagerImpl::start)
         reload()
-        Bukkit.getPluginManager().registerEvents(object : Listener {
-            @EventHandler
-            fun join(e: PlayerJoinEvent) {
-                val renderer = ModelManagerImpl.renderer("orc_warrior")!!
-                renderer.create(e.player.world.spawnEntity(e.player.location, EntityType.HUSK)).spawn(e.player)
-            }
-        }, this)
     }
 
     override fun onDisable() {
@@ -78,6 +69,8 @@ class ModelRendererImpl : ModelRenderer() {
 
     override fun modelManager(): ModelManager = ModelManagerImpl
     override fun playerManager(): PlayerManager = PlayerManagerImpl
+    override fun entityManager(): EntityManager = EntityManagerImpl
+    override fun commandManager(): CommandManager = CommandManagerImpl
 
     override fun version(): MinecraftVersion = version
     override fun nms(): NMS = nms

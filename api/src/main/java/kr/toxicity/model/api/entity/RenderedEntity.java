@@ -21,7 +21,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public class RenderedEntity {
+public class RenderedEntity implements AutoCloseable {
     @Getter
     private final RendererGroup group;
     @Getter
@@ -72,26 +72,35 @@ public class RenderedEntity {
     }
 
     public void changeWorld(@NotNull Location location) {
+        if (display != null) {
+            try {
+                display.close();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
         display = displayFunction.apply(location);
         children.values().forEach(c -> c.changeWorld(location));
     }
 
-    private String previousKey = "";
-
+    private TreeIterator currentIterator = null;
     private void updateAnimation() {
         var iterator = animators.iterator();
         var check = true;
         while (iterator.hasNext()) {
             var next = iterator.next();
             if (!next.get()) continue;
-            if (!next.hasNext()) iterator.remove();
+            if (!next.hasNext()) {
+                next.run();
+                iterator.remove();
+            }
             else {
                 if (check) {
-                    if (previousKey.isEmpty()) {
-                        previousKey = next.name;
+                    if (currentIterator == null) {
+                        currentIterator = next;
                         keyFrame = next.next();
-                    } else if (!previousKey.equals(next.name)) {
-                        previousKey = next.name;
+                    } else if (!currentIterator.name.equals(next.name)) {
+                        currentIterator = next;
                         delay = 0;
                         keyFrame = next.next().time(4);
                     } else if (delay <= 0) {
@@ -134,8 +143,7 @@ public class RenderedEntity {
             var f = frame();
             delay = f;
             if (d != null) {
-                var copy = movement.copy();
-                var entityMovement = copy.plus(relativeOffset());
+                var entityMovement = movement.copy().plus(relativeOffset());
                 d.frame(Math.max(f, 4));
                 d.transform(new Transformation(
                         entityMovement.transform(),
@@ -153,7 +161,7 @@ public class RenderedEntity {
     }
 
     private int frame() {
-        return (int) Math.max(keyFrame != null ? keyFrame.time() : 1, parent != null ? parent.frame() : 1);
+        return keyFrame != null ? (int) keyFrame.time() : parent != null ? parent.frame() : 1;
     }
 
     private EntityMovement defaultFrame() {
@@ -214,23 +222,27 @@ public class RenderedEntity {
         children.values().forEach(e -> e.spawn(bundler));
     }
 
-    public void addLoop(@NotNull String parent, @NotNull BlueprintAnimation animator, Supplier<Boolean> predicate) {
+    public void addLoop(@NotNull String parent, @NotNull BlueprintAnimation animator, Supplier<Boolean> predicate, Runnable removeTask) {
         var get = animator.animator().get(getName());
-        if (get != null) {
-            animators.add(new TreeIterator(parent, get.loopIterator(), predicate));
-        } else {
-            animators.add(new TreeIterator(parent, animator.emptyIterator(), predicate));
+        synchronized (animators) {
+            if (get != null) {
+                animators.add(new TreeIterator(parent, get.loopIterator(), predicate, removeTask));
+            } else {
+                animators.add(new TreeIterator(parent, animator.emptyLoopIterator(), predicate, removeTask));
+            }
         }
-        children.values().forEach(c -> c.addLoop(parent, animator, predicate));
+        children.values().forEach(c -> c.addLoop(parent, animator, predicate, () -> {}));
     }
-    public void addSingle(@NotNull String parent, @NotNull BlueprintAnimation animator, Supplier<Boolean> predicate) {
+    public void addSingle(@NotNull String parent, @NotNull BlueprintAnimation animator, Supplier<Boolean> predicate, Runnable removeTask) {
         var get = animator.animator().get(getName());
-        if (get != null) {
-            animators.add(new TreeIterator(parent, get.singleIterator(), predicate));
-        } else {
-            animators.add(new TreeIterator(parent, animator.emptyIterator(), predicate));
+        synchronized (animators) {
+            if (get != null) {
+                animators.add(new TreeIterator(parent, get.singleIterator(), predicate, removeTask));
+            } else {
+                animators.add(new TreeIterator(parent, animator.emptySingleIterator(), predicate, removeTask));
+            }
         }
-        children.values().forEach(c -> c.addSingle(parent, animator, predicate));
+        children.values().forEach(c -> c.addSingle(parent, animator, predicate, () -> {}));
     }
 
     public void remove(@NotNull PacketBundler bundler) {
@@ -238,17 +250,24 @@ public class RenderedEntity {
         children.values().forEach(e -> e.remove(bundler));
     }
 
-    private class TreeIterator implements BlueprintAnimator.AnimatorIterator, Comparable<TreeIterator>, Supplier<Boolean> {
+    private class TreeIterator implements BlueprintAnimator.AnimatorIterator, Comparable<TreeIterator>, Supplier<Boolean>, Runnable {
 
         private final String name;
         private final int index = animators.size();
         private final Supplier<Boolean> predicate;
         private final BlueprintAnimator.AnimatorIterator iterator;
+        private final Runnable removeTask;
 
-        private TreeIterator(@NotNull String name, @NotNull BlueprintAnimator.AnimatorIterator iterator, Supplier<Boolean> predicate) {
+        private TreeIterator(@NotNull String name, @NotNull BlueprintAnimator.AnimatorIterator iterator, Supplier<Boolean> predicate, Runnable removeTask) {
             this.name = name;
             this.iterator = iterator;
             this.predicate = predicate;
+            this.removeTask = removeTask;
+        }
+
+        @Override
+        public void run() {
+            removeTask.run();
         }
 
         @Override
@@ -292,5 +311,10 @@ public class RenderedEntity {
         public int compareTo(@NotNull RenderedEntity.TreeIterator o) {
             return Integer.compare(index, o.index);
         }
+    }
+
+    @Override
+    public void close() throws Exception {
+        if (display != null) display.close();
     }
 }

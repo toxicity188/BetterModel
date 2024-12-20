@@ -95,18 +95,6 @@ class NMSImpl : NMS {
         }
 
         override fun write(ctx: ChannelHandlerContext, msg: Any, promise: ChannelPromise) {
-            when (msg) {
-                is ClientboundRemoveEntitiesPacket -> {
-                    msg.entityIds.forEach {
-                        it.toEntity()?.uuid?.let { uuid ->
-                            entityUUIDMap[uuid]?.let { tracker ->
-                                tracker.remove(player)
-                                endTrack(tracker)
-                            }
-                        }
-                    }
-                }
-            }
             super.write(ctx, msg, promise)
         }
     }
@@ -127,6 +115,7 @@ class NMSImpl : NMS {
             0F,
             0F
         )
+        persist = false
         itemTransform = ItemDisplayContext.FIXED
         transformationInterpolationDelay = -1
         entityData.set(Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID, 1)
@@ -135,6 +124,10 @@ class NMSImpl : NMS {
     private inner class ModelDisplayImpl(
         val display: ItemDisplay
     ) : ModelDisplay {
+        override fun close() {
+            display.remove(Entity.RemovalReason.KILLED)
+        }
+
         override fun spawn(bundler: PacketBundler) {
             bundler.unwrap().add(addPacket)
             bundler.unwrap().add(dataPacket)

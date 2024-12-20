@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -33,8 +34,8 @@ public class BlueprintRenderer {
         );
     }
 
-    public @NotNull VoidTracker create(@NotNull Location location) {
-        return new VoidTracker(instance(location), location);
+    public @NotNull VoidTracker create(@NotNull UUID uuid,  @NotNull Location location) {
+        return new VoidTracker(uuid, instance(location), location);
     }
 
     private @NotNull RenderInstance instance(@NotNull Location location) {

@@ -1,5 +1,7 @@
 package kr.toxicity.model.api;
 
+import kr.toxicity.model.api.manager.CommandManager;
+import kr.toxicity.model.api.manager.EntityManager;
 import kr.toxicity.model.api.manager.ModelManager;
 import kr.toxicity.model.api.manager.PlayerManager;
 import kr.toxicity.model.api.nms.NMS;
@@ -30,6 +32,8 @@ public abstract class ModelRenderer extends JavaPlugin {
 
     public abstract @NotNull ModelManager modelManager();
     public abstract @NotNull PlayerManager playerManager();
+    public abstract @NotNull EntityManager entityManager();
+    public abstract @NotNull CommandManager commandManager();
 
     public sealed interface ReloadResult {
         record Success(long time) implements ReloadResult {
