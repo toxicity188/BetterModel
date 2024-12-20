@@ -136,7 +136,7 @@ public class RenderedEntity {
             if (d != null) {
                 var copy = movement.copy();
                 var entityMovement = copy.plus(relativeOffset());
-                d.frame(f);
+                d.frame(Math.max(f, 4));
                 d.transform(new Transformation(
                         entityMovement.transform(),
                         entityMovement.rotation(),
@@ -153,7 +153,7 @@ public class RenderedEntity {
     }
 
     private int frame() {
-        return (int) Math.max(keyFrame != null ? keyFrame.time() : 4, parent != null ? parent.frame() : 4);
+        return (int) Math.max(keyFrame != null ? keyFrame.time() : 1, parent != null ? parent.frame() : 1);
     }
 
     private EntityMovement defaultFrame() {
