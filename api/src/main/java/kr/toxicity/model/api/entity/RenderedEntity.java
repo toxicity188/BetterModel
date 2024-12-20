@@ -21,7 +21,6 @@ import java.util.function.Predicate;
 public class RenderedEntity {
     @Getter
     private final RendererGroup group;
-    private final String name;
     private final ModelDisplay display;
     private final EntityMovement defaultFrame;
 
@@ -35,10 +34,9 @@ public class RenderedEntity {
     private AnimationMovement keyFrame = null;
     private long delay = 0;
 
-    public RenderedEntity(@NotNull RendererGroup group, @Nullable RenderedEntity parent, @NotNull String name, @Nullable ModelDisplay display, @NotNull EntityMovement movement) {
+    public RenderedEntity(@NotNull RendererGroup group, @Nullable RenderedEntity parent, @Nullable ModelDisplay display, @NotNull EntityMovement movement) {
         this.group = group;
         this.parent = parent;
-        this.name = name;
         this.display = display;
         defaultFrame = movement;
     }
@@ -97,13 +95,17 @@ public class RenderedEntity {
         if (parent != null) {
             var p = parent.relativeOffset();
             return new EntityMovement(
-                    new Vector3f(p.transform()).add(new Vector3f(def.transform()).rotate(p.rotation())),
-                    def.scale(),
+                    new Vector3f(p.transform()).add(new Vector3f(def.transform()).mul(p.scale()).rotate(p.rotation())),
+                    new Vector3f(def.scale()).mul(p.scale()),
                     new Quaternionf(p.rotation()).mul(def.rotation()),
                     def.rawRotation()
             );
         }
         return def;
+    }
+
+    public @NotNull String getName() {
+        return getGroup().getName();
     }
 
     public void teleport(@NotNull Location location) {
@@ -117,14 +119,14 @@ public class RenderedEntity {
     }
 
     public void addLoop(@NotNull String parent, @NotNull BlueprintAnimation animator) {
-        var get = animator.animator().get(name);
+        var get = animator.animator().get(getName());
         if (get != null) {
             animators.add(new TreeIterator(parent, get.loopIterator()));
         }
         children.values().forEach(c -> c.addLoop(parent, animator));
     }
     public void addSingle(@NotNull String parent, @NotNull BlueprintAnimation animator) {
-        var get = animator.animator().get(name);
+        var get = animator.animator().get(getName());
         if (get != null) {
             animators.add(new TreeIterator(parent, get.singleIterator()));
         }

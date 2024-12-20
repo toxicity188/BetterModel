@@ -15,6 +15,7 @@ import java.util.List;
 public record BlueprintAnimator(@NotNull String name, int length, @NotNull @Unmodifiable List<AnimationMovement> keyFrame) {
 
     private record TimeVector(long time, Vector3f vector3f) {
+        private static final TimeVector EMPTY = new TimeVector(0, null);
     }
 
     @RequiredArgsConstructor
@@ -32,10 +33,20 @@ public record BlueprintAnimator(@NotNull String name, int length, @NotNull @Unmo
                 switch (keyframe.channel()) {
                     case POSITION -> transform.add(new TimeVector(Math.round(keyframe.time() * 20), MathUtil.transformToDisplay(vec.div(16))));
                     case ROTATION -> rotation.add(new TimeVector(Math.round(keyframe.time() * 20), MathUtil.animationToDisplay(vec)));
-                    case SCALE -> scale.add(new TimeVector(Math.round(keyframe.time() * 20), vec));
+                    case SCALE -> scale.add(new TimeVector(Math.round(keyframe.time() * 20), vec.sub(1, 1, 1)));
                 }
             }
             return this;
+        }
+
+        private Vector3f get(long min, TimeVector last, TimeVector newVec) {
+            if (newVec.time == 0) return newVec.vector3f;
+            if (last.vector3f == null) {
+                return new Vector3f(newVec.vector3f).mul(min).div(newVec.time);
+            } else {
+                return new Vector3f(last.vector3f)
+                        .add(new Vector3f(newVec.vector3f).sub(last.vector3f).mul(min - last.time).div(newVec.time - last.time));
+            }
         }
 
         private @NotNull List<AnimationMovement> toAnimation() {
@@ -49,19 +60,28 @@ public record BlueprintAnimator(@NotNull String name, int length, @NotNull @Unmo
             var s = !scale.isEmpty() ? scale.getFirst() : null;
             var r = !rotation.isEmpty() ? rotation.getFirst() : null;
 
-            Vector3f lastP = null, lastS = null, lastR = null;
+            TimeVector lastP = TimeVector.EMPTY, lastS = TimeVector.EMPTY, lastR = TimeVector.EMPTY;
 
             while (t != null || s != null || r != null) {
                 var min = Math.min(t != null ? t.time : Long.MAX_VALUE, Math.min(s != null ? s.time : Long.MAX_VALUE, r != null ? r.time : Long.MAX_VALUE));
-                if (t != null && t.time <= min) ti++;
-                if (s != null && s.time <= min) si++;
-                if (r != null && r.time <= min) ri++;
                 list.add(new AnimationMovement(
                         min,
-                        t != null ? (lastP = t.time == 0 ? t.vector3f : new Vector3f(t.vector3f).mul(min).div(t.time)) : lastP,
-                        s != null ? (lastS = s.time == 0 ? s.vector3f : new Vector3f(s.vector3f).mul(min).div(s.time)) : lastS,
-                        r != null ? (lastR = r.time == 0 ? r.vector3f : new Vector3f(r.vector3f).mul(min).div(r.time)) : lastR
+                        t != null ? get(min, lastP, t) : lastP.vector3f,
+                        s != null ? get(min, lastS, s) : lastS.vector3f,
+                        r != null ? get(min, lastR, r) : lastR.vector3f
                 ));
+                if (t != null && t.time <= min) {
+                    lastP = t;
+                    ti++;
+                }
+                if (s != null && s.time <= min) {
+                    lastS = s;
+                    si++;
+                }
+                if (r != null && r.time <= min) {
+                    lastR = r;
+                    ri++;
+                }
                 t = transform.size() > ti ? transform.get(ti) : null;
                 s = scale.size() > si ? scale.get(si) : null;
                 r = rotation.size() > ri ? rotation.get(ri) : null;

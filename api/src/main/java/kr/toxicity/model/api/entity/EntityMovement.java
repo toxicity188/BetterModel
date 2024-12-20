@@ -19,7 +19,7 @@ public record EntityMovement(
         var rawRot = rot == null ? new Vector3f(rawRotation) : new Vector3f(rot).add(rawRotation);
         return new EntityMovement(
                 mov == null ? new Vector3f(transform) : new Vector3f(transform).add(mov),
-                scl == null ? new Vector3f(scale) : new Vector3f(scale).mul(scl),
+                scl == null ? new Vector3f(scale) : new Vector3f(scale).mul(new Vector3f(scl).add(1, 1, 1)),
                 rot == null ? new Quaternionf(rotation) : MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(rawRot)),
                 rawRot
         );

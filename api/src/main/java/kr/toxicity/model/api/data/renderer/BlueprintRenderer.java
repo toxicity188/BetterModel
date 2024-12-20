@@ -3,7 +3,6 @@ package kr.toxicity.model.api.data.renderer;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.entity.EntityMovement;
 import kr.toxicity.model.api.tracker.VoidTracker;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
@@ -15,8 +14,6 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public class BlueprintRenderer {
-    @Getter
-    private final float scale;
     private final Map<String, RendererGroup> rendererGroupMap;
     private final Map<String, BlueprintAnimation> animationMap;
 
@@ -33,7 +30,7 @@ public class BlueprintRenderer {
                         .entrySet()
                         .stream()
                         .collect(Collectors.toMap(Map.Entry::getKey, e -> {
-                            var create = e.getValue().create(this, location);
+                            var create = e.getValue().create(location);
                             create.move(DEFAULT);
                             return create;
                         })), animationMap),

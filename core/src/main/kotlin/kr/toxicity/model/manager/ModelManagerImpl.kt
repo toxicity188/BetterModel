@@ -74,6 +74,7 @@ object ModelManagerImpl : ModelManager {
         fun BlueprintGroup.parse(): RendererGroup {
             return RendererGroup(
                 name,
+                scale.toFloat(),
                 consumer(this)?.let { i ->
                     ItemStack(item).apply {
                         itemMeta = itemMeta.apply {
@@ -89,7 +90,7 @@ object ModelManagerImpl : ModelManager {
                 }.toMap()
             )
         }
-        return BlueprintRenderer(scale.toFloat(), group.mapNotNull {
+        return BlueprintRenderer(group.mapNotNull {
             if (it is BlueprintGroup) {
                 it.name to it.parse()
             } else null
