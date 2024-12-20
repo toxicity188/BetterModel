@@ -30,7 +30,7 @@ public record BlueprintAnimator(@NotNull String name, int length, @NotNull @Unmo
             for (Datapoint dataPoint : keyframe.dataPoints()) {
                 var vec = dataPoint.toVector();
                 switch (keyframe.channel()) {
-                    case POSITION -> transform.add(new TimeVector(Math.round(keyframe.time() * 20), vec.div(16)));
+                    case POSITION -> transform.add(new TimeVector(Math.round(keyframe.time() * 20), MathUtil.transformToDisplay(vec.div(16))));
                     case ROTATION -> rotation.add(new TimeVector(Math.round(keyframe.time() * 20), MathUtil.animationToDisplay(vec)));
                     case SCALE -> scale.add(new TimeVector(Math.round(keyframe.time() * 20), vec));
                 }

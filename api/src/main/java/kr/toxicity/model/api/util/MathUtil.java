@@ -18,6 +18,13 @@ public final class MathUtil {
                 vector.z
         );
     }
+    public static @NotNull Vector3f transformToDisplay(@NotNull Vector3f vector) {
+        return new Vector3f(
+                vector.x,
+                vector.y,
+                -vector.z
+        );
+    }
     public static @NotNull Vector3f blockBenchToDisplay(@NotNull Vector3f vector) {
         return new Vector3f(
                 -vector.x,

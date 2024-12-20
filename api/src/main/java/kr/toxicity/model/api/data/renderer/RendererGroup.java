@@ -11,7 +11,6 @@ import org.bukkit.Location;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.Map;
@@ -22,7 +21,7 @@ public class RendererGroup {
 
     private final String name;
     private final ItemStack itemStack;
-    private final Vector3f relative;
+    private final Vector3f position;
     private final Vector3f rotation;
     private final Map<String, RendererGroup> children;
 
@@ -35,14 +34,14 @@ public class RendererGroup {
         this.name = name;
         this.itemStack = itemStack;
         this.children = children;
-        relative = MathUtil.blockBenchToDisplay(group.origin().toVector().div(16));
+        position = MathUtil.blockBenchToDisplay(group.origin().toVector().div(16));
         rotation = group.rotation().toVector();
     }
 
     public @NotNull RenderedEntity create(@NotNull BlueprintRenderer parent, @NotNull Location location) {
         return create(null, parent, location);
     }
-    public @NotNull RenderedEntity create(@Nullable RenderedEntity entityParent, @NotNull BlueprintRenderer parent, @NotNull Location location) {
+    private @NotNull RenderedEntity create(@Nullable RenderedEntity entityParent, @NotNull BlueprintRenderer parent, @NotNull Location location) {
         ModelDisplay display;
         if (itemStack != null) {
             display = ModelRenderer.inst().nms().create(location);
@@ -51,11 +50,12 @@ public class RendererGroup {
             display = null;
         }
         var entity = new RenderedEntity(
+                this,
                 entityParent,
                 name,
                 display,
                 new EntityMovement(
-                        relative,
+                        entityParent != null ? new Vector3f(position).sub(entityParent.getGroup().position) : position,
                         new Vector3f(parent.getScale()),
                         MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(rotation)),
                         rotation

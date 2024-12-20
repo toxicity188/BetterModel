@@ -37,6 +37,18 @@ public record AnimationMovement(
         );
     }
 
+    public @NotNull AnimationMovement plus(@NotNull AnimationMovement other) {
+        var min = Math.min(time, other.time);
+        var get1 = set(min);
+        var get2 = other.set(min);
+        return new AnimationMovement(
+                min,
+                plus(get1.transform, get2.transform),
+                mul(get1.scale, get2.scale),
+                plus(get1.rotation, get2.rotation)
+        );
+    }
+
     private @Nullable Vector3f plus(@Nullable Vector3f one, @Nullable Vector3f two) {
         if (one != null && two != null) {
             return new Vector3f(one).add(two);
@@ -48,14 +60,5 @@ public record AnimationMovement(
             return new Vector3f(one).mul(two);
         } else if (one != null) return one;
         else return two;
-    }
-
-    public @NotNull AnimationMovement plus(@NotNull AnimationMovement other) {
-        return new AnimationMovement(
-                time,
-                plus(transform, other.transform),
-                mul(scale, other.scale),
-                plus(rotation, other.rotation)
-        );
     }
 }
