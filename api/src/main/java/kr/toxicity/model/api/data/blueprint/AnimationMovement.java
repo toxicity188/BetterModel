@@ -37,15 +37,29 @@ public record AnimationMovement(
         );
     }
 
-    public @NotNull AnimationMovement plus(@NotNull AnimationMovement other) {
-        var min = Math.min(time, other.time);
-        var get1 = set(min);
-        var get2 = other.set(min);
+    public @NotNull AnimationMovement time(long newTime) {
         return new AnimationMovement(
-                min,
-                plus(get1.transform, get2.transform),
-                mul(get1.scale, get2.scale),
-                plus(get1.rotation, get2.rotation)
+                newTime,
+                transform,
+                scale,
+                rotation
+        );
+    }
+
+    public @NotNull AnimationMovement plus(@NotNull AnimationMovement other) {
+        return new AnimationMovement(
+                time + other.time,
+                plus(transform, other.transform),
+                mul(scale, other.scale),
+                plus(rotation, other.rotation)
+        );
+    }
+    public @NotNull AnimationMovement minus(@NotNull AnimationMovement other) {
+        return new AnimationMovement(
+                time - other.time(),
+                minus(transform, other.transform),
+                div(scale, other.scale),
+                minus(rotation, other.rotation)
         );
     }
 
@@ -55,9 +69,21 @@ public record AnimationMovement(
         } else if (one != null) return one;
         else return two;
     }
+    private @Nullable Vector3f minus(@Nullable Vector3f one, @Nullable Vector3f two) {
+        if (one != null && two != null) {
+            return new Vector3f(one).sub(two);
+        } else if (one != null) return one;
+        else return two;
+    }
     private @Nullable Vector3f mul(@Nullable Vector3f one, @Nullable Vector3f two) {
         if (one != null && two != null) {
             return new Vector3f(one).mul(two);
+        } else if (one != null) return one;
+        else return two;
+    }
+    private @Nullable Vector3f div(@Nullable Vector3f one, @Nullable Vector3f two) {
+        if (one != null && two != null) {
+            return new Vector3f(one).div(two);
         } else if (one != null) return one;
         else return two;
     }

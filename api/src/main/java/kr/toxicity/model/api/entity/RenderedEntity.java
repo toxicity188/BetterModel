@@ -53,7 +53,6 @@ public class RenderedEntity {
                 if (check) {
                     if (delay <= 0) {
                         keyFrame = next.next();
-                        delay = 0;
                     }
                     check = false;
                 } else {

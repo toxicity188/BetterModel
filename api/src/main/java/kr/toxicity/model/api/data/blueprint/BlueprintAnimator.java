@@ -57,7 +57,7 @@ public record BlueprintAnimator(@NotNull String name, int length, @NotNull @Unmo
                 if (s != null && s.time <= min) si++;
                 if (r != null && r.time <= min) ri++;
                 list.add(new AnimationMovement(
-                        min - beforeTime,
+                        min,
                         t != null ? (lastP = t.time == 0 ? t.vector3f : new Vector3f(t.vector3f).mul(min).div(t.time)) : lastP,
                         s != null ? (lastS = s.time == 0 ? s.vector3f : new Vector3f(s.vector3f).mul(min).div(s.time)) : lastS,
                         r != null ? (lastR = r.time == 0 ? r.vector3f : new Vector3f(r.vector3f).mul(min).div(r.time)) : lastR
