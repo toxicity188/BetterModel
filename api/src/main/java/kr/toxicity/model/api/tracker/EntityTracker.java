@@ -11,7 +11,6 @@ import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
@@ -24,7 +23,7 @@ public class EntityTracker extends Tracker {
 
     public EntityTracker(@NotNull Entity entity, @NotNull RenderInstance instance) {
         super(() -> new TrackerMovement(
-                new Vector3f(0, entity instanceof LivingEntity livingEntity ? (float) -livingEntity.getEyeHeight() : 0, 0F),
+                new Vector3f(0, entity instanceof LivingEntity livingEntity ? (float) -livingEntity.getEyeHeight() - 0.1F : 0, 0F),
                 new Vector3f(1),
                 new Vector3f(0, entity instanceof LivingEntity livingEntity ? -livingEntity.getBodyYaw() : -entity.getYaw(), 0)
         ), instance);
