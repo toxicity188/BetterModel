@@ -64,17 +64,19 @@ public class RenderedEntity {
             keyFrame = null;
         }
         var d = display;
-        if (delay <= 0 && d != null) {
-            var entityMovement = relativeOffset().plus(movement);
+        if (delay <= 0) {
             var f = frame();
             delay = f;
-            d.frame(f);
-            d.transform(new Transformation(
-                    entityMovement.transform(),
-                    entityMovement.rotation(),
-                    entityMovement.scale(),
-                    new Quaternionf()
-            ));
+            if (d != null) {
+                var entityMovement = relativeOffset().plus(movement);
+                d.frame(f);
+                d.transform(new Transformation(
+                        entityMovement.transform(),
+                        entityMovement.rotation(),
+                        entityMovement.scale(),
+                        new Quaternionf()
+                ));
+            }
         }
         --delay;
         for (RenderedEntity e : children.values()) {

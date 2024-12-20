@@ -4,11 +4,9 @@ import kr.toxicity.model.api.data.raw.ModelAnimation;
 import kr.toxicity.model.api.data.raw.ModelAnimator;
 import kr.toxicity.model.api.data.raw.ModelKeyframe;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public record BlueprintAnimation(@NotNull String name, int length, @NotNull @Unmodifiable Map<String, BlueprintAnimator> animator) {
     public static @NotNull BlueprintAnimation from(@NotNull ModelAnimation animation) {
@@ -47,12 +45,6 @@ public record BlueprintAnimation(@NotNull String name, int length, @NotNull @Unm
         var list = new ArrayList<AnimationMovement>();
         for (long l : longSet) {
             list.add(getFrame(frame, (int) l));
-        }
-        if (entry.getValue().name().equals("bone")) {
-            System.out.println("DDD");
-            for (AnimationMovement animationMovement : list) {
-                System.out.println(animationMovement.time() + " : " + animationMovement.transform().y);
-            }
         }
         return processFrame(list);
     }
