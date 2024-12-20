@@ -8,7 +8,12 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
 
-public record BlueprintAnimation(@NotNull String name, int length, @NotNull @Unmodifiable Map<String, BlueprintAnimator> animator) {
+public record BlueprintAnimation(
+        @NotNull String name,
+        int length,
+        @NotNull @Unmodifiable Map<String, BlueprintAnimator> animator,
+        BlueprintAnimator.AnimatorIterator emptyIterator
+) {
     public static @NotNull BlueprintAnimation from(@NotNull ModelAnimation animation) {
         var map = new HashMap<String, BlueprintAnimator>();
         var length = Math.round(animation.length() * 20);
@@ -22,7 +27,15 @@ public record BlueprintAnimation(@NotNull String name, int length, @NotNull @Unm
             var name = entry.getValue().name();
             map.put(name, builder.build(name));
         }
-        return new BlueprintAnimation(animation.name(), length, newMap(map));
+        var newMap = newMap(map);
+        var emptyIterator = iterator(length, newMap.values()
+                .iterator()
+                .next()
+                .keyFrame()
+                .stream()
+                .map(a -> new AnimationMovement(a.time(), null, null, null))
+                .toList());
+        return new BlueprintAnimation(animation.name(), length, newMap, emptyIterator);
     }
 
     private static Map<String, BlueprintAnimator> newMap(@NotNull Map<String, BlueprintAnimator> oldMap) {
@@ -71,5 +84,33 @@ public record BlueprintAnimation(@NotNull String name, int length, @NotNull @Unm
             list.add(get.time(get.time() - target.get(i - 1).time()));
         }
         return list;
+    }
+
+    private static BlueprintAnimator.AnimatorIterator iterator(int length, List<AnimationMovement> list) {
+        return new BlueprintAnimator.AnimatorIterator() {
+
+            private int index = 0;
+
+            @Override
+            public void clear() {
+                index = 0;
+            }
+
+            @Override
+            public int length() {
+                return length;
+            }
+
+            @Override
+            public boolean hasNext() {
+                return true;
+            }
+
+            @Override
+            public AnimationMovement next() {
+                if (index >= list.size()) index = 0;
+                return list.get(index++);
+            }
+        };
     }
 }

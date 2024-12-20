@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -23,10 +24,10 @@ public class RendererGroup {
     @Getter
     private final String name;
     private final float scale;
-    private final ItemStack itemStack;
     private final Vector3f position;
     private final Vector3f rotation;
     private final Map<String, RendererGroup> children;
+    private final Function<Location, ModelDisplay> displayFunction;
 
     public RendererGroup(
             @NotNull String name,
@@ -37,27 +38,29 @@ public class RendererGroup {
     ) {
         this.name = name;
         this.scale = scale;
-        this.itemStack = itemStack;
         this.children = children;
         position = MathUtil.blockBenchToDisplay(group.origin().toVector().div(16).div(scale));
         rotation = group.rotation().toVector();
+        if (itemStack != null) {
+            displayFunction = l -> {
+                var display = ModelRenderer.inst().nms().create(l);
+                display.item(itemStack);
+                return display;
+            };
+        } else {
+            displayFunction = l -> null;
+        }
     }
 
     public @NotNull RenderedEntity create(@NotNull Location location) {
         return create(null, location);
     }
     private @NotNull RenderedEntity create(@Nullable RenderedEntity entityParent, @NotNull Location location) {
-        ModelDisplay display;
-        if (itemStack != null) {
-            display = ModelRenderer.inst().nms().create(location);
-            display.item(itemStack);
-        } else {
-            display = null;
-        }
         var entity = new RenderedEntity(
                 this,
                 entityParent,
-                display,
+                displayFunction,
+                location,
                 new EntityMovement(
                         entityParent != null ? new Vector3f(position).sub(entityParent.getGroup().position) : position,
                         entityParent != null ? new Vector3f(1) : new Vector3f(scale),

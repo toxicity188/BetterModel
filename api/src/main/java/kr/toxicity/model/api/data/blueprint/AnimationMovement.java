@@ -57,6 +57,23 @@ public record AnimationMovement(
         );
     }
 
+    public @NotNull AnimationMovement copy() {
+        return new AnimationMovement(
+                time,
+                transform != null ? new Vector3f(transform) : null,
+                scale != null ? new Vector3f(scale) : null,
+                rotation != null ? new Vector3f(rotation) : null
+        );
+    }
+    public @NotNull AnimationMovement copyNotNull() {
+        return new AnimationMovement(
+                time,
+                transform != null ? new Vector3f(transform) : new Vector3f(),
+                scale != null ? new Vector3f(scale) : new Vector3f(),
+                rotation != null ? new Vector3f(rotation) : new Vector3f()
+        );
+    }
+
     private @Nullable Vector3f plus(@Nullable Vector3f one, @Nullable Vector3f two) {
         if (one != null && two != null) {
             return new Vector3f(one).add(two);
@@ -66,18 +83,6 @@ public record AnimationMovement(
     private @Nullable Vector3f minus(@Nullable Vector3f one, @Nullable Vector3f two) {
         if (one != null && two != null) {
             return new Vector3f(one).sub(two);
-        } else if (one != null) return one;
-        else return two;
-    }
-    private @Nullable Vector3f mul(@Nullable Vector3f one, @Nullable Vector3f two) {
-        if (one != null && two != null) {
-            return new Vector3f(one).mul(two);
-        } else if (one != null) return one;
-        else return two;
-    }
-    private @Nullable Vector3f div(@Nullable Vector3f one, @Nullable Vector3f two) {
-        if (one != null && two != null) {
-            return new Vector3f(one).div(two);
         } else if (one != null) return one;
         else return two;
     }

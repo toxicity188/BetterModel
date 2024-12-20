@@ -12,7 +12,7 @@ import kr.toxicity.model.util.*
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 
-object ModelManagerImpl : ModelManager {
+object ModelManagerImpl : ModelManager, GlobalManagerImpl {
 
     private val item = Material.LEATHER_BOOTS
     private var index = 0
