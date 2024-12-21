@@ -1,8 +1,10 @@
 package kr.toxicity.model.api.tracker;
 
+import kr.toxicity.model.api.ModelRenderer;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.entity.TrackerMovement;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
@@ -29,5 +31,11 @@ public final class VoidTracker extends Tracker {
     @Override
     public @NotNull UUID uuid() {
         return uuid;
+    }
+
+    public void spawn(@NotNull Player player) {
+        var bundler = ModelRenderer.inst().nms().createBundler();
+        spawn(player, bundler);
+        bundler.send(player);
     }
 }

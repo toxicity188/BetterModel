@@ -23,9 +23,9 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public final class RenderedEntity implements AutoCloseable {
+public final class RenderedEntity {
 
-    private static final int ANIMATION_THRESHOLD = 6;
+    private static final int ANIMATION_THRESHOLD = 4;
 
     @Getter
     private final RendererGroup group;
@@ -80,13 +80,6 @@ public final class RenderedEntity implements AutoCloseable {
     }
 
     public void changeWorld(@NotNull Location location) {
-        if (display != null) {
-            try {
-                display.close();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
         display = displayFunction.apply(location);
         children.values().forEach(c -> c.changeWorld(location));
     }
@@ -286,9 +279,4 @@ public final class RenderedEntity implements AutoCloseable {
                 return Objects.hashCode(name);
             }
         }
-
-    @Override
-    public void close() throws Exception {
-        if (display != null) display.close();
-    }
 }
