@@ -9,7 +9,7 @@ import org.joml.Vector3f;
 import java.util.Objects;
 import java.util.UUID;
 
-public class VoidTracker extends Tracker {
+public final class VoidTracker extends Tracker {
     private Location location;
     private final UUID uuid;
     public VoidTracker(@NotNull UUID uuid, @NotNull RenderInstance instance, @NotNull Location location) {

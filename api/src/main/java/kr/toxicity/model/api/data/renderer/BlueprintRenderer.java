@@ -17,7 +17,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
-public class BlueprintRenderer {
+public final class BlueprintRenderer {
     private final Map<String, RendererGroup> rendererGroupMap;
     private final Map<String, BlueprintAnimation> animationMap;
 

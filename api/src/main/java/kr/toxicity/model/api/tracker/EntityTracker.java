@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Getter
-public class EntityTracker extends Tracker {
+public final class EntityTracker extends Tracker {
     private static final Map<UUID, EntityTracker> TRACKER_MAP = new ConcurrentHashMap<>();
 
     private final @NotNull Entity entity;

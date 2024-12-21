@@ -20,7 +20,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
-public class RendererGroup {
+public final class RendererGroup {
 
     @Getter
     private final String name;

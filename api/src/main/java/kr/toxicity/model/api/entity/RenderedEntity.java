@@ -24,7 +24,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public class RenderedEntity implements AutoCloseable {
+public final class RenderedEntity implements AutoCloseable {
     @Getter
     private final RendererGroup group;
     @Getter
