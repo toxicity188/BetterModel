@@ -45,7 +45,7 @@ public class EntityTracker extends Tracker {
             instance.addAnimationMovementModifier(
                     r -> r.getName().startsWith("h_"),
                     a -> {
-                        if (a.rotation() != null && isRunningSingleAnimation()) {
+                        if (a.rotation() != null && !isRunningSingleAnimation()) {
                             a.rotation().add(-entity.getPitch(), Math.clamp(
                                     -livingEntity.getYaw() + livingEntity.getBodyYaw(),
                                     -45,

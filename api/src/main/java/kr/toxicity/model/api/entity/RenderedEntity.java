@@ -65,10 +65,11 @@ public class RenderedEntity implements AutoCloseable {
             movementModifier.add(consumer);
             return true;
         }
+        var ret = false;
         for (RenderedEntity value : children.values()) {
-            if (value.addAnimationMovementModifier(predicate, consumer)) return true;
+            if (value.addAnimationMovementModifier(predicate, consumer)) ret = true;
         }
-        return false;
+        return ret;
     }
 
     public void renderers(List<ModelDisplay> renderers) {

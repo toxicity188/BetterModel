@@ -57,10 +57,11 @@ public final class RenderInstance implements AutoCloseable {
         return addAnimationMovementModifier(r -> true, consumer);
     }
     public boolean addAnimationMovementModifier(@NotNull Predicate<RenderedEntity> predicate, @NotNull Consumer<AnimationMovement> consumer) {
+        var ret = false;
         for (RenderedEntity value : entityMap.values()) {
-            if (value.addAnimationMovementModifier(predicate, consumer)) return true;
+            if (value.addAnimationMovementModifier(predicate, consumer)) ret = true;
         }
-        return false;
+        return ret;
     }
 
     public @NotNull List<ModelDisplay> renderers() {
