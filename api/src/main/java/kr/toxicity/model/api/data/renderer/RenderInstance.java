@@ -69,7 +69,11 @@ public final class RenderInstance implements AutoCloseable {
     }
 
     public void tint(boolean toggle) {
-        entityMap.values().forEach(e -> e.tint(toggle));
+        var bundler = ModelRenderer.inst().nms().createBundler();
+        entityMap.values().forEach(e -> e.tint(toggle, bundler));
+        for (Player player : viewedPlayer()) {
+            bundler.send(player);
+        }
     }
 
     public boolean animateLoop(@NotNull String animation) {

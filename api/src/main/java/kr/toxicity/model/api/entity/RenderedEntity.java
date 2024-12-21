@@ -123,7 +123,7 @@ public final class RenderedEntity implements AutoCloseable {
         }
     }
 
-    private EntityMovement lastMovement = null;
+    private TrackerMovement lastMovement = null;
     public void move(@NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
         updateAnimation();
         var d = display;
@@ -132,7 +132,7 @@ public final class RenderedEntity implements AutoCloseable {
             delay = f;
             if (d != null) {
                 d.frame(Math.max(f, 4));
-                var entityMovement = lastMovement = movement.copy().plus(relativeOffset());
+                var entityMovement = (lastMovement = movement.copy()).plus(relativeOffset());
                 d.transform(new Transformation(
                         entityMovement.transform(),
                         entityMovement.rotation(),
@@ -147,19 +147,19 @@ public final class RenderedEntity implements AutoCloseable {
             e.move(movement, bundler);
         }
     }
-    public void forceUpdate() {
-        updateAnimation();
+    public void forceUpdate(@NotNull PacketBundler bundler) {
         var d = display;
         if (d != null && lastMovement != null) {
-            var entityMovement = lastMovement.plus(relativeOffset(delay));
-            d.frame(4);
+            var entityMovement = lastMovement.copy().plus(relativeOffset());
+            var f = frame() - delay;
+            d.frame((int) Math.max(f, 4));
             d.transform(new Transformation(
                     entityMovement.transform(),
                     entityMovement.rotation(),
                     entityMovement.scale(),
                     new Quaternionf()
             ));
-            delay = Math.max(delay - 4, 4);
+            d.send(bundler);
         }
     }
 
@@ -189,34 +189,12 @@ public final class RenderedEntity implements AutoCloseable {
         return def;
     }
 
-    private EntityMovement defaultFrame(long frame) {
-        var k = keyFrame != null ? keyFrame.copyNotNull() : new AnimationMovement(0, new Vector3f(), new Vector3f(), new Vector3f());
-        for (Consumer<AnimationMovement> consumer : movementModifier) {
-            consumer.accept(k);
-        }
-        return defaultFrame.plus(k.set(k.time() - frame));
-    }
-
-    private EntityMovement relativeOffset(long frame) {
-        var def = defaultFrame(frame);
-        if (parent != null) {
-            var p = parent.relativeOffset(frame);
-            return new EntityMovement(
-                    new Vector3f(p.transform()).add(new Vector3f(def.transform()).mul(p.scale()).rotate(p.rotation())),
-                    new Vector3f(def.scale()).mul(p.scale()),
-                    new Quaternionf(p.rotation()).mul(def.rotation()),
-                    def.rawRotation()
-            );
-        }
-        return def;
-    }
-
-    public void tint(boolean toggle) {
+    public void tint(boolean toggle, @NotNull PacketBundler bundler) {
         itemStack = ModelRenderer.inst().nms().tint(itemStack, toggle);
         if (display != null) display.item(itemStack);
-        forceUpdate();
+        forceUpdate(bundler);
         for (RenderedEntity value : children.values()) {
-            value.tint(toggle);
+            value.tint(toggle, bundler);
         }
     }
 
