@@ -73,24 +73,32 @@ public sealed interface BlueprintChildren {
         ) {
             if (!element.hasTexture()) return;
             var object = new JsonObject();
+            var scale = (float) parent.scale();
+            var origin = element.origin()
+                    .minus(group.origin)
+                    .div(scale)
+                    .plus(Float3.CENTER);
+            var inflate = new Float3(element.inflate(), element.inflate(), element.inflate()).div(scale);
             object.add("from", element.from()
                     .minus(group.origin)
-                    .div((float) parent.scale())
+                    .div(scale)
                     .plus(Float3.CENTER)
+                    .minus(origin)
+                    .minus(inflate)
+                    .plus(origin)
                     .toJson());
             object.add("to", element.to()
                     .minus(group.origin)
-                    .div((float) parent.scale())
+                    .div(scale)
                     .plus(Float3.CENTER)
+                    .minus(origin)
+                    .plus(inflate)
+                    .plus(origin)
                     .toJson());
             var rot = element.rotation();
             if (rot != null && rot.absMax() > 0) {
                 var rotation = getRotation(rot);
-                rotation.add("origin", element.origin()
-                        .minus(group.origin)
-                        .div((float) parent.scale())
-                        .plus(Float3.CENTER)
-                        .toJson());
+                rotation.add("origin", origin.toJson());
                 object.add("rotation", rotation);
             }
             object.add("faces", element.faces().toJson(parent.resolution(), tint));
