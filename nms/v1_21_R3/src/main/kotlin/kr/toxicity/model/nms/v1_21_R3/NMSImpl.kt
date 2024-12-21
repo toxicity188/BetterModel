@@ -9,6 +9,7 @@ import kr.toxicity.model.api.nms.NMS
 import kr.toxicity.model.api.nms.PacketBundler
 import kr.toxicity.model.api.nms.PlayerChannelHandler
 import kr.toxicity.model.api.tracker.EntityTracker
+import net.minecraft.core.component.DataComponents
 import net.minecraft.network.Connection
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.*
@@ -19,6 +20,8 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.PositionMoveRotation
 import net.minecraft.world.item.ItemDisplayContext
+import net.minecraft.world.item.component.CustomModelData
+import net.minecraft.world.item.component.DyedItemColor
 import org.bukkit.Location
 import org.bukkit.craftbukkit.CraftWorld
 import org.bukkit.craftbukkit.entity.CraftEntity
@@ -130,7 +133,10 @@ class NMSImpl : NMS {
 
         override fun spawn(bundler: PacketBundler) {
             bundler.unwrap().add(addPacket)
+            val f = display.transformationInterpolationDuration
+            frame(0)
             bundler.unwrap().add(dataPacket)
+            frame(f)
         }
 
         override fun frame(frame: Int) {
@@ -193,5 +199,14 @@ class NMSImpl : NMS {
                 display.deltaMovement,
                 display.yHeadRot.toDouble()
             )
+    }
+
+    override fun tint(itemStack: ItemStack, toggle: Boolean): ItemStack {
+        return CraftItemStack.asBukkitCopy(CraftItemStack.asNMSCopy(itemStack).apply {
+            set(DataComponents.DYED_COLOR, if (toggle) null else DyedItemColor(0xFFFFFF, false))
+            set(DataComponents.CUSTOM_MODEL_DATA, get(DataComponents.CUSTOM_MODEL_DATA)?.let {
+                CustomModelData(it.floats, it.flags, it.strings, if (toggle) listOf(0xFF0000) else listOf(0xFFFFFF))
+            })
+        })
     }
 }

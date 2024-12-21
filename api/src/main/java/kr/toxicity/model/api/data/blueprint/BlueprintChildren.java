@@ -39,6 +39,7 @@ public sealed interface BlueprintChildren {
         }
 
         public boolean buildJson(
+                int tint,
                 @NotNull ModelBlueprint parent,
                 @NotNull List<BlueprintJson> list
         ) {
@@ -52,8 +53,8 @@ public sealed interface BlueprintChildren {
             var elements = new JsonArray();
             for (BlueprintChildren child : children) {
                 switch (child) {
-                    case BlueprintElement blueprintElement -> blueprintElement.buildJson(parent, this, elements);
-                    case BlueprintGroup blueprintGroup -> blueprintGroup.buildJson(parent, list);
+                    case BlueprintElement blueprintElement -> blueprintElement.buildJson(tint, parent, this, elements);
+                    case BlueprintGroup blueprintGroup -> blueprintGroup.buildJson(tint, parent, list);
                 }
             }
             if (elements.isEmpty()) return false;
@@ -65,6 +66,7 @@ public sealed interface BlueprintChildren {
 
     record BlueprintElement(@NotNull ModelElement element) implements BlueprintChildren {
         private void buildJson(
+                int tint,
                 @NotNull ModelBlueprint parent,
                 @NotNull BlueprintGroup group,
                 @NotNull JsonArray targetArray
@@ -91,7 +93,7 @@ public sealed interface BlueprintChildren {
                         .toJson());
                 object.add("rotation", rotation);
             }
-            object.add("faces", element.faces().toJson(parent.resolution()));
+            object.add("faces", element.faces().toJson(parent.resolution(), tint));
             targetArray.add(object);
         }
 

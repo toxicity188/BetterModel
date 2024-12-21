@@ -6,7 +6,6 @@ import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.util.PLUGIN
 import kr.toxicity.model.util.registerListener
 import org.bukkit.Bukkit
-import org.bukkit.Color
 import org.bukkit.entity.LivingEntity
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -39,12 +38,12 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
                 val e = entity
                 if (e is LivingEntity) EntityTracker.tracker(e)?.let {
                     if (it.animateSingle("damage", { true }) {
-                        it.setColor(Color.WHITE)
-                    }) it.setColor(null)
+                        it.tint(false)
+                    }) it.tint(true)
                     else {
-                        it.setColor(null)
+                        it.tint(true)
                         Bukkit.getAsyncScheduler().runDelayed(PLUGIN, { _ ->
-                            it.setColor(Color.WHITE)
+                            it.tint(false)
                         }, e.maximumNoDamageTicks.toLong() * 25 , TimeUnit.MILLISECONDS)
                     }
                 }

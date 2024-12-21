@@ -9,11 +9,11 @@ public record ModelUV(
         float rotation,
         @Nullable String texture
 ) {
-    public @NotNull JsonObject toJson(int resolution) {
+    public @NotNull JsonObject toJson(int resolution, int tint) {
         var object = new JsonObject();
         object.add("uv", uv.div((float) resolution).toJson());
         if (rotation != 0) object.addProperty("rotation", rotation);
-        object.addProperty("tintindex", -2);
+        object.addProperty("tintindex", tint);
         object.addProperty("texture", "#" + texture);
         return object;
     }

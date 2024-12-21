@@ -38,13 +38,13 @@ public record ModelBlueprint(
         );
     }
 
-    public @NotNull List<BlueprintJson> buildJson() {
+    public @NotNull List<BlueprintJson> buildJson(int tint) {
         var list = new ArrayList<BlueprintJson>();
         for (BlueprintChildren blueprintChildren : group) {
             switch (blueprintChildren) {
                 case BlueprintChildren.BlueprintElement blueprintElement -> {
                 }
-                case BlueprintChildren.BlueprintGroup blueprintGroup -> blueprintGroup.buildJson(this, list);
+                case BlueprintChildren.BlueprintGroup blueprintGroup -> blueprintGroup.buildJson(tint,this, list);
             }
         }
         return list;

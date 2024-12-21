@@ -11,14 +11,14 @@ public record ModelFace(
         @NotNull ModelUV up,
         @NotNull ModelUV down
 ) {
-    public @NotNull JsonObject toJson(int resolution) {
+    public @NotNull JsonObject toJson(int resolution, int tint) {
         var object = new JsonObject();
-        if (north.texture() != null) object.add("north", north.toJson(resolution));
-        if (east.texture() != null) object.add("east", east.toJson(resolution));
-        if (south.texture() != null) object.add("south", south.toJson(resolution));
-        if (west.texture() != null) object.add("west", west.toJson(resolution));
-        if (up.texture() != null) object.add("up", up.toJson(resolution));
-        if (down.texture() != null) object.add("down", down.toJson(resolution));
+        if (north.texture() != null) object.add("north", north.toJson(resolution, tint));
+        if (east.texture() != null) object.add("east", east.toJson(resolution, tint));
+        if (south.texture() != null) object.add("south", south.toJson(resolution, tint));
+        if (west.texture() != null) object.add("west", west.toJson(resolution, tint));
+        if (up.texture() != null) object.add("up", up.toJson(resolution, tint));
+        if (down.texture() != null) object.add("down", down.toJson(resolution, tint));
         return object;
     }
 

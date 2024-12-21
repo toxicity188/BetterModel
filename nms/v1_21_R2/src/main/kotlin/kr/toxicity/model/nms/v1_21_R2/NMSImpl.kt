@@ -19,6 +19,7 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.PositionMoveRotation
 import net.minecraft.world.item.ItemDisplayContext
+import org.bukkit.Color
 import org.bukkit.Location
 import org.bukkit.craftbukkit.CraftWorld
 import org.bukkit.craftbukkit.entity.CraftEntity
@@ -26,6 +27,7 @@ import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.craftbukkit.inventory.CraftItemStack
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
+import org.bukkit.inventory.meta.LeatherArmorMeta
 import org.bukkit.util.Transformation
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -130,7 +132,10 @@ class NMSImpl : NMS {
 
         override fun spawn(bundler: PacketBundler) {
             bundler.unwrap().add(addPacket)
+            val f = display.transformationInterpolationDuration
+            frame(0)
             bundler.unwrap().add(dataPacket)
+            frame(f)
         }
 
         override fun frame(frame: Int) {
@@ -193,5 +198,15 @@ class NMSImpl : NMS {
                 display.deltaMovement,
                 display.yHeadRot.toDouble()
             )
+    }
+
+    override fun tint(itemStack: ItemStack, toggle: Boolean): ItemStack {
+        val meta = itemStack.itemMeta
+        if (meta is LeatherArmorMeta) {
+            itemStack.itemMeta = meta.apply {
+                setColor(if (toggle) null else Color.WHITE)
+            }
+        }
+        return itemStack
     }
 }

@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.entity;
 
+import kr.toxicity.model.api.ModelRenderer;
 import kr.toxicity.model.api.data.blueprint.AnimationMovement;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimator;
@@ -8,10 +9,8 @@ import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.util.Transformation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,7 +40,7 @@ public final class RenderedEntity implements AutoCloseable {
     private final Set<TreeIterator> animators = new TreeSet<>(Comparator.reverseOrder());
     private AnimationMovement keyFrame = null;
     private long delay = 0;
-    private final ItemStack itemStack;
+    private ItemStack itemStack;
 
     private final List<Consumer<AnimationMovement>> movementModifier = new ArrayList<>();
 
@@ -132,8 +131,8 @@ public final class RenderedEntity implements AutoCloseable {
             var f = frame();
             delay = f;
             if (d != null) {
-                var entityMovement = lastMovement = movement.copy().plus(relativeOffset());
                 d.frame(Math.max(f, 4));
+                var entityMovement = lastMovement = movement.copy().plus(relativeOffset());
                 d.transform(new Transformation(
                         entityMovement.transform(),
                         entityMovement.rotation(),
@@ -151,7 +150,6 @@ public final class RenderedEntity implements AutoCloseable {
     public void forceUpdate() {
         updateAnimation();
         var d = display;
-        if (delay < 4) return;
         if (d != null && lastMovement != null) {
             var entityMovement = lastMovement.plus(relativeOffset(delay));
             d.frame(4);
@@ -161,8 +159,8 @@ public final class RenderedEntity implements AutoCloseable {
                     entityMovement.scale(),
                     new Quaternionf()
             ));
+            delay = Math.max(delay - 4, 4);
         }
-        delay = 4;
     }
 
     private int frame() {
@@ -213,15 +211,12 @@ public final class RenderedEntity implements AutoCloseable {
         return def;
     }
 
-    public void setColor(@Nullable Color color) {
-        if (itemStack.getItemMeta() instanceof LeatherArmorMeta meta) {
-            meta.setColor(color);
-            itemStack.setItemMeta(meta);
-            if (display != null) display.item(itemStack);
-            forceUpdate();
-        }
+    public void tint(boolean toggle) {
+        itemStack = ModelRenderer.inst().nms().tint(itemStack, toggle);
+        if (display != null) display.item(itemStack);
+        forceUpdate();
         for (RenderedEntity value : children.values()) {
-            value.setColor(color);
+            value.tint(toggle);
         }
     }
 

@@ -7,7 +7,7 @@ plugins {
     id("xyz.jpenilla.resource-factory-bukkit-convention") version("1.2.0")
 }
 
-val minecraft = "1.21.3"
+val minecraft = "1.21.4"
 val targetJavaVersion = 21
 
 allprojects {
