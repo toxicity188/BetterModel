@@ -14,7 +14,7 @@ import org.bukkit.inventory.ItemStack
 
 object ModelManagerImpl : ModelManager, GlobalManagerImpl {
 
-    private val item = Material.LEATHER_BOOTS
+    private val item = Material.LEATHER_HORSE_ARMOR
     private var index = 0
 
     private val renderMap = HashMap<String, BlueprintRenderer>()

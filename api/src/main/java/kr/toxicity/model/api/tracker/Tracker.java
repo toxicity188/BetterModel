@@ -5,9 +5,11 @@ import kr.toxicity.model.api.ModelRenderer;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.entity.TrackerMovement;
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.UUID;
@@ -31,6 +33,7 @@ public abstract class Tracker implements AutoCloseable {
                 bundle.send(player);
             }
         }, 50, 50, TimeUnit.MILLISECONDS);
+        setColor(Color.WHITE);
     }
 
     @Override
@@ -56,6 +59,10 @@ public abstract class Tracker implements AutoCloseable {
 
     public @NotNull List<Player> viewedPlayer() {
         return instance.viewedPlayer();
+    }
+
+    public void setColor(@Nullable Color color) {
+        instance.setColor(color);
     }
 
     public abstract @NotNull Location location();

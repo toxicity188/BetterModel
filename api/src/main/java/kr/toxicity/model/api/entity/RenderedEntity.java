@@ -8,7 +8,10 @@ import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
 import lombok.Getter;
 import lombok.Setter;
+import org.bukkit.Color;
 import org.bukkit.Location;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.util.Transformation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,6 +41,7 @@ public class RenderedEntity implements AutoCloseable {
     private final Set<TreeIterator> animators = new TreeSet<>(Comparator.reverseOrder());
     private AnimationMovement keyFrame = null;
     private long delay = 0;
+    private final ItemStack itemStack;
 
     private final List<Consumer<AnimationMovement>> movementModifier = new ArrayList<>();
 
@@ -53,6 +57,7 @@ public class RenderedEntity implements AutoCloseable {
         this.displayFunction = displayFunction;
         this.display = displayFunction.apply(firstLocation);
         defaultFrame = movement;
+        itemStack = group.getItemStack();
     }
 
     public boolean addAnimationMovementModifier(@NotNull Predicate<RenderedEntity> predicate, @NotNull Consumer<AnimationMovement> consumer) {
@@ -102,7 +107,8 @@ public class RenderedEntity implements AutoCloseable {
                     } else if (!currentIterator.name.equals(next.name)) {
                         currentIterator = next;
                         delay = 0;
-                        keyFrame = next.next().time(4);
+                        var get = next.next();
+                        keyFrame = get.time() < 4 ? get.time(4) : get;
                     } else if (delay <= 0) {
                         keyFrame = next.next();
                     }
@@ -117,25 +123,7 @@ public class RenderedEntity implements AutoCloseable {
         }
     }
 
-    public void forceUpdate(@NotNull TrackerMovement movement) {
-        updateAnimation();
-        var d = display;
-        if (d != null) {
-            var copy = movement.copy();
-            var entityMovement = copy.plus(relativeOffset(delay));
-            d.frame(4);
-            d.transform(new Transformation(
-                    entityMovement.transform(),
-                    entityMovement.rotation(),
-                    entityMovement.scale(),
-                    new Quaternionf()
-            ));
-        }
-        delay = 4;
-        for (RenderedEntity e : children.values()) {
-            e.forceUpdate(movement);
-        }
-    }
+    private EntityMovement lastMovement = null;
     public void move(@NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
         updateAnimation();
         var d = display;
@@ -143,7 +131,7 @@ public class RenderedEntity implements AutoCloseable {
             var f = frame();
             delay = f;
             if (d != null) {
-                var entityMovement = movement.copy().plus(relativeOffset());
+                var entityMovement = lastMovement = movement.copy().plus(relativeOffset());
                 d.frame(Math.max(f, 4));
                 d.transform(new Transformation(
                         entityMovement.transform(),
@@ -158,6 +146,22 @@ public class RenderedEntity implements AutoCloseable {
         for (RenderedEntity e : children.values()) {
             e.move(movement, bundler);
         }
+    }
+    public void forceUpdate() {
+        updateAnimation();
+        var d = display;
+        if (delay < 4) return;
+        if (d != null && lastMovement != null) {
+            var entityMovement = lastMovement.plus(relativeOffset(delay));
+            d.frame(4);
+            d.transform(new Transformation(
+                    entityMovement.transform(),
+                    entityMovement.rotation(),
+                    entityMovement.scale(),
+                    new Quaternionf()
+            ));
+        }
+        delay = 4;
     }
 
     private int frame() {
@@ -206,6 +210,18 @@ public class RenderedEntity implements AutoCloseable {
             );
         }
         return def;
+    }
+
+    public void setColor(@Nullable Color color) {
+        if (itemStack.getItemMeta() instanceof LeatherArmorMeta meta) {
+            meta.setColor(color);
+            itemStack.setItemMeta(meta);
+            if (display != null) display.item(itemStack);
+            forceUpdate();
+        }
+        for (RenderedEntity value : children.values()) {
+            value.setColor(color);
+        }
     }
 
     public @NotNull String getName() {

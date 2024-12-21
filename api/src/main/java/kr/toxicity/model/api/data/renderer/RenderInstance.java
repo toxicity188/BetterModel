@@ -7,9 +7,11 @@ import kr.toxicity.model.api.entity.RenderedEntity;
 import kr.toxicity.model.api.entity.TrackerMovement;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,9 +52,6 @@ public final class RenderInstance implements AutoCloseable {
     public void move(@NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
         entityMap.values().forEach(e -> e.move(movement, bundler));
     }
-    public void forceUpdate(@NotNull TrackerMovement movement) {
-        entityMap.values().forEach(e -> e.forceUpdate(movement));
-    }
 
     public boolean addAnimationMovementModifier(@NotNull Consumer<AnimationMovement> consumer) {
         return addAnimationMovementModifier(r -> true, consumer);
@@ -68,6 +67,10 @@ public final class RenderInstance implements AutoCloseable {
         var list = new ArrayList<ModelDisplay>();
         entityMap.values().forEach(e -> e.renderers(list));
         return list;
+    }
+
+    public void setColor(@Nullable Color color) {
+        entityMap.values().forEach(e -> e.setColor(color));
     }
 
     public boolean animateLoop(@NotNull String animation) {

@@ -9,6 +9,7 @@ import kr.toxicity.model.api.util.MathUtil;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,6 +27,7 @@ public class RendererGroup {
     private final float scale;
     private final Vector3f position;
     private final Vector3f rotation;
+    private final ItemStack itemStack;
     private final Map<String, RendererGroup> children;
     private final Function<Location, ModelDisplay> displayFunction;
 
@@ -39,6 +41,7 @@ public class RendererGroup {
         this.name = name;
         this.scale = scale;
         this.children = children;
+        this.itemStack = itemStack;
         position = MathUtil.blockBenchToDisplay(group.origin().toVector().div(16).div(scale));
         rotation = group.rotation().toVector();
         if (itemStack != null) {
@@ -70,5 +73,9 @@ public class RendererGroup {
         );
         entity.setChildren(children.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().create(entity, location))));
         return entity;
+    }
+
+    public @NotNull ItemStack getItemStack() {
+        return itemStack != null ? itemStack.clone() : new ItemStack(Material.AIR);
     }
 }
