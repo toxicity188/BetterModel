@@ -24,6 +24,9 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public final class RenderedEntity implements AutoCloseable {
+
+    private static final int ANIMATION_THRESHOLD = 6;
+
     @Getter
     private final RendererGroup group;
     @Getter
@@ -108,7 +111,7 @@ public final class RenderedEntity implements AutoCloseable {
                         currentIterator = next;
                         delay = 0;
                         var get = next.next();
-                        keyFrame = get.time() < 4 ? get.time(4) : get;
+                        keyFrame = get.time() < ANIMATION_THRESHOLD ? get.time(ANIMATION_THRESHOLD) : get;
                     } else if (delay <= 0) {
                         keyFrame = next.next();
                     }
@@ -131,7 +134,7 @@ public final class RenderedEntity implements AutoCloseable {
             var f = frame();
             delay = f;
             if (d != null) {
-                d.frame(Math.max(f, 4));
+                d.frame(Math.max(f, ANIMATION_THRESHOLD));
                 var entityMovement = (lastMovement = movement.copy()).plus(relativeOffset());
                 d.transform(new Transformation(
                         entityMovement.transform(),
@@ -152,7 +155,7 @@ public final class RenderedEntity implements AutoCloseable {
         if (d != null && lastMovement != null) {
             var entityMovement = lastMovement.copy().plus(relativeOffset());
             var f = frame() - delay;
-            d.frame((int) Math.max(f, 4));
+            d.frame((int) Math.max(f, ANIMATION_THRESHOLD));
             d.transform(new Transformation(
                     entityMovement.transform(),
                     entityMovement.rotation(),
