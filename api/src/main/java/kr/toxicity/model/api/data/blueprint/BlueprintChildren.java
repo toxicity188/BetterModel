@@ -110,7 +110,7 @@ public sealed interface BlueprintChildren {
                     .plus(Float3.CENTER)
                     .toJson());
             var rot = element.rotation();
-            if (rot != null && rot.absMax() > 0) {
+            if (rot != null) {
                 var rotation = getRotation(rot);
                 rotation.add("origin", element.origin()
                         .minus(group.origin)
@@ -125,13 +125,13 @@ public sealed interface BlueprintChildren {
 
         private @NotNull JsonObject getRotation(@NotNull Float3 rot) {
             var rotation = new JsonObject();
-            if (Math.abs(rot.x()) >= 22.5) {
+            if (Math.abs(rot.x()) > 0) {
                 rotation.addProperty("angle", rot.x());
                 rotation.addProperty("axis", "x");
-            } else if (Math.abs(rot.y()) >= 22.5) {
+            } else if (Math.abs(rot.y()) > 0) {
                 rotation.addProperty("angle", rot.y());
                 rotation.addProperty("axis", "y");
-            } else if (Math.abs(rot.z()) >= 22.5) {
+            } else if (Math.abs(rot.z()) > 0) {
                 rotation.addProperty("angle", rot.z());
                 rotation.addProperty("axis", "z");
             }
