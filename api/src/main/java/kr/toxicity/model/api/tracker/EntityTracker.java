@@ -20,12 +20,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Getter
 public class EntityTracker extends Tracker {
-    private final @NotNull Entity entity;
-
     private static final Map<UUID, EntityTracker> TRACKER_MAP = new ConcurrentHashMap<>();
+
+    private final @NotNull Entity entity;
+    private final AtomicBoolean closed = new AtomicBoolean();
 
     public static @Nullable EntityTracker tracker(@NotNull Entity entity) {
         return tracker(entity.getUniqueId());
@@ -71,6 +73,8 @@ public class EntityTracker extends Tracker {
 
     @Override
     public void close() throws Exception {
+        if (closed.get()) return;
+        closed.set(true);
         super.close();
         if (entity.isValid()) entity.remove();
         TRACKER_MAP.remove(entity.getUniqueId());

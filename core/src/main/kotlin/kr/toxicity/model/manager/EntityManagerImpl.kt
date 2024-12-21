@@ -1,5 +1,6 @@
 package kr.toxicity.model.manager
 
+import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent
 import kr.toxicity.model.api.manager.EntityManager
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.util.PLUGIN
@@ -18,11 +19,15 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
     override fun reload() {
         registerListener(object : Listener {
             @EventHandler
+            fun EntityRemoveFromWorldEvent.remove() {
+                EntityTracker.tracker(entity)?.close()
+            }
+            @EventHandler
             fun EntityDeathEvent.death() {
                 EntityTracker.tracker(entity)?.let {
                     if (!it.animateSingle("death", { true }) {
-                        it.close()
-                    }) it.close()
+                            it.close()
+                        }) it.close()
                 }
             }
             @EventHandler
