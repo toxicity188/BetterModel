@@ -7,6 +7,7 @@ import kr.toxicity.model.api.entity.RenderedEntity;
 import kr.toxicity.model.api.entity.TrackerMovement;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
+import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -21,11 +22,15 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public final class RenderInstance implements AutoCloseable {
+    @Getter
+    private final BlueprintRenderer parent;
+
     private final Map<String, RenderedEntity> entityMap;
     private final Map<String, BlueprintAnimation> animationMap;
     private final Map<UUID, Player> playerMap = new ConcurrentHashMap<>();
 
-    public RenderInstance(@NotNull Map<String, RenderedEntity> entityMap, @NotNull Map<String, BlueprintAnimation> animationMap) {
+    public RenderInstance(@NotNull BlueprintRenderer parent, @NotNull Map<String, RenderedEntity> entityMap, @NotNull Map<String, BlueprintAnimation> animationMap) {
+        this.parent = parent;
         this.entityMap = entityMap;
         this.animationMap = animationMap;
 
@@ -33,10 +38,7 @@ public final class RenderInstance implements AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
-        for (RenderedEntity value : entityMap.values()) {
-            value.close();
-        }
+    public void close() {
         for (Player value : playerMap.values()) {
             remove0(value);
         }
@@ -110,11 +112,9 @@ public final class RenderInstance implements AutoCloseable {
         return true;
     }
 
-    public void spawn(@NotNull Player player) {
+    public void spawn(@NotNull Player player, @NotNull PacketBundler bundler) {
         playerMap.computeIfAbsent(player.getUniqueId(), u -> {
-            var bundler = ModelRenderer.inst().nms().createBundler();
             entityMap.values().forEach(e -> e.spawn(bundler));
-            bundler.send(player);
             return player;
         });
     }

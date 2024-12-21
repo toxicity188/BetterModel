@@ -11,6 +11,7 @@ import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
@@ -21,6 +22,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Predicate;
 
 @Getter
 public final class EntityTracker extends Tracker {
@@ -30,10 +32,20 @@ public final class EntityTracker extends Tracker {
     private final AtomicBoolean closed = new AtomicBoolean();
 
     public static @Nullable EntityTracker tracker(@NotNull Entity entity) {
-        return tracker(entity.getUniqueId());
+        var t = tracker(entity.getUniqueId());
+        if (t == null) {
+            var tag = entity.getPersistentDataContainer().get(TRACKING_ID, PersistentDataType.STRING);
+            if (tag == null) return null;
+            var render = ModelRenderer.inst().modelManager().renderer(tag);
+            if (render != null) return render.create(entity);
+        }
+        return t;
     }
     public static @Nullable EntityTracker tracker(@NotNull UUID uuid) {
         return TRACKER_MAP.get(uuid);
+    }
+    public static @NotNull List<EntityTracker> trackers(@NotNull Predicate<EntityTracker> predicate) {
+        return TRACKER_MAP.values().stream().filter(predicate).toList();
     }
 
     public EntityTracker(@NotNull Entity entity, @NotNull RenderInstance instance) {
@@ -68,6 +80,8 @@ public final class EntityTracker extends Tracker {
                 return entity.isOnGround() && entity.getVelocity().length() / speed > 0.45;
             });
         }
+        entity.setInvisible(true);
+        entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, instance.getParent().getName());
         TRACKER_MAP.put(entity.getUniqueId(), this);
     }
 
@@ -90,10 +104,15 @@ public final class EntityTracker extends Tracker {
         return entity.getUniqueId();
     }
 
-    @Override
     public void spawn(@NotNull Player player) {
-        super.spawn(player);
-        ModelRenderer.inst().playerManager().player(player).startTrack(this);
+        var bundler = ModelRenderer.inst().nms().createBundler();
+        spawn(player, bundler);
+        ModelRenderer.inst().nms().mount(this, bundler);
+        var handler = ModelRenderer.inst()
+                .playerManager()
+                .player(player.getUniqueId());
+        if (handler != null) handler.startTrack(this);
+        bundler.send(player);
     }
 
     public @NotNull List<ModelDisplay> renderers() {
@@ -103,7 +122,10 @@ public final class EntityTracker extends Tracker {
     @Override
     public void remove(@NotNull Player player) {
         super.remove(player);
-        ModelRenderer.inst().playerManager().player(player).endTrack(this);
+        var handler = ModelRenderer.inst()
+                .playerManager()
+                .player(player.getUniqueId());
+        if (handler != null) handler.endTrack(this);
     }
 
 }

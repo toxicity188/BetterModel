@@ -126,7 +126,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                 }.toMap()
             )
         }
-        return BlueprintRenderer(group.mapNotNull {
+        return BlueprintRenderer(name, group.mapNotNull {
             if (it is BlueprintGroup) {
                 it.name to it.parse()
             } else null

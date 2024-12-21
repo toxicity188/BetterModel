@@ -4,18 +4,23 @@ import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import kr.toxicity.model.api.ModelRenderer;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.entity.TrackerMovement;
+import kr.toxicity.model.api.nms.PacketBundler;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 public abstract class Tracker implements AutoCloseable {
+    public static final NamespacedKey TRACKING_ID = Objects.requireNonNull(NamespacedKey.fromString("betterengine_tracker"));
+
     protected final RenderInstance instance;
     private final ScheduledTask task;
     private final AtomicBoolean runningSingle = new AtomicBoolean();
@@ -26,7 +31,7 @@ public abstract class Tracker implements AutoCloseable {
         this.instance = instance;
         task = Bukkit.getAsyncScheduler().runAtFixedRate(ModelRenderer.inst(), task -> {
             var bundle = ModelRenderer.inst().nms().createBundler();
-            instance.move(isRunningSingleAnimation() ? previousMovement : (previousMovement = movement.get()), bundle);
+            instance.move(isRunningSingleAnimation() && previousMovement != null ? previousMovement : (previousMovement = movement.get()), bundle);
             for (Player player : instance.viewedPlayer()) {
                 bundle.send(player);
             }
@@ -45,8 +50,8 @@ public abstract class Tracker implements AutoCloseable {
         return runningSingle.get();
     }
 
-    public void spawn(@NotNull Player player) {
-        instance.spawn(player);
+    protected void spawn(@NotNull Player player, @NotNull PacketBundler bundler) {
+        instance.spawn(player, bundler);
     }
     public void remove(@NotNull Player player) {
         instance.remove(player);
