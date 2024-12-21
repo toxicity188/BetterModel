@@ -25,7 +25,7 @@ import java.util.function.Supplier;
 
 public final class RenderedEntity {
 
-    private static final int ANIMATION_THRESHOLD = 6;
+    private static final int ANIMATION_THRESHOLD = 4;
 
     @Getter
     private final RendererGroup group;
