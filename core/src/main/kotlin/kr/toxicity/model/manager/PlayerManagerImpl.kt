@@ -3,6 +3,7 @@ package kr.toxicity.model.manager
 import kr.toxicity.model.api.manager.PlayerManager
 import kr.toxicity.model.api.nms.PlayerChannelHandler
 import kr.toxicity.model.api.tracker.EntityTracker
+import kr.toxicity.model.api.util.EntityUtil
 import kr.toxicity.model.util.PLUGIN
 import kr.toxicity.model.util.registerListener
 import org.bukkit.Bukkit
@@ -28,7 +29,7 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
                     val playerLoc = player.location
                     EntityTracker.trackers {
                         val loc = it.entity.location
-                        loc.world.uid == playerLoc.world.uid && loc.distance(playerLoc) <= 32
+                        loc.world.uid == playerLoc.world.uid && loc.distance(playerLoc) <= EntityUtil.RENDER_DISTANCE
                     }.forEach {
                         it.spawn(player)
                     }
