@@ -23,8 +23,10 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                     .withAliases("o")
                     .withPermission("modelrenderer.orc")
                     .executesPlayer(PlayerCommandExecutor { player, _ ->
-                        val renderer = ModelManagerImpl.renderer("orc_warrior")!!
-                        renderer.create(player.world.spawnEntity(player.location, EntityType.HUSK)).spawn(player)
+                        val warrior = ModelManagerImpl.renderer("orc_warrior")!!
+                        warrior.create(player.world.spawnEntity(player.location, EntityType.HUSK)).spawn(player)
+                        val archer = ModelManagerImpl.renderer("orc_archer")!!
+                        archer.create(player.world.spawnEntity(player.location, EntityType.SKELETON)).spawn(player)
                     }),
                 CommandAPICommand("reload")
                     .withAliases("re", "rl")
@@ -40,8 +42,8 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                         }
                     }),
             )
-            .executesPlayer(PlayerCommandExecutor { player, _ ->
-                player.sendMessage("/modelrenderer orc - summons test orc.")
+            .executes(CommandExecutionInfo {
+                it.sender().sendMessage("/modelrenderer orc - summons test orc.")
             })
             .register(PLUGIN)
     }

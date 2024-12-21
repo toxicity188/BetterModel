@@ -1,6 +1,7 @@
 package kr.toxicity.model.nms.v1_21_R2
 
 import com.google.common.collect.ImmutableList
+import com.mojang.datafixers.util.Pair
 import io.netty.channel.ChannelDuplexHandler
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
@@ -10,12 +11,10 @@ import net.minecraft.network.Connection
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.*
 import net.minecraft.server.MinecraftServer
-import net.minecraft.world.entity.Display
+import net.minecraft.world.entity.*
 import net.minecraft.world.entity.Display.ItemDisplay
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.EntityType
-import net.minecraft.world.entity.PositionMoveRotation
 import net.minecraft.world.item.ItemDisplayContext
+import net.minecraft.world.item.Items
 import net.minecraft.world.phys.AABB
 import org.bukkit.Color
 import org.bukkit.Location
@@ -45,6 +44,23 @@ class NMSImpl : NMS {
         }
     }
 
+    private fun Int.toEntity() = MinecraftServer.getServer().allLevels.firstNotNullOfOrNull {
+        it.`moonrise$getEntityLookup`().get(this)
+    }
+
+    private fun Entity.toVoid(bundler: PacketBundlerImpl) {
+        bundler.add(ClientboundSetEquipmentPacket(id, EquipmentSlot.entries.map { e ->
+            Pair.of(e, Items.AIR.defaultInstance)
+        }))
+        val inv = isInvisible
+        isInvisible = true
+        bundler.add(ClientboundSetEntityDataPacket(
+            id,
+            entityData.nonDefaultValues!!
+        ))
+        isInvisible = inv
+    }
+
     inner class PlayerChannelHandlerImpl(
         private val player: Player
     ) : PlayerChannelHandler, ChannelDuplexHandler() {
@@ -72,15 +88,12 @@ class NMSImpl : NMS {
             }
         }
 
-        override fun player(): Player = player
-        private fun send(packet: Packet<*>) = connection.send(packet)
-
-        private fun Int.toEntity() = MinecraftServer.getServer().allLevels.firstNotNullOfOrNull {
-            it.`moonrise$getEntityLookup`().get(this)
-        }
         private fun Int.toTracker() = toEntity()?.let {
             entityUUIDMap[it.uuid]
         }
+
+        override fun player(): Player = player
+        private fun send(packet: Packet<*>) = connection.send(packet)
 
         override fun startTrack(tracker: EntityTracker) {
             val entity = (tracker.entity as CraftEntity).handle
@@ -124,6 +137,8 @@ class NMSImpl : NMS {
                             it.remove()
                         }
                 }
+                is ClientboundSetEntityDataPacket -> if (msg.id.toTracker() != null) return
+                is ClientboundSetEquipmentPacket -> if (msg.entity.toTracker() != null) return
             }
             super.write(ctx, msg, promise)
         }
@@ -149,7 +164,10 @@ class NMSImpl : NMS {
             .build()
         val packet = ClientboundSetPassengersPacket(entity)
         entity.passengers = p
-        (bundler as PacketBundlerImpl).add(packet)
+        (bundler as PacketBundlerImpl).run {
+            entity.toVoid(this)
+            add(packet)
+        }
     }
 
     override fun inject(player: Player): PlayerChannelHandlerImpl = PlayerChannelHandlerImpl(player)

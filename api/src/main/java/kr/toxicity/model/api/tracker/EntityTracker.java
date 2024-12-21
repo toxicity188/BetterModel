@@ -70,7 +70,6 @@ public final class EntityTracker extends Tracker {
         }
         var box = instance.hitBox();
         if (box != null) ModelRenderer.inst().nms().boundingBox(entity, box.box());
-        entity.setInvisible(true);
         entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, instance.getParent().getParent().name());
         TRACKER_MAP.put(entity.getUniqueId(), this);
     }
