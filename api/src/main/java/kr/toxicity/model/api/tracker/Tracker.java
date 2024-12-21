@@ -88,11 +88,12 @@ public abstract class Tracker implements AutoCloseable {
     }
 
     public boolean animateSingle(@NotNull String animation, Supplier<Boolean> predicate, Runnable removeTask) {
-        return instance.animateSingle(animation, predicate, wrapToSingle(removeTask));
+        var success = instance.animateSingle(animation, predicate, wrapToSingle(removeTask));
+        if (success) runningSingle.set(true);
+        return success;
     }
 
     private Runnable wrapToSingle(@NotNull Runnable runnable) {
-        runningSingle.set(true);
         return () -> {
             runnable.run();
             runningSingle.set(false);
