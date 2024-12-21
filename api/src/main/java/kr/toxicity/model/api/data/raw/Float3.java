@@ -24,9 +24,6 @@ public record Float3(
         );
     };
 
-    public float absMax() {
-        return Math.max(Math.abs(x), Math.max(Math.abs(x), Math.abs(x)));
-    }
     public float max() {
         return Math.max(x, Math.max(y, z));
     }
