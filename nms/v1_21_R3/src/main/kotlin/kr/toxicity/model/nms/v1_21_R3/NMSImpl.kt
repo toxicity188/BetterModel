@@ -64,6 +64,10 @@ class NMSImpl : NMS {
             channel.eventLoop().submit {
                 channel.pipeline().remove(INJECT_NAME)
             }
+            unregisterAll()
+        }
+
+        override fun unregisterAll() {
             entityUUIDMap.values.toList().forEach {
                 it.remove(player)
             }

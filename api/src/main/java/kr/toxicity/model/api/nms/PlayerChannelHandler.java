@@ -9,4 +9,5 @@ public interface PlayerChannelHandler extends AutoCloseable {
     @NotNull Player player();
     void startTrack(@NotNull EntityTracker tracker);
     void endTrack(@NotNull EntityTracker tracker);
+    void unregisterAll();
 }

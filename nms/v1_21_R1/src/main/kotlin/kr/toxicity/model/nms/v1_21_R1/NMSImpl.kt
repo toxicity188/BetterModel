@@ -62,11 +62,14 @@ class NMSImpl : NMS {
             channel.eventLoop().submit {
                 channel.pipeline().remove(INJECT_NAME)
             }
+            unregisterAll()
+        }
+
+        override fun unregisterAll() {
             entityUUIDMap.values.toList().forEach {
                 it.remove(player)
             }
         }
-
         override fun player(): Player = player
         private fun send(packet: Packet<*>) = connection.send(packet)
 
