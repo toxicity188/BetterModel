@@ -3,6 +3,7 @@ package kr.toxicity.model.api.data.renderer;
 import kr.toxicity.model.api.ModelRenderer;
 import kr.toxicity.model.api.data.blueprint.AnimationMovement;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
+import kr.toxicity.model.api.data.blueprint.NamedBoundingBox;
 import kr.toxicity.model.api.entity.RenderedEntity;
 import kr.toxicity.model.api.entity.TrackerMovement;
 import kr.toxicity.model.api.nms.ModelDisplay;
@@ -11,6 +12,7 @@ import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,12 +31,17 @@ public final class RenderInstance implements AutoCloseable {
     private final Map<String, BlueprintAnimation> animationMap;
     private final Map<UUID, Player> playerMap = new ConcurrentHashMap<>();
 
+
     public RenderInstance(@NotNull BlueprintRenderer parent, @NotNull Map<String, RenderedEntity> entityMap, @NotNull Map<String, BlueprintAnimation> animationMap) {
         this.parent = parent;
         this.entityMap = entityMap;
         this.animationMap = animationMap;
 
         animateLoop("idle");
+    }
+
+    public @Nullable NamedBoundingBox hitBox() {
+        return parent.getParent().boxes().get("hitbox");
     }
 
     @Override
@@ -95,19 +102,30 @@ public final class RenderInstance implements AutoCloseable {
         return true;
     }
 
-    public boolean animateSingle(@NotNull String animation) {
-        return animateSingle(animation, () -> true);
-    }
-
-    public boolean animateSingle(@NotNull String animation, Supplier<Boolean> predicate) {
-        return animateSingle(animation, predicate, () -> {});
-    }
-
     public boolean animateSingle(@NotNull String animation, Supplier<Boolean> predicate, Runnable removeTask) {
         var get = animationMap.get(animation);
         if (get == null) return false;
         for (RenderedEntity value : entityMap.values()) {
             value.addSingle(animation, get, predicate, removeTask);
+        }
+        return true;
+    }
+
+    public boolean replaceLoop(@NotNull String target, @NotNull String animation) {
+        var get = animationMap.get(animation);
+        if (get == null) return false;
+        for (RenderedEntity value : entityMap.values()) {
+            value.replaceLoop(target, animation, get);
+        }
+        return true;
+    }
+
+
+    public boolean replaceSingle(@NotNull String target, @NotNull String animation) {
+        var get = animationMap.get(animation);
+        if (get == null) return false;
+        for (RenderedEntity value : entityMap.values()) {
+            value.replaceSingle(target, animation, get);
         }
         return true;
     }

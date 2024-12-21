@@ -16,6 +16,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public abstract class Tracker implements AutoCloseable {
@@ -26,6 +27,8 @@ public abstract class Tracker implements AutoCloseable {
     private final AtomicBoolean runningSingle = new AtomicBoolean();
 
     private TrackerMovement previousMovement;
+
+    private Predicate<? super Tracker> predicate = t -> false;
 
     public Tracker(@NotNull Supplier<TrackerMovement> movement, @NotNull RenderInstance instance) {
         this.instance = instance;
@@ -44,6 +47,11 @@ public abstract class Tracker implements AutoCloseable {
     public void close() throws Exception {
         task.cancel();
         instance.close();
+    }
+
+    public void addForceUpdateConstraint(@NotNull Predicate<? super Tracker> constraint) {
+        var before = predicate;
+        predicate = t -> before.test(t) || constraint.test(t);
     }
 
     public boolean isRunningSingleAnimation() {
@@ -103,5 +111,16 @@ public abstract class Tracker implements AutoCloseable {
             runnable.run();
             runningSingle.set(false);
         };
+    }
+
+
+    public boolean replaceLoop(@NotNull String target, @NotNull String animation) {
+        return instance.replaceLoop(target, animation);
+    }
+
+    public boolean replaceSingle(@NotNull String target, @NotNull String animation) {
+        var success = instance.replaceSingle(target, animation);
+        if (success) runningSingle.set(true);
+        return success;
     }
 }

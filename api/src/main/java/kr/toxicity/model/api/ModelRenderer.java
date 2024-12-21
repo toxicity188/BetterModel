@@ -1,9 +1,6 @@
 package kr.toxicity.model.api;
 
-import kr.toxicity.model.api.manager.CommandManager;
-import kr.toxicity.model.api.manager.EntityManager;
-import kr.toxicity.model.api.manager.ModelManager;
-import kr.toxicity.model.api.manager.PlayerManager;
+import kr.toxicity.model.api.manager.*;
 import kr.toxicity.model.api.nms.NMS;
 import kr.toxicity.model.api.version.MinecraftVersion;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -34,6 +31,7 @@ public abstract class ModelRenderer extends JavaPlugin {
     public abstract @NotNull PlayerManager playerManager();
     public abstract @NotNull EntityManager entityManager();
     public abstract @NotNull CommandManager commandManager();
+    public abstract @NotNull CompatibilityManager compatibilityManager();
 
     public sealed interface ReloadResult {
         record Success(long time) implements ReloadResult {

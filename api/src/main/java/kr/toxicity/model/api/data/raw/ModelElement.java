@@ -9,6 +9,7 @@ public record ModelElement(
         @NotNull UUID uuid,
         @NotNull Float3 from,
         @NotNull Float3 to,
+        float inflate,
         @Nullable Float3 rotation,
         @NotNull Float3 origin,
         @NotNull ModelFace faces

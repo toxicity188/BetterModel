@@ -5,13 +5,13 @@ import com.google.gson.JsonObject;
 import kr.toxicity.model.api.data.raw.Float3;
 import kr.toxicity.model.api.data.raw.ModelChildren;
 import kr.toxicity.model.api.data.raw.ModelElement;
+import kr.toxicity.model.api.util.EntityUtil;
+import kr.toxicity.model.api.util.VectorPair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
+import org.joml.Vector3f;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 public sealed interface BlueprintChildren {
 
@@ -61,6 +61,32 @@ public sealed interface BlueprintChildren {
             object.add("elements", elements);
             list.add(new BlueprintJson(jsonName(parent), object));
             return true;
+        }
+
+
+        public @NotNull Map<String, NamedBoundingBox> boxes(float scale) {
+            var map = new HashMap<String, NamedBoundingBox>();
+            var elements = new ArrayList<VectorPair>();
+            for (BlueprintChildren child : children) {
+                switch (child) {
+                    case BlueprintGroup group -> map.putAll(group.boxes(scale));
+                    case BlueprintElement element -> {
+                        var model = element.element;
+                        elements.add(new VectorPair(
+                                model.from()
+                                        .toVector()
+                                        .div(16)
+                                        .mul(scale),
+                                model.to()
+                                        .toVector()
+                                        .div(16)
+                                        .mul(scale)
+                        ));
+                    }
+                }
+            }
+            map.put(name, EntityUtil.box(name, elements));
+            return map;
         }
     }
 

@@ -1,4 +1,4 @@
-package kr.toxicity.model.nms.v1_21_R3
+package kr.toxicity.model.nms.v1_21_R1
 
 import com.google.common.collect.ImmutableList
 import io.netty.channel.ChannelDuplexHandler
@@ -6,7 +6,6 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
 import kr.toxicity.model.api.nms.*
 import kr.toxicity.model.api.tracker.EntityTracker
-import net.minecraft.core.component.DataComponents
 import net.minecraft.network.Connection
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.*
@@ -15,11 +14,9 @@ import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.Display.ItemDisplay
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
-import net.minecraft.world.entity.PositionMoveRotation
 import net.minecraft.world.item.ItemDisplayContext
-import net.minecraft.world.item.component.CustomModelData
-import net.minecraft.world.item.component.DyedItemColor
 import net.minecraft.world.phys.AABB
+import org.bukkit.Color
 import org.bukkit.Location
 import org.bukkit.craftbukkit.CraftWorld
 import org.bukkit.craftbukkit.entity.CraftEntity
@@ -27,6 +24,7 @@ import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.craftbukkit.inventory.CraftItemStack
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
+import org.bukkit.inventory.meta.LeatherArmorMeta
 import org.bukkit.util.BoundingBox
 import org.bukkit.util.Transformation
 import java.util.*
@@ -222,7 +220,7 @@ class NMSImpl : NMS {
             get() = ClientboundSetEntityDataPacket(display.id, display.entityData.nonDefaultValues!!)
 
         private val teleportPacket
-            get() = ClientboundTeleportEntityPacket.teleport(display.id, PositionMoveRotation.of(display), emptySet(), display.onGround)
+            get() = ClientboundTeleportEntityPacket(display)
 
         private val removePacket
             get() = ClientboundRemoveEntitiesPacket(display.id)
@@ -244,12 +242,13 @@ class NMSImpl : NMS {
     }
 
     override fun tint(itemStack: ItemStack, toggle: Boolean): ItemStack {
-        return CraftItemStack.asBukkitCopy(CraftItemStack.asNMSCopy(itemStack).apply {
-            set(DataComponents.DYED_COLOR, if (toggle) DyedItemColor(0xFF8060, false) else DyedItemColor(0xFFFFFF, false))
-            set(DataComponents.CUSTOM_MODEL_DATA, get(DataComponents.CUSTOM_MODEL_DATA)?.let {
-                CustomModelData(it.floats, it.flags, it.strings, if (toggle) listOf(0xFF8060) else listOf(0xFFFFFF))
-            })
-        })
+        val meta = itemStack.itemMeta
+        if (meta is LeatherArmorMeta) {
+            itemStack.itemMeta = meta.apply {
+                setColor(if (toggle) null else Color.WHITE)
+            }
+        }
+        return itemStack
     }
 
     override fun boundingBox(entity: org.bukkit.entity.Entity, box: BoundingBox) {
@@ -263,5 +262,5 @@ class NMSImpl : NMS {
         )
     }
 
-    override fun version(): NMSVersion = NMSVersion.V1_21_R3
+    override fun version(): NMSVersion = NMSVersion.V1_21_R1
 }

@@ -4,10 +4,9 @@ import kr.toxicity.model.api.ModelRenderer;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.entity.TrackerMovement;
 import kr.toxicity.model.api.nms.ModelDisplay;
+import kr.toxicity.model.api.util.EntityUtil;
 import lombok.Getter;
 import org.bukkit.Location;
-import org.bukkit.attribute.Attribute;
-import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -18,7 +17,6 @@ import org.joml.Vector3f;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -50,7 +48,7 @@ public final class EntityTracker extends Tracker {
 
     public EntityTracker(@NotNull Entity entity, @NotNull RenderInstance instance) {
         super(() -> new TrackerMovement(
-                new Vector3f(0, entity instanceof LivingEntity livingEntity ? (float) -livingEntity.getEyeHeight() - 0.1F : 0, 0F),
+                new Vector3f(0, entity instanceof LivingEntity livingEntity ? (float) -livingEntity.getHeight() : 0, 0F),
                 new Vector3f(1),
                 new Vector3f(0, entity instanceof LivingEntity livingEntity ? -livingEntity.getBodyYaw() : -entity.getYaw(), 0)
         ), instance);
@@ -67,21 +65,13 @@ public final class EntityTracker extends Tracker {
                             ), 0);
                         }
                     });
-            instance.animateLoop("walk", () -> {
-                double speed = Optional.ofNullable(livingEntity.getAttribute(Attribute.MOVEMENT_SPEED))
-                        .map(AttributeInstance::getValue)
-                        .orElse(0.2);
-                return entity.isOnGround() && entity.getVelocity().length() / speed > 0.4;
-            });
-            instance.animateLoop("run", () -> {
-                double speed = Optional.ofNullable(livingEntity.getAttribute(Attribute.MOVEMENT_SPEED))
-                        .map(AttributeInstance::getValue)
-                        .orElse(0.2);
-                return entity.isOnGround() && entity.getVelocity().length() / speed > 0.45;
-            });
+            addForceUpdateConstraint(t -> EntityUtil.onWalk(livingEntity));
+            instance.animateLoop("walk", () -> EntityUtil.onWalk(livingEntity));
         }
+        var box = instance.hitBox();
+        if (box != null) ModelRenderer.inst().nms().boundingBox(entity, box.box());
         entity.setInvisible(true);
-        entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, instance.getParent().getName());
+        entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, instance.getParent().getParent().name());
         TRACKER_MAP.put(entity.getUniqueId(), this);
     }
 

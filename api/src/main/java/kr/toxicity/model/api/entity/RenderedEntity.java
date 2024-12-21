@@ -40,7 +40,7 @@ public final class RenderedEntity {
     private Map<String, RenderedEntity> children = Collections.emptyMap();
 
     private final Function<Location, ModelDisplay> displayFunction;
-    private final SequencedSet<TreeIterator> animators = new LinkedHashSet<>();
+    private final SequencedMap<String, TreeIterator> animators = new LinkedHashMap<>();
     private AnimationMovement keyFrame = null;
     private long delay = 0;
     private ItemStack itemStack;
@@ -86,7 +86,7 @@ public final class RenderedEntity {
 
     private TreeIterator currentIterator = null;
     private void updateAnimation() {
-        var iterator = animators.reversed().iterator();
+        var iterator = animators.reversed().values().iterator();
         var check = true;
         while (iterator.hasNext()) {
             var next = iterator.next();
@@ -145,10 +145,9 @@ public final class RenderedEntity {
     }
     public void forceUpdate(@NotNull PacketBundler bundler) {
         var d = display;
-        if (d != null && lastMovement != null) {
+        if (d != null && lastMovement != null && delay > 0) {
             var entityMovement = lastMovement.copy().plus(relativeOffset());
-            var f = frame() - delay;
-            d.frame((int) Math.max(f, ANIMATION_THRESHOLD));
+            d.frame((int) Math.max(delay, ANIMATION_THRESHOLD));
             d.transform(new Transformation(
                     entityMovement.transform(),
                     entityMovement.rotation(),
@@ -212,7 +211,7 @@ public final class RenderedEntity {
         var get = animator.animator().get(getName());
         var iterator = get != null ? new TreeIterator(parent, get.loopIterator(), predicate, removeTask) : new TreeIterator(parent, animator.emptyLoopIterator(), predicate, removeTask);
         synchronized (animators) {
-            animators.add(iterator);
+            animators.putIfAbsent(parent, iterator);
         }
         children.values().forEach(c -> c.addLoop(parent, animator, predicate, () -> {}));
     }
@@ -220,9 +219,28 @@ public final class RenderedEntity {
         var get = animator.animator().get(getName());
         var iterator = get != null ? new TreeIterator(parent, get.singleIterator(), predicate, removeTask) : new TreeIterator(parent, animator.emptySingleIterator(), predicate, removeTask);
         synchronized (animators) {
-            animators.add(iterator);
+            animators.putIfAbsent(parent, iterator);
         }
         children.values().forEach(c -> c.addSingle(parent, animator, predicate, () -> {}));
+    }
+
+    public void replaceLoop(@NotNull String target, @NotNull String parent, @NotNull BlueprintAnimation animator) {
+        var get = animator.animator().get(getName());
+        synchronized (animators) {
+            var v = animators.get(target);
+            if (v != null) animators.replace(target, get != null ? new TreeIterator(parent, get.loopIterator(), v.predicate, v.removeTask) : new TreeIterator(parent, animator.emptyLoopIterator(), v.predicate, v.removeTask));
+            else animators.replace(target, get != null ? new TreeIterator(parent, get.loopIterator(), () -> true, () -> {}) : new TreeIterator(parent, animator.emptyLoopIterator(), () -> true, () -> {}));
+        }
+        children.values().forEach(c -> c.replaceLoop(target, parent, animator));
+    }
+    public void replaceSingle(@NotNull String target, @NotNull String parent, @NotNull BlueprintAnimation animator) {
+        var get = animator.animator().get(getName());
+        synchronized (animators) {
+            var v = animators.get(target);
+            if (v != null) animators.replace(target, get != null ? new TreeIterator(parent, get.singleIterator(), v.predicate, v.removeTask) : new TreeIterator(parent, animator.emptySingleIterator(), v.predicate, v.removeTask));
+            else animators.replace(target, get != null ? new TreeIterator(parent, get.singleIterator(), () -> true, () -> {}) : new TreeIterator(parent, animator.emptySingleIterator(), () -> true, () -> {}));
+        }
+        children.values().forEach(c -> c.replaceSingle(target, parent, animator));
     }
 
     public void remove(@NotNull PacketBundler bundler) {
