@@ -40,7 +40,7 @@ public final class RenderedEntity implements AutoCloseable {
     private Map<String, RenderedEntity> children = Collections.emptyMap();
 
     private final Function<Location, ModelDisplay> displayFunction;
-    private final Set<TreeIterator> animators = new TreeSet<>(Comparator.reverseOrder());
+    private final SequencedSet<TreeIterator> animators = new LinkedHashSet<>();
     private AnimationMovement keyFrame = null;
     private long delay = 0;
     private ItemStack itemStack;
@@ -93,7 +93,7 @@ public final class RenderedEntity implements AutoCloseable {
 
     private TreeIterator currentIterator = null;
     private void updateAnimation() {
-        var iterator = animators.iterator();
+        var iterator = animators.reversed().iterator();
         var check = true;
         while (iterator.hasNext()) {
             var next = iterator.next();
@@ -217,23 +217,17 @@ public final class RenderedEntity implements AutoCloseable {
 
     public void addLoop(@NotNull String parent, @NotNull BlueprintAnimation animator, Supplier<Boolean> predicate, Runnable removeTask) {
         var get = animator.animator().get(getName());
+        var iterator = get != null ? new TreeIterator(parent, get.loopIterator(), predicate, removeTask) : new TreeIterator(parent, animator.emptyLoopIterator(), predicate, removeTask);
         synchronized (animators) {
-            if (get != null) {
-                animators.add(new TreeIterator(parent, get.loopIterator(), predicate, removeTask));
-            } else {
-                animators.add(new TreeIterator(parent, animator.emptyLoopIterator(), predicate, removeTask));
-            }
+            animators.add(iterator);
         }
         children.values().forEach(c -> c.addLoop(parent, animator, predicate, () -> {}));
     }
     public void addSingle(@NotNull String parent, @NotNull BlueprintAnimation animator, Supplier<Boolean> predicate, Runnable removeTask) {
         var get = animator.animator().get(getName());
+        var iterator = get != null ? new TreeIterator(parent, get.singleIterator(), predicate, removeTask) : new TreeIterator(parent, animator.emptySingleIterator(), predicate, removeTask);
         synchronized (animators) {
-            if (get != null) {
-                animators.add(new TreeIterator(parent, get.singleIterator(), predicate, removeTask));
-            } else {
-                animators.add(new TreeIterator(parent, animator.emptySingleIterator(), predicate, removeTask));
-            }
+            animators.add(iterator);
         }
         children.values().forEach(c -> c.addSingle(parent, animator, predicate, () -> {}));
     }
@@ -243,68 +237,55 @@ public final class RenderedEntity implements AutoCloseable {
         children.values().forEach(e -> e.remove(bundler));
     }
 
-    private class TreeIterator implements BlueprintAnimator.AnimatorIterator, Comparable<TreeIterator>, Supplier<Boolean>, Runnable {
+    private record TreeIterator(
+            String name,
+            BlueprintAnimator.AnimatorIterator iterator,
+            Supplier<Boolean> predicate,
+            Runnable removeTask
+    ) implements BlueprintAnimator.AnimatorIterator, Supplier<Boolean>, Runnable {
 
-        private final String name;
-        private final int index = animators.size();
-        private final Supplier<Boolean> predicate;
-        private final BlueprintAnimator.AnimatorIterator iterator;
-        private final Runnable removeTask;
+            @Override
+            public void run() {
+                removeTask.run();
+            }
 
-        private TreeIterator(@NotNull String name, @NotNull BlueprintAnimator.AnimatorIterator iterator, Supplier<Boolean> predicate, Runnable removeTask) {
-            this.name = name;
-            this.iterator = iterator;
-            this.predicate = predicate;
-            this.removeTask = removeTask;
+            @Override
+            public Boolean get() {
+                return predicate.get();
+            }
+
+            @Override
+            public boolean hasNext() {
+                return iterator.hasNext();
+            }
+
+            @Override
+            public AnimationMovement next() {
+                return iterator.next();
+            }
+
+            @Override
+            public void clear() {
+                iterator.clear();
+            }
+
+            @Override
+            public int length() {
+                return iterator.length();
+            }
+
+            @Override
+            public boolean equals(Object o) {
+                if (o == null || getClass() != o.getClass()) return false;
+                TreeIterator that = (TreeIterator) o;
+                return Objects.equals(name, that.name);
+            }
+
+            @Override
+            public int hashCode() {
+                return Objects.hashCode(name);
+            }
         }
-
-        @Override
-        public void run() {
-            removeTask.run();
-        }
-
-        @Override
-        public Boolean get() {
-            return predicate.get();
-        }
-
-        @Override
-        public boolean hasNext() {
-            return iterator.hasNext();
-        }
-
-        @Override
-        public AnimationMovement next() {
-            return iterator.next();
-        }
-
-        @Override
-        public void clear() {
-            iterator.clear();
-        }
-
-        @Override
-        public int length() {
-            return iterator.length();
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (o == null || getClass() != o.getClass()) return false;
-            TreeIterator that = (TreeIterator) o;
-            return Objects.equals(name, that.name);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(name);
-        }
-
-        @Override
-        public int compareTo(@NotNull RenderedEntity.TreeIterator o) {
-            return Integer.compare(index, o.index);
-        }
-    }
 
     @Override
     public void close() throws Exception {
