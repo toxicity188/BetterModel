@@ -27,8 +27,11 @@ public record BlueprintAnimator(@NotNull String name, int length, @NotNull @Unmo
         private final List<TimeVector> scale = new ArrayList<>();
         private final List<TimeVector> rotation = new ArrayList<>();
 
-        private static boolean checkSplit(Vector3f vector3f) {
-            return Math.abs(vector3f.x) > 90 || Math.abs(vector3f.y) > 90 || Math.abs(vector3f.z) > 90;
+        private static int checkSplit(Vector3f vector3f) {
+            return (int) (Math.max(
+                    Math.abs(vector3f.x),
+                    Math.max(Math.abs(vector3f.y), Math.abs(vector3f.z))
+            ) / 90.0) + 1;
         }
 
         public @NotNull Builder addFrame(@NotNull ModelKeyframe keyframe) {
@@ -42,9 +45,12 @@ public record BlueprintAnimator(@NotNull String name, int length, @NotNull @Unmo
                             rotation.add(rot);
                         } else {
                             var last = rotation.getLast();
-                            if (checkSplit(new Vector3f(rot.vector3f).sub(last.vector3f))) {
-                                var t = (rot.time - last.time) / 2 + last.time;
-                                rotation.add(new TimeVector(t, get(t, last, rot)));
+                            var split = checkSplit(new Vector3f(rot.vector3f).sub(last.vector3f));
+                            if (split > 1) {
+                                for (int i = 1; i < split; i++) {
+                                    var t = Math.round((double) (rot.time - last.time) / split * i) + last.time;
+                                    rotation.add(new TimeVector(t, get(t, last, rot)));
+                                }
                             }
                             rotation.add(rot);
                         }

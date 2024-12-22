@@ -241,7 +241,7 @@ class NMSImpl : NMS {
         }
 
         private val dataPacket
-            get() = ClientboundSetEntityDataPacket(display.id, display.entityData.nonDefaultValues!!)
+            get() = ClientboundSetEntityDataPacket(display.id, display.entityData.packAll()!!)
 
         private val teleportPacket
             get() = ClientboundTeleportEntityPacket.teleport(display.id, PositionMoveRotation.of(display), emptySet(), display.onGround)

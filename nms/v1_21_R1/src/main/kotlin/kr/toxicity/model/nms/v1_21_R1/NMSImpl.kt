@@ -18,6 +18,7 @@ import net.minecraft.world.item.Items
 import net.minecraft.world.phys.AABB
 import org.bukkit.Color
 import org.bukkit.Location
+import org.bukkit.Material
 import org.bukkit.craftbukkit.CraftWorld
 import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.craftbukkit.entity.CraftPlayer
@@ -240,7 +241,7 @@ class NMSImpl : NMS {
         }
 
         private val dataPacket
-            get() = ClientboundSetEntityDataPacket(display.id, display.entityData.nonDefaultValues!!)
+            get() = ClientboundSetEntityDataPacket(display.id, display.entityData.packAll()!!)
 
         private val teleportPacket
             get() = ClientboundTeleportEntityPacket(display)

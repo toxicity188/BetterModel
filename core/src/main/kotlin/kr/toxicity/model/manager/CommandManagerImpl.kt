@@ -31,8 +31,12 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
 //                        archer.create(player.world.spawnEntity(player.location, EntityType.SKELETON)).spawn(player)
                         val giant = ModelManagerImpl.renderer("orc_giant")!!.create(player.world.spawnEntity(player.location, EntityType.HUSK))
                         giant.spawn(player)
+                        var d = false
                         Bukkit.getAsyncScheduler().runAtFixedRate(PLUGIN, { t ->
-                            if (giant.entity.isValid) giant.animateSingle("ground_smash") else t.cancel()
+                            if (giant.entity.isValid) {
+                                d = !d
+                                giant.togglePart({ true }, d)
+                            } else t.cancel()
                         }, 500, 500, TimeUnit.MILLISECONDS)
                     }),
                 CommandAPICommand("reload")
