@@ -25,7 +25,8 @@ public sealed interface ModelChildren {
                         Float3.PARSER.apply(object.get("origin")),
                         Float3.PARSER.apply(object.get("rotation")),
                         UUID.fromString(object.getAsJsonPrimitive("uuid").getAsString()),
-                        object.getAsJsonArray("children").asList().stream().map(this).toList()
+                        object.getAsJsonArray("children").asList().stream().map(this).toList(),
+                        object.getAsJsonPrimitive("visibility").getAsBoolean()
                 );
             } else throw new RuntimeException();
         }
@@ -39,7 +40,8 @@ public sealed interface ModelChildren {
             @NotNull Float3 origin,
             @NotNull Float3 rotation,
             @NotNull UUID uuid,
-            @NotNull List<ModelChildren> children
+            @NotNull List<ModelChildren> children,
+            boolean visibility
     ) implements ModelChildren {
     }
 }

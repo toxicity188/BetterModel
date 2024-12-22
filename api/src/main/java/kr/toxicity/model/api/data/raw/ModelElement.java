@@ -18,7 +18,10 @@ public record ModelElement(
         return to.minus(from);
     }
     public float max() {
-        return size().max();
+        return size().min();
+    }
+    public float min() {
+        return size().min();
     }
     public boolean hasTexture() {
         return faces.hasTexture();

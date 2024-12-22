@@ -9,21 +9,21 @@ import kr.toxicity.model.api.util.EntityUtil;
 import kr.toxicity.model.api.util.VectorPair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
-import org.joml.Vector3f;
 
 import java.util.*;
 
 public sealed interface BlueprintChildren {
 
-    static BlueprintChildren from(@NotNull ModelChildren children, @NotNull @Unmodifiable Map<UUID, ModelElement> elementMap) {
+    static BlueprintChildren from(@NotNull ModelChildren children, @NotNull @Unmodifiable Map<UUID, ModelElement> elementMap, float scale) {
         return switch (children) {
             case ModelChildren.ModelGroup modelGroup -> new BlueprintGroup(
                     modelGroup.name(),
                     modelGroup.origin(),
                     modelGroup.rotation(),
-                    modelGroup.children().stream().map(c -> from(c, elementMap)).toList()
+                    modelGroup.children().stream().map(c -> from(c, elementMap, scale)).toList(),
+                    modelGroup.visibility()
             );
-            case ModelChildren.ModelUUID modelUUID -> new BlueprintElement(Objects.requireNonNull(elementMap.get(modelUUID.uuid())));
+            case ModelChildren.ModelUUID modelUUID -> new BlueprintElement(Objects.requireNonNull(elementMap.get(modelUUID.uuid())), scale);
         };
     }
 
@@ -31,7 +31,8 @@ public sealed interface BlueprintChildren {
             @NotNull String name,
             @NotNull Float3 origin,
             @NotNull Float3 rotation,
-            @NotNull List<BlueprintChildren> children
+            @NotNull List<BlueprintChildren> children,
+            boolean visibility
     ) implements BlueprintChildren {
 
         public @NotNull String jsonName(@NotNull ModelBlueprint parent) {
@@ -90,7 +91,7 @@ public sealed interface BlueprintChildren {
         }
     }
 
-    record BlueprintElement(@NotNull ModelElement element) implements BlueprintChildren {
+    record BlueprintElement(@NotNull ModelElement element, float scale) implements BlueprintChildren {
         private void buildJson(
                 int tint,
                 @NotNull ModelBlueprint parent,
@@ -101,12 +102,12 @@ public sealed interface BlueprintChildren {
             var object = new JsonObject();
             object.add("from", element.from()
                     .minus(group.origin)
-                    .div((float) parent.scale())
+                    .div(scale)
                     .plus(Float3.CENTER)
                     .toJson());
             object.add("to", element.to()
                     .minus(group.origin)
-                    .div((float) parent.scale())
+                    .div(scale)
                     .plus(Float3.CENTER)
                     .toJson());
             var rot = element.rotation();
@@ -114,7 +115,7 @@ public sealed interface BlueprintChildren {
                 var rotation = getRotation(rot);
                 rotation.add("origin", element.origin()
                         .minus(group.origin)
-                        .div((float) parent.scale())
+                        .div(scale)
                         .plus(Float3.CENTER)
                         .toJson());
                 object.add("rotation", rotation);

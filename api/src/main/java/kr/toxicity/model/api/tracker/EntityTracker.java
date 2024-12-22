@@ -1,6 +1,7 @@
 package kr.toxicity.model.api.tracker;
 
 import kr.toxicity.model.api.ModelRenderer;
+import kr.toxicity.model.api.data.renderer.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.entity.TrackerMovement;
 import kr.toxicity.model.api.nms.ModelDisplay;
@@ -48,7 +49,7 @@ public final class EntityTracker extends Tracker {
 
     public EntityTracker(@NotNull Entity entity, @NotNull RenderInstance instance) {
         super(() -> new TrackerMovement(
-                new Vector3f(0, entity instanceof LivingEntity livingEntity ? (float) -livingEntity.getHeight() : 0, 0F),
+                new Vector3f(0, -ModelRenderer.inst().nms().passengerPosition(entity).y, 0F),
                 new Vector3f(1),
                 new Vector3f(0, entity instanceof LivingEntity livingEntity ? -livingEntity.getBodyYaw() : -entity.getYaw(), 0)
         ), instance);
@@ -66,10 +67,13 @@ public final class EntityTracker extends Tracker {
                         }
                     });
             addForceUpdateConstraint(t -> EntityUtil.onWalk(livingEntity));
-            instance.animateLoop("walk", () -> EntityUtil.onWalk(livingEntity));
+            instance.animateLoop("walk", new AnimationModifier(() -> EntityUtil.onWalk(livingEntity), 4, 4));
         }
         var box = instance.hitBox();
-        if (box != null) ModelRenderer.inst().nms().boundingBox(entity, box.box());
+        if (box != null) {
+            System.out.println(box);
+            ModelRenderer.inst().nms().boundingBox(entity, box.box());
+        }
         entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, instance.getParent().getParent().name());
         TRACKER_MAP.put(entity.getUniqueId(), this);
     }

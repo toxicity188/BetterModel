@@ -4,12 +4,14 @@ import kr.toxicity.model.api.ModelRenderer;
 import kr.toxicity.model.api.data.blueprint.AnimationMovement;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimator;
+import kr.toxicity.model.api.data.renderer.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.RendererGroup;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Transformation;
 import org.jetbrains.annotations.NotNull;
@@ -43,9 +45,12 @@ public final class RenderedEntity {
     private final SequencedMap<String, TreeIterator> animators = new LinkedHashMap<>();
     private AnimationMovement keyFrame = null;
     private long delay = 0;
-    private ItemStack itemStack;
+    private final ItemStack itemStack;
 
     private final List<Consumer<AnimationMovement>> movementModifier = new ArrayList<>();
+
+    private boolean visible;
+    private boolean tint;
 
     public RenderedEntity(
             @NotNull RendererGroup group,
@@ -60,6 +65,7 @@ public final class RenderedEntity {
         this.display = displayFunction.apply(firstLocation);
         defaultFrame = movement;
         itemStack = group.getItemStack();
+        visible = group.getParent().visibility();
     }
 
     public boolean addAnimationMovementModifier(@NotNull Predicate<RenderedEntity> predicate, @NotNull Consumer<AnimationMovement> consumer) {
@@ -86,36 +92,37 @@ public final class RenderedEntity {
 
     private TreeIterator currentIterator = null;
     private void updateAnimation() {
-        var iterator = animators.reversed().values().iterator();
-        var check = true;
-        while (iterator.hasNext()) {
-            var next = iterator.next();
-            if (!next.get()) continue;
-            if (!next.hasNext()) {
-                next.run();
-                iterator.remove();
-            }
-            else {
-                if (check) {
-                    if (currentIterator == null) {
-                        currentIterator = next;
-                        keyFrame = next.next();
-                    } else if (!currentIterator.name.equals(next.name)) {
-                        currentIterator = next;
-                        delay = 0;
-                        var get = next.next();
-                        keyFrame = get.time() < ANIMATION_THRESHOLD ? get.time(ANIMATION_THRESHOLD) : get;
-                    } else if (delay <= 0) {
-                        keyFrame = next.next();
+        synchronized (animators) {
+            var iterator = animators.reversed().values().iterator();
+            var check = true;
+            while (iterator.hasNext()) {
+                var next = iterator.next();
+                if (!next.get()) continue;
+                if (!next.hasNext()) {
+                    next.run();
+                    iterator.remove();
+                }
+                else {
+                    if (check) {
+                        if (currentIterator == null) {
+                            currentIterator = next;
+                            keyFrame = next.next();
+                        } else if (!currentIterator.name.equals(next.name)) {
+                            currentIterator = next;
+                            delay = 0;
+                            keyFrame = next.next();
+                        } else if (delay <= 0) {
+                            keyFrame = next.next();
+                        }
+                        check = false;
+                    } else {
+                        next.clear();
                     }
-                    check = false;
-                } else {
-                    next.clear();
                 }
             }
-        }
-        if (check) {
-            keyFrame = null;
+            if (check) {
+                keyFrame = null;
+            }
         }
     }
 
@@ -185,12 +192,18 @@ public final class RenderedEntity {
     }
 
     public void tint(boolean toggle, @NotNull PacketBundler bundler) {
-        itemStack = ModelRenderer.inst().nms().tint(itemStack, toggle);
-        if (display != null) display.item(itemStack);
-        forceUpdate(bundler);
+        tint = toggle;
+        if (applyItem()) forceUpdate(bundler);
         for (RenderedEntity value : children.values()) {
             value.tint(toggle, bundler);
         }
+    }
+
+    private boolean applyItem() {
+        if (display != null) {
+            display.item(visible ? ModelRenderer.inst().nms().tint(itemStack, tint) : new ItemStack(Material.AIR));
+            return true;
+        } else return false;
     }
 
     public @NotNull String getName() {
@@ -207,29 +220,29 @@ public final class RenderedEntity {
         children.values().forEach(e -> e.spawn(bundler));
     }
 
-    public void addLoop(@NotNull String parent, @NotNull BlueprintAnimation animator, Supplier<Boolean> predicate, Runnable removeTask) {
+    public void addLoop(@NotNull String parent, @NotNull BlueprintAnimation animator, AnimationModifier modifier, Runnable removeTask) {
         var get = animator.animator().get(getName());
-        var iterator = get != null ? new TreeIterator(parent, get.loopIterator(), predicate, removeTask) : new TreeIterator(parent, animator.emptyLoopIterator(), predicate, removeTask);
+        var iterator = get != null ? new TreeIterator(parent, get.loopIterator(), modifier, removeTask) : new TreeIterator(parent, animator.emptyLoopIterator(), modifier, removeTask);
         synchronized (animators) {
             animators.putIfAbsent(parent, iterator);
         }
-        children.values().forEach(c -> c.addLoop(parent, animator, predicate, () -> {}));
+        children.values().forEach(c -> c.addLoop(parent, animator, modifier, () -> {}));
     }
-    public void addSingle(@NotNull String parent, @NotNull BlueprintAnimation animator, Supplier<Boolean> predicate, Runnable removeTask) {
+    public void addSingle(@NotNull String parent, @NotNull BlueprintAnimation animator, AnimationModifier modifier, Runnable removeTask) {
         var get = animator.animator().get(getName());
-        var iterator = get != null ? new TreeIterator(parent, get.singleIterator(), predicate, removeTask) : new TreeIterator(parent, animator.emptySingleIterator(), predicate, removeTask);
+        var iterator = get != null ? new TreeIterator(parent, get.singleIterator(), modifier, removeTask) : new TreeIterator(parent, animator.emptySingleIterator(), modifier, removeTask);
         synchronized (animators) {
             animators.putIfAbsent(parent, iterator);
         }
-        children.values().forEach(c -> c.addSingle(parent, animator, predicate, () -> {}));
+        children.values().forEach(c -> c.addSingle(parent, animator, modifier, () -> {}));
     }
 
     public void replaceLoop(@NotNull String target, @NotNull String parent, @NotNull BlueprintAnimation animator) {
         var get = animator.animator().get(getName());
         synchronized (animators) {
             var v = animators.get(target);
-            if (v != null) animators.replace(target, get != null ? new TreeIterator(parent, get.loopIterator(), v.predicate, v.removeTask) : new TreeIterator(parent, animator.emptyLoopIterator(), v.predicate, v.removeTask));
-            else animators.replace(target, get != null ? new TreeIterator(parent, get.loopIterator(), () -> true, () -> {}) : new TreeIterator(parent, animator.emptyLoopIterator(), () -> true, () -> {}));
+            if (v != null) animators.replace(target, get != null ? new TreeIterator(parent, get.loopIterator(), v.modifier, v.removeTask) : new TreeIterator(parent, animator.emptyLoopIterator(), v.modifier, v.removeTask));
+            else animators.replace(target, get != null ? new TreeIterator(parent, get.loopIterator(), AnimationModifier.DEFAULT, () -> {}) : new TreeIterator(parent, animator.emptyLoopIterator(), AnimationModifier.DEFAULT, () -> {}));
         }
         children.values().forEach(c -> c.replaceLoop(target, parent, animator));
     }
@@ -237,8 +250,8 @@ public final class RenderedEntity {
         var get = animator.animator().get(getName());
         synchronized (animators) {
             var v = animators.get(target);
-            if (v != null) animators.replace(target, get != null ? new TreeIterator(parent, get.singleIterator(), v.predicate, v.removeTask) : new TreeIterator(parent, animator.emptySingleIterator(), v.predicate, v.removeTask));
-            else animators.replace(target, get != null ? new TreeIterator(parent, get.singleIterator(), () -> true, () -> {}) : new TreeIterator(parent, animator.emptySingleIterator(), () -> true, () -> {}));
+            if (v != null) animators.replace(target, get != null ? new TreeIterator(parent, get.singleIterator(), v.modifier, v.removeTask) : new TreeIterator(parent, animator.emptySingleIterator(), v.modifier, v.removeTask));
+            else animators.replace(target, get != null ? new TreeIterator(parent, get.singleIterator(), AnimationModifier.DEFAULT, () -> {}) : new TreeIterator(parent, animator.emptySingleIterator(), AnimationModifier.DEFAULT, () -> {}));
         }
         children.values().forEach(c -> c.replaceSingle(target, parent, animator));
     }
@@ -248,53 +261,78 @@ public final class RenderedEntity {
         children.values().forEach(e -> e.remove(bundler));
     }
 
+    public void togglePart(@NotNull PacketBundler bundler, @NotNull Predicate<RenderedEntity> predicate, boolean toggle) {
+        if (predicate.test(this)) {
+            visible = toggle;
+            if (applyItem()) forceUpdate(bundler);
+        }
+        for (RenderedEntity value : children.values()) {
+            value.togglePart(bundler, predicate, toggle);
+        }
+    }
+
     private record TreeIterator(
             String name,
             BlueprintAnimator.AnimatorIterator iterator,
-            Supplier<Boolean> predicate,
+            AnimationModifier modifier,
             Runnable removeTask
     ) implements BlueprintAnimator.AnimatorIterator, Supplier<Boolean>, Runnable {
 
-            @Override
-            public void run() {
-                removeTask.run();
-            }
-
-            @Override
-            public Boolean get() {
-                return predicate.get();
-            }
-
-            @Override
-            public boolean hasNext() {
-                return iterator.hasNext();
-            }
-
-            @Override
-            public AnimationMovement next() {
-                return iterator.next();
-            }
-
-            @Override
-            public void clear() {
-                iterator.clear();
-            }
-
-            @Override
-            public int length() {
-                return iterator.length();
-            }
-
-            @Override
-            public boolean equals(Object o) {
-                if (o == null || getClass() != o.getClass()) return false;
-                TreeIterator that = (TreeIterator) o;
-                return Objects.equals(name, that.name);
-            }
-
-            @Override
-            public int hashCode() {
-                return Objects.hashCode(name);
-            }
+        @Override
+        public int index() {
+            return iterator.index();
         }
+
+        @Override
+        public int lastIndex() {
+            return iterator.lastIndex();
+        }
+
+        @Override
+        public void run() {
+            removeTask.run();
+        }
+
+        @Override
+        public Boolean get() {
+            return modifier.predicate().get();
+        }
+
+        @Override
+        public boolean hasNext() {
+            return iterator.hasNext();
+        }
+
+        @Override
+        public AnimationMovement next() {
+            int i;
+            if (index() == 0) i = modifier().start();
+            else if (index() == lastIndex()) i = modifier().end();
+            else i = 0;
+            var nxt = iterator.next();
+            return i == 0 ? nxt : nxt.time(nxt.time() + i + 1);
+        }
+
+        @Override
+        public void clear() {
+            iterator.clear();
+        }
+
+        @Override
+        public int length() {
+            return iterator.length();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == null || getClass() != o.getClass()) return false;
+            TreeIterator that = (TreeIterator) o;
+            return Objects.equals(name, that.name);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(name);
+        }
+    }
 }

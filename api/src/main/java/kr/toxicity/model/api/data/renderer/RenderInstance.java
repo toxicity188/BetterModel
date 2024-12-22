@@ -21,7 +21,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 public final class RenderInstance implements AutoCloseable {
     @Getter
@@ -85,28 +84,36 @@ public final class RenderInstance implements AutoCloseable {
         }
     }
 
+
     public boolean animateLoop(@NotNull String animation) {
-        return animateLoop(animation, () -> true);
+        return animateLoop(animation, AnimationModifier.DEFAULT, () -> {});
     }
 
-    public boolean animateLoop(@NotNull String animation, Supplier<Boolean> predicate) {
-        return animateLoop(animation, predicate, () -> {});
+    public boolean animateSingle(@NotNull String animation) {
+        return animateSingle(animation, AnimationModifier.DEFAULT, () -> {});
+    }
+    public boolean animateLoop(@NotNull String animation, AnimationModifier modifier) {
+        return animateLoop(animation, modifier, () -> {});
     }
 
-    public boolean animateLoop(@NotNull String animation, Supplier<Boolean> predicate, Runnable removeTask) {
+    public boolean animateSingle(@NotNull String animation, AnimationModifier modifier) {
+        return animateSingle(animation, modifier, () -> {});
+    }
+
+    public boolean animateLoop(@NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
         var get = animationMap.get(animation);
         if (get == null) return false;
         for (RenderedEntity value : entityMap.values()) {
-            value.addLoop(animation, get, predicate, removeTask);
+            value.addLoop(animation, get, modifier, removeTask);
         }
         return true;
     }
 
-    public boolean animateSingle(@NotNull String animation, Supplier<Boolean> predicate, Runnable removeTask) {
+    public boolean animateSingle(@NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
         var get = animationMap.get(animation);
         if (get == null) return false;
         for (RenderedEntity value : entityMap.values()) {
-            value.addSingle(animation, get, predicate, removeTask);
+            value.addSingle(animation, get, modifier, removeTask);
         }
         return true;
     }
@@ -144,6 +151,14 @@ public final class RenderInstance implements AutoCloseable {
         var bundler = ModelRenderer.inst().nms().createBundler();
         entityMap.values().forEach(e -> e.remove(bundler));
         bundler.send(player);
+    }
+
+    public void togglePart(@NotNull Predicate<RenderedEntity> predicate, boolean toggle) {
+        var bundler = ModelRenderer.inst().nms().createBundler();
+        entityMap.values().forEach(e -> e.togglePart(bundler, predicate, toggle));
+        for (Player player : viewedPlayer()) {
+            bundler.send(player);
+        }
     }
 
     public int viewedPlayerSize() {

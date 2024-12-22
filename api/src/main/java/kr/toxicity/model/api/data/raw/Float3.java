@@ -13,6 +13,7 @@ public record Float3(
         float z
 ) {
     public static final Float3 CENTER = new Float3(8, 8, 8);
+    public static final Float3 PIVOT_POINT = new Float3(6, 16, 6);
 
     public static final Function<JsonElement, Float3> PARSER = element -> {
         if (element == null) return new Float3(0, 0, 0);
@@ -27,6 +28,10 @@ public record Float3(
     public float max() {
         return Math.max(x, Math.max(y, z));
     }
+    public float min() {
+        return Math.min(x, Math.min(y, z));
+    }
+
 
     public @NotNull Float3 plus(@NotNull Float3 other) {
         return new Float3(

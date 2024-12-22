@@ -39,7 +39,7 @@ public record BlueprintAnimation(
 
     private static Map<String, BlueprintAnimator> newMap(@NotNull Map<String, BlueprintAnimator> oldMap) {
         var newMap = new HashMap<String, BlueprintAnimator>();
-        var longSet = new TreeSet<Long>(Comparator.naturalOrder());
+        Set<Long> longSet = new TreeSet<>(Comparator.naturalOrder());
         oldMap.values().forEach(a -> a.keyFrame().stream().map(AnimationMovement::time).forEach(longSet::add));
         for (Map.Entry<String, BlueprintAnimator> entry : oldMap.entrySet()) {
             var list = getAnimationMovements(longSet, entry);
@@ -90,9 +90,20 @@ public record BlueprintAnimation(
 
             private int index = 0;
 
+
+            @Override
+            public int index() {
+                return index;
+            }
+
             @Override
             public void clear() {
                 index = 0;
+            }
+
+            @Override
+            public int lastIndex() {
+                return emptyAnimator.size() - 1;
             }
 
             @Override
@@ -116,6 +127,16 @@ public record BlueprintAnimation(
         return new BlueprintAnimator.AnimatorIterator() {
 
             private int index = 0;
+
+            @Override
+            public int index() {
+                return index;
+            }
+
+            @Override
+            public int lastIndex() {
+                return emptyAnimator.size() - 1;
+            }
 
             @Override
             public void clear() {

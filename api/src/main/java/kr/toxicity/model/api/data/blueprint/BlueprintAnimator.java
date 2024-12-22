@@ -27,12 +27,28 @@ public record BlueprintAnimator(@NotNull String name, int length, @NotNull @Unmo
         private final List<TimeVector> scale = new ArrayList<>();
         private final List<TimeVector> rotation = new ArrayList<>();
 
+        private static boolean checkSplit(Vector3f vector3f) {
+            return Math.abs(vector3f.x) > 90 || Math.abs(vector3f.y) > 90 || Math.abs(vector3f.z) > 90;
+        }
+
         public @NotNull Builder addFrame(@NotNull ModelKeyframe keyframe) {
             for (Datapoint dataPoint : keyframe.dataPoints()) {
                 var vec = dataPoint.toVector();
                 switch (keyframe.channel()) {
                     case POSITION -> transform.add(new TimeVector(Math.round(keyframe.time() * 20), MathUtil.transformToDisplay(vec.div(16))));
-                    case ROTATION -> rotation.add(new TimeVector(Math.round(keyframe.time() * 20), MathUtil.animationToDisplay(vec)));
+                    case ROTATION -> {
+                        var rot = new TimeVector(Math.round(keyframe.time() * 20), MathUtil.animationToDisplay(vec));
+                        if (rotation.isEmpty()) {
+                            rotation.add(rot);
+                        } else {
+                            var last = rotation.getLast();
+                            if (checkSplit(new Vector3f(rot.vector3f).sub(last.vector3f))) {
+                                var t = (rot.time - last.time) / 2 + last.time;
+                                rotation.add(new TimeVector(t, get(t, last, rot)));
+                            }
+                            rotation.add(rot);
+                        }
+                    }
                     case SCALE -> scale.add(new TimeVector(Math.round(keyframe.time() * 20), vec.sub(1, 1, 1)));
                 }
             }
@@ -114,12 +130,24 @@ public record BlueprintAnimator(@NotNull String name, int length, @NotNull @Unmo
     public interface AnimatorIterator extends Iterator<AnimationMovement> {
         void clear();
         int length();
+        int index();
+        int lastIndex();
     }
 
 
     private class SingleIterator implements AnimatorIterator {
 
         private int index = 0;
+
+        @Override
+        public int index() {
+            return index;
+        }
+
+        @Override
+        public int lastIndex() {
+            return keyFrame.size() - 1;
+        }
 
         @Override
         public int length() {
@@ -144,6 +172,16 @@ public record BlueprintAnimator(@NotNull String name, int length, @NotNull @Unmo
     private class LoopIterator implements AnimatorIterator {
 
         private int index = 0;
+
+        @Override
+        public int index() {
+            return index;
+        }
+
+        @Override
+        public int lastIndex() {
+            return keyFrame.size() - 1;
+        }
 
         @Override
         public int length() {

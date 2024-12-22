@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Vector3f;
 
 public interface NMS {
     @NotNull ModelDisplay create(@NotNull Location location);
@@ -16,4 +17,5 @@ public interface NMS {
     void mount(@NotNull EntityTracker tracker, @NotNull PacketBundler bundler);
     void boundingBox(@NotNull Entity entity, @NotNull BoundingBox box);
     @NotNull NMSVersion version();
+    @NotNull Vector3f passengerPosition(@NotNull Entity entity);
 }

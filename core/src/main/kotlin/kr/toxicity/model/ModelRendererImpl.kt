@@ -45,7 +45,9 @@ class ModelRendererImpl : ModelRenderer() {
             }
         }
         managers.forEach(GlobalManagerImpl::start)
-        reload()
+        Bukkit.getAsyncScheduler().runNow(this) {
+            reload()
+        }
     }
 
     override fun onDisable() {

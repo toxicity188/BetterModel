@@ -1,6 +1,7 @@
 package kr.toxicity.model.manager
 
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent
+import kr.toxicity.model.api.data.renderer.AnimationModifier
 import kr.toxicity.model.api.manager.EntityManager
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.util.PLUGIN
@@ -23,7 +24,7 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
             @EventHandler
             fun EntityDeathEvent.death() {
                 EntityTracker.tracker(entity)?.let {
-                    if (!it.animateSingle("death", { true }) {
+                    if (!it.animateSingle("death", AnimationModifier.DEFAULT) {
                             it.close()
                         }) it.close()
                 }
@@ -32,7 +33,7 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
             fun EntityDamageEvent.damage() {
                 val e = entity
                 if (e is LivingEntity) EntityTracker.tracker(e)?.let {
-                    if (it.animateSingle("damage", { true }) {
+                    if (it.animateSingle("damage", AnimationModifier.DEFAULT) {
                         it.tint(false)
                     }) it.tint(true)
                     else {

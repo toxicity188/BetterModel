@@ -28,7 +28,8 @@ public final class EntityUtil {
 
     public static boolean onWalk(@NotNull LivingEntity entity) {
         double speed = movement(entity);
-        return entity.isOnGround() && entity.getVelocity().length() * speed > 0.02;
+        //System.out.println(DecimalFormat.getInstance().format(speed) + " : " + DecimalFormat.getInstance().format(entity.getVelocity().length() / speed));
+        return entity.isOnGround() && entity.getVelocity().length() / speed > 0.4;
     }
 
     public static @NotNull NamedBoundingBox box(@NotNull String name, @NotNull List<VectorPair> elements) {

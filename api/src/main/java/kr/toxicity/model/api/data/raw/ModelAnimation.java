@@ -7,6 +7,7 @@ import java.util.UUID;
 
 public record ModelAnimation(
         @NotNull String name,
+        @NotNull String loop,
         @NotNull UUID uuid,
         float length,
         @NotNull Map<UUID, ModelAnimator> animators

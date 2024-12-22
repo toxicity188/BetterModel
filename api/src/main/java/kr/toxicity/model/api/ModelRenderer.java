@@ -13,7 +13,7 @@ public abstract class ModelRenderer extends JavaPlugin {
     private static ModelRenderer instance;
 
     @Override
-    public void onLoad() {
+    public final void onLoad() {
         if (instance != null) throw new RuntimeException();
         instance = this;
     }

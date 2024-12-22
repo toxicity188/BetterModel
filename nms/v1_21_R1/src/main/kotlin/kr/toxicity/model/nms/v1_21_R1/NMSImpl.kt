@@ -11,11 +11,8 @@ import net.minecraft.network.Connection
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.*
 import net.minecraft.server.MinecraftServer
-import net.minecraft.world.entity.Display
+import net.minecraft.world.entity.*
 import net.minecraft.world.entity.Display.ItemDisplay
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.EntityType
-import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.Items
 import net.minecraft.world.phys.AABB
@@ -30,6 +27,7 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.LeatherArmorMeta
 import org.bukkit.util.BoundingBox
 import org.bukkit.util.Transformation
+import org.joml.Vector3f
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
@@ -288,4 +286,12 @@ class NMSImpl : NMS {
     }
 
     override fun version(): NMSVersion = NMSVersion.V1_21_R1
+
+    override fun passengerPosition(entity: org.bukkit.entity.Entity): Vector3f {
+        return (entity as CraftEntity).handle.let {
+            it.attachments.get(EntityAttachment.PASSENGER, 0, it.yRot).let { v ->
+                Vector3f(v.x.toFloat(), v.y.toFloat(), v.z.toFloat())
+            }
+        }
+    }
 }

@@ -6,14 +6,12 @@ import io.lumine.mythic.api.skills.SkillMetadata
 import io.lumine.mythic.api.skills.SkillResult
 import io.lumine.mythic.bukkit.MythicBukkit
 import io.lumine.mythic.core.skills.SkillMechanic
-import kr.toxicity.model.api.data.renderer.AnimationModifier
 import kr.toxicity.model.api.tracker.EntityTracker
 
-class StateMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "[BetterHud]", mlc), INoTargetSkill {
+class PartVisibilityMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "[BetterHud]", mlc), INoTargetSkill {
 
-    private val s = mlc.getString(arrayOf("state", "s"))!!
-    private val li = mlc.getInteger(arrayOf("li"), 4)
-    private val lo = mlc.getInteger(arrayOf("lo"), 4)
+    private val p = mlc.getString(arrayOf("part", "p"))!!
+    private val v = mlc.getBoolean(arrayOf("value", "v"), true)
 
     init {
         isAsyncSafe = false
@@ -21,7 +19,7 @@ class StateMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().s
 
     override fun cast(p0: SkillMetadata): SkillResult {
         return EntityTracker.tracker(p0.caster.entity.bukkitEntity)?.let {
-            it.animateSingle(s, AnimationModifier({ true }, li, lo))
+            it.togglePart({ r -> r.name == p }, v)
             SkillResult.SUCCESS
         } ?: SkillResult.ERROR
     }

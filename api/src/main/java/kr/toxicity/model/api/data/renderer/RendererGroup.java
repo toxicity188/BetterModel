@@ -24,6 +24,8 @@ public final class RendererGroup {
 
     @Getter
     private final String name;
+    @Getter
+    private final BlueprintChildren.BlueprintGroup parent;
     private final float scale;
     private final Vector3f position;
     private final Vector3f rotation;
@@ -40,6 +42,7 @@ public final class RendererGroup {
     ) {
         this.name = name;
         this.scale = scale;
+        this.parent = group;
         this.children = children;
         this.itemStack = itemStack;
         position = MathUtil.blockBenchToDisplay(group.origin().toVector().div(16).div(scale));
@@ -47,7 +50,7 @@ public final class RendererGroup {
         if (itemStack != null) {
             displayFunction = l -> {
                 var display = ModelRenderer.inst().nms().create(l);
-                display.item(itemStack);
+                display.item(parent.visibility() ? itemStack : new ItemStack(Material.AIR));
                 return display;
             };
         } else {
@@ -65,7 +68,7 @@ public final class RendererGroup {
                 displayFunction,
                 location,
                 new EntityMovement(
-                        entityParent != null ? new Vector3f(position).sub(entityParent.getGroup().position) : position,
+                        entityParent != null ? new Vector3f(position).sub(entityParent.getGroup().position) : new Vector3f(position).add(0, 2.4F / scale, 0),
                         entityParent != null ? new Vector3f(1) : new Vector3f(scale),
                         MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(rotation)),
                         rotation

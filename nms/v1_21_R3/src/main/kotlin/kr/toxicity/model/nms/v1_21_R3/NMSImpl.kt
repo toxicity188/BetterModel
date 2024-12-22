@@ -28,6 +28,7 @@ import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.util.BoundingBox
 import org.bukkit.util.Transformation
+import org.joml.Vector3f
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
@@ -286,4 +287,12 @@ class NMSImpl : NMS {
     }
 
     override fun version(): NMSVersion = NMSVersion.V1_21_R3
+
+    override fun passengerPosition(entity: org.bukkit.entity.Entity): Vector3f {
+        return (entity as CraftEntity).handle.let {
+            it.attachments.get(EntityAttachment.PASSENGER, 0, it.yRot).let { v ->
+                Vector3f(v.x.toFloat(), v.y.toFloat(), v.z.toFloat())
+            }
+        }
+    }
 }
