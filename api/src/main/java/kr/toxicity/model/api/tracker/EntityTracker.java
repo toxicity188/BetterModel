@@ -71,7 +71,6 @@ public final class EntityTracker extends Tracker {
         }
         var box = instance.hitBox();
         if (box != null) {
-            System.out.println(box);
             ModelRenderer.inst().nms().boundingBox(entity, box.box());
         }
         entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, instance.getParent().getParent().name());

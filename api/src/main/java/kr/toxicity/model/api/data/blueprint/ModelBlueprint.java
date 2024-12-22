@@ -22,14 +22,14 @@ public record ModelBlueprint(
 ) {
     public static @NotNull ModelBlueprint from(@NotNull String name, @NotNull ModelData data) {
         var elementMap = data.elements().stream().collect(Collectors.toMap(ModelElement::uuid, e -> e));
-        var scale = data.elements().stream().mapToDouble(ModelElement::max).max().orElseThrow() / 24;
+        var scale = data.elements().stream().mapToDouble(ModelElement::max).max().orElseThrow() / 16;
         var list = new ArrayList<BlueprintChildren>();
         var boxMap = new HashMap<String, NamedBoundingBox>();
         for (ModelChildren modelChildren : data.outliner()) {
             var children = BlueprintChildren.from(modelChildren, elementMap, (float) scale);
             list.add(children);
             if (children instanceof BlueprintChildren.BlueprintGroup group) {
-                boxMap.putAll(group.boxes((float) scale));
+                boxMap.putAll(group.boxes());
             }
         }
         return new ModelBlueprint(

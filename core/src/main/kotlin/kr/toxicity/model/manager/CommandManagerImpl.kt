@@ -25,14 +25,14 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                     .withAliases("o")
                     .withPermission("modelrenderer.orc")
                     .executesPlayer(PlayerCommandExecutor { player, _ ->
-//                        val warrior = ModelManagerImpl.renderer("orc_warrior")!!.create(player.world.spawnEntity(player.location, EntityType.HUSK))
-//                        warrior.spawn(player)
+                        val warrior = ModelManagerImpl.renderer("orc_warrior")!!.create(player.world.spawnEntity(player.location, EntityType.HUSK))
+                        warrior.spawn(player)
 //                        val archer = ModelManagerImpl.renderer("orc_archer")!!
 //                        archer.create(player.world.spawnEntity(player.location, EntityType.SKELETON)).spawn(player)
                         val giant = ModelManagerImpl.renderer("orc_giant")!!.create(player.world.spawnEntity(player.location, EntityType.HUSK))
                         giant.spawn(player)
-                        val king = ModelManagerImpl.renderer("orc_king")!!.create(player.world.spawnEntity(player.location, EntityType.HUSK))
-                        king.spawn(player)
+//                        val king = ModelManagerImpl.renderer("orc_king")!!.create(player.world.spawnEntity(player.location, EntityType.HUSK))
+//                        king.spawn(player)
                     }),
                 CommandAPICommand("reload")
                     .withAliases("re", "rl")

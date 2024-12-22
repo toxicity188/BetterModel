@@ -15,7 +15,6 @@ import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.TimeUnit
 
 object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
 
@@ -41,15 +40,12 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
     }
 
     private fun Player.showAll() {
-        Bukkit.getAsyncScheduler().runDelayed(PLUGIN, {
-            val playerLoc = location
-            EntityTracker.trackers {
-                val loc = it.entity.location
-                loc.world.uid == playerLoc.world.uid && loc.distance(playerLoc) <= EntityUtil.RENDER_DISTANCE
-            }.forEach {
-                it.spawn(this)
+        val loc = location
+        Bukkit.getRegionScheduler().runDelayed(PLUGIN, loc, {
+            loc.getNearbyLivingEntities(EntityUtil.RENDER_DISTANCE).forEach {
+                EntityTracker.tracker(it)?.spawn(this)
             }
-        }, 500, TimeUnit.MILLISECONDS)
+        }, 10)
     }
 
     private fun Player.register() = playerMap.computeIfAbsent(uniqueId) {

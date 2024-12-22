@@ -65,23 +65,21 @@ public sealed interface BlueprintChildren {
         }
 
 
-        public @NotNull Map<String, NamedBoundingBox> boxes(float scale) {
+        public @NotNull Map<String, NamedBoundingBox> boxes() {
             var map = new HashMap<String, NamedBoundingBox>();
             var elements = new ArrayList<VectorPair>();
             for (BlueprintChildren child : children) {
                 switch (child) {
-                    case BlueprintGroup group -> map.putAll(group.boxes(scale));
+                    case BlueprintGroup group -> map.putAll(group.boxes());
                     case BlueprintElement element -> {
                         var model = element.element;
                         elements.add(new VectorPair(
                                 model.from()
                                         .toVector()
-                                        .div(16)
-                                        .mul(scale),
+                                        .div(16),
                                 model.to()
                                         .toVector()
                                         .div(16)
-                                        .mul(scale)
                         ));
                     }
                 }

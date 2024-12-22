@@ -70,7 +70,7 @@ public final class RendererGroup {
                 displayFunction,
                 location,
                 new EntityMovement(
-                        entityParent != null ? new Vector3f(position).sub(entityParent.getGroup().position) : position,
+                        entityParent != null ? new Vector3f(position).sub(entityParent.getGroup().position) : new Vector3f(position).mul(scale),
                         entityParent != null ? new Vector3f(1) : new Vector3f(scale),
                         MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(rotation)),
                         rotation
