@@ -33,6 +33,9 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                         giant.spawn(player)
 //                        val king = ModelManagerImpl.renderer("orc_king")!!.create(player.world.spawnEntity(player.location, EntityType.HUSK))
 //                        king.spawn(player)
+                        Bukkit.getAsyncScheduler().runAtFixedRate(PLUGIN, { e ->
+                            if (giant.entity.isValid) giant.animateSingle("throw_ready") else e.cancel()
+                        }, 1, 1, TimeUnit.SECONDS)
                     }),
                 CommandAPICommand("reload")
                     .withAliases("re", "rl")

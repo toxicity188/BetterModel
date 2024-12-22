@@ -26,6 +26,7 @@ public final class RendererGroup {
     private final String name;
     @Getter
     private final BlueprintChildren.BlueprintGroup parent;
+    @Getter
     private final float scale;
     private final Vector3f position;
     private final Vector3f rotation;
@@ -46,8 +47,7 @@ public final class RendererGroup {
         this.children = children;
         this.itemStack = itemStack;
         position = MathUtil.blockBenchToDisplay(group.origin().toVector()
-                .div(16)
-                .div(scale));
+                .div(16));
         rotation = group.rotation().toVector();
         if (itemStack != null) {
             displayFunction = l -> {
@@ -70,8 +70,8 @@ public final class RendererGroup {
                 displayFunction,
                 location,
                 new EntityMovement(
-                        entityParent != null ? new Vector3f(position).sub(entityParent.getGroup().position) : new Vector3f(position).mul(scale),
-                        entityParent != null ? new Vector3f(1) : new Vector3f(scale),
+                        entityParent != null ? new Vector3f(position).sub(entityParent.getGroup().position) : position,
+                        new Vector3f(1),
                         MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(rotation)),
                         rotation
                 )

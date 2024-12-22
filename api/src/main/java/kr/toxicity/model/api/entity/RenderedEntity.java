@@ -139,7 +139,7 @@ public final class RenderedEntity {
                 d.transform(new Transformation(
                         entityMovement.transform(),
                         entityMovement.rotation(),
-                        entityMovement.scale(),
+                        new Vector3f(entityMovement.scale()).mul(group.getScale()),
                         new Quaternionf()
                 ));
                 d.send(bundler);
@@ -158,7 +158,7 @@ public final class RenderedEntity {
             d.transform(new Transformation(
                     entityMovement.transform(),
                     entityMovement.rotation(),
-                    entityMovement.scale(),
+                    new Vector3f(entityMovement.scale()).mul(group.getScale()),
                     new Quaternionf()
             ));
             d.send(bundler);
