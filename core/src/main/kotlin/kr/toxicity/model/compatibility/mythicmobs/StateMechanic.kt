@@ -12,8 +12,8 @@ import kr.toxicity.model.api.tracker.EntityTracker
 class StateMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "[BetterHud]", mlc), INoTargetSkill {
 
     private val s = mlc.getString(arrayOf("state", "s"))!!
-    private val li = mlc.getInteger(arrayOf("li"), 4)
-    private val lo = mlc.getInteger(arrayOf("lo"), 4)
+    private val li = mlc.getInteger(arrayOf("li"), 0)
+    private val lo = mlc.getInteger(arrayOf("lo"), 0)
 
     init {
         isAsyncSafe = false

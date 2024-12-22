@@ -67,7 +67,7 @@ public final class EntityTracker extends Tracker {
                         }
                     });
             addForceUpdateConstraint(t -> EntityUtil.onWalk(livingEntity));
-            instance.animateLoop("walk", new AnimationModifier(() -> EntityUtil.onWalk(livingEntity), 4, 4));
+            instance.animateLoop("walk", new AnimationModifier(() -> EntityUtil.onWalk(livingEntity), 0, 0));
         }
         var box = instance.hitBox();
         if (box != null) {
