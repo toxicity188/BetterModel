@@ -18,7 +18,7 @@ public record ModelElement(
         return to.minus(from);
     }
     public float max() {
-        return size().min();
+        return size().max();
     }
     public float min() {
         return size().min();

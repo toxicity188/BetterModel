@@ -45,7 +45,9 @@ public final class RendererGroup {
         this.parent = group;
         this.children = children;
         this.itemStack = itemStack;
-        position = MathUtil.blockBenchToDisplay(group.origin().toVector().div(16).div(scale));
+        position = MathUtil.blockBenchToDisplay(group.origin().toVector()
+                .div(16)
+                .div(scale));
         rotation = group.rotation().toVector();
         if (itemStack != null) {
             displayFunction = l -> {
@@ -68,7 +70,7 @@ public final class RendererGroup {
                 displayFunction,
                 location,
                 new EntityMovement(
-                        entityParent != null ? new Vector3f(position).sub(entityParent.getGroup().position) : new Vector3f(position).add(0, 2.4F / scale, 0),
+                        entityParent != null ? new Vector3f(position).sub(entityParent.getGroup().position) : position,
                         entityParent != null ? new Vector3f(1) : new Vector3f(scale),
                         MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(rotation)),
                         rotation

@@ -22,7 +22,7 @@ public record ModelBlueprint(
 ) {
     public static @NotNull ModelBlueprint from(@NotNull String name, @NotNull ModelData data) {
         var elementMap = data.elements().stream().collect(Collectors.toMap(ModelElement::uuid, e -> e));
-        var scale = 48.0 / data.elements().stream().mapToDouble(ModelElement::min).max().orElseThrow();
+        var scale = data.elements().stream().mapToDouble(ModelElement::max).max().orElseThrow() / 24;
         var list = new ArrayList<BlueprintChildren>();
         var boxMap = new HashMap<String, NamedBoundingBox>();
         for (ModelChildren modelChildren : data.outliner()) {
