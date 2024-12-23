@@ -32,24 +32,10 @@ public abstract class Tracker implements AutoCloseable {
     private TrackerMovement previousMovement;
 
     private Predicate<? super Tracker> predicate = t -> false;
-    private Vector3f beforeRotation = new Vector3f();
     public Tracker(@NotNull Supplier<TrackerMovement> movement, @NotNull RenderInstance instance) {
         this.instance = instance;
         task = Bukkit.getAsyncScheduler().runAtFixedRate(ModelRenderer.inst(), task -> {
             var bundle = ModelRenderer.inst().nms().createBundler();
-            var move = isRunningSingleAnimation() && previousMovement != null ? previousMovement : (previousMovement = movement.get());
-            var rot = move.rotation();
-            if (beforeRotation != null) {
-                move = move.copy();
-                move.rotation()
-                        .set(0)
-                        .add(
-                                Math.clamp(rot.x, beforeRotation.x - 22.5F, beforeRotation.x + 22.5F),
-                                Math.clamp(rot.y, beforeRotation.y - 22.5F, beforeRotation.y + 22.5F),
-                                Math.clamp(rot.z, beforeRotation.z - 22.5F, beforeRotation.z + 22.5F)
-                        );
-            }
-            beforeRotation = rot;
             instance.move(isRunningSingleAnimation() && previousMovement != null ? previousMovement : (previousMovement = movement.get()), bundle);
             for (Player player : instance.viewedPlayer()) {
                 bundle.send(player);

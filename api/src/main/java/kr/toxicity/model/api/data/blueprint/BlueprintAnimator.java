@@ -28,10 +28,7 @@ public record BlueprintAnimator(@NotNull String name, int length, @NotNull @Unmo
         private final List<TimeVector> rotation = new ArrayList<>();
 
         private static int checkSplit(Vector3f vector3f) {
-            return (int) (Math.max(
-                    Math.abs(vector3f.x),
-                    Math.max(Math.abs(vector3f.y), Math.abs(vector3f.z))
-            ) / 90.0) + 1;
+            return (int) (Math.sqrt(Math.pow(vector3f.x, 2) + Math.pow(vector3f.y, 2) + Math.pow(vector3f.z, 2)) / 90.0) + 1;
         }
 
         public @NotNull Builder addFrame(@NotNull ModelKeyframe keyframe) {

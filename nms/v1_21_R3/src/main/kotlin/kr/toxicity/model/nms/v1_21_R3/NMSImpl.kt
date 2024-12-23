@@ -7,10 +7,12 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
 import kr.toxicity.model.api.nms.*
 import kr.toxicity.model.api.tracker.EntityTracker
+import kr.toxicity.model.nms.v1_21_R3.NMSImpl.Companion.InteractHandler
 import net.minecraft.core.component.DataComponents
 import net.minecraft.network.Connection
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.*
+import net.minecraft.network.syncher.EntityDataAccessor
 import net.minecraft.server.MinecraftServer
 import net.minecraft.world.entity.*
 import net.minecraft.world.entity.Display.ItemDisplay
@@ -31,6 +33,7 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.util.BoundingBox
 import org.bukkit.util.Transformation
 import org.joml.Vector3f
+import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -61,6 +64,20 @@ class NMSImpl : NMS {
                 constructor.newInstance(i, booleanField[p], actionField[p]) as ServerboundInteractPacket
             }
         }
+
+        private fun Class<*>.serializers() = declaredFields.filter { f ->
+            EntityDataAccessor::class.java.isAssignableFrom(f.type)
+        }
+
+        private fun Field.toSerializerId() = run {
+            isAccessible = true
+            (get(null) as EntityDataAccessor<*>).id
+        }
+
+        private val transformSet = Display::class.java.serializers().subList(0, 6).map { e ->
+            e.toSerializerId()
+        }.toSet()
+        private val transformSetWithItem = transformSet + ItemDisplay::class.java.serializers().first().toSerializerId()
     }
 
     private class PacketBundlerImpl(
@@ -229,7 +246,7 @@ class NMSImpl : NMS {
             bundler.unwrap().add(addPacket)
             val f = display.transformationInterpolationDuration
             frame(0)
-            bundler.unwrap().add(dataPacket)
+            bundler.unwrap().add(ClientboundSetEntityDataPacket(display.id, display.entityData.packAll()!!))
             frame(f)
         }
 
@@ -251,19 +268,20 @@ class NMSImpl : NMS {
             )
         }
 
+        private var itemChanged = false
+
         override fun item(itemStack: ItemStack) {
+            itemChanged = true
             display.itemStack = CraftItemStack.asNMSCopy(itemStack)
         }
 
         override fun transform(transformation: Transformation) {
-            display.setTransformation(
-                com.mojang.math.Transformation(
-                    transformation.translation,
-                    transformation.leftRotation,
-                    transformation.scale,
-                    transformation.rightRotation
-                )
-            )
+            display.setTransformation(com.mojang.math.Transformation(
+                transformation.translation,
+                transformation.leftRotation,
+                transformation.scale,
+                transformation.rightRotation
+            ))
         }
 
         override fun send(bundler: PacketBundler) {
@@ -271,7 +289,14 @@ class NMSImpl : NMS {
         }
 
         private val dataPacket
-            get() = ClientboundSetEntityDataPacket(display.id, display.entityData.packAll()!!)
+            get(): ClientboundSetEntityDataPacket {
+                val set = if (itemChanged) transformSetWithItem else transformSet
+                val result = ClientboundSetEntityDataPacket(display.id, display.entityData.packAll()!!.filter {
+                    set.contains(it.id)
+                })
+                itemChanged = false
+                return result
+            }
 
         private val teleportPacket
             get() = ClientboundTeleportEntityPacket.teleport(display.id, PositionMoveRotation.of(display), emptySet(), display.onGround)
