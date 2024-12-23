@@ -4,10 +4,7 @@ import kr.toxicity.model.api.ModelRenderer
 import kr.toxicity.model.api.ModelRenderer.ReloadResult.Failure
 import kr.toxicity.model.api.ModelRenderer.ReloadResult.OnReload
 import kr.toxicity.model.api.ModelRenderer.ReloadResult.Success
-import kr.toxicity.model.api.manager.CommandManager
-import kr.toxicity.model.api.manager.EntityManager
-import kr.toxicity.model.api.manager.ModelManager
-import kr.toxicity.model.api.manager.PlayerManager
+import kr.toxicity.model.api.manager.*
 import kr.toxicity.model.api.nms.NMS
 import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.api.version.MinecraftVersion.*
@@ -25,6 +22,7 @@ class ModelRendererImpl : ModelRenderer() {
 
     private val managers by lazy {
         listOf(
+            CompatibilityManagerImpl,
             ModelManagerImpl,
             PlayerManagerImpl,
             EntityManagerImpl,
@@ -36,6 +34,7 @@ class ModelRendererImpl : ModelRenderer() {
         nms = when (version) {
             V1_21_4 -> kr.toxicity.model.nms.v1_21_R3.NMSImpl()
             V1_21_2, V1_21_3 -> kr.toxicity.model.nms.v1_21_R2.NMSImpl()
+            V1_21, V1_21_1 -> kr.toxicity.model.nms.v1_21_R1.NMSImpl()
             else -> {
                 warn(
                     "Unsupported version: $version",
@@ -46,7 +45,9 @@ class ModelRendererImpl : ModelRenderer() {
             }
         }
         managers.forEach(GlobalManagerImpl::start)
-        reload()
+        Bukkit.getAsyncScheduler().runNow(this) {
+            reload()
+        }
     }
 
     override fun onDisable() {
@@ -71,6 +72,7 @@ class ModelRendererImpl : ModelRenderer() {
     override fun playerManager(): PlayerManager = PlayerManagerImpl
     override fun entityManager(): EntityManager = EntityManagerImpl
     override fun commandManager(): CommandManager = CommandManagerImpl
+    override fun compatibilityManager(): CompatibilityManager = CompatibilityManagerImpl
 
     override fun version(): MinecraftVersion = version
     override fun nms(): NMS = nms

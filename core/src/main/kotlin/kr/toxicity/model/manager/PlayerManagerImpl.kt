@@ -3,17 +3,18 @@ package kr.toxicity.model.manager
 import kr.toxicity.model.api.manager.PlayerManager
 import kr.toxicity.model.api.nms.PlayerChannelHandler
 import kr.toxicity.model.api.tracker.EntityTracker
+import kr.toxicity.model.api.util.EntityUtil
 import kr.toxicity.model.util.PLUGIN
 import kr.toxicity.model.util.registerListener
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
+import org.bukkit.event.player.PlayerChangedWorldEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.TimeUnit
 
 object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
 
@@ -24,21 +25,27 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
             @EventHandler
             fun PlayerJoinEvent.join() {
                 player.register()
-                Bukkit.getAsyncScheduler().runDelayed(PLUGIN, {
-                    val playerLoc = player.location
-                    EntityTracker.trackers {
-                        val loc = it.entity.location
-                        loc.world.uid == playerLoc.world.uid && loc.distance(playerLoc) <= 32
-                    }.forEach {
-                        it.spawn(player)
-                    }
-                }, 500, TimeUnit.MILLISECONDS)
+                player.showAll()
+            }
+            @EventHandler
+            fun PlayerChangedWorldEvent.change() {
+                player.register().unregisterAll()
+                player.showAll()
             }
             @EventHandler
             fun PlayerQuitEvent.quit() {
                 playerMap.remove(player.uniqueId)?.close()
             }
         })
+    }
+
+    private fun Player.showAll() {
+        val loc = location
+        Bukkit.getRegionScheduler().runDelayed(PLUGIN, loc, {
+            loc.getNearbyLivingEntities(EntityUtil.RENDER_DISTANCE).forEach {
+                EntityTracker.tracker(it)?.spawn(this)
+            }
+        }, 10)
     }
 
     private fun Player.register() = playerMap.computeIfAbsent(uniqueId) {

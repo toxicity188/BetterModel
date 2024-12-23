@@ -7,7 +7,7 @@ plugins {
     id("xyz.jpenilla.resource-factory-bukkit-convention") version("1.2.0")
 }
 
-val minecraft = "1.21.4"
+val minecraft = "1.21.3"
 val targetJavaVersion = 21
 
 allprojects {
@@ -18,10 +18,12 @@ allprojects {
     repositories {
         mavenCentral()
         maven("https://repo.papermc.io/repository/maven-public/")
+        maven("https://mvn.lumine.io/repository/maven-public/")
     }
     dependencies {
         testImplementation(kotlin("test"))
         implementation("dev.jorel:commandapi-bukkit-shade:9.7.0")
+        compileOnly("io.lumine:Mythic-Dist:5.7.2")
     }
     tasks {
         test {
@@ -108,4 +110,7 @@ bukkitPluginYaml {
     apiVersion = "1.19"
     author = "toxicity"
     description = "Simple Model API."
+    softDepend = listOf(
+        "MythicMobs"
+    )
 }

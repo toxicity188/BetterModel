@@ -2,7 +2,9 @@ package kr.toxicity.model.api.tracker;
 
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import kr.toxicity.model.api.ModelRenderer;
+import kr.toxicity.model.api.data.renderer.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
+import kr.toxicity.model.api.entity.RenderedEntity;
 import kr.toxicity.model.api.entity.TrackerMovement;
 import kr.toxicity.model.api.nms.PacketBundler;
 import org.bukkit.Bukkit;
@@ -10,12 +12,14 @@ import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Vector3f;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public abstract class Tracker implements AutoCloseable {
@@ -27,6 +31,7 @@ public abstract class Tracker implements AutoCloseable {
 
     private TrackerMovement previousMovement;
 
+    private Predicate<? super Tracker> predicate = t -> false;
     public Tracker(@NotNull Supplier<TrackerMovement> movement, @NotNull RenderInstance instance) {
         this.instance = instance;
         task = Bukkit.getAsyncScheduler().runAtFixedRate(ModelRenderer.inst(), task -> {
@@ -44,6 +49,11 @@ public abstract class Tracker implements AutoCloseable {
     public void close() throws Exception {
         task.cancel();
         instance.close();
+    }
+
+    public void addForceUpdateConstraint(@NotNull Predicate<? super Tracker> constraint) {
+        var before = predicate;
+        predicate = t -> before.test(t) || constraint.test(t);
     }
 
     public boolean isRunningSingleAnimation() {
@@ -73,27 +83,27 @@ public abstract class Tracker implements AutoCloseable {
     public abstract @NotNull UUID uuid();
 
     public boolean animateLoop(@NotNull String animation) {
-        return animateLoop(animation, () -> true);
+        return animateLoop(animation, AnimationModifier.DEFAULT);
     }
 
-    public boolean animateLoop(@NotNull String animation, Supplier<Boolean> predicate) {
-        return animateLoop(animation, predicate, () -> {});
+    public boolean animateLoop(@NotNull String animation, AnimationModifier modifier) {
+        return animateLoop(animation, modifier, () -> {});
     }
 
-    public boolean animateLoop(@NotNull String animation, Supplier<Boolean> predicate, Runnable removeTask) {
-        return instance.animateLoop(animation, predicate, removeTask);
+    public boolean animateLoop(@NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
+        return instance.animateLoop(animation, modifier, removeTask);
     }
 
     public boolean animateSingle(@NotNull String animation) {
-        return animateSingle(animation, () -> true);
+        return animateSingle(animation, AnimationModifier.DEFAULT);
     }
 
-    public boolean animateSingle(@NotNull String animation, Supplier<Boolean> predicate) {
-        return animateSingle(animation, predicate, () -> {});
+    public boolean animateSingle(@NotNull String animation, AnimationModifier modifier) {
+        return animateSingle(animation, modifier, () -> {});
     }
 
-    public boolean animateSingle(@NotNull String animation, Supplier<Boolean> predicate, Runnable removeTask) {
-        var success = instance.animateSingle(animation, predicate, wrapToSingle(removeTask));
+    public boolean animateSingle(@NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
+        var success = instance.animateSingle(animation, modifier, wrapToSingle(removeTask));
         if (success) runningSingle.set(true);
         return success;
     }
@@ -103,5 +113,20 @@ public abstract class Tracker implements AutoCloseable {
             runnable.run();
             runningSingle.set(false);
         };
+    }
+
+
+    public boolean replaceLoop(@NotNull String target, @NotNull String animation) {
+        return instance.replaceLoop(target, animation);
+    }
+
+    public boolean replaceSingle(@NotNull String target, @NotNull String animation) {
+        var success = instance.replaceSingle(target, animation);
+        if (success) runningSingle.set(true);
+        return success;
+    }
+
+    public void togglePart(@NotNull Predicate<RenderedEntity> predicate, boolean toggle) {
+        instance.togglePart(predicate, toggle);
     }
 }

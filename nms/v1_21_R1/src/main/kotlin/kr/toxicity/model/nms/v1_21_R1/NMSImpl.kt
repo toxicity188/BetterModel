@@ -1,4 +1,4 @@
-package kr.toxicity.model.nms.v1_21_R2
+package kr.toxicity.model.nms.v1_21_R1
 
 import com.google.common.collect.ImmutableList
 import com.mojang.datafixers.util.Pair
@@ -7,7 +7,7 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
 import kr.toxicity.model.api.nms.*
 import kr.toxicity.model.api.tracker.EntityTracker
-import kr.toxicity.model.nms.v1_21_R2.NMSImpl.Companion.InteractHandler
+import kr.toxicity.model.nms.v1_21_R1.NMSImpl.Companion.InteractHandler
 import net.minecraft.network.Connection
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.*
@@ -130,13 +130,12 @@ class NMSImpl : NMS {
                 it.remove(player)
             }
         }
+        override fun player(): Player = player
+        private fun send(packet: Packet<*>) = connection.send(packet)
 
         private fun Int.toTracker() = toEntity()?.let {
             entityUUIDMap[it.uuid]
         }
-
-        override fun player(): Player = player
-        private fun send(packet: Packet<*>) = connection.send(packet)
 
         override fun startTrack(tracker: EntityTracker) {
             val entity = (tracker.entity as CraftEntity).handle
@@ -204,11 +203,10 @@ class NMSImpl : NMS {
 
     override fun mount(tracker: EntityTracker, bundler: PacketBundler) {
         val entity = (tracker.entity as CraftEntity).handle
-        val display = tracker.renderers().mapNotNull {
-            (it as? ModelDisplayImpl)?.display
-        }
         entity.passengers = ImmutableList.builder<Entity>()
-            .addAll(display)
+            .addAll(tracker.renderers().mapNotNull {
+                (it as? ModelDisplayImpl)?.display
+            })
             .addAll(entity.passengers)
             .build()
         val packet = ClientboundSetPassengersPacket(entity)
@@ -297,30 +295,28 @@ class NMSImpl : NMS {
                 itemChanged = false
                 return result
             }
+
         private val teleportPacket
-            get() = ClientboundTeleportEntityPacket.teleport(display.id, PositionMoveRotation.of(display), emptySet(), display.onGround)
+            get() = ClientboundTeleportEntityPacket(display)
 
         private val removePacket
             get() = ClientboundRemoveEntitiesPacket(display.id)
 
         private val addPacket
-            get() = display.addPacket
+            get() = ClientboundAddEntityPacket(
+                display.id,
+                display.uuid,
+                display.x,
+                display.y,
+                display.z,
+                display.xRot,
+                display.yRot,
+                display.type,
+                0,
+                display.deltaMovement,
+                display.yHeadRot.toDouble()
+            )
     }
-
-    private val Entity.addPacket
-        get() = ClientboundAddEntityPacket(
-            id,
-            uuid,
-            x,
-            y,
-            z,
-            xRot,
-            yRot,
-            type,
-            0,
-            deltaMovement,
-            yHeadRot.toDouble()
-        )
 
     override fun tint(itemStack: ItemStack, toggle: Boolean): ItemStack {
         val meta = itemStack.itemMeta
@@ -367,7 +363,7 @@ class NMSImpl : NMS {
         maxZ * scale
     )
 
-    override fun version(): NMSVersion = NMSVersion.V1_21_R2
+    override fun version(): NMSVersion = NMSVersion.V1_21_R1
 
     override fun passengerPosition(entity: org.bukkit.entity.Entity): Vector3f {
         return (entity as CraftEntity).handle.let {

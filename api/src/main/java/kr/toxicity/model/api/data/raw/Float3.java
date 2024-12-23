@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
+import java.util.Map;
 import java.util.function.Function;
 
 public record Float3(
@@ -24,11 +25,19 @@ public record Float3(
         );
     };
 
-    public float absMax() {
-        return Math.max(Math.abs(x), Math.max(Math.abs(x), Math.abs(x)));
-    }
     public float max() {
         return Math.max(x, Math.max(y, z));
+    }
+    public float min() {
+        return Math.min(x, Math.min(y, z));
+    }
+
+    public @NotNull Float3 abs() {
+        return new Float3(
+                Math.abs(x),
+                Math.abs(y),
+                Math.abs(z)
+        );
     }
 
     public @NotNull Float3 plus(@NotNull Float3 other) {

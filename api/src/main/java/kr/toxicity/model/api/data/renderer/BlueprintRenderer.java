@@ -1,6 +1,7 @@
 package kr.toxicity.model.api.data.renderer;
 
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
+import kr.toxicity.model.api.data.blueprint.ModelBlueprint;
 import kr.toxicity.model.api.tracker.EntityTracker;
 import kr.toxicity.model.api.tracker.VoidTracker;
 import lombok.Getter;
@@ -16,7 +17,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public final class BlueprintRenderer {
     @Getter
-    private final String name;
+    private final ModelBlueprint parent;
     private final Map<String, RendererGroup> rendererGroupMap;
     private final Map<String, BlueprintAnimation> animationMap;
 

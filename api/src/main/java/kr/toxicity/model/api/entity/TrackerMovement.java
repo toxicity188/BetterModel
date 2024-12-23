@@ -13,7 +13,7 @@ public record TrackerMovement(
     public @NotNull EntityMovement plus(@NotNull EntityMovement movement) {
         var q = MathUtil.toQuaternion(rotation);
         return new EntityMovement(
-                new Vector3f(transform).add(new Vector3f(movement.transform()).rotate(q)),
+                new Vector3f(transform).add(new Vector3f(movement.transform()).rotate(q).mul(new Vector3f(scale))),
                 new Vector3f(scale).mul(movement.scale()),
                 new Quaternionf(q).mul(movement.rotation()),
                 new Vector3f(movement.rawRotation())

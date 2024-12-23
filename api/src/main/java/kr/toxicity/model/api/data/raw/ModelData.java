@@ -2,6 +2,7 @@ package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.UUID;
@@ -11,7 +12,7 @@ public record ModelData(
         @NotNull List<ModelElement> elements,
         @NotNull List<ModelChildren> outliner,
         @NotNull List<ModelTexture> textures,
-        @NotNull List<ModelAnimation> animations
+        @Nullable List<ModelAnimation> animations
 ) {
     public static final Gson GSON = new GsonBuilder()
             .registerTypeAdapter(Float3.class, (JsonDeserializer<Float3>) (json, typeOfT, context) -> Float3.PARSER.apply(json))

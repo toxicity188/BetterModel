@@ -20,6 +20,9 @@ public record ModelElement(
     public float max() {
         return size().max();
     }
+    public float min() {
+        return size().min();
+    }
     public boolean hasTexture() {
         return faces.hasTexture();
     }

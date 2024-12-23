@@ -75,7 +75,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                                 add("tints", JsonArray().apply {
                                     add(JsonObject().apply {
                                         addProperty("type", "minecraft:custom_model_data")
-                                        addProperty("default", 0xFF0000)
+                                        addProperty("default", 0xFF8060)
                                     })
                                 })
                             })
@@ -126,7 +126,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                 }.toMap()
             )
         }
-        return BlueprintRenderer(name, group.mapNotNull {
+        return BlueprintRenderer(this, group.mapNotNull {
             if (it is BlueprintGroup) {
                 it.name to it.parse()
             } else null

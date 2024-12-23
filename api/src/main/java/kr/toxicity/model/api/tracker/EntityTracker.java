@@ -1,13 +1,14 @@
 package kr.toxicity.model.api.tracker;
 
 import kr.toxicity.model.api.ModelRenderer;
+import kr.toxicity.model.api.data.renderer.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.entity.TrackerMovement;
+import kr.toxicity.model.api.nms.HitBox;
 import kr.toxicity.model.api.nms.ModelDisplay;
+import kr.toxicity.model.api.util.EntityUtil;
 import lombok.Getter;
 import org.bukkit.Location;
-import org.bukkit.attribute.Attribute;
-import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -18,7 +19,6 @@ import org.joml.Vector3f;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -29,7 +29,10 @@ public final class EntityTracker extends Tracker {
     private static final Map<UUID, EntityTracker> TRACKER_MAP = new ConcurrentHashMap<>();
 
     private final @NotNull Entity entity;
+    @Getter
+    private HitBox hitBox;
     private final AtomicBoolean closed = new AtomicBoolean();
+    private final AtomicBoolean forRemoval = new AtomicBoolean();
 
     public static @Nullable EntityTracker tracker(@NotNull Entity entity) {
         var t = tracker(entity.getUniqueId());
@@ -50,8 +53,8 @@ public final class EntityTracker extends Tracker {
 
     public EntityTracker(@NotNull Entity entity, @NotNull RenderInstance instance) {
         super(() -> new TrackerMovement(
-                new Vector3f(0, entity instanceof LivingEntity livingEntity ? (float) -livingEntity.getEyeHeight() - 0.1F : 0, 0F),
-                new Vector3f(1),
+                new Vector3f(0, -ModelRenderer.inst().nms().passengerPosition(entity).y, 0F),
+                new Vector3f((float) ModelRenderer.inst().nms().scale(entity)),
                 new Vector3f(0, entity instanceof LivingEntity livingEntity ? -livingEntity.getBodyYaw() : -entity.getYaw(), 0)
         ), instance);
         this.entity = entity;
@@ -67,22 +70,28 @@ public final class EntityTracker extends Tracker {
                             ), 0);
                         }
                     });
-            instance.animateLoop("walk", () -> {
-                double speed = Optional.ofNullable(livingEntity.getAttribute(Attribute.MOVEMENT_SPEED))
-                        .map(AttributeInstance::getValue)
-                        .orElse(0.2);
-                return entity.isOnGround() && entity.getVelocity().length() / speed > 0.4;
-            });
-            instance.animateLoop("run", () -> {
-                double speed = Optional.ofNullable(livingEntity.getAttribute(Attribute.MOVEMENT_SPEED))
-                        .map(AttributeInstance::getValue)
-                        .orElse(0.2);
-                return entity.isOnGround() && entity.getVelocity().length() / speed > 0.45;
-            });
+            addForceUpdateConstraint(t -> EntityUtil.onWalk(livingEntity));
+            instance.animateLoop("walk", new AnimationModifier(() -> EntityUtil.onWalk(livingEntity), 0, 0));
         }
-        entity.setInvisible(true);
-        entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, instance.getParent().getName());
+        refreshHitBox();
+        entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, instance.getParent().getParent().name());
         TRACKER_MAP.put(entity.getUniqueId(), this);
+    }
+
+    public void refreshHitBox() {
+        if (hitBox != null) hitBox.remove();
+        var box = instance.hitBox();
+        if (box != null) {
+            hitBox = ModelRenderer.inst().nms().createHitBox(entity, box.box());
+        }
+    }
+
+    public void forRemoval(boolean removal) {
+        forRemoval.set(removal);
+    }
+
+    public boolean forRemoval() {
+        return forRemoval.get();
     }
 
     @Override
@@ -90,7 +99,8 @@ public final class EntityTracker extends Tracker {
         if (closed.get()) return;
         closed.set(true);
         super.close();
-        if (entity.isValid()) entity.remove();
+        if (hitBox != null) hitBox.remove();
+        entity.getPersistentDataContainer().remove(TRACKING_ID);
         TRACKER_MAP.remove(entity.getUniqueId());
     }
 

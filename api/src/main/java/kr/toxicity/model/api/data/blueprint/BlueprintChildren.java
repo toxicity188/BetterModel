@@ -5,25 +5,25 @@ import com.google.gson.JsonObject;
 import kr.toxicity.model.api.data.raw.Float3;
 import kr.toxicity.model.api.data.raw.ModelChildren;
 import kr.toxicity.model.api.data.raw.ModelElement;
+import kr.toxicity.model.api.util.EntityUtil;
+import kr.toxicity.model.api.util.VectorPair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 public sealed interface BlueprintChildren {
 
-    static BlueprintChildren from(@NotNull ModelChildren children, @NotNull @Unmodifiable Map<UUID, ModelElement> elementMap) {
+    static BlueprintChildren from(@NotNull ModelChildren children, @NotNull @Unmodifiable Map<UUID, ModelElement> elementMap, float scale) {
         return switch (children) {
             case ModelChildren.ModelGroup modelGroup -> new BlueprintGroup(
                     modelGroup.name(),
                     modelGroup.origin(),
                     modelGroup.rotation(),
-                    modelGroup.children().stream().map(c -> from(c, elementMap)).toList()
+                    modelGroup.children().stream().map(c -> from(c, elementMap, scale)).toList(),
+                    modelGroup.visibility()
             );
-            case ModelChildren.ModelUUID modelUUID -> new BlueprintElement(Objects.requireNonNull(elementMap.get(modelUUID.uuid())));
+            case ModelChildren.ModelUUID modelUUID -> new BlueprintElement(Objects.requireNonNull(elementMap.get(modelUUID.uuid())), scale);
         };
     }
 
@@ -31,7 +31,8 @@ public sealed interface BlueprintChildren {
             @NotNull String name,
             @NotNull Float3 origin,
             @NotNull Float3 rotation,
-            @NotNull List<BlueprintChildren> children
+            @NotNull List<BlueprintChildren> children,
+            boolean visibility
     ) implements BlueprintChildren {
 
         public @NotNull String jsonName(@NotNull ModelBlueprint parent) {
@@ -62,9 +63,33 @@ public sealed interface BlueprintChildren {
             list.add(new BlueprintJson(jsonName(parent), object));
             return true;
         }
+
+
+        public @NotNull Map<String, NamedBoundingBox> boxes() {
+            var map = new HashMap<String, NamedBoundingBox>();
+            var elements = new ArrayList<VectorPair>();
+            for (BlueprintChildren child : children) {
+                switch (child) {
+                    case BlueprintGroup group -> map.putAll(group.boxes());
+                    case BlueprintElement element -> {
+                        var model = element.element;
+                        elements.add(new VectorPair(
+                                model.from()
+                                        .toVector()
+                                        .div(16),
+                                model.to()
+                                        .toVector()
+                                        .div(16)
+                        ));
+                    }
+                }
+            }
+            map.put(name, EntityUtil.box(name, elements));
+            return map;
+        }
     }
 
-    record BlueprintElement(@NotNull ModelElement element) implements BlueprintChildren {
+    record BlueprintElement(@NotNull ModelElement element, float scale) implements BlueprintChildren {
         private void buildJson(
                 int tint,
                 @NotNull ModelBlueprint parent,
@@ -73,32 +98,24 @@ public sealed interface BlueprintChildren {
         ) {
             if (!element.hasTexture()) return;
             var object = new JsonObject();
-            var scale = (float) parent.scale();
-            var origin = element.origin()
-                    .minus(group.origin)
-                    .div(scale)
-                    .plus(Float3.CENTER);
-            var inflate = new Float3(element.inflate(), element.inflate(), element.inflate()).div(scale);
             object.add("from", element.from()
                     .minus(group.origin)
                     .div(scale)
                     .plus(Float3.CENTER)
-                    .minus(origin)
-                    .minus(inflate)
-                    .plus(origin)
                     .toJson());
             object.add("to", element.to()
                     .minus(group.origin)
                     .div(scale)
                     .plus(Float3.CENTER)
-                    .minus(origin)
-                    .plus(inflate)
-                    .plus(origin)
                     .toJson());
             var rot = element.rotation();
-            if (rot != null && rot.absMax() > 0) {
+            if (rot != null) {
                 var rotation = getRotation(rot);
-                rotation.add("origin", origin.toJson());
+                rotation.add("origin", element.origin()
+                        .minus(group.origin)
+                        .div(scale)
+                        .plus(Float3.CENTER)
+                        .toJson());
                 object.add("rotation", rotation);
             }
             object.add("faces", element.faces().toJson(parent.resolution(), tint));
@@ -107,13 +124,13 @@ public sealed interface BlueprintChildren {
 
         private @NotNull JsonObject getRotation(@NotNull Float3 rot) {
             var rotation = new JsonObject();
-            if (Math.abs(rot.x()) >= 22.5) {
+            if (Math.abs(rot.x()) > 0) {
                 rotation.addProperty("angle", rot.x());
                 rotation.addProperty("axis", "x");
-            } else if (Math.abs(rot.y()) >= 22.5) {
+            } else if (Math.abs(rot.y()) > 0) {
                 rotation.addProperty("angle", rot.y());
                 rotation.addProperty("axis", "y");
-            } else if (Math.abs(rot.z()) >= 22.5) {
+            } else if (Math.abs(rot.z()) > 0) {
                 rotation.addProperty("angle", rot.z());
                 rotation.addProperty("axis", "z");
             }
