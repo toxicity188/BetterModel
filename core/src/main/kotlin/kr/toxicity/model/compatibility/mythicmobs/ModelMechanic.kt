@@ -9,7 +9,7 @@ import io.lumine.mythic.core.skills.SkillMechanic
 import kr.toxicity.model.api.util.EntityUtil
 import kr.toxicity.model.manager.ModelManagerImpl
 
-class ModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "[BetterHud]", mlc), INoTargetSkill {
+class ModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "[ModelRenderer]", mlc), INoTargetSkill {
 
     private val mid = mlc.getString(arrayOf("mid", "m", "model"))!!
 
