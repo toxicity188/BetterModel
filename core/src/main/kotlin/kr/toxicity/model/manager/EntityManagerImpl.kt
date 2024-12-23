@@ -26,7 +26,9 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
             }
             @EventHandler
             fun EntityRemoveFromWorldEvent.remove() {
-                EntityTracker.tracker(entity)?.close()
+                EntityTracker.tracker(entity)?.let {
+                    if (!it.forRemoval()) it.close()
+                }
             }
             @EventHandler
             fun EntityAddToWorldEvent.remove() {
@@ -36,8 +38,11 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
             fun EntityDeathEvent.death() {
                 EntityTracker.tracker(entity)?.let {
                     if (!it.animateSingle("death", AnimationModifier.DEFAULT) {
+                        Bukkit.getRegionScheduler().run(PLUGIN, entity.location) { _ ->
                             it.close()
-                        }) it.close()
+                        }
+                    }) it.close()
+                    else it.forRemoval(true)
                 }
             }
             @EventHandler(ignoreCancelled = false)

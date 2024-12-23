@@ -128,7 +128,6 @@ public final class RenderedEntity {
 
     private TrackerMovement lastMovement = null;
     public void move(@NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
-        updateAnimation();
         var d = display;
         if (delay <= 0) {
             var f = frame();
@@ -149,6 +148,7 @@ public final class RenderedEntity {
         for (RenderedEntity e : children.values()) {
             e.move(movement, bundler);
         }
+        updateAnimation();
     }
     public void forceUpdate(@NotNull PacketBundler bundler) {
         var d = display;

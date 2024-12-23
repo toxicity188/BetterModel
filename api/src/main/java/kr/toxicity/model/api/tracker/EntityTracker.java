@@ -32,6 +32,7 @@ public final class EntityTracker extends Tracker {
     @Getter
     private HitBox hitBox;
     private final AtomicBoolean closed = new AtomicBoolean();
+    private final AtomicBoolean forRemoval = new AtomicBoolean();
 
     public static @Nullable EntityTracker tracker(@NotNull Entity entity) {
         var t = tracker(entity.getUniqueId());
@@ -85,13 +86,21 @@ public final class EntityTracker extends Tracker {
         }
     }
 
+    public void forRemoval(boolean removal) {
+        forRemoval.set(removal);
+    }
+
+    public boolean forRemoval() {
+        return forRemoval.get();
+    }
+
     @Override
     public void close() throws Exception {
         if (closed.get()) return;
         closed.set(true);
         super.close();
         if (hitBox != null) hitBox.remove();
-        if (entity.isValid()) entity.remove();
+        entity.getPersistentDataContainer().remove(TRACKING_ID);
         TRACKER_MAP.remove(entity.getUniqueId());
     }
 
