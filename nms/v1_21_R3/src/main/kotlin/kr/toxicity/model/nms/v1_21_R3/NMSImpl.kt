@@ -182,11 +182,7 @@ class NMSImpl : NMS {
 
         private fun EntityTracker.remove() {
             entityUUIDMap.remove(uuid())
-            val bundle = PacketBundlerImpl(mutableListOf())
-            renderers().forEach {
-                it.remove(bundle)
-            }
-            bundle.send(player)
+            remove(player)
         }
     }
 
