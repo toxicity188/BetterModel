@@ -53,7 +53,7 @@ public final class EntityTracker extends Tracker {
     public EntityTracker(@NotNull Entity entity, @NotNull RenderInstance instance) {
         super(() -> new TrackerMovement(
                 new Vector3f(0, -ModelRenderer.inst().nms().passengerPosition(entity).y, 0F),
-                new Vector3f(1),
+                new Vector3f(new Vector3f((float) ModelRenderer.inst().nms().scale(entity))),
                 new Vector3f(0, entity instanceof LivingEntity livingEntity ? -livingEntity.getBodyYaw() : -entity.getYaw(), 0)
         ), instance);
         this.entity = entity;

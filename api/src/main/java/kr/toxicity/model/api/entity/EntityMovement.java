@@ -26,7 +26,7 @@ public record EntityMovement(
     }
     public @NotNull EntityMovement plus(@NotNull EntityMovement movement) {
         return new EntityMovement(
-                new Vector3f(transform).add(new Vector3f(movement.transform).rotate(rotation)),
+                new Vector3f(transform).add(new Vector3f(movement.transform).rotate(rotation).mul(scale)),
                 new Vector3f(scale).mul(movement.scale),
                 new Quaternionf(rotation).mul(movement.rotation),
                 new Vector3f(rawRotation)

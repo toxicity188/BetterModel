@@ -331,16 +331,18 @@ class NMSImpl : NMS {
 
     override fun createHitBox(entity: org.bukkit.entity.Entity, box: BoundingBox): HitBox {
         val handle = (entity as CraftLivingEntity).handle
-        val height = -handle.attachments.get(EntityAttachment.PASSENGER, 0, handle.yRot).y - box.minY + box.maxY
+        val scale = scale(entity)
+        val newBox = AABB(
+            box.minX,
+            box.minY,
+            box.minZ,
+            box.maxX,
+            box.maxY,
+            box.maxZ
+        ) * scale
+        val height = -handle.attachments.get(EntityAttachment.PASSENGER, 0, handle.yRot).y * scale - newBox.minY + newBox.maxY
         return HitBoxImpl(
-            AABB(
-                box.minX,
-                box.minY,
-                box.minZ,
-                box.maxX,
-                box.maxY,
-                box.maxZ
-            ),
+            newBox,
             handle
         ) {
             hitBoxMap.remove(it.id())
@@ -353,6 +355,15 @@ class NMSImpl : NMS {
         }
     }
 
+    private operator fun AABB.times(scale: Double) = AABB(
+        minX * scale,
+        minY * scale,
+        minZ * scale,
+        maxX * scale,
+        maxY * scale,
+        maxZ * scale
+    )
+
     override fun version(): NMSVersion = NMSVersion.V1_21_R3
 
     override fun passengerPosition(entity: org.bukkit.entity.Entity): Vector3f {
@@ -361,5 +372,10 @@ class NMSImpl : NMS {
                 Vector3f(v.x.toFloat(), v.y.toFloat(), v.z.toFloat())
             }
         }
+    }
+
+    override fun scale(entity: org.bukkit.entity.Entity): Double {
+        val handle = (entity as CraftEntity).handle
+        return if (handle is LivingEntity) handle.attributes.getInstance(Attributes.SCALE)?.value ?: 1.0 else 1.0
     }
 }

@@ -18,4 +18,5 @@ public interface NMS {
     @NotNull HitBox createHitBox(@NotNull Entity entity, @NotNull BoundingBox box);
     @NotNull NMSVersion version();
     @NotNull Vector3f passengerPosition(@NotNull Entity entity);
+    double scale(@NotNull Entity entity);
 }
