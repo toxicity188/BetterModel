@@ -15,7 +15,7 @@ public interface NMS {
     @NotNull PacketBundler createBundler();
     @NotNull ItemStack tint(@NotNull ItemStack itemStack, boolean toggle);
     void mount(@NotNull EntityTracker tracker, @NotNull PacketBundler bundler);
-    void boundingBox(@NotNull Entity entity, @NotNull BoundingBox box);
+    @NotNull HitBox createHitBox(@NotNull Entity entity, @NotNull BoundingBox box);
     @NotNull NMSVersion version();
     @NotNull Vector3f passengerPosition(@NotNull Entity entity);
 }

@@ -10,9 +10,7 @@ import kr.toxicity.model.api.ModelRenderer.ReloadResult.OnReload
 import kr.toxicity.model.api.ModelRenderer.ReloadResult.Success
 import kr.toxicity.model.api.manager.CommandManager
 import kr.toxicity.model.util.PLUGIN
-import org.bukkit.Bukkit
 import org.bukkit.entity.EntityType
-import java.util.concurrent.TimeUnit
 
 object CommandManagerImpl : CommandManager, GlobalManagerImpl {
     override fun start() {
@@ -29,13 +27,10 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                         warrior.spawn(player)
 //                        val archer = ModelManagerImpl.renderer("orc_archer")!!
 //                        archer.create(player.world.spawnEntity(player.location, EntityType.SKELETON)).spawn(player)
-                        val giant = ModelManagerImpl.renderer("orc_giant")!!.create(player.world.spawnEntity(player.location, EntityType.HUSK))
-                        giant.spawn(player)
-//                        val king = ModelManagerImpl.renderer("orc_king")!!.create(player.world.spawnEntity(player.location, EntityType.HUSK))
-//                        king.spawn(player)
-                        Bukkit.getAsyncScheduler().runAtFixedRate(PLUGIN, { e ->
-                            if (giant.entity.isValid) giant.animateSingle("throw_ready") else e.cancel()
-                        }, 1, 1, TimeUnit.SECONDS)
+//                        val giant = ModelManagerImpl.renderer("orc_giant")!!.create(player.world.spawnEntity(player.location, EntityType.HUSK))
+//                        giant.spawn(player)
+                        val king = ModelManagerImpl.renderer("orc_king")!!.create(player.world.spawnEntity(player.location, EntityType.HUSK))
+                        king.spawn(player)
                     }),
                 CommandAPICommand("reload")
                     .withAliases("re", "rl")

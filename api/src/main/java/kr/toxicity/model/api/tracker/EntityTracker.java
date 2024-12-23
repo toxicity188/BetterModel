@@ -4,6 +4,7 @@ import kr.toxicity.model.api.ModelRenderer;
 import kr.toxicity.model.api.data.renderer.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.entity.TrackerMovement;
+import kr.toxicity.model.api.nms.HitBox;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.util.EntityUtil;
 import lombok.Getter;
@@ -28,6 +29,8 @@ public final class EntityTracker extends Tracker {
     private static final Map<UUID, EntityTracker> TRACKER_MAP = new ConcurrentHashMap<>();
 
     private final @NotNull Entity entity;
+    @Getter
+    private HitBox hitBox;
     private final AtomicBoolean closed = new AtomicBoolean();
 
     public static @Nullable EntityTracker tracker(@NotNull Entity entity) {
@@ -69,12 +72,17 @@ public final class EntityTracker extends Tracker {
             addForceUpdateConstraint(t -> EntityUtil.onWalk(livingEntity));
             instance.animateLoop("walk", new AnimationModifier(() -> EntityUtil.onWalk(livingEntity), 0, 0));
         }
-        var box = instance.hitBox();
-        if (box != null) {
-            ModelRenderer.inst().nms().boundingBox(entity, box.box());
-        }
+        refreshHitBox();
         entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, instance.getParent().getParent().name());
         TRACKER_MAP.put(entity.getUniqueId(), this);
+    }
+
+    public void refreshHitBox() {
+        if (hitBox != null) hitBox.remove();
+        var box = instance.hitBox();
+        if (box != null) {
+            hitBox = ModelRenderer.inst().nms().createHitBox(entity, box.box());
+        }
     }
 
     @Override
@@ -82,6 +90,7 @@ public final class EntityTracker extends Tracker {
         if (closed.get()) return;
         closed.set(true);
         super.close();
+        if (hitBox != null) hitBox.remove();
         if (entity.isValid()) entity.remove();
         TRACKER_MAP.remove(entity.getUniqueId());
     }

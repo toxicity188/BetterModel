@@ -13,14 +13,15 @@ import net.minecraft.network.protocol.game.*
 import net.minecraft.server.MinecraftServer
 import net.minecraft.world.entity.*
 import net.minecraft.world.entity.Display.ItemDisplay
+import net.minecraft.world.entity.ai.attributes.Attributes
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.Items
 import net.minecraft.world.phys.AABB
 import org.bukkit.Color
 import org.bukkit.Location
-import org.bukkit.Material
 import org.bukkit.craftbukkit.CraftWorld
 import org.bukkit.craftbukkit.entity.CraftEntity
+import org.bukkit.craftbukkit.entity.CraftLivingEntity
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.craftbukkit.inventory.CraftItemStack
 import org.bukkit.entity.Player
@@ -29,6 +30,7 @@ import org.bukkit.inventory.meta.LeatherArmorMeta
 import org.bukkit.util.BoundingBox
 import org.bukkit.util.Transformation
 import org.joml.Vector3f
+import java.lang.reflect.Modifier
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
@@ -36,6 +38,28 @@ class NMSImpl : NMS {
 
     companion object {
         private const val INJECT_NAME = "betterengine_channel_handler"
+        private fun interface InteractHandler: (ServerboundInteractPacket, Int) -> ServerboundInteractPacket
+        private val hitBoxMap = ConcurrentHashMap<Int, Int>()
+        private val interact = run {
+            val booleanField = ServerboundInteractPacket::class.java.declaredFields.first {
+                !Modifier.isStatic(it.modifiers) && java.lang.Boolean.TYPE.isAssignableFrom(it.type)
+            }.apply {
+                isAccessible = true
+            }
+            val actionField = ServerboundInteractPacket::class.java.declaredFields.first {
+                !Modifier.isStatic(it.modifiers) && it.type.isInterface
+            }.apply {
+                isAccessible = true
+            }
+            val constructor = ServerboundInteractPacket::class.java.declaredConstructors.first {
+                it.parameterCount == 3
+            }.apply {
+                isAccessible = true
+            }
+            InteractHandler { p, i ->
+                constructor.newInstance(i, booleanField[p], actionField[p]) as ServerboundInteractPacket
+            }
+        }
     }
 
     private class PacketBundlerImpl(
@@ -144,6 +168,16 @@ class NMSImpl : NMS {
             super.write(ctx, msg, promise)
         }
 
+        override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
+            when (msg) {
+                is ServerboundInteractPacket -> hitBoxMap[msg.entityId]?.let {
+                    super.channelRead(ctx, interact(msg, it))
+                    return
+                }
+            }
+            super.channelRead(ctx, msg)
+        }
+
         private fun EntityTracker.remove() {
             entityUUIDMap.remove(uuid())
             val bundle = PacketBundlerImpl(mutableListOf())
@@ -156,15 +190,13 @@ class NMSImpl : NMS {
 
     override fun mount(tracker: EntityTracker, bundler: PacketBundler) {
         val entity = (tracker.entity as CraftEntity).handle
-        val p = entity.passengers
         entity.passengers = ImmutableList.builder<Entity>()
             .addAll(tracker.renderers().mapNotNull {
                 (it as? ModelDisplayImpl)?.display
             })
-            .addAll(p)
+            .addAll(entity.passengers)
             .build()
         val packet = ClientboundSetPassengersPacket(entity)
-        entity.passengers = p
         (bundler as PacketBundlerImpl).run {
             entity.toVoid(this)
             add(packet)
@@ -275,15 +307,28 @@ class NMSImpl : NMS {
         return itemStack
     }
 
-    override fun boundingBox(entity: org.bukkit.entity.Entity, box: BoundingBox) {
-        (entity as CraftEntity).handle.boundingBox = AABB(
-            box.minX,
-            box.minY,
-            box.minZ,
-            box.maxX,
-            box.maxY,
-            box.maxZ
-        )
+    override fun createHitBox(entity: org.bukkit.entity.Entity, box: BoundingBox): HitBox {
+        val handle = (entity as CraftLivingEntity).handle
+        val height = -handle.attachments.get(EntityAttachment.PASSENGER, 0, handle.yRot).y - box.minY + box.maxY
+        return HitBoxImpl(
+            AABB(
+                box.minX,
+                box.minY,
+                box.minZ,
+                box.maxX,
+                box.maxY,
+                box.maxZ
+            ),
+            handle
+        ) {
+            hitBoxMap.remove(it.id())
+        }.apply {
+            hitBoxMap[id] = handle.id
+            attributes.getInstance(Attributes.SCALE)!!.baseValue = height / 0.52
+            refreshDimensions()
+            handle.level().addFreshEntity(this)
+            entity.addPassenger(bukkitEntity)
+        }
     }
 
     override fun version(): NMSVersion = NMSVersion.V1_21_R1
