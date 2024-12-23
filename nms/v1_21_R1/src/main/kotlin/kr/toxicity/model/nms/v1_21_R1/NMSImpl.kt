@@ -301,7 +301,7 @@ class NMSImpl : NMS {
         val meta = itemStack.itemMeta
         if (meta is LeatherArmorMeta) {
             itemStack.itemMeta = meta.apply {
-                setColor(if (toggle) null else Color.WHITE)
+                setColor(if (toggle) Color.fromRGB(0xFF8060) else Color.WHITE)
             }
         }
         return itemStack
