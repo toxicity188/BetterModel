@@ -13,7 +13,6 @@ import kr.toxicity.model.util.PLUGIN
 import org.bukkit.attribute.Attribute
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.LivingEntity
-import java.util.concurrent.ThreadLocalRandom
 
 object CommandManagerImpl : CommandManager, GlobalManagerImpl {
     override fun start() {
@@ -26,20 +25,14 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                     .withAliases("o")
                     .withPermission("modelrenderer.orc")
                     .executesPlayer(PlayerCommandExecutor { player, _ ->
-                        val warrior = ModelManagerImpl.renderer("orc_warrior")!!.create(player.world.spawnEntity(player.location, EntityType.HUSK).apply {
-                            (this as LivingEntity).getAttribute(Attribute.SCALE)!!.baseValue = 16.0
-                        })
-                        warrior.spawn(player)
-//                        val archer = ModelManagerImpl.renderer("orc_archer")!!
-//                        archer.create(player.world.spawnEntity(player.location, EntityType.SKELETON)).spawn(player)
-                        val giant = ModelManagerImpl.renderer("orc_giant")!!.create(player.world.spawnEntity(player.location, EntityType.HUSK).apply {
-                            (this as LivingEntity).getAttribute(Attribute.SCALE)!!.baseValue = 16.0
-                        })
-                        giant.spawn(player)
-                        val king = ModelManagerImpl.renderer("orc_king")!!.create(player.world.spawnEntity(player.location, EntityType.HUSK).apply {
-                            (this as LivingEntity).getAttribute(Attribute.SCALE)!!.baseValue = 16.0
-                        })
-                        king.spawn(player)
+                        for (i in 0..2) {
+                            val giant = ModelManagerImpl.renderer("orc_giant")!!.create(player.world.spawnEntity(player.location, EntityType.HUSK).apply {
+                                val h = (this as LivingEntity).getAttribute(Attribute.MAX_HEALTH)
+                                h!!.baseValue *= 2.0
+                                health = h!!.value
+                            })
+                            giant.spawn(player)
+                        }
                     }),
                 CommandAPICommand("reload")
                     .withAliases("re", "rl")

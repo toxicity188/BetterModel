@@ -201,7 +201,7 @@ public final class RenderedEntity {
 
     private boolean applyItem() {
         if (display != null) {
-            display.item(visible ? ModelRenderer.inst().nms().tint(itemStack, tint) : new ItemStack(Material.AIR));
+            display.item(visible ? ModelRenderer.inst().nms().tint(itemStack.clone(), tint) : new ItemStack(Material.AIR));
             return true;
         } else return false;
     }
