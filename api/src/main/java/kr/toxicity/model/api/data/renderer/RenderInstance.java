@@ -8,6 +8,7 @@ import kr.toxicity.model.api.entity.RenderedEntity;
 import kr.toxicity.model.api.entity.TrackerMovement;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
+import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -28,7 +29,7 @@ public final class RenderInstance implements AutoCloseable {
 
     private final Map<String, RenderedEntity> entityMap;
     private final Map<String, BlueprintAnimation> animationMap;
-    private final Map<UUID, Player> playerMap = new ConcurrentHashMap<>();
+    private final Map<UUID, PlayerChannelHandler> playerMap = new ConcurrentHashMap<>();
 
 
     public RenderInstance(@NotNull BlueprintRenderer parent, @NotNull Map<String, RenderedEntity> entityMap, @NotNull Map<String, BlueprintAnimation> animationMap) {
@@ -45,8 +46,8 @@ public final class RenderInstance implements AutoCloseable {
 
     @Override
     public void close() {
-        for (Player value : playerMap.values()) {
-            remove0(value);
+        for (PlayerChannelHandler value : playerMap.values()) {
+            remove0(value.player());
         }
         playerMap.clear();
     }
@@ -138,9 +139,11 @@ public final class RenderInstance implements AutoCloseable {
     }
 
     public void spawn(@NotNull Player player, @NotNull PacketBundler bundler) {
+        var get = ModelRenderer.inst().playerManager().player(player.getUniqueId());
+        if (get == null) return;
         playerMap.computeIfAbsent(player.getUniqueId(), u -> {
             entityMap.values().forEach(e -> e.spawn(bundler));
-            return player;
+            return get;
         });
     }
     public void remove(@NotNull Player player) {
@@ -166,7 +169,7 @@ public final class RenderInstance implements AutoCloseable {
     }
 
     public @NotNull List<Player> viewedPlayer() {
-        return new ArrayList<>(playerMap.values());
+        return playerMap.values().stream().map(PlayerChannelHandler::player).toList();
     }
 
 }

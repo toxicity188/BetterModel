@@ -35,6 +35,7 @@ public abstract class Tracker implements AutoCloseable {
     public Tracker(@NotNull Supplier<TrackerMovement> movement, @NotNull RenderInstance instance) {
         this.instance = instance;
         task = Bukkit.getAsyncScheduler().runAtFixedRate(ModelRenderer.inst(), task -> {
+            if (viewedPlayerSize() == 0) return;
             var bundle = ModelRenderer.inst().nms().createBundler();
             instance.move(isRunningSingleAnimation() && previousMovement != null ? previousMovement : (previousMovement = movement.get()), bundle);
             for (Player player : instance.viewedPlayer()) {

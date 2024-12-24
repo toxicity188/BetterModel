@@ -137,5 +137,4 @@ public final class EntityTracker extends Tracker {
                 .player(player.getUniqueId());
         if (handler != null) handler.endTrack(this);
     }
-
 }

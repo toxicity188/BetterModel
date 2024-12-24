@@ -2,12 +2,12 @@ plugins {
     `java-library`
     kotlin("jvm") version "2.1.0"
     id("io.github.goooler.shadow") version "8.1.8"
-    id("io.papermc.paperweight.userdev") version "1.7.6" apply false
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.8" apply false
     id("xyz.jpenilla.run-paper") version "2.3.1"
     id("xyz.jpenilla.resource-factory-bukkit-convention") version("1.2.0")
 }
 
-val minecraft = "1.21.3"
+val minecraft = "1.21.4"
 val targetJavaVersion = 21
 
 allprojects {
