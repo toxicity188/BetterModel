@@ -35,21 +35,22 @@ public final class EntityUtil {
         return entity.isOnGround() && entity.getVelocity().length() / speed > 0.4;
     }
 
-    public static final double RADIUS = 45;
+    public static final double MAX_RADIUS = 45;
+    public static final double MIN_RADIUS = 3;
 
     public static boolean canSee(@NotNull Location player, @NotNull Location target) {
         if (player.getWorld() != target.getWorld()) return false;
 
-        var playerYaw = Math.toRadians(player.getYaw());
-        var playerPitch = Math.toRadians(-player.getPitch()) * 2;
+        var d = player.distance(target);
+        if (d > MAX_RADIUS) return false;
+        if (d <= MIN_RADIUS) return true;
+
+        var playerYaw = toRadians(player.getYaw());
+        var playerPitch = toRadians(-player.getPitch()) * 2;
 
         var dx = target.getZ() - player.getZ();
         var dy = target.getY() - player.getY();
         var dz = -(target.getX() - player.getX());
-
-        var d = player.distance(target);
-
-        if (d > RADIUS) return false;
 
         var ry = abs(atan2(dy, abs(dx)) - playerPitch);
         var rz = abs(atan2(dz, dx) - playerYaw);
