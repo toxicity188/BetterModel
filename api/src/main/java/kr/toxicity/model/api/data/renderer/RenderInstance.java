@@ -84,7 +84,7 @@ public final class RenderInstance implements AutoCloseable {
     public void tint(boolean toggle) {
         var bundler = ModelRenderer.inst().nms().createBundler();
         entityMap.values().forEach(e -> e.tint(toggle, bundler));
-        if (!bundler.isEmpty()) for (Player player : viewedPlayer(p -> true)) {
+        if (!bundler.isEmpty()) for (Player player : viewedPlayer()) {
             bundler.send(player);
         }
     }
@@ -163,7 +163,7 @@ public final class RenderInstance implements AutoCloseable {
     public void togglePart(@NotNull Predicate<RenderedEntity> predicate, boolean toggle) {
         var bundler = ModelRenderer.inst().nms().createBundler();
         entityMap.values().forEach(e -> e.togglePart(bundler, predicate, toggle));
-        if (!bundler.isEmpty()) for (Player player : viewedPlayer(p -> true)) {
+        if (!bundler.isEmpty()) for (Player player : viewedPlayer()) {
             bundler.send(player);
         }
     }
