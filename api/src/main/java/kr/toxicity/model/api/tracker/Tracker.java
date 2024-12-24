@@ -7,6 +7,7 @@ import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.entity.RenderedEntity;
 import kr.toxicity.model.api.entity.TrackerMovement;
 import kr.toxicity.model.api.nms.PacketBundler;
+import kr.toxicity.model.api.util.EntityUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -38,12 +39,13 @@ public abstract class Tracker implements AutoCloseable {
             if (viewedPlayerSize() == 0) return;
             var bundle = ModelRenderer.inst().nms().createBundler();
             instance.move(isRunningSingleAnimation() && previousMovement != null ? previousMovement : (previousMovement = movement.get()), bundle);
-            for (Player player : instance.viewedPlayer()) {
+            if (!bundle.isEmpty()) for (Player player : instance.viewedPlayer()) {
                 bundle.send(player);
             }
         }, 50, 50, TimeUnit.MILLISECONDS);
         tint(false);
         instance.move(movement.get(), ModelRenderer.inst().nms().createBundler());
+        instance.filter(p -> EntityUtil.canSee(p.getLocation(), location()));
     }
 
     @Override

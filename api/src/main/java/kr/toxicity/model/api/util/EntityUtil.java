@@ -4,6 +4,7 @@ import kr.toxicity.model.api.ModelRenderer;
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox;
 import kr.toxicity.model.api.nms.NMSVersion;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.entity.LivingEntity;
@@ -12,6 +13,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Objects;
+
+import static java.lang.Math.*;
 
 public final class EntityUtil {
     private EntityUtil() {
@@ -30,6 +33,29 @@ public final class EntityUtil {
         double speed = movement(entity);
         //System.out.println(DecimalFormat.getInstance().format(speed) + " : " + DecimalFormat.getInstance().format(entity.getVelocity().length() / speed));
         return entity.isOnGround() && entity.getVelocity().length() / speed > 0.4;
+    }
+
+    public static final double RADIUS = 45;
+
+    public static boolean canSee(@NotNull Location player, @NotNull Location target) {
+        if (player.getWorld() != target.getWorld()) return false;
+
+        var playerYaw = Math.toRadians(player.getYaw());
+        var playerPitch = Math.toRadians(-player.getPitch()) * 2;
+
+        var dx = target.getZ() - player.getZ();
+        var dy = target.getY() - player.getY();
+        var dz = -(target.getX() - player.getX());
+
+        var d = player.distance(target);
+
+        if (d > RADIUS) return false;
+
+        var ry = abs(atan2(dy, abs(dx)) - playerPitch);
+        var rz = abs(atan2(dz, dx) - playerYaw);
+        var ty = PI - abs(atan(cos(playerPitch) * dx - sin(playerPitch) * dy));
+        var tz = PI - abs(atan(cos(playerYaw) * dx - sin(playerYaw) * dz));
+        return (ry <= ty || ry >= PI * 2 - ty) && (rz <= tz || rz >= PI * 2 - tz);
     }
 
     public static @NotNull NamedBoundingBox box(@NotNull String name, @NotNull List<VectorPair> elements) {

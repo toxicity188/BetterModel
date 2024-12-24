@@ -30,7 +30,7 @@ public final class RenderInstance implements AutoCloseable {
     private final Map<String, RenderedEntity> entityMap;
     private final Map<String, BlueprintAnimation> animationMap;
     private final Map<UUID, PlayerChannelHandler> playerMap = new ConcurrentHashMap<>();
-
+    private Predicate<Player> filter = p -> true;
 
     public RenderInstance(@NotNull BlueprintRenderer parent, @NotNull Map<String, RenderedEntity> entityMap, @NotNull Map<String, BlueprintAnimation> animationMap) {
         this.parent = parent;
@@ -38,6 +38,10 @@ public final class RenderInstance implements AutoCloseable {
         this.animationMap = animationMap;
 
         animateLoop("idle");
+    }
+
+    public void filter(@NotNull Predicate<Player> filter) {
+        this.filter = filter;
     }
 
     public @Nullable NamedBoundingBox hitBox() {
@@ -80,7 +84,7 @@ public final class RenderInstance implements AutoCloseable {
     public void tint(boolean toggle) {
         var bundler = ModelRenderer.inst().nms().createBundler();
         entityMap.values().forEach(e -> e.tint(toggle, bundler));
-        for (Player player : viewedPlayer()) {
+        if (!bundler.isEmpty()) for (Player player : viewedPlayer(p -> true)) {
             bundler.send(player);
         }
     }
@@ -159,7 +163,7 @@ public final class RenderInstance implements AutoCloseable {
     public void togglePart(@NotNull Predicate<RenderedEntity> predicate, boolean toggle) {
         var bundler = ModelRenderer.inst().nms().createBundler();
         entityMap.values().forEach(e -> e.togglePart(bundler, predicate, toggle));
-        for (Player player : viewedPlayer()) {
+        if (!bundler.isEmpty()) for (Player player : viewedPlayer(p -> true)) {
             bundler.send(player);
         }
     }
@@ -169,7 +173,10 @@ public final class RenderInstance implements AutoCloseable {
     }
 
     public @NotNull List<Player> viewedPlayer() {
-        return playerMap.values().stream().map(PlayerChannelHandler::player).toList();
+        return viewedPlayer(filter);
+    }
+    public @NotNull List<Player> viewedPlayer(@NotNull Predicate<Player> predicate) {
+        return playerMap.values().stream().map(PlayerChannelHandler::player).filter(predicate).toList();
     }
 
 }

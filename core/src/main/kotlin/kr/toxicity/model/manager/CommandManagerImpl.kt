@@ -25,7 +25,7 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                     .withAliases("o")
                     .withPermission("modelrenderer.orc")
                     .executesPlayer(PlayerCommandExecutor { player, _ ->
-                        for (i in listOf("orc_giant", "orc_warrior", "orc_archer", "orc_king")) {
+                        for (i in listOf("orc_warrior")) { //"orc_giant",  "orc_archer", "orc_king"
                             val giant = ModelManagerImpl.renderer(i)!!.create(player.world.spawnEntity(player.location, EntityType.HUSK))
                             giant.spawn(player)
                         }
