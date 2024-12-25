@@ -8,11 +8,14 @@ import kr.toxicity.model.api.entity.RenderedEntity;
 import kr.toxicity.model.api.entity.TrackerMovement;
 import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.util.EntityUtil;
+import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Vector3f;
 
 import java.util.List;
 import java.util.Objects;
@@ -29,15 +32,14 @@ public abstract class Tracker implements AutoCloseable {
     private final ScheduledTask task;
     private final AtomicBoolean runningSingle = new AtomicBoolean();
 
-    //private TrackerMovement previousMovement;
-
-    private Predicate<? super Tracker> predicate = t -> false;
-    public Tracker(@NotNull Supplier<TrackerMovement> movement, @NotNull RenderInstance instance) {
+    @Getter
+    @Setter
+    private Supplier<TrackerMovement> movement = () -> new TrackerMovement(new Vector3f(), new Vector3f(1), new Vector3f());
+    public Tracker(@NotNull RenderInstance instance) {
         this.instance = instance;
         task = Bukkit.getAsyncScheduler().runAtFixedRate(ModelRenderer.inst(), task -> {
             if (viewedPlayerSize() == 0) return;
             var bundle = ModelRenderer.inst().nms().createBundler();
-            //instance.move(isRunningSingleAnimation() && previousMovement != null ? previousMovement : (previousMovement = movement.get()), bundle);
             instance.move(movement.get(), bundle);
             if (!bundle.isEmpty()) for (Player player : instance.viewedPlayer()) {
                 bundle.send(player);
@@ -52,11 +54,6 @@ public abstract class Tracker implements AutoCloseable {
     public void close() throws Exception {
         task.cancel();
         instance.close();
-    }
-
-    public void addForceUpdateConstraint(@NotNull Predicate<? super Tracker> constraint) {
-        var before = predicate;
-        predicate = t -> before.test(t) || constraint.test(t);
     }
 
     public boolean isRunningSingleAnimation() {

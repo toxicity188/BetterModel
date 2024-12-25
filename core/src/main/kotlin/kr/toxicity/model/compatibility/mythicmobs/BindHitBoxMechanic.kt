@@ -46,7 +46,7 @@ class BindHitBoxMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.ins
 
                 }
             } ?: HitBoxListener.EMPTY
-            it.refreshHitBox({ e ->
+            it.createHitBox({ e ->
                 e.name == partId
             }, handler)
             SkillResult.SUCCESS

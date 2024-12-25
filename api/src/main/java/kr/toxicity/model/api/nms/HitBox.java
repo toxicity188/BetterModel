@@ -11,4 +11,5 @@ public interface HitBox {
     @NotNull Vector3f relativePosition();
     void remove();
     int id();
+    @NotNull HitBoxListener listener();
 }

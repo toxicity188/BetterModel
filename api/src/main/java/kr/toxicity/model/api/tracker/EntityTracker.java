@@ -5,10 +5,10 @@ import kr.toxicity.model.api.data.renderer.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.entity.RenderedEntity;
 import kr.toxicity.model.api.entity.TrackerMovement;
+import kr.toxicity.model.api.nms.EntityAdapter;
 import kr.toxicity.model.api.nms.HitBox;
 import kr.toxicity.model.api.nms.HitBoxListener;
 import kr.toxicity.model.api.nms.ModelDisplay;
-import kr.toxicity.model.api.util.EntityUtil;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -54,42 +54,41 @@ public final class EntityTracker extends Tracker {
     }
 
     public EntityTracker(@NotNull Entity entity, @NotNull RenderInstance instance) {
-        super(() -> new TrackerMovement(
-                new Vector3f(0, 0, 0F),
-                new Vector3f((float) ModelRenderer.inst().nms().scale(entity)),
-                new Vector3f(0, entity instanceof LivingEntity livingEntity ? -livingEntity.getBodyYaw() : -entity.getYaw(), 0)
-        ), instance);
+        super(instance);
         this.entity = entity;
+        var adapt = entity instanceof LivingEntity livingEntity ? ModelRenderer.inst().nms().adapt(livingEntity) : EntityAdapter.EMPTY;
         instance.defaultPosition(new Vector3f(0, -ModelRenderer.inst().nms().passengerPosition(entity).y, 0));
-        if (entity instanceof LivingEntity livingEntity) {
-            instance.addAnimationMovementModifier(
-                    r -> r.getName().startsWith("h_"),
-                    a -> {
-                        if (a.rotation() != null && !isRunningSingleAnimation()) {
-                            a.rotation().add(-entity.getPitch(), Math.clamp(
-                                    -livingEntity.getYaw() + livingEntity.getBodyYaw(),
-                                    -45,
-                                    45
-                            ), 0);
-                        }
-                    });
-            addForceUpdateConstraint(t -> EntityUtil.onWalk(livingEntity));
-            instance.animateLoop("walk", new AnimationModifier(() -> EntityUtil.onWalk(livingEntity), 0, 0));
-        }
-        refreshHitBox();
+        instance.addAnimationMovementModifier(
+                r -> r.getName().startsWith("h_"),
+                a -> {
+                    if (a.rotation() != null && !isRunningSingleAnimation()) {
+                        a.rotation().add(-entity.getPitch(), Math.clamp(
+                                -adapt.yaw() + adapt.bodyYaw(),
+                                -45,
+                                45
+                        ), 0);
+                    }
+                });
+        instance.animateLoop("walk", new AnimationModifier(adapt::onWalk, 0, 0));
+        createHitBox();
+        setMovement(() -> new TrackerMovement(
+                new Vector3f(0, 0, 0F),
+                new Vector3f((float) adapt.scale()),
+                new Vector3f(0, -adapt.bodyYaw(), 0)
+        ));
         entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, instance.getParent().getParent().name());
         TRACKER_MAP.put(entity.getUniqueId(), this);
     }
 
-    public void refreshHitBox() {
-        refreshHitBox(e -> e.getName().equals("hitbox") || e.getName().startsWith("b_"));
+    public void createHitBox() {
+        createHitBox(e -> e.getName().equals("hitbox") || e.getName().startsWith("b_"));
     }
 
-    public void refreshHitBox(@NotNull Predicate<RenderedEntity> predicate) {
-        refreshHitBox(predicate, HitBoxListener.EMPTY);
+    public void createHitBox(@NotNull Predicate<RenderedEntity> predicate) {
+        createHitBox(predicate, HitBoxListener.EMPTY);
     }
 
-    public void refreshHitBox(@NotNull Predicate<RenderedEntity> predicate, @NotNull HitBoxListener listener) {
+    public void createHitBox(@NotNull Predicate<RenderedEntity> predicate, @NotNull HitBoxListener listener) {
         instance.createHitBox(entity, predicate, listener);
     }
 
@@ -144,5 +143,14 @@ public final class EntityTracker extends Tracker {
                 .playerManager()
                 .player(player.getUniqueId());
         if (handler != null) handler.endTrack(this);
+    }
+
+    public void refresh() {
+        instance.createHitBox(entity, r -> r.getHitBox() != null, null);
+        var bundler = ModelRenderer.inst().nms().createBundler();
+        ModelRenderer.inst().nms().mount(this, bundler);
+        if (!bundler.isEmpty()) for (Player player : viewedPlayer()) {
+            bundler.send(player);
+        }
     }
 }

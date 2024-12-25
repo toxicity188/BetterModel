@@ -1,9 +1,7 @@
 package kr.toxicity.model.api.util;
 
-import kr.toxicity.model.api.ModelRenderer;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -19,10 +17,6 @@ public final class EntityUtil {
     }
 
     public static final double RENDER_DISTANCE = Bukkit.getSimulationDistance() << 4;
-
-    public static boolean onWalk(@NotNull LivingEntity entity) {
-        return ModelRenderer.inst().nms().onWalk(entity);
-    }
 
     public static final double MAX_RADIUS = 45;
     public static final double MIN_RADIUS = 5;
@@ -41,10 +35,12 @@ public final class EntityUtil {
         var dy = target.getY() - player.getY();
         var dz = -(target.getX() - player.getX());
 
+        var r = cos(playerYaw) * dx - sin(playerYaw) * dz;
+
         var ry = abs(atan2(dy, abs(dx)) - playerPitch);
         var rz = abs(atan2(dz, dx) - playerYaw);
-        var ty = PI - abs(atan(cos(playerPitch) * dx - sin(playerPitch) * dy));
-        var tz = PI - abs(atan(cos(playerYaw) * dx - sin(playerYaw) * dz));
+        var ty = PI - abs(atan(cos(playerPitch) * r - sin(playerPitch) * dy));
+        var tz = PI - abs(atan(r));
         return (ry <= ty || ry >= PI * 2 - ty) && (rz <= tz || rz >= PI * 2 - tz);
     }
 

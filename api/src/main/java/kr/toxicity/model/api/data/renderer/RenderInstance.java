@@ -14,6 +14,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
@@ -45,7 +46,7 @@ public final class RenderInstance implements AutoCloseable {
         this.filter = filter;
     }
 
-    public void createHitBox(@NotNull Entity entity, @NotNull Predicate<RenderedEntity> predicate, @NotNull HitBoxListener listener) {
+    public void createHitBox(@NotNull Entity entity, @NotNull Predicate<RenderedEntity> predicate, @Nullable HitBoxListener listener) {
         for (RenderedEntity value : entityMap.values()) {
             value.createHitBox(entity, predicate, listener);
         }

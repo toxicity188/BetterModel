@@ -47,6 +47,7 @@ class HitBoxImpl(
     override fun relativePosition(): Vector3f = position().run {
         Vector3f(x.toFloat(), y.toFloat(), z.toFloat())
     }
+    override fun listener(): HitBoxListener = listener
 
     private var craftEntity: CraftLivingEntity? = null
     override fun getArmorSlots(): MutableIterable<ItemStack> = mutableSetOf()

@@ -19,6 +19,5 @@ public interface NMS {
     @NotNull HitBox createHitBox(@NotNull Entity entity, @NotNull TransformSupplier supplier, @NotNull NamedBoundingBox namedBoundingBox, @NotNull HitBoxListener source);
     @NotNull NMSVersion version();
     @NotNull Vector3f passengerPosition(@NotNull Entity entity);
-    double scale(@NotNull Entity entity);
-    boolean onWalk(@NotNull LivingEntity entity);
+    @NotNull EntityAdapter adapt(@NotNull LivingEntity entity);
 }

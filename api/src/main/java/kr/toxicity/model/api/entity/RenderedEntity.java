@@ -70,11 +70,15 @@ public final class RenderedEntity implements TransformSupplier {
         visible = group.getParent().visibility();
     }
 
-    public void createHitBox(@NotNull Entity entity, @NotNull Predicate<RenderedEntity> predicate, @NotNull HitBoxListener listener) {
+    public void createHitBox(@NotNull Entity entity, @NotNull Predicate<RenderedEntity> predicate, @Nullable HitBoxListener listener) {
         var h = group.getHitBox();
         if (h != null && predicate.test(this)) {
-            if (hitBox != null) hitBox.remove();
-            hitBox = ModelRenderer.inst().nms().createHitBox(entity, this, h, listener);
+            var l = listener;
+            if (hitBox != null) {
+                hitBox.remove();
+                if (l == null) l = hitBox.listener();
+            }
+            hitBox = ModelRenderer.inst().nms().createHitBox(entity, this, h, l != null ? l : HitBoxListener.EMPTY);
         }
         for (RenderedEntity value : children.values()) {
             value.createHitBox(entity, predicate, listener);

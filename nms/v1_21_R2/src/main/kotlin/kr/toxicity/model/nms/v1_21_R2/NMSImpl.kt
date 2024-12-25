@@ -30,7 +30,6 @@ import org.bukkit.craftbukkit.inventory.CraftItemStack
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.LeatherArmorMeta
-import org.bukkit.util.BoundingBox
 import org.bukkit.util.Transformation
 import org.joml.Vector3f
 import java.lang.reflect.Field
@@ -205,12 +204,14 @@ class NMSImpl : NMS {
 
     override fun mount(tracker: EntityTracker, bundler: PacketBundler) {
         val entity = (tracker.entity as CraftEntity).handle
-        val display = tracker.renderers().mapNotNull {
+        val map = tracker.renderers().mapNotNull {
             (it as? ModelDisplayImpl)?.display
         }
         entity.passengers = ImmutableList.builder<Entity>()
-            .addAll(display)
-            .addAll(entity.passengers)
+            .addAll(map)
+            .addAll(entity.passengers.filter { e -> 
+                map.none { it.uuid == e.uuid }
+            })
             .build()
         val packet = ClientboundSetPassengersPacket(entity)
         (bundler as PacketBundlerImpl).run {
@@ -335,7 +336,7 @@ class NMSImpl : NMS {
 
     override fun createHitBox(entity: org.bukkit.entity.Entity, supplier: TransformSupplier, namedBoundingBox: NamedBoundingBox, listener: HitBoxListener): HitBox {
         val handle = (entity as CraftLivingEntity).handle
-        val scale = scale(entity)
+        val scale = adapt(entity).scale()
         val box = namedBoundingBox.box
         val newBox = AABB(
             box.minX,
@@ -372,16 +373,27 @@ class NMSImpl : NMS {
         }
     }
 
-    override fun scale(entity: org.bukkit.entity.Entity): Double {
-        val handle = (entity as CraftEntity).handle
-        return if (handle is LivingEntity) handle.attributes.getInstance(Attributes.SCALE)?.value ?: 1.0 else 1.0
-    }
-
-    override fun onWalk(entity: org.bukkit.entity.LivingEntity): Boolean {
+    override fun adapt(entity: org.bukkit.entity.LivingEntity): EntityAdapter {
         val handle = (entity as CraftLivingEntity).handle
-        val delta = handle.deltaMovement.length()
-        val attribute = handle.attributes
-        return if (handle.onGround) delta / (attribute.getInstance(Attributes.MOVEMENT_SPEED)?.value ?: 0.7) > 0.4
-        else delta / (attribute.getInstance(Attributes.FLYING_SPEED)?.value ?: 0.4) > 0.1
+        return object : EntityAdapter {
+            override fun onWalk(): Boolean {
+                val delta = handle.deltaMovement.length()
+                val attribute = handle.attributes
+                return if (handle.onGround) delta / (attribute.getInstance(Attributes.MOVEMENT_SPEED)?.value ?: 0.7) > 0.4
+                else delta / (attribute.getInstance(Attributes.FLYING_SPEED)?.value ?: 0.4) > 0.1
+            }
+
+            override fun scale(): Double {
+                return if (handle is LivingEntity) handle.attributes.getInstance(Attributes.SCALE)?.value ?: 1.0 else 1.0
+            }
+
+            override fun bodyYaw(): Float {
+                return handle.visualRotationYInDegrees
+            }
+
+            override fun yaw(): Float {
+                return handle.bukkitYaw
+            }
+        }
     }
 }

@@ -28,12 +28,12 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
             @EventHandler
             fun ChunkLoadEvent.load() {
                 chunk.entities.forEach {
-                    EntityTracker.tracker(it)?.refreshHitBox()
+                    EntityTracker.tracker(it)?.refresh()
                 }
             }
             @EventHandler
-            fun EntityAddToWorldEvent.remove() {
-                EntityTracker.tracker(entity)?.refreshHitBox()
+            fun EntityAddToWorldEvent.add() {
+                EntityTracker.tracker(entity)?.refresh()
             }
             @EventHandler
             fun EntityDeathEvent.death() {
