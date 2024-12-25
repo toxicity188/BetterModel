@@ -5,14 +5,10 @@ import dev.jorel.commandapi.CommandAPIBukkitConfig
 import dev.jorel.commandapi.CommandAPICommand
 import dev.jorel.commandapi.executors.CommandExecutionInfo
 import dev.jorel.commandapi.executors.PlayerCommandExecutor
-import kr.toxicity.model.api.ModelRenderer.ReloadResult.Failure
-import kr.toxicity.model.api.ModelRenderer.ReloadResult.OnReload
-import kr.toxicity.model.api.ModelRenderer.ReloadResult.Success
+import kr.toxicity.model.api.ModelRenderer.ReloadResult.*
 import kr.toxicity.model.api.manager.CommandManager
 import kr.toxicity.model.util.PLUGIN
-import org.bukkit.attribute.Attribute
 import org.bukkit.entity.EntityType
-import org.bukkit.entity.LivingEntity
 
 object CommandManagerImpl : CommandManager, GlobalManagerImpl {
     override fun start() {
@@ -25,9 +21,10 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                     .withAliases("o")
                     .withPermission("modelrenderer.orc")
                     .executesPlayer(PlayerCommandExecutor { player, _ ->
-                        for (i in listOf("orc_giant")) { //"orc_giant",  "orc_archer", "orc_king"
+                        for (i in listOf("orc_warrior")) { //"orc_giant",  "orc_archer", "orc_king"
                             val giant = ModelManagerImpl.renderer(i)!!.create(player.world.spawnEntity(player.location, EntityType.HUSK))
                             giant.spawn(player)
+                            giant.refreshHitBox { it.name == "ob_shield" }
                         }
                     }),
                 CommandAPICommand("reload")

@@ -3,17 +3,18 @@ package kr.toxicity.model.api.data.renderer;
 import kr.toxicity.model.api.ModelRenderer;
 import kr.toxicity.model.api.data.blueprint.AnimationMovement;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
-import kr.toxicity.model.api.data.blueprint.NamedBoundingBox;
 import kr.toxicity.model.api.entity.RenderedEntity;
 import kr.toxicity.model.api.entity.TrackerMovement;
+import kr.toxicity.model.api.nms.HitBoxListener;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import lombok.Getter;
 import org.bukkit.Location;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,12 +45,17 @@ public final class RenderInstance implements AutoCloseable {
         this.filter = filter;
     }
 
-    public @Nullable NamedBoundingBox hitBox() {
-        return parent.getParent().boxes().get("hitbox");
+    public void createHitBox(@NotNull Entity entity, @NotNull Predicate<RenderedEntity> predicate, @NotNull HitBoxListener listener) {
+        for (RenderedEntity value : entityMap.values()) {
+            value.createHitBox(entity, predicate, listener);
+        }
     }
 
     @Override
     public void close() {
+        for (RenderedEntity value : entityMap.values()) {
+            value.removeHitBox();
+        }
         for (PlayerChannelHandler value : playerMap.values()) {
             remove0(value.player());
         }
@@ -62,6 +68,12 @@ public final class RenderInstance implements AutoCloseable {
 
     public void move(@NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
         entityMap.values().forEach(e -> e.move(movement, bundler));
+    }
+
+    public void defaultPosition(@NotNull Vector3f movement) {
+        for (RenderedEntity value : entityMap.values()) {
+            value.defaultPosition(movement);
+        }
     }
 
     public boolean addAnimationMovementModifier(@NotNull Consumer<AnimationMovement> consumer) {

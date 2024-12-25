@@ -123,7 +123,8 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                     if (it is BlueprintGroup) {
                         it.name to it.parse()
                     } else null
-                }.toMap()
+                }.toMap(),
+                hitBox()
             )
         }
         return BlueprintRenderer(this, group.mapNotNull {

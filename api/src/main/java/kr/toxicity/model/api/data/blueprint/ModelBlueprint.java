@@ -8,14 +8,16 @@ import org.jetbrains.annotations.NotNull;
 import javax.imageio.ImageIO;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public record ModelBlueprint(
         @NotNull String name,
         double scale,
         int resolution,
-        @NotNull Map<String, NamedBoundingBox> boxes,
         @NotNull List<BlueprintTexture> textures,
         @NotNull List<BlueprintChildren> group,
         @NotNull Map<String, BlueprintAnimation> animations
@@ -24,19 +26,14 @@ public record ModelBlueprint(
         var elementMap = data.elements().stream().collect(Collectors.toMap(ModelElement::uuid, e -> e));
         var scale = data.elements().stream().mapToDouble(ModelElement::max).max().orElseThrow() / 16;
         var list = new ArrayList<BlueprintChildren>();
-        var boxMap = new HashMap<String, NamedBoundingBox>();
         for (ModelChildren modelChildren : data.outliner()) {
             var children = BlueprintChildren.from(modelChildren, elementMap, (float) scale);
             list.add(children);
-            if (children instanceof BlueprintChildren.BlueprintGroup group) {
-                boxMap.putAll(group.boxes());
-            }
         }
         return new ModelBlueprint(
                 name,
                 scale,
                 Math.max(data.resolution().width(), data.resolution().height()) / 16,
-                boxMap,
                 data.textures().stream().map(BlueprintTexture::from).toList(),
                 list,
                 data.animations() == null ? Collections.emptyMap() : data.animations().stream().map(BlueprintAnimation::from).collect(Collectors.toMap(BlueprintAnimation::name, a -> a))

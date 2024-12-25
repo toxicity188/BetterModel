@@ -1,9 +1,7 @@
 package kr.toxicity.model
 
 import kr.toxicity.model.api.ModelRenderer
-import kr.toxicity.model.api.ModelRenderer.ReloadResult.Failure
-import kr.toxicity.model.api.ModelRenderer.ReloadResult.OnReload
-import kr.toxicity.model.api.ModelRenderer.ReloadResult.Success
+import kr.toxicity.model.api.ModelRenderer.ReloadResult.*
 import kr.toxicity.model.api.manager.*
 import kr.toxicity.model.api.nms.NMS
 import kr.toxicity.model.api.version.MinecraftVersion

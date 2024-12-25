@@ -13,7 +13,6 @@ import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Vector3f;
 
 import java.util.List;
 import java.util.Objects;
@@ -30,7 +29,7 @@ public abstract class Tracker implements AutoCloseable {
     private final ScheduledTask task;
     private final AtomicBoolean runningSingle = new AtomicBoolean();
 
-    private TrackerMovement previousMovement;
+    //private TrackerMovement previousMovement;
 
     private Predicate<? super Tracker> predicate = t -> false;
     public Tracker(@NotNull Supplier<TrackerMovement> movement, @NotNull RenderInstance instance) {
@@ -38,7 +37,8 @@ public abstract class Tracker implements AutoCloseable {
         task = Bukkit.getAsyncScheduler().runAtFixedRate(ModelRenderer.inst(), task -> {
             if (viewedPlayerSize() == 0) return;
             var bundle = ModelRenderer.inst().nms().createBundler();
-            instance.move(isRunningSingleAnimation() && previousMovement != null ? previousMovement : (previousMovement = movement.get()), bundle);
+            //instance.move(isRunningSingleAnimation() && previousMovement != null ? previousMovement : (previousMovement = movement.get()), bundle);
+            instance.move(movement.get(), bundle);
             if (!bundle.isEmpty()) for (Player player : instance.viewedPlayer()) {
                 bundle.send(player);
             }

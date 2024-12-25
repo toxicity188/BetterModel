@@ -13,21 +13,22 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.entity.EntityDeathEvent
-import org.bukkit.event.player.PlayerInteractAtEntityEvent
+import org.bukkit.event.world.ChunkLoadEvent
 import java.util.concurrent.TimeUnit
 
 object EntityManagerImpl : EntityManager, GlobalManagerImpl {
     override fun reload() {
         registerListener(object : Listener {
             @EventHandler
-            fun PlayerInteractAtEntityEvent.interact() {
-                val last = (listOf(rightClicked) + rightClicked.passengers).last()
-                if (player !== last) last.addPassenger(player)
-            }
-            @EventHandler
             fun EntityRemoveFromWorldEvent.remove() {
                 EntityTracker.tracker(entity)?.let {
                     if (!it.forRemoval()) it.close()
+                }
+            }
+            @EventHandler
+            fun ChunkLoadEvent.load() {
+                chunk.entities.forEach {
+                    EntityTracker.tracker(it)?.refreshHitBox()
                 }
             }
             @EventHandler

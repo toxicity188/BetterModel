@@ -1,9 +1,7 @@
-import kr.toxicity.model.api.data.blueprint.BlueprintAnimation
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimator
 import kr.toxicity.model.api.data.raw.Datapoint
 import kr.toxicity.model.api.data.raw.KeyframeChannel
 import kr.toxicity.model.api.data.raw.ModelKeyframe
-import org.bukkit.Rotation
 import org.junit.jupiter.api.Test
 
 class AnimationTest {

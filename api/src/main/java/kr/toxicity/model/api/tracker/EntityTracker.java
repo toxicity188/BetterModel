@@ -3,8 +3,10 @@ package kr.toxicity.model.api.tracker;
 import kr.toxicity.model.api.ModelRenderer;
 import kr.toxicity.model.api.data.renderer.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
+import kr.toxicity.model.api.entity.RenderedEntity;
 import kr.toxicity.model.api.entity.TrackerMovement;
 import kr.toxicity.model.api.nms.HitBox;
+import kr.toxicity.model.api.nms.HitBoxListener;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.util.EntityUtil;
 import lombok.Getter;
@@ -53,11 +55,12 @@ public final class EntityTracker extends Tracker {
 
     public EntityTracker(@NotNull Entity entity, @NotNull RenderInstance instance) {
         super(() -> new TrackerMovement(
-                new Vector3f(0, -ModelRenderer.inst().nms().passengerPosition(entity).y, 0F),
+                new Vector3f(0, 0, 0F),
                 new Vector3f((float) ModelRenderer.inst().nms().scale(entity)),
                 new Vector3f(0, entity instanceof LivingEntity livingEntity ? -livingEntity.getBodyYaw() : -entity.getYaw(), 0)
         ), instance);
         this.entity = entity;
+        instance.defaultPosition(new Vector3f(0, -ModelRenderer.inst().nms().passengerPosition(entity).y, 0));
         if (entity instanceof LivingEntity livingEntity) {
             instance.addAnimationMovementModifier(
                     r -> r.getName().startsWith("h_"),
@@ -79,12 +82,17 @@ public final class EntityTracker extends Tracker {
     }
 
     public void refreshHitBox() {
-        if (hitBox != null) hitBox.remove();
-        var box = instance.hitBox();
-        if (box != null) {
-            hitBox = ModelRenderer.inst().nms().createHitBox(entity, box.box());
-        }
+        refreshHitBox(e -> e.getName().equals("hitbox") || e.getName().startsWith("b_"));
     }
+
+    public void refreshHitBox(@NotNull Predicate<RenderedEntity> predicate) {
+        refreshHitBox(predicate, HitBoxListener.EMPTY);
+    }
+
+    public void refreshHitBox(@NotNull Predicate<RenderedEntity> predicate, @NotNull HitBoxListener listener) {
+        instance.createHitBox(entity, predicate, listener);
+    }
+
 
     public void forRemoval(boolean removal) {
         forRemoval.set(removal);

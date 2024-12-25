@@ -1,7 +1,6 @@
 package kr.toxicity.model.api.nms;
 
 import kr.toxicity.model.api.tracker.EntityTracker;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 

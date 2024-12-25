@@ -2,9 +2,11 @@ package kr.toxicity.model.api.data.renderer;
 
 import kr.toxicity.model.api.ModelRenderer;
 import kr.toxicity.model.api.data.blueprint.BlueprintChildren;
+import kr.toxicity.model.api.data.blueprint.NamedBoundingBox;
 import kr.toxicity.model.api.entity.EntityMovement;
 import kr.toxicity.model.api.entity.RenderedEntity;
 import kr.toxicity.model.api.nms.ModelDisplay;
+import kr.toxicity.model.api.nms.TransformSupplier;
 import kr.toxicity.model.api.util.MathUtil;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +22,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
-public final class RendererGroup {
+public final class RendererGroup implements TransformSupplier {
 
     @Getter
     private final String name;
@@ -28,24 +30,29 @@ public final class RendererGroup {
     private final BlueprintChildren.BlueprintGroup parent;
     @Getter
     private final float scale;
+    @Getter
     private final Vector3f position;
     private final Vector3f rotation;
     private final ItemStack itemStack;
     private final Map<String, RendererGroup> children;
     private final Function<Location, ModelDisplay> displayFunction;
+    @Getter
+    private final @Nullable NamedBoundingBox hitBox;
 
     public RendererGroup(
             @NotNull String name,
             float scale,
             @Nullable ItemStack itemStack,
             @NotNull BlueprintChildren.BlueprintGroup group,
-            @NotNull Map<String, RendererGroup> children
+            @NotNull Map<String, RendererGroup> children,
+            @Nullable NamedBoundingBox box
     ) {
         this.name = name;
         this.scale = scale;
         this.parent = group;
         this.children = children;
         this.itemStack = itemStack;
+        this.hitBox = box;
         position = MathUtil.blockBenchToDisplay(group.origin().toVector()
                 .div(16));
         rotation = group.rotation().toVector();
@@ -70,7 +77,7 @@ public final class RendererGroup {
                 displayFunction,
                 location,
                 new EntityMovement(
-                        entityParent != null ? new Vector3f(position).sub(entityParent.getGroup().position) : position,
+                        entityParent != null ? new Vector3f(position).sub(entityParent.getGroup().position) : new Vector3f(position),
                         new Vector3f(1),
                         MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(rotation)),
                         rotation
@@ -82,5 +89,11 @@ public final class RendererGroup {
 
     public @NotNull ItemStack getItemStack() {
         return itemStack != null ? itemStack.clone() : new ItemStack(Material.AIR);
+    }
+
+    @NotNull
+    @Override
+    public Vector3f supplyTransform() {
+        return new Vector3f(position);
     }
 }

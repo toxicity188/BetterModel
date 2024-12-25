@@ -1,8 +1,5 @@
-import kr.toxicity.model.api.util.MathUtil
 import kr.toxicity.model.util.toModel
-import org.joml.Vector3f
 import org.junit.jupiter.api.Test
-import kotlin.math.PI
 
 class GsonTest {
     @Test

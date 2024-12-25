@@ -1,39 +1,52 @@
 package kr.toxicity.model.nms.v1_21_R2
 
-import com.google.common.collect.ImmutableList
+import kr.toxicity.model.api.event.ModelDamagedEvent
 import kr.toxicity.model.api.nms.HitBox
+import kr.toxicity.model.api.nms.HitBoxListener
+import kr.toxicity.model.api.nms.TransformSupplier
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.damagesource.DamageSource
 import net.minecraft.world.entity.*
-import net.minecraft.world.entity.ai.attributes.AttributeMap
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import net.minecraft.world.phys.AABB
+import net.minecraft.world.phys.Vec3
 import org.bukkit.Bukkit
 import org.bukkit.craftbukkit.CraftServer
+import org.bukkit.craftbukkit.damage.CraftDamageSource
 import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.craftbukkit.entity.CraftLivingEntity
+import org.bukkit.entity.Entity
+import org.joml.Vector3f
 
 class HitBoxImpl(
+    private val name: String,
     private val source: AABB,
+    private val supplier: TransformSupplier,
+    private val listener: HitBoxListener,
     private val delegate: LivingEntity,
     private val onRemove: (HitBoxImpl) -> Unit
 ) : LivingEntity(EntityType.SLIME, delegate.level()), HitBox {
-
     private var initialized = false
 
     init {
         moveTo(delegate.position())
         isInvisible = true
-        isInvulnerable = true
         persist = false
         isSilent = true
         isCollidable(false)
         pose = Pose.STANDING
         initialized = true
+    }
+
+    override fun name(): String = name
+    override fun source(): Entity = delegate.bukkitLivingEntity
+    override fun entity(): Entity = bukkitEntity
+    override fun relativePosition(): Vector3f = position().run {
+        Vector3f(x.toFloat(), y.toFloat(), z.toFloat())
     }
 
     private var craftEntity: CraftLivingEntity? = null
@@ -44,10 +57,12 @@ class HitBoxImpl(
     override fun getMainArm(): HumanoidArm = HumanoidArm.RIGHT
 
     override fun tick() {
+        listener.sync(this)
     }
 
     override fun remove(reason: RemovalReason) {
         super.remove(reason)
+        listener.remove(this)
         onRemove(this)
     }
 
@@ -64,6 +79,27 @@ class HitBoxImpl(
         }
     }
 
+    override fun position(): Vec3 {
+        val transform = supplier.supplyTransform()
+        return delegate.position().add(
+            transform.x.toDouble(),
+            transform.y.toDouble() - (source.maxY - source.minY) / 2,
+            transform.z.toDouble()
+        )
+    }
+
+    override fun getYRot(): Float {
+        return if (!initialized) super.getYRot() else delegate.yRot
+    }
+
+    override fun getXRot(): Float {
+        return if (!initialized) super.getXRot() else delegate.xRot
+    }
+
+    override fun getYHeadRot(): Float {
+        return if (!initialized) super.getYHeadRot() else delegate.getYHeadRot()
+    }
+
     private val dimensions = EntityDimensions(
         0F,
         0F,
@@ -77,11 +113,11 @@ class HitBoxImpl(
     }
 
     override fun getHealth(): Float {
-        return delegate.getHealth()
+        return delegate.health
     }
 
-    override fun getDismountPoses(): ImmutableList<Pose> {
-        return delegate.dismountPoses
+    override fun getDismountLocationForPassenger(passenger: LivingEntity): Vec3 {
+        return delegate.getDismountLocationForPassenger(passenger)
     }
 
     override fun interact(player: Player, hand: InteractionHand): InteractionResult {
@@ -93,7 +129,10 @@ class HitBoxImpl(
     }
 
     override fun hurtServer(world: ServerLevel, source: DamageSource, amount: Float): Boolean {
-        return delegate.hurtServer(world, source, amount)
+        if (listener.damage(CraftDamageSource(source), amount.toDouble())) return false
+        return delegate.hurtServer(world, source, amount).also {
+            if (it) ModelDamagedEvent(this).callEvent()
+        }
     }
 
     override fun makeBoundingBox(): AABB {
@@ -103,15 +142,6 @@ class HitBoxImpl(
     }
 
     override fun getDefaultDimensions(pose: Pose): EntityDimensions = dimensions
-
-    private operator fun AABB.plus(other: AABB): AABB = AABB(
-        minX + other.minX,
-        minX + other.minY,
-        minZ + other.minZ,
-        maxX + other.maxX,
-        maxY + other.maxY,
-        maxZ + other.maxZ
-    )
 
     override fun remove() {
         remove(RemovalReason.KILLED)

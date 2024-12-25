@@ -2,9 +2,7 @@ package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
-import kr.toxicity.model.api.util.MathUtil;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.function.Function;

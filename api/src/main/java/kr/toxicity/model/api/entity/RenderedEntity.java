@@ -6,12 +6,12 @@ import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimator;
 import kr.toxicity.model.api.data.renderer.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.RendererGroup;
-import kr.toxicity.model.api.nms.ModelDisplay;
-import kr.toxicity.model.api.nms.PacketBundler;
+import kr.toxicity.model.api.nms.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Transformation;
 import org.jetbrains.annotations.NotNull;
@@ -25,9 +25,9 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public final class RenderedEntity {
+public final class RenderedEntity implements TransformSupplier {
 
-    private static final int ANIMATION_THRESHOLD = 4;
+    private static final int ANIMATION_THRESHOLD = 3;
 
     @Getter
     private final RendererGroup group;
@@ -48,6 +48,8 @@ public final class RenderedEntity {
     private final ItemStack itemStack;
 
     private final List<Consumer<AnimationMovement>> movementModifier = new ArrayList<>();
+    @Getter
+    private HitBox hitBox;
 
     private boolean visible;
     private boolean tint;
@@ -66,6 +68,24 @@ public final class RenderedEntity {
         defaultFrame = movement;
         itemStack = group.getItemStack();
         visible = group.getParent().visibility();
+    }
+
+    public void createHitBox(@NotNull Entity entity, @NotNull Predicate<RenderedEntity> predicate, @NotNull HitBoxListener listener) {
+        var h = group.getHitBox();
+        if (h != null && predicate.test(this)) {
+            if (hitBox != null) hitBox.remove();
+            hitBox = ModelRenderer.inst().nms().createHitBox(entity, this, h, listener);
+        }
+        for (RenderedEntity value : children.values()) {
+            value.createHitBox(entity, predicate, listener);
+        }
+    }
+
+    public void removeHitBox() {
+        if (hitBox != null) hitBox.remove();
+        for (RenderedEntity value : children.values()) {
+            value.removeHitBox();
+        }
     }
 
     public boolean addAnimationMovementModifier(@NotNull Predicate<RenderedEntity> predicate, @NotNull Consumer<AnimationMovement> consumer) {
@@ -126,17 +146,19 @@ public final class RenderedEntity {
         }
     }
 
-    private TrackerMovement lastMovement = null;
+    private TrackerMovement lastMovement;
+    private Vector3f defaultPosition = new Vector3f();
+    private EntityMovement lastTransformation = null;
     public void move(@NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
         var d = display;
         if (delay <= 0) {
             var f = frame();
             delay = f;
+            var entityMovement = lastTransformation = (lastMovement = movement.copy()).plus(relativeOffset());
             if (d != null) {
                 d.frame(Math.max(f, ANIMATION_THRESHOLD));
-                var entityMovement = (lastMovement = movement.copy()).plus(relativeOffset());
                 d.transform(new Transformation(
-                        entityMovement.transform(),
+                        new Vector3f(entityMovement.transform()).add(defaultPosition),
                         entityMovement.rotation(),
                         new Vector3f(entityMovement.scale()).mul(group.getScale()),
                         new Quaternionf()
@@ -153,15 +175,22 @@ public final class RenderedEntity {
     public void forceUpdate(@NotNull PacketBundler bundler) {
         var d = display;
         if (d != null && lastMovement != null && delay > 0) {
-            var entityMovement = lastMovement.copy().plus(relativeOffset());
+            var entityMovement = lastTransformation = lastMovement.copy().plus(relativeOffset());
             d.frame((int) Math.max(delay, ANIMATION_THRESHOLD));
             d.transform(new Transformation(
-                    entityMovement.transform(),
+                    new Vector3f(entityMovement.transform()).add(defaultPosition),
                     entityMovement.rotation(),
                     new Vector3f(entityMovement.scale()).mul(group.getScale()),
                     new Quaternionf()
             ));
             d.send(bundler);
+        }
+    }
+
+    public void defaultPosition(@NotNull Vector3f movement) {
+        defaultPosition = movement;
+        for (RenderedEntity value : children.values()) {
+            value.defaultPosition(movement);
         }
     }
 
@@ -334,5 +363,11 @@ public final class RenderedEntity {
         public int hashCode() {
             return Objects.hashCode(name);
         }
+    }
+
+    @NotNull
+    @Override
+    public Vector3f supplyTransform() {
+        return lastTransformation != null ? lastTransformation.transform() : relativeOffset().transform();
     }
 }

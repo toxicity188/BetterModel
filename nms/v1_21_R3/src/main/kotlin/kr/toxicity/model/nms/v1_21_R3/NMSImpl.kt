@@ -5,6 +5,7 @@ import com.mojang.datafixers.util.Pair
 import io.netty.channel.ChannelDuplexHandler
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
+import kr.toxicity.model.api.data.blueprint.NamedBoundingBox
 import kr.toxicity.model.api.nms.*
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.nms.v1_21_R3.NMSImpl.Companion.InteractHandler
@@ -30,7 +31,6 @@ import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.craftbukkit.inventory.CraftItemStack
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
-import org.bukkit.util.BoundingBox
 import org.bukkit.util.Transformation
 import org.joml.Vector3f
 import java.lang.reflect.Field
@@ -329,9 +329,10 @@ class NMSImpl : NMS {
         })
     }
 
-    override fun createHitBox(entity: org.bukkit.entity.Entity, box: BoundingBox): HitBox {
+    override fun createHitBox(entity: org.bukkit.entity.Entity, supplier: TransformSupplier, namedBoundingBox: NamedBoundingBox, listener: HitBoxListener): HitBox {
         val handle = (entity as CraftLivingEntity).handle
         val scale = scale(entity)
+        val box = namedBoundingBox.box
         val newBox = AABB(
             box.minX,
             box.minY,
@@ -340,42 +341,37 @@ class NMSImpl : NMS {
             box.maxY,
             box.maxZ
         ) * scale
-        val height = -handle.attachments.get(EntityAttachment.PASSENGER, 0, handle.yRot).y * scale - newBox.minY + newBox.maxY
         return HitBoxImpl(
+            namedBoundingBox.name,
             newBox,
+            supplier,
+            listener,
             handle
         ) {
-            hitBoxMap.remove(it.id())
+            hitBoxMap.remove(it.id)
         }.apply {
+            val box2 = newBox / 2.0
             hitBoxMap[id] = handle.id
-            attributes.getInstance(Attributes.SCALE)!!.baseValue = height / 0.52
+            attributes.getInstance(Attributes.SCALE)!!.baseValue = box2.maxPosition.subtract(box2.minPosition).length() / 0.52
             refreshDimensions()
             handle.level().addFreshEntity(this)
-            entity.addPassenger(bukkitEntity)
         }
     }
-
-    private operator fun AABB.times(scale: Double) = AABB(
-        minX * scale,
-        minY * scale,
-        minZ * scale,
-        maxX * scale,
-        maxY * scale,
-        maxZ * scale
-    )
 
     override fun version(): NMSVersion = NMSVersion.V1_21_R3
 
-    override fun passengerPosition(entity: org.bukkit.entity.Entity): Vector3f {
-        return (entity as CraftEntity).handle.let {
-            it.attachments.get(EntityAttachment.PASSENGER, 0, it.yRot).let { v ->
-                Vector3f(v.x.toFloat(), v.y.toFloat(), v.z.toFloat())
-            }
-        }
-    }
+    override fun passengerPosition(entity: org.bukkit.entity.Entity): Vector3f = (entity as CraftEntity).handle.passengerPosition()
 
     override fun scale(entity: org.bukkit.entity.Entity): Double {
         val handle = (entity as CraftEntity).handle
         return if (handle is LivingEntity) handle.attributes.getInstance(Attributes.SCALE)?.value ?: 1.0 else 1.0
+    }
+
+    override fun onWalk(entity: org.bukkit.entity.LivingEntity): Boolean {
+        val handle = (entity as CraftLivingEntity).handle
+        val delta = handle.deltaMovement.length()
+        val attribute = handle.attributes
+        return if (handle.onGround) delta / (attribute.getInstance(Attributes.MOVEMENT_SPEED)?.value ?: 0.7) > 0.4
+        else delta / (attribute.getInstance(Attributes.FLYING_SPEED)?.value ?: 0.4) > 0.1
     }
 }
