@@ -381,7 +381,7 @@ class NMSImpl : NMS {
             }
 
             override fun scale(): Double {
-                return if (handle is LivingEntity) handle.attributes.getInstance(Attributes.SCALE)?.value ?: 1.0 else 1.0
+                return handle.attributes.getInstance(Attributes.SCALE)?.value ?: 1.0
             }
 
             override fun bodyYaw(): Float {

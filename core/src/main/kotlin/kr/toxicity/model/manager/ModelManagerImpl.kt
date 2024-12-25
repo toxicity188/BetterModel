@@ -11,6 +11,7 @@ import kr.toxicity.model.api.manager.ModelManager
 import kr.toxicity.model.util.*
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
+import java.util.Collections
 
 object ModelManagerImpl : ModelManager, GlobalManagerImpl {
 
@@ -135,4 +136,6 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
     }
 
     override fun renderer(name: String): BlueprintRenderer? = renderMap[name]
+    override fun renderers(): List<BlueprintRenderer> = renderMap.values.toList()
+    override fun keys(): Set<String> = Collections.unmodifiableSet(renderMap.keys)
 }

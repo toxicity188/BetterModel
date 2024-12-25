@@ -3,6 +3,7 @@ package kr.toxicity.model.manager
 import dev.jorel.commandapi.CommandAPI
 import dev.jorel.commandapi.CommandAPIBukkitConfig
 import dev.jorel.commandapi.CommandAPICommand
+import dev.jorel.commandapi.arguments.ArgumentSuggestions
 import dev.jorel.commandapi.arguments.StringArgument
 import dev.jorel.commandapi.executors.CommandExecutionInfo
 import dev.jorel.commandapi.executors.PlayerCommandExecutor
@@ -19,9 +20,13 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
             .withPermission("modelrenderer")
             .withSubcommands(
                 CommandAPICommand("spawn")
-                    .withAliases("spawn")
+                    .withAliases("s")
                     .withPermission("modelrenderer.spawn")
-                    .withArguments(StringArgument("name"))
+                    .withArguments(StringArgument("name")
+                        .replaceSuggestions(ArgumentSuggestions.strings {
+                            ModelManagerImpl.keys().toTypedArray()
+                        })
+                    )
                     .executesPlayer(PlayerCommandExecutor { player, args ->
                         val n = args["name"] as String
                         ModelManagerImpl.renderer(n)
