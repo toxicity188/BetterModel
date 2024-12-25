@@ -5,6 +5,7 @@ import com.mojang.datafixers.util.Pair
 import io.netty.channel.ChannelDuplexHandler
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
+import kr.toxicity.model.api.ModelRenderer
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox
 import kr.toxicity.model.api.nms.*
 import kr.toxicity.model.api.tracker.EntityTracker
@@ -23,6 +24,7 @@ import net.minecraft.world.item.Items
 import net.minecraft.world.item.component.CustomModelData
 import net.minecraft.world.item.component.DyedItemColor
 import net.minecraft.world.phys.AABB
+import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.craftbukkit.CraftWorld
 import org.bukkit.craftbukkit.entity.CraftEntity
@@ -155,8 +157,10 @@ class NMSImpl : NMS {
         override fun write(ctx: ChannelHandlerContext, msg: Any, promise: ChannelPromise) {
             when (msg) {
                 is ClientboundAddEntityPacket -> {
-                    msg.id.toEntity()?.let {
-                        EntityTracker.tracker(it.bukkitEntity)?.spawn(player)
+                    msg.id.toEntity()?.let { e ->
+                        Bukkit.getRegionScheduler().run(ModelRenderer.inst(), e.bukkitEntity.location) {
+                            EntityTracker.tracker(e.bukkitEntity)?.spawn(player)
+                        }
                     }
                 }
                 is ClientboundTeleportEntityPacket -> {

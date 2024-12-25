@@ -22,7 +22,7 @@ public final class BlueprintRenderer {
     private final Map<String, BlueprintAnimation> animationMap;
 
     public @NotNull EntityTracker create(@NotNull Entity entity) {
-        var tracker = EntityTracker.tracker(entity);
+        var tracker = EntityTracker.tracker(entity.getUniqueId());
         return tracker != null ? tracker : new EntityTracker(
                 entity,
                 instance(entity.getLocation())

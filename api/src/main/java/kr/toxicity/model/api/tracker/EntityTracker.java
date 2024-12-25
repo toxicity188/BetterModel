@@ -6,10 +6,10 @@ import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.entity.RenderedEntity;
 import kr.toxicity.model.api.entity.TrackerMovement;
 import kr.toxicity.model.api.nms.EntityAdapter;
-import kr.toxicity.model.api.nms.HitBox;
 import kr.toxicity.model.api.nms.HitBoxListener;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -31,8 +31,6 @@ public final class EntityTracker extends Tracker {
     private static final Map<UUID, EntityTracker> TRACKER_MAP = new ConcurrentHashMap<>();
 
     private final @NotNull Entity entity;
-    @Getter
-    private HitBox hitBox;
     private final AtomicBoolean closed = new AtomicBoolean();
     private final AtomicBoolean forRemoval = new AtomicBoolean();
 
@@ -70,7 +68,6 @@ public final class EntityTracker extends Tracker {
                     }
                 });
         instance.animateLoop("walk", new AnimationModifier(adapt::onWalk, 0, 0));
-        createHitBox();
         setMovement(() -> new TrackerMovement(
                 new Vector3f(0, 0, 0F),
                 new Vector3f((float) adapt.scale()),
@@ -78,6 +75,9 @@ public final class EntityTracker extends Tracker {
         ));
         entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, instance.getParent().getParent().name());
         TRACKER_MAP.put(entity.getUniqueId(), this);
+        Bukkit.getRegionScheduler().run(ModelRenderer.inst(), entity.getLocation(), s -> {
+            if (!closed.get() && !forRemoval()) createHitBox();
+        });
     }
 
     public void createHitBox() {
@@ -106,7 +106,6 @@ public final class EntityTracker extends Tracker {
         if (closed.get()) return;
         closed.set(true);
         super.close();
-        if (hitBox != null) hitBox.remove();
         entity.getPersistentDataContainer().remove(TRACKING_ID);
         TRACKER_MAP.remove(entity.getUniqueId());
     }

@@ -40,6 +40,7 @@ class HitBoxImpl(
         isCollidable(false)
         pose = Pose.STANDING
         initialized = true
+        `moonrise$setUpdatingSectionStatus`(false)
     }
 
     override fun name(): String = name
