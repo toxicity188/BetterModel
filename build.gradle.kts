@@ -107,7 +107,8 @@ bukkitPluginYaml {
     main = "${project.group}.ModelRendererImpl"
     version = project.version.toString()
     name = rootProject.name
-    apiVersion = "1.19"
+    foliaSupported = true
+    apiVersion = "1.21"
     author = "toxicity"
     description = "Simple Model API."
     softDepend = listOf(

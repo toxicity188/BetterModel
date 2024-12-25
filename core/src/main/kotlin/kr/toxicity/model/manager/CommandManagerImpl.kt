@@ -3,6 +3,7 @@ package kr.toxicity.model.manager
 import dev.jorel.commandapi.CommandAPI
 import dev.jorel.commandapi.CommandAPIBukkitConfig
 import dev.jorel.commandapi.CommandAPICommand
+import dev.jorel.commandapi.arguments.StringArgument
 import dev.jorel.commandapi.executors.CommandExecutionInfo
 import dev.jorel.commandapi.executors.PlayerCommandExecutor
 import kr.toxicity.model.api.ModelRenderer.ReloadResult.*
@@ -17,15 +18,18 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
             .withAliases("mr")
             .withPermission("modelrenderer")
             .withSubcommands(
-                CommandAPICommand("orc")
-                    .withAliases("o")
-                    .withPermission("modelrenderer.orc")
-                    .executesPlayer(PlayerCommandExecutor { player, _ ->
-                        for (i in listOf("orc_warrior")) { //"orc_giant",  "orc_archer", "orc_king"
-                            val giant = ModelManagerImpl.renderer(i)!!.create(player.world.spawnEntity(player.location, EntityType.HUSK))
-                            giant.spawn(player)
-                            giant.refreshHitBox { it.name == "ob_shield" }
-                        }
+                CommandAPICommand("spawn")
+                    .withAliases("spawn")
+                    .withPermission("modelrenderer.spawn")
+                    .withArguments(StringArgument("name"))
+                    .executesPlayer(PlayerCommandExecutor { player, args ->
+                        val n = args["name"] as String
+                        ModelManagerImpl.renderer(n)
+                            ?.create(player.world.spawnEntity(player.location, EntityType.HUSK))
+                            ?.spawn(player)
+                            ?: run {
+                                player.sendMessage("Unable to find this renderer: $n")
+                            }
                     }),
                 CommandAPICommand("reload")
                     .withAliases("re", "rl")
