@@ -1,9 +1,9 @@
 package kr.toxicity.model.util
 
-import kr.toxicity.model.api.ModelRenderer
+import kr.toxicity.model.api.BetterModel
 
 val PLUGIN
-    get() = ModelRenderer.inst()
+    get() = BetterModel.inst()
 val DATA_FOLDER
     get() = PLUGIN.dataFolder
 

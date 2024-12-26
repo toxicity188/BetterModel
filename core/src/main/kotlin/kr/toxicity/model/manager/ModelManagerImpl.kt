@@ -15,7 +15,6 @@ import java.util.Collections
 
 object ModelManagerImpl : ModelManager, GlobalManagerImpl {
 
-    private val item = Material.LEATHER_HORSE_ARMOR
     private var index = 1
 
     private val renderMap = HashMap<String, BlueprintRenderer>()
@@ -27,12 +26,12 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
             .subFolder("build")
             .clear()
             .subFolder("assets")
-        val renderer = assets.subFolder("modelrenderer")
+        val renderer = assets.subFolder("bettermodel")
         val textures = renderer.subFolder("textures").subFolder("item")
         val model = renderer.subFolder("models").subFolder("item")
         val modernMode = renderer.subFolder("models").subFolder("modern_item")
 
-        val itemName = item.name.lowercase()
+        val itemName = ConfigManagerImpl.item().name.lowercase()
         val modelJson = JsonObject().apply {
             addProperty("parent", "minecraft:item/generated")
             add("textures", JsonObject().apply {
@@ -64,7 +63,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                             add("predicate", JsonObject().apply {
                                 addProperty("custom_model_data", index)
                             })
-                            addProperty("model", "modelrenderer:item/${blueprintGroup.jsonName(load)}")
+                            addProperty("model", "bettermodel:item/${blueprintGroup.jsonName(load)}")
                         })
                     } else return@render null
                     if (blueprintGroup.buildJson(0, load, modernJsonList)) {
@@ -72,7 +71,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                             addProperty("threshold", index)
                             add("model", JsonObject().apply {
                                 addProperty("type", "minecraft:model")
-                                addProperty("model", "modelrenderer:modern_item/${blueprintGroup.jsonName(load)}")
+                                addProperty("model", "bettermodel:modern_item/${blueprintGroup.jsonName(load)}")
                                 add("tints", JsonArray().apply {
                                     add(JsonObject().apply {
                                         addProperty("type", "minecraft:custom_model_data")
@@ -113,7 +112,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                 name,
                 scale.toFloat(),
                 consumer(this)?.let { i ->
-                    ItemStack(item).apply {
+                    ItemStack(ConfigManagerImpl.item()).apply {
                         itemMeta = itemMeta.apply {
                             setCustomModelData(i)
                         }

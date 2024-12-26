@@ -1,6 +1,6 @@
 package kr.toxicity.model.api.data.renderer;
 
-import kr.toxicity.model.api.ModelRenderer;
+import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.blueprint.AnimationMovement;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.entity.RenderedEntity;
@@ -63,8 +63,8 @@ public final class RenderInstance implements AutoCloseable {
         playerMap.clear();
     }
 
-    public void teleport(@NotNull Location location) {
-        entityMap.values().forEach(e -> e.teleport(location));
+    public void teleport(@NotNull Location location, @NotNull PacketBundler bundler) {
+        entityMap.values().forEach(e -> e.teleport(location, bundler));
     }
 
     public void move(@NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
@@ -95,7 +95,7 @@ public final class RenderInstance implements AutoCloseable {
     }
 
     public void tint(boolean toggle) {
-        var bundler = ModelRenderer.inst().nms().createBundler();
+        var bundler = BetterModel.inst().nms().createBundler();
         entityMap.values().forEach(e -> e.tint(toggle, bundler));
         if (!bundler.isEmpty()) for (Player player : viewedPlayer()) {
             bundler.send(player);
@@ -156,7 +156,7 @@ public final class RenderInstance implements AutoCloseable {
     }
 
     public void spawn(@NotNull Player player, @NotNull PacketBundler bundler) {
-        var get = ModelRenderer.inst().playerManager().player(player.getUniqueId());
+        var get = BetterModel.inst().playerManager().player(player.getUniqueId());
         if (get == null) return;
         playerMap.computeIfAbsent(player.getUniqueId(), u -> {
             entityMap.values().forEach(e -> e.spawn(bundler));
@@ -168,13 +168,13 @@ public final class RenderInstance implements AutoCloseable {
         remove0(player);
     }
     private void remove0(@NotNull Player player) {
-        var bundler = ModelRenderer.inst().nms().createBundler();
+        var bundler = BetterModel.inst().nms().createBundler();
         entityMap.values().forEach(e -> e.remove(bundler));
         bundler.send(player);
     }
 
     public void togglePart(@NotNull Predicate<RenderedEntity> predicate, boolean toggle) {
-        var bundler = ModelRenderer.inst().nms().createBundler();
+        var bundler = BetterModel.inst().nms().createBundler();
         entityMap.values().forEach(e -> e.togglePart(bundler, predicate, toggle));
         if (!bundler.isEmpty()) for (Player player : viewedPlayer()) {
             bundler.send(player);

@@ -12,7 +12,7 @@ import kr.toxicity.model.api.tracker.EntityTracker
 import org.bukkit.damage.DamageSource
 import org.bukkit.entity.Damageable
 
-class BindHitBoxMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "[ModelRenderer]", mlc), INoTargetSkill {
+class BindHitBoxMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "[BetterModel]", mlc), INoTargetSkill {
 
     private val partId = mlc.getString(arrayOf("partid", "p", "pid", "part"))!!
     private val type = mlc.getString(arrayOf("type", "t", "mob", "m"))?.let {

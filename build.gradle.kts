@@ -23,6 +23,7 @@ allprojects {
     dependencies {
         testImplementation(kotlin("test"))
         implementation("dev.jorel:commandapi-bukkit-shade:9.7.0")
+        implementation("org.bstats:bstats-bukkit:3.1.0")
         compileOnly("io.lumine:Mythic-Dist:5.7.2")
     }
     tasks {
@@ -98,19 +99,21 @@ tasks {
         fun prefix(pattern: String) {
             relocate(pattern, "${project.group}.shaded.$pattern")
         }
+        exclude("LICENSE")
         prefix("kotlin")
         prefix("dev.jorel.commandapi")
+        prefix("org.bstats")
     }
 }
 
 bukkitPluginYaml {
-    main = "${project.group}.ModelRendererImpl"
+    main = "${project.group}.BetterModelImpl"
     version = project.version.toString()
     name = rootProject.name
     foliaSupported = true
     apiVersion = "1.20"
     author = "toxicity"
-    description = "Simple Model API."
+    description = "Simple Model plugin."
     softDepend = listOf(
         "MythicMobs"
     )

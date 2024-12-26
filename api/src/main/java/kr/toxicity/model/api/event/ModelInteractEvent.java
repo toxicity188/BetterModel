@@ -16,8 +16,8 @@ public class ModelInteractEvent extends PlayerEvent implements Cancellable {
 
     @Setter
     private boolean cancelled;
-    private final HitBox hitBox;
-    private final Hand hand;
+    private final @NotNull HitBox hitBox;
+    private final @NotNull Hand hand;
 
     public ModelInteractEvent(@NotNull Player who, @NotNull HitBox hitBox, @NotNull Hand hand) {
         super(who);

@@ -1,7 +1,7 @@
 package kr.toxicity.model
 
-import kr.toxicity.model.api.ModelRenderer
-import kr.toxicity.model.api.ModelRenderer.ReloadResult.*
+import kr.toxicity.model.api.BetterModel
+import kr.toxicity.model.api.BetterModel.ReloadResult.*
 import kr.toxicity.model.api.manager.*
 import kr.toxicity.model.api.nms.NMS
 import kr.toxicity.model.api.version.MinecraftVersion
@@ -12,7 +12,7 @@ import org.bukkit.Bukkit
 import java.util.concurrent.atomic.AtomicBoolean
 
 @Suppress("UNUSED")
-class ModelRendererImpl : ModelRenderer() {
+class BetterModelImpl : BetterModel() {
     private val version = MinecraftVersion(Bukkit.getBukkitVersion().substringBefore('-'))
     private lateinit var nms: NMS
 
@@ -21,6 +21,7 @@ class ModelRendererImpl : ModelRenderer() {
     private val managers by lazy {
         listOf(
             CompatibilityManagerImpl,
+            ConfigManagerImpl,
             ModelManagerImpl,
             PlayerManagerImpl,
             EntityManagerImpl,
@@ -73,6 +74,7 @@ class ModelRendererImpl : ModelRenderer() {
     override fun entityManager(): EntityManager = EntityManagerImpl
     override fun commandManager(): CommandManager = CommandManagerImpl
     override fun compatibilityManager(): CompatibilityManager = CompatibilityManagerImpl
+    override fun configManager(): ConfigManager = ConfigManagerImpl
 
     override fun version(): MinecraftVersion = version
     override fun nms(): NMS = nms

@@ -1,0 +1,5 @@
+metrics: true
+sight-trace: true
+item: leather_horse_armor
+max-sight: 45
+min-sight: 5

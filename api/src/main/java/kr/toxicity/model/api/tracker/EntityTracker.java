@@ -1,6 +1,6 @@
 package kr.toxicity.model.api.tracker;
 
-import kr.toxicity.model.api.ModelRenderer;
+import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.renderer.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.entity.RenderedEntity;
@@ -43,7 +43,7 @@ public final class EntityTracker extends Tracker {
         if (t == null) {
             var tag = entity.getPersistentDataContainer().get(TRACKING_ID, PersistentDataType.STRING);
             if (tag == null) return null;
-            var render = ModelRenderer.inst().modelManager().renderer(tag);
+            var render = BetterModel.inst().modelManager().renderer(tag);
             if (render != null) return render.create(entity);
         }
         return t;
@@ -58,8 +58,8 @@ public final class EntityTracker extends Tracker {
     public EntityTracker(@NotNull Entity entity, @NotNull RenderInstance instance) {
         super(instance);
         this.entity = entity;
-        var adapt = entity instanceof LivingEntity livingEntity ? ModelRenderer.inst().nms().adapt(livingEntity) : EntityAdapter.EMPTY;
-        instance.defaultPosition(new Vector3f(0, -ModelRenderer.inst().nms().passengerPosition(entity).y, 0));
+        var adapt = entity instanceof LivingEntity livingEntity ? BetterModel.inst().nms().adapt(livingEntity) : EntityAdapter.EMPTY;
+        instance.defaultPosition(new Vector3f(0, -BetterModel.inst().nms().passengerPosition(entity).y, 0));
         instance.addAnimationMovementModifier(
                 r -> r.getName().startsWith("h_"),
                 a -> {
@@ -79,7 +79,7 @@ public final class EntityTracker extends Tracker {
         ));
         entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, instance.getParent().getParent().name());
         TRACKER_MAP.put(entity.getUniqueId(), this);
-        Bukkit.getRegionScheduler().run(ModelRenderer.inst(), entity.getLocation(), s -> {
+        Bukkit.getRegionScheduler().run(BetterModel.inst(), entity.getLocation(), s -> {
             if (!closed.get() && !forRemoval()) createHitBox();
         });
     }
@@ -125,10 +125,10 @@ public final class EntityTracker extends Tracker {
     }
 
     public void spawn(@NotNull Player player) {
-        var bundler = ModelRenderer.inst().nms().createBundler();
+        var bundler = BetterModel.inst().nms().createBundler();
         spawn(player, bundler);
-        ModelRenderer.inst().nms().mount(this, bundler);
-        var handler = ModelRenderer.inst()
+        BetterModel.inst().nms().mount(this, bundler);
+        var handler = BetterModel.inst()
                 .playerManager()
                 .player(player.getUniqueId());
         if (handler != null) handler.startTrack(this);
@@ -142,7 +142,7 @@ public final class EntityTracker extends Tracker {
     @Override
     public void remove(@NotNull Player player) {
         super.remove(player);
-        var handler = ModelRenderer.inst()
+        var handler = BetterModel.inst()
                 .playerManager()
                 .player(player.getUniqueId());
         if (handler != null) handler.endTrack(this);
@@ -150,8 +150,8 @@ public final class EntityTracker extends Tracker {
 
     public void refresh() {
         instance.createHitBox(entity, r -> r.getHitBox() != null, null);
-        var bundler = ModelRenderer.inst().nms().createBundler();
-        ModelRenderer.inst().nms().mount(this, bundler);
+        var bundler = BetterModel.inst().nms().createBundler();
+        BetterModel.inst().nms().mount(this, bundler);
         if (!bundler.isEmpty()) for (Player player : viewedPlayer()) {
             bundler.send(player);
         }

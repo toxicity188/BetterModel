@@ -48,7 +48,7 @@ public sealed interface BlueprintChildren {
             var textureObject = new JsonObject();
             var index = 0;
             for (BlueprintTexture texture : parent.textures()) {
-                textureObject.addProperty(Integer.toString(index++), "modelrenderer:item/" + parent.name() + "_" + texture.name());
+                textureObject.addProperty(Integer.toString(index++), "bettermodel:item/" + parent.name() + "_" + texture.name());
             }
             object.add("textures", textureObject);
             var elements = new JsonArray();

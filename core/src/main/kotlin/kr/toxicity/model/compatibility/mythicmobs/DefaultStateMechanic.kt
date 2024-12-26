@@ -8,7 +8,7 @@ import io.lumine.mythic.bukkit.MythicBukkit
 import io.lumine.mythic.core.skills.SkillMechanic
 import kr.toxicity.model.api.tracker.EntityTracker
 
-class DefaultStateMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "[ModelRenderer]", mlc), INoTargetSkill {
+class DefaultStateMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "[BetterModel]", mlc), INoTargetSkill {
 
     private val t = mlc.getString(arrayOf("t", "type"))!!
     private val s = mlc.getString(arrayOf("state", "s"))!!

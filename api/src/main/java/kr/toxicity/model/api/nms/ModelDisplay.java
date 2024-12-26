@@ -10,7 +10,7 @@ public interface ModelDisplay {
 
     void spawn(@NotNull PacketBundler bundler);
     void remove(@NotNull PacketBundler bundler);
-    void teleport(@NotNull Location location);
+    void teleport(@NotNull Location location, @NotNull PacketBundler bundler);
     void item(@NotNull ItemStack itemStack);
     void transform(@NotNull Transformation transformation);
     void send(@NotNull PacketBundler bundler);

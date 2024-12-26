@@ -19,13 +19,6 @@ public record TrackerMovement(
                 new Vector3f(movement.rawRotation())
         );
     }
-    public @NotNull TrackerMovement plus(@NotNull TrackerMovement movement) {
-        return new TrackerMovement(
-                new Vector3f(transform).add(movement.transform),
-                new Vector3f(scale).add(movement.scale),
-                new Vector3f(rotation).add(movement.rotation)
-        );
-    }
     public @NotNull TrackerMovement copy() {
         return new TrackerMovement(
                 new Vector3f(transform),

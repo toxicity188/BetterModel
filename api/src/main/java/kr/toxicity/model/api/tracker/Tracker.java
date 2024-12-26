@@ -1,7 +1,7 @@
 package kr.toxicity.model.api.tracker;
 
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
-import kr.toxicity.model.api.ModelRenderer;
+import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.renderer.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.entity.RenderedEntity;
@@ -26,7 +26,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public abstract class Tracker implements AutoCloseable {
-    public static final NamespacedKey TRACKING_ID = Objects.requireNonNull(NamespacedKey.fromString("betterengine_tracker"));
+    public static final NamespacedKey TRACKING_ID = Objects.requireNonNull(NamespacedKey.fromString("bettermodel_tracker"));
 
     protected final RenderInstance instance;
     private final ScheduledTask task;
@@ -37,16 +37,16 @@ public abstract class Tracker implements AutoCloseable {
     private Supplier<TrackerMovement> movement = () -> new TrackerMovement(new Vector3f(), new Vector3f(1), new Vector3f());
     public Tracker(@NotNull RenderInstance instance) {
         this.instance = instance;
-        task = Bukkit.getAsyncScheduler().runAtFixedRate(ModelRenderer.inst(), task -> {
+        task = Bukkit.getAsyncScheduler().runAtFixedRate(BetterModel.inst(), task -> {
             if (viewedPlayerSize() == 0) return;
-            var bundle = ModelRenderer.inst().nms().createBundler();
+            var bundle = BetterModel.inst().nms().createBundler();
             instance.move(movement.get(), bundle);
             if (!bundle.isEmpty()) for (Player player : instance.viewedPlayer()) {
                 bundle.send(player);
             }
         }, 50, 50, TimeUnit.MILLISECONDS);
         tint(false);
-        instance.move(movement.get(), ModelRenderer.inst().nms().createBundler());
+        instance.move(movement.get(), BetterModel.inst().nms().createBundler());
         instance.filter(p -> EntityUtil.canSee(p.getLocation(), location()));
     }
 

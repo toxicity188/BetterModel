@@ -7,23 +7,21 @@ import dev.jorel.commandapi.arguments.ArgumentSuggestions
 import dev.jorel.commandapi.arguments.StringArgument
 import dev.jorel.commandapi.executors.CommandExecutionInfo
 import dev.jorel.commandapi.executors.PlayerCommandExecutor
-import kr.toxicity.model.api.ModelRenderer.ReloadResult.*
+import kr.toxicity.model.api.BetterModel.ReloadResult.*
 import kr.toxicity.model.api.manager.CommandManager
 import kr.toxicity.model.util.PLUGIN
-import org.bukkit.attribute.Attribute
 import org.bukkit.entity.EntityType
-import org.bukkit.entity.LivingEntity
 
 object CommandManagerImpl : CommandManager, GlobalManagerImpl {
     override fun start() {
         CommandAPI.onLoad(CommandAPIBukkitConfig(PLUGIN).silentLogs(true))
-        CommandAPICommand("modelrenderer")
-            .withAliases("mr")
-            .withPermission("modelrenderer")
+        CommandAPICommand("bettermodel")
+            .withAliases("br")
+            .withPermission("bettermodel")
             .withSubcommands(
                 CommandAPICommand("spawn")
                     .withAliases("s")
-                    .withPermission("modelrenderer.spawn")
+                    .withPermission("bettermodel.spawn")
                     .withArguments(StringArgument("name")
                         .replaceSuggestions(ArgumentSuggestions.strings {
                             ModelManagerImpl.keys().toTypedArray()
@@ -40,7 +38,7 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                     }),
                 CommandAPICommand("reload")
                     .withAliases("re", "rl")
-                    .withPermission("modelrenderer.reload")
+                    .withPermission("bettermodel.reload")
                     .executes(CommandExecutionInfo {
                         when (val result = PLUGIN.reload()) {
                             is OnReload -> it.sender().sendMessage("The plugin still on reload!")
@@ -53,8 +51,8 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                     }),
             )
             .executes(CommandExecutionInfo {
-                it.sender().sendMessage("/modelrenderer reload - reloads this plugin.")
-                it.sender().sendMessage("/modelrenderer summon <model> - summons some model to husk.")
+                it.sender().sendMessage("/bettermodel reload - reloads this plugin.")
+                it.sender().sendMessage("/bettermodel summon <model> - summons some model to husk.")
             })
             .register(PLUGIN)
     }

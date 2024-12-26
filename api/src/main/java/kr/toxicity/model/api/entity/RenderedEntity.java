@@ -1,6 +1,6 @@
 package kr.toxicity.model.api.entity;
 
-import kr.toxicity.model.api.ModelRenderer;
+import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.blueprint.AnimationMovement;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimator;
@@ -78,7 +78,7 @@ public final class RenderedEntity implements TransformSupplier {
                 hitBox.remove();
                 if (l == null) l = hitBox.listener();
             }
-            hitBox = ModelRenderer.inst().nms().createHitBox(entity, this, h, l != null ? l : HitBoxListener.EMPTY);
+            hitBox = BetterModel.inst().nms().createHitBox(entity, this, h, l != null ? l : HitBoxListener.EMPTY);
         }
         for (RenderedEntity value : children.values()) {
             value.createHitBox(entity, predicate, listener);
@@ -248,7 +248,7 @@ public final class RenderedEntity implements TransformSupplier {
 
     private boolean applyItem() {
         if (display != null) {
-            display.item(visible ? ModelRenderer.inst().nms().tint(itemStack.clone(), tint) : new ItemStack(Material.AIR));
+            display.item(visible ? BetterModel.inst().nms().tint(itemStack.clone(), tint) : new ItemStack(Material.AIR));
             return true;
         } else return false;
     }
@@ -257,9 +257,9 @@ public final class RenderedEntity implements TransformSupplier {
         return getGroup().getName();
     }
 
-    public void teleport(@NotNull Location location) {
-        if (display != null) display.teleport(location);
-        children.values().forEach(e -> e.teleport(location));
+    public void teleport(@NotNull Location location, @NotNull PacketBundler bundler) {
+        if (display != null) display.teleport(location, bundler);
+        children.values().forEach(e -> e.teleport(location, bundler));
     }
 
     public void spawn(@NotNull PacketBundler bundler) {

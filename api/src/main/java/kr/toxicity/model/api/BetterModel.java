@@ -8,9 +8,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public abstract class ModelRenderer extends JavaPlugin {
+public abstract class BetterModel extends JavaPlugin {
 
-    private static ModelRenderer instance;
+    private static BetterModel instance;
 
     @Override
     public final void onLoad() {
@@ -18,7 +18,7 @@ public abstract class ModelRenderer extends JavaPlugin {
         instance = this;
     }
 
-    public static @NotNull ModelRenderer inst() {
+    public static @NotNull BetterModel inst() {
         return Objects.requireNonNull(instance);
     }
 
@@ -32,6 +32,7 @@ public abstract class ModelRenderer extends JavaPlugin {
     public abstract @NotNull EntityManager entityManager();
     public abstract @NotNull CommandManager commandManager();
     public abstract @NotNull CompatibilityManager compatibilityManager();
+    public abstract @NotNull ConfigManager configManager();
 
     public sealed interface ReloadResult {
         record Success(long time) implements ReloadResult {

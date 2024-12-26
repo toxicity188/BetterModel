@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.util;
 
+import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -18,15 +19,14 @@ public final class EntityUtil {
 
     public static final double RENDER_DISTANCE = Bukkit.getSimulationDistance() << 4;
 
-    public static final double MAX_RADIUS = 45;
-    public static final double MIN_RADIUS = 5;
-
     public static boolean canSee(@NotNull Location player, @NotNull Location target) {
+        var manager = BetterModel.inst().configManager();
+        if (!manager.sightTrace()) return true;
         if (player.getWorld() != target.getWorld()) return false;
 
         var d = player.distance(target);
-        if (d > MAX_RADIUS) return false;
-        if (d <= MIN_RADIUS) return true;
+        if (d > manager.maxSight()) return false;
+        if (d <= manager.minSight()) return true;
 
         var playerYaw = toRadians(player.getYaw());
         var playerPitch = toRadians(-player.getPitch()) * 2;

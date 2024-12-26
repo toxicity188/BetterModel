@@ -1,6 +1,6 @@
 package kr.toxicity.model.api.data.renderer;
 
-import kr.toxicity.model.api.ModelRenderer;
+import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.blueprint.BlueprintChildren;
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox;
 import kr.toxicity.model.api.entity.EntityMovement;
@@ -58,7 +58,7 @@ public final class RendererGroup implements TransformSupplier {
         rotation = group.rotation().toVector();
         if (itemStack != null) {
             displayFunction = l -> {
-                var display = ModelRenderer.inst().nms().create(l);
+                var display = BetterModel.inst().nms().create(l);
                 display.item(parent.visibility() ? itemStack : new ItemStack(Material.AIR));
                 return display;
             };

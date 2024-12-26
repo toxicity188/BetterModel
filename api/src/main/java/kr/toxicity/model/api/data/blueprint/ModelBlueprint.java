@@ -40,18 +40,6 @@ public record ModelBlueprint(
         );
     }
 
-    public @NotNull List<BlueprintJson> buildJson(int tint) {
-        var list = new ArrayList<BlueprintJson>();
-        for (BlueprintChildren blueprintChildren : group) {
-            switch (blueprintChildren) {
-                case BlueprintChildren.BlueprintElement blueprintElement -> {
-                }
-                case BlueprintChildren.BlueprintGroup blueprintGroup -> blueprintGroup.buildJson(tint,this, list);
-            }
-        }
-        return list;
-    }
-
     public @NotNull List<BlueprintImage> buildImage() {
         var list = new ArrayList<BlueprintImage>();
         for (BlueprintTexture texture : textures) {

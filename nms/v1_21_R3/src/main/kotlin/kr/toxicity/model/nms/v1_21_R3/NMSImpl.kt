@@ -5,7 +5,7 @@ import com.mojang.datafixers.util.Pair
 import io.netty.channel.ChannelDuplexHandler
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
-import kr.toxicity.model.api.ModelRenderer
+import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox
 import kr.toxicity.model.api.nms.*
 import kr.toxicity.model.api.tracker.EntityTracker
@@ -15,11 +15,8 @@ import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.*
 import net.minecraft.network.syncher.EntityDataAccessor
 import net.minecraft.server.MinecraftServer
-import net.minecraft.world.entity.Display
+import net.minecraft.world.entity.*
 import net.minecraft.world.entity.Display.ItemDisplay
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.EntityType
-import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.ai.attributes.Attributes
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.Items
@@ -43,7 +40,7 @@ import java.util.concurrent.ConcurrentHashMap
 class NMSImpl : NMS {
 
     companion object {
-        private const val INJECT_NAME = "betterengine_channel_handler"
+        private const val INJECT_NAME = "bettermodel_channel_handler"
         private val hitBoxMap = ConcurrentHashMap<Int, HitBoxImpl>()
 
         private fun Class<*>.serializers() = declaredFields.filter { f ->
@@ -137,7 +134,7 @@ class NMSImpl : NMS {
             when (msg) {
                 is ClientboundAddEntityPacket -> {
                     msg.id.toEntity()?.let { e ->
-                        Bukkit.getRegionScheduler().run(ModelRenderer.inst(), e.bukkitEntity.location) {
+                        Bukkit.getRegionScheduler().run(BetterModel.inst(), e.bukkitEntity.location) {
                             EntityTracker.tracker(e.bukkitEntity)?.spawn(player)
                         }
                     }
@@ -234,7 +231,7 @@ class NMSImpl : NMS {
             bundler.unwrap().add(removePacket)
         }
 
-        override fun teleport(location: Location) {
+        override fun teleport(location: Location, bundler: PacketBundler) {
             display.moveTo(
                 location.x,
                 location.y,
@@ -242,6 +239,7 @@ class NMSImpl : NMS {
                 location.yaw,
                 0F
             )
+            bundler.unwrap().add(ClientboundTeleportEntityPacket.teleport(display.id, PositionMoveRotation.of(display), emptySet(), display.onGround))
         }
 
         private var itemChanged = false

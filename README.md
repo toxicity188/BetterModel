@@ -1,4 +1,4 @@
-# ModelRenderer
+# BetterModel
 This plugin is still on developing!
 
 ### TODO
