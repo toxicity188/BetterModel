@@ -53,7 +53,8 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                     }),
             )
             .executes(CommandExecutionInfo {
-                it.sender().sendMessage("/modelrenderer orc - summons test orc.")
+                it.sender().sendMessage("/modelrenderer reload - reloads this plugin.")
+                it.sender().sendMessage("/modelrenderer summon <model> - summons some model to husk.")
             })
             .register(PLUGIN)
     }
