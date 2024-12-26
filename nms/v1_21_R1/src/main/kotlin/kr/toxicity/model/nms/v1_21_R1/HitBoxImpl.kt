@@ -1,5 +1,6 @@
 package kr.toxicity.model.nms.v1_21_R1
 
+import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import kr.toxicity.model.api.event.ModelDamagedEvent
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.HitBoxListener
@@ -25,7 +26,7 @@ import org.joml.Vector3f
 
 class HitBoxImpl(
     private val name: String,
-    private val source: AABB,
+    private val source: ModelBoundingBox,
     private val supplier: TransformSupplier,
     private val listener: HitBoxListener,
     private val delegate: LivingEntity,
@@ -38,7 +39,6 @@ class HitBoxImpl(
         isInvisible = true
         persist = false
         isSilent = true
-        pose = Pose.STANDING
         initialized = true
         `moonrise$setUpdatingSectionStatus`(false)
     }
@@ -59,6 +59,12 @@ class HitBoxImpl(
     override fun getMainArm(): HumanoidArm = HumanoidArm.RIGHT
 
     override fun tick() {
+        val transform = supplier.supplyTransform()
+        setPos(delegate.position().add(
+            transform.x.toDouble(),
+            transform.y.toDouble() + delegate.passengerPosition().y,
+            transform.z.toDouble()
+        ))
         listener.sync(this)
     }
 
@@ -79,15 +85,6 @@ class HitBoxImpl(
         return c ?: CraftLivingEntity(Bukkit.getServer() as CraftServer, this).apply {
             craftEntity = this
         }
-    }
-
-    override fun position(): Vec3 {
-        val transform = supplier.supplyTransform()
-        return delegate.position().add(
-            transform.x.toDouble(),
-            transform.y.toDouble() + delegate.passengerPosition().y,
-            transform.z.toDouble()
-        )
     }
 
     override fun getYRot(): Float {
@@ -140,7 +137,17 @@ class HitBoxImpl(
     override fun makeBoundingBox(): AABB {
         return if (!initialized) {
             super.makeBoundingBox()
-        } else dimensions.makeBoundingBox(delegate.position()) + source
+        } else {
+            val pos = position()
+            AABB(
+                pos.x + source.minX,
+                pos.y + source.minY,
+                pos.z + source.minZ,
+                pos.x + source.maxX,
+                pos.y + source.maxY,
+                pos.z + source.maxZ
+            )
+        }
     }
 
     override fun getDefaultDimensions(pose: Pose): EntityDimensions = dimensions

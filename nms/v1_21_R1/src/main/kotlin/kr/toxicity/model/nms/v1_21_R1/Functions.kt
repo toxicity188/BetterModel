@@ -1,35 +1,17 @@
 package kr.toxicity.model.nms.v1_21_R1
 
+import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityAttachment
-import net.minecraft.world.phys.AABB
 import org.joml.Vector3f
 
-operator fun AABB.times(scale: Double) = AABB(
+operator fun ModelBoundingBox.times(scale: Double) = ModelBoundingBox(
     minX * scale,
     minY * scale,
     minZ * scale,
     maxX * scale,
     maxY * scale,
     maxZ * scale
-)
-
-operator fun AABB.div(scale: Double) = AABB(
-    minX / scale,
-    minY / scale,
-    minZ / scale,
-    maxX / scale,
-    maxY / scale,
-    maxZ / scale
-)
-
-operator fun AABB.plus(other: AABB): AABB = AABB(
-    minX + other.minX,
-    minX + other.minY,
-    minZ + other.minZ,
-    maxX + other.maxX,
-    maxY + other.maxY,
-    maxZ + other.maxZ
 )
 
 fun Entity.passengerPosition(): Vector3f {

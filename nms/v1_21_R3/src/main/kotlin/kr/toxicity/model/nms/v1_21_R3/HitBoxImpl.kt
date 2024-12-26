@@ -1,5 +1,6 @@
 package kr.toxicity.model.nms.v1_21_R3
 
+import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import kr.toxicity.model.api.event.ModelDamagedEvent
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.HitBoxListener
@@ -26,7 +27,7 @@ import org.joml.Vector3f
 
 class HitBoxImpl(
     private val name: String,
-    private val source: AABB,
+    private val source: ModelBoundingBox,
     private val supplier: TransformSupplier,
     private val listener: HitBoxListener,
     private val delegate: LivingEntity,
@@ -39,7 +40,6 @@ class HitBoxImpl(
         isInvisible = true
         persist = false
         isSilent = true
-        pose = Pose.STANDING
         initialized = true
         `moonrise$setUpdatingSectionStatus`(false)
     }
@@ -60,6 +60,12 @@ class HitBoxImpl(
     override fun getMainArm(): HumanoidArm = HumanoidArm.RIGHT
 
     override fun tick() {
+        val transform = supplier.supplyTransform()
+        setPos(delegate.position().add(
+            transform.x.toDouble(),
+            transform.y.toDouble() + delegate.passengerPosition().y,
+            transform.z.toDouble()
+        ))
         listener.sync(this)
     }
 
@@ -80,15 +86,6 @@ class HitBoxImpl(
         return c ?: CraftLivingEntity(Bukkit.getServer() as CraftServer, this).apply {
             craftEntity = this
         }
-    }
-
-    override fun position(): Vec3 {
-        val transform = supplier.supplyTransform()
-        return delegate.position().add(
-            transform.x.toDouble(),
-            transform.y.toDouble() + delegate.passengerPosition().y,
-            transform.z.toDouble()
-        )
     }
 
     override fun getYRot(): Float {
@@ -142,12 +139,20 @@ class HitBoxImpl(
         return delegate.deflection(projectile)
     }
 
-    override fun makeBoundingBox(pos: Vec3): AABB {
+    override fun makeBoundingBox(vec3: Vec3): AABB {
         return if (!initialized) {
-            super.makeBoundingBox(pos)
-        } else dimensions.makeBoundingBox(delegate.position()) + source
+            super.makeBoundingBox()
+        } else {
+            AABB(
+                vec3.x + source.minX,
+                vec3.y + source.minY,
+                vec3.z + source.minZ,
+                vec3.x + source.maxX,
+                vec3.y + source.maxY,
+                vec3.z + source.maxZ
+            )
+        }
     }
-
     override fun getDefaultDimensions(pose: Pose): EntityDimensions = dimensions
 
     override fun remove() {

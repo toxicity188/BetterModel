@@ -1,8 +1,8 @@
 package kr.toxicity.model.api.util;
 
+import kr.toxicity.model.api.data.blueprint.ModelBoundingBox;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,9 +44,9 @@ public final class EntityUtil {
         return (ry <= ty || ry >= PI * 2 - ty) && (rz <= tz || rz >= PI * 2 - tz);
     }
 
-    public static @Nullable BoundingBox max(@NotNull List<BoundingBox> target) {
+    public static @Nullable ModelBoundingBox max(@NotNull List<ModelBoundingBox> target) {
         return target.stream()
-                .max(Comparator.comparingDouble(b -> Math.sqrt(Math.pow(b.getMaxX() - b.getMinX(), 2) + Math.pow(b.getMaxY() - b.getMinY(), 2) + Math.pow(b.getMaxZ() - b.getMinZ(), 2))))
+                .max(Comparator.comparingDouble(b -> Math.sqrt(Math.pow(b.maxX() - b.minX(), 2) + Math.pow(b.maxY() - b.minY(), 2) + Math.pow(b.maxZ() - b.minZ(), 2))))
                 .orElse(null);
     }
 }

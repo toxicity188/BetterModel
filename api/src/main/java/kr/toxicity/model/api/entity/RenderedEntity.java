@@ -27,7 +27,7 @@ import java.util.function.Supplier;
 
 public final class RenderedEntity implements TransformSupplier {
 
-    private static final int ANIMATION_THRESHOLD = 5;
+    private static final int ANIMATION_THRESHOLD = 4;
 
     @Getter
     private final RendererGroup group;

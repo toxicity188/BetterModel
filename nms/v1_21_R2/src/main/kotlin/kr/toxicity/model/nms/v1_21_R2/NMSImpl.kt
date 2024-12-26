@@ -20,7 +20,6 @@ import net.minecraft.world.entity.Display.ItemDisplay
 import net.minecraft.world.entity.ai.attributes.Attributes
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.Items
-import net.minecraft.world.phys.AABB
 import org.bukkit.Bukkit
 import org.bukkit.Color
 import org.bukkit.Location
@@ -341,16 +340,8 @@ class NMSImpl : NMS {
     override fun createHitBox(entity: org.bukkit.entity.Entity, supplier: TransformSupplier, namedBoundingBox: NamedBoundingBox, listener: HitBoxListener): HitBox {
         val handle = (entity as CraftLivingEntity).handle
         val scale = adapt(entity).scale()
-        val box = namedBoundingBox.center()
-        val newBox = AABB(
-            box.minX,
-            box.minY,
-            box.minZ,
-            box.maxX,
-            box.maxY,
-            box.maxZ
-        ) * scale
-        val height = newBox.maxPosition.subtract(newBox.minPosition).length() / 2
+        val newBox = namedBoundingBox.center() * scale
+        val height = newBox.length() / 2
         return HitBoxImpl(
             namedBoundingBox.name,
             newBox,

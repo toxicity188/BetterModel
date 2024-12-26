@@ -1,11 +1,12 @@
 package kr.toxicity.model.nms.v1_21_R3
 
+import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityAttachment
 import net.minecraft.world.phys.AABB
 import org.joml.Vector3f
 
-operator fun AABB.times(scale: Double) = AABB(
+operator fun ModelBoundingBox.times(scale: Double) = ModelBoundingBox(
     minX * scale,
     minY * scale,
     minZ * scale,
@@ -14,16 +15,7 @@ operator fun AABB.times(scale: Double) = AABB(
     maxZ * scale
 )
 
-operator fun AABB.div(scale: Double) = AABB(
-    minX / scale,
-    minY / scale,
-    minZ / scale,
-    maxX / scale,
-    maxY / scale,
-    maxZ / scale
-)
-
-operator fun AABB.plus(other: AABB): AABB = AABB(
+operator fun AABB.plus(other: ModelBoundingBox): AABB = AABB(
     minX + other.minX,
     minX + other.minY,
     minZ + other.minZ,

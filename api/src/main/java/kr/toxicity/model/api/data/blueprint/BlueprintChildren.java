@@ -6,7 +6,6 @@ import kr.toxicity.model.api.data.raw.Float3;
 import kr.toxicity.model.api.data.raw.ModelChildren;
 import kr.toxicity.model.api.data.raw.ModelElement;
 import kr.toxicity.model.api.util.EntityUtil;
-import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
@@ -66,7 +65,7 @@ public sealed interface BlueprintChildren {
         }
 
         public @Nullable NamedBoundingBox hitBox() {
-            var elements = new ArrayList<BoundingBox>();
+            var elements = new ArrayList<ModelBoundingBox>();
             for (BlueprintChildren child : children) {
                 if (child instanceof BlueprintElement element) {
                     var model = element.element;
@@ -78,7 +77,7 @@ public sealed interface BlueprintChildren {
                             .minus(origin)
                             .toVector()
                             .div(16);
-                    elements.add(new BoundingBox(
+                    elements.add(new ModelBoundingBox(
                             from.x,
                             from.y,
                             from.z,
