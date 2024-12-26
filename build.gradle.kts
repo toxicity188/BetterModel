@@ -108,7 +108,7 @@ bukkitPluginYaml {
     version = project.version.toString()
     name = rootProject.name
     foliaSupported = true
-    apiVersion = "1.21"
+    apiVersion = "1.20"
     author = "toxicity"
     description = "Simple Model API."
     softDepend = listOf(

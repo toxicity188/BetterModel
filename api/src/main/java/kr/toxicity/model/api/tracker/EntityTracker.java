@@ -34,6 +34,10 @@ public final class EntityTracker extends Tracker {
     private final AtomicBoolean closed = new AtomicBoolean();
     private final AtomicBoolean forRemoval = new AtomicBoolean();
 
+    public @NotNull UUID world() {
+        return entity.getWorld().getUID();
+    }
+
     public static @Nullable EntityTracker tracker(@NotNull Entity entity) {
         var t = tracker(entity.getUniqueId());
         if (t == null) {

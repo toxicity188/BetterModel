@@ -1,4 +1,4 @@
-package kr.toxicity.model.nms.v1_21_R2
+package kr.toxicity.model.nms.v1_20_R3
 
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import kr.toxicity.model.api.event.ModelDamagedEvent
@@ -7,27 +7,23 @@ import kr.toxicity.model.api.event.ModelInteractEvent.Hand
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.HitBoxListener
 import kr.toxicity.model.api.nms.TransformSupplier
-import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.InteractionHand
-import net.minecraft.world.InteractionHand.MAIN_HAND
-import net.minecraft.world.InteractionHand.OFF_HAND
+import net.minecraft.world.InteractionHand.*
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.damagesource.DamageSource
 import net.minecraft.world.entity.*
 import net.minecraft.world.entity.ai.attributes.AttributeMap
 import net.minecraft.world.entity.ai.attributes.Attributes
 import net.minecraft.world.entity.player.Player
-import net.minecraft.world.entity.projectile.Projectile
-import net.minecraft.world.entity.projectile.ProjectileDeflection
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import org.bukkit.Bukkit
-import org.bukkit.craftbukkit.CraftServer
-import org.bukkit.craftbukkit.damage.CraftDamageSource
-import org.bukkit.craftbukkit.entity.CraftEntity
-import org.bukkit.craftbukkit.entity.CraftLivingEntity
+import org.bukkit.craftbukkit.v1_20_R3.CraftServer
+import org.bukkit.craftbukkit.v1_20_R3.damage.CraftDamageSource
+import org.bukkit.craftbukkit.v1_20_R3.entity.CraftEntity
+import org.bukkit.craftbukkit.v1_20_R3.entity.CraftLivingEntity
 import org.bukkit.entity.Entity
 import org.joml.Vector3f
 
@@ -39,6 +35,7 @@ class HitBoxImpl(
     private val delegate: LivingEntity,
     private val onRemove: (HitBoxImpl) -> Unit
 ) : LivingEntity(EntityType.SLIME, delegate.level()), HitBox {
+
     private var initialized = false
 
     init {
@@ -47,7 +44,7 @@ class HitBoxImpl(
         persist = false
         isSilent = true
         initialized = true
-        `moonrise$setUpdatingSectionStatus`(false)
+        updatingSectionStatus = false
     }
 
     override fun name(): String = name
@@ -111,8 +108,6 @@ class HitBoxImpl(
     private val dimensions = EntityDimensions(
         0F,
         0F,
-        0F,
-        EntityAttachments.createDefault(0F, 0F),
         true
     )
 
@@ -137,20 +132,12 @@ class HitBoxImpl(
         return delegate.interact(player, hand)
     }
 
-    override fun hurtClient(source: DamageSource): Boolean {
-        return delegate.hurtClient(source)
-    }
-
-    override fun hurtServer(world: ServerLevel, source: DamageSource, amount: Float): Boolean {
+    override fun hurt(source: DamageSource, amount: Float): Boolean {
         val ds = CraftDamageSource(source)
         val event = ModelDamagedEvent(this, ds, amount)
         if (!event.callEvent()) return false
         if (listener.damage(ds, amount.toDouble())) return false
-        return delegate.hurtServer(world, source, event.damage)
-    }
-
-    override fun deflection(projectile: Projectile): ProjectileDeflection {
-        return delegate.deflection(projectile)
+        return delegate.hurt(source, event.damage)
     }
 
     override fun getAttributes(): AttributeMap {
@@ -179,7 +166,7 @@ class HitBoxImpl(
         }
     }
 
-    override fun getDefaultDimensions(pose: Pose): EntityDimensions = dimensions
+    override fun getDimensions(pose: Pose): EntityDimensions = dimensions
 
     override fun remove() {
         remove(RemovalReason.KILLED)

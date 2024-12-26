@@ -18,6 +18,10 @@ public record MinecraftVersion(int first, int second, int third) implements Comp
     public static final MinecraftVersion V1_21_2 = new MinecraftVersion(1, 21, 2);
     public static final MinecraftVersion V1_21_1 = new MinecraftVersion(1, 21, 1);
     public static final MinecraftVersion V1_21 = new MinecraftVersion(1, 21, 0);
+    public static final MinecraftVersion V1_20_6 = new MinecraftVersion(1, 20, 6);
+    public static final MinecraftVersion V1_20_5 = new MinecraftVersion(1, 20, 5);
+    public static final MinecraftVersion V1_20_4 = new MinecraftVersion(1, 20, 4);
+    public static final MinecraftVersion V1_20_3 = new MinecraftVersion(1, 20, 3);
 
     public MinecraftVersion(@NotNull String version) {
         this(version.split("\\."));

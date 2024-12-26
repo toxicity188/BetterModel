@@ -14,6 +14,8 @@ import net.minecraft.world.InteractionHand.OFF_HAND
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.damagesource.DamageSource
 import net.minecraft.world.entity.*
+import net.minecraft.world.entity.ai.attributes.AttributeMap
+import net.minecraft.world.entity.ai.attributes.Attributes
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.entity.projectile.Projectile
 import net.minecraft.world.entity.projectile.ProjectileDeflection
@@ -151,9 +153,19 @@ class HitBoxImpl(
         return delegate.deflection(projectile)
     }
 
+    override fun getAttributes(): AttributeMap {
+        val attr = super.getAttributes()
+        if (initialized) {
+            delegate.getAttribute(Attributes.MAX_HEALTH)?.let {
+                attr.getInstance(Attributes.MAX_HEALTH)?.baseValue = it.baseValue
+            }
+        }
+        return attr
+    }
+
     override fun makeBoundingBox(vec3: Vec3): AABB {
         return if (!initialized) {
-            super.makeBoundingBox()
+            super.makeBoundingBox(vec3)
         } else {
             AABB(
                 vec3.x + source.minX,

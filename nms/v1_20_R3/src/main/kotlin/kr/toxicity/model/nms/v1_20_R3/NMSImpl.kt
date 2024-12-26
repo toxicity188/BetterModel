@@ -1,4 +1,4 @@
-package kr.toxicity.model.nms.v1_21_R2
+package kr.toxicity.model.nms.v1_20_R3
 
 import com.google.common.collect.ImmutableList
 import com.mojang.datafixers.util.Pair
@@ -13,6 +13,7 @@ import net.minecraft.network.Connection
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.*
 import net.minecraft.network.syncher.EntityDataAccessor
+import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.server.MinecraftServer
 import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.Display.ItemDisplay
@@ -20,16 +21,17 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.ai.attributes.Attributes
+import net.minecraft.world.entity.monster.Slime
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.Items
 import org.bukkit.Bukkit
 import org.bukkit.Color
 import org.bukkit.Location
-import org.bukkit.craftbukkit.CraftWorld
-import org.bukkit.craftbukkit.entity.CraftEntity
-import org.bukkit.craftbukkit.entity.CraftLivingEntity
-import org.bukkit.craftbukkit.entity.CraftPlayer
-import org.bukkit.craftbukkit.inventory.CraftItemStack
+import org.bukkit.craftbukkit.v1_20_R3.CraftWorld
+import org.bukkit.craftbukkit.v1_20_R3.entity.CraftEntity
+import org.bukkit.craftbukkit.v1_20_R3.entity.CraftLivingEntity
+import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer
+import org.bukkit.craftbukkit.v1_20_R3.inventory.CraftItemStack
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.LeatherArmorMeta
@@ -38,12 +40,21 @@ import org.joml.Vector3f
 import java.lang.reflect.Field
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.math.roundToInt
 
 class NMSImpl : NMS {
 
     companion object {
         private const val INJECT_NAME = "betterengine_channel_handler"
         private val hitBoxMap = ConcurrentHashMap<Int, HitBoxImpl>()
+
+        @Suppress("UNCHECKED_CAST")
+        private val slimeSize = Slime::class.java.declaredFields.first {
+            EntityDataAccessor::class.java.isAssignableFrom(it.type)
+        }.run {
+            isAccessible = true
+            get(null) as EntityDataAccessor<Int>
+        }
 
         private fun Class<*>.serializers() = declaredFields.filter { f ->
             EntityDataAccessor::class.java.isAssignableFrom(f.type)
@@ -61,15 +72,15 @@ class NMSImpl : NMS {
     }
 
     private class PacketBundlerImpl(
-        private val list: MutableList<Packet<in ClientGamePacketListener>>
-    ) : PacketBundler, MutableList<Packet<in ClientGamePacketListener>> by list {
+        private val list: MutableList<Packet<ClientGamePacketListener>>
+    ) : PacketBundler, MutableList<Packet<ClientGamePacketListener>> by list {
         override fun send(player: Player) {
             if (isNotEmpty()) (player as CraftPlayer).handle.connection.send(ClientboundBundlePacket(this))
         }
     }
 
     private fun Int.toEntity() = MinecraftServer.getServer().allLevels.firstNotNullOfOrNull {
-        it.`moonrise$getEntityLookup`().get(this)
+        it.entityLookup.get(this)
     }
 
     private fun Entity.toVoid(bundler: PacketBundlerImpl) {
@@ -111,13 +122,12 @@ class NMSImpl : NMS {
                 it.remove(player)
             }
         }
+        override fun player(): Player = player
+        private fun send(packet: Packet<*>) = connection.send(packet)
 
         private fun Int.toTracker() = toEntity()?.let {
             entityUUIDMap[it.uuid]
         }
-
-        override fun player(): Player = player
-        private fun send(packet: Packet<*>) = connection.send(packet)
 
         override fun startTrack(tracker: EntityTracker) {
             val entity = (tracker.entity as CraftEntity).handle
@@ -182,7 +192,7 @@ class NMSImpl : NMS {
         }
         entity.passengers = ImmutableList.builder<Entity>()
             .addAll(map)
-            .addAll(entity.passengers.filter { e -> 
+            .addAll(entity.passengers.filter { e ->
                 map.none { it.uuid == e.uuid }
             })
             .build()
@@ -221,7 +231,7 @@ class NMSImpl : NMS {
             bundler.unwrap().add(addPacket)
             val f = display.transformationInterpolationDuration
             frame(0)
-            bundler.unwrap().add(ClientboundSetEntityDataPacket(display.id, display.entityData.packAll()!!))
+            bundler.unwrap().add(ClientboundSetEntityDataPacket(display.id, display.entityData.nonDefaultValues!!))
             frame(f)
         }
 
@@ -266,7 +276,12 @@ class NMSImpl : NMS {
         private val dataPacket
             get(): ClientboundSetEntityDataPacket {
                 val set = if (itemChanged) transformSetWithItem else transformSet
-                val result = ClientboundSetEntityDataPacket(display.id, display.entityData.packAll()!!.filter {
+                val list = arrayListOf<SynchedEntityData.DataValue<*>>()
+                display.entityData.packDirty()?.let(list::addAll)
+                display.entityData.nonDefaultValues?.let(list::addAll)
+                val result = ClientboundSetEntityDataPacket(display.id, list.distinctBy {
+                    it.id
+                }.filter {
                     set.contains(it.id)
                 })
                 itemChanged = false
@@ -277,23 +292,20 @@ class NMSImpl : NMS {
             get() = ClientboundRemoveEntitiesPacket(display.id)
 
         private val addPacket
-            get() = display.addPacket
+            get() = ClientboundAddEntityPacket(
+                display.id,
+                display.uuid,
+                display.x,
+                display.y,
+                display.z,
+                display.xRot,
+                display.yRot,
+                display.type,
+                0,
+                display.deltaMovement,
+                display.yHeadRot.toDouble()
+            )
     }
-
-    private val Entity.addPacket
-        get() = ClientboundAddEntityPacket(
-            id,
-            uuid,
-            x,
-            y,
-            z,
-            xRot,
-            yRot,
-            type,
-            0,
-            deltaMovement,
-            yHeadRot.toDouble()
-        )
 
     override fun tint(itemStack: ItemStack, toggle: Boolean): ItemStack {
         val meta = itemStack.itemMeta
@@ -307,8 +319,7 @@ class NMSImpl : NMS {
 
     override fun createHitBox(entity: org.bukkit.entity.Entity, supplier: TransformSupplier, namedBoundingBox: NamedBoundingBox, listener: HitBoxListener): HitBox {
         val handle = (entity as CraftLivingEntity).handle
-        val scale = adapt(entity).scale()
-        val newBox = namedBoundingBox.center() * scale
+        val newBox = namedBoundingBox.center()
         val height = newBox.length() / 2
         return HitBoxImpl(
             namedBoundingBox.name,
@@ -320,13 +331,15 @@ class NMSImpl : NMS {
             hitBoxMap.remove(it.id)
         }.apply {
             hitBoxMap[id] = this
-            attributes.getInstance(Attributes.SCALE)!!.baseValue = height / 0.52
+            entityData.registrationLocked = false
+            entityData.define(slimeSize, 1)
+            entityData.set(slimeSize, (height / 0.52).roundToInt(), true)
             refreshDimensions()
             handle.level().addFreshEntity(this)
         }
     }
 
-    override fun version(): NMSVersion = NMSVersion.V1_21_R2
+    override fun version(): NMSVersion = NMSVersion.V1_20_R3
 
     override fun passengerPosition(entity: org.bukkit.entity.Entity): Vector3f {
         return (entity as CraftEntity).handle.passengerPosition()
@@ -343,7 +356,7 @@ class NMSImpl : NMS {
             }
 
             override fun scale(): Double {
-                return handle.attributes.getInstance(Attributes.SCALE)?.value ?: 1.0
+                return 1.0
             }
 
             override fun bodyYaw(): Float {

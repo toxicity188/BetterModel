@@ -1,4 +1,4 @@
-package kr.toxicity.model.nms.v1_21_R2
+package kr.toxicity.model.nms.v1_20_R4
 
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import kr.toxicity.model.api.event.ModelDamagedEvent
@@ -7,10 +7,8 @@ import kr.toxicity.model.api.event.ModelInteractEvent.Hand
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.HitBoxListener
 import kr.toxicity.model.api.nms.TransformSupplier
-import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.InteractionHand
-import net.minecraft.world.InteractionHand.MAIN_HAND
-import net.minecraft.world.InteractionHand.OFF_HAND
+import net.minecraft.world.InteractionHand.*
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.damagesource.DamageSource
 import net.minecraft.world.entity.*
@@ -47,7 +45,7 @@ class HitBoxImpl(
         persist = false
         isSilent = true
         initialized = true
-        `moonrise$setUpdatingSectionStatus`(false)
+        updatingSectionStatus = false
     }
 
     override fun name(): String = name
@@ -137,16 +135,12 @@ class HitBoxImpl(
         return delegate.interact(player, hand)
     }
 
-    override fun hurtClient(source: DamageSource): Boolean {
-        return delegate.hurtClient(source)
-    }
-
-    override fun hurtServer(world: ServerLevel, source: DamageSource, amount: Float): Boolean {
+    override fun hurt(source: DamageSource, amount: Float): Boolean {
         val ds = CraftDamageSource(source)
         val event = ModelDamagedEvent(this, ds, amount)
         if (!event.callEvent()) return false
         if (listener.damage(ds, amount.toDouble())) return false
-        return delegate.hurtServer(world, source, event.damage)
+        return delegate.hurt(source, event.damage)
     }
 
     override fun deflection(projectile: Projectile): ProjectileDeflection {

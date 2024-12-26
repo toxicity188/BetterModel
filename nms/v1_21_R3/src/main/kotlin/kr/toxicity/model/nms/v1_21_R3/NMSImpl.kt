@@ -15,9 +15,11 @@ import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.*
 import net.minecraft.network.syncher.EntityDataAccessor
 import net.minecraft.server.MinecraftServer
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.entity.*
+import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.Display.ItemDisplay
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.ai.attributes.Attributes
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.Items
@@ -37,7 +39,6 @@ import org.joml.Vector3f
 import java.lang.reflect.Field
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.AtomicLong
 
 class NMSImpl : NMS {
 
@@ -64,7 +65,7 @@ class NMSImpl : NMS {
         private val list: MutableList<Packet<in ClientGamePacketListener>>
     ) : PacketBundler, MutableList<Packet<in ClientGamePacketListener>> by list {
         override fun send(player: Player) {
-            if (isNotEmpty()) (player as CraftPlayer).handle.connection.send(ClientboundBundlePacket(list))
+            if (isNotEmpty()) (player as CraftPlayer).handle.connection.send(ClientboundBundlePacket(this))
         }
     }
 
@@ -167,24 +168,6 @@ class NMSImpl : NMS {
                 is ClientboundSetEquipmentPacket -> if (msg.entity.toTracker() != null) return
             }
             super.write(ctx, msg, promise)
-        }
-
-        private val interactionCooldown = AtomicLong()
-
-        override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
-            when (msg) {
-                is ServerboundInteractPacket -> hitBoxMap[msg.entityId]?.let {
-                    val time = System.currentTimeMillis()
-                    if (time - interactionCooldown.get() < 50) return
-                    interactionCooldown.set(time)
-                    Bukkit.getRegionScheduler().run(ModelRenderer.inst(), it.bukkitEntity.location) { _ ->
-                        it.interact(connection.player, if (msg.isAttack) InteractionHand.MAIN_HAND else InteractionHand.OFF_HAND)
-                        if (msg.isAttack) connection.player.attack(it)
-                    }
-                    return
-                }
-            }
-            super.channelRead(ctx, msg)
         }
 
         private fun EntityTracker.remove() {
@@ -291,9 +274,6 @@ class NMSImpl : NMS {
                 return result
             }
 
-        private val teleportPacket
-            get() = ClientboundTeleportEntityPacket.teleport(display.id, PositionMoveRotation.of(display), emptySet(), display.onGround)
-
         private val removePacket
             get() = ClientboundRemoveEntitiesPacket(display.id)
 
@@ -344,7 +324,9 @@ class NMSImpl : NMS {
     }
     override fun version(): NMSVersion = NMSVersion.V1_21_R3
 
-    override fun passengerPosition(entity: org.bukkit.entity.Entity): Vector3f = (entity as CraftEntity).handle.passengerPosition()
+    override fun passengerPosition(entity: org.bukkit.entity.Entity): Vector3f {
+        return (entity as CraftEntity).handle.passengerPosition()
+    }
 
     override fun adapt(entity: org.bukkit.entity.LivingEntity): EntityAdapter {
         val handle = (entity as CraftLivingEntity).handle
