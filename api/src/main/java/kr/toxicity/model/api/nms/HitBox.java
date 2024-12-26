@@ -7,7 +7,7 @@ import org.joml.Vector3f;
 public interface HitBox {
     @NotNull String name();
     @NotNull Entity source();
-    @NotNull Entity entity();
+    void addPassenger(@NotNull Entity entity);
     @NotNull Vector3f relativePosition();
     void remove();
     int id();

@@ -3,6 +3,7 @@ package kr.toxicity.model.manager
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent
 import kr.toxicity.model.api.data.renderer.AnimationModifier
+import kr.toxicity.model.api.event.ModelInteractEvent
 import kr.toxicity.model.api.manager.EntityManager
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.util.PLUGIN
@@ -19,6 +20,12 @@ import java.util.concurrent.TimeUnit
 object EntityManagerImpl : EntityManager, GlobalManagerImpl {
     override fun reload() {
         registerListener(object : Listener {
+            @EventHandler
+            fun ModelInteractEvent.interact() {
+                if (hitBox.name().startsWith("p_")) {
+                    hitBox.addPassenger(player)
+                }
+            }
             @EventHandler
             fun EntityRemoveFromWorldEvent.remove() {
                 EntityTracker.tracker(entity)?.let {

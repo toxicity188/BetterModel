@@ -9,12 +9,12 @@ import kr.toxicity.model.api.ModelRenderer
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox
 import kr.toxicity.model.api.nms.*
 import kr.toxicity.model.api.tracker.EntityTracker
-import kr.toxicity.model.nms.v1_21_R2.NMSImpl.Companion.InteractHandler
 import net.minecraft.network.Connection
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.*
 import net.minecraft.network.syncher.EntityDataAccessor
 import net.minecraft.server.MinecraftServer
+import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.*
 import net.minecraft.world.entity.Display.ItemDisplay
 import net.minecraft.world.entity.ai.attributes.Attributes
@@ -34,36 +34,15 @@ import org.bukkit.inventory.meta.LeatherArmorMeta
 import org.bukkit.util.Transformation
 import org.joml.Vector3f
 import java.lang.reflect.Field
-import java.lang.reflect.Modifier
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 
 class NMSImpl : NMS {
 
     companion object {
         private const val INJECT_NAME = "betterengine_channel_handler"
-        private fun interface InteractHandler: (ServerboundInteractPacket, Int) -> ServerboundInteractPacket
-        private val hitBoxMap = ConcurrentHashMap<Int, Int>()
-        private val interact = run {
-            val booleanField = ServerboundInteractPacket::class.java.declaredFields.first {
-                !Modifier.isStatic(it.modifiers) && java.lang.Boolean.TYPE.isAssignableFrom(it.type)
-            }.apply {
-                isAccessible = true
-            }
-            val actionField = ServerboundInteractPacket::class.java.declaredFields.first {
-                !Modifier.isStatic(it.modifiers) && it.type.isInterface
-            }.apply {
-                isAccessible = true
-            }
-            val constructor = ServerboundInteractPacket::class.java.declaredConstructors.first {
-                it.parameterCount == 3
-            }.apply {
-                isAccessible = true
-            }
-            InteractHandler { p, i ->
-                constructor.newInstance(i, booleanField[p], actionField[p]) as ServerboundInteractPacket
-            }
-        }
+        private val hitBoxMap = ConcurrentHashMap<Int, HitBoxImpl>()
 
         private fun Class<*>.serializers() = declaredFields.filter { f ->
             EntityDataAccessor::class.java.isAssignableFrom(f.type)
@@ -189,10 +168,18 @@ class NMSImpl : NMS {
             super.write(ctx, msg, promise)
         }
 
+        private val interactionCooldown = AtomicLong()
+
         override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
             when (msg) {
                 is ServerboundInteractPacket -> hitBoxMap[msg.entityId]?.let {
-                    super.channelRead(ctx, interact(msg, it))
+                    val time = System.currentTimeMillis()
+                    if (time - interactionCooldown.get() < 50) return
+                    interactionCooldown.set(time)
+                    Bukkit.getRegionScheduler().run(ModelRenderer.inst(), it.bukkitEntity.location) { _ ->
+                        it.interact(connection.player, if (msg.isAttack) InteractionHand.MAIN_HAND else InteractionHand.OFF_HAND)
+                        if (msg.isAttack) connection.player.attack(it)
+                    }
                     return
                 }
             }
@@ -351,7 +338,7 @@ class NMSImpl : NMS {
         ) {
             hitBoxMap.remove(it.id)
         }.apply {
-            hitBoxMap[id] = handle.id
+            hitBoxMap[id] = this
             attributes.getInstance(Attributes.SCALE)!!.baseValue = height / 0.52
             refreshDimensions()
             handle.level().addFreshEntity(this)

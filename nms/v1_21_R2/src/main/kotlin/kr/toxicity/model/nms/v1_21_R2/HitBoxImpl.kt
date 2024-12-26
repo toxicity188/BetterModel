@@ -2,11 +2,15 @@ package kr.toxicity.model.nms.v1_21_R2
 
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import kr.toxicity.model.api.event.ModelDamagedEvent
+import kr.toxicity.model.api.event.ModelInteractEvent
+import kr.toxicity.model.api.event.ModelInteractEvent.Hand
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.HitBoxListener
 import kr.toxicity.model.api.nms.TransformSupplier
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.InteractionHand
+import net.minecraft.world.InteractionHand.MAIN_HAND
+import net.minecraft.world.InteractionHand.OFF_HAND
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.damagesource.DamageSource
 import net.minecraft.world.entity.*
@@ -46,7 +50,6 @@ class HitBoxImpl(
 
     override fun name(): String = name
     override fun source(): Entity = delegate.bukkitLivingEntity
-    override fun entity(): Entity = bukkitEntity
     override fun relativePosition(): Vector3f = position().run {
         Vector3f(x.toFloat(), y.toFloat(), z.toFloat())
     }
@@ -58,6 +61,9 @@ class HitBoxImpl(
     override fun setItemSlot(slot: EquipmentSlot, stack: ItemStack) {
     }
     override fun getMainArm(): HumanoidArm = HumanoidArm.RIGHT
+    override fun addPassenger(entity: Entity) {
+        bukkitEntity.addPassenger(entity)
+    }
 
     override fun tick() {
         val transform = supplier.supplyTransform()
@@ -121,6 +127,11 @@ class HitBoxImpl(
     }
 
     override fun interact(player: Player, hand: InteractionHand): InteractionResult {
+        val interact = ModelInteractEvent(player.bukkitEntity as org.bukkit.entity.Player, this, when (hand) {
+            MAIN_HAND -> Hand.RIGHT
+            OFF_HAND -> Hand.LEFT
+        })
+        if (!interact.callEvent()) return InteractionResult.FAIL
         return delegate.interact(player, hand)
     }
 
@@ -129,10 +140,11 @@ class HitBoxImpl(
     }
 
     override fun hurtServer(world: ServerLevel, source: DamageSource, amount: Float): Boolean {
-        if (listener.damage(CraftDamageSource(source), amount.toDouble())) return false
-        return delegate.hurtServer(world, source, amount).also {
-            if (it) ModelDamagedEvent(this).callEvent()
-        }
+        val ds = CraftDamageSource(source)
+        val event = ModelDamagedEvent(this, ds, amount)
+        if (!event.callEvent()) return false
+        if (listener.damage(ds, amount.toDouble())) return false
+        return delegate.hurtServer(world, source, event.damage)
     }
 
     override fun deflection(projectile: Projectile): ProjectileDeflection {
