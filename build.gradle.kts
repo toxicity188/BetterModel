@@ -1,3 +1,5 @@
+import xyz.jpenilla.resourcefactory.bukkit.Permission
+
 plugins {
     `java-library`
     kotlin("jvm") version "2.1.0"
@@ -83,6 +85,7 @@ dependencies {
 
 tasks {
     runServer {
+        pluginJars(fileTree("plugins"))
         version(minecraft)
     }
     jar {
@@ -113,8 +116,16 @@ bukkitPluginYaml {
     foliaSupported = true
     apiVersion = "1.20"
     author = "toxicity"
-    description = "Simple Model plugin."
+    description = "Modern lightweight Minecraft model implementation for Paper, Folia"
     softDepend = listOf(
         "MythicMobs"
     )
+    permissions.create("bettermodel") {
+        default = Permission.Default.OP
+        description = "Accesses to command."
+        children = mapOf(
+            "reload" to true,
+            "spawn" to true
+        )
+    }
 }

@@ -34,7 +34,7 @@ mavenPublishing  {
     ))
     pom {
         name = rootProject.name
-        description = "cross-platform command library implementing brigadier, adventure."
+        description = "Modern lightweight Minecraft model implementation for Paper, Folia"
         inceptionYear = "2024"
         url = "https://github.com/toxicity188/BetterModel/"
         licenses {
