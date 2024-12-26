@@ -71,9 +71,11 @@ public sealed interface BlueprintChildren {
                 if (child instanceof BlueprintElement element) {
                     var model = element.element;
                     var from = model.from()
+                            .minus(origin)
                             .toVector()
                             .div(16);
                     var to = model.to()
+                            .minus(origin)
                             .toVector()
                             .div(16);
                     elements.add(new BoundingBox(

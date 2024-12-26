@@ -9,6 +9,8 @@ import net.minecraft.world.InteractionResult
 import net.minecraft.world.damagesource.DamageSource
 import net.minecraft.world.entity.*
 import net.minecraft.world.entity.player.Player
+import net.minecraft.world.entity.projectile.Projectile
+import net.minecraft.world.entity.projectile.ProjectileDeflection
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import net.minecraft.world.phys.AABB
@@ -36,7 +38,6 @@ class HitBoxImpl(
         isInvisible = true
         persist = false
         isSilent = true
-        isCollidable(false)
         pose = Pose.STANDING
         initialized = true
         `moonrise$setUpdatingSectionStatus`(false)
@@ -84,7 +85,7 @@ class HitBoxImpl(
         val transform = supplier.supplyTransform()
         return delegate.position().add(
             transform.x.toDouble(),
-            transform.y.toDouble() - (source.maxY - source.minY) / 2,
+            transform.y.toDouble() + delegate.passengerPosition().y,
             transform.z.toDouble()
         )
     }
@@ -130,6 +131,10 @@ class HitBoxImpl(
         return delegate.hurt(source, amount).also {
             if (it) ModelDamagedEvent(this).callEvent()
         }
+    }
+
+    override fun deflection(projectile: Projectile): ProjectileDeflection {
+        return delegate.deflection(projectile)
     }
 
     override fun makeBoundingBox(): AABB {

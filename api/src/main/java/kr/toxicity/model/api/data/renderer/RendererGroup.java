@@ -52,9 +52,9 @@ public final class RendererGroup implements TransformSupplier {
         this.parent = group;
         this.children = children;
         this.itemStack = itemStack;
-        this.hitBox = box;
         position = MathUtil.blockBenchToDisplay(group.origin().toVector()
                 .div(16));
+        this.hitBox = box;
         rotation = group.rotation().toVector();
         if (itemStack != null) {
             displayFunction = l -> {
@@ -77,7 +77,7 @@ public final class RendererGroup implements TransformSupplier {
                 displayFunction,
                 location,
                 new EntityMovement(
-                        entityParent != null ? new Vector3f(position).sub(entityParent.getGroup().position) : new Vector3f(position),
+                        entityParent != null ? new Vector3f(position).sub(entityParent.getGroup().position) : new Vector3f(),
                         new Vector3f(1),
                         MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(rotation)),
                         rotation

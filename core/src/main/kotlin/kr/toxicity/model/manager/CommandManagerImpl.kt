@@ -10,7 +10,9 @@ import dev.jorel.commandapi.executors.PlayerCommandExecutor
 import kr.toxicity.model.api.ModelRenderer.ReloadResult.*
 import kr.toxicity.model.api.manager.CommandManager
 import kr.toxicity.model.util.PLUGIN
+import org.bukkit.attribute.Attribute
 import org.bukkit.entity.EntityType
+import org.bukkit.entity.LivingEntity
 
 object CommandManagerImpl : CommandManager, GlobalManagerImpl {
     override fun start() {

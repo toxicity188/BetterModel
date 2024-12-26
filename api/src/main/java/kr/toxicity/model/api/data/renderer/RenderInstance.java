@@ -73,7 +73,7 @@ public final class RenderInstance implements AutoCloseable {
 
     public void defaultPosition(@NotNull Vector3f movement) {
         for (RenderedEntity value : entityMap.values()) {
-            value.defaultPosition(movement);
+            value.defaultPosition(new Vector3f(movement).add(value.getGroup().getPosition()));
         }
     }
 

@@ -339,7 +339,7 @@ class NMSImpl : NMS {
     override fun createHitBox(entity: org.bukkit.entity.Entity, supplier: TransformSupplier, namedBoundingBox: NamedBoundingBox, listener: HitBoxListener): HitBox {
         val handle = (entity as CraftLivingEntity).handle
         val scale = adapt(entity).scale()
-        val box = namedBoundingBox.box
+        val box = namedBoundingBox.center()
         val newBox = AABB(
             box.minX,
             box.minY,
@@ -348,6 +348,7 @@ class NMSImpl : NMS {
             box.maxY,
             box.maxZ
         ) * scale
+        val height = newBox.maxPosition.subtract(newBox.minPosition).length() / 2
         return HitBoxImpl(
             namedBoundingBox.name,
             newBox,
@@ -357,9 +358,8 @@ class NMSImpl : NMS {
         ) {
             hitBoxMap.remove(it.id)
         }.apply {
-            val box2 = newBox / 2.0
             hitBoxMap[id] = handle.id
-            attributes.getInstance(Attributes.SCALE)!!.baseValue = box2.maxPosition.subtract(box2.minPosition).length() / 0.52
+            attributes.getInstance(Attributes.SCALE)!!.baseValue = height / 0.52
             refreshDimensions()
             handle.level().addFreshEntity(this)
         }

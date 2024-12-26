@@ -152,13 +152,12 @@ public final class RenderedEntity implements TransformSupplier {
 
     private TrackerMovement lastMovement;
     private Vector3f defaultPosition = new Vector3f();
-    private EntityMovement lastTransformation = null;
     public void move(@NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
         var d = display;
         if (delay <= 0) {
             var f = frame();
             delay = f;
-            var entityMovement = lastTransformation = (lastMovement = movement.copy()).plus(relativeOffset());
+            var entityMovement = (lastMovement = movement.copy()).plus(relativeOffset());
             if (d != null) {
                 d.frame(Math.max(f, ANIMATION_THRESHOLD));
                 d.transform(new Transformation(
@@ -179,7 +178,7 @@ public final class RenderedEntity implements TransformSupplier {
     public void forceUpdate(@NotNull PacketBundler bundler) {
         var d = display;
         if (d != null && lastMovement != null && delay > 0) {
-            var entityMovement = lastTransformation = lastMovement.copy().plus(relativeOffset());
+            var entityMovement = lastMovement.copy().plus(relativeOffset());
             d.frame((int) Math.max(delay, ANIMATION_THRESHOLD));
             d.transform(new Transformation(
                     new Vector3f(entityMovement.transform()).add(defaultPosition),
@@ -203,7 +202,7 @@ public final class RenderedEntity implements TransformSupplier {
     }
 
     private EntityMovement defaultFrame() {
-        var k = keyFrame != null ? keyFrame.copyNotNull() : new AnimationMovement(0, new Vector3f(), new Vector3f(), new Vector3f());
+        var k = keyFrame != null ? keyFrame.copyNotNull() : new AnimationMovement(0, new Vector3f(), new Vector3f(0), new Vector3f());
         for (Consumer<AnimationMovement> consumer : movementModifier) {
             consumer.accept(k);
         }
@@ -212,6 +211,21 @@ public final class RenderedEntity implements TransformSupplier {
 
     private EntityMovement relativeOffset() {
         var def = defaultFrame();
+        if (parent != null) {
+            var p = parent.relativeOffset();
+            return new EntityMovement(
+                    new Vector3f(p.transform()).add(new Vector3f(def.transform()).mul(p.scale()).rotate(p.rotation())),
+                    new Vector3f(def.scale()).mul(p.scale()),
+                    new Quaternionf(p.rotation()).mul(def.rotation()),
+                    def.rawRotation()
+            );
+        }
+        return def;
+    }
+    private EntityMovement relativeHitBoxOffset() {
+        var def = defaultFrame();
+        var hitBox = group.getHitBox();
+        if (hitBox != null) def.transform().add(hitBox.centerVector());
         if (parent != null) {
             var p = parent.relativeOffset();
             return new EntityMovement(
@@ -372,6 +386,6 @@ public final class RenderedEntity implements TransformSupplier {
     @NotNull
     @Override
     public Vector3f supplyTransform() {
-        return lastTransformation != null ? lastTransformation.transform() : relativeOffset().transform();
+        return new Vector3f(lastMovement != null ? lastMovement.plus(relativeHitBoxOffset()).transform() : relativeHitBoxOffset().transform()).add(defaultPosition);
     }
 }
