@@ -25,7 +25,10 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
         val yaml = PluginConfiguration.CONFIG.create()
         if (yaml.getBoolean("metrics", true)) {
             if (metrics == null) metrics = Metrics(PLUGIN, 24237)
-        } else metrics?.shutdown()
+        } else {
+            metrics?.shutdown()
+            metrics = null
+        }
         sightTrace = yaml.getBoolean("sight-trace", true)
         item = yaml.getString("item")?.let {
             runCatching {
