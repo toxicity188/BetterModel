@@ -10,4 +10,5 @@ public interface ConfigManager {
     double maxSight();
     double minSight();
     boolean lockOnPlayAnimation();
+    long keyframeThreshold();
 }

@@ -1,10 +1,12 @@
 package kr.toxicity.model.api.data.blueprint;
 
+import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.raw.ModelAnimation;
 import kr.toxicity.model.api.data.raw.ModelAnimator;
 import kr.toxicity.model.api.data.raw.ModelKeyframe;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
+import org.joml.Vector3f;
 
 import java.util.*;
 
@@ -58,6 +60,7 @@ public record BlueprintAnimation(
         for (long l : longSet) {
             list.add(getFrame(frame, (int) l));
         }
+        reduceFrame(list);
         return processFrame(list);
     }
 
@@ -73,6 +76,22 @@ public record BlueprintAnimation(
             }
         }
         return list.getFirst();
+    }
+
+    private static void reduceFrame(@NotNull List<AnimationMovement> target) {
+        var iterator = target.iterator();
+        var l = 0L;
+        var f = BetterModel.inst().configManager().keyframeThreshold();
+        Vector3f beforeRot = new Vector3f();
+        while (iterator.hasNext()) {
+            var next = iterator.next();
+            var rot = next.rotation();
+            if (next.time() - l >= f || next.time() == 0 || (rot != null && new Vector3f(rot).sub(beforeRot).length() >= 45)) l = next.time();
+            else {
+                iterator.remove();
+            }
+            if (rot != null) beforeRot = rot;
+        }
     }
 
     private static @NotNull List<AnimationMovement> processFrame(@NotNull List<AnimationMovement> target) {

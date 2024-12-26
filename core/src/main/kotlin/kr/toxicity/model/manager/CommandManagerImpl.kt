@@ -9,6 +9,7 @@ import dev.jorel.commandapi.executors.CommandExecutionInfo
 import dev.jorel.commandapi.executors.PlayerCommandExecutor
 import kr.toxicity.model.api.BetterModel.ReloadResult.*
 import kr.toxicity.model.api.manager.CommandManager
+import kr.toxicity.model.api.util.EntityUtil
 import kr.toxicity.model.util.PLUGIN
 import org.bukkit.entity.EntityType
 
@@ -29,9 +30,14 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                     )
                     .executesPlayer(PlayerCommandExecutor { player, args ->
                         val n = args["name"] as String
+                        val loc = player.location
                         ModelManagerImpl.renderer(n)
                             ?.create(player.world.spawnEntity(player.location, EntityType.HUSK))
-                            ?.spawn(player)
+                            ?.let {
+                                loc.getNearbyPlayers(EntityUtil.RENDER_DISTANCE).forEach { p ->
+                                    it.spawn(p)
+                                }
+                            }
                             ?: run {
                                 player.sendMessage("Unable to find this renderer: $n")
                             }
