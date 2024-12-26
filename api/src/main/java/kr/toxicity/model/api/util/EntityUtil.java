@@ -17,7 +17,7 @@ public final class EntityUtil {
         throw new RuntimeException();
     }
 
-    public static final double RENDER_DISTANCE = Bukkit.getSimulationDistance() << 4;
+    public static final double RENDER_DISTANCE = Bukkit.getSimulationDistance() << 3;
 
     public static boolean canSee(@NotNull Location player, @NotNull Location target) {
         var manager = BetterModel.inst().configManager();
