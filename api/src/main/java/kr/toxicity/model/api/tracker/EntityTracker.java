@@ -96,7 +96,6 @@ public final class EntityTracker extends Tracker {
         instance.createHitBox(entity, predicate, listener);
     }
 
-
     public void forRemoval(boolean removal) {
         forRemoval.set(removal);
     }

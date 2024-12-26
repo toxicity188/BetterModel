@@ -17,7 +17,7 @@ public record AnimationMovement(
     }
 
     public @NotNull AnimationMovement set(long newTime) {
-        if (newTime == time) return this;
+        if (newTime == time || time == 0) return this;
         var mul = (float) newTime / (float) time;
         return new AnimationMovement(
                 newTime,

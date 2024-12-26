@@ -28,7 +28,7 @@ public record BlueprintAnimator(@NotNull String name, int length, @NotNull @Unmo
         private final List<TimeVector> rotation = new ArrayList<>();
 
         private static int checkSplit(Vector3f vector3f) {
-            return (int) (Math.sqrt(Math.pow(vector3f.x, 2) + Math.pow(vector3f.y, 2) + Math.pow(vector3f.z, 2)) / 90.0) + 1;
+            return Math.round(vector3f.length() + 1);
         }
 
         public @NotNull Builder addFrame(@NotNull ModelKeyframe keyframe) {
@@ -59,7 +59,7 @@ public record BlueprintAnimator(@NotNull String name, int length, @NotNull @Unmo
         }
 
         private Vector3f get(long min, TimeVector last, TimeVector newVec) {
-            if (newVec.time == 0) return newVec.vector3f;
+            if (newVec.time == 0 || newVec.time - last.time == 0) return newVec.vector3f;
             if (last.vector3f == null) {
                 return new Vector3f(newVec.vector3f).mul(min).div(newVec.time);
             } else {

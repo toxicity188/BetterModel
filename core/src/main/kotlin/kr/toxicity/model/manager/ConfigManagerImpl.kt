@@ -14,12 +14,14 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     private var item = Material.LEATHER_HORSE_ARMOR
     private var maxSight = 45.0
     private var minSight = 5.0
+    private var lockOnPlayAnimation = true
 
     override fun item(): Material = item
     override fun metrics(): Boolean = metrics != null
     override fun sightTrace(): Boolean = sightTrace
     override fun maxSight(): Double = maxSight
     override fun minSight(): Double = minSight
+    override fun lockOnPlayAnimation(): Boolean = lockOnPlayAnimation
 
     override fun reload() {
         val yaml = PluginConfiguration.CONFIG.create()
@@ -37,5 +39,6 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
         } ?: Material.LEATHER_HORSE_ARMOR
         maxSight = yaml.getDouble("max-sight", 45.0)
         minSight = yaml.getDouble("min-sight", 5.0)
+        lockOnPlayAnimation = yaml.getBoolean("lock-on-play-animation", true)
     }
 }

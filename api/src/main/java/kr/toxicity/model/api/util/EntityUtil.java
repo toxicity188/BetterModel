@@ -22,11 +22,11 @@ public final class EntityUtil {
     public static boolean canSee(@NotNull Location player, @NotNull Location target) {
         var manager = BetterModel.inst().configManager();
         if (!manager.sightTrace()) return true;
-        if (player.getWorld() != target.getWorld()) return false;
+        else if (player.getWorld() != target.getWorld()) return false;
 
         var d = player.distance(target);
         if (d > manager.maxSight()) return false;
-        if (d <= manager.minSight()) return true;
+        else if (d <= manager.minSight()) return true;
 
         var playerYaw = toRadians(player.getYaw());
         var playerPitch = toRadians(-player.getPitch()) * 2;

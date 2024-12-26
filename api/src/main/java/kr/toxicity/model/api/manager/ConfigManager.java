@@ -9,4 +9,5 @@ public interface ConfigManager {
     @NotNull Material item();
     double maxSight();
     double minSight();
+    boolean lockOnPlayAnimation();
 }

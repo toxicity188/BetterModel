@@ -32,6 +32,8 @@ public abstract class Tracker implements AutoCloseable {
     private final ScheduledTask task;
     private final AtomicBoolean runningSingle = new AtomicBoolean();
 
+    private TrackerMovement before;
+
     @Getter
     @Setter
     private Supplier<TrackerMovement> movement = () -> new TrackerMovement(new Vector3f(), new Vector3f(1), new Vector3f());
@@ -40,7 +42,7 @@ public abstract class Tracker implements AutoCloseable {
         task = Bukkit.getAsyncScheduler().runAtFixedRate(BetterModel.inst(), task -> {
             if (viewedPlayerSize() == 0) return;
             var bundle = BetterModel.inst().nms().createBundler();
-            instance.move(movement.get(), bundle);
+            instance.move(isRunningSingleAnimation() && before != null && BetterModel.inst().configManager().lockOnPlayAnimation() ? before : (before = movement.get()), bundle);
             if (!bundle.isEmpty()) for (Player player : instance.viewedPlayer()) {
                 bundle.send(player);
             }
