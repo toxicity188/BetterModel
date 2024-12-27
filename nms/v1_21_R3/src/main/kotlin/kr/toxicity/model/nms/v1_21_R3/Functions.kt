@@ -15,15 +15,6 @@ operator fun ModelBoundingBox.times(scale: Double) = ModelBoundingBox(
     maxZ * scale
 )
 
-operator fun AABB.plus(other: ModelBoundingBox): AABB = AABB(
-    minX + other.minX,
-    minX + other.minY,
-    minZ + other.minZ,
-    maxX + other.maxX,
-    maxY + other.maxY,
-    maxZ + other.maxZ
-)
-
 fun Entity.passengerPosition(): Vector3f {
     return attachments.get(EntityAttachment.PASSENGER, 0, yRot).let { v ->
         Vector3f(v.x.toFloat(), v.y.toFloat(), v.z.toFloat())

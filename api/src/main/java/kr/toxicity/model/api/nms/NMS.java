@@ -18,6 +18,5 @@ public interface NMS {
     void mount(@NotNull EntityTracker tracker, @NotNull PacketBundler bundler);
     @NotNull HitBox createHitBox(@NotNull Entity entity, @NotNull TransformSupplier supplier, @NotNull NamedBoundingBox namedBoundingBox, @NotNull HitBoxListener source);
     @NotNull NMSVersion version();
-    @NotNull Vector3f passengerPosition(@NotNull Entity entity);
     @NotNull EntityAdapter adapt(@NotNull LivingEntity entity);
 }

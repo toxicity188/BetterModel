@@ -39,6 +39,9 @@ public final class RendererGroup implements TransformSupplier {
     @Getter
     private final @Nullable NamedBoundingBox hitBox;
 
+    @Getter
+    private final Vector3f center;
+
     public RendererGroup(
             @NotNull String name,
             float scale,
@@ -56,6 +59,7 @@ public final class RendererGroup implements TransformSupplier {
                 .div(16));
         this.hitBox = box;
         rotation = group.rotation().toVector();
+        center = hitBox != null ? new Vector3f(position).add(hitBox.centerVector()) : position;
         if (itemStack != null) {
             displayFunction = l -> {
                 var display = BetterModel.inst().nms().create(l);

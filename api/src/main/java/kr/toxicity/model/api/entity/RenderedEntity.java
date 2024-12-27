@@ -151,13 +151,14 @@ public final class RenderedEntity implements TransformSupplier {
     }
 
     private TrackerMovement lastMovement;
+    private EntityMovement lastTransform;
     private Vector3f defaultPosition = new Vector3f();
     public void move(@NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
         var d = display;
         if (delay <= 0) {
             var f = frame();
             delay = f;
-            var entityMovement = (lastMovement = movement.copy()).plus(relativeOffset());
+            var entityMovement = lastTransform = (lastMovement = movement.copy()).plus(relativeOffset());
             if (d != null) {
                 d.frame(Math.max(f, ANIMATION_THRESHOLD));
                 d.transform(new Transformation(
@@ -178,7 +179,7 @@ public final class RenderedEntity implements TransformSupplier {
     public void forceUpdate(@NotNull PacketBundler bundler) {
         var d = display;
         if (d != null && lastMovement != null && delay > 0) {
-            var entityMovement = lastMovement.copy().plus(relativeOffset());
+            var entityMovement = lastTransform = lastMovement.copy().plus(relativeOffset());
             d.frame((int) Math.max(delay, ANIMATION_THRESHOLD));
             d.transform(new Transformation(
                     new Vector3f(entityMovement.transform()).add(defaultPosition),
@@ -239,11 +240,10 @@ public final class RenderedEntity implements TransformSupplier {
     }
 
     public double height() {
-        var h = group.getHitBox();
-        var d = h != null ? h.box().maxY() - h.box().minY() : 0;
+        var d = (double) defaultPosition.y + (lastTransform != null ? lastTransform.transform().y : 0);
         for (RenderedEntity value : children.values()) {
-            var d2 = value.height();
-            if (d2 > d) d = d2;
+            var v = value.height();
+            if (getGroup().getCenter().y < value.getGroup().getCenter().y) d = v;
         }
         return d;
     }

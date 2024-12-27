@@ -325,10 +325,6 @@ class NMSImpl : NMS {
 
     override fun version(): NMSVersion = NMSVersion.V1_21_R1
 
-    override fun passengerPosition(entity: org.bukkit.entity.Entity): Vector3f {
-        return (entity as CraftEntity).handle.passengerPosition()
-    }
-
     override fun adapt(entity: org.bukkit.entity.LivingEntity): EntityAdapter {
         val handle = (entity as CraftLivingEntity).handle
         return object : EntityAdapter {
@@ -349,6 +345,10 @@ class NMSImpl : NMS {
 
             override fun yaw(): Float {
                 return handle.bukkitYaw
+            }
+            
+            override fun passengerPosition(): Vector3f {
+                return handle.passengerPosition()
             }
         }
     }

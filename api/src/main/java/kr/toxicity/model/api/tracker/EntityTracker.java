@@ -31,6 +31,7 @@ public final class EntityTracker extends Tracker {
     private static final Map<UUID, EntityTracker> TRACKER_MAP = new ConcurrentHashMap<>();
 
     private final @NotNull Entity entity;
+    private final @NotNull EntityAdapter adapter;
     private final AtomicBoolean closed = new AtomicBoolean();
     private final AtomicBoolean forRemoval = new AtomicBoolean();
 
@@ -58,30 +59,35 @@ public final class EntityTracker extends Tracker {
     public EntityTracker(@NotNull Entity entity, @NotNull RenderInstance instance) {
         super(instance);
         this.entity = entity;
-        var adapt = entity instanceof LivingEntity livingEntity ? BetterModel.inst().nms().adapt(livingEntity) : EntityAdapter.EMPTY;
-        instance.defaultPosition(new Vector3f(0, -BetterModel.inst().nms().passengerPosition(entity).y, 0));
+        adapter = entity instanceof LivingEntity livingEntity ? BetterModel.inst().nms().adapt(livingEntity) : EntityAdapter.EMPTY;
+        instance.defaultPosition(new Vector3f(0, -adapter.passengerPosition().y, 0));
         instance.addAnimationMovementModifier(
                 r -> r.getName().startsWith("h_"),
                 a -> {
                     if (a.rotation() != null && !isRunningSingleAnimation()) {
                         a.rotation().add(-entity.getPitch(), Math.clamp(
-                                -adapt.yaw() + adapt.bodyYaw(),
+                                -adapter.yaw() + adapter.bodyYaw(),
                                 -45,
                                 45
                         ), 0);
                     }
                 });
-        instance.animateLoop("walk", new AnimationModifier(adapt::onWalk, 0, 0));
+        instance.animateLoop("walk", new AnimationModifier(adapter::onWalk, 0, 0));
         setMovement(() -> new TrackerMovement(
                 new Vector3f(0, 0, 0F),
-                new Vector3f((float) adapt.scale()),
-                new Vector3f(0, -adapt.bodyYaw(), 0)
+                new Vector3f((float) adapter.scale()),
+                new Vector3f(0, -adapter.bodyYaw(), 0)
         ));
         entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, instance.getParent().getParent().name());
         TRACKER_MAP.put(entity.getUniqueId(), this);
         Bukkit.getRegionScheduler().run(BetterModel.inst(), entity.getLocation(), s -> {
             if (!closed.get() && !forRemoval()) createHitBox();
         });
+    }
+
+    @Override
+    public double height() {
+        return super.height() + adapter.passengerPosition().y;
     }
 
     public void createHitBox() {
