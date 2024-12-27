@@ -17,7 +17,7 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
     override fun start() {
         CommandAPI.onLoad(CommandAPIBukkitConfig(PLUGIN).silentLogs(true))
         CommandAPICommand("bettermodel")
-            .withAliases("br")
+            .withAliases("bm")
             .withPermission("bettermodel")
             .withSubcommands(
                 CommandAPICommand("spawn")
