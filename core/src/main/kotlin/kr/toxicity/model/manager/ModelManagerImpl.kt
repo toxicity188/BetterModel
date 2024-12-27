@@ -49,7 +49,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
         val override = JsonArray()
         val modernEntries = JsonArray()
 
-        DATA_FOLDER.subFolder("models").forEach {
+        DATA_FOLDER.subFolder("models").forEachAllFolder {
             if (it.extension == "bbmodel") {
                 val load = it.toModel()
                 load.buildImage().forEach { image ->

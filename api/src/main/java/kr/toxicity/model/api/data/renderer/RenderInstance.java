@@ -94,6 +94,10 @@ public final class RenderInstance implements AutoCloseable {
         return list;
     }
 
+    public double height() {
+        return entityMap.values().stream().mapToDouble(RenderedEntity::height).max().orElse(0.0);
+    }
+
     public void tint(boolean toggle) {
         var bundler = BetterModel.inst().nms().createBundler();
         entityMap.values().forEach(e -> e.tint(toggle, bundler));

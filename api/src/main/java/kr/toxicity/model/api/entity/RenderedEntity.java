@@ -238,6 +238,16 @@ public final class RenderedEntity implements TransformSupplier {
         return def;
     }
 
+    public double height() {
+        var h = group.getHitBox();
+        var d = h != null ? h.box().maxY() - h.box().minY() : 0;
+        for (RenderedEntity value : children.values()) {
+            var d2 = value.height();
+            if (d2 > d) d = d2;
+        }
+        return d;
+    }
+
     public void tint(boolean toggle, @NotNull PacketBundler bundler) {
         tint = toggle;
         if (applyItem()) forceUpdate(bundler);

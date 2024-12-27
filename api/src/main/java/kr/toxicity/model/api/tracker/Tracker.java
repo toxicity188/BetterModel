@@ -52,6 +52,10 @@ public abstract class Tracker implements AutoCloseable {
         instance.filter(p -> EntityUtil.canSee(p.getLocation(), location()));
     }
 
+    public double height() {
+        return instance.height();
+    }
+
     @Override
     public void close() throws Exception {
         task.cancel();

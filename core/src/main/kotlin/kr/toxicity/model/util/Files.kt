@@ -12,5 +12,14 @@ fun File.clear() = apply {
 fun File.subFile(name: String) = File(this, name)
 
 fun File.forEach(block: (File) -> Unit) {
-    listFiles()?.forEach(block)
+    listFiles()?.sortedBy {
+        it.name
+    }?.forEach(block)
+}
+fun File.forEachAllFolder(block: (File) -> Unit) {
+    if (isDirectory) forEach {
+        it.forEachAllFolder(block)
+    } else {
+        block(this)
+    }
 }
