@@ -6,6 +6,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3f;
 
 import java.util.Comparator;
 import java.util.List;
@@ -19,8 +20,8 @@ public final class EntityUtil {
 
     public static final double RENDER_DISTANCE = Bukkit.getSimulationDistance() << 3;
 
-    public static final double Y_DEGREE_THRESHOLD = toRadians(22.5);
-    public static final double X_DEGREE_THRESHOLD = Y_DEGREE_THRESHOLD * 1.78;
+    private static final double Y_RENDER_THRESHOLD = toRadians(22.5);
+    private static final double Z_RENDER_THRESHOLD = Y_RENDER_THRESHOLD * 1.78;
 
     public static boolean canSee(@NotNull Location player, @NotNull Location target) {
         var manager = BetterModel.inst().configManager();
@@ -40,10 +41,13 @@ public final class EntityUtil {
 
         var r = cos(playerYaw) * dx - sin(playerYaw) * dz;
 
-        var ry = abs(atan2(dy, abs(dx)) - playerPitch);
+        var sinP = sin(playerPitch);
+        var cosP = cos(playerPitch);
+
+        var ry = abs(atan2(dy, abs(r)) - playerPitch);
         var rz = abs(atan2(dz, dx) - playerYaw);
-        var ty = (PI - abs(atan(cos(playerPitch) * r - sin(playerPitch) * dy)) * 2) + Y_DEGREE_THRESHOLD;
-        var tz = (PI - abs(atan(r)) * 2) + X_DEGREE_THRESHOLD;
+        var ty = PI - abs(atan(sinP * r + cosP * dy)) * 2 + Y_RENDER_THRESHOLD;
+        var tz = PI - abs(atan(cosP * r + sinP * dy)) * 2 + Z_RENDER_THRESHOLD;
         return (ry <= ty || ry >= PI * 2 - ty) && (rz <= tz || rz >= PI * 2 - tz);
     }
 
