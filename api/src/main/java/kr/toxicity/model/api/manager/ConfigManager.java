@@ -12,4 +12,12 @@ public interface ConfigManager {
     boolean lockOnPlayAnimation();
     long keyframeThreshold();
     boolean enablePlayerLimb();
+    @NotNull String namespace();
+    @NotNull PackType packType();
+    @NotNull String buildFolderLocation();
+
+    enum PackType {
+        FOLDER,
+        ZIP
+    }
 }

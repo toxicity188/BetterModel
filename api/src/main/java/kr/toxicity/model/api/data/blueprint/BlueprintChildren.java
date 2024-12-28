@@ -2,6 +2,7 @@ package kr.toxicity.model.api.data.blueprint;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.raw.Float3;
 import kr.toxicity.model.api.data.raw.ModelChildren;
 import kr.toxicity.model.api.data.raw.ModelElement;
@@ -47,7 +48,7 @@ public sealed interface BlueprintChildren {
             var textureObject = new JsonObject();
             var index = 0;
             for (BlueprintTexture texture : parent.textures()) {
-                textureObject.addProperty(Integer.toString(index++), "bettermodel:item/" + parent.name() + "_" + texture.name());
+                textureObject.addProperty(Integer.toString(index++), BetterModel.inst().configManager().namespace() + ":item/" + parent.name() + "_" + texture.name());
             }
             object.add("textures", textureObject);
             var elements = new JsonArray();

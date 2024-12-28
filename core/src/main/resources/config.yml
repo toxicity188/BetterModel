@@ -6,3 +6,6 @@ min-sight: 5
 lock-on-play-animation: true
 keyframe-threshold: 2
 enable-player-limb: true
+namespace: "bettermodel"
+pack-type: folder
+build-folder-location: BetterModel/build

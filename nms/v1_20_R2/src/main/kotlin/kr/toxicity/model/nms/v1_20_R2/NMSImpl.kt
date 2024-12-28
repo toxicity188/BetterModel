@@ -412,7 +412,7 @@ class NMSImpl : NMS {
         }
     }
 
-    override fun version(): NMSVersion = NMSVersion.V1_20_R3
+    override fun version(): NMSVersion = NMSVersion.V1_20_R2
 
     override fun adapt(entity: LivingEntity): EntityAdapter {
         val handle = (entity as CraftLivingEntity).handle

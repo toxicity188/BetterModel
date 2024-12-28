@@ -47,7 +47,7 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                         PLUGIN.scheduler().asyncTask {
                             when (val result = PLUGIN.reload()) {
                                 is OnReload -> it.sender().sendMessage("The plugin still on reload!")
-                                is Success -> it.sender().sendMessage("Reload completed (${result.time} time)")
+                                is Success -> it.sender().sendMessage("Reload completed (${result.time} ms)")
                                 is Failure -> {
                                     it.sender().sendMessage("Reload failed.")
                                     it.sender().sendMessage("Reason: ${result.throwable.message ?: result.throwable.javaClass.simpleName}")

@@ -7,13 +7,20 @@ import kr.toxicity.model.api.data.blueprint.BlueprintJson
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint
 import kr.toxicity.model.api.data.renderer.BlueprintRenderer
 import kr.toxicity.model.api.data.renderer.RendererGroup
+import kr.toxicity.model.api.manager.ConfigManager
+import kr.toxicity.model.api.manager.ConfigManager.PackType.*
 import kr.toxicity.model.api.manager.ModelManager
 import kr.toxicity.model.util.*
 import org.bukkit.inventory.ItemStack
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.security.DigestOutputStream
+import java.security.MessageDigest
 import java.util.Collections
 import java.util.Comparator
 import java.util.TreeMap
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 object ModelManagerImpl : ModelManager, GlobalManagerImpl {
 
@@ -21,9 +28,6 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
 
     private val renderMap = HashMap<String, BlueprintRenderer>()
 
-    private const val TEXTURES_PATH = "assets/bettermodel/textures/item"
-    private const val MODELS_PATH = "assets/bettermodel/models/item"
-    private const val MODERN_MODELS_PATH = "assets/bettermodel/models/modern_item"
     private const val MINECRAFT_ITEM_PATH = "assets/minecraft/models/item"
     private const val MODERN_MINECRAFT_ITEM_PATH = "assets/minecraft/items"
 
@@ -69,6 +73,30 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
             fileTree.values.forEach(File::delete)
             map.clear()
         }
+
+        fun zip(file: File) {
+            ZipOutputStream(runCatching {
+                MessageDigest.getInstance("SHA-1")
+            }.getOrNull()?.let {
+                DigestOutputStream(file.outputStream().buffered(), it)
+            } ?: file.outputStream().buffered()).use { zip ->
+                map.values.toList().forEachAsync {
+                    val result = it.byteArray()
+                    synchronized(zip) {
+                        zip.putNextEntry(ZipEntry(it.path))
+                        zip.write(result)
+                        zip.closeEntry()
+                    }
+                }
+                if (ConfigManagerImpl.enablePlayerLimb()) PLUGIN.loadAssets("pack") { s, i ->
+                    synchronized(zip) {
+                        zip.putNextEntry(ZipEntry(s))
+                        zip.write(i.readAllBytes())
+                        zip.closeEntry()
+                    }
+                }
+            }
+        }
     }
 
     override fun reload() {
@@ -93,12 +121,16 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
         val override = JsonArray()
         val modernEntries = JsonArray()
 
+        val texturesPath = "assets/${ConfigManagerImpl.namespace()}/textures/item"
+        val modelsPath = "assets/${ConfigManagerImpl.namespace()}/models/item"
+        val modernModelsPath = "assets/${ConfigManagerImpl.namespace()}/models/modern_item"
+
         renderMap.clear()
         DATA_FOLDER.subFolder("models").forEachAllFolder {
             if (it.extension == "bbmodel") {
                 val load = it.toModel()
                 load.buildImage().forEach { image ->
-                    zipper.add(TEXTURES_PATH, "${image.name}.png") {
+                    zipper.add(texturesPath, "${image.name}.png") {
                         image.image.toByteArray()
                     }
                 }
@@ -111,13 +143,13 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                         add("predicate", JsonObject().apply {
                             addProperty("custom_model_data", index)
                         })
-                        addProperty("model", "bettermodel:item/${blueprintGroup.jsonName(load)}")
+                        addProperty("model", "${ConfigManagerImpl.namespace()}:item/${blueprintGroup.jsonName(load)}")
                     })
                     modernEntries.add(JsonObject().apply {
                         addProperty("threshold", index)
                         add("model", JsonObject().apply {
                             addProperty("type", "minecraft:model")
-                            addProperty("model", "bettermodel:modern_item/${blueprintGroup.jsonName(load)}")
+                            addProperty("model", "${ConfigManagerImpl.namespace()}:modern_item/${blueprintGroup.jsonName(load)}")
                             add("tints", JsonArray().apply {
                                 add(JsonObject().apply {
                                     addProperty("type", "minecraft:custom_model_data")
@@ -131,12 +163,12 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                     index++
                 }
                 jsonList.forEach { json ->
-                    zipper.add(MODELS_PATH, "${json.name}.json") {
+                    zipper.add(modelsPath, "${json.name}.json") {
                         json.element.toByteArray()
                     }
                 }
                 modernJsonList.forEach { json ->
-                    zipper.add(MODERN_MODELS_PATH, "${json.name}.json") {
+                    zipper.add(modernModelsPath, "${json.name}.json") {
                         json.element.toByteArray()
                     }
                 }
@@ -154,7 +186,20 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                 })
             }.toByteArray()
         }
-        zipper.toFileTree(DATA_FOLDER.subFolder("build"))
+        runCatching {
+            when (ConfigManagerImpl.packType()) {
+                FOLDER -> zipper.toFileTree(File(DATA_FOLDER.parent, ConfigManagerImpl.buildFolderLocation()).apply {
+                    mkdirs()
+                })
+                ZIP -> zipper.zip(File(DATA_FOLDER.parent, "${ConfigManagerImpl.buildFolderLocation()}.zip"))
+            }
+        }.onFailure {
+            warn(
+                "Unable to pack resource pack.",
+                "Reason: ${it.message ?: it.javaClass.simpleName}",
+                "Stack trace: ${it.stackTraceToString()}"
+            )
+        }
     }
 
     private fun ModelBlueprint.toRenderer(consumer: (BlueprintGroup) -> Int?): BlueprintRenderer {

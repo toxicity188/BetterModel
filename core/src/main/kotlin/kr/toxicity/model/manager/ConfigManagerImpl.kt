@@ -1,11 +1,13 @@
 package kr.toxicity.model.manager
 
 import kr.toxicity.model.api.manager.ConfigManager
+import kr.toxicity.model.api.manager.ConfigManager.PackType
 import kr.toxicity.model.configuration.PluginConfiguration
 import kr.toxicity.model.util.PLUGIN
 import kr.toxicity.model.util.ifNull
 import org.bstats.bukkit.Metrics
 import org.bukkit.Material
+import java.io.File
 
 object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
 
@@ -17,6 +19,9 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     private var lockOnPlayAnimation = true
     private var keyframeThreshold = 2L
     private var enablePlayerLimb = true
+    private var namespace = "bettermodel"
+    private var packType = PackType.FOLDER
+    private var buildFolderLocation = "BetterModel/build".replace('/', File.separatorChar)
 
     override fun item(): Material = item
     override fun metrics(): Boolean = metrics != null
@@ -26,6 +31,9 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     override fun lockOnPlayAnimation(): Boolean = lockOnPlayAnimation
     override fun keyframeThreshold(): Long = keyframeThreshold
     override fun enablePlayerLimb(): Boolean = enablePlayerLimb
+    override fun namespace(): String = namespace
+    override fun packType(): PackType = packType
+    override fun buildFolderLocation(): String = buildFolderLocation
 
     override fun reload() {
         val yaml = PluginConfiguration.CONFIG.create()
@@ -46,5 +54,12 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
         lockOnPlayAnimation = yaml.getBoolean("lock-on-play-animation", true)
         keyframeThreshold = yaml.getLong("keyframe-threshold", 2).coerceAtLeast(1)
         enablePlayerLimb = yaml.getBoolean("enable-player-limb", true)
+        namespace = yaml.getString("namespace") ?: "bettermodel"
+        packType = yaml.getString("pack-type")?.let {
+            runCatching {
+                PackType.valueOf(it.uppercase())
+            }.getOrNull()
+        } ?: PackType.FOLDER
+        buildFolderLocation = (yaml.getString("build-folder-location") ?: "BetterModel/build").replace('/', File.separatorChar)
     }
 }

@@ -63,9 +63,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
             }
         }
         managers.forEach(GlobalManagerImpl::start)
-        scheduler.asyncTask {
-            reload()
-        }
+        reload()
     }
 
     override fun onDisable() {
