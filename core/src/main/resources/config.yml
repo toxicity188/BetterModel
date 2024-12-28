@@ -5,3 +5,4 @@ max-sight: 45
 min-sight: 5
 lock-on-play-animation: true
 keyframe-threshold: 2
+enable-player-limb: true

@@ -36,8 +36,7 @@ class HitBoxImpl(
     private val source: ModelBoundingBox,
     private val supplier: TransformSupplier,
     private val listener: HitBoxListener,
-    private val delegate: LivingEntity,
-    private val onRemove: (HitBoxImpl) -> Unit
+    private val delegate: LivingEntity
 ) : LivingEntity(EntityType.SLIME, delegate.level()), HitBox {
     private var initialized = false
 
@@ -80,7 +79,6 @@ class HitBoxImpl(
     override fun remove(reason: RemovalReason) {
         super.remove(reason)
         listener.remove(this)
-        onRemove(this)
     }
 
     override fun getBukkitLivingEntity(): CraftLivingEntity {

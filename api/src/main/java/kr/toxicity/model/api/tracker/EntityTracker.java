@@ -8,6 +8,8 @@ import kr.toxicity.model.api.entity.TrackerMovement;
 import kr.toxicity.model.api.nms.EntityAdapter;
 import kr.toxicity.model.api.nms.HitBoxListener;
 import kr.toxicity.model.api.nms.ModelDisplay;
+import kr.toxicity.model.api.nms.PlayerChannelHandler;
+import kr.toxicity.model.api.util.EntityUtil;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -27,7 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 
 @Getter
-public final class EntityTracker extends Tracker {
+public class EntityTracker extends Tracker {
     private static final Map<UUID, EntityTracker> TRACKER_MAP = new ConcurrentHashMap<>();
 
     private final @NotNull Entity entity;
@@ -83,6 +85,7 @@ public final class EntityTracker extends Tracker {
         Bukkit.getRegionScheduler().run(BetterModel.inst(), entity.getLocation(), s -> {
             if (!closed.get() && !forRemoval()) createHitBox();
         });
+        instance.setup();
     }
 
     @Override
@@ -112,8 +115,10 @@ public final class EntityTracker extends Tracker {
 
     @Override
     public void close() throws Exception {
-        if (closed.get()) return;
         closed.set(true);
+        for (PlayerChannelHandler playerChannelHandler : instance.allPlayer()) {
+            playerChannelHandler.endTrack(this);
+        }
         super.close();
         entity.getPersistentDataContainer().remove(TRACKING_ID);
         TRACKER_MAP.remove(entity.getUniqueId());
@@ -127,6 +132,12 @@ public final class EntityTracker extends Tracker {
     @Override
     public @NotNull UUID uuid() {
         return entity.getUniqueId();
+    }
+
+    public void spawnNearby(@NotNull Location location) {
+        for (Player nearbyPlayer : location.getNearbyPlayers(EntityUtil.RENDER_DISTANCE, instance.spawnFilter())) {
+            spawn(nearbyPlayer);
+        }
     }
 
     public void spawn(@NotNull Player player) {

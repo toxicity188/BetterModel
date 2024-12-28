@@ -11,4 +11,5 @@ public interface ConfigManager {
     double minSight();
     boolean lockOnPlayAnimation();
     long keyframeThreshold();
+    boolean enablePlayerLimb();
 }

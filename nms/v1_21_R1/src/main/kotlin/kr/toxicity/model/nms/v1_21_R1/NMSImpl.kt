@@ -1,6 +1,7 @@
 package kr.toxicity.model.nms.v1_21_R1
 
 import com.google.common.collect.ImmutableList
+import com.google.gson.JsonParser
 import com.mojang.datafixers.util.Pair
 import io.netty.channel.ChannelDuplexHandler
 import io.netty.channel.ChannelHandlerContext
@@ -30,7 +31,11 @@ import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.craftbukkit.entity.CraftLivingEntity
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.craftbukkit.inventory.CraftItemStack
+import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.*
+import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
+import org.bukkit.inventory.EquipmentSlot.*
+import org.bukkit.inventory.EquipmentSlot.HEAD
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.LeatherArmorMeta
 import org.bukkit.util.Transformation
@@ -43,7 +48,6 @@ class NMSImpl : NMS {
 
     companion object {
         private const val INJECT_NAME = "bettermodel_channel_handler"
-        private val hitBoxMap = ConcurrentHashMap<Int, HitBoxImpl>()
 
         private fun Class<*>.serializers() = declaredFields.filter { f ->
             EntityDataAccessor::class.java.isAssignableFrom(f.type)
@@ -98,6 +102,12 @@ class NMSImpl : NMS {
             }
         }
 
+        private var showPlayerLimb = true
+        override fun showPlayerLimb(): Boolean = showPlayerLimb
+        override fun showPlayerLimb(show: Boolean) {
+            showPlayerLimb = show
+        }
+
         override fun close() {
             val channel = connection.connection.channel
             channel.eventLoop().submit {
@@ -126,8 +136,29 @@ class NMSImpl : NMS {
         }
 
         override fun endTrack(tracker: EntityTracker) {
-            val handle = (tracker.entity as CraftEntity).handle
+            val e = tracker.entity
+            val handle = (e as CraftEntity).handle
             entityUUIDMap.remove(handle.uuid)
+            send(ClientboundSetEntityDataPacket(handle.id, handle.entityData.packAll()!!))
+            if (e is LivingEntity) {
+                e.equipment?.let { i ->
+                    send(ClientboundSetEquipmentPacket(handle.id, org.bukkit.inventory.EquipmentSlot.entries.mapNotNull {
+                        runCatching {
+                            it to i.getItem(it)
+                        }.getOrDefault(null)
+                    }.map { (type, item) ->
+                        Pair.of(when (type) {
+                            HAND -> EquipmentSlot.MAINHAND
+                            OFF_HAND -> EquipmentSlot.OFFHAND
+                            FEET -> EquipmentSlot.FEET
+                            LEGS -> EquipmentSlot.LEGS
+                            CHEST -> EquipmentSlot.CHEST
+                            HEAD -> EquipmentSlot.HEAD
+                            BODY -> EquipmentSlot.BODY
+                        }, CraftItemStack.asNMSCopy(item))
+                    }))
+                }
+            }
             send(ClientboundSetPassengersPacket(handle))
         }
 
@@ -182,7 +213,7 @@ class NMSImpl : NMS {
         entity.passengers = ImmutableList.builder<Entity>()
             .addAll(map)
             .addAll(entity.passengers.filter { e ->
-                map.none { it.uuid == e.uuid }
+                e.valid
             })
             .build()
         val packet = ClientboundSetPassengersPacket(entity)
@@ -206,6 +237,7 @@ class NMSImpl : NMS {
             0F,
             0F
         )
+        valid = true
         persist = false
         itemTransform = ItemDisplayContext.FIXED
         transformationInterpolationDelay = -1
@@ -215,6 +247,9 @@ class NMSImpl : NMS {
     private inner class ModelDisplayImpl(
         val display: ItemDisplay
     ) : ModelDisplay {
+        override fun close() {
+            display.valid = false
+        }
 
         override fun spawn(bundler: PacketBundler) {
             bundler.unwrap().add(addPacket)
@@ -230,6 +265,20 @@ class NMSImpl : NMS {
 
         override fun remove(bundler: PacketBundler) {
             bundler.unwrap().add(removePacket)
+        }
+
+        override fun display(transform: org.bukkit.entity.ItemDisplay.ItemDisplayTransform) {
+            display.itemTransform = when (transform) {
+                NONE -> ItemDisplayContext.NONE
+                THIRDPERSON_LEFTHAND -> ItemDisplayContext.THIRD_PERSON_LEFT_HAND
+                THIRDPERSON_RIGHTHAND -> ItemDisplayContext.THIRD_PERSON_RIGHT_HAND
+                FIRSTPERSON_LEFTHAND -> ItemDisplayContext.FIRST_PERSON_LEFT_HAND
+                FIRSTPERSON_RIGHTHAND -> ItemDisplayContext.FIRST_PERSON_RIGHT_HAND
+                org.bukkit.entity.ItemDisplay.ItemDisplayTransform.HEAD -> ItemDisplayContext.HEAD
+                GUI -> ItemDisplayContext.GUI
+                GROUND -> ItemDisplayContext.GROUND
+                FIXED -> ItemDisplayContext.FIXED
+            }
         }
 
         override fun teleport(location: Location, bundler: PacketBundler) {
@@ -313,10 +362,7 @@ class NMSImpl : NMS {
             supplier,
             listener,
             handle
-        ) {
-            hitBoxMap.remove(it.id)
-        }.apply {
-            hitBoxMap[id] = this
+        ).apply {
             attributes.getInstance(Attributes.SCALE)!!.baseValue = height / 0.52
             refreshDimensions()
             handle.level().addFreshEntity(this)
@@ -351,5 +397,16 @@ class NMSImpl : NMS {
                 return handle.passengerPosition()
             }
         }
+    }
+
+    override fun isSlim(player: Player): Boolean {
+        val encodedValue = (player as CraftPlayer).handle.gameProfile.properties.get("textures").iterator().next().value
+        val decodedValue = String(Base64.getDecoder().decode(encodedValue))
+        val json = JsonParser.parseString(decodedValue).asJsonObject
+        val skinObject = json.getAsJsonObject("textures").getAsJsonObject("SKIN")
+        if(!skinObject.has("metadata")) return false
+        if(!skinObject.getAsJsonObject("metadata").has("model")) return false
+        val model = skinObject.getAsJsonObject("metadata").get("model").asString
+        return model == "slim"
     }
 }

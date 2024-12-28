@@ -2,6 +2,7 @@ package kr.toxicity.model.manager
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import kr.toxicity.model.BetterModelImpl
 import kr.toxicity.model.api.data.blueprint.BlueprintChildren.BlueprintGroup
 import kr.toxicity.model.api.data.blueprint.BlueprintJson
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint
@@ -11,6 +12,8 @@ import kr.toxicity.model.api.manager.ModelManager
 import kr.toxicity.model.util.*
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
+import org.joml.Vector3f
+import java.io.File
 import java.util.Collections
 
 object ModelManagerImpl : ModelManager, GlobalManagerImpl {
@@ -25,6 +28,15 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
         val assets = DATA_FOLDER
             .subFolder("build")
             .clear()
+            .apply {
+                if (ConfigManagerImpl.enablePlayerLimb()) (PLUGIN as BetterModelImpl).loadAssets("pack") { s, i ->
+                    File(this, s).apply {
+                        parentFile.mkdirs()
+                    }.outputStream().buffered().use { output ->
+                        i.copyTo(output)
+                    }
+                }
+            }
             .subFolder("assets")
         val renderer = assets.subFolder("bettermodel")
         val textures = renderer.subFolder("textures").subFolder("item")
@@ -49,6 +61,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
         val override = JsonArray()
         val modernEntries = JsonArray()
 
+        renderMap.clear()
         DATA_FOLDER.subFolder("models").forEachAllFolder {
             if (it.extension == "bbmodel") {
                 val load = it.toModel()
@@ -124,7 +137,8 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                         it.name to it.parse()
                     } else null
                 }.toMap(),
-                hitBox()
+                hitBox(),
+                null
             )
         }
         return BlueprintRenderer(this, group.mapNotNull {

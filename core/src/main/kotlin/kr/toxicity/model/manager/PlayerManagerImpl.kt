@@ -1,24 +1,31 @@
 package kr.toxicity.model.manager
 
+import kr.toxicity.model.api.data.blueprint.BlueprintChildren.BlueprintGroup
+import kr.toxicity.model.api.data.blueprint.ModelBlueprint
+import kr.toxicity.model.api.data.renderer.AnimationModifier
+import kr.toxicity.model.api.data.renderer.BlueprintRenderer
+import kr.toxicity.model.api.data.renderer.RendererGroup
 import kr.toxicity.model.api.manager.PlayerManager
 import kr.toxicity.model.api.nms.PlayerChannelHandler
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.api.util.EntityUtil
-import kr.toxicity.model.util.PLUGIN
-import kr.toxicity.model.util.registerListener
+import kr.toxicity.model.util.*
 import org.bukkit.Bukkit
+import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerChangedWorldEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
+import org.bukkit.inventory.ItemStack
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
 
     private val playerMap = ConcurrentHashMap<UUID, PlayerChannelHandler>()
+    private val renderMap = HashMap<String, BlueprintRenderer>()
 
     override fun start() {
         registerListener(object : Listener {
@@ -53,7 +60,52 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
     }
 
     override fun reload() {
+        renderMap.clear()
+        if (ConfigManagerImpl.enablePlayerLimb()) {
+            DATA_FOLDER.subFolder("players").forEachAllFolder {
+                if (it.extension == "bbmodel") {
+                    val load = it.toModel()
+                    renderMap[load.name] = load.toRenderer()
+                }
+            }
+        }
+    }
 
+    override fun limbs(): List<BlueprintRenderer> = renderMap.values.toList()
+    override fun limb(name: String): BlueprintRenderer? = renderMap[name]
+
+    override fun animate(player: Player, model: String, animation: String) {
+        renderMap[model]?.let {
+            EntityTracker.tracker(player.uniqueId)?.close()
+            val create = it.create(player)
+            create.spawnNearby(player.location)
+            if (!create.animateSingle(animation, AnimationModifier.DEFAULT) {
+                create.close()
+            }) create.close()
+        }
+    }
+
+    private fun ModelBlueprint.toRenderer(): BlueprintRenderer {
+        fun BlueprintGroup.parse(): RendererGroup {
+            return RendererGroup(
+                name,
+                scale.toFloat(),
+                ItemStack(Material.AIR),
+                this,
+                children.mapNotNull {
+                    if (it is BlueprintGroup) {
+                        it.name to it.parse()
+                    } else null
+                }.toMap(),
+                hitBox(),
+                name.toLimb()
+            )
+        }
+        return BlueprintRenderer(this, group.mapNotNull {
+            if (it is BlueprintGroup) {
+                it.name to it.parse()
+            } else null
+        }.toMap(), animations)
     }
 
     override fun player(uuid: UUID): PlayerChannelHandler? = playerMap[uuid]

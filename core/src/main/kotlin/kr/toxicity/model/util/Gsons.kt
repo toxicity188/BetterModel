@@ -3,6 +3,7 @@ package kr.toxicity.model.util
 import com.google.gson.JsonElement
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint
 import kr.toxicity.model.api.data.raw.ModelData
+import kr.toxicity.model.api.player.PlayerLimb
 import java.io.File
 import java.io.InputStream
 
@@ -18,3 +19,7 @@ fun JsonElement.save(file: File) {
         ModelData.GSON.toJson(this, it)
     }
 }
+
+fun String.toLimb() = runCatching {
+    PlayerLimb.valueOf(uppercase())
+}.getOrDefault(null)

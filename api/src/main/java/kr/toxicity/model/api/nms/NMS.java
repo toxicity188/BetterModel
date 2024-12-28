@@ -19,4 +19,5 @@ public interface NMS {
     @NotNull HitBox createHitBox(@NotNull Entity entity, @NotNull TransformSupplier supplier, @NotNull NamedBoundingBox namedBoundingBox, @NotNull HitBoxListener source);
     @NotNull NMSVersion version();
     @NotNull EntityAdapter adapt(@NotNull LivingEntity entity);
+    boolean isSlim(@NotNull Player player);
 }

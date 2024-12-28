@@ -21,11 +21,10 @@ import org.joml.Vector3f;
 
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public final class RenderedEntity implements TransformSupplier {
+public final class RenderedEntity implements TransformSupplier, AutoCloseable {
 
     private static final int ANIMATION_THRESHOLD = 4;
 
@@ -41,11 +40,10 @@ public final class RenderedEntity implements TransformSupplier {
     @Setter
     private Map<String, RenderedEntity> children = Collections.emptyMap();
 
-    private final Function<Location, ModelDisplay> displayFunction;
     private final SequencedMap<String, TreeIterator> animators = new LinkedHashMap<>();
     private AnimationMovement keyFrame = null;
     private long delay = 0;
-    private final ItemStack itemStack;
+    private ItemStack itemStack;
 
     private final List<Consumer<AnimationMovement>> movementModifier = new ArrayList<>();
     @Getter
@@ -57,17 +55,20 @@ public final class RenderedEntity implements TransformSupplier {
     public RenderedEntity(
             @NotNull RendererGroup group,
             @Nullable RenderedEntity parent,
-            @NotNull Function<Location, ModelDisplay> displayFunction,
-            @Nullable Location firstLocation,
+            @Nullable ItemStack itemStack,
+            @NotNull Location firstLocation,
             @NotNull EntityMovement movement
     ) {
         this.group = group;
         this.parent = parent;
-        this.displayFunction = displayFunction;
-        this.display = displayFunction.apply(firstLocation);
+        this.itemStack = itemStack;
+        if (itemStack != null) {
+            display = BetterModel.inst().nms().create(firstLocation);
+
+            if (group.getParent().visibility()) display.item(itemStack);
+        }
         defaultFrame = movement;
-        itemStack = group.getItemStack();
-        visible = group.getParent().visibility();
+        visible = group.getLimb() != null || group.getParent().visibility();
     }
 
     public void createHitBox(@NotNull Entity entity, @NotNull Predicate<RenderedEntity> predicate, @Nullable HitBoxListener listener) {
@@ -85,10 +86,16 @@ public final class RenderedEntity implements TransformSupplier {
         }
     }
 
-    public void removeHitBox() {
-        if (hitBox != null) hitBox.remove();
+
+    public void itemStack(@NotNull Predicate<RenderedEntity> predicate, @NotNull ItemStack itemStack) {
+        if (predicate.test(this)) {
+            this.itemStack = itemStack;
+            if (display != null) {
+                display.item(itemStack);
+            }
+        }
         for (RenderedEntity value : children.values()) {
-            value.removeHitBox();
+            value.itemStack(predicate, itemStack);
         }
     }
 
@@ -107,11 +114,6 @@ public final class RenderedEntity implements TransformSupplier {
     public void renderers(List<ModelDisplay> renderers) {
         if (display != null) renderers.add(display);
         children.values().forEach(c -> c.renderers(renderers));
-    }
-
-    public void changeWorld(@NotNull Location location) {
-        display = displayFunction.apply(location);
-        children.values().forEach(c -> c.changeWorld(location));
     }
 
     private TreeIterator currentIterator = null;
@@ -153,20 +155,23 @@ public final class RenderedEntity implements TransformSupplier {
     private TrackerMovement lastMovement;
     private EntityMovement lastTransform;
     private Vector3f defaultPosition = new Vector3f();
+
+    public void lastMovement(@NotNull TrackerMovement movement) {
+        lastMovement = movement;
+        for (RenderedEntity value : children.values()) {
+            value.lastMovement(movement);
+        }
+    }
+
     public void move(@NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
         var d = display;
         if (delay <= 0) {
             var f = frame();
             delay = f;
-            var entityMovement = lastTransform = (lastMovement = movement.copy()).plus(relativeOffset());
+            var entityMovement = lastTransform = (lastMovement = movement.copy()).plus(relativeOffset().plus(defaultPosition));
             if (d != null) {
                 d.frame(Math.max(f, ANIMATION_THRESHOLD));
-                d.transform(new Transformation(
-                        new Vector3f(entityMovement.transform()).add(defaultPosition),
-                        entityMovement.rotation(),
-                        new Vector3f(entityMovement.scale()).mul(group.getScale()),
-                        new Quaternionf()
-                ));
+                setup(entityMovement);
                 d.send(bundler);
             }
         }
@@ -179,20 +184,33 @@ public final class RenderedEntity implements TransformSupplier {
     public void forceUpdate(@NotNull PacketBundler bundler) {
         var d = display;
         if (d != null && lastMovement != null && delay > 0) {
-            var entityMovement = lastTransform = lastMovement.copy().plus(relativeOffset());
+            var entityMovement = lastTransform = lastMovement.copy().plus(relativeOffset().plus(defaultPosition));
             d.frame((int) Math.max(delay, ANIMATION_THRESHOLD));
-            d.transform(new Transformation(
-                    new Vector3f(entityMovement.transform()).add(defaultPosition),
-                    entityMovement.rotation(),
-                    new Vector3f(entityMovement.scale()).mul(group.getScale()),
-                    new Quaternionf()
-            ));
+            setup(entityMovement);
             d.send(bundler);
         }
     }
 
+    public void setup() {
+        setup(relativeOffset().plus(defaultPosition));
+        for (RenderedEntity value : children.values()) {
+            value.setup();
+        }
+    }
+    private void setup(@NotNull EntityMovement entityMovement) {
+        if (display != null) {
+            var limb = group.getLimb();
+            display.transform(new Transformation(
+                    limb != null ? new Vector3f(entityMovement.transform()).add(new Vector3f(limb.getOffset()).rotate(entityMovement.rotation())) : entityMovement.transform(),
+                    entityMovement.rotation(),
+                    new Vector3f(entityMovement.scale()).mul(group.getScale()),
+                    new Quaternionf()
+            ));
+        }
+    }
+
     public void defaultPosition(@NotNull Vector3f movement) {
-        defaultPosition = movement;
+        defaultPosition = group.getLimb() != null ? new Vector3f(movement).add(group.getLimb().getPosition()) : movement;
         for (RenderedEntity value : children.values()) {
             value.defaultPosition(movement);
         }
@@ -203,7 +221,7 @@ public final class RenderedEntity implements TransformSupplier {
     }
 
     private EntityMovement defaultFrame() {
-        var k = keyFrame != null ? keyFrame.copyNotNull() : new AnimationMovement(0, new Vector3f(), new Vector3f(0), new Vector3f());
+        var k = keyFrame != null ? keyFrame.copyNotNull() : new AnimationMovement(0, new Vector3f(), new Vector3f(), new Vector3f());
         for (Consumer<AnimationMovement> consumer : movementModifier) {
             consumer.accept(k);
         }
@@ -396,6 +414,15 @@ public final class RenderedEntity implements TransformSupplier {
     @NotNull
     @Override
     public Vector3f supplyTransform() {
-        return new Vector3f(lastMovement != null ? lastMovement.plus(relativeHitBoxOffset()).transform() : relativeHitBoxOffset().transform()).add(defaultPosition);
+        return lastMovement != null ? lastMovement.plus(relativeHitBoxOffset().plus(defaultPosition)).transform() : relativeHitBoxOffset().plus(defaultPosition).transform();
+    }
+
+    @Override
+    public void close() throws Exception {
+        if (hitBox != null) hitBox.remove();
+        if (display != null) display.close();
+        for (RenderedEntity value : children.values()) {
+            value.close();
+        }
     }
 }

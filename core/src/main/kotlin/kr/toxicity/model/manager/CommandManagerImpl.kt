@@ -4,6 +4,7 @@ import dev.jorel.commandapi.CommandAPI
 import dev.jorel.commandapi.CommandAPIBukkitConfig
 import dev.jorel.commandapi.CommandAPICommand
 import dev.jorel.commandapi.arguments.ArgumentSuggestions
+import dev.jorel.commandapi.arguments.BooleanArgument
 import dev.jorel.commandapi.arguments.StringArgument
 import dev.jorel.commandapi.executors.CommandExecutionInfo
 import dev.jorel.commandapi.executors.PlayerCommandExecutor
@@ -14,6 +15,8 @@ import kr.toxicity.model.api.util.EntityUtil
 import kr.toxicity.model.util.PLUGIN
 import org.bukkit.Bukkit
 import org.bukkit.entity.EntityType
+import org.bukkit.entity.Player
+import java.util.concurrent.CompletableFuture
 
 object CommandManagerImpl : CommandManager, GlobalManagerImpl {
     override fun start() {
@@ -35,11 +38,7 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                         val loc = player.location
                         ModelManagerImpl.renderer(n)
                             ?.create(player.world.spawnEntity(player.location, EntityType.HUSK))
-                            ?.let {
-                                loc.getNearbyPlayers(EntityUtil.RENDER_DISTANCE).forEach { p ->
-                                    it.spawn(p)
-                                }
-                            }
+                            ?.spawnNearby(loc)
                             ?: run {
                                 player.sendMessage("Unable to find this renderer: $n")
                             }
@@ -58,6 +57,46 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                                 }
                             }
                         }
+                    }),
+                CommandAPICommand("limb")
+                    .withAliases("l")
+                    .withPermission("bettermodel.limb")
+                    .withArguments(BooleanArgument("toggle")
+                        .replaceSuggestions { sender, builder ->
+                            (sender.sender as? Player)?.let {
+                                builder.suggest((!PlayerManagerImpl.player(it).showPlayerLimb()).toString())
+                            }
+                            CompletableFuture.supplyAsync {
+                                builder.build()
+                            }
+                        })
+                    .executesPlayer(PlayerCommandExecutor { player, args ->
+                        val t = args["toggle"] as Boolean
+                        PlayerManagerImpl.player(player).showPlayerLimb(t)
+                        player.sendMessage("Sets player limb to ${if (t) "enable" else "disable"}.")
+                    }),
+                CommandAPICommand("play")
+                    .withAliases("p", "p")
+                    .withPermission("bettermodel.play")
+                    .withArguments(
+                        StringArgument("name")
+                            .replaceSuggestions(ArgumentSuggestions.strings {
+                                PlayerManagerImpl.limbs().map {
+                                    it.name()
+                                }.toTypedArray()
+                            }),
+                        StringArgument("animation")
+                            .replaceSuggestions { sender, builder ->
+                                PlayerManagerImpl.limb(sender.previousArgs["name"] as String)?.animations()?.forEach(builder::suggest)
+                                CompletableFuture.supplyAsync {
+                                    builder.build()
+                                }
+                            }
+                    )
+                    .executesPlayer(PlayerCommandExecutor { player, args ->
+                        val n = args["name"] as String
+                        val a = args["animation"] as String
+                        PlayerManagerImpl.animate(player, n, a)
                     }),
             )
             .executes(CommandExecutionInfo {

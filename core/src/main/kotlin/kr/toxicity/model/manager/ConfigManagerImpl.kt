@@ -16,6 +16,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     private var minSight = 5.0
     private var lockOnPlayAnimation = true
     private var keyframeThreshold = 2L
+    private var enablePlayerLimb = true
 
     override fun item(): Material = item
     override fun metrics(): Boolean = metrics != null
@@ -24,6 +25,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     override fun minSight(): Double = minSight
     override fun lockOnPlayAnimation(): Boolean = lockOnPlayAnimation
     override fun keyframeThreshold(): Long = keyframeThreshold
+    override fun enablePlayerLimb(): Boolean = enablePlayerLimb
 
     override fun reload() {
         val yaml = PluginConfiguration.CONFIG.create()
@@ -43,5 +45,6 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
         minSight = yaml.getDouble("min-sight", 5.0)
         lockOnPlayAnimation = yaml.getBoolean("lock-on-play-animation", true)
         keyframeThreshold = yaml.getLong("keyframe-threshold", 2).coerceAtLeast(1)
+        enablePlayerLimb = yaml.getBoolean("enable-player-limb", true)
     }
 }

@@ -1,24 +1,24 @@
 package kr.toxicity.model.api.data.renderer;
 
-import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.blueprint.BlueprintChildren;
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox;
 import kr.toxicity.model.api.entity.EntityMovement;
 import kr.toxicity.model.api.entity.RenderedEntity;
-import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.TransformSupplier;
+import kr.toxicity.model.api.player.PlayerLimb;
 import kr.toxicity.model.api.util.MathUtil;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.entity.ItemDisplay;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -29,18 +29,20 @@ public final class RendererGroup implements TransformSupplier {
     @Getter
     private final BlueprintChildren.BlueprintGroup parent;
     @Getter
-    private final float scale;
+    private final Vector3f scale;
     @Getter
     private final Vector3f position;
     private final Vector3f rotation;
     private final ItemStack itemStack;
     private final Map<String, RendererGroup> children;
-    private final Function<Location, ModelDisplay> displayFunction;
     @Getter
     private final @Nullable NamedBoundingBox hitBox;
 
     @Getter
     private final Vector3f center;
+    @Getter
+    private final @Nullable PlayerLimb limb;
+    private final ItemDisplay.ItemDisplayTransform itemDisplayTransform;
 
     public RendererGroup(
             @NotNull String name,
@@ -48,10 +50,12 @@ public final class RendererGroup implements TransformSupplier {
             @Nullable ItemStack itemStack,
             @NotNull BlueprintChildren.BlueprintGroup group,
             @NotNull Map<String, RendererGroup> children,
-            @Nullable NamedBoundingBox box
+            @Nullable NamedBoundingBox box,
+            @Nullable PlayerLimb limb
     ) {
         this.name = name;
-        this.scale = scale;
+        this.limb = limb;
+        this.scale = limb != null ? new Vector3f(limb.getSlimScale()) : new Vector3f(scale);
         this.parent = group;
         this.children = children;
         this.itemStack = itemStack;
@@ -60,25 +64,17 @@ public final class RendererGroup implements TransformSupplier {
         this.hitBox = box;
         rotation = group.rotation().toVector();
         center = hitBox != null ? new Vector3f(position).add(hitBox.centerVector()) : position;
-        if (itemStack != null) {
-            displayFunction = l -> {
-                var display = BetterModel.inst().nms().create(l);
-                display.item(parent.visibility() ? itemStack : new ItemStack(Material.AIR));
-                return display;
-            };
-        } else {
-            displayFunction = l -> null;
-        }
+        itemDisplayTransform = limb != null ? limb.getTransform() : ItemDisplay.ItemDisplayTransform.FIXED;
     }
 
-    public @NotNull RenderedEntity create(@NotNull Location location) {
-        return create(null, location);
+    public @NotNull RenderedEntity create(@Nullable Player player, @NotNull Location location) {
+        return create(player, null, location);
     }
-    private @NotNull RenderedEntity create(@Nullable RenderedEntity entityParent, @NotNull Location location) {
+    private @NotNull RenderedEntity create(@Nullable Player player, @Nullable RenderedEntity entityParent, @NotNull Location location) {
         var entity = new RenderedEntity(
                 this,
                 entityParent,
-                displayFunction,
+                getItem(player),
                 location,
                 new EntityMovement(
                         entityParent != null ? new Vector3f(position).sub(entityParent.getGroup().position) : new Vector3f(),
@@ -87,8 +83,16 @@ public final class RendererGroup implements TransformSupplier {
                         rotation
                 )
         );
-        entity.setChildren(children.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().create(entity, location))));
+        entity.setChildren(children.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().create(player, entity, location))));
         return entity;
+    }
+
+    @Nullable
+    private ItemStack getItem(@Nullable Player player) {
+        if (player != null) {
+            return limb != null ? limb.createItem(player) : null;
+        }
+        return itemStack;
     }
 
     public @NotNull ItemStack getItemStack() {

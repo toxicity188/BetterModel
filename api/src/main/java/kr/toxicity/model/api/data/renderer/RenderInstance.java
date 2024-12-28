@@ -13,6 +13,7 @@ import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
@@ -43,7 +44,11 @@ public final class RenderInstance implements AutoCloseable {
     }
 
     public void filter(@NotNull Predicate<Player> filter) {
-        this.filter = filter;
+        this.filter = this.filter.and(filter);
+    }
+
+    public @NotNull Predicate<Player> spawnFilter() {
+        return filter.and(p -> !playerMap.containsKey(p.getUniqueId()));
     }
 
     public void createHitBox(@NotNull Entity entity, @NotNull Predicate<RenderedEntity> predicate, @Nullable HitBoxListener listener) {
@@ -53,9 +58,9 @@ public final class RenderInstance implements AutoCloseable {
     }
 
     @Override
-    public void close() {
+    public void close() throws Exception {
         for (RenderedEntity value : entityMap.values()) {
-            value.removeHitBox();
+            value.close();
         }
         for (PlayerChannelHandler value : playerMap.values()) {
             remove0(value.player());
@@ -71,9 +76,27 @@ public final class RenderInstance implements AutoCloseable {
         entityMap.values().forEach(e -> e.move(movement, bundler));
     }
 
+    public void lastMovement(@NotNull TrackerMovement movement) {
+        for (RenderedEntity value : entityMap.values()) {
+            value.lastMovement(movement);
+        }
+    }
+
     public void defaultPosition(@NotNull Vector3f movement) {
         for (RenderedEntity value : entityMap.values()) {
             value.defaultPosition(new Vector3f(movement).add(value.getGroup().getPosition()));
+        }
+    }
+
+    public void itemStack(@NotNull Predicate<RenderedEntity> predicate, @NotNull ItemStack itemStack) {
+        for (RenderedEntity value : entityMap.values()) {
+            value.itemStack(predicate, itemStack);
+        }
+    }
+
+    public void setup() {
+        for (RenderedEntity value : entityMap.values()) {
+            value.setup();
         }
     }
 
@@ -189,6 +212,9 @@ public final class RenderInstance implements AutoCloseable {
         return playerMap.size();
     }
 
+    public @NotNull List<PlayerChannelHandler> allPlayer() {
+        return new ArrayList<>(playerMap.values());
+    }
     public @NotNull List<Player> viewedPlayer() {
         return viewedPlayer(filter);
     }

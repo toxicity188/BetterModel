@@ -24,4 +24,12 @@ public record EntityMovement(
                 rawRot
         );
     }
+    public @NotNull EntityMovement plus(@NotNull Vector3f position) {
+        return new EntityMovement(
+                new Vector3f(transform).add(position),
+                scale,
+                rotation,
+                rawRotation
+        );
+    }
 }

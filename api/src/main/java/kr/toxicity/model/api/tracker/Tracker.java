@@ -35,7 +35,6 @@ public abstract class Tracker implements AutoCloseable {
     private TrackerMovement before;
 
     @Getter
-    @Setter
     private Supplier<TrackerMovement> movement = () -> new TrackerMovement(new Vector3f(), new Vector3f(1), new Vector3f());
     public Tracker(@NotNull RenderInstance instance) {
         this.instance = instance;
@@ -48,7 +47,6 @@ public abstract class Tracker implements AutoCloseable {
             }
         }, 50, 50, TimeUnit.MILLISECONDS);
         tint(false);
-        instance.move(movement.get(), BetterModel.inst().nms().createBundler());
         instance.filter(p -> EntityUtil.canSee(p.getLocation(), location()));
     }
 
@@ -60,6 +58,11 @@ public abstract class Tracker implements AutoCloseable {
     public void close() throws Exception {
         task.cancel();
         instance.close();
+    }
+
+    public void setMovement(Supplier<TrackerMovement> movement) {
+        instance.lastMovement(movement.get());
+        this.movement = movement;
     }
 
     public boolean isRunningSingleAnimation() {

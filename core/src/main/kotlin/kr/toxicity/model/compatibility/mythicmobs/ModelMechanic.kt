@@ -20,12 +20,7 @@ class ModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().s
     override fun cast(p0: SkillMetadata): SkillResult {
         return ModelManagerImpl.renderer(mid)?.let {
             val e = p0.caster.entity.bukkitEntity
-            it.create(e).run {
-                val loc = e.location
-                loc.world.getNearbyPlayers(loc, EntityUtil.RENDER_DISTANCE, EntityUtil.RENDER_DISTANCE, EntityUtil.RENDER_DISTANCE).forEach { p ->
-                    spawn(p)
-                }
-            }
+            it.create(e).spawnNearby(e.location)
             SkillResult.SUCCESS
         } ?: SkillResult.ERROR
     }

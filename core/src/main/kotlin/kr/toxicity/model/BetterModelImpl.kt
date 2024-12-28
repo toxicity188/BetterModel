@@ -9,7 +9,9 @@ import kr.toxicity.model.api.version.MinecraftVersion.*
 import kr.toxicity.model.manager.*
 import kr.toxicity.model.util.warn
 import org.bukkit.Bukkit
+import java.io.InputStream
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.jar.JarFile
 
 @Suppress("UNUSED")
 class BetterModelImpl : BetterModel() {
@@ -68,6 +70,20 @@ class BetterModelImpl : BetterModel() {
         onReload.set(false)
         return result
     }
+
+    fun loadAssets(prefix: String, consumer: (String, InputStream) -> Unit) {
+        JarFile(file).use {
+            it.entries().asSequence().forEach { entry ->
+                if (!entry.name.startsWith(prefix)) return@forEach
+                if (entry.name.length <= prefix.length + 1) return@forEach
+                val name = entry.name.substring(prefix.length + 1)
+                if (!entry.isDirectory) it.getInputStream(entry).buffered().use { stream ->
+                    consumer(name, stream)
+                }
+            }
+        }
+    }
+
 
     override fun modelManager(): ModelManager = ModelManagerImpl
     override fun playerManager(): PlayerManager = PlayerManagerImpl
