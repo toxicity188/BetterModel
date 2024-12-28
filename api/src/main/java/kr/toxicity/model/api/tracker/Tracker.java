@@ -1,16 +1,14 @@
 package kr.toxicity.model.api.tracker;
 
-import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.renderer.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.entity.RenderedEntity;
 import kr.toxicity.model.api.entity.TrackerMovement;
 import kr.toxicity.model.api.nms.PacketBundler;
+import kr.toxicity.model.api.scheduler.ModelTask;
 import kr.toxicity.model.api.util.EntityUtil;
 import lombok.Getter;
-import lombok.Setter;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
@@ -20,7 +18,6 @@ import org.joml.Vector3f;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -29,7 +26,7 @@ public abstract class Tracker implements AutoCloseable {
     public static final NamespacedKey TRACKING_ID = Objects.requireNonNull(NamespacedKey.fromString("bettermodel_tracker"));
 
     protected final RenderInstance instance;
-    private final ScheduledTask task;
+    private final ModelTask task;
     private final AtomicBoolean runningSingle = new AtomicBoolean();
 
     private TrackerMovement before;
@@ -38,14 +35,14 @@ public abstract class Tracker implements AutoCloseable {
     private Supplier<TrackerMovement> movement = () -> new TrackerMovement(new Vector3f(), new Vector3f(1), new Vector3f());
     public Tracker(@NotNull RenderInstance instance) {
         this.instance = instance;
-        task = Bukkit.getAsyncScheduler().runAtFixedRate(BetterModel.inst(), task -> {
+        task = BetterModel.inst().scheduler().asyncTaskTimer(1, 1, () -> {
             if (viewedPlayerSize() == 0) return;
             var bundle = BetterModel.inst().nms().createBundler();
             instance.move(isRunningSingleAnimation() && before != null && BetterModel.inst().configManager().lockOnPlayAnimation() ? before : (before = movement.get()), bundle);
             if (!bundle.isEmpty()) for (Player player : instance.viewedPlayer()) {
                 bundle.send(player);
             }
-        }, 50, 50, TimeUnit.MILLISECONDS);
+        });
         tint(false);
         instance.filter(p -> EntityUtil.canSee(p.getLocation(), location()));
     }

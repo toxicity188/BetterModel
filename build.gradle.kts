@@ -16,7 +16,7 @@ allprojects {
     apply(plugin = "java")
     apply(plugin = "kotlin")
     group = "kr.toxicity.model"
-    version = "1.1"
+    version = "1.2"
     repositories {
         mavenCentral()
         maven("https://repo.papermc.io/repository/maven-public/")
@@ -125,7 +125,9 @@ bukkitPluginYaml {
         description = "Accesses to command."
         children = mapOf(
             "reload" to true,
-            "spawn" to true
+            "spawn" to true,
+            "play" to true,
+            "limb" to true
         )
     }
 }

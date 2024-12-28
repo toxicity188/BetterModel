@@ -21,6 +21,11 @@ public interface EntityAdapter {
         }
 
         @Override
+        public float pitch() {
+            return 0;
+        }
+
+        @Override
         public float yaw() {
             return 0;
         }
@@ -33,6 +38,7 @@ public interface EntityAdapter {
 
     boolean onWalk();
     double scale();
+    float pitch();
     float bodyYaw();
     float yaw();
     @NotNull Vector3f passengerPosition();

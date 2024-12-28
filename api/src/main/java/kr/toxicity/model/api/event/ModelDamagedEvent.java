@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 @Getter
 @Setter
 public class ModelDamagedEvent extends EntityEvent implements Cancellable {
+
     public static final HandlerList HANDLER_LIST = new HandlerList();
 
     private final @NotNull HitBox hitBox;

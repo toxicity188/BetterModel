@@ -11,7 +11,6 @@ import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.util.EntityUtil;
 import lombok.Getter;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -67,7 +66,7 @@ public class EntityTracker extends Tracker {
                 r -> r.getName().startsWith("h_"),
                 a -> {
                     if (a.rotation() != null && !isRunningSingleAnimation()) {
-                        a.rotation().add(-entity.getPitch(), Math.clamp(
+                        a.rotation().add(-adapter.pitch(), Math.clamp(
                                 -adapter.yaw() + adapter.bodyYaw(),
                                 -45,
                                 45
@@ -82,7 +81,7 @@ public class EntityTracker extends Tracker {
         ));
         entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, instance.getParent().getParent().name());
         TRACKER_MAP.put(entity.getUniqueId(), this);
-        Bukkit.getRegionScheduler().run(BetterModel.inst(), entity.getLocation(), s -> {
+        BetterModel.inst().scheduler().task(entity.getLocation(), () -> {
             if (!closed.get() && !forRemoval()) createHitBox();
         });
         instance.setup();
@@ -135,8 +134,9 @@ public class EntityTracker extends Tracker {
     }
 
     public void spawnNearby(@NotNull Location location) {
-        for (Player nearbyPlayer : location.getNearbyPlayers(EntityUtil.RENDER_DISTANCE, instance.spawnFilter())) {
-            spawn(nearbyPlayer);
+        var filter = instance.spawnFilter();
+        for (Entity e : location.getWorld().getNearbyEntities(location, EntityUtil.RENDER_DISTANCE , EntityUtil.RENDER_DISTANCE , EntityUtil.RENDER_DISTANCE)) {
+            if (e instanceof Player player && filter.test(player)) spawn(player);
         }
     }
 

@@ -4,9 +4,12 @@ import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.BetterModel.ReloadResult.*
 import kr.toxicity.model.api.manager.*
 import kr.toxicity.model.api.nms.NMS
+import kr.toxicity.model.api.scheduler.ModelScheduler
 import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.api.version.MinecraftVersion.*
 import kr.toxicity.model.manager.*
+import kr.toxicity.model.scheduler.PaperScheduler
+import kr.toxicity.model.scheduler.StandardScheduler
 import kr.toxicity.model.util.warn
 import org.bukkit.Bukkit
 import java.io.InputStream
@@ -31,6 +34,8 @@ class BetterModelImpl : BetterModel() {
         )
     }
 
+    private val scheduler = if (IS_PAPER) PaperScheduler() else StandardScheduler()
+
     override fun onEnable() {
         nms = when (version) {
             V1_21_4 -> kr.toxicity.model.nms.v1_21_R3.NMSImpl()
@@ -48,7 +53,7 @@ class BetterModelImpl : BetterModel() {
             }
         }
         managers.forEach(GlobalManagerImpl::start)
-        Bukkit.getAsyncScheduler().runNow(this) {
+        scheduler.asyncTask {
             reload()
         }
     }
@@ -84,7 +89,7 @@ class BetterModelImpl : BetterModel() {
         }
     }
 
-
+    override fun scheduler(): ModelScheduler = scheduler
     override fun modelManager(): ModelManager = ModelManagerImpl
     override fun playerManager(): PlayerManager = PlayerManagerImpl
     override fun entityManager(): EntityManager = EntityManagerImpl

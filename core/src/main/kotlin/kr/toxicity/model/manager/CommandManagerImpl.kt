@@ -8,12 +8,9 @@ import dev.jorel.commandapi.arguments.BooleanArgument
 import dev.jorel.commandapi.arguments.StringArgument
 import dev.jorel.commandapi.executors.CommandExecutionInfo
 import dev.jorel.commandapi.executors.PlayerCommandExecutor
-import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.BetterModel.ReloadResult.*
 import kr.toxicity.model.api.manager.CommandManager
-import kr.toxicity.model.api.util.EntityUtil
 import kr.toxicity.model.util.PLUGIN
-import org.bukkit.Bukkit
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
 import java.util.concurrent.CompletableFuture
@@ -47,7 +44,7 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                     .withAliases("re", "rl")
                     .withPermission("bettermodel.reload")
                     .executes(CommandExecutionInfo {
-                        Bukkit.getAsyncScheduler().runNow(BetterModel.inst()) { _ ->
+                        PLUGIN.scheduler().asyncTask {
                             when (val result = PLUGIN.reload()) {
                                 is OnReload -> it.sender().sendMessage("The plugin still on reload!")
                                 is Success -> it.sender().sendMessage("Reload completed (${result.time} time)")

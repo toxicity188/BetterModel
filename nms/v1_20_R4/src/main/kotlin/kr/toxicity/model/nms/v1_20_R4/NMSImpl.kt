@@ -15,12 +15,15 @@ import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.*
 import net.minecraft.network.syncher.EntityDataAccessor
 import net.minecraft.server.MinecraftServer
-import net.minecraft.world.entity.*
+import net.minecraft.server.network.ServerCommonPacketListenerImpl
+import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.Display.ItemDisplay
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.ai.attributes.Attributes
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.Items
-import org.bukkit.Bukkit
 import org.bukkit.Color
 import org.bukkit.Location
 import org.bukkit.craftbukkit.CraftWorld
@@ -45,6 +48,26 @@ class NMSImpl : NMS {
 
     companion object {
         private const val INJECT_NAME = "bettermodel_channel_handler"
+        //Spigot
+        private val getConnection: (ServerCommonPacketListenerImpl) -> Connection = if (BetterModel.IS_PAPER) {
+            {
+                it.connection
+            }
+        } else {
+            ServerCommonPacketListenerImpl::class.java.declaredFields.first { f ->
+                f.type == Connection::class.java
+            }.apply {
+                isAccessible = true
+            }.let { get ->
+                {
+                    get[it] as Connection
+                }
+            }
+        }
+        private fun Int.toEntity() = MinecraftServer.getServer().allLevels.firstNotNullOfOrNull {
+            it.entityLookup[this]
+        }
+        //Spigot
 
         private fun Class<*>.serializers() = declaredFields.filter { f ->
             EntityDataAccessor::class.java.isAssignableFrom(f.type)
@@ -69,10 +92,6 @@ class NMSImpl : NMS {
         }
     }
 
-    private fun Int.toEntity() = MinecraftServer.getServer().allLevels.firstNotNullOfOrNull {
-        it.entityLookup.get(this)
-    }
-
     private fun Entity.toVoid(bundler: PacketBundlerImpl) {
         bundler.add(ClientboundSetEquipmentPacket(id, EquipmentSlot.entries.map { e ->
             Pair.of(e, Items.AIR.defaultInstance)
@@ -93,7 +112,7 @@ class NMSImpl : NMS {
         private val entityUUIDMap = ConcurrentHashMap<UUID, EntityTracker>()
 
         init {
-            val pipeLine = connection.connection.channel.pipeline()
+            val pipeLine = getConnection(connection).channel.pipeline()
             pipeLine.toMap().forEach {
                 if (it.value is Connection) pipeLine.addBefore(it.key, INJECT_NAME, this)
             }
@@ -136,13 +155,14 @@ class NMSImpl : NMS {
             val e = tracker.entity
             val handle = (e as CraftEntity).handle
             entityUUIDMap.remove(handle.uuid)
-            send(ClientboundSetEntityDataPacket(handle.id, handle.entityData.packAll()!!))
+            send(ClientboundSetEntityDataPacket(handle.id, handle.entityData.pack()))
             if (e is LivingEntity) {
                 e.equipment?.let { i ->
                     send(ClientboundSetEquipmentPacket(handle.id, org.bukkit.inventory.EquipmentSlot.entries.mapNotNull {
-                        runCatching {
-                            it to i.getItem(it)
-                        }.getOrDefault(null)
+                        val g = runCatching {
+                            i.getItem(it)
+                        }.getOrDefault(null) ?: return@mapNotNull null
+                        it to g
                     }.map { (type, item) ->
                         Pair.of(when (type) {
                             HAND -> EquipmentSlot.MAINHAND
@@ -163,7 +183,7 @@ class NMSImpl : NMS {
             when (msg) {
                 is ClientboundAddEntityPacket -> {
                     msg.id.toEntity()?.let { e ->
-                        Bukkit.getRegionScheduler().run(BetterModel.inst(), e.bukkitEntity.location) {
+                        BetterModel.inst().scheduler().task(e.bukkitEntity.location) {
                             EntityTracker.tracker(e.bukkitEntity)?.spawn(player)
                         }
                     }
@@ -267,7 +287,7 @@ class NMSImpl : NMS {
             bundler.unwrap().add(addPacket)
             val f = display.transformationInterpolationDuration
             frame(0)
-            bundler.unwrap().add(ClientboundSetEntityDataPacket(display.id, display.entityData.packAll()!!))
+            bundler.unwrap().add(ClientboundSetEntityDataPacket(display.id, display.entityData.pack()))
             frame(f)
         }
 
@@ -327,7 +347,7 @@ class NMSImpl : NMS {
         private val dataPacket
             get(): ClientboundSetEntityDataPacket {
                 val set = if (itemChanged) transformSetWithItem else transformSet
-                val result = ClientboundSetEntityDataPacket(display.id, display.entityData.packAll()!!.filter {
+                val result = ClientboundSetEntityDataPacket(display.id, display.entityData.pack().filter {
                     set.contains(it.id)
                 })
                 itemChanged = false
@@ -384,7 +404,7 @@ class NMSImpl : NMS {
 
     override fun version(): NMSVersion = NMSVersion.V1_20_R4
 
-    override fun adapt(entity: org.bukkit.entity.LivingEntity): EntityAdapter {
+    override fun adapt(entity: LivingEntity): EntityAdapter {
         val handle = (entity as CraftLivingEntity).handle
         return object : EntityAdapter {
             override fun onWalk(): Boolean {
@@ -396,6 +416,10 @@ class NMSImpl : NMS {
 
             override fun scale(): Double {
                 return handle.attributes.getInstance(Attributes.SCALE)?.value ?: 1.0
+            }
+
+            override fun pitch(): Float {
+                return handle.xRot
             }
 
             override fun bodyYaw(): Float {

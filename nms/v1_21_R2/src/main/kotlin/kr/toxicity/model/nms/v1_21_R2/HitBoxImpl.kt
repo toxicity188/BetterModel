@@ -1,5 +1,6 @@
 package kr.toxicity.model.nms.v1_21_R2
 
+import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import kr.toxicity.model.api.event.ModelDamagedEvent
 import kr.toxicity.model.api.event.ModelInteractEvent
@@ -46,11 +47,11 @@ class HitBoxImpl(
         persist = false
         isSilent = true
         initialized = true
-        `moonrise$setUpdatingSectionStatus`(false)
+        if (BetterModel.IS_PAPER) `moonrise$setUpdatingSectionStatus`(false)
     }
 
     override fun name(): String = name
-    override fun source(): Entity = delegate.bukkitLivingEntity
+    override fun source(): Entity = delegate.bukkitEntity
     override fun relativePosition(): Vector3f = position().run {
         Vector3f(x.toFloat(), y.toFloat(), z.toFloat())
     }
@@ -131,7 +132,7 @@ class HitBoxImpl(
             MAIN_HAND -> Hand.RIGHT
             OFF_HAND -> Hand.LEFT
         })
-        if (!interact.callEvent()) return InteractionResult.FAIL
+        if (!interact.call()) return InteractionResult.FAIL
         return delegate.interact(player, hand)
     }
 
@@ -142,7 +143,7 @@ class HitBoxImpl(
     override fun hurtServer(world: ServerLevel, source: DamageSource, amount: Float): Boolean {
         val ds = CraftDamageSource(source)
         val event = ModelDamagedEvent(this, ds, amount)
-        if (!event.callEvent()) return false
+        if (!event.call()) return false
         if (listener.damage(ds, amount.toDouble())) return false
         return delegate.hurtServer(world, source, event.damage)
     }

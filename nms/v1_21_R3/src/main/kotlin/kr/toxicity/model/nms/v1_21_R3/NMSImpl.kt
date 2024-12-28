@@ -1,5 +1,6 @@
 package kr.toxicity.model.nms.v1_21_R3
 
+import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.EntityLookup
 import com.google.common.collect.ImmutableList
 import com.google.gson.JsonParser
 import com.mojang.datafixers.util.Pair
@@ -16,6 +17,8 @@ import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.*
 import net.minecraft.network.syncher.EntityDataAccessor
 import net.minecraft.server.MinecraftServer
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.server.network.ServerCommonPacketListenerImpl
 import net.minecraft.world.entity.*
 import net.minecraft.world.entity.Display.ItemDisplay
 import net.minecraft.world.entity.ai.attributes.Attributes
@@ -23,7 +26,9 @@ import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.Items
 import net.minecraft.world.item.component.CustomModelData
 import net.minecraft.world.item.component.DyedItemColor
-import org.bukkit.Bukkit
+import net.minecraft.world.level.entity.LevelEntityGetter
+import net.minecraft.world.level.entity.LevelEntityGetterAdapter
+import net.minecraft.world.level.entity.PersistentEntitySectionManager
 import org.bukkit.Location
 import org.bukkit.craftbukkit.CraftWorld
 import org.bukkit.craftbukkit.entity.CraftEntity
@@ -46,6 +51,53 @@ class NMSImpl : NMS {
 
     companion object {
         private const val INJECT_NAME = "bettermodel_channel_handler"
+
+        //Spigot
+        private val getConnection: (ServerCommonPacketListenerImpl) -> Connection = if (BetterModel.IS_PAPER) {
+            {
+                it.connection
+            }
+        } else {
+            ServerCommonPacketListenerImpl::class.java.declaredFields.first { f ->
+                f.type == Connection::class.java
+            }.apply {
+                isAccessible = true
+            }.let { get ->
+                {
+                    get[it] as Connection
+                }
+            }
+        }
+        private val entityTracker = ServerLevel::class.java.fields.firstOrNull {
+            it.type == PersistentEntitySectionManager::class.java
+        }?.apply {
+            isAccessible = true
+        }
+        @Suppress("UNCHECKED_CAST")
+        private val ServerLevel.levelGetter
+            get(): LevelEntityGetter<Entity> {
+                return if (BetterModel.IS_PAPER) {
+                    `moonrise$getEntityLookup`()
+                } else {
+                    entityTracker?.get(this)?.let {
+                        (it as PersistentEntitySectionManager<*>).entityGetter as LevelEntityGetter<Entity>
+                    } ?: throw RuntimeException("LevelEntityGetter")
+                }
+            }
+        private val getEntityById: (LevelEntityGetter<Entity>, Int) -> Entity? = if (BetterModel.IS_PAPER)  { g, i ->
+            (g as EntityLookup)[i]
+        } else LevelEntityGetterAdapter::class.java.declaredFields.first {
+            net.minecraft.world.level.entity.EntityLookup::class.java.isAssignableFrom(it.type)
+        }.let {
+            it.isAccessible = true
+            { e, i ->
+                (it[e] as net.minecraft.world.level.entity.EntityLookup<*>).getEntity(i) as? Entity
+            }
+        }
+        private fun Int.toEntity() = MinecraftServer.getServer().allLevels.firstNotNullOfOrNull {
+            getEntityById(it.levelGetter, this)
+        }
+        //Spigot
 
         private fun Class<*>.serializers() = declaredFields.filter { f ->
             EntityDataAccessor::class.java.isAssignableFrom(f.type)
@@ -70,10 +122,6 @@ class NMSImpl : NMS {
         }
     }
 
-    private fun Int.toEntity() = MinecraftServer.getServer().allLevels.firstNotNullOfOrNull {
-        it.`moonrise$getEntityLookup`().get(this)
-    }
-
     private fun Entity.toVoid(bundler: PacketBundlerImpl) {
         bundler.add(ClientboundSetEquipmentPacket(id, EquipmentSlot.entries.map { e ->
             Pair.of(e, Items.AIR.defaultInstance)
@@ -95,7 +143,7 @@ class NMSImpl : NMS {
 
 
         init {
-            val pipeLine = connection.connection.channel.pipeline()
+            val pipeLine = getConnection(connection).channel.pipeline()
             pipeLine.toMap().forEach {
                 if (it.value is Connection) pipeLine.addBefore(it.key, INJECT_NAME, this)
             }
@@ -139,13 +187,14 @@ class NMSImpl : NMS {
             val e = tracker.entity
             val handle = (e as CraftEntity).handle
             entityUUIDMap.remove(handle.uuid)
-            send(ClientboundSetEntityDataPacket(handle.id, handle.entityData.packAll()!!))
+            send(ClientboundSetEntityDataPacket(handle.id, handle.entityData.pack()))
             if (e is LivingEntity) {
                 e.equipment?.let { i ->
                     send(ClientboundSetEquipmentPacket(handle.id, org.bukkit.inventory.EquipmentSlot.entries.mapNotNull {
-                        runCatching {
-                            it to i.getItem(it)
-                        }.getOrDefault(null)
+                        val g = runCatching {
+                            i.getItem(it)
+                        }.getOrDefault(null) ?: return@mapNotNull null
+                        it to g
                     }.map { (type, item) ->
                         Pair.of(when (type) {
                             HAND -> EquipmentSlot.MAINHAND
@@ -166,7 +215,7 @@ class NMSImpl : NMS {
             when (msg) {
                 is ClientboundAddEntityPacket -> {
                     msg.id.toEntity()?.let { e ->
-                        Bukkit.getRegionScheduler().run(BetterModel.inst(), e.bukkitEntity.location) {
+                        BetterModel.inst().scheduler().task(e.bukkitEntity.location) {
                             EntityTracker.tracker(e.bukkitEntity)?.spawn(player)
                         }
                     }
@@ -270,7 +319,7 @@ class NMSImpl : NMS {
             bundler.unwrap().add(display.addPacket)
             val f = display.transformationInterpolationDuration
             frame(0)
-            bundler.unwrap().add(ClientboundSetEntityDataPacket(display.id, display.entityData.packAll()!!))
+            bundler.unwrap().add(ClientboundSetEntityDataPacket(display.id, display.entityData.pack()))
             frame(f)
         }
 
@@ -330,7 +379,7 @@ class NMSImpl : NMS {
         private val dataPacket
             get(): ClientboundSetEntityDataPacket {
                 val set = if (itemChanged) transformSetWithItem else transformSet
-                val result = ClientboundSetEntityDataPacket(display.id, display.entityData.packAll()!!.filter {
+                val result = ClientboundSetEntityDataPacket(display.id, display.entityData.pack().filter {
                     set.contains(it.id)
                 })
                 itemChanged = false
@@ -397,6 +446,10 @@ class NMSImpl : NMS {
 
             override fun scale(): Double {
                 return handle.attributes.getInstance(Attributes.SCALE)?.value ?: 1.0
+            }
+
+            override fun pitch(): Float {
+                return handle.xRot
             }
 
             override fun bodyYaw(): Float {

@@ -1,5 +1,6 @@
 package kr.toxicity.model.nms.v1_21_R1
 
+import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import kr.toxicity.model.api.event.ModelDamagedEvent
 import kr.toxicity.model.api.event.ModelInteractEvent
@@ -8,7 +9,8 @@ import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.HitBoxListener
 import kr.toxicity.model.api.nms.TransformSupplier
 import net.minecraft.world.InteractionHand
-import net.minecraft.world.InteractionHand.*
+import net.minecraft.world.InteractionHand.MAIN_HAND
+import net.minecraft.world.InteractionHand.OFF_HAND
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.damagesource.DamageSource
 import net.minecraft.world.entity.*
@@ -44,11 +46,11 @@ class HitBoxImpl(
         persist = false
         isSilent = true
         initialized = true
-        `moonrise$setUpdatingSectionStatus`(false)
+        if (BetterModel.IS_PAPER) `moonrise$setUpdatingSectionStatus`(false)
     }
 
     override fun name(): String = name
-    override fun source(): Entity = delegate.bukkitLivingEntity
+    override fun source(): Entity = delegate.bukkitEntity
     override fun relativePosition(): Vector3f = position().run {
         Vector3f(x.toFloat(), y.toFloat(), z.toFloat())
     }
@@ -129,14 +131,14 @@ class HitBoxImpl(
             MAIN_HAND -> Hand.RIGHT
             OFF_HAND -> Hand.LEFT
         })
-        if (!interact.callEvent()) return InteractionResult.FAIL
+        if (!interact.call()) return InteractionResult.FAIL
         return delegate.interact(player, hand)
     }
 
     override fun hurt(source: DamageSource, amount: Float): Boolean {
         val ds = CraftDamageSource(source)
         val event = ModelDamagedEvent(this, ds, amount)
-        if (!event.callEvent()) return false
+        if (!event.call()) return false
         if (listener.damage(ds, amount.toDouble())) return false
         return delegate.hurt(source, event.damage)
     }
