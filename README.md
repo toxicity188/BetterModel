@@ -4,7 +4,7 @@
 
 Welcome to BetterModel!
 
-[SpigotMC](https://www.spigotmc.org/resources/121515/) | [Github](https://github.com/toxicity188/BetterModel)  
+[Github](https://github.com/toxicity188/BetterModel)  
 
 ![Maven Central Version](https://img.shields.io/maven-central/v/io.github.toxicity188/BetterModel?style=for-the-badge)
 [![GitHub Release](https://img.shields.io/github/v/release/toxicity188/BetterModel?display_name=release&style=for-the-badge&logo=kotlin)](https://github.com/toxicity188/BetterModel/releases/latest)
