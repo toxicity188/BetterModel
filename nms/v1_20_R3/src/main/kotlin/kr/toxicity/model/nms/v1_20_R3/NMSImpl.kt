@@ -209,6 +209,21 @@ class NMSImpl : NMS {
             super.write(ctx, msg, promise)
         }
 
+        override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
+            when (msg) {
+                is ServerboundSetCarriedItemPacket -> {
+                    if (connection.player.id.toTracker() != null) {
+                        connection.send(ClientboundSetCarriedItemPacket(player.inventory.heldItemSlot))
+                        return
+                    }
+                }
+                is ServerboundPlayerActionPacket -> {
+                    if (connection.player.id.toTracker() != null) return
+                }
+            }
+            super.channelRead(ctx, msg)
+        }
+
         private fun EntityTracker.remove() {
             entityUUIDMap.remove(uuid())
             remove(player)
