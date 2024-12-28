@@ -55,7 +55,7 @@ partvisibility
 ```
 
 ### Version
-- Spigot of that's fork (with Folia)
+- Spigot, Paper or that's fork (with Folia)
 - Java 21
 - Minecraft 1.20.4-1.21.4
 
@@ -64,9 +64,9 @@ No
 
 ### Command
 /bettermodel reload - Reloads this plugin.  
-/bettermodel spawn <model> - Summons this model to husk.
-/bettermodel limb <true/false> - Show/Hide player limb.
-/bettermodel play <model> <animation> - Plays player animation.
+/bettermodel spawn <model> - Summons this model to husk.  
+/bettermodel limb <true/false> - Show/Hide player limb.  
+/bettermodel play <model> <animation> - Plays player animation.  
 
 ### Permission
 bettermodel - Accesses to command.
