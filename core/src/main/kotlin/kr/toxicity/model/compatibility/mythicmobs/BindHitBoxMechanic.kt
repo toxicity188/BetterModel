@@ -6,10 +6,10 @@ import io.lumine.mythic.api.skills.SkillMetadata
 import io.lumine.mythic.api.skills.SkillResult
 import io.lumine.mythic.bukkit.MythicBukkit
 import io.lumine.mythic.core.skills.SkillMechanic
+import kr.toxicity.model.api.event.ModelDamageSource
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.HitBoxListener
 import kr.toxicity.model.api.tracker.EntityTracker
-import org.bukkit.damage.DamageSource
 import org.bukkit.entity.Damageable
 
 class BindHitBoxMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "[BetterModel]", mlc), INoTargetSkill {
@@ -33,9 +33,9 @@ class BindHitBoxMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.ins
                         else spawned.teleport(it.entity.location)
                     }
 
-                    override fun damage(source: DamageSource, damage: Double): Boolean {
+                    override fun damage(source: ModelDamageSource, damage: Double): Boolean {
                         if (spawned is Damageable) {
-                            spawned.damage(damage, source)
+                            spawned.damage(damage, source.causingEntity)
                             return true
                         } else return false
                     }

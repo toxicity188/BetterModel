@@ -36,8 +36,8 @@ private val DATA_ITEMS = SynchedEntityData::class.java.declaredFields.first {
 @Suppress("UNCHECKED_CAST")
 fun SynchedEntityData.pack(): List<SynchedEntityData.DataValue<*>> {
     val list = arrayListOf<SynchedEntityData.DataValue<*>>()
-    (DATA_ITEMS[this] as Array<DataItem<*>>).forEach {
-        list += it.value()
+    (DATA_ITEMS[this] as Array<DataItem<*>?>).forEach {
+        list += (it ?: return@forEach).value()
     }
     return list
 }

@@ -41,8 +41,8 @@ private val DATA_ITEMS = SynchedEntityData::class.java.declaredFields.first {
 fun SynchedEntityData.pack(): List<SynchedEntityData.DataValue<*>> {
     if (BetterModel.IS_PAPER) return packAll()!!
     val list = arrayListOf<SynchedEntityData.DataValue<*>>()
-    (DATA_ITEMS[this] as Array<DataItem<*>>).forEach {
-        list += it.value()
+    (DATA_ITEMS[this] as Array<DataItem<*>?>).forEach {
+        list += (it ?: return@forEach).value()
     }
     return list
 }

@@ -23,3 +23,9 @@ fun JsonElement.save(file: File) {
 fun String.toLimb() = runCatching {
     PlayerLimb.valueOf(uppercase())
 }.getOrDefault(null)
+
+fun JsonElement.toByteArray(): ByteArray {
+    val sb = StringBuilder()
+    ModelData.GSON.toJson(this, sb)
+    return sb.toString().toByteArray(Charsets.UTF_8)
+}

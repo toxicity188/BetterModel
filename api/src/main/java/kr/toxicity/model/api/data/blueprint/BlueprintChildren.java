@@ -39,10 +39,9 @@ public sealed interface BlueprintChildren {
             return parent.name() + "_" + name;
         }
 
-        public boolean buildJson(
+        public BlueprintJson buildJson(
                 int tint,
-                @NotNull ModelBlueprint parent,
-                @NotNull List<BlueprintJson> list
+                @NotNull ModelBlueprint parent
         ) {
             var object = new JsonObject();
             var textureObject = new JsonObject();
@@ -53,15 +52,13 @@ public sealed interface BlueprintChildren {
             object.add("textures", textureObject);
             var elements = new JsonArray();
             for (BlueprintChildren child : children) {
-                switch (child) {
-                    case BlueprintElement blueprintElement -> blueprintElement.buildJson(tint, parent, this, elements);
-                    case BlueprintGroup blueprintGroup -> blueprintGroup.buildJson(tint, parent, list);
+                if (child instanceof BlueprintElement element) {
+                    element.buildJson(tint, parent, this, elements);
                 }
             }
-            if (elements.isEmpty()) return false;
+            if (elements.isEmpty()) return null;
             object.add("elements", elements);
-            list.add(new BlueprintJson(jsonName(parent), object));
-            return true;
+            return new BlueprintJson(jsonName(parent), object);
         }
 
         public @Nullable NamedBoundingBox hitBox() {

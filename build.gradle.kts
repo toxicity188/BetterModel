@@ -16,7 +16,7 @@ allprojects {
     apply(plugin = "java")
     apply(plugin = "kotlin")
     group = "kr.toxicity.model"
-    version = "1.2"
+    version = "1.2.1"
     repositories {
         mavenCentral()
         maven("https://repo.papermc.io/repository/maven-public/")
@@ -110,11 +110,11 @@ tasks {
 }
 
 bukkitPluginYaml {
-    main = "${project.group}.BetterModelImpl"
+    main = "${project.group}.BetterModelPluginImpl"
     version = project.version.toString()
     name = rootProject.name
     foliaSupported = true
-    apiVersion = "1.20"
+    apiVersion = "1.19"
     author = "toxicity"
     description = "Modern lightweight Minecraft model implementation for Paper, Folia"
     softDepend = listOf(

@@ -23,3 +23,12 @@ fun File.forEachAllFolder(block: (File) -> Unit) {
         block(this)
     }
 }
+
+fun File.forEachAll(block: (File) -> Unit) {
+    if (isDirectory) forEach {
+        block(this)
+        it.forEachAll(block)
+    } else {
+        block(this)
+    }
+}

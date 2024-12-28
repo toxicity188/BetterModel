@@ -1,6 +1,6 @@
 package kr.toxicity.model.api.nms;
 
-import org.bukkit.damage.DamageSource;
+import kr.toxicity.model.api.event.ModelDamageSource;
 import org.jetbrains.annotations.NotNull;
 
 public interface HitBoxListener {
@@ -12,7 +12,7 @@ public interface HitBoxListener {
         }
 
         @Override
-        public boolean damage(@NotNull DamageSource source, double damage) {
+        public boolean damage(@NotNull ModelDamageSource source, double damage) {
             return false;
         }
 
@@ -23,6 +23,6 @@ public interface HitBoxListener {
     };
 
     void sync(@NotNull HitBox hitBox);
-    boolean damage(@NotNull DamageSource source, double damage);
+    boolean damage(@NotNull ModelDamageSource source, double damage);
     void remove(@NotNull HitBox hitBox);
 }

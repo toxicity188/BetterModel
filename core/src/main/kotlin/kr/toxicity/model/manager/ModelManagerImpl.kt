@@ -2,7 +2,6 @@ package kr.toxicity.model.manager
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
-import kr.toxicity.model.BetterModelImpl
 import kr.toxicity.model.api.data.blueprint.BlueprintChildren.BlueprintGroup
 import kr.toxicity.model.api.data.blueprint.BlueprintJson
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint
@@ -10,11 +9,11 @@ import kr.toxicity.model.api.data.renderer.BlueprintRenderer
 import kr.toxicity.model.api.data.renderer.RendererGroup
 import kr.toxicity.model.api.manager.ModelManager
 import kr.toxicity.model.util.*
-import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
-import org.joml.Vector3f
 import java.io.File
 import java.util.Collections
+import java.util.Comparator
+import java.util.TreeMap
 
 object ModelManagerImpl : ModelManager, GlobalManagerImpl {
 
@@ -22,27 +21,60 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
 
     private val renderMap = HashMap<String, BlueprintRenderer>()
 
+    private const val TEXTURES_PATH = "assets/bettermodel/textures/item"
+    private const val MODELS_PATH = "assets/bettermodel/models/item"
+    private const val MODERN_MODELS_PATH = "assets/bettermodel/models/modern_item"
+    private const val MINECRAFT_ITEM_PATH = "assets/minecraft/models/item"
+    private const val MODERN_MINECRAFT_ITEM_PATH = "assets/minecraft/items"
+
+    private class PackData(
+        val path: String,
+        val byteArray: () -> ByteArray
+    ) : () -> ByteArray by byteArray
+
+    private class PackDataZipper {
+        private val map = hashMapOf<String, PackData>()
+
+        fun add(parent: String, name: String, byteArray: () -> ByteArray) {
+            val n = "$parent/$name"
+            if (map.put(n, PackData(n, byteArray)) != null) warn(
+                "Name collision found: $n"
+            )
+        }
+
+        fun toFileTree(file: File) {
+            val fileTree = Collections.synchronizedMap(TreeMap<String, File>(Comparator.reverseOrder()))
+            val l = file.path.length + 1
+            file.forEach { sub ->
+                sub.forEachAll {
+                    fileTree[it.path.substring(l)] = it
+                }
+            }
+            fun String.toFile(): File {
+                val replaced = replace('/', File.separatorChar)
+                return fileTree.remove(replaced) ?: File(file, replaced).apply {
+                    parentFile.mkdirs()
+                }
+            }
+            map.values.toList().forEachAsync {
+                it.path.toFile().outputStream().buffered().use { output ->
+                    output.write(it.byteArray())
+                }
+            }
+            if (ConfigManagerImpl.enablePlayerLimb()) PLUGIN.loadAssets("pack") { s, i ->
+                s.toFile().outputStream().buffered().use { output ->
+                    i.copyTo(output)
+                }
+            }
+            fileTree.values.forEach(File::delete)
+            map.clear()
+        }
+    }
+
     override fun reload() {
         renderMap.clear()
         index = 1
-        val assets = DATA_FOLDER
-            .subFolder("build")
-            .clear()
-            .apply {
-                if (ConfigManagerImpl.enablePlayerLimb()) (PLUGIN as BetterModelImpl).loadAssets("pack") { s, i ->
-                    File(this, s).apply {
-                        parentFile.mkdirs()
-                    }.outputStream().buffered().use { output ->
-                        i.copyTo(output)
-                    }
-                }
-            }
-            .subFolder("assets")
-        val renderer = assets.subFolder("bettermodel")
-        val textures = renderer.subFolder("textures").subFolder("item")
-        val model = renderer.subFolder("models").subFolder("item")
-        val modernMode = renderer.subFolder("models").subFolder("modern_item")
-
+        val zipper = PackDataZipper()
         val itemName = ConfigManagerImpl.item().name.lowercase()
         val modelJson = JsonObject().apply {
             addProperty("parent", "minecraft:item/generated")
@@ -66,57 +98,63 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
             if (it.extension == "bbmodel") {
                 val load = it.toModel()
                 load.buildImage().forEach { image ->
-                    image.image.save(textures.subFile("${image.name}.png"))
+                    zipper.add(TEXTURES_PATH, "${image.name}.png") {
+                        image.image.toByteArray()
+                    }
                 }
-                val jsonList = ArrayList<BlueprintJson>()
-                val modernJsonList = ArrayList<BlueprintJson>()
+                val jsonList = arrayListOf<BlueprintJson>()
+                val modernJsonList = arrayListOf<BlueprintJson>()
                 renderMap[load.name] = load.toRenderer render@ { blueprintGroup ->
-                    if (blueprintGroup.buildJson(-2, load, jsonList)) {
-                        override.add(JsonObject().apply {
-                            add("predicate", JsonObject().apply {
-                                addProperty("custom_model_data", index)
-                            })
-                            addProperty("model", "bettermodel:item/${blueprintGroup.jsonName(load)}")
+                    val blueprint = blueprintGroup.buildJson(-2, load) ?: return@render null
+                    val modernBlueprint = blueprintGroup.buildJson(0, load) ?: return@render null
+                    override.add(JsonObject().apply {
+                        add("predicate", JsonObject().apply {
+                            addProperty("custom_model_data", index)
                         })
-                    } else return@render null
-                    if (blueprintGroup.buildJson(0, load, modernJsonList)) {
-                        modernEntries.add(JsonObject().apply {
-                            addProperty("threshold", index)
-                            add("model", JsonObject().apply {
-                                addProperty("type", "minecraft:model")
-                                addProperty("model", "bettermodel:modern_item/${blueprintGroup.jsonName(load)}")
-                                add("tints", JsonArray().apply {
-                                    add(JsonObject().apply {
-                                        addProperty("type", "minecraft:custom_model_data")
-                                        addProperty("default", 0xFF8060)
-                                    })
+                        addProperty("model", "bettermodel:item/${blueprintGroup.jsonName(load)}")
+                    })
+                    modernEntries.add(JsonObject().apply {
+                        addProperty("threshold", index)
+                        add("model", JsonObject().apply {
+                            addProperty("type", "minecraft:model")
+                            addProperty("model", "bettermodel:modern_item/${blueprintGroup.jsonName(load)}")
+                            add("tints", JsonArray().apply {
+                                add(JsonObject().apply {
+                                    addProperty("type", "minecraft:custom_model_data")
+                                    addProperty("default", 0xFF8060)
                                 })
                             })
                         })
-                    } else return@render null
+                    })
+                    jsonList += blueprint
+                    modernJsonList += modernBlueprint
                     index++
                 }
                 jsonList.forEach { json ->
-                    json.element.save(model.subFile("${json.name}.json"))
+                    zipper.add(MODELS_PATH, "${json.name}.json") {
+                        json.element.toByteArray()
+                    }
                 }
                 modernJsonList.forEach { json ->
-                    json.element.save(modernMode.subFile("${json.name}.json"))
+                    zipper.add(MODERN_MODELS_PATH, "${json.name}.json") {
+                        json.element.toByteArray()
+                    }
                 }
             }
         }
-        modelJson.apply {
-            add("overrides", override)
-        }.save(assets.subFolder("minecraft")
-            .subFolder("models")
-            .subFolder("item")
-            .subFile("$itemName.json"))
-        JsonObject().apply {
-            add("model", modernModelJson.apply {
-                add("entries", modernEntries)
-            })
-        }.save(assets.subFolder("minecraft")
-            .subFolder("items")
-            .subFile("$itemName.json"))
+        zipper.add(MINECRAFT_ITEM_PATH, "$itemName.json") {
+            modelJson.apply {
+                add("overrides", override)
+            }.toByteArray()
+        }
+        zipper.add(MODERN_MINECRAFT_ITEM_PATH, "$itemName.json") {
+            JsonObject().apply {
+                add("model", modernModelJson.apply {
+                    add("entries", modernEntries)
+                })
+            }.toByteArray()
+        }
+        zipper.toFileTree(DATA_FOLDER.subFolder("build"))
     }
 
     private fun ModelBlueprint.toRenderer(consumer: (BlueprintGroup) -> Int?): BlueprintRenderer {

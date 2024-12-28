@@ -8,7 +8,7 @@ import dev.jorel.commandapi.arguments.BooleanArgument
 import dev.jorel.commandapi.arguments.StringArgument
 import dev.jorel.commandapi.executors.CommandExecutionInfo
 import dev.jorel.commandapi.executors.PlayerCommandExecutor
-import kr.toxicity.model.api.BetterModel.ReloadResult.*
+import kr.toxicity.model.api.BetterModelPlugin.ReloadResult.*
 import kr.toxicity.model.api.manager.CommandManager
 import kr.toxicity.model.util.PLUGIN
 import org.bukkit.entity.EntityType

@@ -25,7 +25,6 @@ import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import org.bukkit.Bukkit
 import org.bukkit.craftbukkit.CraftServer
-import org.bukkit.craftbukkit.damage.CraftDamageSource
 import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.craftbukkit.entity.CraftLivingEntity
 import org.bukkit.entity.Entity
@@ -136,7 +135,7 @@ class HitBoxImpl(
     }
 
     override fun hurt(source: DamageSource, amount: Float): Boolean {
-        val ds = CraftDamageSource(source)
+        val ds = ModelDamageSourceImpl(source)
         val event = ModelDamagedEvent(this, ds, amount)
         if (!event.call()) return false
         if (listener.damage(ds, amount.toDouble())) return false
