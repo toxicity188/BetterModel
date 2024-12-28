@@ -19,6 +19,7 @@ import org.bukkit.event.player.PlayerChangedWorldEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.inventory.ItemStack
+import java.io.File
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
@@ -62,7 +63,16 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
     override fun reload() {
         renderMap.clear()
         if (ConfigManagerImpl.enablePlayerLimb()) {
-            DATA_FOLDER.subFolder("players").forEachAllFolder {
+            val folder = File(DATA_FOLDER, "players")
+            if (!folder.exists()) {
+                folder.mkdirs()
+                PLUGIN.getResource("steve.bbmodel")?.buffered()?.use { input ->
+                    File(folder, "steve.bbmodel").outputStream().buffered().use { output ->
+                        input.copyTo(output)
+                    }
+                }
+            }
+            folder.forEachAllFolder {
                 if (it.extension == "bbmodel") {
                     val load = it.toModel()
                     renderMap[load.name] = load.toRenderer()
