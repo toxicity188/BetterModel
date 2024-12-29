@@ -64,7 +64,6 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
         this.itemStack = itemStack;
         if (itemStack != null) {
             display = BetterModel.inst().nms().create(firstLocation);
-
             if (group.getParent().visibility()) display.item(itemStack);
         }
         defaultFrame = movement;

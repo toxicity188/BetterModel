@@ -34,7 +34,7 @@ mavenPublishing  {
     ))
     pom {
         name = rootProject.name
-        description = "Modern lightweight Minecraft model implementation for Paper, Folia"
+        description = "Modern lightweight Minecraft model implementation for Bukkit, Folia"
         inceptionYear = "2024"
         url = "https://github.com/toxicity188/BetterModel/"
         licenses {

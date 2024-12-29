@@ -11,7 +11,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +41,6 @@ public final class RendererGroup implements TransformSupplier {
     private final Vector3f center;
     @Getter
     private final @Nullable PlayerLimb limb;
-    private final ItemDisplay.ItemDisplayTransform itemDisplayTransform;
 
     public RendererGroup(
             @NotNull String name,
@@ -64,7 +62,6 @@ public final class RendererGroup implements TransformSupplier {
         this.hitBox = box;
         rotation = group.rotation().toVector();
         center = hitBox != null ? new Vector3f(position).add(hitBox.centerVector()) : position;
-        itemDisplayTransform = limb != null ? limb.getTransform() : ItemDisplay.ItemDisplayTransform.FIXED;
     }
 
     public @NotNull RenderedEntity create(@Nullable Player player, @NotNull Location location) {

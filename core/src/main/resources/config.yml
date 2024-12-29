@@ -7,5 +7,5 @@ lock-on-play-animation: true
 keyframe-threshold: 2
 enable-player-limb: true
 namespace: "bettermodel"
-pack-type: folder
+pack-type: folder #folder, zip
 build-folder-location: BetterModel/build

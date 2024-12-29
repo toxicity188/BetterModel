@@ -36,11 +36,9 @@ import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.craftbukkit.entity.CraftLivingEntity
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.craftbukkit.inventory.CraftItemStack
-import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.*
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.inventory.EquipmentSlot.*
-import org.bukkit.inventory.EquipmentSlot.HEAD
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.LeatherArmorMeta
 import org.bukkit.util.Transformation
@@ -112,8 +110,7 @@ class NMSImpl : NMS {
 
         private val transformSet = Display::class.java.serializers().subList(0, 6).map { e ->
             e.toSerializerId()
-        }.toSet()
-        private val transformSetWithItem = transformSet + ItemDisplay::class.java.serializers().first().toSerializerId()
+        }.toSet() + ItemDisplay::class.java.serializers().first().toSerializerId()
     }
 
     private class PacketBundlerImpl(
@@ -331,20 +328,6 @@ class NMSImpl : NMS {
             bundler.unwrap().add(removePacket)
         }
 
-        override fun display(transform: org.bukkit.entity.ItemDisplay.ItemDisplayTransform) {
-            display.itemTransform = when (transform) {
-                NONE -> ItemDisplayContext.NONE
-                THIRDPERSON_LEFTHAND -> ItemDisplayContext.THIRD_PERSON_LEFT_HAND
-                THIRDPERSON_RIGHTHAND -> ItemDisplayContext.THIRD_PERSON_RIGHT_HAND
-                FIRSTPERSON_LEFTHAND -> ItemDisplayContext.FIRST_PERSON_LEFT_HAND
-                FIRSTPERSON_RIGHTHAND -> ItemDisplayContext.FIRST_PERSON_RIGHT_HAND
-                org.bukkit.entity.ItemDisplay.ItemDisplayTransform.HEAD -> ItemDisplayContext.HEAD
-                GUI -> ItemDisplayContext.GUI
-                GROUND -> ItemDisplayContext.GROUND
-                FIXED -> ItemDisplayContext.FIXED
-            }
-        }
-
         override fun teleport(location: Location, bundler: PacketBundler) {
             display.moveTo(
                 location.x,
@@ -355,11 +338,7 @@ class NMSImpl : NMS {
             )
             bundler.unwrap().add(ClientboundTeleportEntityPacket(display))
         }
-
-        private var itemChanged = false
-
         override fun item(itemStack: ItemStack) {
-            itemChanged = true
             display.itemStack = CraftItemStack.asNMSCopy(itemStack)
         }
 
@@ -378,11 +357,9 @@ class NMSImpl : NMS {
 
         private val dataPacket
             get(): ClientboundSetEntityDataPacket {
-                val set = if (itemChanged) transformSetWithItem else transformSet
                 val result = ClientboundSetEntityDataPacket(display.id, display.entityData.pack().filter {
-                    set.contains(it.id)
+                    transformSet.contains(it.id)
                 })
-                itemChanged = false
                 return result
             }
 
