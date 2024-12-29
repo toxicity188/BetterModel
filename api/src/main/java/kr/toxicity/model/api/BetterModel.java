@@ -1,5 +1,6 @@
 package kr.toxicity.model.api;
 
+import kr.toxicity.model.api.tracker.EntityTracker;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,6 +28,7 @@ public class BetterModel {
     @ApiStatus.Internal
     public static void inst(@NotNull BetterModelPlugin instance) {
         if (BetterModel.instance != null) throw new RuntimeException();
+        instance.addReloadEndHandler(t -> EntityTracker.reload());
         BetterModel.instance = instance;
     }
 }

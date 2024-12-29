@@ -38,17 +38,18 @@ public final class BlueprintRenderer {
     public @NotNull EntityTracker create(@NotNull Entity entity) {
         var tracker = EntityTracker.tracker(entity.getUniqueId());
         if (tracker != null) return tracker;
-        if (entity instanceof Player player) {
-            return new PlayerTracker(
-                    player,
-                    instance(player, entity.getLocation())
-            );
-        } else {
-            return new EntityTracker(
-                    entity,
-                    instance(null, entity.getLocation())
-            );
-        }
+        return new EntityTracker(
+                entity,
+                instance(null, entity.getLocation())
+        );
+    }
+    public @NotNull EntityTracker createPlayerLimb(@NotNull Player player) {
+        var tracker = EntityTracker.tracker(player.getUniqueId());
+        if (tracker != null) return tracker;
+        return new PlayerTracker(
+                player,
+                instance(player, player.getLocation())
+        );
     }
 
     public @NotNull VoidTracker create(@NotNull UUID uuid,  @NotNull Location location) {

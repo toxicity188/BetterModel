@@ -87,7 +87,7 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
     override fun animate(player: Player, model: String, animation: String) {
         renderMap[model]?.let {
             EntityTracker.tracker(player.uniqueId)?.close()
-            val create = it.create(player)
+            val create = it.createPlayerLimb(player)
             create.spawnNearby(player.location)
             if (!create.animateSingle(animation, AnimationModifier.DEFAULT) {
                 create.close()

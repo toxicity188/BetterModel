@@ -3,6 +3,7 @@ package kr.toxicity.model
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.BetterModelPlugin.ReloadResult.*
 import kr.toxicity.model.api.BetterModelPlugin
+import kr.toxicity.model.api.BetterModelPlugin.ReloadResult
 import kr.toxicity.model.api.manager.*
 import kr.toxicity.model.api.nms.NMS
 import kr.toxicity.model.api.scheduler.ModelScheduler
@@ -17,6 +18,7 @@ import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
 import java.io.InputStream
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.function.Consumer
 import java.util.jar.JarFile
 
 @Suppress("UNUSED")
@@ -38,6 +40,9 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
     }
 
     private val scheduler = if (BetterModel.IS_PAPER) PaperScheduler() else StandardScheduler()
+
+    private val reloadStartTask = arrayListOf<() -> Unit>()
+    private val reloadEndTask = arrayListOf<(ReloadResult) -> Unit>()
 
     override fun onLoad() {
         BetterModel.inst(this)
@@ -70,9 +75,12 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
         managers.forEach(GlobalManagerImpl::end)
     }
 
-    override fun reload(): BetterModelPlugin.ReloadResult {
+    override fun reload(): ReloadResult {
         if (onReload.get()) return OnReload()
         onReload.set(true)
+        reloadStartTask.forEach {
+            it()
+        }
         val result = runCatching {
             val time = System.currentTimeMillis()
             managers.forEach(GlobalManagerImpl::reload)
@@ -81,6 +89,9 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
             Failure(it)
         }
         onReload.set(false)
+        reloadEndTask.forEach {
+            it(result)
+        }
         return result
     }
 
@@ -107,4 +118,16 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
 
     override fun version(): MinecraftVersion = version
     override fun nms(): NMS = nms
+
+    override fun addReloadStartHandler(runnable: Runnable) {
+        reloadStartTask += {
+            runnable.run()
+        }
+    }
+
+    override fun addReloadEndHandler(consumer: Consumer<ReloadResult>) {
+        reloadEndTask += {
+            consumer.accept(it)
+        }
+    }
 }

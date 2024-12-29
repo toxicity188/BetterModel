@@ -1,4 +1,4 @@
-package kr.toxicity.model.compatibility.mythicmobs
+package kr.toxicity.model.compatibility.mythicmobs.mechanic
 
 import io.lumine.mythic.api.config.MythicLineConfig
 import io.lumine.mythic.api.skills.INoTargetSkill

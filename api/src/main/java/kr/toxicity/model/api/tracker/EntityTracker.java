@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -53,6 +54,24 @@ public class EntityTracker extends Tracker {
     public static @Nullable EntityTracker tracker(@NotNull UUID uuid) {
         return TRACKER_MAP.get(uuid);
     }
+
+    public static void reload() {
+        for (EntityTracker value : new ArrayList<>(TRACKER_MAP.values())) {
+            Entity target = value.entity;
+            var loc = target.getLocation();
+            BetterModel.inst().scheduler().task(loc, () -> {
+                String name;
+                try (value) {
+                    name = value.name();
+                } catch (Exception e) {
+                    return;
+                }
+                var renderer = BetterModel.inst().modelManager().renderer(name);
+                if (renderer != null) renderer.create(target).spawnNearby(loc);
+            });
+        }
+    }
+
     public static @NotNull List<EntityTracker> trackers(@NotNull Predicate<EntityTracker> predicate) {
         return TRACKER_MAP.values().stream().filter(predicate).toList();
     }

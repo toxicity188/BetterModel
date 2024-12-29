@@ -1,4 +1,4 @@
-package kr.toxicity.model.compatibility.mythicmobs
+package kr.toxicity.model.compatibility.mythicmobs.mechanic
 
 import io.lumine.mythic.api.config.MythicLineConfig
 import io.lumine.mythic.api.skills.INoTargetSkill
@@ -6,12 +6,14 @@ import io.lumine.mythic.api.skills.SkillMetadata
 import io.lumine.mythic.api.skills.SkillResult
 import io.lumine.mythic.bukkit.MythicBukkit
 import io.lumine.mythic.core.skills.SkillMechanic
+import kr.toxicity.model.api.data.renderer.AnimationModifier
 import kr.toxicity.model.api.tracker.EntityTracker
 
-class PartVisibilityMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "[BetterModel]", mlc), INoTargetSkill {
+class StateMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "[BetterModel]", mlc), INoTargetSkill {
 
-    private val p = mlc.getString(arrayOf("part", "p"))!!
-    private val v = mlc.getBoolean(arrayOf("value", "v"), true)
+    private val s = mlc.getString(arrayOf("state", "s"))!!
+    private val li = mlc.getInteger(arrayOf("li"), 0)
+    private val lo = mlc.getInteger(arrayOf("lo"), 0)
 
     init {
         isAsyncSafe = false
@@ -19,7 +21,7 @@ class PartVisibilityMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit
 
     override fun cast(p0: SkillMetadata): SkillResult {
         return EntityTracker.tracker(p0.caster.entity.bukkitEntity)?.let {
-            it.togglePart({ r -> r.name == p }, v)
+            it.animateSingle(s, AnimationModifier({ true }, li, lo))
             SkillResult.SUCCESS
         } ?: SkillResult.ERROR
     }

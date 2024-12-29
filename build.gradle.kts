@@ -16,16 +16,18 @@ allprojects {
     apply(plugin = "java")
     apply(plugin = "kotlin")
     group = "kr.toxicity.model"
-    version = "1.2.1"
+    version = "1.3"
     repositories {
         mavenCentral()
         maven("https://repo.papermc.io/repository/maven-public/")
+        maven("https://maven.citizensnpcs.co/repo/")
         maven("https://mvn.lumine.io/repository/maven-public/")
     }
     dependencies {
         testImplementation(kotlin("test"))
         implementation("dev.jorel:commandapi-bukkit-shade:9.7.0")
         implementation("org.bstats:bstats-bukkit:3.1.0")
+        compileOnly("net.citizensnpcs:citizens-main:2.0.37-SNAPSHOT")
         compileOnly("io.lumine:Mythic-Dist:5.7.2")
     }
     tasks {
@@ -118,7 +120,8 @@ bukkitPluginYaml {
     author = "toxicity"
     description = "Modern lightweight Minecraft model implementation for Paper, Folia"
     softDepend = listOf(
-        "MythicMobs"
+        "MythicMobs",
+        "Citizens"
     )
     permissions.create("bettermodel") {
         default = Permission.Default.OP
