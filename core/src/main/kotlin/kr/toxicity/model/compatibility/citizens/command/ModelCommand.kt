@@ -1,8 +1,10 @@
 package kr.toxicity.model.compatibility.citizens.command
 
+import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.compatibility.citizens.trait.ModelTrait
 import kr.toxicity.model.manager.ModelManagerImpl
 import net.citizensnpcs.api.command.Arg
+import net.citizensnpcs.api.command.Arg.CompletionsProvider
 import net.citizensnpcs.api.command.Command
 import net.citizensnpcs.api.command.CommandContext
 import net.citizensnpcs.api.command.CommandMessages
@@ -20,11 +22,15 @@ class ModelCommand {
         max = 2,
         permission = "citizens.npc.model"
     )
-    fun model(args: CommandContext, sender: CommandSender, npc: NPC?, @Arg(1) model: String?) {
+    fun model(args: CommandContext, sender: CommandSender, npc: NPC?, @Arg(1, completionsProvider = TabComplete::class) model: String?) {
         if (npc == null) throw CommandException(CommandMessages.MUST_HAVE_SELECTED)
         npc.getOrAddTrait(ModelTrait::class.java).renderer = model?.let {
             ModelManagerImpl.renderer(it)
         }
         sender.sendMessage("Set ${npc.name}'s model to $model.")
+    }
+
+    private class TabComplete : CompletionsProvider {
+        override fun getCompletions(p0: CommandContext?, p1: CommandSender?, p2: NPC?): MutableCollection<String> = BetterModel.inst().modelManager().keys()
     }
 }

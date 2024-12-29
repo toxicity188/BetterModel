@@ -4,7 +4,7 @@
 
 Welcome to BetterModel!
 
-[Github](https://github.com/toxicity188/BetterModel)  
+[SpigotMC](https://www.spigotmc.org/resources/121561/) | [GitHub](https://github.com/toxicity188/BetterModel) | [Modrinth](https://modrinth.com/plugin/bettermodel) | [Hangar](https://hangar.papermc.io/toxicity188/BetterModel)
 
 ![Maven Central Version](https://img.shields.io/maven-central/v/io.github.toxicity188/BetterModel?style=for-the-badge)
 [![GitHub Release](https://img.shields.io/github/v/release/toxicity188/BetterModel?display_name=release&style=for-the-badge&logo=kotlin)](https://github.com/toxicity188/BetterModel/releases/latest)
@@ -57,7 +57,7 @@ partvisibility
 ### Version
 - Spigot, Paper or that's fork (with Folia)
 - Java 21
-- Minecraft 1.20.4-1.21.4
+- Minecraft 1.19.4-1.21.4
 
 ### Dependency
 No
