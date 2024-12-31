@@ -1,0 +1,30 @@
+name: Publish plugin
+
+on:
+  push:
+    branches: [ "master" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      HANGAR_API_TOKEN: ${{ secrets.HANGAR_API_TOKEN }}
+      MODRINTH_API_TOKEN: ${{ secrets.MODRINTH_API_TOKEN }}
+      BUILD_NUMBER: ${{ github.run_number }}
+      COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Build all file
+        run: ./gradlew build --stacktrace
+      - name: Publish to Hangar
+        run: ./gradlew publishPluginPublicationToHangar --stacktrace

@@ -1,22 +1,25 @@
+import io.papermc.hangarpublishplugin.model.Platforms
 import xyz.jpenilla.resourcefactory.bukkit.Permission
 
 plugins {
     `java-library`
     kotlin("jvm") version "2.1.0"
     id("io.github.goooler.shadow") version "8.1.8"
-    id("io.papermc.paperweight.userdev") version "2.0.0-beta.8" apply false
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.10" apply false
     id("xyz.jpenilla.run-paper") version "2.3.1"
     id("xyz.jpenilla.resource-factory-bukkit-convention") version("1.2.0")
+    id("io.papermc.hangar-publish-plugin") version "0.1.2"
 }
 
 val minecraft = "1.21.4"
 val targetJavaVersion = 21
+val buildNumber: String? = System.getenv("BUILD_NUMBER")
 
 allprojects {
     apply(plugin = "java")
     apply(plugin = "kotlin")
     group = "kr.toxicity.model"
-    version = "1.3"
+    version = "1.3" + (buildNumber?.let { ".$it" } ?: "")
     repositories {
         mavenCentral()
         maven("https://repo.papermc.io/repository/maven-public/")
@@ -132,5 +135,20 @@ bukkitPluginYaml {
             "play" to true,
             "limb" to true
         )
+    }
+}
+
+hangarPublish {
+    publications.register("plugin") {
+        version = project.version as String
+        id = "BetterModel"
+        apiKey = System.getenv("HANGAR_API_TOKEN")
+        changelog = System.getenv("COMMIT_MESSAGE")
+        channel = "Snapshot"
+        platforms {
+            register(Platforms.PAPER) {
+                jar = file("build/libs/${project.name}-${project.version}.jar")
+            }
+        }
     }
 }

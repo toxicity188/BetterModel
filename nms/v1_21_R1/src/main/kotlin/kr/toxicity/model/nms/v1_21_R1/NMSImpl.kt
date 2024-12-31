@@ -412,7 +412,7 @@ class NMSImpl : NMS {
 
     override fun version(): NMSVersion = NMSVersion.V1_21_R1
 
-    override fun adapt(entity: org.bukkit.entity.LivingEntity): EntityAdapter {
+    override fun adapt(entity: LivingEntity): EntityAdapter {
         val handle = (entity as CraftLivingEntity).handle
         return object : EntityAdapter {
             override fun onWalk(): Boolean {
