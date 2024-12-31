@@ -147,7 +147,10 @@ hangarPublish {
         channel = "Snapshot"
         platforms {
             register(Platforms.PAPER) {
-                jar = file("build/libs/${project.name}-${project.version}.jar")
+                jar = tasks.shadowJar.flatMap { it.archiveFile }
+                platformVersions = (property("paperVersion") as String)
+                    .split(",")
+                    .map { it.trim() }
             }
         }
     }
