@@ -26,5 +26,7 @@ jobs:
         run: chmod +x gradlew
       - name: Build all file
         run: ./gradlew build --stacktrace
+      - name: Publish to Modrinth
+        run: ./gradlew modrinth --stacktrace
       - name: Publish to Hangar
         run: ./gradlew publishPluginPublicationToHangar --stacktrace

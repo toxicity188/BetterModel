@@ -4,10 +4,12 @@ import xyz.jpenilla.resourcefactory.bukkit.Permission
 plugins {
     `java-library`
     kotlin("jvm") version "2.1.0"
+    id("org.jetbrains.dokka") version "2.0.0"
     id("io.github.goooler.shadow") version "8.1.8"
     id("io.papermc.paperweight.userdev") version "2.0.0-beta.11" apply false
     id("xyz.jpenilla.run-paper") version "2.3.1"
-    id("xyz.jpenilla.resource-factory-bukkit-convention") version("1.2.0")
+    id("xyz.jpenilla.resource-factory-bukkit-convention") version "1.2.0"
+    id("com.modrinth.minotaur") version "2.+"
     id("io.papermc.hangar-publish-plugin") version "0.1.2"
 }
 
@@ -18,8 +20,9 @@ val buildNumber: String? = System.getenv("BUILD_NUMBER")
 allprojects {
     apply(plugin = "java")
     apply(plugin = "kotlin")
+    apply(plugin = "org.jetbrains.dokka")
     group = "kr.toxicity.model"
-    version = "1.3.1" + (buildNumber?.let { ".$it" } ?: "")
+    version = "1.3.2" + (buildNumber?.let { ".SNAPSHOT-$it" } ?: "")
     repositories {
         mavenCentral()
         maven("https://repo.papermc.io/repository/maven-public/")
@@ -47,7 +50,14 @@ allprojects {
     kotlin {
         jvmToolchain(targetJavaVersion)
     }
+    dokka {
+        moduleName = project.name
+        dokkaSourceSets.configureEach {
+            displayName = project.name
+        }
+    }
 }
+
 
 fun Project.dependency(any: Any) = also { project ->
     if (any is Collection<*>) {
@@ -86,6 +96,32 @@ dependencies {
     nms.forEach {
         implementation(project("nms:${it.name}", configuration = "reobf"))
     }
+    fun searchAll(target: Project) {
+        val sub = target.subprojects
+        if (sub.isNotEmpty()) sub.forEach {
+            searchAll(it)
+        } else dokka(target)
+    }
+    searchAll(rootProject)
+}
+
+val sourcesJar by tasks.registering(Jar::class) {
+    dependsOn(tasks.classes)
+    fun getProjectSource(project: Project): Array<File> {
+        return if (project.subprojects.isEmpty()) project.sourceSets.main.get().allSource.srcDirs.toTypedArray() else ArrayList<File>().apply {
+            project.subprojects.forEach {
+                addAll(getProjectSource(it))
+            }
+        }.toTypedArray()
+    }
+    archiveClassifier = "sources"
+    from(*getProjectSource(project))
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+val javadocJar by tasks.registering(Jar::class) {
+    dependsOn(tasks.dokkaGenerate)
+    archiveClassifier = "javadoc"
+    from(layout.buildDirectory.dir("dokka/html").orNull?.asFile)
 }
 
 tasks {
@@ -112,6 +148,16 @@ tasks {
         prefix("dev.jorel.commandapi")
         prefix("org.bstats")
     }
+    build {
+        finalizedBy(
+            sourcesJar,
+            javadocJar
+        )
+    }
+}
+
+tasks.modrinth {
+    dependsOn(tasks.modrinthSyncBody)
 }
 
 bukkitPluginYaml {
@@ -138,20 +184,63 @@ bukkitPluginYaml {
     }
 }
 
+val supportedVersion = listOf(
+    "1.19.4",
+    "1.20",
+    "1.20.1",
+    "1.20.2",
+    "1.20.3",
+    "1.20.4",
+    "1.20.5",
+    "1.20.6",
+    "1.21",
+    "1.21.1",
+    "1.21.2",
+    "1.21.3",
+    "1.21.4",
+)
+
 hangarPublish {
     publications.register("plugin") {
         version = project.version as String
         id = "BetterModel"
         apiKey = System.getenv("HANGAR_API_TOKEN")
-        changelog = System.getenv("COMMIT_MESSAGE")
-        channel = "Snapshot"
+        val log = System.getenv("COMMIT_MESSAGE")
+        if (log != null) {
+            changelog = log
+            channel = "Snapshot"
+        } else {
+            changelog = rootProject.file("changelog/${project.version}.md").readText()
+            channel = "Release"
+        }
         platforms {
             register(Platforms.PAPER) {
                 jar = tasks.shadowJar.flatMap { it.archiveFile }
-                platformVersions = (property("paperVersion") as String)
-                    .split(",")
-                    .map { it.trim() }
+                platformVersions = supportedVersion
             }
         }
     }
+}
+
+modrinth {
+    token = System.getenv("MODRINTH_API_TOKEN")
+    projectId = "bettermodel"
+    syncBodyFrom = rootProject.file("README.md").readText()
+    val log = System.getenv("COMMIT_MESSAGE")
+    if (log != null) {
+        versionType = "beta"
+        changelog = log
+    } else {
+        versionType = "release"
+        changelog = rootProject.file("changelog/${project.version}.md").readText()
+    }
+    uploadFile = tasks.shadowJar.get()
+    additionalFiles = listOf(
+        sourcesJar.get(),
+        javadocJar.get()
+    )
+    versionName = "BetterModel ${project.version}"
+    versionNumber = project.version as String
+    gameVersions = supportedVersion
+    loaders = listOf("bukkit", "spigot", "paper", "purpur", "folia")
 }
