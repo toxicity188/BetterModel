@@ -22,7 +22,7 @@ fun JsonElement.save(file: File) {
 
 fun String.toLimb() = runCatching {
     PlayerLimb.valueOf(uppercase())
-}.getOrDefault(null)
+}.getOrNull()
 
 fun JsonElement.toByteArray(): ByteArray {
     val sb = StringBuilder()

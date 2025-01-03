@@ -11,6 +11,7 @@ import kr.toxicity.model.api.data.blueprint.NamedBoundingBox
 import kr.toxicity.model.api.nms.*
 import kr.toxicity.model.api.tracker.EntityTracker
 import net.minecraft.network.Connection
+import net.minecraft.network.PacketListener
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.*
 import net.minecraft.network.syncher.EntityDataAccessor
@@ -100,17 +101,20 @@ class NMSImpl : NMS {
         }
     }
 
-    private fun Entity.toVoid(bundler: PacketBundlerImpl) {
-        bundler.add(ClientboundSetEquipmentPacket(id, EquipmentSlot.entries.map { e ->
-            Pair.of(e, Items.AIR.defaultInstance)
-        }))
-        val inv = isInvisible
-        isInvisible = true
-        bundler.add(ClientboundSetEntityDataPacket(
-            id,
-            entityData.pack()
+    override fun hide(player: Player, entity: org.bukkit.entity.Entity) {
+        val handle = (entity as CraftEntity).handle
+        val inv = handle.isInvisible
+        handle.isInvisible = true
+        (player as CraftPlayer).handle.connection.send(ClientboundBundlePacket(listOf(
+            ClientboundSetEquipmentPacket(handle.id, EquipmentSlot.entries.map { e ->
+                Pair.of(e, Items.AIR.defaultInstance)
+            }),
+            ClientboundSetEntityDataPacket(
+                handle.id,
+                handle.entityData.pack()
+            ))
         ))
-        isInvisible = inv
+        handle.isInvisible = inv
     }
 
     inner class PlayerChannelHandlerImpl(
@@ -167,10 +171,9 @@ class NMSImpl : NMS {
             if (e is LivingEntity) {
                 e.equipment?.let { i ->
                     send(ClientboundSetEquipmentPacket(handle.id, org.bukkit.inventory.EquipmentSlot.entries.mapNotNull {
-                        val g = runCatching {
+                        it to (runCatching {
                             i.getItem(it)
-                        }.getOrDefault(null) ?: return@mapNotNull null
-                        it to g
+                        }.getOrNull() ?: return@mapNotNull null)
                     }.map { (type, item) ->
                         Pair.of(when (type) {
                             HAND -> EquipmentSlot.MAINHAND
@@ -186,17 +189,20 @@ class NMSImpl : NMS {
             send(ClientboundSetPassengersPacket(handle))
         }
 
-        override fun write(ctx: ChannelHandlerContext, msg: Any, promise: ChannelPromise) {
-            when (msg) {
+        private fun <T : PacketListener> Packet<T>.handle(): Packet<T>? {
+            when (this) {
                 is ClientboundAddEntityPacket -> {
-                    msg.id.toEntity()?.let { e ->
+                    id.toEntity()?.let { e ->
+                        if (entityUUIDMap[e.uuid] != null) return this
                         BetterModel.inst().scheduler().task(e.bukkitEntity.location) {
-                            EntityTracker.tracker(e.bukkitEntity)?.spawn(player)
+                            EntityTracker.tracker(e.bukkitEntity)?.let {
+                                if (it.autoSpawn()) it.spawn(player)
+                            }
                         }
                     }
                 }
                 is ClientboundTeleportEntityPacket -> {
-                    msg.id.toTracker()?.let {
+                    id.toTracker()?.let {
                         if (it.world() == player.world.uid) {
                             PacketBundlerImpl(mutableListOf()).run {
                                 mount(it, this)
@@ -208,7 +214,7 @@ class NMSImpl : NMS {
                     }
                 }
                 is ClientboundRemoveEntitiesPacket -> {
-                    msg.entityIds
+                    entityIds
                         .asSequence()
                         .mapNotNull {
                             it.toTracker()
@@ -217,8 +223,21 @@ class NMSImpl : NMS {
                             it.remove()
                         }
                 }
-                is ClientboundSetEntityDataPacket -> if (msg.id.toTracker() != null) return
-                is ClientboundSetEquipmentPacket -> if (msg.entity.toTracker() != null) return
+                is ClientboundSetEntityDataPacket -> if (id.toTracker() != null) return null
+                is ClientboundSetEquipmentPacket -> if (entity.toTracker() != null) return null
+            }
+            return this
+        }
+
+        override fun write(ctx: ChannelHandlerContext, msg: Any, promise: ChannelPromise) {
+            if (msg is ClientboundBundlePacket) {
+                super.write(ctx, ClientboundBundlePacket(msg.subPackets().mapNotNull {
+                    it.handle()
+                }), promise)
+                return
+            } else if (msg is Packet<*>) {
+                super.write(ctx, msg.handle() ?: return, promise)
+                return
             }
             super.write(ctx, msg, promise)
         }
@@ -239,7 +258,6 @@ class NMSImpl : NMS {
         }
 
         private fun EntityTracker.remove() {
-            entityUUIDMap.remove(uuid())
             remove(player)
         }
     }
@@ -256,10 +274,7 @@ class NMSImpl : NMS {
             })
             .build()
         val packet = ClientboundSetPassengersPacket(entity)
-        (bundler as PacketBundlerImpl).run {
-            entity.toVoid(this)
-            add(packet)
-        }
+        (bundler as PacketBundlerImpl).add(packet)
     }
 
     override fun inject(player: Player): PlayerChannelHandlerImpl = PlayerChannelHandlerImpl(player)

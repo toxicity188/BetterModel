@@ -94,9 +94,9 @@ public final class RenderInstance implements AutoCloseable {
         }
     }
 
-    public void setup() {
+    public void setup(@NotNull TrackerMovement movement) {
         for (RenderedEntity value : entityMap.values()) {
-            value.setup();
+            value.setup(movement);
         }
     }
 

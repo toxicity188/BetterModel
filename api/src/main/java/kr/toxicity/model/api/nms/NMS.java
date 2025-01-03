@@ -16,6 +16,7 @@ public interface NMS {
     @NotNull PacketBundler createBundler();
     @NotNull ItemStack tint(@NotNull ItemStack itemStack, boolean toggle);
     void mount(@NotNull EntityTracker tracker, @NotNull PacketBundler bundler);
+    void hide(@NotNull Player player, @NotNull Entity entity);
     @NotNull HitBox createHitBox(@NotNull Entity entity, @NotNull TransformSupplier supplier, @NotNull NamedBoundingBox namedBoundingBox, @NotNull HitBoxListener source);
     @NotNull NMSVersion version();
     @NotNull EntityAdapter adapt(@NotNull LivingEntity entity);

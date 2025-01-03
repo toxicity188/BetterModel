@@ -27,10 +27,12 @@ fun Event.call(): Boolean {
     return if (this is Cancellable) !isCancelled else true
 }
 
-private val DATA_ITEMS = SynchedEntityData::class.java.declaredFields.first {
-    it.type.isArray
-}.apply {
-    isAccessible = true
+private val DATA_ITEMS by lazy {
+    SynchedEntityData::class.java.declaredFields.first {
+        it.type.isArray
+    }.apply {
+        isAccessible = true
+    }
 }
 
 @Suppress("UNCHECKED_CAST")

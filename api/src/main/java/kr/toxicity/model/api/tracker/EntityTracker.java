@@ -27,6 +27,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 @Getter
 public class EntityTracker extends Tracker {
@@ -36,6 +37,7 @@ public class EntityTracker extends Tracker {
     private final @NotNull EntityAdapter adapter;
     private final AtomicBoolean closed = new AtomicBoolean();
     private final AtomicBoolean forRemoval = new AtomicBoolean();
+    private final AtomicBoolean autoSpawn = new AtomicBoolean(true);
 
     public @NotNull UUID world() {
         return entity.getWorld().getUID();
@@ -93,17 +95,18 @@ public class EntityTracker extends Tracker {
                     }
                 });
         instance.animateLoop("walk", new AnimationModifier(adapter::onWalk, 0, 0));
-        setMovement(() -> new TrackerMovement(
+        Supplier<TrackerMovement> supplier = () -> new TrackerMovement(
                 new Vector3f(0, 0, 0F),
                 new Vector3f((float) adapter.scale()),
                 new Vector3f(0, -adapter.bodyYaw(), 0)
-        ));
+        );
+        setMovement(supplier);
         entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, instance.getParent().getParent().name());
         TRACKER_MAP.put(entity.getUniqueId(), this);
         BetterModel.inst().scheduler().task(entity.getLocation(), () -> {
             if (!closed.get() && !forRemoval()) createHitBox();
         });
-        instance.setup();
+        instance.setup(supplier.get());
     }
 
     @Override
@@ -152,6 +155,13 @@ public class EntityTracker extends Tracker {
         return entity.getUniqueId();
     }
 
+    public boolean autoSpawn() {
+        return autoSpawn.get();
+    }
+    public void autoSpawn(boolean spawn) {
+        autoSpawn.set(spawn);
+    }
+
     public void spawnNearby(@NotNull Location location) {
         var filter = instance.spawnFilter();
         for (Entity e : location.getWorld().getNearbyEntities(location, EntityUtil.RENDER_DISTANCE , EntityUtil.RENDER_DISTANCE , EntityUtil.RENDER_DISTANCE)) {
@@ -160,14 +170,15 @@ public class EntityTracker extends Tracker {
     }
 
     public void spawn(@NotNull Player player) {
+        BetterModel.inst().nms().hide(player, entity);
         var bundler = BetterModel.inst().nms().createBundler();
         spawn(player, bundler);
         BetterModel.inst().nms().mount(this, bundler);
+        bundler.send(player);
         var handler = BetterModel.inst()
                 .playerManager()
                 .player(player.getUniqueId());
         if (handler != null) handler.startTrack(this);
-        bundler.send(player);
     }
 
     public @NotNull List<ModelDisplay> renderers() {

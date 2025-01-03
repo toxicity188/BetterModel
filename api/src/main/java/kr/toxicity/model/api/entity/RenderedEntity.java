@@ -190,10 +190,10 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
         }
     }
 
-    public void setup() {
-        setup(relativeOffset().plus(defaultPosition));
+    public void setup(@NotNull TrackerMovement movement) {
+        setup(movement.plus(relativeOffset().plus(defaultPosition)));
         for (RenderedEntity value : children.values()) {
-            value.setup();
+            value.setup(movement);
         }
     }
     private void setup(@NotNull EntityMovement entityMovement) {
