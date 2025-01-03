@@ -6,11 +6,23 @@ import org.joml.Vector3f;
 
 import static java.lang.Math.*;
 
+/**
+ * Math
+ */
 public final class MathUtil {
+
+    /**
+     * No initializer
+     */
     private MathUtil() {
         throw new RuntimeException();
     }
 
+    /**
+     * Converts animation rotation to display rotation
+     * @param vector original
+     * @return vector
+     */
     public static @NotNull Vector3f animationToDisplay(@NotNull Vector3f vector) {
         return new Vector3f(
                 -vector.x,
@@ -18,6 +30,12 @@ public final class MathUtil {
                 vector.z
         );
     }
+
+    /**
+     * Converts animation position to display position
+     * @param vector original
+     * @return vector
+     */
     public static @NotNull Vector3f transformToDisplay(@NotNull Vector3f vector) {
         return new Vector3f(
                 vector.x,
@@ -25,6 +43,12 @@ public final class MathUtil {
                 -vector.z
         );
     }
+
+    /**
+     * Converts BlockBench position(right-hand) to display position(left-hand)
+     * @param vector original
+     * @return vector
+     */
     public static @NotNull Vector3f blockBenchToDisplay(@NotNull Vector3f vector) {
         return new Vector3f(
                 -vector.x,
@@ -33,6 +57,11 @@ public final class MathUtil {
         );
     }
 
+    /**
+     * Converts vector rotation to quaternion
+     * @param vector vector
+     * @return rotation
+     */
     public static @NotNull Quaternionf toQuaternion(@NotNull Vector3f vector) {
         var rotate = new Vector3f(vector).div(180).mul((float) PI);
         var roll = rotate.x;

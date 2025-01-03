@@ -12,16 +12,38 @@ import java.util.List;
 
 import static java.lang.Math.*;
 
+/**
+ * Entity
+ */
 public final class EntityUtil {
+
+    /**
+     * No initializer
+     */
     private EntityUtil() {
         throw new RuntimeException();
     }
 
+    /**
+     * Default render distance.
+     */
     public static final double RENDER_DISTANCE = Bukkit.getSimulationDistance() << 3;
 
+    /**
+     * Y-axis threshold of user screen.
+     */
     private static final double Y_RENDER_THRESHOLD = toRadians(22.5);
-    private static final double Z_RENDER_THRESHOLD = Y_RENDER_THRESHOLD * 1.78;
+    /**
+     * X-axis threshold of user screen.
+     */
+    private static final double X_RENDER_THRESHOLD = Y_RENDER_THRESHOLD * 1.78;
 
+    /**
+     * Checks this player can see that entity
+     * @param player player's location
+     * @param target target's location
+     * @return whether target is in user's screen
+     */
     public static boolean canSee(@NotNull Location player, @NotNull Location target) {
         var manager = BetterModel.inst().configManager();
         if (!manager.sightTrace()) return true;
@@ -46,10 +68,15 @@ public final class EntityUtil {
         var ry = abs(atan2(dy, abs(r)) - playerPitch);
         var rz = abs(atan2(dz, dx) - playerYaw);
         var ty = PI - abs(atan(sinP * r + cosP * dy)) * 2 + Y_RENDER_THRESHOLD;
-        var tz = PI - abs(atan(cosP * r + sinP * dy)) * 2 + Z_RENDER_THRESHOLD;
+        var tz = PI - abs(atan(cosP * r + sinP * dy)) * 2 + X_RENDER_THRESHOLD;
         return (ry <= ty || ry >= PI * 2 - ty) && (rz <= tz || rz >= PI * 2 - tz);
     }
 
+    /**
+     * Gets max hit-box size.
+     * @param target hit-box list
+     * @return max hit-box
+     */
     public static @Nullable ModelBoundingBox max(@NotNull List<ModelBoundingBox> target) {
         return target.stream()
                 .max(Comparator.comparingDouble(b -> Math.sqrt(Math.pow(b.maxX() - b.minX(), 2) + Math.pow(b.maxY() - b.minY(), 2) + Math.pow(b.maxZ() - b.minZ(), 2))))

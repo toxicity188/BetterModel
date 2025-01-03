@@ -22,7 +22,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+/**
+ * Tracker of model.
+ */
 public abstract class Tracker implements AutoCloseable {
+    /**
+     * Tracker's namespace.
+     */
     public static final NamespacedKey TRACKING_ID = Objects.requireNonNull(NamespacedKey.fromString("bettermodel_tracker"));
 
     protected final RenderInstance instance;
@@ -33,6 +39,11 @@ public abstract class Tracker implements AutoCloseable {
 
     @Getter
     private Supplier<TrackerMovement> movement = () -> new TrackerMovement(new Vector3f(), new Vector3f(1), new Vector3f());
+
+    /**
+     * Tracker
+     * @param instance target instance
+     */
     public Tracker(@NotNull RenderInstance instance) {
         this.instance = instance;
         task = BetterModel.inst().scheduler().asyncTaskTimer(1, 1, () -> {
@@ -47,10 +58,18 @@ public abstract class Tracker implements AutoCloseable {
         instance.filter(p -> EntityUtil.canSee(p.getLocation(), location()));
     }
 
+    /**
+     * Gets tracker name
+     * @return name
+     */
     public @NotNull String name() {
         return instance.getParent().name();
     }
 
+    /**
+     * Gets tracker model's height
+     * @return height
+     */
     public double height() {
         return instance.height();
     }
@@ -61,35 +80,75 @@ public abstract class Tracker implements AutoCloseable {
         instance.close();
     }
 
+    /**
+     * Sets tracker movement.
+     * @param movement movement
+     */
     public void setMovement(Supplier<TrackerMovement> movement) {
         instance.lastMovement(movement.get());
         this.movement = movement;
     }
 
+    /**
+     * Gets whether this model is playing single animation.
+     * @return whether to playing single.
+     */
     public boolean isRunningSingleAnimation() {
         return runningSingle.get();
     }
 
+    /**
+     * Creates model spawn packet and registers player.
+     * @param player target player
+     * @param bundler bundler
+     */
+
     protected void spawn(@NotNull Player player, @NotNull PacketBundler bundler) {
         instance.spawn(player, bundler);
     }
+
+    /**
+     * Removes model from player
+     * @param player player
+     */
     public void remove(@NotNull Player player) {
         instance.remove(player);
     }
 
+    /**
+     * Gets amount of viewed players.
+     * @return viewed players amount
+     */
     public int viewedPlayerSize() {
         return instance.viewedPlayerSize();
     }
 
+    /**
+     * Gets viewed players.
+     * @return viewed players list
+     */
     public @NotNull List<Player> viewedPlayer() {
         return instance.viewedPlayer();
     }
 
+    /**
+     * Toggles red tint of model.
+     * @param toggle toggle
+     */
     public void tint(boolean toggle) {
         instance.tint(toggle);
     }
 
+    /**
+     * Gets location of model.
+     * @return location
+     */
     public abstract @NotNull Location location();
+
+    /**
+     * Gets uuid of model.
+     * @return uuid
+     */
     public abstract @NotNull UUID uuid();
 
     public boolean animateLoop(@NotNull String animation) {
