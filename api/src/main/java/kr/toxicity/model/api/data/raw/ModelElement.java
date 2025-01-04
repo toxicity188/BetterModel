@@ -15,14 +15,8 @@ public record ModelElement(
         @NotNull Float3 origin,
         @NotNull ModelFace faces
 ) {
-    public @NotNull Float3 size() {
-        return to.minus(from);
-    }
     public float max() {
-        return size().max();
-    }
-    public float min() {
-        return size().min();
+        return to.max();
     }
     public boolean hasTexture() {
         return faces.hasTexture();
