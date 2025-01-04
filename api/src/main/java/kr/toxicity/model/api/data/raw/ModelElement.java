@@ -16,7 +16,7 @@ public record ModelElement(
         @NotNull ModelFace faces
 ) {
     public float max() {
-        return to.max();
+        return Math.max(to.toVector().length(), from.toVector().length());
     }
     public boolean hasTexture() {
         return faces.hasTexture();
