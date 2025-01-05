@@ -12,7 +12,7 @@ public final class PlayerTracker extends EntityTracker {
     public PlayerTracker(@NotNull Player entity, @NotNull RenderInstance instance) {
         super(entity, instance);
         this.player = entity;
-        instance.filter(p -> {
+        instance.spawnFilter(p -> {
             var handler = BetterModel.inst().playerManager().player(p.getUniqueId());
             return handler != null && handler.showPlayerLimb();
         });

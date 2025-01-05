@@ -64,6 +64,7 @@ public class EntityTracker extends Tracker {
             BetterModel.inst().scheduler().task(loc, () -> {
                 String name;
                 try (value) {
+                    if (value.forRemoval()) return;
                     name = value.name();
                 } catch (Exception e) {
                     return;

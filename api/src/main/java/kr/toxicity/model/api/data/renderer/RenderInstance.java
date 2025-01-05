@@ -34,6 +34,7 @@ public final class RenderInstance implements AutoCloseable {
     private final Map<String, BlueprintAnimation> animationMap;
     private final Map<UUID, PlayerChannelHandler> playerMap = new ConcurrentHashMap<>();
     private Predicate<Player> filter = p -> true;
+    private Predicate<Player> spawnFilter = p -> !playerMap.containsKey(p.getUniqueId());
 
     public RenderInstance(@NotNull BlueprintRenderer parent, @NotNull Map<String, RenderedEntity> entityMap, @NotNull Map<String, BlueprintAnimation> animationMap) {
         this.parent = parent;
@@ -48,7 +49,11 @@ public final class RenderInstance implements AutoCloseable {
     }
 
     public @NotNull Predicate<Player> spawnFilter() {
-        return filter.and(p -> !playerMap.containsKey(p.getUniqueId()));
+        return spawnFilter;
+    }
+
+    public void spawnFilter(@NotNull Predicate<Player> spawnFilter) {
+        this.spawnFilter = this.spawnFilter.and(spawnFilter);
     }
 
     public void createHitBox(@NotNull Entity entity, @NotNull Predicate<RenderedEntity> predicate, @Nullable HitBoxListener listener) {

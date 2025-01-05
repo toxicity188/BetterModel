@@ -128,6 +128,10 @@ tasks {
     runServer {
         pluginJars(fileTree("plugins"))
         version(minecraft)
+        downloadPlugins {
+            hangar("ViaVersion", "5.2.1")
+            hangar("ViaBackwards", "5.2.1")
+        }
     }
     jar {
         finalizedBy(shadowJar)
