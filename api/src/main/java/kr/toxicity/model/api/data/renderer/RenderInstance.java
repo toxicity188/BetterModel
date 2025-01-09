@@ -136,55 +136,60 @@ public final class RenderInstance implements AutoCloseable {
 
 
     public boolean animateLoop(@NotNull String animation) {
-        return animateLoop(animation, AnimationModifier.DEFAULT, () -> {});
+        return animateLoop(e -> true, animation, AnimationModifier.DEFAULT, () -> {});
     }
 
     public boolean animateSingle(@NotNull String animation) {
-        return animateSingle(animation, AnimationModifier.DEFAULT, () -> {});
+        return animateSingle(e -> true, animation, AnimationModifier.DEFAULT, () -> {});
     }
     public boolean animateLoop(@NotNull String animation, AnimationModifier modifier) {
-        return animateLoop(animation, modifier, () -> {});
+        return animateLoop(e -> true, animation, modifier, () -> {});
     }
 
     public boolean animateSingle(@NotNull String animation, AnimationModifier modifier) {
-        return animateSingle(animation, modifier, () -> {});
+        return animateSingle(e -> true, animation, modifier, () -> {});
     }
 
-    public boolean animateLoop(@NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
+    public boolean animateLoop(@NotNull Predicate<RenderedEntity> filter, @NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
         var get = animationMap.get(animation);
         if (get == null) return false;
         for (RenderedEntity value : entityMap.values()) {
-            value.addLoop(animation, get, modifier, removeTask);
+            value.addLoop(filter, animation, get, modifier, removeTask);
         }
         return true;
     }
 
-    public boolean animateSingle(@NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
+    public boolean animateSingle(@NotNull Predicate<RenderedEntity> filter, @NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
         var get = animationMap.get(animation);
         if (get == null) return false;
         for (RenderedEntity value : entityMap.values()) {
-            value.addSingle(animation, get, modifier, removeTask);
+            value.addSingle(filter, animation, get, modifier, removeTask);
         }
         return true;
     }
 
-    public boolean replaceLoop(@NotNull String target, @NotNull String animation) {
+    public boolean replaceLoop(@NotNull Predicate<RenderedEntity> filter, @NotNull String target, @NotNull String animation) {
         var get = animationMap.get(animation);
         if (get == null) return false;
         for (RenderedEntity value : entityMap.values()) {
-            value.replaceLoop(target, animation, get);
+            value.replaceLoop(filter, target, animation, get);
         }
         return true;
     }
 
-
-    public boolean replaceSingle(@NotNull String target, @NotNull String animation) {
+    public boolean replaceSingle(@NotNull Predicate<RenderedEntity> filter, @NotNull String target, @NotNull String animation) {
         var get = animationMap.get(animation);
         if (get == null) return false;
         for (RenderedEntity value : entityMap.values()) {
-            value.replaceSingle(target, animation, get);
+            value.replaceSingle(filter, target, animation, get);
         }
         return true;
+    }
+
+    public void stopAnimation(@NotNull Predicate<RenderedEntity> filter, @NotNull String target) {
+        for (RenderedEntity value : entityMap.values()) {
+            value.stopAnimation(filter, target);
+        }
     }
 
     public void spawn(@NotNull Player player, @NotNull PacketBundler bundler) {

@@ -296,40 +296,57 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
         children.values().forEach(e -> e.spawn(bundler));
     }
 
-    public void addLoop(@NotNull String parent, @NotNull BlueprintAnimation animator, AnimationModifier modifier, Runnable removeTask) {
-        var get = animator.animator().get(getName());
-        var iterator = get != null ? new TreeIterator(parent, get.loopIterator(), modifier, removeTask) : new TreeIterator(parent, animator.emptyLoopIterator(), modifier, removeTask);
-        synchronized (animators) {
-            animators.putIfAbsent(parent, iterator);
+    public void addLoop(@NotNull Predicate<RenderedEntity> filter, @NotNull String parent, @NotNull BlueprintAnimation animator, AnimationModifier modifier, Runnable removeTask) {
+        if (filter.test(this)) {
+            var get = animator.animator().get(getName());
+            var iterator = get != null ? new TreeIterator(parent, get.loopIterator(), modifier, removeTask) : new TreeIterator(parent, animator.emptyLoopIterator(), modifier, removeTask);
+            synchronized (animators) {
+                animators.putIfAbsent(parent, iterator);
+            }
         }
-        children.values().forEach(c -> c.addLoop(parent, animator, modifier, () -> {}));
+        children.values().forEach(c -> c.addLoop(filter, parent, animator, modifier, () -> {}));
     }
-    public void addSingle(@NotNull String parent, @NotNull BlueprintAnimation animator, AnimationModifier modifier, Runnable removeTask) {
-        var get = animator.animator().get(getName());
-        var iterator = get != null ? new TreeIterator(parent, get.singleIterator(), modifier, removeTask) : new TreeIterator(parent, animator.emptySingleIterator(), modifier, removeTask);
-        synchronized (animators) {
-            animators.putIfAbsent(parent, iterator);
+    public void addSingle(@NotNull Predicate<RenderedEntity> filter, @NotNull String parent, @NotNull BlueprintAnimation animator, AnimationModifier modifier, Runnable removeTask) {
+        if (filter.test(this)) {
+            var get = animator.animator().get(getName());
+            var iterator = get != null ? new TreeIterator(parent, get.singleIterator(), modifier, removeTask) : new TreeIterator(parent, animator.emptySingleIterator(), modifier, removeTask);
+            synchronized (animators) {
+                animators.putIfAbsent(parent, iterator);
+            }
         }
-        children.values().forEach(c -> c.addSingle(parent, animator, modifier, () -> {}));
+        children.values().forEach(c -> c.addSingle(filter, parent, animator, modifier, () -> {}));
     }
 
-    public void replaceLoop(@NotNull String target, @NotNull String parent, @NotNull BlueprintAnimation animator) {
-        var get = animator.animator().get(getName());
-        synchronized (animators) {
-            var v = animators.get(target);
-            if (v != null) animators.replace(target, get != null ? new TreeIterator(parent, get.loopIterator(), v.modifier, v.removeTask) : new TreeIterator(parent, animator.emptyLoopIterator(), v.modifier, v.removeTask));
-            else animators.replace(target, get != null ? new TreeIterator(parent, get.loopIterator(), AnimationModifier.DEFAULT, () -> {}) : new TreeIterator(parent, animator.emptyLoopIterator(), AnimationModifier.DEFAULT, () -> {}));
+    public void replaceLoop(@NotNull Predicate<RenderedEntity> filter, @NotNull String target, @NotNull String parent, @NotNull BlueprintAnimation animator) {
+        if (filter.test(this)) {
+            var get = animator.animator().get(getName());
+            synchronized (animators) {
+                var v = animators.get(target);
+                if (v != null) animators.replace(target, get != null ? new TreeIterator(parent, get.loopIterator(), v.modifier, v.removeTask) : new TreeIterator(parent, animator.emptyLoopIterator(), v.modifier, v.removeTask));
+                else animators.replace(target, get != null ? new TreeIterator(parent, get.loopIterator(), AnimationModifier.DEFAULT, () -> {}) : new TreeIterator(parent, animator.emptyLoopIterator(), AnimationModifier.DEFAULT, () -> {}));
+            }
         }
-        children.values().forEach(c -> c.replaceLoop(target, parent, animator));
+        children.values().forEach(c -> c.replaceLoop(filter, target, parent, animator));
     }
-    public void replaceSingle(@NotNull String target, @NotNull String parent, @NotNull BlueprintAnimation animator) {
-        var get = animator.animator().get(getName());
-        synchronized (animators) {
-            var v = animators.get(target);
-            if (v != null) animators.replace(target, get != null ? new TreeIterator(parent, get.singleIterator(), v.modifier, v.removeTask) : new TreeIterator(parent, animator.emptySingleIterator(), v.modifier, v.removeTask));
-            else animators.replace(target, get != null ? new TreeIterator(parent, get.singleIterator(), AnimationModifier.DEFAULT, () -> {}) : new TreeIterator(parent, animator.emptySingleIterator(), AnimationModifier.DEFAULT, () -> {}));
+    public void replaceSingle(@NotNull Predicate<RenderedEntity> filter, @NotNull String target, @NotNull String parent, @NotNull BlueprintAnimation animator) {
+        if (filter.test(this)) {
+            var get = animator.animator().get(getName());
+            synchronized (animators) {
+                var v = animators.get(target);
+                if (v != null) animators.replace(target, get != null ? new TreeIterator(parent, get.singleIterator(), v.modifier, v.removeTask) : new TreeIterator(parent, animator.emptySingleIterator(), v.modifier, v.removeTask));
+                else animators.replace(target, get != null ? new TreeIterator(parent, get.singleIterator(), AnimationModifier.DEFAULT, () -> {}) : new TreeIterator(parent, animator.emptySingleIterator(), AnimationModifier.DEFAULT, () -> {}));
+            }
         }
-        children.values().forEach(c -> c.replaceSingle(target, parent, animator));
+        children.values().forEach(c -> c.replaceSingle(filter, target, parent, animator));
+    }
+
+    public void stopAnimation(@NotNull Predicate<RenderedEntity> filter, @NotNull String parent) {
+        if (filter.test(this)) {
+            synchronized (animators) {
+                animators.remove(parent);
+            }
+        }
+        children.values().forEach(c -> c.stopAnimation(filter, parent));
     }
 
     public void remove(@NotNull PacketBundler bundler) {

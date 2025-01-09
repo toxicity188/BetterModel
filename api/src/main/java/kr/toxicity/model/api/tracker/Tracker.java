@@ -160,7 +160,11 @@ public abstract class Tracker implements AutoCloseable {
     }
 
     public boolean animateLoop(@NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
-        return instance.animateLoop(animation, modifier, removeTask);
+        return animateLoop(e -> true, animation, modifier, removeTask);
+    }
+
+    public boolean animateLoop(@NotNull Predicate<RenderedEntity> filter, @NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
+        return instance.animateLoop(filter, animation, modifier, removeTask);
     }
 
     public boolean animateSingle(@NotNull String animation) {
@@ -172,9 +176,20 @@ public abstract class Tracker implements AutoCloseable {
     }
 
     public boolean animateSingle(@NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
-        var success = instance.animateSingle(animation, modifier, wrapToSingle(removeTask));
+        return animateSingle(e -> true, animation, modifier, removeTask);
+    }
+
+    public boolean animateSingle(@NotNull Predicate<RenderedEntity> filter, @NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
+        var success = instance.animateSingle(filter, animation, modifier, wrapToSingle(removeTask));
         if (success) runningSingle.set(true);
         return success;
+    }
+
+    public void stopAnimation(@NotNull String animation) {
+        stopAnimation(e -> true, animation);
+    }
+    public void stopAnimation(@NotNull Predicate<RenderedEntity> filter, @NotNull String animation) {
+        instance.stopAnimation(filter, animation);
     }
 
     private Runnable wrapToSingle(@NotNull Runnable runnable) {
@@ -186,11 +201,18 @@ public abstract class Tracker implements AutoCloseable {
 
 
     public boolean replaceLoop(@NotNull String target, @NotNull String animation) {
-        return instance.replaceLoop(target, animation);
+        return replaceLoop(e -> true, target, animation);
+    }
+    public boolean replaceSingle(@NotNull String target, @NotNull String animation) {
+        return replaceSingle(e -> true, target, animation);
     }
 
-    public boolean replaceSingle(@NotNull String target, @NotNull String animation) {
-        var success = instance.replaceSingle(target, animation);
+    public boolean replaceLoop(@NotNull Predicate<RenderedEntity> filter, @NotNull String target, @NotNull String animation) {
+        return instance.replaceLoop(filter, target, animation);
+    }
+
+    public boolean replaceSingle(@NotNull Predicate<RenderedEntity> filter, @NotNull String target, @NotNull String animation) {
+        var success = instance.replaceSingle(filter, target, animation);
         if (success) runningSingle.set(true);
         return success;
     }

@@ -26,7 +26,6 @@ enum class PluginConfiguration(
                 yaml.setInlineComments(it, newYaml.getComments(it))
             }
         }
-        yaml.set("plugin-version", PLUGIN.description.version)
         return yaml.apply {
             save(file)
         }

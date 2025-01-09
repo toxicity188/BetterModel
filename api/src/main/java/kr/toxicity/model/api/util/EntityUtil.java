@@ -32,7 +32,7 @@ public final class EntityUtil {
     /**
      * Y-axis threshold of user screen.
      */
-    private static final double Y_RENDER_THRESHOLD = toRadians(22.5);
+    private static final double Y_RENDER_THRESHOLD = toRadians(45);
     /**
      * X-axis threshold of user screen.
      */
