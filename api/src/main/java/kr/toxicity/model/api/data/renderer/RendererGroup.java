@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -72,6 +73,7 @@ public final class RendererGroup implements TransformSupplier {
                 this,
                 entityParent,
                 getItem(player),
+                limb != null ? limb.getTransform() : ItemDisplay.ItemDisplayTransform.FIXED,
                 location,
                 new EntityMovement(
                         entityParent != null ? new Vector3f(position).sub(entityParent.getGroup().position) : new Vector3f(),

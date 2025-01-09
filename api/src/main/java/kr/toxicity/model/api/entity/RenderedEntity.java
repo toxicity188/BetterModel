@@ -12,6 +12,7 @@ import lombok.Setter;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Transformation;
 import org.jetbrains.annotations.NotNull;
@@ -56,6 +57,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
             @NotNull RendererGroup group,
             @Nullable RenderedEntity parent,
             @Nullable ItemStack itemStack,
+            @NotNull ItemDisplay.ItemDisplayTransform transform,
             @NotNull Location firstLocation,
             @NotNull EntityMovement movement
     ) {
@@ -64,6 +66,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
         this.itemStack = itemStack;
         if (itemStack != null) {
             display = BetterModel.inst().nms().create(firstLocation);
+            display.display(transform);
             if (group.getParent().visibility()) display.item(itemStack);
         }
         defaultFrame = movement;
@@ -84,7 +87,6 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
             value.createHitBox(entity, predicate, listener);
         }
     }
-
 
     public void itemStack(@NotNull Predicate<RenderedEntity> predicate, @NotNull ItemStack itemStack) {
         if (predicate.test(this)) {

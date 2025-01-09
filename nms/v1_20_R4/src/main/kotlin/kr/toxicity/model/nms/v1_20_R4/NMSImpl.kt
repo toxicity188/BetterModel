@@ -32,6 +32,14 @@ import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.craftbukkit.entity.CraftLivingEntity
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.craftbukkit.inventory.CraftItemStack
+import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.FIRSTPERSON_LEFTHAND
+import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.FIRSTPERSON_RIGHTHAND
+import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.FIXED
+import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.GROUND
+import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.GUI
+import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.NONE
+import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.THIRDPERSON_LEFTHAND
+import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.THIRDPERSON_RIGHTHAND
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.inventory.EquipmentSlot.*
@@ -293,6 +301,20 @@ class NMSImpl : NMS {
     ) : ModelDisplay {
         override fun close() {
             display.valid = false
+        }
+
+        override fun display(transform: org.bukkit.entity.ItemDisplay.ItemDisplayTransform) {
+            display.itemTransform = when (transform) {
+                NONE -> ItemDisplayContext.NONE
+                THIRDPERSON_LEFTHAND -> ItemDisplayContext.THIRD_PERSON_LEFT_HAND
+                THIRDPERSON_RIGHTHAND -> ItemDisplayContext.THIRD_PERSON_RIGHT_HAND
+                FIRSTPERSON_LEFTHAND -> ItemDisplayContext.FIRST_PERSON_LEFT_HAND
+                FIRSTPERSON_RIGHTHAND -> ItemDisplayContext.FIRST_PERSON_RIGHT_HAND
+                org.bukkit.entity.ItemDisplay.ItemDisplayTransform.HEAD -> ItemDisplayContext.HEAD
+                GUI -> ItemDisplayContext.GUI
+                GROUND -> ItemDisplayContext.GROUND
+                FIXED -> ItemDisplayContext.FIXED
+            }
         }
 
         override fun spawn(bundler: PacketBundler) {

@@ -22,6 +22,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     private var namespace = "bettermodel"
     private var packType = PackType.FOLDER
     private var buildFolderLocation = "BetterModel/build".replace('/', File.separatorChar)
+    private var disableGeneratingLegacyModels = false
 
     override fun item(): Material = item
     override fun metrics(): Boolean = metrics != null
@@ -34,6 +35,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     override fun namespace(): String = namespace
     override fun packType(): PackType = packType
     override fun buildFolderLocation(): String = buildFolderLocation
+    override fun disableGeneratingLegacyModels(): Boolean = disableGeneratingLegacyModels
 
     override fun reload() {
         val yaml = PluginConfiguration.CONFIG.create()
@@ -61,5 +63,6 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
             }.getOrNull()
         } ?: PackType.FOLDER
         buildFolderLocation = (yaml.getString("build-folder-location") ?: "BetterModel/build").replace('/', File.separatorChar)
+        disableGeneratingLegacyModels = yaml.getBoolean("disable-generating-legacy-models")
     }
 }

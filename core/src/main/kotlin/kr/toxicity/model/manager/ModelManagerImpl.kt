@@ -7,18 +7,15 @@ import kr.toxicity.model.api.data.blueprint.BlueprintJson
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint
 import kr.toxicity.model.api.data.renderer.BlueprintRenderer
 import kr.toxicity.model.api.data.renderer.RendererGroup
-import kr.toxicity.model.api.manager.ConfigManager
-import kr.toxicity.model.api.manager.ConfigManager.PackType.*
+import kr.toxicity.model.api.manager.ConfigManager.PackType.FOLDER
+import kr.toxicity.model.api.manager.ConfigManager.PackType.ZIP
 import kr.toxicity.model.api.manager.ModelManager
 import kr.toxicity.model.util.*
 import org.bukkit.inventory.ItemStack
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.security.DigestOutputStream
 import java.security.MessageDigest
-import java.util.Collections
-import java.util.Comparator
-import java.util.TreeMap
+import java.util.*
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
@@ -162,7 +159,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                     modernJsonList += modernBlueprint
                     index++
                 }
-                jsonList.forEach { json ->
+                if (!ConfigManagerImpl.disableGeneratingLegacyModels()) jsonList.forEach { json ->
                     zipper.add(modelsPath, "${json.name}.json") {
                         json.element.toByteArray()
                     }
@@ -174,7 +171,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                 }
             }
         }
-        zipper.add(MINECRAFT_ITEM_PATH, "$itemName.json") {
+        if (!ConfigManagerImpl.disableGeneratingLegacyModels()) zipper.add(MINECRAFT_ITEM_PATH, "$itemName.json") {
             modelJson.apply {
                 add("overrides", override)
             }.toByteArray()

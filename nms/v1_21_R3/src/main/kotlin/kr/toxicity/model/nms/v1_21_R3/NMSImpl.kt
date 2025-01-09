@@ -36,6 +36,7 @@ import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.craftbukkit.entity.CraftLivingEntity
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.craftbukkit.inventory.CraftItemStack
+import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.*
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.inventory.EquipmentSlot.*
@@ -202,7 +203,7 @@ class NMSImpl : NMS {
                             FEET -> EquipmentSlot.FEET
                             LEGS -> EquipmentSlot.LEGS
                             CHEST -> EquipmentSlot.CHEST
-                            HEAD -> EquipmentSlot.HEAD
+                            org.bukkit.inventory.EquipmentSlot.HEAD -> EquipmentSlot.HEAD
                             BODY -> EquipmentSlot.BODY
                         }, CraftItemStack.asNMSCopy(item))
                     }))
@@ -325,6 +326,20 @@ class NMSImpl : NMS {
     ) : ModelDisplay {
         override fun close() {
             display.valid = false
+        }
+
+        override fun display(transform: org.bukkit.entity.ItemDisplay.ItemDisplayTransform) {
+            display.itemTransform = when (transform) {
+                NONE -> ItemDisplayContext.NONE
+                THIRDPERSON_LEFTHAND -> ItemDisplayContext.THIRD_PERSON_LEFT_HAND
+                THIRDPERSON_RIGHTHAND -> ItemDisplayContext.THIRD_PERSON_RIGHT_HAND
+                FIRSTPERSON_LEFTHAND -> ItemDisplayContext.FIRST_PERSON_LEFT_HAND
+                FIRSTPERSON_RIGHTHAND -> ItemDisplayContext.FIRST_PERSON_RIGHT_HAND
+                org.bukkit.entity.ItemDisplay.ItemDisplayTransform.HEAD -> ItemDisplayContext.HEAD
+                GUI -> ItemDisplayContext.GUI
+                GROUND -> ItemDisplayContext.GROUND
+                FIXED -> ItemDisplayContext.FIXED
+            }
         }
 
         override fun spawn(bundler: PacketBundler) {

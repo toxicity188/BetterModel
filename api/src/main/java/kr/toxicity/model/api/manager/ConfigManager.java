@@ -15,6 +15,7 @@ public interface ConfigManager {
     @NotNull String namespace();
     @NotNull PackType packType();
     @NotNull String buildFolderLocation();
+    boolean disableGeneratingLegacyModels();
 
     enum PackType {
         FOLDER,

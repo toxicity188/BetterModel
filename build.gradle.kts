@@ -6,7 +6,7 @@ plugins {
     kotlin("jvm") version "2.1.0"
     id("org.jetbrains.dokka") version "2.0.0"
     id("io.github.goooler.shadow") version "8.1.8"
-    id("io.papermc.paperweight.userdev") version "2.0.0-beta.11" apply false
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.12" apply false
     id("xyz.jpenilla.run-paper") version "2.3.1"
     id("xyz.jpenilla.resource-factory-bukkit-convention") version "1.2.0"
     id("com.modrinth.minotaur") version "2.+"
@@ -124,6 +124,8 @@ val javadocJar by tasks.registering(Jar::class) {
     from(layout.buildDirectory.dir("dokka/html").orNull?.asFile)
 }
 
+val groupString = group.toString()
+
 tasks {
     runServer {
         pluginJars(fileTree("plugins"))
@@ -145,7 +147,7 @@ tasks {
             exclude(dependency("org.jetbrains:annotations:13.0"))
         }
         fun prefix(pattern: String) {
-            relocate(pattern, "${project.group}.shaded.$pattern")
+            relocate(pattern, "$groupString.shaded.$pattern")
         }
         exclude("LICENSE")
         prefix("kotlin")
