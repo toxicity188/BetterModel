@@ -75,6 +75,7 @@ class HitBoxImpl(
     }
 
     override fun remove(reason: RemovalReason) {
+        updatingSectionStatus = false
         super.remove(reason)
         listener.remove(this)
     }

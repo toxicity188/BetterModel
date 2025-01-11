@@ -9,7 +9,13 @@ import java.util.Objects;
 /**
  * A dummy class for BetterModel plugin instance.
  */
-public class BetterModel {
+public final class BetterModel {
+
+    /**
+     * Private initializer
+     */
+    private BetterModel() {}
+
     /**
      * Checks running platform is Paper.
      */

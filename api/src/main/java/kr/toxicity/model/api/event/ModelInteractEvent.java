@@ -10,7 +10,7 @@ import org.bukkit.event.player.PlayerEvent;
 import org.jetbrains.annotations.NotNull;
 
 @Getter
-public class ModelInteractEvent extends PlayerEvent implements Cancellable {
+public final class ModelInteractEvent extends PlayerEvent implements Cancellable {
 
     public static final HandlerList HANDLER_LIST = new HandlerList();
 

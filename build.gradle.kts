@@ -6,7 +6,7 @@ plugins {
     kotlin("jvm") version "2.1.0"
     id("org.jetbrains.dokka") version "2.0.0"
     id("io.github.goooler.shadow") version "8.1.8"
-    id("io.papermc.paperweight.userdev") version "2.0.0-beta.12" apply false
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.13" apply false
     id("xyz.jpenilla.run-paper") version "2.3.1"
     id("xyz.jpenilla.resource-factory-bukkit-convention") version "1.2.0"
     id("com.modrinth.minotaur") version "2.+"
@@ -22,7 +22,7 @@ allprojects {
     apply(plugin = "kotlin")
     apply(plugin = "org.jetbrains.dokka")
     group = "kr.toxicity.model"
-    version = "1.3.2" + (buildNumber?.let { "-SNAPSHOT-$it" } ?: "")
+    version = "1.3.3" + (buildNumber?.let { "-SNAPSHOT-$it" } ?: "")
     repositories {
         mavenCentral()
         maven("https://repo.papermc.io/repository/maven-public/")

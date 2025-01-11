@@ -76,6 +76,7 @@ class HitBoxImpl(
     }
 
     override fun remove(reason: RemovalReason) {
+        if (BetterModel.IS_PAPER) `moonrise$setUpdatingSectionStatus`(false)
         super.remove(reason)
         listener.remove(this)
     }
