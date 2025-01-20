@@ -13,6 +13,9 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
 
+/**
+ * A children of blueprint (group, element).
+ */
 public sealed interface BlueprintChildren {
 
     static BlueprintChildren from(@NotNull ModelChildren children, @NotNull @Unmodifiable Map<UUID, ModelElement> elementMap, float scale) {
@@ -28,6 +31,14 @@ public sealed interface BlueprintChildren {
         };
     }
 
+    /**
+     * Blueprint group
+     * @param name group name
+     * @param origin origin
+     * @param rotation rotation
+     * @param children children
+     * @param visibility visibility
+     */
     record BlueprintGroup(
             @NotNull String name,
             @NotNull Float3 origin,
@@ -36,10 +47,21 @@ public sealed interface BlueprintChildren {
             boolean visibility
     ) implements BlueprintChildren {
 
+        /**
+         * Gets json name of blueprint.
+         * @param parent parent
+         * @return name
+         */
         public @NotNull String jsonName(@NotNull ModelBlueprint parent) {
             return parent.name() + "_" + name;
         }
 
+        /**
+         * Gets blueprint json
+         * @param tint tint index
+         * @param parent parent
+         * @return json
+         */
         public BlueprintJson buildJson(
                 int tint,
                 @NotNull ModelBlueprint parent
@@ -62,6 +84,10 @@ public sealed interface BlueprintChildren {
             return new BlueprintJson(jsonName(parent), object);
         }
 
+        /**
+         * Gets single hit-box
+         * @return bounding box
+         */
         public @Nullable NamedBoundingBox hitBox() {
             var elements = new ArrayList<ModelBoundingBox>();
             for (BlueprintChildren child : children) {
@@ -90,6 +116,11 @@ public sealed interface BlueprintChildren {
         }
     }
 
+    /**
+     * Blueprint element.
+     * @param element raw element
+     * @param scale display scale
+     */
     record BlueprintElement(@NotNull ModelElement element, float scale) implements BlueprintChildren {
         private void buildJson(
                 int tint,

@@ -3,7 +3,7 @@ package kr.toxicity.model.api.data.blueprint;
 import kr.toxicity.model.api.data.raw.ModelChildren;
 import kr.toxicity.model.api.data.raw.ModelData;
 import kr.toxicity.model.api.data.raw.ModelElement;
-import kr.toxicity.model.api.util.MathUtil;
+import kr.toxicity.model.api.data.raw.ModelResolution;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 public record ModelBlueprint(
         @NotNull String name,
         double scale,
-        double resolution,
+        @NotNull ModelResolution resolution,
         @NotNull List<BlueprintTexture> textures,
         @NotNull List<BlueprintChildren> group,
         @NotNull Map<String, BlueprintAnimation> animations
@@ -31,7 +31,7 @@ public record ModelBlueprint(
         return new ModelBlueprint(
                 name,
                 scale,
-                MathUtil.resolution(data.resolution().width(), data.resolution().height()),
+                data.resolution(),
                 data.textures().stream().map(BlueprintTexture::from).toList(),
                 list,
                 data.animations() == null ? Collections.emptyMap() : data.animations().stream().map(BlueprintAnimation::from).collect(Collectors.toMap(BlueprintAnimation::name, a -> a))

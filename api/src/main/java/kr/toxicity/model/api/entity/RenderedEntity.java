@@ -15,6 +15,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Transformation;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
@@ -25,6 +26,9 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+/**
+ * A rendered item-display.
+ */
 public final class RenderedEntity implements TransformSupplier, AutoCloseable {
 
     private static final int ANIMATION_THRESHOLD = 4;
@@ -53,6 +57,15 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
     private boolean visible;
     private boolean tint;
 
+    /**
+     * Creates entity.
+     * @param group group
+     * @param parent parent entity
+     * @param itemStack item
+     * @param transform display transform
+     * @param firstLocation spawn location
+     * @param movement spawn movement
+     */
     public RenderedEntity(
             @NotNull RendererGroup group,
             @Nullable RenderedEntity parent,
@@ -73,6 +86,13 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
         visible = group.getLimb() != null || group.getParent().visibility();
     }
 
+    /**
+     * Creates hit box.
+     * @param entity target entity
+     * @param predicate predicate
+     * @param listener hit box listener
+     */
+    @ApiStatus.Internal
     public void createHitBox(@NotNull Entity entity, @NotNull Predicate<RenderedEntity> predicate, @Nullable HitBoxListener listener) {
         var h = group.getHitBox();
         if (h != null && predicate.test(this)) {
@@ -88,6 +108,12 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
         }
     }
 
+    /**
+     * Changes displayed item
+     * @param predicate predicate
+     * @param itemStack target item
+     */
+    @ApiStatus.Internal
     public void itemStack(@NotNull Predicate<RenderedEntity> predicate, @NotNull ItemStack itemStack) {
         if (predicate.test(this)) {
             this.itemStack = itemStack;
@@ -100,6 +126,12 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
         }
     }
 
+    /**
+     * Adds animation modifier.
+     * @param predicate predicate
+     * @param consumer animation consumer
+     * @return whether to success
+     */
     public boolean addAnimationMovementModifier(@NotNull Predicate<RenderedEntity> predicate, @NotNull Consumer<AnimationMovement> consumer) {
         if (predicate.test(this)) {
             movementModifier.add(consumer);
@@ -112,6 +144,11 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
         return ret;
     }
 
+    /**
+     * Adds all display to list.
+     * @param renderers target list
+     */
+    @ApiStatus.Internal
     public void renderers(List<ModelDisplay> renderers) {
         if (display != null) renderers.add(display);
         children.values().forEach(c -> c.renderers(renderers));

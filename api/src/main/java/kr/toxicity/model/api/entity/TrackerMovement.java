@@ -5,11 +5,23 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+/**
+ * A tracker's movement
+ * @param transform position
+ * @param scale scale
+ * @param rotation rotation
+ */
 public record TrackerMovement(
         @NotNull Vector3f transform,
         @NotNull Vector3f scale,
         @NotNull Vector3f rotation
 ) {
+
+    /**
+     * Adds each group's movement.
+     * @param movement movement
+     * @return movement
+     */
     public @NotNull EntityMovement plus(@NotNull EntityMovement movement) {
         var q = MathUtil.toQuaternion(rotation);
         return new EntityMovement(
@@ -19,6 +31,11 @@ public record TrackerMovement(
                 new Vector3f(movement.rawRotation())
         );
     }
+
+    /**
+     * Copy this movement.
+     * @return new movement
+     */
     public @NotNull TrackerMovement copy() {
         return new TrackerMovement(
                 new Vector3f(transform),

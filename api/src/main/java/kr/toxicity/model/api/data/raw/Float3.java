@@ -7,14 +7,25 @@ import org.joml.Vector3f;
 
 import java.util.function.Function;
 
+/**
+ * A three float value (origin, rotation)
+ * @param x x
+ * @param y y
+ * @param z z
+ */
 public record Float3(
         float x,
         float y,
         float z
 ) {
+    /**
+     * Center
+     */
     public static final Float3 CENTER = new Float3(8, 8, 8);
-    public static final Float3 ORIGIN = new Float3(16, 0, 16);
 
+    /**
+     * Parser
+     */
     public static final Function<JsonElement, Float3> PARSER = element -> {
         if (element == null) return new Float3(0, 0, 0);
         var array = element.getAsJsonArray();
@@ -25,21 +36,11 @@ public record Float3(
         );
     };
 
-    public float max() {
-        return Math.max(x, Math.max(y, z));
-    }
-    public float min() {
-        return Math.min(x, Math.min(y, z));
-    }
-
-    public @NotNull Float3 abs() {
-        return new Float3(
-                Math.abs(x),
-                Math.abs(y),
-                Math.abs(z)
-        );
-    }
-
+    /**
+     * Adds other floats.
+     * @param other other floats
+     * @return new floats
+     */
     public @NotNull Float3 plus(@NotNull Float3 other) {
         return new Float3(
                 x + other.x,
@@ -47,6 +48,12 @@ public record Float3(
                 z + other.z
         );
     }
+
+    /**
+     * Subtracts other floats.
+     * @param other other floats
+     * @return new floats
+     */
     public @NotNull Float3 minus(@NotNull Float3 other) {
         return new Float3(
                 x - other.x,
@@ -54,6 +61,12 @@ public record Float3(
                 z - other.z
         );
     }
+
+    /**
+     * Multiplies floats.
+     * @param value multiplier
+     * @return new floats
+     */
     public @NotNull Float3 times(float value) {
         return new Float3(
                 x * value,
@@ -61,6 +74,12 @@ public record Float3(
                 z * value
         );
     }
+
+    /**
+     * Divides floats.
+     * @param value multiplier
+     * @return new floats
+     */
     public @NotNull Float3 div(float value) {
         return new Float3(
                 x / value,
@@ -68,6 +87,11 @@ public record Float3(
                 z / value
         );
     }
+
+    /**
+     * Converts floats to json array.
+     * @return json array
+     */
     public @NotNull JsonArray toJson() {
         var array = new JsonArray();
         array.add(x);
@@ -76,6 +100,10 @@ public record Float3(
         return array;
     }
 
+    /**
+     * Converts floats to vector.
+     * @return vector
+     */
     public @NotNull Vector3f toVector() {
         return new Vector3f(x, y, z);
     }

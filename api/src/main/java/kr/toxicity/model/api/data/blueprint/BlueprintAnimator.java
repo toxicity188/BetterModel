@@ -12,12 +12,21 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * A movement of each group.
+ * @param name group name
+ * @param length frame length
+ * @param keyFrame keyframes
+ */
 public record BlueprintAnimator(@NotNull String name, int length, @NotNull @Unmodifiable List<AnimationMovement> keyFrame) {
 
     private record TimeVector(long time, Vector3f vector3f) {
         private static final TimeVector EMPTY = new TimeVector(0, null);
     }
 
+    /**
+     * Builder
+     */
     @RequiredArgsConstructor
     public static final class Builder {
 
@@ -31,6 +40,11 @@ public record BlueprintAnimator(@NotNull String name, int length, @NotNull @Unmo
             return Math.round(vector3f.length() / 45 + 1);
         }
 
+        /**
+         * Adds raw model frame.
+         * @param keyframe raw frame
+         * @return self
+         */
         public @NotNull Builder addFrame(@NotNull ModelKeyframe keyframe) {
             for (Datapoint dataPoint : keyframe.dataPoints()) {
                 var vec = dataPoint.toVector();
@@ -123,9 +137,18 @@ public record BlueprintAnimator(@NotNull String name, int length, @NotNull @Unmo
         }
     }
 
+    /**
+     * Gets single iterator.
+     * @return iterator
+     */
     public @NotNull AnimatorIterator singleIterator() {
         return new SingleIterator();
     }
+
+    /**
+     * Gets loop iterator.
+     * @return iterator
+     */
     public @NotNull AnimatorIterator loopIterator() {
         return new LoopIterator();
     }

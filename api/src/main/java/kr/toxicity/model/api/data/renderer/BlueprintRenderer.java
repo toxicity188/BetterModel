@@ -20,6 +20,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * A blueprint renderer.
+ */
 @RequiredArgsConstructor
 public final class BlueprintRenderer {
     @Getter
@@ -27,14 +30,27 @@ public final class BlueprintRenderer {
     private final Map<String, RendererGroup> rendererGroupMap;
     private final Map<String, BlueprintAnimation> animationMap;
 
+    /**
+     * Gets all name of animation.
+     * @return names
+     */
     public @NotNull @Unmodifiable Set<String> animations() {
         return Collections.unmodifiableSet(animationMap.keySet());
     }
 
+    /**
+     * Gets model's name.
+     * @return name
+     */
     public @NotNull String name() {
         return parent.name();
     }
 
+    /**
+     * Gets or creates tracker by entity.
+     * @param entity target
+     * @return entity tracker
+     */
     public @NotNull EntityTracker create(@NotNull Entity entity) {
         var tracker = EntityTracker.tracker(entity.getUniqueId());
         if (tracker != null) return tracker;
@@ -43,6 +59,12 @@ public final class BlueprintRenderer {
                 instance(null, entity.getLocation())
         );
     }
+
+    /**
+     * Gets or creates tracker by player
+     * @param player player
+     * @return player limb tracker
+     */
     public @NotNull EntityTracker createPlayerLimb(@NotNull Player player) {
         var tracker = EntityTracker.tracker(player.getUniqueId());
         if (tracker != null) return tracker;
@@ -52,7 +74,13 @@ public final class BlueprintRenderer {
         );
     }
 
-    public @NotNull VoidTracker create(@NotNull UUID uuid,  @NotNull Location location) {
+    /**
+     * Creates tracker by location.
+     * @param uuid uuid
+     * @param location location
+     * @return void tracker
+     */
+    public @NotNull VoidTracker create(@NotNull UUID uuid, @NotNull Location location) {
         return new VoidTracker(uuid, instance(null, location), location);
     }
 

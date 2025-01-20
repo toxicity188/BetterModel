@@ -83,8 +83,4 @@ public final class MathUtil {
 
         return q;
     }
-
-    public static double resolution(int width, int height) {
-        return (double) Math.min(width, height) / 16;
-    }
 }

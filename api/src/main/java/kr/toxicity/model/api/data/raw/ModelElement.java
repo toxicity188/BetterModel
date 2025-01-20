@@ -5,6 +5,17 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
+/**
+ * A raw model's element (cube).
+ * @param name name
+ * @param uuid cube's uuid
+ * @param from min-position
+ * @param to max-position
+ * @param inflate inflate
+ * @param rotation rotation
+ * @param origin origin
+ * @param faces uv
+ */
 public record ModelElement(
         @NotNull String name,
         @NotNull UUID uuid,

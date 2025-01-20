@@ -4,6 +4,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
+/**
+ * A movement of animation.
+ * @param time keyframe time
+ * @param transform position
+ * @param scale scale
+ * @param rotation rotation
+ */
 public record AnimationMovement(
         long time,
         @Nullable Vector3f transform,
@@ -16,6 +23,11 @@ public record AnimationMovement(
         return Long.compare(time, o.time);
     }
 
+    /**
+     * Converts keyframe time.
+     * @param newTime new time
+     * @return new movement
+     */
     public @NotNull AnimationMovement set(long newTime) {
         if (newTime == time || time == 0) return this;
         var mul = (float) newTime / (float) time;
@@ -30,6 +42,11 @@ public record AnimationMovement(
         );
     }
 
+    /**
+     * Sets keyframe time.
+     * @param newTime new time
+     * @return new movement
+     */
     public @NotNull AnimationMovement time(long newTime) {
         return new AnimationMovement(
                 newTime,
@@ -39,6 +56,11 @@ public record AnimationMovement(
         );
     }
 
+    /**
+     * Adds other movement.
+     * @param other other movement
+     * @return new movement
+     */
     public @NotNull AnimationMovement plus(@NotNull AnimationMovement other) {
         return new AnimationMovement(
                 time + other.time,
@@ -47,6 +69,12 @@ public record AnimationMovement(
                 plus(rotation, other.rotation)
         );
     }
+
+    /**
+     * Subtracts other movement.
+     * @param other other movement
+     * @return new movement
+     */
     public @NotNull AnimationMovement minus(@NotNull AnimationMovement other) {
         return new AnimationMovement(
                 time - other.time(),
@@ -56,14 +84,10 @@ public record AnimationMovement(
         );
     }
 
-    public @NotNull AnimationMovement copy() {
-        return new AnimationMovement(
-                time,
-                transform != null ? new Vector3f(transform) : null,
-                scale != null ? new Vector3f(scale) : null,
-                rotation != null ? new Vector3f(rotation) : null
-        );
-    }
+    /**
+     * Copy this movement to not null.
+     * @return copied movement
+     */
     public @NotNull AnimationMovement copyNotNull() {
         return new AnimationMovement(
                 time,

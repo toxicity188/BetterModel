@@ -14,7 +14,8 @@ public record ModelUV(
         var object = new JsonObject();
         if (texture == null) return object;
         int textureIndex = Integer.parseInt(texture);
-        object.add("uv", uv.div((float)  parent.textures().get(textureIndex).resolution(parent.resolution())).toJson());
+        object.add("uv", uv.div(parent.resolution()
+                .then(parent.textures().get(textureIndex).resolution())).toJson());
         if (rotation != 0) object.addProperty("rotation", rotation);
         object.addProperty("tintindex", tint);
         object.addProperty("texture", "#" + textureIndex);

@@ -10,12 +10,24 @@ import org.joml.Vector3f;
 
 import java.util.*;
 
+/**
+ * A model animation.
+ * @param name animation name
+ * @param length frame length
+ * @param animator group animator
+ * @param emptyAnimator empty animation ([0, 0, 0]).
+ */
 public record BlueprintAnimation(
         @NotNull String name,
         int length,
         @NotNull @Unmodifiable Map<String, BlueprintAnimator> animator,
         List<AnimationMovement> emptyAnimator
 ) {
+    /**
+     * Converts from raw animation.
+     * @param animation raw animation
+     * @return converted animation
+     */
     public static @NotNull BlueprintAnimation from(@NotNull ModelAnimation animation) {
         var map = new HashMap<String, BlueprintAnimator>();
         var length = Math.round(animation.length() * 20);
@@ -104,6 +116,10 @@ public record BlueprintAnimation(
         return list;
     }
 
+    /**
+     * Gets loop iterator.
+     * @return iterator
+     */
     public BlueprintAnimator.AnimatorIterator emptyLoopIterator() {
         return new BlueprintAnimator.AnimatorIterator() {
 
@@ -142,6 +158,11 @@ public record BlueprintAnimation(
             }
         };
     }
+
+    /**
+     * Gets single iterator.
+     * @return iterator
+     */
     public BlueprintAnimator.AnimatorIterator emptySingleIterator() {
         return new BlueprintAnimator.AnimatorIterator() {
 

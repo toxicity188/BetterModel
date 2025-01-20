@@ -7,11 +7,20 @@ import org.joml.Vector3f;
 
 import java.util.function.Function;
 
+/**
+ * A raw json vector.
+ * @param x x
+ * @param y y
+ * @param z z
+ */
 public record Datapoint(
         float x,
         float y,
         float z
 ) {
+    /**
+     * Parser
+     */
     public static final Function<JsonElement, Datapoint> PARSER = element -> {
         var array = element.getAsJsonObject();
         return new Datapoint(
@@ -26,6 +35,10 @@ public record Datapoint(
         return Float.isNaN(f) ? 0 : f;
     }
 
+    /**
+     * Converts to vector.
+     * @return vector
+     */
     public @NotNull Vector3f toVector() {
         return new Vector3f(x, y, z);
     }

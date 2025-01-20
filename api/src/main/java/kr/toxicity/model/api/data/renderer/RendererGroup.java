@@ -21,6 +21,9 @@ import org.joml.Vector3f;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * A group of model.
+ */
 @RequiredArgsConstructor
 public final class RendererGroup implements TransformSupplier {
 
@@ -43,6 +46,16 @@ public final class RendererGroup implements TransformSupplier {
     @Getter
     private final @Nullable PlayerLimb limb;
 
+    /**
+     * Creates group instance.
+     * @param name name
+     * @param scale scale
+     * @param itemStack item
+     * @param group parent
+     * @param children children
+     * @param box hit-box
+     * @param limb player limb
+     */
     public RendererGroup(
             @NotNull String name,
             float scale,
@@ -65,6 +78,12 @@ public final class RendererGroup implements TransformSupplier {
         center = hitBox != null ? new Vector3f(position).add(hitBox.centerVector()) : position;
     }
 
+    /**
+     * Creates entity.
+     * @param player player
+     * @param location location
+     * @return entity
+     */
     public @NotNull RenderedEntity create(@Nullable Player player, @NotNull Location location) {
         return create(player, null, location);
     }
@@ -94,6 +113,10 @@ public final class RendererGroup implements TransformSupplier {
         return itemStack;
     }
 
+    /**
+     * Gets display item.
+     * @return item
+     */
     public @NotNull ItemStack getItemStack() {
         return itemStack != null ? itemStack.clone() : new ItemStack(Material.AIR);
     }

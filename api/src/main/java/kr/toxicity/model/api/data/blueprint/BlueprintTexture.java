@@ -1,7 +1,7 @@
 package kr.toxicity.model.api.data.blueprint;
 
+import kr.toxicity.model.api.data.raw.ModelResolution;
 import kr.toxicity.model.api.data.raw.ModelTexture;
-import kr.toxicity.model.api.util.MathUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.imageio.ImageIO;
@@ -34,8 +34,7 @@ public record BlueprintTexture(
         );
     }
 
-    public double resolution(double resolution) {
-        var imageResolution = MathUtil.resolution(uvWidth, uvHeight);
-        return imageResolution > 0 ? imageResolution : resolution;
+    public @NotNull ModelResolution resolution() {
+        return new ModelResolution(uvWidth, uvHeight);
     }
 }

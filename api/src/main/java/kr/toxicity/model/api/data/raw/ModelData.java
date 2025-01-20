@@ -9,6 +9,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Raw BlockBench model's data.
+ * @param resolution resoltion
+ * @param elements elements
+ * @param outliner children
+ * @param textures textures
+ * @param animations animations
+ */
 public record ModelData(
         @NotNull ModelResolution resolution,
         @NotNull List<ModelElement> elements,
@@ -16,6 +24,9 @@ public record ModelData(
         @NotNull List<ModelTexture> textures,
         @Nullable List<ModelAnimation> animations
 ) {
+    /**
+     * Gson parser
+     */
     public static final Gson GSON = new GsonBuilder()
             .registerTypeAdapter(Float3.class, (JsonDeserializer<Float3>) (json, typeOfT, context) -> Float3.PARSER.apply(json))
             .registerTypeAdapter(Float4.class, (JsonDeserializer<Float4>) (json, typeOfT, context) -> Float4.PARSER.apply(json))

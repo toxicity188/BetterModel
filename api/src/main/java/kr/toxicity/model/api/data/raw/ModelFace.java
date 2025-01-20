@@ -4,6 +4,15 @@ import com.google.gson.JsonObject;
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * A UV mappings of element (cube).
+ * @param north north
+ * @param east east
+ * @param south south
+ * @param west west
+ * @param up up
+ * @param down down
+ */
 public record ModelFace(
         @NotNull ModelUV north,
         @NotNull ModelUV east,
@@ -12,6 +21,12 @@ public record ModelFace(
         @NotNull ModelUV up,
         @NotNull ModelUV down
 ) {
+    /**
+     * Converts UV to json object.
+     * @param parent parent
+     * @param tint tint index
+     * @return json object.
+     */
     public @NotNull JsonObject toJson(@NotNull ModelBlueprint parent, int tint) {
         var object = new JsonObject();
         if (north.texture() != null) object.add("north", north.toJson(parent, tint));
@@ -23,6 +38,10 @@ public record ModelFace(
         return object;
     }
 
+    /**
+     * Returns whether this UV has textures.
+     * @return Whether this UV has textures.
+     */
     public boolean hasTexture() {
         return north.texture() != null
                 || east.texture() != null
