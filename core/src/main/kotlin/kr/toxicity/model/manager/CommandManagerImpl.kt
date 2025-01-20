@@ -99,6 +99,8 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
             .executes(CommandExecutionInfo {
                 it.sender().sendMessage("/bettermodel reload - reloads this plugin.")
                 it.sender().sendMessage("/bettermodel summon <model> - summons some model to husk.")
+                it.sender().sendMessage("/bettermodel limb <true/false> - toggles whether sender can see some player's animation.")
+                it.sender().sendMessage("/bettermodel play <model> <animation> - plays player animation.")
             })
             .register(PLUGIN)
         CommandAPI.onEnable()
