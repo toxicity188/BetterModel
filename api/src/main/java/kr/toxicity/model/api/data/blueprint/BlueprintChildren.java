@@ -126,7 +126,7 @@ public sealed interface BlueprintChildren {
                 rotation.add("origin", origin.toJson());
                 object.add("rotation", rotation);
             }
-            object.add("faces", element.faces().toJson(parent.resolution(), tint));
+            object.add("faces", element.faces().toJson(parent, tint));
             targetArray.add(object);
         }
 

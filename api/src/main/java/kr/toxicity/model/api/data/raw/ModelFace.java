@@ -1,6 +1,7 @@
 package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonObject;
+import kr.toxicity.model.api.data.blueprint.ModelBlueprint;
 import org.jetbrains.annotations.NotNull;
 
 public record ModelFace(
@@ -11,14 +12,14 @@ public record ModelFace(
         @NotNull ModelUV up,
         @NotNull ModelUV down
 ) {
-    public @NotNull JsonObject toJson(int resolution, int tint) {
+    public @NotNull JsonObject toJson(@NotNull ModelBlueprint parent, int tint) {
         var object = new JsonObject();
-        if (north.texture() != null) object.add("north", north.toJson(resolution, tint));
-        if (east.texture() != null) object.add("east", east.toJson(resolution, tint));
-        if (south.texture() != null) object.add("south", south.toJson(resolution, tint));
-        if (west.texture() != null) object.add("west", west.toJson(resolution, tint));
-        if (up.texture() != null) object.add("up", up.toJson(resolution, tint));
-        if (down.texture() != null) object.add("down", down.toJson(resolution, tint));
+        if (north.texture() != null) object.add("north", north.toJson(parent, tint));
+        if (east.texture() != null) object.add("east", east.toJson(parent, tint));
+        if (south.texture() != null) object.add("south", south.toJson(parent, tint));
+        if (west.texture() != null) object.add("west", west.toJson(parent, tint));
+        if (up.texture() != null) object.add("up", up.toJson(parent, tint));
+        if (down.texture() != null) object.add("down", down.toJson(parent, tint));
         return object;
     }
 

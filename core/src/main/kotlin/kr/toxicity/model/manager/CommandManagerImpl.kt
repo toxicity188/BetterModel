@@ -101,9 +101,14 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                 it.sender().sendMessage("/bettermodel summon <model> - summons some model to husk.")
             })
             .register(PLUGIN)
+        CommandAPI.onEnable()
     }
 
     override fun reload() {
 
+    }
+
+    override fun end() {
+        CommandAPI.onDisable()
     }
 }

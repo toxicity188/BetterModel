@@ -3,11 +3,9 @@ package kr.toxicity.model.api.data.blueprint;
 import kr.toxicity.model.api.data.raw.ModelChildren;
 import kr.toxicity.model.api.data.raw.ModelData;
 import kr.toxicity.model.api.data.raw.ModelElement;
+import kr.toxicity.model.api.util.MathUtil;
 import org.jetbrains.annotations.NotNull;
 
-import javax.imageio.ImageIO;
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -17,7 +15,7 @@ import java.util.stream.Collectors;
 public record ModelBlueprint(
         @NotNull String name,
         double scale,
-        int resolution,
+        double resolution,
         @NotNull List<BlueprintTexture> textures,
         @NotNull List<BlueprintChildren> group,
         @NotNull Map<String, BlueprintAnimation> animations
@@ -33,7 +31,7 @@ public record ModelBlueprint(
         return new ModelBlueprint(
                 name,
                 scale,
-                Math.max(data.resolution().width(), data.resolution().height()) / 16,
+                MathUtil.resolution(data.resolution().width(), data.resolution().height()),
                 data.textures().stream().map(BlueprintTexture::from).toList(),
                 list,
                 data.animations() == null ? Collections.emptyMap() : data.animations().stream().map(BlueprintAnimation::from).collect(Collectors.toMap(BlueprintAnimation::name, a -> a))
@@ -43,14 +41,7 @@ public record ModelBlueprint(
     public @NotNull List<BlueprintImage> buildImage() {
         var list = new ArrayList<BlueprintImage>();
         for (BlueprintTexture texture : textures) {
-            try (
-                    var source = new ByteArrayInputStream(texture.image());
-                    var buffer = new BufferedInputStream(source)
-            ) {
-                list.add(new BlueprintImage(name + "_" + texture.name(), ImageIO.read(buffer)));
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+            list.add(new BlueprintImage(name + "_" + texture.name(), texture.image()));
         }
         return list;
     }
