@@ -229,6 +229,9 @@ public abstract class Tracker implements AutoCloseable {
                 .findFirst()
                 .orElse(null);
     }
+    public @NotNull List<RenderedEntity> entity() {
+        return instance.renderers();
+    }
 
     public @NotNull List<ModelDisplay> displays() {
         return instance.renderers().stream()

@@ -1,5 +1,6 @@
 package kr.toxicity.model.nms.v1_20_R2
 
+import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import kr.toxicity.model.api.event.ModelDamagedEvent
 import kr.toxicity.model.api.event.ModelInteractEvent
@@ -39,7 +40,7 @@ class HitBoxImpl(
 
     init {
         moveTo(delegate.position())
-        isInvisible = true
+        if (!BetterModel.inst().configManager().debug().hitBox()) isInvisible = true
         persist = false
         isSilent = true
         initialized = true

@@ -1,3 +1,5 @@
+debug:
+  hitbox: false
 metrics: true
 sight-trace: true
 item: leather_horse_armor

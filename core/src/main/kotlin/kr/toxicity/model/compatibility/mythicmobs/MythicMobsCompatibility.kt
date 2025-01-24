@@ -20,6 +20,7 @@ class MythicMobsCompatibility : Compatibility {
                     "defaultstate" -> e.register(DefaultStateMechanic(e.config))
                     "partvisibility" -> e.register(PartVisibilityMechanic(e.config))
                     "bindhitbox" -> e.register(BindHitBoxMechanic(e.config))
+                    "changepart" -> e.register(ChangePartMechanic(e.config))
                 }
             }
             @EventHandler

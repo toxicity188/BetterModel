@@ -1,9 +1,11 @@
 package kr.toxicity.model.api.manager;
 
+import kr.toxicity.model.api.config.DebugConfig;
 import org.bukkit.Material;
 import org.jetbrains.annotations.NotNull;
 
 public interface ConfigManager {
+    @NotNull DebugConfig debug();
     boolean metrics();
     boolean sightTrace();
     @NotNull Material item();

@@ -1,5 +1,6 @@
 package kr.toxicity.model.manager
 
+import kr.toxicity.model.api.config.DebugConfig
 import kr.toxicity.model.api.manager.ConfigManager
 import kr.toxicity.model.api.manager.ConfigManager.PackType
 import kr.toxicity.model.configuration.PluginConfiguration
@@ -11,6 +12,7 @@ import java.io.File
 
 object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
 
+    private var debug = DebugConfig.DEFAULT
     private var metrics: Metrics? = null
     private var sightTrace = true
     private var item = Material.LEATHER_HORSE_ARMOR
@@ -24,6 +26,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     private var buildFolderLocation = "BetterModel/build".replace('/', File.separatorChar)
     private var disableGeneratingLegacyModels = false
 
+    override fun debug(): DebugConfig = debug
     override fun item(): Material = item
     override fun metrics(): Boolean = metrics != null
     override fun sightTrace(): Boolean = sightTrace
@@ -45,6 +48,9 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
             metrics?.shutdown()
             metrics = null
         }
+        debug = yaml.getConfigurationSection("debug")?.let {
+            DebugConfig.from(it)
+        } ?: DebugConfig.DEFAULT
         sightTrace = yaml.getBoolean("sight-trace", true)
         item = yaml.getString("item")?.let {
             runCatching {

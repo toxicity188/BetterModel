@@ -42,7 +42,7 @@ class HitBoxImpl(
 
     init {
         moveTo(delegate.position())
-        isInvisible = true
+        if (!BetterModel.inst().configManager().debug().hitBox()) isInvisible = true
         persist = false
         isSilent = true
         initialized = true

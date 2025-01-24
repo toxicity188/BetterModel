@@ -86,6 +86,10 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
         visible = group.getLimb() != null || group.getParent().visibility();
     }
 
+    public @NotNull ItemStack itemStack() {
+        return group.getItemStack();
+    }
+
     /**
      * Creates hit box.
      * @param entity target entity
