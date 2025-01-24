@@ -2,6 +2,7 @@ package kr.toxicity.model.api.data.blueprint;
 
 import kr.toxicity.model.api.data.raw.ModelResolution;
 import kr.toxicity.model.api.data.raw.ModelTexture;
+import kr.toxicity.model.api.util.PackUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.imageio.ImageIO;
@@ -17,6 +18,7 @@ public record BlueprintTexture(
         int uvHeight
 ) {
     public static @NotNull BlueprintTexture from(@NotNull ModelTexture blueprint) {
+        PackUtil.validatePath(blueprint.name(), "Texture name must be [a-z0-9/._-]: " + blueprint.name());
         BufferedImage image;
         try (
                 var input = new ByteArrayInputStream(Base64.getDecoder().decode(blueprint.source().split(",")[1]));

@@ -145,12 +145,12 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
     }
 
     /**
-     * Adds all display to list.
+     * Adds all renderers to list.
      * @param renderers target list
      */
     @ApiStatus.Internal
-    public void renderers(List<ModelDisplay> renderers) {
-        if (display != null) renderers.add(display);
+    public void renderers(List<RenderedEntity> renderers) {
+        renderers.add(this);
         children.values().forEach(c -> c.renderers(renderers));
     }
 
@@ -227,6 +227,10 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
             setup(entityMovement);
             d.send(bundler);
         }
+    }
+
+    public @NotNull Vector3f lastTransform() {
+        return lastTransform != null ? lastTransform.transform() : new Vector3f();
     }
 
     public void setup(@NotNull TrackerMovement movement) {

@@ -15,5 +15,9 @@ public enum KeyframeChannel {
     /**
      * Scale
      */
-    SCALE
+    SCALE,
+    /**
+     * Timeline
+     */
+    TIMELINE
 }

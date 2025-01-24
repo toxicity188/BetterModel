@@ -121,8 +121,8 @@ public final class RenderInstance implements AutoCloseable {
         return ret;
     }
 
-    public @NotNull List<ModelDisplay> renderers() {
-        var list = new ArrayList<ModelDisplay>();
+    public @NotNull List<RenderedEntity> renderers() {
+        var list = new ArrayList<RenderedEntity>();
         entityMap.values().forEach(e -> e.renderers(list));
         return list;
     }

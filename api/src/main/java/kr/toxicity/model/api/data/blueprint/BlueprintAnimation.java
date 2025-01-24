@@ -31,7 +31,7 @@ public record BlueprintAnimation(
     public static @NotNull BlueprintAnimation from(@NotNull ModelAnimation animation) {
         var map = new HashMap<String, BlueprintAnimator>();
         var length = Math.round(animation.length() * 20);
-        for (Map.Entry<UUID, ModelAnimator> entry : animation.animators().entrySet()) {
+        for (Map.Entry<String, ModelAnimator> entry : animation.animators().entrySet()) {
             var builder = new BlueprintAnimator.Builder(length);
             var frameList = new ArrayList<>(entry.getValue().keyframes());
             frameList.sort(Comparator.naturalOrder());

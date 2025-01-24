@@ -7,6 +7,7 @@ import kr.toxicity.model.api.data.raw.Float3;
 import kr.toxicity.model.api.data.raw.ModelChildren;
 import kr.toxicity.model.api.data.raw.ModelElement;
 import kr.toxicity.model.api.util.EntityUtil;
+import kr.toxicity.model.api.util.PackUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
@@ -18,15 +19,18 @@ import java.util.*;
  */
 public sealed interface BlueprintChildren {
 
-    static BlueprintChildren from(@NotNull ModelChildren children, @NotNull @Unmodifiable Map<UUID, ModelElement> elementMap, float scale) {
+    static BlueprintChildren from(@NotNull ModelChildren children, @NotNull @Unmodifiable Map<String, ModelElement> elementMap, float scale) {
         return switch (children) {
-            case ModelChildren.ModelGroup modelGroup -> new BlueprintGroup(
+            case ModelChildren.ModelGroup modelGroup -> {
+                PackUtil.validatePath(modelGroup.name(), "Group name must be [a-z0-9/._-]: " + modelGroup.name());
+                yield new BlueprintGroup(
                     modelGroup.name(),
                     modelGroup.origin(),
                     modelGroup.rotation(),
                     modelGroup.children().stream().map(c -> from(c, elementMap, scale)).toList(),
                     modelGroup.visibility()
-            );
+                );
+            }
             case ModelChildren.ModelUUID modelUUID -> new BlueprintElement(Objects.requireNonNull(elementMap.get(modelUUID.uuid())), scale);
         };
     }

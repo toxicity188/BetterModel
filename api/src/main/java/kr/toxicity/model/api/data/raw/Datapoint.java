@@ -3,6 +3,7 @@ package kr.toxicity.model.api.data.raw;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.util.function.Function;
@@ -12,21 +13,25 @@ import java.util.function.Function;
  * @param x x
  * @param y y
  * @param z z
+ * @param script script
  */
 public record Datapoint(
         float x,
         float y,
-        float z
+        float z,
+        @Nullable String script
 ) {
     /**
      * Parser
      */
     public static final Function<JsonElement, Datapoint> PARSER = element -> {
         var array = element.getAsJsonObject();
+        var script = array.getAsJsonPrimitive("script");
         return new Datapoint(
                 parse(array.getAsJsonPrimitive("x")),
                 parse(array.getAsJsonPrimitive("y")),
-                parse(array.getAsJsonPrimitive("z"))
+                parse(array.getAsJsonPrimitive("z")),
+                script != null ? script.getAsString() : null
         );
     };
 

@@ -33,6 +33,5 @@ public record ModelData(
             .registerTypeAdapter(Datapoint.class, (JsonDeserializer<Datapoint>) (json, typeOfT, context) -> Datapoint.PARSER.apply(json))
             .registerTypeAdapter(KeyframeChannel.class, (JsonDeserializer<KeyframeChannel>) (json, typeOfT, context) -> KeyframeChannel.valueOf(json.getAsString().toUpperCase()))
             .registerTypeAdapter(ModelChildren.class, (JsonDeserializer<ModelChildren>) (json, typeOfT, context) -> ModelChildren.PARSER.apply(json))
-            .registerTypeAdapter(UUID.class, (JsonDeserializer<UUID>) (json, typeOfT, context) -> UUID.fromString(json.getAsString()))
             .create();
 }

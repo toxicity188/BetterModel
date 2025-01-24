@@ -30,14 +30,14 @@ public sealed interface ModelChildren {
 
         @Override
         public ModelChildren apply(JsonElement element) {
-            if (element.isJsonPrimitive()) return new ModelUUID(UUID.fromString(element.getAsString()));
+            if (element.isJsonPrimitive()) return new ModelUUID(element.getAsString());
             else if (element.isJsonObject()) {
                 var object = element.getAsJsonObject();
                 return new ModelGroup(
                         object.getAsJsonPrimitive("name").getAsString(),
                         Float3.PARSER.apply(object.get("origin")),
                         Float3.PARSER.apply(object.get("rotation")),
-                        UUID.fromString(object.getAsJsonPrimitive("uuid").getAsString()),
+                        object.getAsJsonPrimitive("uuid").getAsString(),
                         object.getAsJsonArray("children").asList().stream().map(this).toList(),
                         object.getAsJsonPrimitive("visibility").getAsBoolean()
                 );
@@ -49,7 +49,7 @@ public sealed interface ModelChildren {
      * A raw element's uuid.
      * @param uuid
      */
-    record ModelUUID(@NotNull UUID uuid) implements ModelChildren {
+    record ModelUUID(@NotNull String uuid) implements ModelChildren {
     }
 
     /**
@@ -65,7 +65,7 @@ public sealed interface ModelChildren {
             @NotNull String name,
             @NotNull Float3 origin,
             @NotNull Float3 rotation,
-            @NotNull UUID uuid,
+            @NotNull String uuid,
             @NotNull List<ModelChildren> children,
             boolean visibility
     ) implements ModelChildren {

@@ -272,7 +272,7 @@ class NMSImpl : NMS {
 
     override fun mount(tracker: EntityTracker, bundler: PacketBundler) {
         val entity = (tracker.entity as CraftEntity).handle
-        val map = tracker.renderers().mapNotNull {
+        val map = tracker.displays().mapNotNull {
             (it as? ModelDisplayImpl)?.display
         }
         entity.passengers = ImmutableList.builder<Entity>()

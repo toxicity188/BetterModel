@@ -18,7 +18,7 @@ import java.util.UUID;
  */
 public record ModelElement(
         @NotNull String name,
-        @NotNull UUID uuid,
+        @NotNull String uuid,
         @NotNull Float3 from,
         @NotNull Float3 to,
         float inflate,

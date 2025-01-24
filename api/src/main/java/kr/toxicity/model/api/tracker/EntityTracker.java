@@ -182,10 +182,6 @@ public class EntityTracker extends Tracker {
         if (handler != null) handler.startTrack(this);
     }
 
-    public @NotNull List<ModelDisplay> renderers() {
-        return instance.renderers();
-    }
-
     @Override
     public void remove(@NotNull Player player) {
         super.remove(player);

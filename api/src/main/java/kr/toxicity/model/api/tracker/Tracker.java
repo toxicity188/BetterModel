@@ -5,6 +5,7 @@ import kr.toxicity.model.api.data.renderer.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.entity.RenderedEntity;
 import kr.toxicity.model.api.entity.TrackerMovement;
+import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.scheduler.ModelTask;
 import kr.toxicity.model.api.util.EntityUtil;
@@ -13,6 +14,7 @@ import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.util.List;
@@ -219,5 +221,19 @@ public abstract class Tracker implements AutoCloseable {
 
     public void togglePart(@NotNull Predicate<RenderedEntity> predicate, boolean toggle) {
         instance.togglePart(predicate, toggle);
+    }
+
+    public @Nullable RenderedEntity entity(@NotNull String name) {
+        return instance.renderers().stream()
+                .filter(r -> r.getName().equals(name))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public @NotNull List<ModelDisplay> displays() {
+        return instance.renderers().stream()
+                .map(RenderedEntity::getDisplay)
+                .filter(Objects::nonNull)
+                .toList();
     }
 }

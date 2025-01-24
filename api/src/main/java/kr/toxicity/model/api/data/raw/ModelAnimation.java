@@ -16,8 +16,8 @@ import java.util.UUID;
 public record ModelAnimation(
         @NotNull String name,
         @NotNull String loop,
-        @NotNull UUID uuid,
+        @NotNull String uuid,
         float length,
-        @NotNull Map<UUID, ModelAnimator> animators
+        @NotNull Map<String, ModelAnimator> animators
 ) {
 }
