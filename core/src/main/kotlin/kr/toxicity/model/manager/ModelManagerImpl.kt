@@ -134,24 +134,31 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                 val jsonList = arrayListOf<BlueprintJson>()
                 val modernJsonList = arrayListOf<BlueprintJson>()
                 renderMap[load.name] = load.toRenderer render@ { blueprintGroup ->
-                    val blueprint = blueprintGroup.buildJson(-2, load) ?: return@render null
-                    val modernBlueprint = blueprintGroup.buildJson(0, load) ?: return@render null
+                    val blueprint = blueprintGroup.buildJson(load) ?: return@render null
+                    val modernBlueprint = blueprintGroup.buildModernJson(load) ?: return@render null
                     override.add(JsonObject().apply {
                         add("predicate", JsonObject().apply {
                             addProperty("custom_model_data", index)
                         })
-                        addProperty("model", "${ConfigManagerImpl.namespace()}:item/${blueprintGroup.jsonName(load)}")
+                        addProperty("model", "${ConfigManagerImpl.namespace()}:item/${blueprint.name}")
                     })
                     modernEntries.add(JsonObject().apply {
                         addProperty("threshold", index)
                         add("model", JsonObject().apply {
-                            addProperty("type", "minecraft:model")
-                            addProperty("model", "${ConfigManagerImpl.namespace()}:modern_item/${blueprintGroup.jsonName(load)}")
-                            add("tints", JsonArray().apply {
-                                add(JsonObject().apply {
-                                    addProperty("type", "minecraft:custom_model_data")
-                                    addProperty("default", 0xFF8060)
-                                })
+                            addProperty("type", "minecraft:composite")
+                            add("models", JsonArray().apply {
+                                modernBlueprint.forEach { mb ->
+                                    add(JsonObject().apply {
+                                        addProperty("type", "minecraft:model")
+                                        addProperty("model", "${ConfigManagerImpl.namespace()}:modern_item/${mb.name}")
+                                        add("tints", JsonArray().apply {
+                                            add(JsonObject().apply {
+                                                addProperty("type", "minecraft:custom_model_data")
+                                                addProperty("default", 0xFFFFFF)
+                                            })
+                                        })
+                                    })
+                                }
                             })
                         })
                     })

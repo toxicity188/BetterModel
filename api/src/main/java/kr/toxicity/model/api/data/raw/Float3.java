@@ -2,7 +2,9 @@ package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import kr.toxicity.model.api.util.MathUtil;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.function.Function;
@@ -18,10 +20,15 @@ public record Float3(
         float y,
         float z
 ) {
+
+    public Float3(float value) {
+        this(value, value, value);
+    }
     /**
      * Center
      */
     public static final Float3 CENTER = new Float3(8, 8, 8);
+    public static final Float3 ZERO = new Float3(0, 0, 0);
 
     /**
      * Parser
@@ -49,6 +56,18 @@ public record Float3(
         );
     }
 
+    public @NotNull Float3 convertToMinecraftDegree() {
+        var vec = MathUtil.toMinecraftVector(toVector());
+        return new Float3(vec.x, vec.y, vec.z);
+    }
+
+
+    public @NotNull Float3 rotate(@NotNull Quaternionf quaternionf) {
+        var vec = toVector().rotate(quaternionf);
+        return new Float3(vec.x, vec.y, vec.z);
+    }
+
+
     /**
      * Subtracts other floats.
      * @param other other floats
@@ -74,7 +93,6 @@ public record Float3(
                 z * value
         );
     }
-
     /**
      * Divides floats.
      * @param value multiplier

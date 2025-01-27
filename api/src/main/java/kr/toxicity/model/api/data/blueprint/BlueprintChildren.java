@@ -7,6 +7,7 @@ import kr.toxicity.model.api.data.raw.Float3;
 import kr.toxicity.model.api.data.raw.ModelChildren;
 import kr.toxicity.model.api.data.raw.ModelElement;
 import kr.toxicity.model.api.util.EntityUtil;
+import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.PackUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -62,13 +63,49 @@ public sealed interface BlueprintChildren {
 
         /**
          * Gets blueprint json
-         * @param tint tint index
          * @param parent parent
          * @return json
          */
         public BlueprintJson buildJson(
-                int tint,
                 @NotNull ModelBlueprint parent
+        ) {
+            var list = new ArrayList<BlueprintElement>();
+            for (BlueprintChildren child : children) {
+                if (child instanceof BlueprintElement element) {
+                    list.add(element);
+                }
+            }
+            return buildJson(2, 1, parent, Float3.ZERO, list);
+        }
+
+        /**
+         * Gets blueprint modern json
+         * @param parent parent
+         * @return json
+         */
+        public List<BlueprintJson> buildModernJson(
+                @NotNull ModelBlueprint parent
+        ) {
+            var list = new ArrayList<BlueprintJson>();
+            var floatMap = new HashMap<Float3, List<BlueprintElement>>();
+            for (BlueprintChildren child : children) {
+                if (child instanceof BlueprintElement element) {
+                    floatMap.computeIfAbsent(element.identifierDegree(), u -> new ArrayList<>()).add(element);
+                }
+            }
+            var i = 0;
+            for (Map.Entry<Float3, List<BlueprintElement>> entry : floatMap.entrySet()) {
+                list.add(buildJson(0, ++i, parent, entry.getKey(), entry.getValue()));
+            }
+            return list;
+        }
+
+        private BlueprintJson buildJson(
+                int tint,
+                int number,
+                @NotNull ModelBlueprint parent,
+                @NotNull Float3 identifier,
+                @NotNull List<BlueprintElement> cubes
         ) {
             var object = new JsonObject();
             var textureObject = new JsonObject();
@@ -78,14 +115,19 @@ public sealed interface BlueprintChildren {
             }
             object.add("textures", textureObject);
             var elements = new JsonArray();
-            for (BlueprintChildren child : children) {
-                if (child instanceof BlueprintElement element) {
-                    element.buildJson(tint, parent, this, elements);
-                }
+            for (BlueprintElement cube : cubes) {
+                cube.buildJson(tint, parent, this, identifier, elements);
             }
             if (elements.isEmpty()) return null;
             object.add("elements", elements);
-            return new BlueprintJson(jsonName(parent), object);
+            if (!identifier.equals(Float3.ZERO)) {
+                var display = new JsonObject();
+                var fixed = new JsonObject();
+                fixed.add("rotation", identifier.convertToMinecraftDegree().toJson());
+                display.add("fixed", fixed);
+                object.add("display", display);
+            }
+            return new BlueprintJson(jsonName(parent) + "_" + number, object);
         }
 
         /**
@@ -126,40 +168,52 @@ public sealed interface BlueprintChildren {
      * @param scale display scale
      */
     record BlueprintElement(@NotNull ModelElement element, float scale) implements BlueprintChildren {
+
+        private @NotNull Float3 identifierDegree() {
+            var rot = element.rotation();
+            return rot == null ? Float3.ZERO : MathUtil.identifier(rot);
+        }
+
+        private @NotNull Float3 centralize(@NotNull Float3 target, @NotNull Float3 groupOrigin) {
+            return target.minus(groupOrigin).div(scale);
+        }
+
         private void buildJson(
                 int tint,
                 @NotNull ModelBlueprint parent,
                 @NotNull BlueprintGroup group,
+                @NotNull Float3 identifier,
                 @NotNull JsonArray targetArray
         ) {
             if (!element.hasTexture()) return;
+            var centerOrigin = centralize(element.origin(), group.origin);
+            var qua = MathUtil.toQuaternion(identifier.toVector()).invert();
+            var rotOrigin = centerOrigin
+                    .rotate(qua)
+                    .minus(centerOrigin);
             var object = new JsonObject();
-            var origin = element.origin()
-                    .minus(group.origin)
-                    .div(scale)
-                    .plus(Float3.CENTER);
-            var inflate = new Float3(element.inflate(), element.inflate(), element.inflate()).div(scale);
-            object.add("from", element.from()
-                    .minus(group.origin)
-                    .div(scale)
+            var inflate = new Float3(element.inflate() / scale);
+            object.add("from", centralize(element.from(), group.origin)
+                    .plus(rotOrigin)
                     .plus(Float3.CENTER)
-                    .minus(origin)
                     .minus(inflate)
-                    .plus(origin)
                     .toJson());
-            object.add("to", element.to()
-                    .minus(group.origin)
-                    .div(scale)
+            object.add("to", centralize(element.to(), group.origin)
+                    .plus(rotOrigin)
                     .plus(Float3.CENTER)
-                    .minus(origin)
                     .plus(inflate)
-                    .plus(origin)
                     .toJson());
             var rot = element.rotation();
             if (rot != null) {
-                var rotation = getRotation(rot);
-                rotation.add("origin", origin.toJson());
-                object.add("rotation", rotation);
+                rot = rot.minus(identifier);
+                if (!Float3.ZERO.equals(rot)) {
+                    var rotation = getRotation(rot);
+                    rotation.add("origin", centerOrigin
+                            .plus(rotOrigin)
+                            .plus(Float3.CENTER)
+                            .toJson());
+                    object.add("rotation", rotation);
+                }
             }
             object.add("faces", element.faces().toJson(parent, tint));
             targetArray.add(object);
