@@ -5,5 +5,6 @@ import org.jetbrains.annotations.NotNull;
 
 public interface PacketBundler {
     boolean isEmpty();
+    @NotNull PacketBundler copy();
     void send(@NotNull Player player);
 }

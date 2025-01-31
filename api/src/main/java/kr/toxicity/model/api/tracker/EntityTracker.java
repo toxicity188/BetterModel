@@ -7,7 +7,6 @@ import kr.toxicity.model.api.entity.RenderedEntity;
 import kr.toxicity.model.api.entity.TrackerMovement;
 import kr.toxicity.model.api.nms.EntityAdapter;
 import kr.toxicity.model.api.nms.HitBoxListener;
-import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.util.EntityUtil;
 import lombok.Getter;
@@ -108,6 +107,7 @@ public class EntityTracker extends Tracker {
             if (!closed.get() && !forRemoval()) createHitBox();
         });
         instance.setup(supplier.get());
+        tick(t -> t.displays().forEach(d -> d.sync(adapter)));
     }
 
     @Override

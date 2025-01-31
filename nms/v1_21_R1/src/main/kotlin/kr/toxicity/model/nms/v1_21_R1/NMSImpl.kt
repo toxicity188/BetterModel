@@ -19,6 +19,7 @@ import net.minecraft.network.syncher.EntityDataAccessor
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.network.ServerCommonPacketListenerImpl
+import net.minecraft.world.effect.MobEffects
 import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.Display.ItemDisplay
 import net.minecraft.world.entity.Entity
@@ -117,14 +118,16 @@ class NMSImpl : NMS {
             (get(null) as EntityDataAccessor<*>).id
         }
 
+        private val itemId = ItemDisplay::class.java.serializers().first().toSerializerId()
         private val transformSet = Display::class.java.serializers().subList(0, 6).map { e ->
             e.toSerializerId()
-        }.toSet() + ItemDisplay::class.java.serializers().first().toSerializerId()
+        }.toSet() + itemId + Entity::class.java.serializers().first().toSerializerId()
     }
 
     private class PacketBundlerImpl(
         private val list: MutableList<Packet<in ClientGamePacketListener>>
     ) : PacketBundler, MutableList<Packet<in ClientGamePacketListener>> by list {
+        override fun copy(): PacketBundler = PacketBundlerImpl(ArrayList(list))
         override fun send(player: Player) {
             if (isNotEmpty()) (player as CraftPlayer).handle.connection.send(ClientboundBundlePacket(this))
         }
@@ -331,6 +334,12 @@ class NMSImpl : NMS {
     private inner class ModelDisplayImpl(
         val display: ItemDisplay
     ) : ModelDisplay {
+
+        override fun sync(entity: EntityAdapter) {
+            display.setGlowingTag(entity.glow())
+            display.isInvisible = entity.invisible()
+        }
+
         override fun close() {
             display.valid = false
         }
@@ -389,7 +398,14 @@ class NMSImpl : NMS {
         }
 
         override fun send(bundler: PacketBundler) {
-            bundler.unwrap().add(dataPacket)
+            if (display.isInvisible) {
+                val item = display.itemStack
+                display.itemStack = Items.AIR.defaultInstance
+                bundler.unwrap().add(dataPacket)
+                display.itemStack = item
+            } else {
+                bundler.unwrap().add(dataPacket)
+            }
         }
 
         private val dataPacket
@@ -452,6 +468,9 @@ class NMSImpl : NMS {
     override fun adapt(entity: LivingEntity): EntityAdapter {
         val handle = (entity as CraftLivingEntity).handle
         return object : EntityAdapter {
+            override fun invisible(): Boolean = handle.isInvisible || handle.hasEffect(MobEffects.INVISIBILITY)
+            override fun glow(): Boolean = handle.isCurrentlyGlowing
+
             override fun onWalk(): Boolean {
                 val delta = handle.deltaMovement.length()
                 val attribute = handle.attributes

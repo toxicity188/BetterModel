@@ -7,6 +7,7 @@ import org.bukkit.util.Transformation;
 import org.jetbrains.annotations.NotNull;
 
 public interface ModelDisplay extends AutoCloseable {
+    void sync(@NotNull EntityAdapter entity);
     void frame(int frame);
     void display(@NotNull ItemDisplay.ItemDisplayTransform transform);
     void spawn(@NotNull PacketBundler bundler);

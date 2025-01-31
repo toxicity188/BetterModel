@@ -41,7 +41,7 @@ private val DATA_ITEMS by lazy {
 
 @Suppress("UNCHECKED_CAST")
 fun SynchedEntityData.pack(): List<SynchedEntityData.DataValue<*>> {
-    if (BetterModel.IS_PAPER) return packAll()!!
+    if (BetterModel.IS_PAPER) return packAll()
     val list = arrayListOf<SynchedEntityData.DataValue<*>>()
     (DATA_ITEMS[this] as Array<DataItem<*>?>).forEach {
         list += (it ?: return@forEach).value()

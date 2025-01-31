@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -42,6 +43,8 @@ public abstract class Tracker implements AutoCloseable {
     @Getter
     private Supplier<TrackerMovement> movement = () -> new TrackerMovement(new Vector3f(), new Vector3f(1), new Vector3f());
 
+    private Consumer<Tracker> consumer = t -> {};
+
     /**
      * Tracker
      * @param instance target instance
@@ -49,6 +52,7 @@ public abstract class Tracker implements AutoCloseable {
     public Tracker(@NotNull RenderInstance instance) {
         this.instance = instance;
         task = BetterModel.inst().scheduler().asyncTaskTimer(1, 1, () -> {
+            consumer.accept(this);
             if (viewedPlayerSize() == 0) return;
             var bundle = BetterModel.inst().nms().createBundler();
             instance.move(isRunningSingleAnimation() && before != null && BetterModel.inst().configManager().lockOnPlayAnimation() ? before : (before = movement.get()), bundle);
@@ -58,6 +62,14 @@ public abstract class Tracker implements AutoCloseable {
         });
         tint(false);
         instance.filter(p -> EntityUtil.canSee(p.getLocation(), location()));
+    }
+
+    /**
+     * Runs consumer on tick.
+     * @param consumer consumer
+     */
+    public void tick(@NotNull Consumer<Tracker> consumer) {
+        this.consumer = this.consumer.andThen(consumer);
     }
 
     /**

@@ -14,6 +14,7 @@ import net.minecraft.world.InteractionHand.MAIN_HAND
 import net.minecraft.world.InteractionHand.OFF_HAND
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.damagesource.DamageSource
+import net.minecraft.world.effect.MobEffectInstance
 import net.minecraft.world.entity.*
 import net.minecraft.world.entity.ai.attributes.AttributeMap
 import net.minecraft.world.entity.ai.attributes.Attributes
@@ -29,6 +30,7 @@ import org.bukkit.craftbukkit.CraftServer
 import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.craftbukkit.entity.CraftLivingEntity
 import org.bukkit.entity.Entity
+import org.bukkit.event.entity.EntityPotionEffectEvent
 import org.joml.Vector3f
 
 class HitBoxImpl(
@@ -134,6 +136,31 @@ class HitBoxImpl(
         })
         if (!interact.call()) return InteractionResult.FAIL
         return delegate.interact(player, hand)
+    }
+
+    override fun addEffect(effectInstance: MobEffectInstance, cause: EntityPotionEffectEvent.Cause): Boolean {
+        return delegate.addEffect(effectInstance, cause)
+    }
+
+    override fun addEffect(effectInstance: MobEffectInstance, entity: net.minecraft.world.entity.Entity?): Boolean {
+        return delegate.addEffect(effectInstance, entity)
+    }
+
+    override fun addEffect(
+        effectInstance: MobEffectInstance,
+        entity: net.minecraft.world.entity.Entity?,
+        cause: EntityPotionEffectEvent.Cause
+    ): Boolean {
+        return delegate.addEffect(effectInstance, entity, cause)
+    }
+
+    override fun addEffect(
+        effectInstance: MobEffectInstance,
+        entity: net.minecraft.world.entity.Entity?,
+        cause: EntityPotionEffectEvent.Cause,
+        fireEvent: Boolean
+    ): Boolean {
+        return delegate.addEffect(effectInstance, entity, cause, fireEvent)
     }
 
     override fun hurtClient(source: DamageSource): Boolean {

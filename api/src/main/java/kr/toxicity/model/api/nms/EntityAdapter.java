@@ -6,6 +6,16 @@ import org.joml.Vector3f;
 public interface EntityAdapter {
     EntityAdapter EMPTY = new EntityAdapter() {
         @Override
+        public boolean invisible() {
+            return false;
+        }
+
+        @Override
+        public boolean glow() {
+            return false;
+        }
+
+        @Override
         public boolean onWalk() {
             return false;
         }
@@ -36,6 +46,8 @@ public interface EntityAdapter {
         }
     };
 
+    boolean invisible();
+    boolean glow();
     boolean onWalk();
     double scale();
     float pitch();
