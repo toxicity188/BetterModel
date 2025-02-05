@@ -54,21 +54,20 @@ public final class EntityUtil {
         else if (d <= manager.minSight()) return true;
 
         var playerYaw = toRadians(player.getYaw());
-        var playerPitch = toRadians(-player.getPitch());
+        var playerPitch = -toRadians(player.getPitch());
 
-        var dx = target.getZ() - player.getZ();
+        var dz = target.getZ() - player.getZ();
         var dy = target.getY() - player.getY();
-        var dz = -(target.getX() - player.getX());
+        var dx = target.getX() - player.getX();
 
-        var r = cos(playerYaw) * dx - sin(playerYaw) * dz;
-
-        var sinP = sin(playerPitch);
-        var cosP = cos(playerPitch);
+        var r = cos(playerYaw) * dz - sin(playerYaw) * dx;
 
         var ry = abs(atan2(dy, abs(r)) - playerPitch);
-        var rz = abs(atan2(dz, dx) - playerYaw);
-        var ty = PI - abs(atan(sinP * r + cosP * dy)) * 2 + Y_RENDER_THRESHOLD;
-        var tz = PI - abs(atan(cosP * r + sinP * dy)) * 2 + X_RENDER_THRESHOLD;
+        var rz = abs(atan2(-dx, dz) - playerYaw);
+
+        var t = PI - abs(atan(d)) * 2;
+        var ty = t + Y_RENDER_THRESHOLD;
+        var tz = t + X_RENDER_THRESHOLD;
         return (ry <= ty || ry >= PI * 2 - ty) && (rz <= tz || rz >= PI * 2 - tz);
     }
 

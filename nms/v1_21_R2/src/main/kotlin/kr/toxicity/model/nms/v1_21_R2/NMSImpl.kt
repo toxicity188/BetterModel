@@ -475,8 +475,8 @@ class NMSImpl : NMS {
             override fun onWalk(): Boolean {
                 val delta = handle.deltaMovement.length()
                 val attribute = handle.attributes
-                return if (handle.onGround) delta / (attribute.getInstance(Attributes.MOVEMENT_SPEED)?.value ?: 0.7) > 0.4
-                else delta / (attribute.getInstance(Attributes.FLYING_SPEED)?.value ?: 0.4) > 0.1
+                return if (handle.onGround) delta / (attribute.getInstance(Attributes.MOVEMENT_SPEED)?.value ?: 0.7) > 0.4 * scale()
+                else delta / (attribute.getInstance(Attributes.FLYING_SPEED)?.value ?: 0.4) > 0.1 * scale()
             }
 
             override fun scale(): Double {

@@ -61,7 +61,7 @@ public abstract class Tracker implements AutoCloseable {
             }
         });
         tint(false);
-        instance.filter(p -> EntityUtil.canSee(p.getLocation(), location()));
+        instance.filter(p -> EntityUtil.canSee(p.getEyeLocation(), location()));
     }
 
     /**

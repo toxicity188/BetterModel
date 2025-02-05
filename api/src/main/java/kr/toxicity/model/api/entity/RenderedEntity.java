@@ -448,7 +448,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
             else if (index() == lastIndex()) i = modifier().end();
             else i = 0;
             var nxt = iterator.next();
-            return i == 0 ? nxt : nxt.time(nxt.time() + i + 1);
+            return i == 0 ? nxt : nxt.time(nxt.time() + i);
         }
 
         @Override

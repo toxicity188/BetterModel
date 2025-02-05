@@ -5,15 +5,19 @@ import dev.jorel.commandapi.CommandAPIBukkitConfig
 import dev.jorel.commandapi.CommandAPICommand
 import dev.jorel.commandapi.arguments.ArgumentSuggestions
 import dev.jorel.commandapi.arguments.BooleanArgument
+import dev.jorel.commandapi.arguments.DoubleArgument
 import dev.jorel.commandapi.arguments.StringArgument
 import dev.jorel.commandapi.executors.CommandExecutionInfo
 import dev.jorel.commandapi.executors.PlayerCommandExecutor
 import kr.toxicity.model.api.BetterModelPlugin.ReloadResult.*
 import kr.toxicity.model.api.manager.CommandManager
+import kr.toxicity.model.util.ATTRIBUTE_SCALE
 import kr.toxicity.model.util.PLUGIN
 import org.bukkit.entity.EntityType
+import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import java.util.concurrent.CompletableFuture
+import kotlin.math.pow
 
 object CommandManagerImpl : CommandManager, GlobalManagerImpl {
     override fun start() {
@@ -30,11 +34,31 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                             ModelManagerImpl.keys().toTypedArray()
                         })
                     )
+                    .withOptionalArguments(StringArgument("type")
+                        .replaceSuggestions(ArgumentSuggestions.strings {
+                            EntityType.entries.map {
+                                it.name.lowercase()
+                            }.toTypedArray()
+                        })
+                    )
+                    .withOptionalArguments(DoubleArgument("scale")
+                        .replaceSuggestions(ArgumentSuggestions.strings((-2..2).map {
+                            4.0.pow(it.toDouble()).toString()
+                        }))
+                    )
                     .executesPlayer(PlayerCommandExecutor { player, args ->
                         val n = args["name"] as String
+                        val t = (args["type"] as? String)?.let {
+                            runCatching {
+                                EntityType.valueOf((args["type"] as String).uppercase())
+                            }.getOrDefault(EntityType.HUSK)
+                        } ?: EntityType.HUSK
+                        val s = args["scale"] as? Double ?: 1.0
                         val loc = player.location
                         ModelManagerImpl.renderer(n)
-                            ?.create(player.world.spawnEntity(player.location, EntityType.HUSK))
+                            ?.create((player.world.spawnEntity(player.location, t) as LivingEntity).apply {
+                                getAttribute(ATTRIBUTE_SCALE)?.baseValue = s
+                            })
                             ?.spawnNearby(loc)
                             ?: run {
                                 player.sendMessage("Unable to find this renderer: $n")
