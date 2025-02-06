@@ -78,9 +78,11 @@ class HitBoxImpl(
     }
 
     override fun remove(reason: RemovalReason) {
-        updatingSectionStatus = false
-        super.remove(reason)
-        listener.remove(this)
+        BetterModel.inst().scheduler().task(bukkitEntity.location) {
+            updatingSectionStatus = false
+            super.remove(reason)
+            listener.remove(this)
+        }
     }
 
     override fun getBukkitLivingEntity(): CraftLivingEntity {

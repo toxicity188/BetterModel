@@ -11,10 +11,11 @@ import kr.toxicity.model.api.data.blueprint.NamedBoundingBox
 import kr.toxicity.model.api.nms.*
 import kr.toxicity.model.api.tracker.EntityTracker
 import net.minecraft.network.Connection
-import net.minecraft.network.PacketListener
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.*
 import net.minecraft.network.syncher.EntityDataAccessor
+import net.minecraft.network.syncher.EntityDataSerializers
+import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerCommonPacketListenerImpl
 import net.minecraft.world.effect.MobEffects
@@ -86,10 +87,11 @@ class NMSImpl : NMS {
             (get(null) as EntityDataAccessor<*>).id
         }
 
+        private val sharedFlag = Entity::class.java.serializers().first().toSerializerId()
         private val itemId = ItemDisplay::class.java.serializers().first().toSerializerId()
         private val transformSet = Display::class.java.serializers().subList(0, 6).map { e ->
             e.toSerializerId()
-        }.toSet() + itemId + Entity::class.java.serializers().first().toSerializerId()
+        }.toSet() + itemId + sharedFlag
     }
 
     private class PacketBundlerImpl(
@@ -190,8 +192,11 @@ class NMSImpl : NMS {
             send(ClientboundSetPassengersPacket(handle))
         }
 
-        private fun <T : PacketListener> Packet<T>.handle(): Packet<T>? {
+        private fun <T : ClientGamePacketListener> Packet<in T>.handle(): Packet<in T>? {
             when (this) {
+                is ClientboundBundlePacket -> return ClientboundBundlePacket(subPackets().mapNotNull {
+                    it.handle()
+                })
                 is ClientboundAddEntityPacket -> {
                     id.toEntity()?.let { e ->
                         if (entityUUIDMap[e.uuid] != null) return this
@@ -224,19 +229,20 @@ class NMSImpl : NMS {
                             it.remove()
                         }
                 }
-                is ClientboundSetEntityDataPacket -> if (id.toTracker() != null) return null
+                is ClientboundSetEntityDataPacket -> if (id.toTracker() != null) return ClientboundSetEntityDataPacket(id, packedItems().map {
+                    if (it.id == sharedFlag) SynchedEntityData.DataValue<Byte>(
+                        it.id,
+                        EntityDataSerializers.BYTE,
+                        ((it.value() as Byte).toInt() or (1 shl 5) and (1 shl 6).inv()).toByte()
+                    ) else it
+                })
                 is ClientboundSetEquipmentPacket -> if (entity.toTracker() != null) return null
             }
             return this
         }
 
         override fun write(ctx: ChannelHandlerContext, msg: Any, promise: ChannelPromise) {
-            if (msg is ClientboundBundlePacket) {
-                super.write(ctx, ClientboundBundlePacket(msg.subPackets().mapNotNull {
-                    it.handle()
-                }), promise)
-                return
-            } else if (msg is Packet<*>) {
+            if (msg is Packet<*>) {
                 super.write(ctx, msg.handle() ?: return, promise)
                 return
             }
