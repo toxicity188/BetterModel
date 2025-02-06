@@ -6,9 +6,9 @@ import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.entity.RenderedEntity;
 import kr.toxicity.model.api.entity.TrackerMovement;
 import kr.toxicity.model.api.nms.HitBoxListener;
-import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
+import kr.toxicity.model.api.script.ScriptProcessor;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -40,6 +40,9 @@ public final class RenderInstance implements AutoCloseable {
     private final Map<UUID, PlayerChannelHandler> playerMap = new ConcurrentHashMap<>();
     private Predicate<Player> filter = p -> true;
     private Predicate<Player> spawnFilter = p -> !playerMap.containsKey(p.getUniqueId());
+
+    @Getter
+    private final ScriptProcessor scriptProcessor = new ScriptProcessor();
 
     public RenderInstance(@NotNull BlueprintRenderer parent, @NotNull Map<String, RenderedEntity> entityMap, @NotNull Map<String, BlueprintAnimation> animationMap) {
         this.parent = parent;
@@ -158,6 +161,7 @@ public final class RenderInstance implements AutoCloseable {
     public boolean animateLoop(@NotNull Predicate<RenderedEntity> filter, @NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
         var get = animationMap.get(animation);
         if (get == null) return false;
+        scriptProcessor.animateLoop(get.script(), modifier);
         for (RenderedEntity value : entityMap.values()) {
             value.addLoop(filter, animation, get, modifier, removeTask);
         }
@@ -167,6 +171,7 @@ public final class RenderInstance implements AutoCloseable {
     public boolean animateSingle(@NotNull Predicate<RenderedEntity> filter, @NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
         var get = animationMap.get(animation);
         if (get == null) return false;
+        scriptProcessor.animateSingle(get.script(), modifier);
         for (RenderedEntity value : entityMap.values()) {
             value.addSingle(filter, animation, get, modifier, removeTask);
         }
@@ -176,6 +181,7 @@ public final class RenderInstance implements AutoCloseable {
     public boolean replaceLoop(@NotNull Predicate<RenderedEntity> filter, @NotNull String target, @NotNull String animation) {
         var get = animationMap.get(animation);
         if (get == null) return false;
+        scriptProcessor.replaceLoop(get.script(), AnimationModifier.DEFAULT);
         for (RenderedEntity value : entityMap.values()) {
             value.replaceLoop(filter, target, animation, get);
         }
@@ -185,6 +191,7 @@ public final class RenderInstance implements AutoCloseable {
     public boolean replaceSingle(@NotNull Predicate<RenderedEntity> filter, @NotNull String target, @NotNull String animation) {
         var get = animationMap.get(animation);
         if (get == null) return false;
+        scriptProcessor.replaceSingle(get.script(), AnimationModifier.DEFAULT);
         for (RenderedEntity value : entityMap.values()) {
             value.replaceSingle(filter, target, animation, get);
         }
@@ -192,6 +199,7 @@ public final class RenderInstance implements AutoCloseable {
     }
 
     public void stopAnimation(@NotNull Predicate<RenderedEntity> filter, @NotNull String target) {
+        scriptProcessor.stopAnimation(target);
         for (RenderedEntity value : entityMap.values()) {
             value.stopAnimation(filter, target);
         }

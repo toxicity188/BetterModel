@@ -263,7 +263,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
     }
 
     private int frame() {
-        return keyFrame != null ? (int) keyFrame.time() : parent != null ? parent.frame() : 1;
+        return keyFrame != null ? (int) keyFrame.time() : parent != null ? parent.frame() : ANIMATION_THRESHOLD;
     }
 
     private EntityMovement defaultFrame() {
@@ -448,7 +448,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
             else if (index() == lastIndex()) i = modifier().end();
             else i = 0;
             var nxt = iterator.next();
-            return i == 0 ? nxt : nxt.time(nxt.time() + i);
+            return i == 0 ? nxt : new AnimationMovement(i, null, null, null);
         }
 
         @Override

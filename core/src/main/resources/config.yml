@@ -1,12 +1,13 @@
 debug:
   hitbox: false
+  exception: false
 metrics: true
 sight-trace: true
 item: leather_horse_armor
 max-sight: 45
 min-sight: 5
 lock-on-play-animation: true
-keyframe-threshold: 2
+keyframe-threshold: 1
 enable-player-limb: true
 namespace: "bettermodel"
 pack-type: folder #folder, zip

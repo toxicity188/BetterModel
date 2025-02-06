@@ -108,6 +108,13 @@ public class EntityTracker extends Tracker {
         });
         instance.setup(supplier.get());
         tick(t -> t.displays().forEach(d -> d.sync(adapter)));
+        tick(t -> {
+            var reader = t.instance.getScriptProcessor().getCurrentReader();
+            if (reader == null) return;
+            var script = reader.script();
+            if (script == null) return;
+            BetterModel.inst().scheduler().task(entity.getLocation(), () -> script.accept(entity));
+        });
     }
 
     @Override

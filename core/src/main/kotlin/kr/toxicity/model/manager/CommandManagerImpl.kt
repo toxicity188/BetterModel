@@ -11,8 +11,11 @@ import dev.jorel.commandapi.executors.CommandExecutionInfo
 import dev.jorel.commandapi.executors.PlayerCommandExecutor
 import kr.toxicity.model.api.BetterModelPlugin.ReloadResult.*
 import kr.toxicity.model.api.manager.CommandManager
+import kr.toxicity.model.api.nms.NMS
+import kr.toxicity.model.api.nms.NMSVersion
 import kr.toxicity.model.util.ATTRIBUTE_SCALE
 import kr.toxicity.model.util.PLUGIN
+import kr.toxicity.model.util.handleException
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
@@ -57,7 +60,7 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                         val loc = player.location
                         ModelManagerImpl.renderer(n)
                             ?.create((player.world.spawnEntity(player.location, t) as LivingEntity).apply {
-                                getAttribute(ATTRIBUTE_SCALE)?.baseValue = s
+                                if (PLUGIN.nms().version() >= NMSVersion.V1_21_R1) getAttribute(ATTRIBUTE_SCALE)?.baseValue = s
                             })
                             ?.spawnNearby(loc)
                             ?: run {
@@ -74,7 +77,8 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                                 is Success -> it.sender().sendMessage("Reload completed (${result.time} ms)")
                                 is Failure -> {
                                     it.sender().sendMessage("Reload failed.")
-                                    it.sender().sendMessage("Reason: ${result.throwable.message ?: result.throwable.javaClass.simpleName}")
+                                    it.sender().sendMessage("Please read the log to find the problem.")
+                                    result.throwable.handleException("Reload failed.")
                                 }
                             }
                         }
@@ -122,7 +126,7 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
             )
             .executes(CommandExecutionInfo {
                 it.sender().sendMessage("/bettermodel reload - reloads this plugin.")
-                it.sender().sendMessage("/bettermodel summon <model> - summons some model to husk.")
+                it.sender().sendMessage("/bettermodel summon <model> [type] [scale] - summons some model to given type.")
                 it.sender().sendMessage("/bettermodel limb <true/false> - toggles whether sender can see some player's animation.")
                 it.sender().sendMessage("/bettermodel play <model> <animation> - plays player animation.")
             })

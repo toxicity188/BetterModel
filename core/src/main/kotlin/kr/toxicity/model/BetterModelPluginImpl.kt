@@ -1,6 +1,7 @@
 package kr.toxicity.model
 
 import kr.toxicity.model.api.BetterModel
+import kr.toxicity.model.api.BetterModelLogger
 import kr.toxicity.model.api.BetterModelPlugin.ReloadResult.*
 import kr.toxicity.model.api.BetterModelPlugin
 import kr.toxicity.model.api.BetterModelPlugin.ReloadResult
@@ -12,7 +13,10 @@ import kr.toxicity.model.api.version.MinecraftVersion.*
 import kr.toxicity.model.manager.*
 import kr.toxicity.model.scheduler.PaperScheduler
 import kr.toxicity.model.scheduler.StandardScheduler
+import kr.toxicity.model.util.PLUGIN
 import kr.toxicity.model.util.forEachAsync
+import kr.toxicity.model.util.handleException
+import kr.toxicity.model.util.info
 import kr.toxicity.model.util.warn
 import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
@@ -35,11 +39,30 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
             ModelManagerImpl,
             PlayerManagerImpl,
             EntityManagerImpl,
+            ScriptManagerImpl,
             CommandManagerImpl
         )
     }
 
     private val scheduler = if (BetterModel.IS_PAPER) PaperScheduler() else StandardScheduler()
+    private val log = object : BetterModelLogger {
+        override fun info(vararg message: String) {
+            val logger = logger
+            synchronized(logger) {
+                for (s in message) {
+                    logger.info(s)
+                }
+            }
+        }
+        override fun warn(vararg message: String) {
+            val logger = logger
+            synchronized(logger) {
+                for (s in message) {
+                    logger.warning(s)
+                }
+            }
+        }
+    }
 
     private val reloadStartTask = arrayListOf<() -> Unit>()
     private val reloadEndTask = arrayListOf<(ReloadResult) -> Unit>()
@@ -68,7 +91,11 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
             }
         }
         managers.forEach(GlobalManagerImpl::start)
-        reload()
+        when (val result = reload()) {
+            is Failure -> result.throwable.handleException("Unable to load plugin properly.")
+            is OnReload -> throw RuntimeException("Plugin load failed.")
+            is Success -> info("Plugin is loaded (${result.time} ms)")
+        }
     }
 
     override fun onDisable() {
@@ -108,6 +135,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
         }
     }
 
+    override fun logger(): BetterModelLogger = log
     override fun scheduler(): ModelScheduler = scheduler
     override fun modelManager(): ModelManager = ModelManagerImpl
     override fun playerManager(): PlayerManager = PlayerManagerImpl
@@ -115,6 +143,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
     override fun commandManager(): CommandManager = CommandManagerImpl
     override fun compatibilityManager(): CompatibilityManager = CompatibilityManagerImpl
     override fun configManager(): ConfigManager = ConfigManagerImpl
+    override fun scriptManager(): ScriptManager = ScriptManagerImpl
 
     override fun version(): MinecraftVersion = version
     override fun nms(): NMS = nms

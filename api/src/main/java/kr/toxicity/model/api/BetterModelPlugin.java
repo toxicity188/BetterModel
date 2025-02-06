@@ -55,6 +55,11 @@ public interface BetterModelPlugin {
      */
     @NotNull CommandManager commandManager();
     /**
+     * Gets script manager.
+     * @return script manager
+     */
+    @NotNull ScriptManager scriptManager();
+    /**
      * Gets compatibility manager.
      * @return compatibility manager
      */
@@ -78,6 +83,12 @@ public interface BetterModelPlugin {
      * Adds event handler on reload end.
      */
     void addReloadEndHandler(@NotNull Consumer<ReloadResult> consumer);
+
+    /**
+     * Gets logger
+     * @return logger
+     */
+    @NotNull BetterModelLogger logger();
 
     /**
      * A result of reload.

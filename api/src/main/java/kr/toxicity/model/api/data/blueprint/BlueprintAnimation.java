@@ -4,6 +4,7 @@ import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.raw.ModelAnimation;
 import kr.toxicity.model.api.data.raw.ModelAnimator;
 import kr.toxicity.model.api.data.raw.ModelKeyframe;
+import kr.toxicity.model.api.script.BlueprintScript;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 import org.joml.Vector3f;
@@ -21,7 +22,8 @@ public record BlueprintAnimation(
         @NotNull String name,
         int length,
         @NotNull @Unmodifiable Map<String, BlueprintAnimator> animator,
-        List<AnimationMovement> emptyAnimator
+        @NotNull BlueprintScript script,
+        @NotNull List<AnimationMovement> emptyAnimator
 ) {
     /**
      * Converts from raw animation.
@@ -31,6 +33,7 @@ public record BlueprintAnimation(
     public static @NotNull BlueprintAnimation from(@NotNull ModelAnimation animation) {
         var map = new HashMap<String, BlueprintAnimator>();
         var length = Math.round(animation.length() * 20);
+        BlueprintScript blueprintScript = BlueprintScript.emptyOf(animation);
         for (Map.Entry<String, ModelAnimator> entry : animation.animators().entrySet()) {
             var builder = new BlueprintAnimator.Builder(length);
             var frameList = new ArrayList<>(entry.getValue().keyframes());
@@ -39,10 +42,13 @@ public record BlueprintAnimation(
                 builder.addFrame(keyframe);
             }
             var name = entry.getValue().name();
-            map.put(name, builder.build(name));
+            if (entry.getKey().equals("effects")) {
+                blueprintScript = BlueprintScript.from(animation, entry.getValue());
+            }
+            else map.put(name, builder.build(name));
         }
         var newMap = newMap(map);
-        return new BlueprintAnimation(animation.name(), length, newMap, newMap.values()
+        return new BlueprintAnimation(animation.name(), length, newMap, blueprintScript, newMap.values()
                 .iterator()
                 .next()
                 .keyFrame()
@@ -68,6 +74,7 @@ public record BlueprintAnimation(
 
     private static @NotNull List<AnimationMovement> getAnimationMovements(Set<Long> longSet, Map.Entry<String, BlueprintAnimator> entry) {
         var frame = entry.getValue().keyFrame();
+        if (frame.isEmpty()) return Collections.emptyList();
         var list = new ArrayList<AnimationMovement>();
         for (long l : longSet) {
             list.add(getFrame(frame, (int) l));

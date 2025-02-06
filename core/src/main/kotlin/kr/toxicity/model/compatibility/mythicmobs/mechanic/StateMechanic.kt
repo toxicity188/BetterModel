@@ -13,7 +13,7 @@ class StateMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().s
 
     private val s = mlc.getString(arrayOf("state", "s"))!!
     private val li = mlc.getInteger(arrayOf("li"), 0)
-    private val lo = mlc.getInteger(arrayOf("lo"), 0)
+    private val lo = mlc.getInteger(arrayOf("lo"), 1)
 
     init {
         isAsyncSafe = false

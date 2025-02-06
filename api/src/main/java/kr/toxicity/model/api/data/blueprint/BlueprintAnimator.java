@@ -120,7 +120,7 @@ public record BlueprintAnimator(@NotNull String name, int length, @NotNull @Unmo
                 r = rotation.size() > ri ? rotation.get(ri) : null;
                 beforeTime = min;
             }
-            if (beforeTime < length) {
+            if (beforeTime < length && !list.isEmpty()) {
                 var last = list.getLast();
                 list.add(new AnimationMovement(
                         length,

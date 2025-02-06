@@ -16,6 +16,15 @@ public record ModelKeyframe(
         @NotNull @SerializedName("data_points") List<Datapoint> dataPoints,
         float time
 ) implements Comparable<ModelKeyframe> {
+
+    public @NotNull ModelKeyframe time(float time) {
+        return new ModelKeyframe(
+                channel,
+                dataPoints,
+                time
+        );
+    }
+
     @Override
     public int compareTo(@NotNull ModelKeyframe o) {
         return Float.compare(time, o.time);
