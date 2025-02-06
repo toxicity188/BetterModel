@@ -13,6 +13,8 @@ import org.jetbrains.annotations.NotNull;
 public record ModelTexture(
         @NotNull String name,
         @NotNull String source,
+        int width,
+        int height,
         @SerializedName("uv_width") int uvWidth,
         @SerializedName("uv_height") int uvHeight
 ) {

@@ -29,7 +29,7 @@ public record ModelBlueprint(
             list.add(children);
         }
         return new ModelBlueprint(
-                name,
+                name.toLowerCase(),
                 scale,
                 data.resolution(),
                 data.textures().stream().map(BlueprintTexture::from).toList(),
@@ -41,7 +41,7 @@ public record ModelBlueprint(
     public @NotNull List<BlueprintImage> buildImage() {
         var list = new ArrayList<BlueprintImage>();
         for (BlueprintTexture texture : textures) {
-            list.add(new BlueprintImage(name + "_" + texture.name(), texture.image()));
+            list.add(new BlueprintImage(name + "_" + texture.name(), texture.image(), texture.isAnimatedTexture() ? texture.toMcmeta() : null));
         }
         return list;
     }

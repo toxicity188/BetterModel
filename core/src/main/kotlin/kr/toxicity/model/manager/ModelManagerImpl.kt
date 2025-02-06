@@ -130,6 +130,11 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                     zipper.add(texturesPath, "${image.name}.png") {
                         image.image.toByteArray()
                     }
+                    image.mcmeta()?.let { meta ->
+                        zipper.add(texturesPath, "${image.name}.png.mcmeta") {
+                            meta.toByteArray()
+                        }
+                    }
                 }
                 val jsonList = arrayListOf<BlueprintJson>()
                 val modernJsonList = arrayListOf<BlueprintJson>()

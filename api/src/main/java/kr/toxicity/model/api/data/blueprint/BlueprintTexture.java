@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.data.blueprint;
 
+import com.google.gson.JsonObject;
 import kr.toxicity.model.api.data.raw.ModelResolution;
 import kr.toxicity.model.api.data.raw.ModelTexture;
 import kr.toxicity.model.api.util.PackUtil;
@@ -34,6 +35,19 @@ public record BlueprintTexture(
                 blueprint.uvWidth(),
                 blueprint.uvHeight()
         );
+    }
+
+    public boolean isAnimatedTexture() {
+        return uvHeight != 0 && uvWidth != 0 && image.getHeight() / uvHeight / (image.getWidth() / uvWidth) > 1;
+    }
+
+    public @NotNull JsonObject toMcmeta() {
+        var json = new JsonObject();
+        var animation = new JsonObject();
+        animation.addProperty("interpolate", true);
+        animation.addProperty("frametime", 10);
+        json.add("animation", animation);
+        return json;
     }
 
     public @NotNull ModelResolution resolution() {
