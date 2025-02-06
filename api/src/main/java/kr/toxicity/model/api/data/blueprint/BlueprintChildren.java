@@ -58,7 +58,7 @@ public sealed interface BlueprintChildren {
          * @return name
          */
         public @NotNull String jsonName(@NotNull ModelBlueprint parent) {
-            return parent.name() + "_" + name;
+            return parent.name().toLowerCase() + "_" + name.toLowerCase();
         }
 
         /**
@@ -75,7 +75,7 @@ public sealed interface BlueprintChildren {
                     list.add(element);
                 }
             }
-            return buildJson(2, 1, parent, Float3.ZERO, list);
+            return buildJson(-2, 1, parent, Float3.ZERO, list);
         }
 
         /**

@@ -29,7 +29,7 @@ public record BlueprintTexture(
             throw new RuntimeException("image");
         }
         return new BlueprintTexture(
-                blueprint.name().split("\\.")[0],
+                blueprint.name().split("\\.")[0].toLowerCase(),
                 image,
                 blueprint.uvWidth(),
                 blueprint.uvHeight()
