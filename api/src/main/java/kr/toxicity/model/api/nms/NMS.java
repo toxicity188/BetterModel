@@ -8,7 +8,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Vector3f;
+import org.jetbrains.annotations.Nullable;
 
 public interface NMS {
     @NotNull ModelDisplay create(@NotNull Location location);
@@ -17,7 +17,7 @@ public interface NMS {
     @NotNull ItemStack tint(@NotNull ItemStack itemStack, boolean toggle);
     void mount(@NotNull EntityTracker tracker, @NotNull PacketBundler bundler);
     void hide(@NotNull Player player, @NotNull Entity entity);
-    @NotNull HitBox createHitBox(@NotNull Entity entity, @NotNull TransformSupplier supplier, @NotNull NamedBoundingBox namedBoundingBox, @NotNull HitBoxListener source);
+    @Nullable HitBox createHitBox(@NotNull EntityAdapter entity, @NotNull TransformSupplier supplier, @NotNull NamedBoundingBox namedBoundingBox, @NotNull HitBoxListener source);
     @NotNull NMSVersion version();
     @NotNull EntityAdapter adapt(@NotNull LivingEntity entity);
     boolean isSlim(@NotNull Player player);

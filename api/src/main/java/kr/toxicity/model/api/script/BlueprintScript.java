@@ -42,22 +42,24 @@ public record BlueprintScript(@NotNull String name, int length, @NotNull List<Ti
         @Nullable EntityScript script();
     }
 
-    public @NotNull ScriptReader single(int delay) {
-        return new SingleScriptReader(delay);
+    public @NotNull ScriptReader single(int delay, float speed) {
+        return new SingleScriptReader(delay, speed);
     }
 
-    public @NotNull ScriptReader loop(int delay) {
-        return new LoopScriptReader(delay);
+    public @NotNull ScriptReader loop(int delay, float speed) {
+        return new LoopScriptReader(delay, speed);
     }
 
     private class SingleScriptReader implements ScriptReader {
 
         private final int initialDelay;
         private int index, delay;
+        private final float speed;
         private @Nullable EntityScript script;
 
-        private SingleScriptReader(int initialDelay) {
+        private SingleScriptReader(int initialDelay, float speed) {
             this.initialDelay = delay = initialDelay;
+            this.speed = speed;
         }
 
         @Override
@@ -73,7 +75,7 @@ public record BlueprintScript(@NotNull String name, int length, @NotNull List<Ti
                     return true;
                 }
                 var next = scripts.get(index++);
-                delay = next.time();
+                delay = Math.round((float) next.time() / speed);
                 script = next.script();
             } else {
                 script = null;
@@ -91,10 +93,12 @@ public record BlueprintScript(@NotNull String name, int length, @NotNull List<Ti
 
         private final int initialDelay;
         private int index, delay;
+        private final float speed;
         private @Nullable EntityScript script;
 
-        private LoopScriptReader(int initialDelay) {
+        private LoopScriptReader(int initialDelay, float speed) {
             this.initialDelay = delay = initialDelay;
+            this.speed = speed;
         }
 
         @Override
@@ -107,13 +111,13 @@ public record BlueprintScript(@NotNull String name, int length, @NotNull List<Ti
         public boolean tick() {
             if (--delay <= 0) {
                 if (index >= scripts.size()) {
-                    delay = length;
+                    delay = Math.round((float) length / speed);
                     index = 0;
                     script = null;
                     return false;
                 }
                 var next = scripts.get(index++);
-                delay = next.time();
+                delay = Math.round((float) next.time() / speed);
                 script = next.script();
             } else {
                 script = null;

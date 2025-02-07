@@ -343,7 +343,7 @@ class NMSImpl : NMS {
 
         override fun sync(entity: EntityAdapter) {
             display.setGlowingTag(entity.glow())
-            display.isInvisible = entity.invisible()
+            if (BetterModel.inst().configManager().followMobInvisibility()) display.isInvisible = entity.invisible()
         }
 
         override fun close() {
@@ -451,9 +451,9 @@ class NMSImpl : NMS {
         return itemStack
     }
 
-    override fun createHitBox(entity: org.bukkit.entity.Entity, supplier: TransformSupplier, namedBoundingBox: NamedBoundingBox, listener: HitBoxListener): HitBox {
-        val handle = (entity as CraftLivingEntity).handle
-        val scale = adapt(entity).scale()
+    override fun createHitBox(entity: EntityAdapter, supplier: TransformSupplier, namedBoundingBox: NamedBoundingBox, listener: HitBoxListener): HitBox? {
+        val handle = (entity.entity() as? CraftLivingEntity)?.handle ?: return null
+        val scale = entity.scale()
         val newBox = namedBoundingBox.center() * scale
         val height = newBox.length() / 2
         return HitBoxImpl(
@@ -474,6 +474,7 @@ class NMSImpl : NMS {
     override fun adapt(entity: LivingEntity): EntityAdapter {
         val handle = (entity as CraftLivingEntity).handle
         return object : EntityAdapter {
+            override fun entity(): LivingEntity = entity
             override fun invisible(): Boolean = handle.isInvisible || handle.hasEffect(MobEffects.INVISIBILITY)
             override fun glow(): Boolean = handle.isCurrentlyGlowing
 

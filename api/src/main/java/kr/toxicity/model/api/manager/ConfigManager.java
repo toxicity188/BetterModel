@@ -18,6 +18,7 @@ public interface ConfigManager {
     @NotNull PackType packType();
     @NotNull String buildFolderLocation();
     boolean disableGeneratingLegacyModels();
+    boolean followMobInvisibility();
 
     enum PackType {
         FOLDER,

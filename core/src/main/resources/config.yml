@@ -13,3 +13,4 @@ namespace: "bettermodel"
 pack-type: folder #folder, zip
 build-folder-location: BetterModel/build
 disable-generating-legacy-models: false
+follow-mob-invisibility: true

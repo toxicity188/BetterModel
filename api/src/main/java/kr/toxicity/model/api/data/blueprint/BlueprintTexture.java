@@ -38,7 +38,7 @@ public record BlueprintTexture(
     }
 
     public boolean isAnimatedTexture() {
-        return uvHeight != 0 && uvWidth != 0 && image.getHeight() / uvHeight / (image.getWidth() / uvWidth) > 1;
+        return uvHeight != 0 && uvWidth != 0 && image.getHeight() / uvHeight / Math.max(image.getWidth() / uvWidth, 1) > 1;
     }
 
     public @NotNull JsonObject toMcmeta() {

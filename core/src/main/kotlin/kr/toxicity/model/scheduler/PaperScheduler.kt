@@ -31,9 +31,9 @@ class PaperScheduler : ModelScheduler {
 
     override fun asyncTaskLater(delay: Long, runnable: Runnable) = Bukkit.getAsyncScheduler().runDelayed(PLUGIN, {
         runnable.run()
-    }, delay * 50, TimeUnit.MILLISECONDS).wrap()
+    }, (delay * 50).coerceAtLeast(1), TimeUnit.MILLISECONDS).wrap()
 
     override fun asyncTaskTimer(delay: Long, period: Long, runnable: Runnable) = Bukkit.getAsyncScheduler().runAtFixedRate(PLUGIN, {
         runnable.run()
-    }, delay * 50, period * 50, TimeUnit.MILLISECONDS).wrap()
+    }, (delay * 50).coerceAtLeast(1), (period * 50).coerceAtLeast(1), TimeUnit.MILLISECONDS).wrap()
 }

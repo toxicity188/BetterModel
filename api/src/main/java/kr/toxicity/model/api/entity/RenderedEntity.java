@@ -8,10 +8,10 @@ import kr.toxicity.model.api.data.renderer.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.RendererGroup;
 import kr.toxicity.model.api.nms.*;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Transformation;
@@ -97,7 +97,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
      * @param listener hit box listener
      */
     @ApiStatus.Internal
-    public void createHitBox(@NotNull Entity entity, @NotNull Predicate<RenderedEntity> predicate, @Nullable HitBoxListener listener) {
+    public void createHitBox(@NotNull EntityAdapter entity, @NotNull Predicate<RenderedEntity> predicate, @Nullable HitBoxListener listener) {
         var h = group.getHitBox();
         if (h != null && predicate.test(this)) {
             var l = listener;
@@ -206,13 +206,14 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
     }
 
     public void move(@NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
+        updateAnimation();
         var d = display;
         if (delay <= 0) {
             var f = frame();
             delay = f;
             var entityMovement = lastTransform = (lastMovement = movement.copy()).plus(relativeOffset().plus(defaultPosition));
             if (d != null) {
-                d.frame(Math.max(f, ANIMATION_THRESHOLD));
+                d.frame(f <= 0 ? 0 : Math.max(f, ANIMATION_THRESHOLD));
                 setup(entityMovement);
                 d.send(bundler);
             }
@@ -221,7 +222,6 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
         for (RenderedEntity e : children.values()) {
             e.move(movement, bundler);
         }
-        updateAnimation();
     }
     public void forceUpdate(@NotNull PacketBundler bundler) {
         var d = display;
@@ -263,11 +263,11 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
     }
 
     private int frame() {
-        return keyFrame != null ? (int) keyFrame.time() : parent != null ? parent.frame() : ANIMATION_THRESHOLD;
+        return keyFrame != null ? (int) keyFrame.time() : parent != null ? parent.frame() : 1;
     }
 
     private EntityMovement defaultFrame() {
-        var k = keyFrame != null ? keyFrame.copyNotNull() : new AnimationMovement(0, new Vector3f(), new Vector3f(), new Vector3f());
+        var k = keyFrame != null ? keyFrame.copyNotNull() : new AnimationMovement(1, new Vector3f(), new Vector3f(), new Vector3f());
         for (Consumer<AnimationMovement> consumer : movementModifier) {
             consumer.accept(k);
         }
@@ -368,7 +368,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
             synchronized (animators) {
                 var v = animators.get(target);
                 if (v != null) animators.replace(target, get != null ? new TreeIterator(parent, get.loopIterator(), v.modifier, v.removeTask) : new TreeIterator(parent, animator.emptyLoopIterator(), v.modifier, v.removeTask));
-                else animators.replace(target, get != null ? new TreeIterator(parent, get.loopIterator(), AnimationModifier.DEFAULT, () -> {}) : new TreeIterator(parent, animator.emptyLoopIterator(), AnimationModifier.DEFAULT, () -> {}));
+                else animators.replace(target, get != null ? new TreeIterator(parent, get.loopIterator(), AnimationModifier.DEFAULT_LOOP, () -> {}) : new TreeIterator(parent, animator.emptyLoopIterator(), AnimationModifier.DEFAULT_LOOP, () -> {}));
             }
         }
         children.values().forEach(c -> c.replaceLoop(filter, target, parent, animator));
@@ -409,12 +409,20 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
         }
     }
 
-    private record TreeIterator(
-            String name,
-            BlueprintAnimator.AnimatorIterator iterator,
-            AnimationModifier modifier,
-            Runnable removeTask
-    ) implements BlueprintAnimator.AnimatorIterator, Supplier<Boolean>, Runnable {
+    @RequiredArgsConstructor
+    private static class TreeIterator implements BlueprintAnimator.AnimatorIterator, Supplier<Boolean>, Runnable {
+        private final String name;
+        private final BlueprintAnimator.AnimatorIterator iterator;
+        private final AnimationModifier modifier;
+        private final Runnable removeTask;
+        private boolean started = false;
+        private boolean ended = false;
+
+        @NotNull
+        @Override
+        public AnimationMovement first() {
+            return iterator.first();
+        }
 
         @Override
         public int index() {
@@ -438,21 +446,27 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
 
         @Override
         public boolean hasNext() {
-            return iterator.hasNext();
+            return iterator.hasNext() || (modifier.end() > 0 && !ended);
         }
 
         @Override
         public AnimationMovement next() {
-            int i;
-            if (index() == 0) i = modifier().start();
-            else if (index() == lastIndex()) i = modifier().end();
-            else i = 0;
+            if (!started) {
+                started = true;
+                return first().time(modifier.start());
+            }
+            if (!iterator.hasNext()) {
+                ended = true;
+                return new AnimationMovement(modifier.end(), null, null, null);
+            }
             var nxt = iterator.next();
-            return i == 0 ? nxt : new AnimationMovement(i, null, null, null);
+            var spd = modifier.speed((int) nxt.time());
+            return nxt.time(Math.max(spd, 1));
         }
 
         @Override
         public void clear() {
+            started = ended = false;
             iterator.clear();
         }
 

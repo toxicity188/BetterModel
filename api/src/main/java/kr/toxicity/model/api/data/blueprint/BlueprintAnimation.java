@@ -116,6 +116,7 @@ public record BlueprintAnimation(
     private static @NotNull List<AnimationMovement> processFrame(@NotNull List<AnimationMovement> target) {
         if (target.size() <= 1) return target;
         var list = new ArrayList<AnimationMovement>();
+        list.add(target.getFirst());
         for (int i = 1; i < target.size(); i++) {
             var get = target.get(i);
             list.add(get.time(get.time() - target.get(i - 1).time()));
@@ -130,8 +131,13 @@ public record BlueprintAnimation(
     public BlueprintAnimator.AnimatorIterator emptyLoopIterator() {
         return new BlueprintAnimator.AnimatorIterator() {
 
-            private int index = 0;
+            @NotNull
+            @Override
+            public AnimationMovement first() {
+                return new AnimationMovement(0, null, null, null);
+            }
 
+            private int index = 0;
 
             @Override
             public int index() {
@@ -174,6 +180,12 @@ public record BlueprintAnimation(
         return new BlueprintAnimator.AnimatorIterator() {
 
             private int index = 0;
+
+            @NotNull
+            @Override
+            public AnimationMovement first() {
+                return new AnimationMovement(0, null, null, null);
+            }
 
             @Override
             public int index() {

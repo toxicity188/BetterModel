@@ -20,10 +20,11 @@ public final class VoidTracker extends Tracker {
      * Void tracker.
      * @param uuid uuid
      * @param instance render instance.
+     * @param modifier modifier
      * @param location initial location.
      */
-    public VoidTracker(@NotNull UUID uuid, @NotNull RenderInstance instance, @NotNull Location location) {
-        super(instance);
+    public VoidTracker(@NotNull UUID uuid, @NotNull RenderInstance instance, @NotNull TrackerModifier modifier, @NotNull Location location) {
+        super(instance, modifier);
         this.uuid = uuid;
         this.location = location;
     }

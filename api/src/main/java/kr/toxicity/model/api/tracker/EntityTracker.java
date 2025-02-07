@@ -69,7 +69,7 @@ public class EntityTracker extends Tracker {
                     return;
                 }
                 var renderer = BetterModel.inst().modelManager().renderer(name);
-                if (renderer != null) renderer.create(target).spawnNearby(loc);
+                if (renderer != null) renderer.create(target, value.modifier()).spawnNearby(loc);
             });
         }
     }
@@ -78,10 +78,11 @@ public class EntityTracker extends Tracker {
         return TRACKER_MAP.values().stream().filter(predicate).toList();
     }
 
-    public EntityTracker(@NotNull Entity entity, @NotNull RenderInstance instance) {
-        super(instance);
+    public EntityTracker(@NotNull Entity entity, @NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
+        super(instance, modifier);
         this.entity = entity;
-        adapter = entity instanceof LivingEntity livingEntity ? BetterModel.inst().nms().adapt(livingEntity) : EntityAdapter.EMPTY;
+        adapter = (entity instanceof LivingEntity livingEntity ? BetterModel.inst().nms().adapt(livingEntity) : EntityAdapter.EMPTY)
+                .multiply(modifier.scale());
         instance.defaultPosition(new Vector3f(0, -adapter.passengerPosition().y, 0));
         instance.addAnimationMovementModifier(
                 r -> r.getName().startsWith("h_"),
@@ -94,7 +95,7 @@ public class EntityTracker extends Tracker {
                         ), 0);
                     }
                 });
-        instance.animateLoop("walk", new AnimationModifier(adapter::onWalk, 0, 0));
+        instance.animateLoop("walk", new AnimationModifier(adapter::onWalk, 4, 4, 1F));
         Supplier<TrackerMovement> supplier = () -> new TrackerMovement(
                 new Vector3f(0, 0, 0F),
                 new Vector3f((float) adapter.scale()),
@@ -106,7 +107,7 @@ public class EntityTracker extends Tracker {
         BetterModel.inst().scheduler().task(entity.getLocation(), () -> {
             if (!closed.get() && !forRemoval()) createHitBox();
         });
-        instance.setup(supplier.get());
+        instance.setup(getMovement().get());
         tick(t -> t.displays().forEach(d -> d.sync(adapter)));
         tick(t -> {
             var reader = t.instance.getScriptProcessor().getCurrentReader();
@@ -131,7 +132,7 @@ public class EntityTracker extends Tracker {
     }
 
     public void createHitBox(@NotNull Predicate<RenderedEntity> predicate, @NotNull HitBoxListener listener) {
-        instance.createHitBox(entity, predicate, listener);
+        instance.createHitBox(adapter, predicate, listener);
     }
 
     public void forRemoval(boolean removal) {
@@ -199,7 +200,7 @@ public class EntityTracker extends Tracker {
     }
 
     public void refresh() {
-        instance.createHitBox(entity, r -> r.getHitBox() != null, null);
+        instance.createHitBox(adapter, r -> r.getHitBox() != null, null);
         var bundler = BetterModel.inst().nms().createBundler();
         BetterModel.inst().nms().mount(this, bundler);
         if (!bundler.isEmpty()) for (Player player : viewedPlayer()) {

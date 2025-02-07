@@ -39,9 +39,10 @@ public abstract class Tracker implements AutoCloseable {
     private final AtomicBoolean runningSingle = new AtomicBoolean();
 
     private TrackerMovement before;
+    private final TrackerModifier modifier;
 
     @Getter
-    private Supplier<TrackerMovement> movement = () -> new TrackerMovement(new Vector3f(), new Vector3f(1), new Vector3f());
+    private Supplier<TrackerMovement> movement;
 
     private Consumer<Tracker> consumer = t -> {};
 
@@ -49,11 +50,12 @@ public abstract class Tracker implements AutoCloseable {
      * Tracker
      * @param instance target instance
      */
-    public Tracker(@NotNull RenderInstance instance) {
+    public Tracker(@NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
         this.instance = instance;
-        task = BetterModel.inst().scheduler().asyncTaskTimer(1, 1, () -> {
+        this.modifier = modifier;
+        this.movement = () -> new TrackerMovement(new Vector3f(), new Vector3f(modifier.scale()), new Vector3f());
+        task = BetterModel.inst().scheduler().asyncTaskTimer(0, 1, () -> {
             consumer.accept(this);
-            if (viewedPlayerSize() == 0) return;
             var bundle = BetterModel.inst().nms().createBundler();
             instance.move(isRunningSingleAnimation() && before != null && BetterModel.inst().configManager().lockOnPlayAnimation() ? before : (before = movement.get()), bundle);
             if (!bundle.isEmpty()) for (Player player : instance.viewedPlayer()) {
@@ -102,6 +104,10 @@ public abstract class Tracker implements AutoCloseable {
     public void setMovement(Supplier<TrackerMovement> movement) {
         instance.lastMovement(movement.get());
         this.movement = movement;
+    }
+
+    public @NotNull TrackerModifier modifier() {
+        return modifier;
     }
 
     /**
@@ -167,7 +173,7 @@ public abstract class Tracker implements AutoCloseable {
     public abstract @NotNull UUID uuid();
 
     public boolean animateLoop(@NotNull String animation) {
-        return animateLoop(animation, AnimationModifier.DEFAULT);
+        return animateLoop(animation, AnimationModifier.DEFAULT_LOOP);
     }
 
     public boolean animateLoop(@NotNull String animation, AnimationModifier modifier) {

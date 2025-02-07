@@ -5,13 +5,13 @@ import kr.toxicity.model.api.data.blueprint.AnimationMovement;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.entity.RenderedEntity;
 import kr.toxicity.model.api.entity.TrackerMovement;
+import kr.toxicity.model.api.nms.EntityAdapter;
 import kr.toxicity.model.api.nms.HitBoxListener;
 import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.script.ScriptProcessor;
 import lombok.Getter;
 import org.bukkit.Location;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
@@ -64,7 +64,7 @@ public final class RenderInstance implements AutoCloseable {
         this.spawnFilter = this.spawnFilter.and(spawnFilter);
     }
 
-    public void createHitBox(@NotNull Entity entity, @NotNull Predicate<RenderedEntity> predicate, @Nullable HitBoxListener listener) {
+    public void createHitBox(@NotNull EntityAdapter entity, @NotNull Predicate<RenderedEntity> predicate, @Nullable HitBoxListener listener) {
         for (RenderedEntity value : entityMap.values()) {
             value.createHitBox(entity, predicate, listener);
         }
@@ -144,7 +144,7 @@ public final class RenderInstance implements AutoCloseable {
 
 
     public boolean animateLoop(@NotNull String animation) {
-        return animateLoop(e -> true, animation, AnimationModifier.DEFAULT, () -> {});
+        return animateLoop(e -> true, animation, AnimationModifier.DEFAULT_LOOP, () -> {});
     }
 
     public boolean animateSingle(@NotNull String animation) {
@@ -181,7 +181,7 @@ public final class RenderInstance implements AutoCloseable {
     public boolean replaceLoop(@NotNull Predicate<RenderedEntity> filter, @NotNull String target, @NotNull String animation) {
         var get = animationMap.get(animation);
         if (get == null) return false;
-        scriptProcessor.replaceLoop(get.script(), AnimationModifier.DEFAULT);
+        scriptProcessor.replaceLoop(get.script(), AnimationModifier.DEFAULT_LOOP);
         for (RenderedEntity value : entityMap.values()) {
             value.replaceLoop(filter, target, animation, get);
         }

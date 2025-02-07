@@ -17,23 +17,23 @@ public class ScriptProcessor {
 
     public void animateSingle(@NotNull BlueprintScript script, @NotNull AnimationModifier modifier) {
         synchronized (scriptMap) {
-            scriptMap.put(script.name(), new PredicatedScript(script.name(), modifier.predicate(), script.single(modifier.start())));
+            scriptMap.put(script.name(), new PredicatedScript(script.name(), modifier.predicate(), script.single(modifier.start(), modifier.speed())));
         }
     }
     public void animateLoop(@NotNull BlueprintScript script, @NotNull AnimationModifier modifier) {
         synchronized (scriptMap) {
-            scriptMap.put(script.name(), new PredicatedScript(script.name(), modifier.predicate(), script.loop(modifier.start())));
+            scriptMap.put(script.name(), new PredicatedScript(script.name(), modifier.predicate(), script.loop(modifier.start(), modifier.speed())));
         }
     }
 
     public void replaceSingle(@NotNull BlueprintScript script, @NotNull AnimationModifier modifier) {
         synchronized (scriptMap) {
-            scriptMap.replace(script.name(), new PredicatedScript(script.name(), modifier.predicate(), script.single(modifier.start())));
+            scriptMap.replace(script.name(), new PredicatedScript(script.name(), modifier.predicate(), script.single(modifier.start(), modifier.speed())));
         }
     }
     public void replaceLoop(@NotNull BlueprintScript script, @NotNull AnimationModifier modifier) {
         synchronized (scriptMap) {
-            scriptMap.replace(script.name(), new PredicatedScript(script.name(), modifier.predicate(), script.loop(modifier.start())));
+            scriptMap.replace(script.name(), new PredicatedScript(script.name(), modifier.predicate(), script.loop(modifier.start(), modifier.speed())));
         }
     }
 

@@ -12,7 +12,8 @@ class ModelPartTargeter(mlc: MythicLineConfig) : ILocationTargeter {
 
     override fun getLocations(p0: SkillMetadata): Collection<AbstractLocation> {
         val entity = p0.caster.entity
-        return EntityTracker.tracker(entity.bukkitEntity.uniqueId)?.entity(part)?.lastTransform()?.let {
+        val bukkit = entity.bukkitEntity
+        return EntityTracker.tracker(bukkit.uniqueId)?.entity(part)?.lastTransform()?.let {
             listOf(entity.location.add(
                 it.x.toDouble(),
                 it.y.toDouble(),

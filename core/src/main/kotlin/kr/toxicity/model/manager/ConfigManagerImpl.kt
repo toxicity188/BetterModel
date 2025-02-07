@@ -25,6 +25,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     private var packType = PackType.FOLDER
     private var buildFolderLocation = "BetterModel/build".replace('/', File.separatorChar)
     private var disableGeneratingLegacyModels = false
+    private var followMobInvisibility = true
 
     override fun debug(): DebugConfig = debug
     override fun item(): Material = item
@@ -39,6 +40,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     override fun packType(): PackType = packType
     override fun buildFolderLocation(): String = buildFolderLocation
     override fun disableGeneratingLegacyModels(): Boolean = disableGeneratingLegacyModels
+    override fun followMobInvisibility(): Boolean = followMobInvisibility
 
     override fun reload() {
         val yaml = PluginConfiguration.CONFIG.create()
@@ -70,5 +72,6 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
         } ?: PackType.FOLDER
         buildFolderLocation = (yaml.getString("build-folder-location") ?: "BetterModel/build").replace('/', File.separatorChar)
         disableGeneratingLegacyModels = yaml.getBoolean("disable-generating-legacy-models")
+        followMobInvisibility = yaml.getBoolean("follow-mob-invisibility", true)
     }
 }

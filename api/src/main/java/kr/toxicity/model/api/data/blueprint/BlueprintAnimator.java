@@ -154,6 +154,7 @@ public record BlueprintAnimator(@NotNull String name, int length, @NotNull @Unmo
     }
 
     public interface AnimatorIterator extends Iterator<AnimationMovement> {
+        @NotNull AnimationMovement first();
         void clear();
         int length();
         int index();
@@ -164,6 +165,12 @@ public record BlueprintAnimator(@NotNull String name, int length, @NotNull @Unmo
     private class SingleIterator implements AnimatorIterator {
 
         private int index = 0;
+
+        @NotNull
+        @Override
+        public AnimationMovement first() {
+            return keyFrame.getFirst();
+        }
 
         @Override
         public int index() {
@@ -198,6 +205,12 @@ public record BlueprintAnimator(@NotNull String name, int length, @NotNull @Unmo
     private class LoopIterator implements AnimatorIterator {
 
         private int index = 0;
+
+        @NotNull
+        @Override
+        public AnimationMovement first() {
+            return keyFrame.getFirst();
+        }
 
         @Override
         public int index() {

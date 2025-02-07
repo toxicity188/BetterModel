@@ -4,6 +4,7 @@ import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint;
 import kr.toxicity.model.api.tracker.EntityTracker;
 import kr.toxicity.model.api.tracker.PlayerTracker;
+import kr.toxicity.model.api.tracker.TrackerModifier;
 import kr.toxicity.model.api.tracker.VoidTracker;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -52,11 +53,21 @@ public final class BlueprintRenderer {
      * @return entity tracker
      */
     public @NotNull EntityTracker create(@NotNull Entity entity) {
+        return create(entity, TrackerModifier.DEFAULT);
+    }
+    /**
+     * Gets or creates tracker by entity.
+     * @param entity target
+     * @param modifier modifier
+     * @return entity tracker
+     */
+    public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull TrackerModifier modifier) {
         var tracker = EntityTracker.tracker(entity.getUniqueId());
         if (tracker != null) return tracker;
         return new EntityTracker(
                 entity,
-                instance(null, entity.getLocation())
+                instance(null, entity.getLocation()),
+                modifier
         );
     }
 
@@ -66,11 +77,21 @@ public final class BlueprintRenderer {
      * @return player limb tracker
      */
     public @NotNull EntityTracker createPlayerLimb(@NotNull Player player) {
+        return createPlayerLimb(player, TrackerModifier.DEFAULT);
+    }
+    /**
+     * Gets or creates tracker by player
+     * @param player player
+     * @param modifier modifier
+     * @return player limb tracker
+     */
+    public @NotNull EntityTracker createPlayerLimb(@NotNull Player player, @NotNull TrackerModifier modifier) {
         var tracker = EntityTracker.tracker(player.getUniqueId());
         if (tracker != null) return tracker;
         return new PlayerTracker(
                 player,
-                instance(player, player.getLocation())
+                instance(player, player.getLocation()),
+                modifier
         );
     }
 
@@ -81,7 +102,18 @@ public final class BlueprintRenderer {
      * @return void tracker
      */
     public @NotNull VoidTracker create(@NotNull UUID uuid, @NotNull Location location) {
-        return new VoidTracker(uuid, instance(null, location), location);
+        return create(uuid, TrackerModifier.DEFAULT, location);
+    }
+
+    /**
+     * Creates tracker by location.
+     * @param uuid uuid
+     * @param modifier modifier
+     * @param location location
+     * @return void tracker
+     */
+    public @NotNull VoidTracker create(@NotNull UUID uuid, @NotNull TrackerModifier modifier, @NotNull Location location) {
+        return new VoidTracker(uuid, instance(null, location), modifier, location);
     }
 
     private @NotNull RenderInstance instance(@Nullable Player player, @NotNull Location location) {
