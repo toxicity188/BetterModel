@@ -12,7 +12,7 @@ public interface ConfigManager {
     double maxSight();
     double minSight();
     boolean lockOnPlayAnimation();
-    long keyframeThreshold();
+    float keyframeThreshold();
     boolean enablePlayerLimb();
     @NotNull String namespace();
     @NotNull PackType packType();

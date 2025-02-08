@@ -18,10 +18,10 @@ import java.util.List;
  * @param length frame length
  * @param keyFrame keyframes
  */
-public record BlueprintAnimator(@NotNull String name, int length, @NotNull @Unmodifiable List<AnimationMovement> keyFrame) {
+public record BlueprintAnimator(@NotNull String name, float length, @NotNull @Unmodifiable List<AnimationMovement> keyFrame) {
 
-    private record TimeVector(long time, Vector3f vector3f) {
-        private static final TimeVector EMPTY = new TimeVector(0, null);
+    private record TimeVector(float time, @NotNull Vector3f vector3f) {
+        private static final TimeVector EMPTY = new TimeVector(0, new Vector3f());
     }
 
     /**
@@ -30,7 +30,7 @@ public record BlueprintAnimator(@NotNull String name, int length, @NotNull @Unmo
     @RequiredArgsConstructor
     public static final class Builder {
 
-        private final int length;
+        private final float length;
 
         private final List<TimeVector> transform = new ArrayList<>();
         private final List<TimeVector> scale = new ArrayList<>();
@@ -49,37 +49,29 @@ public record BlueprintAnimator(@NotNull String name, int length, @NotNull @Unmo
             for (Datapoint dataPoint : keyframe.dataPoints()) {
                 var vec = dataPoint.toVector();
                 switch (keyframe.channel()) {
-                    case POSITION -> transform.add(new TimeVector(Math.round(keyframe.time() * 20), MathUtil.transformToDisplay(vec.div(16))));
+                    case POSITION -> transform.add(new TimeVector(keyframe.time(), MathUtil.transformToDisplay(vec.div(16))));
                     case ROTATION -> {
-                        var rot = new TimeVector(Math.round(keyframe.time() * 20), MathUtil.animationToDisplay(vec));
-                        if (rotation.isEmpty()) {
-                            rotation.add(rot);
-                        } else {
-                            var last = rotation.getLast();
-                            var split = checkSplit(new Vector3f(rot.vector3f).sub(last.vector3f));
-                            if (split > 1) {
-                                for (int i = 1; i < split; i++) {
-                                    var t = Math.round((double) (rot.time - last.time) / split * i) + last.time;
-                                    rotation.add(new TimeVector(t, get(t, last, rot)));
-                                }
+                        var rot = new TimeVector(keyframe.time(), MathUtil.animationToDisplay(vec));
+                        var last = rotation.isEmpty() ? TimeVector.EMPTY : rotation.getLast();
+                        var split = checkSplit(new Vector3f(rot.vector3f).sub(last.vector3f));
+                        if (split > 1) {
+                            for (int i = 1; i < split; i++) {
+                                var t = (rot.time - last.time) / split * i + last.time;
+                                rotation.add(new TimeVector(t, get(t, last, rot)));
                             }
-                            rotation.add(rot);
                         }
+                        rotation.add(rot);
                     }
-                    case SCALE -> scale.add(new TimeVector(Math.round(keyframe.time() * 20), vec.sub(1, 1, 1)));
+                    case SCALE -> scale.add(new TimeVector(keyframe.time(), vec.sub(1, 1, 1)));
                 }
             }
             return this;
         }
 
-        private Vector3f get(long min, TimeVector last, TimeVector newVec) {
+        private Vector3f get(float min, TimeVector last, TimeVector newVec) {
             if (newVec.time == 0 || newVec.time - last.time == 0) return newVec.vector3f;
-            if (last.vector3f == null) {
-                return new Vector3f(newVec.vector3f).mul(min).div(newVec.time);
-            } else {
-                return new Vector3f(last.vector3f)
-                        .add(new Vector3f(newVec.vector3f).sub(last.vector3f).mul(min - last.time).div(newVec.time - last.time));
-            }
+            return new Vector3f(last.vector3f)
+                    .add(new Vector3f(newVec.vector3f).sub(last.vector3f).mul(min - last.time).div(newVec.time - last.time));
         }
 
         private @NotNull List<AnimationMovement> toAnimation() {
@@ -87,7 +79,7 @@ public record BlueprintAnimator(@NotNull String name, int length, @NotNull @Unmo
             var ti = 0;
             var si = 0;
             var ri = 0;
-            var beforeTime = 0L;
+            var beforeTime = 0F;
 
             var t = !transform.isEmpty() ? transform.getFirst() : null;
             var s = !scale.isEmpty() ? scale.getFirst() : null;
@@ -184,7 +176,7 @@ public record BlueprintAnimator(@NotNull String name, int length, @NotNull @Unmo
 
         @Override
         public int length() {
-            return length;
+            return Math.round(length * 20);
         }
 
         @Override
@@ -224,7 +216,7 @@ public record BlueprintAnimator(@NotNull String name, int length, @NotNull @Unmo
 
         @Override
         public int length() {
-            return length;
+            return Math.round(length * 20);
         }
 
         @Override

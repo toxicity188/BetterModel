@@ -31,8 +31,6 @@ import java.util.function.Supplier;
  */
 public final class RenderedEntity implements TransformSupplier, AutoCloseable {
 
-    private static final int ANIMATION_THRESHOLD = 4;
-
     @Getter
     private final RendererGroup group;
     @Getter
@@ -211,9 +209,9 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
         if (delay <= 0) {
             var f = frame();
             delay = f;
-            var entityMovement = lastTransform = (lastMovement = movement.copy()).plus(relativeOffset().plus(defaultPosition));
+            var entityMovement = (lastTransform = (lastMovement = movement.copy()).plus(relativeOffset())).plus(defaultPosition);
             if (d != null) {
-                d.frame(f <= 0 ? 0 : Math.max(f, ANIMATION_THRESHOLD));
+                d.frame(f <= 0 ? 0 : f + 2);
                 setup(entityMovement);
                 d.send(bundler);
             }
@@ -226,15 +224,17 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
     public void forceUpdate(@NotNull PacketBundler bundler) {
         var d = display;
         if (d != null && lastMovement != null && delay > 0) {
-            var entityMovement = lastTransform = lastMovement.copy().plus(relativeOffset().plus(defaultPosition));
-            d.frame((int) Math.max(delay, ANIMATION_THRESHOLD));
+            var entityMovement = (lastTransform = lastMovement.copy().plus(relativeOffset())).plus(defaultPosition);
+            d.frame((int) delay + 2);
             setup(entityMovement);
             d.send(bundler);
         }
     }
 
     public @NotNull Vector3f lastTransform() {
-        return lastTransform != null ? lastTransform.transform() : new Vector3f();
+        return lastTransform != null ? new Vector3f(lastTransform.transform())
+                .add(defaultPosition)
+                .mul(progress()): new Vector3f();
     }
 
     public void setup(@NotNull TrackerMovement movement) {
@@ -263,15 +263,19 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
     }
 
     private int frame() {
-        return keyFrame != null ? (int) keyFrame.time() : parent != null ? parent.frame() : 1;
+        return keyFrame != null ? Math.max(Math.round(keyFrame.time() * 20), 1) : parent != null ? parent.frame() : 1;
     }
 
     private EntityMovement defaultFrame() {
-        var k = keyFrame != null ? keyFrame.copyNotNull() : new AnimationMovement(1, new Vector3f(), new Vector3f(), new Vector3f());
+        var k = keyFrame != null ? keyFrame.copyNotNull() : new AnimationMovement(0, new Vector3f(), new Vector3f(), new Vector3f());
         for (Consumer<AnimationMovement> consumer : movementModifier) {
             consumer.accept(k);
         }
         return defaultFrame.plus(k);
+    }
+
+    private float progress() {
+        return delay / (float) frame();
     }
 
     private EntityMovement relativeOffset() {
@@ -304,7 +308,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
     }
 
     public double height() {
-        var d = (double) defaultPosition.y + (lastTransform != null ? lastTransform.transform().y : 0);
+        var d = (double) defaultPosition.y + (lastTransform != null ? new Vector3f(lastTransform.transform()).mul(progress()).y : 0);
         for (RenderedEntity value : children.values()) {
             var v = value.height();
             if (getGroup().getCenter().y < value.getGroup().getCenter().y) d = v;
@@ -346,7 +350,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
             var get = animator.animator().get(getName());
             var iterator = get != null ? new TreeIterator(parent, get.loopIterator(), modifier, removeTask) : new TreeIterator(parent, animator.emptyLoopIterator(), modifier, removeTask);
             synchronized (animators) {
-                animators.putIfAbsent(parent, iterator);
+                animators.put(parent, iterator);
             }
         }
         children.values().forEach(c -> c.addLoop(filter, parent, animator, modifier, () -> {}));
@@ -356,7 +360,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
             var get = animator.animator().get(getName());
             var iterator = get != null ? new TreeIterator(parent, get.singleIterator(), modifier, removeTask) : new TreeIterator(parent, animator.emptySingleIterator(), modifier, removeTask);
             synchronized (animators) {
-                animators.putIfAbsent(parent, iterator);
+                animators.put(parent, iterator);
             }
         }
         children.values().forEach(c -> c.addSingle(filter, parent, animator, modifier, () -> {}));
@@ -453,15 +457,14 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
         public AnimationMovement next() {
             if (!started) {
                 started = true;
-                return first().time(modifier.start());
+                return first().time((float) modifier.start() / 20);
             }
             if (!iterator.hasNext()) {
                 ended = true;
-                return new AnimationMovement(modifier.end(), null, null, null);
+                return new AnimationMovement((float) modifier.end() / 20, null, null, null);
             }
             var nxt = iterator.next();
-            var spd = modifier.speed((int) nxt.time());
-            return nxt.time(Math.max(spd, 1));
+            return nxt.time(nxt.time() / modifier.speed());
         }
 
         @Override

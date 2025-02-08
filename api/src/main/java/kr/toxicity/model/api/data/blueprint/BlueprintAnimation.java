@@ -20,7 +20,7 @@ import java.util.*;
  */
 public record BlueprintAnimation(
         @NotNull String name,
-        int length,
+        float length,
         @NotNull @Unmodifiable Map<String, BlueprintAnimator> animator,
         @NotNull BlueprintScript script,
         @NotNull List<AnimationMovement> emptyAnimator
@@ -32,10 +32,9 @@ public record BlueprintAnimation(
      */
     public static @NotNull BlueprintAnimation from(@NotNull ModelAnimation animation) {
         var map = new HashMap<String, BlueprintAnimator>();
-        var length = Math.round(animation.length() * 20);
         BlueprintScript blueprintScript = BlueprintScript.emptyOf(animation);
         for (Map.Entry<String, ModelAnimator> entry : animation.animators().entrySet()) {
-            var builder = new BlueprintAnimator.Builder(length);
+            var builder = new BlueprintAnimator.Builder(animation.length());
             var frameList = new ArrayList<>(entry.getValue().keyframes());
             frameList.sort(Comparator.naturalOrder());
             for (ModelKeyframe keyframe : frameList) {
@@ -48,7 +47,7 @@ public record BlueprintAnimation(
             else map.put(name, builder.build(name));
         }
         var newMap = newMap(map);
-        return new BlueprintAnimation(animation.name(), length, newMap, blueprintScript, newMap.values()
+        return new BlueprintAnimation(animation.name(), animation.length(), newMap, blueprintScript, newMap.values()
                 .iterator()
                 .next()
                 .keyFrame()
@@ -59,10 +58,10 @@ public record BlueprintAnimation(
 
     private static Map<String, BlueprintAnimator> newMap(@NotNull Map<String, BlueprintAnimator> oldMap) {
         var newMap = new HashMap<String, BlueprintAnimator>();
-        Set<Long> longSet = new TreeSet<>(Comparator.naturalOrder());
-        oldMap.values().forEach(a -> a.keyFrame().stream().map(AnimationMovement::time).forEach(longSet::add));
+        Set<Float> floatSet = new TreeSet<>(Comparator.naturalOrder());
+        oldMap.values().forEach(a -> a.keyFrame().stream().map(AnimationMovement::time).forEach(floatSet::add));
         for (Map.Entry<String, BlueprintAnimator> entry : oldMap.entrySet()) {
-            var list = getAnimationMovements(longSet, entry);
+            var list = getAnimationMovements(floatSet, entry);
             newMap.put(entry.getKey(), new BlueprintAnimator(
                     entry.getValue().name(),
                     entry.getValue().length(),
@@ -72,25 +71,25 @@ public record BlueprintAnimation(
         return newMap;
     }
 
-    private static @NotNull List<AnimationMovement> getAnimationMovements(Set<Long> longSet, Map.Entry<String, BlueprintAnimator> entry) {
+    private static @NotNull List<AnimationMovement> getAnimationMovements(Set<Float> floatSet, Map.Entry<String, BlueprintAnimator> entry) {
         var frame = entry.getValue().keyFrame();
         if (frame.isEmpty()) return Collections.emptyList();
         var list = new ArrayList<AnimationMovement>();
-        for (long l : longSet) {
-            list.add(getFrame(frame, (int) l));
+        for (float l : floatSet) {
+            list.add(getFrame(frame, l));
         }
         reduceFrame(list);
         return processFrame(list);
     }
 
-    private static @NotNull AnimationMovement getFrame(@NotNull List<AnimationMovement> list, int i) {
+    private static @NotNull AnimationMovement getFrame(@NotNull List<AnimationMovement> list, float f) {
         for (int t = 0; t < list.size(); t++) {
             var get = list.get(t);
-            if (i <= get.time()) {
-                if (t == 0 || get.time() == i) return get.set(i);
+            if (f <= get.time()) {
+                if (t == 0 || get.time() == f) return get.set(f);
                 else {
                     var get2 = list.get(t - 1);
-                    return get2.plus(get.minus(get2).set(i - get2.time()));
+                    return get2.plus(get.minus(get2).set(f - get2.time()));
                 }
             }
         }
@@ -99,7 +98,7 @@ public record BlueprintAnimation(
 
     private static void reduceFrame(@NotNull List<AnimationMovement> target) {
         var iterator = target.iterator();
-        var l = 0L;
+        var l = 0F;
         var f = BetterModel.inst().configManager().keyframeThreshold();
         Vector3f beforeRot = new Vector3f();
         while (iterator.hasNext()) {
@@ -156,7 +155,7 @@ public record BlueprintAnimation(
 
             @Override
             public int length() {
-                return length;
+                return Math.round(length * 20);
             }
 
             @Override
@@ -204,7 +203,7 @@ public record BlueprintAnimation(
 
             @Override
             public int length() {
-                return length;
+                return Math.round(length * 20);
             }
 
             @Override

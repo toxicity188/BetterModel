@@ -1,5 +1,6 @@
 import io.papermc.hangarpublishplugin.model.Platforms
 import xyz.jpenilla.resourcefactory.bukkit.Permission
+import java.time.LocalDateTime
 
 plugins {
     `java-library`
@@ -22,7 +23,7 @@ allprojects {
     apply(plugin = "kotlin")
     apply(plugin = "org.jetbrains.dokka")
     group = "kr.toxicity.model"
-    version = "1.4.1" + (buildNumber?.let { "-SNAPSHOT-$it" } ?: "")
+    version = "1.4.2" + (buildNumber?.let { "-SNAPSHOT-$it" } ?: "")
     repositories {
         mavenCentral()
         maven("https://repo.papermc.io/repository/maven-public/")
@@ -140,7 +141,17 @@ tasks {
     }
     shadowJar {
         manifest {
-            attributes["paperweight-mappings-namespace"] = "spigot"
+            attributes(
+                "paperweight-mappings-namespace" to "spigot",
+                "Dev-Build" to (buildNumber != null),
+                "Version" to version,
+                "Author" to "toxicity188",
+                "Url" to "https://github.com/toxicity188/BetterHud",
+                "Created-By" to "Gradle $gradle",
+                "Build-Jdk" to "${System.getProperty("java.vendor")} ${System.getProperty("java.version")}",
+                "Build-OS" to "${System.getProperty("os.arch")} ${System.getProperty("os.name")}",
+                "Build-Date" to LocalDateTime.now().toString()
+            )
         }
         archiveClassifier = ""
         dependencies {

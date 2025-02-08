@@ -117,7 +117,7 @@ public record BlueprintScript(@NotNull String name, int length, @NotNull List<Ti
                     return false;
                 }
                 var next = scripts.get(index++);
-                delay = Math.round((float) next.time() / speed);
+                delay = Math.round(next.time() * 20 / speed);
                 script = next.script();
             } else {
                 script = null;

@@ -37,8 +37,12 @@ public record Datapoint(
 
     private static float parse(@Nullable JsonPrimitive primitive) {
         if (primitive == null) return 0;
-        var f = primitive.getAsFloat();
-        return Float.isNaN(f) ? 0 : f;
+        try {
+            var f = primitive.getAsFloat();
+            return Float.isNaN(f) ? 0 : f;
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     /**

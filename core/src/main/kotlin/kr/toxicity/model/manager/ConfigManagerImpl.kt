@@ -19,7 +19,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     private var maxSight = 45.0
     private var minSight = 5.0
     private var lockOnPlayAnimation = true
-    private var keyframeThreshold = 2L
+    private var keyframeThreshold = 0.05F
     private var enablePlayerLimb = true
     private var namespace = "bettermodel"
     private var packType = PackType.FOLDER
@@ -34,7 +34,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     override fun maxSight(): Double = maxSight
     override fun minSight(): Double = minSight
     override fun lockOnPlayAnimation(): Boolean = lockOnPlayAnimation
-    override fun keyframeThreshold(): Long = keyframeThreshold
+    override fun keyframeThreshold(): Float = keyframeThreshold
     override fun enablePlayerLimb(): Boolean = enablePlayerLimb
     override fun namespace(): String = namespace
     override fun packType(): PackType = packType
@@ -62,7 +62,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
         maxSight = yaml.getDouble("max-sight", 45.0)
         minSight = yaml.getDouble("min-sight", 5.0)
         lockOnPlayAnimation = yaml.getBoolean("lock-on-play-animation", true)
-        keyframeThreshold = yaml.getLong("keyframe-threshold", 2).coerceAtLeast(1)
+        keyframeThreshold = yaml.getLong("keyframe-threshold", 1).coerceAtLeast(1).toFloat() / 20F
         enablePlayerLimb = yaml.getBoolean("enable-player-limb", true)
         namespace = yaml.getString("namespace") ?: "bettermodel"
         packType = yaml.getString("pack-type")?.let {

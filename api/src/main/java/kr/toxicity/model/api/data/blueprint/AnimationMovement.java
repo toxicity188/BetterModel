@@ -12,7 +12,7 @@ import org.joml.Vector3f;
  * @param rotation rotation
  */
 public record AnimationMovement(
-        long time,
+        float time,
         @Nullable Vector3f transform,
         @Nullable Vector3f scale,
         @Nullable Vector3f rotation
@@ -20,7 +20,7 @@ public record AnimationMovement(
 
     @Override
     public int compareTo(@NotNull AnimationMovement o) {
-        return Long.compare(time, o.time);
+        return Float.compare(time, o.time);
     }
 
     /**
@@ -28,9 +28,9 @@ public record AnimationMovement(
      * @param newTime new time
      * @return new movement
      */
-    public @NotNull AnimationMovement set(long newTime) {
+    public @NotNull AnimationMovement set(float newTime) {
         if (newTime == time || time == 0) return this;
-        var mul = (float) newTime / (float) time;
+        var mul = newTime / time;
         return new AnimationMovement(
                 newTime,
                 transform != null ? new Vector3f(transform)
@@ -47,7 +47,7 @@ public record AnimationMovement(
      * @param newTime new time
      * @return new movement
      */
-    public @NotNull AnimationMovement time(long newTime) {
+    public @NotNull AnimationMovement time(float newTime) {
         return new AnimationMovement(
                 newTime,
                 transform,
