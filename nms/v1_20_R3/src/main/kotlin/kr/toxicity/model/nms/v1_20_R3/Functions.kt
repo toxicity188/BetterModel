@@ -18,8 +18,8 @@ operator fun ModelBoundingBox.times(scale: Double) = ModelBoundingBox(
     maxZ * scale
 )
 
-fun Entity.passengerPosition(): Vector3f {
-    return Vector3f(0F, getDimensions(pose).height, 0F)
+fun Entity.passengerPosition(scale: Double): Vector3f {
+    return Vector3f(0F, getDimensions(pose).height * scale.toFloat(), 0F)
 }
 
 fun Event.call(): Boolean {

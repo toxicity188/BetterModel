@@ -455,7 +455,8 @@ class NMSImpl : NMS {
             newBox,
             supplier,
             listener,
-            handle
+            handle,
+            entity
         ).apply {
             attributes.getInstance(Attributes.SCALE)!!.baseValue = height / 0.52
             refreshDimensions()
@@ -496,7 +497,7 @@ class NMSImpl : NMS {
             }
 
             override fun passengerPosition(): Vector3f {
-                return handle.passengerPosition()
+                return handle.passengerPosition(scale())
             }
         }
     }

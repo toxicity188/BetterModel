@@ -438,7 +438,8 @@ class NMSImpl : NMS {
             newBox,
             supplier,
             listener,
-            handle
+            handle,
+            entity
         ).apply {
             entityData.registrationLocked = false
             entityData.define(slimeSize, 1)
@@ -481,7 +482,7 @@ class NMSImpl : NMS {
             }
 
             override fun passengerPosition(): Vector3f {
-                return handle.passengerPosition()
+                return handle.passengerPosition(scale())
             }
         }
     }

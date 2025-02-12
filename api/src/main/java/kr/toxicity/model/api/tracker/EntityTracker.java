@@ -124,7 +124,7 @@ public class EntityTracker extends Tracker {
     }
 
     public void createHitBox() {
-        createHitBox(e -> e.getName().equals("hitbox") || e.getName().startsWith("b_"));
+        createHitBox(e -> e.getName().equals("hitbox") || e.getName().startsWith("b_") || e.getName().startsWith("p_"));
     }
 
     public void createHitBox(@NotNull Predicate<RenderedEntity> predicate) {

@@ -5,6 +5,7 @@ import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import kr.toxicity.model.api.event.ModelDamagedEvent
 import kr.toxicity.model.api.event.ModelInteractEvent
 import kr.toxicity.model.api.event.ModelInteractEvent.Hand
+import kr.toxicity.model.api.nms.EntityAdapter
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.HitBoxListener
 import kr.toxicity.model.api.nms.TransformSupplier
@@ -38,7 +39,8 @@ class HitBoxImpl(
     private val source: ModelBoundingBox,
     private val supplier: TransformSupplier,
     private val listener: HitBoxListener,
-    private val delegate: LivingEntity
+    private val delegate: LivingEntity,
+    private val adapter: EntityAdapter
 ) : LivingEntity(EntityType.SLIME, delegate.level()), HitBox {
     private var initialized = false
 
@@ -72,7 +74,7 @@ class HitBoxImpl(
         val transform = supplier.supplyTransform()
         setPos(delegate.position().add(
             transform.x.toDouble(),
-            transform.y.toDouble() + delegate.passengerPosition().y,
+            transform.y.toDouble() + delegate.passengerPosition(adapter.scale()).y,
             transform.z.toDouble()
         ))
         listener.sync(this)

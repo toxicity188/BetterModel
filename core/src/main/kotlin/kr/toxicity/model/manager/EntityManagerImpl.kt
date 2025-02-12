@@ -33,7 +33,7 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
             }
         }) else registerListener(object : Listener {
             @EventHandler
-            @Suppress("removal", "DEPRECATION")
+            @Suppress("DEPRECATION")
             fun org.bukkit.event.entity.EntityRemoveEvent.remove() {
                 EntityTracker.tracker(entity)?.let {
                     if (!it.forRemoval()) it.close()
