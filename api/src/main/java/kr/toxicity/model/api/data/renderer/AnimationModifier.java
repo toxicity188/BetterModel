@@ -28,5 +28,5 @@ public record AnimationModifier(Supplier<Boolean> predicate, int start, int end,
     }
 
     public static final AnimationModifier DEFAULT = new AnimationModifier(() -> true, 1, 0, 1F);
-    public static final AnimationModifier DEFAULT_LOOP = new AnimationModifier(() -> true, 4, 4, 1F);
+    public static final AnimationModifier DEFAULT_LOOP = new AnimationModifier(() -> true, 4, 0, 1F);
 }

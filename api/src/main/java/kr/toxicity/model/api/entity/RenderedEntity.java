@@ -164,31 +164,36 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
             while (iterator.hasNext()) {
                 var next = iterator.next();
                 if (!next.get()) continue;
-                if (!next.hasNext()) {
-                    next.run();
-                    iterator.remove();
-                }
-                else {
-                    if (check) {
-                        if (currentIterator == null) {
-                            currentIterator = next;
-                            keyFrame = next.next();
-                        } else if (!currentIterator.name.equals(next.name)) {
+                if (check) {
+                    if (currentIterator == null) {
+                        if (updateKeyframe(iterator, next)) currentIterator = next;
+                    } else if (currentIterator != next) {
+                        if (updateKeyframe(iterator, next)) {
                             currentIterator = next;
                             delay = 0;
-                            keyFrame = next.next();
-                        } else if (delay <= 0) {
-                            keyFrame = next.next();
                         }
-                        check = false;
-                    } else {
-                        next.clear();
+                    } else if (delay <= 0) {
+                        updateKeyframe(iterator, next);
                     }
+                    check = false;
+                } else {
+                    next.clear();
                 }
             }
             if (check) {
                 keyFrame = null;
             }
+        }
+    }
+
+    private boolean updateKeyframe(Iterator<TreeIterator> iterator, TreeIterator next) {
+        if (!next.hasNext()) {
+            next.run();
+            iterator.remove();
+            return false;
+        } else {
+            keyFrame = next.next();
+            return true;
         }
     }
 
@@ -204,7 +209,6 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
     }
 
     public void move(@NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
-        updateAnimation();
         var d = display;
         if (delay <= 0) {
             var f = frame();
@@ -220,6 +224,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
         for (RenderedEntity e : children.values()) {
             e.move(movement, bundler);
         }
+        updateAnimation();
     }
     public void forceUpdate(@NotNull PacketBundler bundler) {
         var d = display;
@@ -263,7 +268,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
     }
 
     private int frame() {
-        return keyFrame != null ? Math.max(Math.round(keyFrame.time() * 20), 1) : parent != null ? parent.frame() : 1;
+        return keyFrame != null ? Math.round(keyFrame.time() * 20) : parent != null ? parent.frame() : 1;
     }
 
     private EntityMovement defaultFrame() {
@@ -345,6 +350,11 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
         children.values().forEach(e -> e.spawn(bundler));
     }
 
+    private void applyAnimation() {
+        updateAnimation();
+        if (lastTransform != null) setup(lastTransform);
+    }
+
     public void addLoop(@NotNull Predicate<RenderedEntity> filter, @NotNull String parent, @NotNull BlueprintAnimation animator, AnimationModifier modifier, Runnable removeTask) {
         if (filter.test(this)) {
             var get = animator.animator().get(getName());
@@ -352,6 +362,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
             synchronized (animators) {
                 animators.put(parent, iterator);
             }
+            applyAnimation();
         }
         children.values().forEach(c -> c.addLoop(filter, parent, animator, modifier, () -> {}));
     }
@@ -362,6 +373,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
             synchronized (animators) {
                 animators.put(parent, iterator);
             }
+            applyAnimation();
         }
         children.values().forEach(c -> c.addSingle(filter, parent, animator, modifier, () -> {}));
     }
@@ -374,6 +386,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
                 if (v != null) animators.replace(target, get != null ? new TreeIterator(parent, get.loopIterator(), v.modifier, v.removeTask) : new TreeIterator(parent, animator.emptyLoopIterator(), v.modifier, v.removeTask));
                 else animators.replace(target, get != null ? new TreeIterator(parent, get.loopIterator(), AnimationModifier.DEFAULT_LOOP, () -> {}) : new TreeIterator(parent, animator.emptyLoopIterator(), AnimationModifier.DEFAULT_LOOP, () -> {}));
             }
+            applyAnimation();
         }
         children.values().forEach(c -> c.replaceLoop(filter, target, parent, animator));
     }
@@ -385,6 +398,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
                 if (v != null) animators.replace(target, get != null ? new TreeIterator(parent, get.singleIterator(), v.modifier, v.removeTask) : new TreeIterator(parent, animator.emptySingleIterator(), v.modifier, v.removeTask));
                 else animators.replace(target, get != null ? new TreeIterator(parent, get.singleIterator(), AnimationModifier.DEFAULT, () -> {}) : new TreeIterator(parent, animator.emptySingleIterator(), AnimationModifier.DEFAULT, () -> {}));
             }
+            applyAnimation();
         }
         children.values().forEach(c -> c.replaceSingle(filter, target, parent, animator));
     }
@@ -394,6 +408,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
             synchronized (animators) {
                 animators.remove(parent);
             }
+            updateAnimation();
         }
         children.values().forEach(c -> c.stopAnimation(filter, parent));
     }
@@ -464,7 +479,8 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
                 return new AnimationMovement((float) modifier.end() / 20, null, null, null);
             }
             var nxt = iterator.next();
-            return nxt.time(nxt.time() / modifier.speed());
+            nxt = nxt.set((float) Math.round(nxt.time() * 400F) / 400F);
+            return nxt.time(Math.max(nxt.time() / modifier.speed(), 0.05F));
         }
 
         @Override

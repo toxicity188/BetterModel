@@ -54,7 +54,7 @@ public abstract class Tracker implements AutoCloseable {
         this.instance = instance;
         this.modifier = modifier;
         this.movement = () -> new TrackerMovement(new Vector3f(), new Vector3f(modifier.scale()), new Vector3f());
-        task = BetterModel.inst().scheduler().asyncTaskTimer(0, 1, () -> {
+        task = BetterModel.inst().scheduler().asyncTaskTimer(1, 1, () -> {
             consumer.accept(this);
             var bundle = BetterModel.inst().nms().createBundler();
             instance.move(isRunningSingleAnimation() && before != null && BetterModel.inst().configManager().lockOnPlayAnimation() ? before : (before = movement.get()), bundle);
