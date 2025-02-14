@@ -48,7 +48,7 @@ public record BlueprintAnimation(
             else map.put(name, builder.build(name));
         }
         var newMap = newMap(map);
-        return new BlueprintAnimation(animation.name(), animation.length(), newMap, blueprintScript, newMap.values()
+        return new BlueprintAnimation(animation.name(), animation.length(), newMap, blueprintScript, newMap.isEmpty() ? List.of(new AnimationMovement(0, null, null, null)) : newMap.values()
                 .iterator()
                 .next()
                 .keyFrame()
