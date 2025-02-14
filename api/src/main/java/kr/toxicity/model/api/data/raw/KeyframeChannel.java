@@ -19,5 +19,9 @@ public enum KeyframeChannel {
     /**
      * Timeline
      */
-    TIMELINE
+    TIMELINE,
+    /**
+     * Sound
+     */
+    SOUND
 }
