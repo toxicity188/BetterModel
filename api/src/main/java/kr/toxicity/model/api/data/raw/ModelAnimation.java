@@ -1,6 +1,7 @@
 package kr.toxicity.model.api.data.raw;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.UUID;
@@ -18,6 +19,6 @@ public record ModelAnimation(
         @NotNull String loop,
         @NotNull String uuid,
         float length,
-        @NotNull Map<String, ModelAnimator> animators
+        @Nullable Map<String, ModelAnimator> animators
 ) {
 }

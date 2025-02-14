@@ -33,7 +33,8 @@ public record BlueprintAnimation(
     public static @NotNull BlueprintAnimation from(@NotNull ModelAnimation animation) {
         var map = new HashMap<String, BlueprintAnimator>();
         BlueprintScript blueprintScript = BlueprintScript.emptyOf(animation);
-        for (Map.Entry<String, ModelAnimator> entry : animation.animators().entrySet()) {
+        var animator = animation.animators();
+        if (animator != null) for (Map.Entry<String, ModelAnimator> entry : animator.entrySet()) {
             var builder = new BlueprintAnimator.Builder(animation.length());
             var frameList = new ArrayList<>(entry.getValue().keyframes());
             frameList.sort(Comparator.naturalOrder());
