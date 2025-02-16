@@ -328,14 +328,14 @@ class NMSImpl : NMS {
             location.x,
             location.y,
             location.z,
-            0F,
+            location.yaw,
             0F
         )
         valid = true
         persist = false
         itemTransform = ItemDisplayContext.FIXED
         transformationInterpolationDelay = -1
-        entityData.set(Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID, 1)
+        entityData.set(Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID, 3)
     })
 
     private inner class ModelDisplayImpl(
@@ -343,6 +343,8 @@ class NMSImpl : NMS {
     ) : ModelDisplay {
 
         override fun rotate(rotation: ModelRotation, bundler: PacketBundler) {
+            display.xRot = rotation.x
+            display.yRot = rotation.y
             bundler.unwrap().add(ClientboundMoveEntityPacket.Rot(
                 display.id,
                 rotation.y.packDegree(),

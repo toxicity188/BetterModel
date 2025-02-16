@@ -121,7 +121,7 @@ void main() {
         vertexDistance = fog_distance(Position, FogShape);
         gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
     }
-    else if (length(inverse(ModelViewMat)[3].xyz - wpos) < 0.75) {
+    else if (length(inverse(ModelViewMat)[3].xyz - wpos) < 0.6) {
         vertexColor = vec4(0);
     }
     else {

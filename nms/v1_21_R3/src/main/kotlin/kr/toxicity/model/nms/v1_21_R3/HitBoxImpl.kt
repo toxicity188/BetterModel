@@ -71,7 +71,7 @@ class HitBoxImpl(
     }
 
     override fun tick() {
-        val transform = supplier.supplyTransform()
+        val transform = supplier.supplyTransform().rotateY(Math.toRadians(-delegate.yRot.toDouble()).toFloat())
         setPos(delegate.position().add(
             transform.x.toDouble(),
             transform.y.toDouble() + delegate.passengerPosition(adapter.scale()).y,

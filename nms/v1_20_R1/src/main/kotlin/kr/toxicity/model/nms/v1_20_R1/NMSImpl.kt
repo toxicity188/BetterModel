@@ -306,7 +306,7 @@ class NMSImpl : NMS {
             location.x,
             location.y,
             location.z,
-            0F,
+            location.yaw,
             0F
         )
         valid = true
@@ -321,6 +321,8 @@ class NMSImpl : NMS {
     ) : ModelDisplay {
 
         override fun rotate(rotation: ModelRotation, bundler: PacketBundler) {
+            display.xRot = rotation.x
+            display.yRot = rotation.y
             bundler.unwrap().add(ClientboundMoveEntityPacket.Rot(
                 display.id,
                 rotation.y.packDegree(),
