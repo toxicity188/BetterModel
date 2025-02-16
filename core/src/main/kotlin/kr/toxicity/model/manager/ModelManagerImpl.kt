@@ -62,7 +62,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                     output.write(it.byteArray())
                 }
             }
-            if (ConfigManagerImpl.enablePlayerLimb()) PLUGIN.loadAssets("pack") { s, i ->
+            if (ConfigManagerImpl.module().playerAnimation()) PLUGIN.loadAssets("pack") { s, i ->
                 s.toFile().outputStream().buffered().use { output ->
                     i.copyTo(output)
                 }
@@ -85,7 +85,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                         zip.closeEntry()
                     }
                 }
-                if (ConfigManagerImpl.enablePlayerLimb()) PLUGIN.loadAssets("pack") { s, i ->
+                if (ConfigManagerImpl.module().playerAnimation()) PLUGIN.loadAssets("pack") { s, i ->
                     synchronized(zip) {
                         zip.putNextEntry(ZipEntry(s))
                         zip.write(i.readAllBytes())
@@ -123,78 +123,81 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
         val modernModelsPath = "assets/${ConfigManagerImpl.namespace()}/models/modern_item"
 
         renderMap.clear()
-        DATA_FOLDER.subFolder("models").forEachAllFolder {
-            if (it.extension == "bbmodel") {
-                val load = it.toModel()
-                load.buildImage().forEach { image ->
-                    zipper.add(texturesPath, "${image.name}.png") {
-                        image.image.toByteArray()
+        if (ConfigManagerImpl.module().model()) {
+            DATA_FOLDER.subFolder("models").forEachAllFolder {
+                if (it.extension == "bbmodel") {
+                    val load = it.toModel()
+                    load.buildImage().forEach { image ->
+                        zipper.add(texturesPath, "${image.name}.png") {
+                            image.image.toByteArray()
+                        }
+                        image.mcmeta()?.let { meta ->
+                            zipper.add(texturesPath, "${image.name}.png.mcmeta") {
+                                meta.toByteArray()
+                            }
+                        }
                     }
-                    image.mcmeta()?.let { meta ->
-                        zipper.add(texturesPath, "${image.name}.png.mcmeta") {
-                            meta.toByteArray()
+                    val jsonList = arrayListOf<BlueprintJson>()
+                    val modernJsonList = arrayListOf<BlueprintJson>()
+                    renderMap[load.name] = load.toRenderer render@ { blueprintGroup ->
+                        val blueprint = blueprintGroup.buildJson(load) ?: return@render null
+                        val modernBlueprint = blueprintGroup.buildModernJson(load) ?: return@render null
+                        override.add(JsonObject().apply {
+                            add("predicate", JsonObject().apply {
+                                addProperty("custom_model_data", index)
+                            })
+                            addProperty("model", "${ConfigManagerImpl.namespace()}:item/${blueprint.name}")
+                        })
+                        modernEntries.add(JsonObject().apply {
+                            addProperty("threshold", index)
+                            add("model", JsonObject().apply {
+                                addProperty("type", "minecraft:composite")
+                                add("models", JsonArray().apply {
+                                    modernBlueprint.forEach { mb ->
+                                        add(JsonObject().apply {
+                                            addProperty("type", "minecraft:model")
+                                            addProperty("model", "${ConfigManagerImpl.namespace()}:modern_item/${mb.name}")
+                                            add("tints", JsonArray().apply {
+                                                add(JsonObject().apply {
+                                                    addProperty("type", "minecraft:custom_model_data")
+                                                    addProperty("default", 0xFFFFFF)
+                                                })
+                                            })
+                                        })
+                                    }
+                                })
+                            })
+                        })
+                        jsonList += blueprint
+                        modernJsonList += modernBlueprint
+                        index++
+                    }
+                    if (!ConfigManagerImpl.disableGeneratingLegacyModels()) jsonList.forEach { json ->
+                        zipper.add(modelsPath, "${json.name}.json") {
+                            json.element.toByteArray()
+                        }
+                    }
+                    modernJsonList.forEach { json ->
+                        zipper.add(modernModelsPath, "${json.name}.json") {
+                            json.element.toByteArray()
                         }
                     }
                 }
-                val jsonList = arrayListOf<BlueprintJson>()
-                val modernJsonList = arrayListOf<BlueprintJson>()
-                renderMap[load.name] = load.toRenderer render@ { blueprintGroup ->
-                    val blueprint = blueprintGroup.buildJson(load) ?: return@render null
-                    val modernBlueprint = blueprintGroup.buildModernJson(load) ?: return@render null
-                    override.add(JsonObject().apply {
-                        add("predicate", JsonObject().apply {
-                            addProperty("custom_model_data", index)
-                        })
-                        addProperty("model", "${ConfigManagerImpl.namespace()}:item/${blueprint.name}")
+            }
+            if (!ConfigManagerImpl.disableGeneratingLegacyModels()) zipper.add(MINECRAFT_ITEM_PATH, "$itemName.json") {
+                modelJson.apply {
+                    add("overrides", override)
+                }.toByteArray()
+            }
+            zipper.add(MODERN_MINECRAFT_ITEM_PATH, "$itemName.json") {
+                JsonObject().apply {
+                    add("model", modernModelJson.apply {
+                        add("entries", modernEntries)
                     })
-                    modernEntries.add(JsonObject().apply {
-                        addProperty("threshold", index)
-                        add("model", JsonObject().apply {
-                            addProperty("type", "minecraft:composite")
-                            add("models", JsonArray().apply {
-                                modernBlueprint.forEach { mb ->
-                                    add(JsonObject().apply {
-                                        addProperty("type", "minecraft:model")
-                                        addProperty("model", "${ConfigManagerImpl.namespace()}:modern_item/${mb.name}")
-                                        add("tints", JsonArray().apply {
-                                            add(JsonObject().apply {
-                                                addProperty("type", "minecraft:custom_model_data")
-                                                addProperty("default", 0xFFFFFF)
-                                            })
-                                        })
-                                    })
-                                }
-                            })
-                        })
-                    })
-                    jsonList += blueprint
-                    modernJsonList += modernBlueprint
-                    index++
-                }
-                if (!ConfigManagerImpl.disableGeneratingLegacyModels()) jsonList.forEach { json ->
-                    zipper.add(modelsPath, "${json.name}.json") {
-                        json.element.toByteArray()
-                    }
-                }
-                modernJsonList.forEach { json ->
-                    zipper.add(modernModelsPath, "${json.name}.json") {
-                        json.element.toByteArray()
-                    }
-                }
+                }.toByteArray()
             }
         }
-        if (!ConfigManagerImpl.disableGeneratingLegacyModels()) zipper.add(MINECRAFT_ITEM_PATH, "$itemName.json") {
-            modelJson.apply {
-                add("overrides", override)
-            }.toByteArray()
-        }
-        zipper.add(MODERN_MINECRAFT_ITEM_PATH, "$itemName.json") {
-            JsonObject().apply {
-                add("model", modernModelJson.apply {
-                    add("entries", modernEntries)
-                })
-            }.toByteArray()
-        }
+
         runCatching {
             when (ConfigManagerImpl.packType()) {
                 FOLDER -> zipper.toFileTree(File(DATA_FOLDER.parent, ConfigManagerImpl.buildFolderLocation()).apply {

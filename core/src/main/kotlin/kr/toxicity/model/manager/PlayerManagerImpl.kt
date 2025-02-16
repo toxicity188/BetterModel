@@ -62,7 +62,7 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
 
     override fun reload() {
         renderMap.clear()
-        if (ConfigManagerImpl.enablePlayerLimb()) {
+        if (ConfigManagerImpl.module().playerAnimation()) {
             val folder = File(DATA_FOLDER, "players")
             if (!folder.exists()) {
                 folder.mkdirs()

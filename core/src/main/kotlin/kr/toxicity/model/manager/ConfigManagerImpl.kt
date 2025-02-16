@@ -1,6 +1,7 @@
 package kr.toxicity.model.manager
 
 import kr.toxicity.model.api.config.DebugConfig
+import kr.toxicity.model.api.config.ModuleConfig
 import kr.toxicity.model.api.manager.ConfigManager
 import kr.toxicity.model.api.manager.ConfigManager.PackType
 import kr.toxicity.model.configuration.PluginConfiguration
@@ -13,6 +14,7 @@ import java.io.File
 object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
 
     private var debug = DebugConfig.DEFAULT
+    private var module = ModuleConfig.DEFAULT
     private var metrics: Metrics? = null
     private var sightTrace = true
     private var item = Material.LEATHER_HORSE_ARMOR
@@ -20,7 +22,6 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     private var minSight = 5.0
     private var lockOnPlayAnimation = true
     private var keyframeThreshold = 0.05F
-    private var enablePlayerLimb = true
     private var namespace = "bettermodel"
     private var packType = PackType.FOLDER
     private var buildFolderLocation = "BetterModel/build".replace('/', File.separatorChar)
@@ -28,6 +29,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     private var followMobInvisibility = true
 
     override fun debug(): DebugConfig = debug
+    override fun module(): ModuleConfig = module
     override fun item(): Material = item
     override fun metrics(): Boolean = metrics != null
     override fun sightTrace(): Boolean = sightTrace
@@ -35,7 +37,6 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     override fun minSight(): Double = minSight
     override fun lockOnPlayAnimation(): Boolean = lockOnPlayAnimation
     override fun keyframeThreshold(): Float = keyframeThreshold
-    override fun enablePlayerLimb(): Boolean = enablePlayerLimb
     override fun namespace(): String = namespace
     override fun packType(): PackType = packType
     override fun buildFolderLocation(): String = buildFolderLocation
@@ -53,6 +54,9 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
         debug = yaml.getConfigurationSection("debug")?.let {
             DebugConfig.from(it)
         } ?: DebugConfig.DEFAULT
+        module = yaml.getConfigurationSection("module")?.let {
+            ModuleConfig.from(it)
+        } ?: ModuleConfig.DEFAULT
         sightTrace = yaml.getBoolean("sight-trace", true)
         item = yaml.getString("item")?.let {
             runCatching {
@@ -63,7 +67,6 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
         minSight = yaml.getDouble("min-sight", 5.0)
         lockOnPlayAnimation = yaml.getBoolean("lock-on-play-animation", true)
         keyframeThreshold = yaml.getLong("keyframe-threshold", 1).coerceAtLeast(1).toFloat() / 20F
-        enablePlayerLimb = yaml.getBoolean("enable-player-limb", true)
         namespace = yaml.getString("namespace") ?: "bettermodel"
         packType = yaml.getString("pack-type")?.let {
             runCatching {
