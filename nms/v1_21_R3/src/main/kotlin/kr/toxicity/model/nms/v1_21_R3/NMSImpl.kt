@@ -11,6 +11,7 @@ import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox
 import kr.toxicity.model.api.nms.*
 import kr.toxicity.model.api.tracker.EntityTracker
+import kr.toxicity.model.api.tracker.ModelRotation
 import net.minecraft.core.component.DataComponents
 import net.minecraft.network.Connection
 import net.minecraft.network.protocol.Packet
@@ -333,6 +334,15 @@ class NMSImpl : NMS {
     private inner class ModelDisplayImpl(
         val display: ItemDisplay
     ) : ModelDisplay {
+
+        override fun rotate(rotation: ModelRotation, bundler: PacketBundler) {
+            bundler.unwrap().add(ClientboundMoveEntityPacket.Rot(
+                display.id,
+                rotation.y.packDegree(),
+                rotation.x.packDegree(),
+                display.onGround
+            ))
+        }
 
         override fun sync(entity: EntityAdapter) {
             display.setGlowingTag(entity.glow())

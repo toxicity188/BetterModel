@@ -57,7 +57,7 @@ public abstract class Tracker implements AutoCloseable {
         task = BetterModel.inst().scheduler().asyncTaskTimer(1, 1, () -> {
             consumer.accept(this);
             var bundle = BetterModel.inst().nms().createBundler();
-            instance.move(isRunningSingleAnimation() && before != null && BetterModel.inst().configManager().lockOnPlayAnimation() ? before : (before = movement.get()), bundle);
+            instance.move(rotation(), isRunningSingleAnimation() && before != null && BetterModel.inst().configManager().lockOnPlayAnimation() ? before : (before = movement.get()), bundle);
             if (!bundle.isEmpty()) for (Player player : instance.viewedPlayer()) {
                 bundle.send(player);
             }
@@ -66,6 +66,8 @@ public abstract class Tracker implements AutoCloseable {
         instance.filter(p -> EntityUtil.canSee(p.getEyeLocation(), location()));
         tick(t -> t.instance.getScriptProcessor().tick());
     }
+
+    public abstract @NotNull ModelRotation rotation();
 
     /**
      * Runs consumer on tick.

@@ -8,6 +8,7 @@ import org.bukkit.Bukkit
 import org.bukkit.event.Cancellable
 import org.bukkit.event.Event
 import org.joml.Vector3f
+import kotlin.math.floor
 
 operator fun ModelBoundingBox.times(scale: Double) = ModelBoundingBox(
     minX * scale,
@@ -43,3 +44,5 @@ fun SynchedEntityData.pack(): List<SynchedEntityData.DataValue<*>> {
     }
     return list
 }
+
+fun Float.packDegree() = floor(this * 256.0F / 360.0F).toInt().toByte()

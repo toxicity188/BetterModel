@@ -74,6 +74,12 @@ public class EntityTracker extends Tracker {
         }
     }
 
+    @NotNull
+    @Override
+    public ModelRotation rotation() {
+        return entity instanceof LivingEntity livingEntity ? new ModelRotation(0, livingEntity.getBodyYaw()) : new ModelRotation(0, entity.getYaw());
+    }
+
     public static @NotNull List<EntityTracker> trackers(@NotNull Predicate<EntityTracker> predicate) {
         return TRACKER_MAP.values().stream().filter(predicate).toList();
     }
@@ -99,7 +105,7 @@ public class EntityTracker extends Tracker {
         Supplier<TrackerMovement> supplier = () -> new TrackerMovement(
                 new Vector3f(0, 0, 0F),
                 new Vector3f((float) adapter.scale()),
-                new Vector3f(0, -adapter.bodyYaw(), 0)
+                new Vector3f(0, 0, 0)
         );
         setMovement(supplier);
         entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, instance.getParent().getParent().name());

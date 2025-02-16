@@ -7,6 +7,7 @@ import kr.toxicity.model.api.data.blueprint.BlueprintAnimator;
 import kr.toxicity.model.api.data.renderer.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.RendererGroup;
 import kr.toxicity.model.api.nms.*;
+import kr.toxicity.model.api.tracker.ModelRotation;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -208,8 +209,9 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
         }
     }
 
-    public void move(@NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
+    public void move(@NotNull ModelRotation rotation, @NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
         var d = display;
+        if (d != null) d.rotate(rotation, bundler);
         if (delay <= 0) {
             var f = frame();
             delay = f;
@@ -222,7 +224,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
         }
         --delay;
         for (RenderedEntity e : children.values()) {
-            e.move(movement, bundler);
+            e.move(rotation, movement, bundler);
         }
         updateAnimation();
     }

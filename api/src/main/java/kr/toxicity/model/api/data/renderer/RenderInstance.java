@@ -10,6 +10,7 @@ import kr.toxicity.model.api.nms.HitBoxListener;
 import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.script.ScriptProcessor;
+import kr.toxicity.model.api.tracker.ModelRotation;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -85,8 +86,8 @@ public final class RenderInstance implements AutoCloseable {
         entityMap.values().forEach(e -> e.teleport(location, bundler));
     }
 
-    public void move(@NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
-        entityMap.values().forEach(e -> e.move(movement, bundler));
+    public void move(@NotNull ModelRotation rotation, @NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
+        entityMap.values().forEach(e -> e.move(rotation, movement, bundler));
     }
 
     public void lastMovement(@NotNull TrackerMovement movement) {

@@ -2,15 +2,12 @@ package kr.toxicity.model.api.tracker;
 
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
-import kr.toxicity.model.api.entity.TrackerMovement;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Vector3f;
 
 import java.util.Objects;
 import java.util.UUID;
-import java.util.function.Supplier;
 
 /**
  * No tracking tracker.
@@ -30,12 +27,6 @@ public final class VoidTracker extends Tracker {
         super(instance, modifier);
         this.uuid = uuid;
         this.location = location;
-        Supplier<TrackerMovement> supplier = () -> new TrackerMovement(
-                new Vector3f(0, 0, 0F),
-                new Vector3f(modifier.scale()),
-                new Vector3f(0, -location.getYaw(), 0)
-        );
-        setMovement(supplier);
         instance.setup(getMovement().get());
     }
 
@@ -50,6 +41,12 @@ public final class VoidTracker extends Tracker {
         if (!bundler.isEmpty()) for (Player player : viewedPlayer()) {
             bundler.send(player);
         }
+    }
+
+    @NotNull
+    @Override
+    public ModelRotation rotation() {
+        return new ModelRotation(0, location.getYaw());
     }
 
     /**
