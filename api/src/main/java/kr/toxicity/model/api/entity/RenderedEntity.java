@@ -362,7 +362,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
             var get = animator.animator().get(getName());
             var iterator = get != null ? new TreeIterator(parent, get.loopIterator(), modifier, removeTask) : new TreeIterator(parent, animator.emptyLoopIterator(), modifier, removeTask);
             synchronized (animators) {
-                animators.put(parent, iterator);
+                animators.putLast(parent, iterator);
             }
             applyAnimation();
         }
@@ -373,7 +373,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
             var get = animator.animator().get(getName());
             var iterator = get != null ? new TreeIterator(parent, get.singleIterator(), modifier, removeTask) : new TreeIterator(parent, animator.emptySingleIterator(), modifier, removeTask);
             synchronized (animators) {
-                animators.put(parent, iterator);
+                animators.putLast(parent, iterator);
             }
             applyAnimation();
         }
