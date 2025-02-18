@@ -8,6 +8,7 @@ import kr.toxicity.model.api.data.renderer.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.RendererGroup;
 import kr.toxicity.model.api.nms.*;
 import kr.toxicity.model.api.tracker.ModelRotation;
+import kr.toxicity.model.api.util.MathUtil;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -167,8 +168,10 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
                 if (!next.get()) continue;
                 if (check) {
                     if (currentIterator == null) {
+                        deltaRotation = new Quaternionf();
                         if (updateKeyframe(iterator, next)) currentIterator = next;
                     } else if (currentIterator != next) {
+                        deltaRotation = new Quaternionf();
                         if (updateKeyframe(iterator, next)) {
                             currentIterator = next;
                             delay = 0;
@@ -193,11 +196,25 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
             iterator.remove();
             return false;
         } else {
-            keyFrame = next.next();
+            var f = next.next();
+            if (keyFrame != null && keyFrame.rotation() != null) {
+                deltaRotation = MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(keyFrame.rotation())).mul(deltaRotation.invert());
+            } else {
+                deltaRotation = new Quaternionf();
+            }
+            keyFrame = f;
             return true;
         }
     }
 
+    public @NotNull Quaternionf deltaRotation() {
+        var delta = new Quaternionf(deltaRotation);
+        if (parent != null) {
+            return parent.deltaRotation().mul(delta);
+        } else return delta;
+    }
+
+    private Quaternionf deltaRotation = new Quaternionf();
     private TrackerMovement lastMovement;
     private EntityMovement lastTransform;
     private Vector3f defaultPosition = new Vector3f();
@@ -211,13 +228,14 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
 
     public void move(@NotNull ModelRotation rotation, @NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
         var d = display;
+        updateAnimation();
         if (d != null) d.rotate(rotation, bundler);
         if (delay <= 0) {
             var f = frame();
             delay = f;
             var entityMovement = (lastTransform = (lastMovement = movement.copy()).plus(relativeOffset())).plus(defaultPosition);
             if (d != null) {
-                d.frame(f <= 0 ? 0 : f + 2);
+                d.frame(f <= 0 ? 0 : f + 1);
                 setup(entityMovement);
                 d.send(bundler);
             }
@@ -226,13 +244,12 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
         for (RenderedEntity e : children.values()) {
             e.move(rotation, movement, bundler);
         }
-        updateAnimation();
     }
     public void forceUpdate(@NotNull PacketBundler bundler) {
         var d = display;
         if (d != null && lastMovement != null && delay > 0) {
             var entityMovement = (lastTransform = lastMovement.copy().plus(relativeOffset())).plus(defaultPosition);
-            d.frame((int) delay + 2);
+            d.frame((int) delay + 1);
             setup(entityMovement);
             d.send(bundler);
         }
@@ -353,7 +370,6 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
     }
 
     private void applyAnimation() {
-        updateAnimation();
         if (lastTransform != null) setup(lastTransform);
     }
 
@@ -386,7 +402,9 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
             synchronized (animators) {
                 var v = animators.get(target);
                 if (v != null) animators.replace(target, get != null ? new TreeIterator(parent, get.loopIterator(), v.modifier, v.removeTask) : new TreeIterator(parent, animator.emptyLoopIterator(), v.modifier, v.removeTask));
-                else animators.replace(target, get != null ? new TreeIterator(parent, get.loopIterator(), AnimationModifier.DEFAULT_LOOP, () -> {}) : new TreeIterator(parent, animator.emptyLoopIterator(), AnimationModifier.DEFAULT_LOOP, () -> {}));
+                else animators.replace(target, get != null ? new TreeIterator(parent, get.loopIterator(), AnimationModifier.DEFAULT_LOOP, () -> {
+                }) : new TreeIterator(parent, animator.emptyLoopIterator(), AnimationModifier.DEFAULT_LOOP, () -> {
+                }));
             }
             applyAnimation();
         }
@@ -398,7 +416,9 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
             synchronized (animators) {
                 var v = animators.get(target);
                 if (v != null) animators.replace(target, get != null ? new TreeIterator(parent, get.singleIterator(), v.modifier, v.removeTask) : new TreeIterator(parent, animator.emptySingleIterator(), v.modifier, v.removeTask));
-                else animators.replace(target, get != null ? new TreeIterator(parent, get.singleIterator(), AnimationModifier.DEFAULT, () -> {}) : new TreeIterator(parent, animator.emptySingleIterator(), AnimationModifier.DEFAULT, () -> {}));
+                else animators.replace(target, get != null ? new TreeIterator(parent, get.singleIterator(), AnimationModifier.DEFAULT, () -> {
+                }) : new TreeIterator(parent, animator.emptySingleIterator(), AnimationModifier.DEFAULT, () -> {
+                }));
             }
             applyAnimation();
         }
@@ -410,7 +430,6 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
             synchronized (animators) {
                 animators.remove(parent);
             }
-            updateAnimation();
         }
         children.values().forEach(c -> c.stopAnimation(filter, parent));
     }
@@ -480,9 +499,9 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
                 ended = true;
                 return new AnimationMovement((float) modifier.end() / 20, null, null, null);
             }
-            var nxt = iterator.next();
-            nxt = nxt.set((float) Math.round(nxt.time() * 400F) / 400F);
-            return nxt.time(Math.max(nxt.time() / modifier.speed(), 0.05F));
+            var nxt = iterator.next(); //.lerpTick();
+            nxt = nxt.time(Math.max(nxt.time() / modifier.speed(), 0.05F));
+            return nxt;
         }
 
         @Override

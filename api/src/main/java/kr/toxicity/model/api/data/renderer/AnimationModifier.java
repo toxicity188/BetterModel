@@ -23,10 +23,6 @@ public record AnimationModifier(Supplier<Boolean> predicate, int start, int end,
         this.speed = speed;
     }
 
-    public int speed(int original) {
-        return Math.round((float) original / speed);
-    }
-
     public static final AnimationModifier DEFAULT = new AnimationModifier(() -> true, 1, 0, 1F);
     public static final AnimationModifier DEFAULT_LOOP = new AnimationModifier(() -> true, 4, 0, 1F);
 }

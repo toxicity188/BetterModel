@@ -48,7 +48,7 @@ public record BlueprintAnimation(
             else map.put(name, builder.build(name));
         }
         var newMap = newMap(map);
-        return new BlueprintAnimation(animation.name(), animation.length(), newMap, blueprintScript, newMap.isEmpty() ? List.of(new AnimationMovement(0, null, null, null)) : newMap.values()
+        return new BlueprintAnimation(animation.name(), animation.length(), newMap, blueprintScript, newMap.isEmpty() ? List.of(new AnimationMovement(1, null, null, null)) : newMap.values()
                 .iterator()
                 .next()
                 .keyFrame()
@@ -134,7 +134,7 @@ public record BlueprintAnimation(
             @NotNull
             @Override
             public AnimationMovement first() {
-                return new AnimationMovement(0, null, null, null);
+                return new AnimationMovement(1, null, null, null);
             }
 
             private int index = 0;
@@ -184,7 +184,7 @@ public record BlueprintAnimation(
             @NotNull
             @Override
             public AnimationMovement first() {
-                return new AnimationMovement(0, null, null, null);
+                return new AnimationMovement(1, null, null, null);
             }
 
             @Override

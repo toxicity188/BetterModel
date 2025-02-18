@@ -1,8 +1,12 @@
 package kr.toxicity.model.api.data.blueprint;
 
+import kr.toxicity.model.api.util.MathUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A movement of animation.
@@ -40,6 +44,35 @@ public record AnimationMovement(
                 rotation != null ? new Vector3f(rotation)
                         .mul(mul) : null
         );
+    }
+
+    public @NotNull AnimationMovement lerpTick() {
+        if (time % 0.05 == 0) return this;
+        return set((float) Math.ceil(time * 400F) / 400F);
+    }
+
+    public @NotNull AnimationMovement lerp(@NotNull AnimationMovement to, float alpha) {
+        if (alpha == 0) return this;
+        else if (alpha == 1) return to;
+        return new AnimationMovement(
+                to.time,
+                MathUtil.lerp(transform, to.transform, alpha),
+                MathUtil.lerp(scale, to.scale, alpha),
+                MathUtil.lerp(rotation, to.rotation, alpha)
+        );
+    }
+
+    public @NotNull List<AnimationMovement> lerp(int lerpIndex, @NotNull AnimationMovement movement) {
+        var list = new ArrayList<AnimationMovement>();
+        var m = (1F / lerpIndex) * movement.time();
+        var r = movement.time();
+        for (int i = 0; i < lerpIndex; i++) {
+            var t = (float) (i + 1) / (float) lerpIndex;
+            var lerp = lerp(movement, t).time(Math.max(r % m, 0.05F)).lerpTick();
+            list.add(lerp);
+            r -= lerp.time();
+        }
+        return list;
     }
 
     /**

@@ -23,5 +23,9 @@ public enum KeyframeChannel {
     /**
      * Sound
      */
-    SOUND
+    SOUND,
+    /**
+     * Particle
+     */
+    PARTICLE
 }

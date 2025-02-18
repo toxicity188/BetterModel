@@ -2,6 +2,7 @@ package kr.toxicity.model.api.util;
 
 import kr.toxicity.model.api.data.raw.Float3;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.*;
 
 import java.lang.Math;
@@ -121,6 +122,13 @@ public final class MathUtil {
         return q;
     }
 
+    public static @Nullable Vector3f lerp(@Nullable Vector3f from, @Nullable Vector3f to, float alpha) {
+        if (to == null) to = new Vector3f();
+        if (from == null) from = new Vector3f();
+        return new Vector3f(from)
+                .add(new Vector3f(to).sub(from).mul(alpha));
+    }
+
     public static @NotNull Vector3f toRadians(@NotNull Vector3f vector) {
         return new Vector3f(vector).div(180).mul((float) PI);
     }
@@ -140,9 +148,12 @@ public final class MathUtil {
         return toXYZEuler(toMatrix(quaternion));
     }
 
+    public static float degree(@NotNull Quaternionf quaternionf) {
+        return (float) Math.toDegrees(quaternionf.angle());
+    }
+
     public static Vector3f toXYZEuler(Matrix3f mat) {
         var ret = new Vector3f();
-        ret.y = (float) asin(clamp(mat.m20, -1F, 1F));
         if (abs(mat.m20) < 1F) {
             ret.x = (float) atan2(-mat.m21, mat.m22);
             ret.z = (float) atan2(-mat.m10, mat.m00);
@@ -150,7 +161,7 @@ public final class MathUtil {
             ret.x = (float) atan2(mat.m12, mat.m11);
             ret.z = 0F;
         }
-
+        ret.y = (float) asin(clamp(mat.m20, -1F, 1F));
         return toDegrees(ret);
     }
 }

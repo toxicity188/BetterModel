@@ -36,8 +36,8 @@ public record BlueprintAnimator(@NotNull String name, float length, @NotNull @Un
         private final List<TimeVector> scale = new ArrayList<>();
         private final List<TimeVector> rotation = new ArrayList<>();
 
-        private static int checkSplit(Vector3f vector3f) {
-            return Math.round(vector3f.length() / 45 + 1);
+        private static int checkSplit(float angle) {
+            return (int) Math.floor(Math.toDegrees(angle) / 60) + 1;
         }
 
         /**
@@ -53,7 +53,11 @@ public record BlueprintAnimator(@NotNull String name, float length, @NotNull @Un
                     case ROTATION -> {
                         var rot = new TimeVector(keyframe.time(), MathUtil.animationToDisplay(vec));
                         var last = rotation.isEmpty() ? TimeVector.EMPTY : rotation.getLast();
-                        var split = checkSplit(new Vector3f(rot.vector3f).sub(last.vector3f));
+                        var split = checkSplit(
+                                MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(rot.vector3f))
+                                        .mul(MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(last.vector3f)).invert())
+                                        .angle()
+                        );
                         if (split > 1) {
                             for (int i = 1; i < split; i++) {
                                 var t = (rot.time - last.time) / split * i + last.time;
