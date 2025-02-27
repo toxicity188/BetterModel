@@ -457,6 +457,7 @@ class NMSImpl : NMS {
         val handle = (entity as CraftLivingEntity).handle
         return object : EntityAdapter {
             override fun entity(): LivingEntity = entity
+            override fun dead(): Boolean = handle.isDeadOrDying
             override fun invisible(): Boolean = handle.isInvisible || handle.hasEffect(MobEffects.INVISIBILITY)
             override fun glow(): Boolean = handle.isCurrentlyGlowing
 

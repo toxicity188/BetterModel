@@ -159,7 +159,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
     }
 
     private TreeIterator currentIterator = null;
-    private void updateAnimation() {
+    public void updateAnimation() {
         synchronized (animators) {
             var iterator = animators.reversed().values().iterator();
             var check = true;
@@ -187,6 +187,9 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
             if (check) {
                 keyFrame = null;
             }
+        }
+        for (RenderedEntity e : children.values()) {
+            e.updateAnimation();
         }
     }
 
@@ -228,14 +231,13 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
 
     public void move(@NotNull ModelRotation rotation, @NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
         var d = display;
-        updateAnimation();
         if (d != null) d.rotate(rotation, bundler);
         if (delay <= 0) {
             var f = frame();
             delay = f;
             var entityMovement = (lastTransform = (lastMovement = movement.copy()).plus(relativeOffset())).plus(defaultPosition);
             if (d != null) {
-                d.frame(f <= 0 ? 0 : f + 1);
+                d.frame(f <= 0 ? 0 : f + 2);
                 setup(entityMovement);
                 d.send(bundler);
             }
@@ -249,7 +251,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
         var d = display;
         if (d != null && lastMovement != null && delay > 0) {
             var entityMovement = (lastTransform = lastMovement.copy().plus(relativeOffset())).plus(defaultPosition);
-            d.frame((int) delay + 1);
+            d.frame((int) delay + 2);
             setup(entityMovement);
             d.send(bundler);
         }
@@ -499,7 +501,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
                 ended = true;
                 return new AnimationMovement((float) modifier.end() / 20, null, null, null);
             }
-            var nxt = iterator.next(); //.lerpTick();
+            var nxt = iterator.next();
             nxt = nxt.time(Math.max(nxt.time() / modifier.speed(), 0.05F));
             return nxt;
         }

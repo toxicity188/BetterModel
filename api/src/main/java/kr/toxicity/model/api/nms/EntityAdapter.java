@@ -7,6 +7,12 @@ import org.joml.Vector3f;
 
 public interface EntityAdapter {
     EntityAdapter EMPTY = new EntityAdapter() {
+
+        @Override
+        public boolean dead() {
+            return false;
+        }
+
         @Nullable
         @Override
         public LivingEntity entity() {
@@ -68,6 +74,11 @@ public interface EntityAdapter {
             double scaleMultiplier
     ) implements EntityAdapter {
 
+        @Override
+        public boolean dead() {
+            return delegate.dead();
+        }
+
         @Nullable
         @Override
         public LivingEntity entity() {
@@ -117,6 +128,7 @@ public interface EntityAdapter {
     }
 
     @Nullable LivingEntity entity();
+    boolean dead();
     boolean invisible();
     boolean glow();
     boolean onWalk();

@@ -35,7 +35,7 @@ allprojects {
         implementation("dev.jorel:commandapi-bukkit-shade:9.7.0")
         implementation("org.bstats:bstats-bukkit:3.1.0")
         compileOnly("net.citizensnpcs:citizens-main:2.0.37-SNAPSHOT")
-        compileOnly("io.lumine:Mythic-Dist:5.7.2")
+        compileOnly("io.lumine:Mythic-Dist:5.8.0")
     }
     tasks {
         test {

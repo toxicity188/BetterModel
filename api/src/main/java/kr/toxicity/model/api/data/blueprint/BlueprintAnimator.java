@@ -37,7 +37,7 @@ public record BlueprintAnimator(@NotNull String name, float length, @NotNull @Un
         private final List<TimeVector> rotation = new ArrayList<>();
 
         private static int checkSplit(float angle) {
-            return (int) Math.floor(Math.toDegrees(angle) / 60) + 1;
+            return (int) Math.floor(Math.toDegrees(angle) / 45) + 1;
         }
 
         /**

@@ -87,7 +87,10 @@ public final class RenderInstance implements AutoCloseable {
     }
 
     public void move(@NotNull ModelRotation rotation, @NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
-        entityMap.values().forEach(e -> e.move(rotation, movement, bundler));
+        entityMap.values().forEach(e -> {
+            e.updateAnimation();
+            e.move(rotation, movement, bundler);
+        });
     }
 
     public void lastMovement(@NotNull TrackerMovement movement) {
