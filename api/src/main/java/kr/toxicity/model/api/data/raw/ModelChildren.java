@@ -1,10 +1,11 @@
 package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.UUID;
+import java.util.Optional;
 import java.util.function.Function;
 
 /**
@@ -39,7 +40,7 @@ public sealed interface ModelChildren {
                         Float3.PARSER.apply(object.get("rotation")),
                         object.getAsJsonPrimitive("uuid").getAsString(),
                         object.getAsJsonArray("children").asList().stream().map(this).toList(),
-                        object.getAsJsonPrimitive("visibility").getAsBoolean()
+                        Optional.ofNullable(object.getAsJsonPrimitive("visibility")).map(JsonPrimitive::getAsBoolean).orElse(true)
                 );
             } else throw new RuntimeException();
         }

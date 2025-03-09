@@ -125,7 +125,7 @@ public record BlueprintAnimator(@NotNull String name, float length, @NotNull @Un
                         last.rotation()
                 ));
             }
-            return list;
+            return list.isEmpty() ? List.of(new AnimationMovement(1, null, null, null)) : list;
         }
 
         public @NotNull BlueprintAnimator build(@NotNull String name) {

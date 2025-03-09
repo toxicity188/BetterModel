@@ -48,7 +48,7 @@ public record AnimationMovement(
 
     public @NotNull AnimationMovement lerpTick() {
         if (time % 0.05 == 0) return this;
-        return set((float) Math.ceil(time * 400F) / 400F);
+        return set((float) Math.max(Math.round(time * 20F), 1) / 20F);
     }
 
     public @NotNull AnimationMovement lerp(@NotNull AnimationMovement to, float alpha) {

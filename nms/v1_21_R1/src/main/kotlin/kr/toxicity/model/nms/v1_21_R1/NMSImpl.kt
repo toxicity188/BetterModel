@@ -342,7 +342,10 @@ class NMSImpl : NMS {
         val display: ItemDisplay
     ) : ModelDisplay {
 
+        private var isDead = false
+
         override fun rotate(rotation: ModelRotation, bundler: PacketBundler) {
+            if (isDead) return
             display.xRot = rotation.x
             display.yRot = rotation.y
             bundler.unwrap().add(ClientboundMoveEntityPacket.Rot(
@@ -354,6 +357,7 @@ class NMSImpl : NMS {
         }
 
         override fun sync(entity: EntityAdapter) {
+            isDead = entity.dead()
             display.setGlowingTag(entity.glow())
             if (BetterModel.inst().configManager().followMobInvisibility()) display.isInvisible = entity.invisible()
         }
