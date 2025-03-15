@@ -8,7 +8,6 @@ import kr.toxicity.model.api.data.renderer.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.RendererGroup;
 import kr.toxicity.model.api.nms.*;
 import kr.toxicity.model.api.tracker.ModelRotation;
-import kr.toxicity.model.api.util.MathUtil;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -168,10 +167,8 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
                 if (!next.get()) continue;
                 if (check) {
                     if (currentIterator == null) {
-                        deltaRotation = new Quaternionf();
                         if (updateKeyframe(iterator, next)) currentIterator = next;
                     } else if (currentIterator != next) {
-                        deltaRotation = new Quaternionf();
                         if (updateKeyframe(iterator, next)) {
                             currentIterator = next;
                             delay = 0;
@@ -199,25 +196,11 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
             iterator.remove();
             return false;
         } else {
-            var f = next.next();
-            if (keyFrame != null && keyFrame.rotation() != null) {
-                deltaRotation = MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(keyFrame.rotation())).mul(deltaRotation.invert());
-            } else {
-                deltaRotation = new Quaternionf();
-            }
-            keyFrame = f;
+            keyFrame = next.next();
             return true;
         }
     }
 
-    public @NotNull Quaternionf deltaRotation() {
-        var delta = new Quaternionf(deltaRotation);
-        if (parent != null) {
-            return parent.deltaRotation().mul(delta);
-        } else return delta;
-    }
-
-    private Quaternionf deltaRotation = new Quaternionf();
     private TrackerMovement lastMovement;
     private EntityMovement lastTransform;
     private Vector3f defaultPosition = new Vector3f();
@@ -231,13 +214,13 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
 
     public void move(@NotNull ModelRotation rotation, @NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
         var d = display;
-        if (d != null) d.rotate(rotation, bundler);
+        if (d != null && delay % 5 == 0) d.rotate(rotation, bundler);
         if (delay <= 0) {
             var f = frame();
             delay = f;
             var entityMovement = (lastTransform = (lastMovement = movement.copy()).plus(relativeOffset())).plus(defaultPosition);
             if (d != null) {
-                d.frame(f <= 0 ? 0 : f + 2);
+                d.frame(f <= 0 ? 0 : (int) Math.ceil((float) f / 5F) + 2);
                 setup(entityMovement);
                 d.send(bundler);
             }
@@ -251,7 +234,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
         var d = display;
         if (d != null && lastMovement != null && delay > 0) {
             var entityMovement = (lastTransform = lastMovement.copy().plus(relativeOffset())).plus(defaultPosition);
-            d.frame((int) delay + 2);
+            d.frame((int) Math.ceil((float) delay / 5F) + 2);
             setup(entityMovement);
             d.send(bundler);
         }
@@ -289,7 +272,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
     }
 
     private int frame() {
-        return keyFrame != null ? Math.round(keyFrame.time() * 20) : parent != null ? parent.frame() : 1;
+        return keyFrame != null ? Math.round(keyFrame.time() * 100) : parent != null ? parent.frame() : 5;
     }
 
     private EntityMovement defaultFrame() {
@@ -502,7 +485,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
                 return new AnimationMovement((float) modifier.end() / 20, null, null, null);
             }
             var nxt = iterator.next();
-            nxt = nxt.time(Math.max(nxt.time() / modifier.speed(), 0.05F));
+            nxt = nxt.time(Math.max(nxt.time() / modifier.speed(), 0.01F));
             return nxt;
         }
 

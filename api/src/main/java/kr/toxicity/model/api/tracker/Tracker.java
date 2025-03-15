@@ -7,7 +7,6 @@ import kr.toxicity.model.api.entity.RenderedEntity;
 import kr.toxicity.model.api.entity.TrackerMovement;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
-import kr.toxicity.model.api.scheduler.ModelTask;
 import kr.toxicity.model.api.util.EntityUtil;
 import lombok.Getter;
 import org.bukkit.Location;
@@ -20,6 +19,7 @@ import org.joml.Vector3f;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -29,13 +29,15 @@ import java.util.function.Supplier;
  * Tracker of model.
  */
 public abstract class Tracker implements AutoCloseable {
+
+    private static final ScheduledExecutorService EXECUTOR = Executors.newScheduledThreadPool(256);
     /**
      * Tracker's namespace.
      */
     public static final NamespacedKey TRACKING_ID = Objects.requireNonNull(NamespacedKey.fromString("bettermodel_tracker"));
 
     protected final RenderInstance instance;
-    private final ModelTask task;
+    private final ScheduledFuture<?> task;
     private final AtomicBoolean runningSingle = new AtomicBoolean();
 
     private TrackerMovement before;
@@ -54,14 +56,14 @@ public abstract class Tracker implements AutoCloseable {
         this.instance = instance;
         this.modifier = modifier;
         this.movement = () -> new TrackerMovement(new Vector3f(), new Vector3f(modifier.scale()), new Vector3f());
-        task = BetterModel.inst().scheduler().asyncTaskTimer(1, 1, () -> {
+        task = EXECUTOR.scheduleAtFixedRate(() -> {
             consumer.accept(this);
             var bundle = BetterModel.inst().nms().createBundler();
             instance.move(rotation(), isRunningSingleAnimation() && before != null && BetterModel.inst().configManager().lockOnPlayAnimation() ? before : (before = movement.get()), bundle);
             if (!bundle.isEmpty()) for (Player player : instance.viewedPlayer()) {
                 bundle.send(player);
             }
-        });
+        }, 10, 10, TimeUnit.MILLISECONDS);
         tint(false);
         if (modifier.sightTrace()) instance.filter(p -> EntityUtil.canSee(p.getEyeLocation(), location()));
         tick(t -> t.instance.getScriptProcessor().tick());
@@ -95,7 +97,7 @@ public abstract class Tracker implements AutoCloseable {
 
     @Override
     public void close() throws Exception {
-        task.cancel();
+        task.cancel(true);
         instance.close();
     }
 

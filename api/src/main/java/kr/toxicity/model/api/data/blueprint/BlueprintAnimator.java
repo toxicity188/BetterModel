@@ -60,24 +60,24 @@ public record BlueprintAnimator(@NotNull String name, float length, @NotNull @Un
                                 keyframe.time(),
                                 interpolation
                         );
-//                        if (!rotation.isEmpty() && rot.time() > 0) {
-//                            var last = rotation.getLast();
-//                            var split = checkSplit(
-//                                    MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(rot.vector()))
-//                                            .mul(MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(last.vector())).invert())
-//                                            .angle()
-//                            );
-//                            if (split > 1) {
-//                                for (int i = 1; i < split; i++) {
-//                                    var alpha = (float) i / (float) split;
-//                                    rotation.add(new VectorPoint(
-//                                            VectorUtil.linear(last.vector(), rot.vector(), alpha),
-//                                            VectorUtil.linear(last.time(), rot.time(), alpha),
-//                                            interpolation
-//                                    ));
-//                                }
-//                            }
-//                        }
+                        if (!rotation.isEmpty() && rot.time() > 0) {
+                            var last = rotation.getLast();
+                            var split = checkSplit(
+                                    MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(rot.vector()))
+                                            .mul(MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(last.vector())).invert())
+                                            .angle()
+                            );
+                            if (split > 1) {
+                                for (int i = 1; i < split; i++) {
+                                    var alpha = (float) i / (float) split;
+                                    rotation.add(new VectorPoint(
+                                            VectorUtil.linear(last.vector(), rot.vector(), alpha),
+                                            VectorUtil.linear(last.time(), rot.time(), alpha),
+                                            interpolation
+                                    ));
+                                }
+                            }
+                        }
                         rotation.add(rot);
                     }
                     case SCALE -> scale.add(new VectorPoint(
@@ -169,7 +169,7 @@ public record BlueprintAnimator(@NotNull String name, float length, @NotNull @Un
 
         @Override
         public int length() {
-            return Math.round(length * 20);
+            return Math.round(length * 100);
         }
 
         @Override
@@ -209,7 +209,7 @@ public record BlueprintAnimator(@NotNull String name, float length, @NotNull @Un
 
         @Override
         public int length() {
-            return Math.round(length * 20);
+            return Math.round(length * 100);
         }
 
         @Override

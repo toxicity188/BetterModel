@@ -79,7 +79,7 @@ public record BlueprintAnimation(
         var frame = entry.getValue().points();
         if (frame.isEmpty()) return Collections.emptyList();
         var list = VectorUtil.putAnimationPoint(frame, floatSet).stream().map(AnimationPoint::toMovement).collect(Collectors.toList());
-        reduceFrame(list);
+        //reduceFrame(list);
         return processFrame(list);
     }
 
@@ -142,7 +142,7 @@ public record BlueprintAnimation(
 
             @Override
             public int length() {
-                return Math.round(length * 20);
+                return Math.round(length * 100);
             }
 
             @Override
@@ -190,7 +190,7 @@ public record BlueprintAnimation(
 
             @Override
             public int length() {
-                return Math.round(length * 20);
+                return Math.round(length * 100);
             }
 
             @Override

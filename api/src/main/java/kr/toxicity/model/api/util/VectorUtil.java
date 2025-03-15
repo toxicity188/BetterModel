@@ -11,33 +11,9 @@ public class VectorUtil {
         throw new RuntimeException();
     }
 
-    private static int checkSplit(float angle) {
-        return (int) Math.floor(Math.toDegrees(angle) / 45) + 1;
-    }
-
     private static void point(@NotNull Collection<Float> target, List<VectorPoint> points) {
         for (VectorPoint point : points) {
             target.add(point.time());
-        }
-    }
-    private static void pointDegree(@NotNull Collection<Float> target, List<VectorPoint> points) {
-        var i = 0;
-        for (VectorPoint point : points) {
-            if (i > 0) {
-                var last = points.get(i - 1);
-                var split = checkSplit(
-                        MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(point.vector()))
-                                .mul(MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(last.vector())).invert())
-                                .angle()
-                );
-                if (split > 1) {
-                    for (int t = 1; t < split; t++) {
-                        target.add(linear(last.time(), point.time(), (float) i / (float) split));
-                    }
-                }
-            }
-            target.add(point.time());
-            i++;
         }
     }
 
@@ -53,7 +29,7 @@ public class VectorUtil {
         var set = new TreeSet<Float>();
         point(set, position);
         point(set, scale);
-        pointDegree(set, rotation);
+        point(set, rotation);
         return sum(position, rotation, scale, set);
     }
 
@@ -74,7 +50,8 @@ public class VectorUtil {
 
     public static @NotNull List<VectorPoint> putPoint(@NotNull List<VectorPoint> vectors, @NotNull Collection<Float> points) {
         if (vectors.isEmpty()) return points.stream().map(t -> new VectorPoint(new Vector3f(), t, VectorInterpolation.LINEAR)).toList();
-        var length = vectors.getLast().time();
+        var last = vectors.getLast();
+        var length = last.time();
         var i = 0;
         var p2 = vectors.getFirst();
         var t = p2.time();
@@ -89,9 +66,9 @@ public class VectorUtil {
             }
             if (t == point) continue;
             if (i == lastIndex && point >= t) finalizedVectors.add(new VectorPoint(
-                    vectors.getLast().vector(),
+                    last.vector(),
                     point,
-                    VectorInterpolation.LINEAR
+                    last.interpolation()
             ));
             else {
                 newVectors.add(p2.interpolation().interpolate(vectors, i, point));
