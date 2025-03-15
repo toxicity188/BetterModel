@@ -2,7 +2,7 @@ package kr.toxicity.model.api.data.blueprint;
 
 import kr.toxicity.model.api.data.raw.Datapoint;
 import kr.toxicity.model.api.data.raw.ModelKeyframe;
-import kr.toxicity.model.api.util.MathUtil;
+import kr.toxicity.model.api.util.*;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
@@ -20,9 +20,8 @@ import java.util.List;
  */
 public record BlueprintAnimator(@NotNull String name, float length, @NotNull @Unmodifiable List<AnimationMovement> keyFrame) {
 
-    private record TimeVector(float time, @NotNull Vector3f vector3f) {
-        private static final TimeVector EMPTY = new TimeVector(0, new Vector3f());
-    }
+
+    public record AnimatorData(@NotNull String name, float length, @NotNull List<AnimationPoint> points) {}
 
     /**
      * Builder
@@ -32,9 +31,9 @@ public record BlueprintAnimator(@NotNull String name, float length, @NotNull @Un
 
         private final float length;
 
-        private final List<TimeVector> transform = new ArrayList<>();
-        private final List<TimeVector> scale = new ArrayList<>();
-        private final List<TimeVector> rotation = new ArrayList<>();
+        private final List<VectorPoint> transform = new ArrayList<>();
+        private final List<VectorPoint> scale = new ArrayList<>();
+        private final List<VectorPoint> rotation = new ArrayList<>();
 
         private static int checkSplit(float angle) {
             return (int) Math.floor(Math.toDegrees(angle) / 45) + 1;
@@ -46,90 +45,80 @@ public record BlueprintAnimator(@NotNull String name, float length, @NotNull @Un
          * @return self
          */
         public @NotNull Builder addFrame(@NotNull ModelKeyframe keyframe) {
+            var interpolation = VectorInterpolation.find(keyframe.interpolation());
             for (Datapoint dataPoint : keyframe.dataPoints()) {
                 var vec = dataPoint.toVector();
                 switch (keyframe.channel()) {
-                    case POSITION -> transform.add(new TimeVector(keyframe.time(), MathUtil.transformToDisplay(vec.div(16))));
+                    case POSITION -> transform.add(new VectorPoint(
+                            MathUtil.transformToDisplay(vec.div(16)),
+                            keyframe.time(),
+                            interpolation
+                    ));
                     case ROTATION -> {
-                        var rot = new TimeVector(keyframe.time(), MathUtil.animationToDisplay(vec));
-                        var last = rotation.isEmpty() ? TimeVector.EMPTY : rotation.getLast();
-                        var split = checkSplit(
-                                MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(rot.vector3f))
-                                        .mul(MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(last.vector3f)).invert())
-                                        .angle()
+                        var rot = new VectorPoint(
+                                MathUtil.animationToDisplay(vec),
+                                keyframe.time(),
+                                interpolation
                         );
-                        if (split > 1) {
-                            for (int i = 1; i < split; i++) {
-                                var t = (rot.time - last.time) / split * i + last.time;
-                                rotation.add(new TimeVector(t, get(t, last, rot)));
-                            }
-                        }
+//                        if (!rotation.isEmpty() && rot.time() > 0) {
+//                            var last = rotation.getLast();
+//                            var split = checkSplit(
+//                                    MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(rot.vector()))
+//                                            .mul(MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(last.vector())).invert())
+//                                            .angle()
+//                            );
+//                            if (split > 1) {
+//                                for (int i = 1; i < split; i++) {
+//                                    var alpha = (float) i / (float) split;
+//                                    rotation.add(new VectorPoint(
+//                                            VectorUtil.linear(last.vector(), rot.vector(), alpha),
+//                                            VectorUtil.linear(last.time(), rot.time(), alpha),
+//                                            interpolation
+//                                    ));
+//                                }
+//                            }
+//                        }
                         rotation.add(rot);
                     }
-                    case SCALE -> scale.add(new TimeVector(keyframe.time(), vec.sub(1, 1, 1)));
+                    case SCALE -> scale.add(new VectorPoint(
+                            vec.sub(1, 1, 1),
+                            keyframe.time(),
+                            interpolation
+                    ));
                 }
             }
             return this;
         }
 
-        private Vector3f get(float min, TimeVector last, TimeVector newVec) {
-            if (newVec.time == 0 || newVec.time - last.time == 0) return newVec.vector3f;
-            return new Vector3f(last.vector3f)
-                    .add(new Vector3f(newVec.vector3f).sub(last.vector3f).mul(min - last.time).div(newVec.time - last.time));
-        }
-
-        private @NotNull List<AnimationMovement> toAnimation() {
-            var list = new ArrayList<AnimationMovement>();
-            var ti = 0;
-            var si = 0;
-            var ri = 0;
-            var beforeTime = 0F;
-
-            var t = !transform.isEmpty() ? transform.getFirst() : null;
-            var s = !scale.isEmpty() ? scale.getFirst() : null;
-            var r = !rotation.isEmpty() ? rotation.getFirst() : null;
-
-            TimeVector lastP = TimeVector.EMPTY, lastS = TimeVector.EMPTY, lastR = TimeVector.EMPTY;
-
-            while (t != null || s != null || r != null) {
-                var min = Math.min(t != null ? t.time : Long.MAX_VALUE, Math.min(s != null ? s.time : Long.MAX_VALUE, r != null ? r.time : Long.MAX_VALUE));
-                list.add(new AnimationMovement(
-                        min,
-                        t != null ? get(min, lastP, t) : lastP.vector3f,
-                        s != null ? get(min, lastS, s) : lastS.vector3f,
-                        r != null ? get(min, lastR, r) : lastR.vector3f
-                ));
-                if (t != null && t.time <= min) {
-                    lastP = t;
-                    ti++;
-                }
-                if (s != null && s.time <= min) {
-                    lastS = s;
-                    si++;
-                }
-                if (r != null && r.time <= min) {
-                    lastR = r;
-                    ri++;
-                }
-                t = transform.size() > ti ? transform.get(ti) : null;
-                s = scale.size() > si ? scale.get(si) : null;
-                r = rotation.size() > ri ? rotation.get(ri) : null;
-                beforeTime = min;
-            }
-            if (beforeTime < length && !list.isEmpty()) {
-                var last = list.getLast();
-                list.add(new AnimationMovement(
+        private void addLastFrame(@NotNull List<VectorPoint> points) {
+            VectorPoint lastPoint;
+            if (points.isEmpty()) {
+                lastPoint = new VectorPoint(
+                        new Vector3f(),
                         length,
-                        last.transform(),
-                        last.scale(),
-                        last.rotation()
-                ));
+                        VectorInterpolation.LINEAR
+                );
+            } else {
+                var last = points.getLast();
+                if (last.time() >= length) return;
+                lastPoint = new VectorPoint(
+                        last.vector(),
+                        length,
+                        last.interpolation()
+                );
             }
-            return list.isEmpty() ? List.of(new AnimationMovement(1, null, null, null)) : list;
+            points.add(lastPoint);
         }
 
-        public @NotNull BlueprintAnimator build(@NotNull String name) {
-            return new BlueprintAnimator(name, length, toAnimation());
+        public @NotNull AnimatorData build(@NotNull String name) {
+            addLastFrame(transform);
+            addLastFrame(rotation);
+            addLastFrame(scale);
+            return new AnimatorData(name, length, VectorUtil.sum(
+                    transform.stream().distinct().toList(),
+                    rotation.stream().distinct().toList(),
+                    scale.stream().distinct().toList()
+            ));
         }
     }
 

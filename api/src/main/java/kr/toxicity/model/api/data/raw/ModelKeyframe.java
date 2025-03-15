@@ -2,6 +2,7 @@ package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.annotations.SerializedName;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -14,6 +15,7 @@ import java.util.List;
 public record ModelKeyframe(
         @NotNull KeyframeChannel channel,
         @NotNull @SerializedName("data_points") List<Datapoint> dataPoints,
+        @Nullable String interpolation,
         float time
 ) implements Comparable<ModelKeyframe> {
 
@@ -21,6 +23,7 @@ public record ModelKeyframe(
         return new ModelKeyframe(
                 channel,
                 dataPoints,
+                interpolation,
                 time
         );
     }

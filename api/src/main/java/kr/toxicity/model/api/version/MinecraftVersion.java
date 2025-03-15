@@ -24,6 +24,10 @@ public record MinecraftVersion(int first, int second, int third) implements Comp
     }
 
     /**
+     * 1.21.5
+     */
+    public static final MinecraftVersion V1_21_5 = new MinecraftVersion(1, 21, 5);
+    /**
      * 1.21.4
      */
     public static final MinecraftVersion V1_21_4 = new MinecraftVersion(1, 21, 4);
@@ -85,7 +89,7 @@ public record MinecraftVersion(int first, int second, int third) implements Comp
     }
     /**
      * Parses version from string array
-     * @param version version array like ["1", "21", "4]
+     * @param version version array like ["1", "21", "4"]
      */
     public MinecraftVersion(@NotNull String[] version) {
         this(

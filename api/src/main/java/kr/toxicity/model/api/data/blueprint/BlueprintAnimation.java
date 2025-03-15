@@ -5,11 +5,14 @@ import kr.toxicity.model.api.data.raw.ModelAnimation;
 import kr.toxicity.model.api.data.raw.ModelAnimator;
 import kr.toxicity.model.api.data.raw.ModelKeyframe;
 import kr.toxicity.model.api.script.BlueprintScript;
+import kr.toxicity.model.api.util.AnimationPoint;
+import kr.toxicity.model.api.util.VectorUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 import org.joml.Vector3f;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * A model animation.
@@ -31,7 +34,7 @@ public record BlueprintAnimation(
      * @return converted animation
      */
     public static @NotNull BlueprintAnimation from(@NotNull ModelAnimation animation) {
-        var map = new HashMap<String, BlueprintAnimator>();
+        var map = new HashMap<String, BlueprintAnimator.AnimatorData>();
         BlueprintScript blueprintScript = BlueprintScript.emptyOf(animation);
         var animator = animation.animators();
         if (animator != null) for (Map.Entry<String, ModelAnimator> entry : animator.entrySet()) {
@@ -48,7 +51,7 @@ public record BlueprintAnimation(
             else map.put(name, builder.build(name));
         }
         var newMap = newMap(map);
-        return new BlueprintAnimation(animation.name(), animation.length(), newMap, blueprintScript, newMap.isEmpty() ? List.of(new AnimationMovement(1, null, null, null)) : newMap.values()
+        return new BlueprintAnimation(animation.name(), animation.length(), newMap, blueprintScript, newMap.isEmpty() ? List.of(new AnimationMovement(0, null, null, null)) : newMap.values()
                 .iterator()
                 .next()
                 .keyFrame()
@@ -57,11 +60,11 @@ public record BlueprintAnimation(
                 .toList());
     }
 
-    private static Map<String, BlueprintAnimator> newMap(@NotNull Map<String, BlueprintAnimator> oldMap) {
+    private static Map<String, BlueprintAnimator> newMap(@NotNull Map<String, BlueprintAnimator.AnimatorData> oldMap) {
         var newMap = new HashMap<String, BlueprintAnimator>();
         Set<Float> floatSet = new TreeSet<>(Comparator.naturalOrder());
-        oldMap.values().forEach(a -> a.keyFrame().stream().map(AnimationMovement::time).forEach(floatSet::add));
-        for (Map.Entry<String, BlueprintAnimator> entry : oldMap.entrySet()) {
+        oldMap.values().forEach(a -> a.points().stream().map(t -> t.position().time()).forEach(floatSet::add));
+        for (Map.Entry<String, BlueprintAnimator.AnimatorData> entry : oldMap.entrySet()) {
             var list = getAnimationMovements(floatSet, entry);
             newMap.put(entry.getKey(), new BlueprintAnimator(
                     entry.getValue().name(),
@@ -72,29 +75,12 @@ public record BlueprintAnimation(
         return newMap;
     }
 
-    private static @NotNull List<AnimationMovement> getAnimationMovements(Set<Float> floatSet, Map.Entry<String, BlueprintAnimator> entry) {
-        var frame = entry.getValue().keyFrame();
+    private static @NotNull List<AnimationMovement> getAnimationMovements(Set<Float> floatSet, Map.Entry<String, BlueprintAnimator.AnimatorData> entry) {
+        var frame = entry.getValue().points();
         if (frame.isEmpty()) return Collections.emptyList();
-        var list = new ArrayList<AnimationMovement>();
-        for (float l : floatSet) {
-            list.add(getFrame(frame, l));
-        }
+        var list = VectorUtil.putAnimationPoint(frame, floatSet).stream().map(AnimationPoint::toMovement).collect(Collectors.toList());
         reduceFrame(list);
         return processFrame(list);
-    }
-
-    private static @NotNull AnimationMovement getFrame(@NotNull List<AnimationMovement> list, float f) {
-        for (int t = 0; t < list.size(); t++) {
-            var get = list.get(t);
-            if (f <= get.time()) {
-                if (t == 0 || get.time() == f) return get.set(f);
-                else {
-                    var get2 = list.get(t - 1);
-                    return get2.plus(get.minus(get2).set(f - get2.time()));
-                }
-            }
-        }
-        return list.getFirst();
     }
 
     private static void reduceFrame(@NotNull List<AnimationMovement> target) {
