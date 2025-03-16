@@ -76,6 +76,14 @@ class HitBoxImpl(
         delegate.remainingFireTicks = remainingFireTicks
     }
 
+    override fun push(entity: net.minecraft.world.entity.Entity) {
+        delegate.push(entity)
+    }
+
+    override fun knockback(strength: Double, x: Double, z: Double) {
+        delegate.knockback(strength, x, z)
+    }
+
     override fun push(x: Double, y: Double, z: Double, pushingEntity: net.minecraft.world.entity.Entity?) {
         delegate.push(x, y, z, pushingEntity)
     }
@@ -107,8 +115,6 @@ class HitBoxImpl(
         }
         updateInWaterStateAndDoFluidPushing()
         if (isInLava) delegate.lavaHurt()
-        delegate.addDeltaMovement(deltaMovement)
-        setDeltaMovement(0.0, 0.0, 0.0)
         setSharedFlagOnFire(delegate.remainingFireTicks > 0)
         firstTick = false
         listener.sync(this)

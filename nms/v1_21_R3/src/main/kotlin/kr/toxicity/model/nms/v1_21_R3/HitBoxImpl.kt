@@ -1,5 +1,6 @@
 package kr.toxicity.model.nms.v1_21_R3
 
+import io.papermc.paper.event.entity.EntityKnockbackEvent
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import kr.toxicity.model.api.event.ModelDamagedEvent
@@ -10,14 +11,12 @@ import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.HitBoxListener
 import kr.toxicity.model.api.nms.TransformSupplier
 import net.minecraft.core.BlockPos
-import net.minecraft.core.Holder
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionHand.MAIN_HAND
 import net.minecraft.world.InteractionHand.OFF_HAND
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.damagesource.DamageSource
-import net.minecraft.world.effect.MobEffect
 import net.minecraft.world.effect.MobEffectInstance
 import net.minecraft.world.entity.*
 import net.minecraft.world.entity.ai.attributes.AttributeMap
@@ -80,6 +79,20 @@ class HitBoxImpl(
         delegate.remainingFireTicks = remainingFireTicks
     }
 
+    override fun push(entity: net.minecraft.world.entity.Entity) {
+        delegate.push(entity)
+    }
+
+    override fun knockback(
+        d0: Double,
+        d1: Double,
+        d2: Double,
+        attacker: net.minecraft.world.entity.Entity?,
+        cause: EntityKnockbackEvent.Cause
+    ) {
+        delegate.knockback(d0, d1, d2, attacker, cause)
+    }
+
     override fun push(x: Double, y: Double, z: Double, pushingEntity: net.minecraft.world.entity.Entity?) {
         delegate.push(x, y, z, pushingEntity)
     }
@@ -111,8 +124,6 @@ class HitBoxImpl(
         }
         updateInWaterStateAndDoFluidPushing()
         if (isInLava) delegate.lavaHurt()
-        delegate.addDeltaMovement(deltaMovement)
-        setDeltaMovement(0.0, 0.0, 0.0)
         setSharedFlagOnFire(delegate.remainingFireTicks > 0)
         firstTick = false
         listener.sync(this)

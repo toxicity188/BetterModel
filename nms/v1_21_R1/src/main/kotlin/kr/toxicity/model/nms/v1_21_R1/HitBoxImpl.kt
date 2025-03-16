@@ -108,8 +108,6 @@ class HitBoxImpl(
         }
         updateInWaterStateAndDoFluidPushing()
         if (isInLava) delegate.lavaHurt()
-        delegate.addDeltaMovement(deltaMovement)
-        setDeltaMovement(0.0, 0.0, 0.0)
         setSharedFlagOnFire(delegate.remainingFireTicks > 0)
         firstTick = false
         listener.sync(this)
