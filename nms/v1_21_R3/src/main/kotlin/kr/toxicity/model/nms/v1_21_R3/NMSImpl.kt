@@ -259,7 +259,7 @@ class NMSImpl : NMS {
                     if (it.id == sharedFlag) SynchedEntityData.DataValue<Byte>(
                         it.id,
                         EntityDataSerializers.BYTE,
-                        ((it.value() as Byte).toInt() or (1 shl 5) and (1 shl 6).inv()).toByte()
+                        ((it.value() as Byte).toInt() and 1.inv() or (1 shl 5) and (1 shl 6).inv()).toByte()
                     ) else it
                 })
                 is ClientboundSetEquipmentPacket -> if (entity.toTracker() != null) return null
@@ -468,6 +468,7 @@ class NMSImpl : NMS {
         val height = newBox.length() / 2
         return HitBoxImpl(
             namedBoundingBox.name,
+            height,
             newBox,
             supplier,
             listener,

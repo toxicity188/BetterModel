@@ -9,6 +9,7 @@ import kr.toxicity.model.api.nms.EntityAdapter
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.HitBoxListener
 import kr.toxicity.model.api.nms.TransformSupplier
+import net.minecraft.core.BlockPos
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionHand.MAIN_HAND
 import net.minecraft.world.InteractionHand.OFF_HAND
@@ -30,9 +31,11 @@ import org.bukkit.craftbukkit.v1_20_R3.entity.CraftLivingEntity
 import org.bukkit.entity.Entity
 import org.bukkit.event.entity.EntityPotionEffectEvent
 import org.joml.Vector3f
+import kotlin.math.max
 
 class HitBoxImpl(
     private val name: String,
+    private val boxHeight: Double,
     private val source: ModelBoundingBox,
     private val supplier: TransformSupplier,
     private val listener: HitBoxListener,
@@ -64,19 +67,50 @@ class HitBoxImpl(
     override fun setItemSlot(slot: EquipmentSlot, stack: ItemStack) {
     }
     override fun getMainArm(): HumanoidArm = HumanoidArm.RIGHT
+    
     override fun addPassenger(entity: Entity) {
         bukkitEntity.addPassenger(entity)
     }
 
+    override fun setRemainingFireTicks(remainingFireTicks: Int) {
+        delegate.remainingFireTicks = remainingFireTicks
+    }
+
+    override fun push(x: Double, y: Double, z: Double, pushingEntity: net.minecraft.world.entity.Entity?) {
+        delegate.push(x, y, z, pushingEntity)
+    }
+
+    override fun canCollideWith(entity: net.minecraft.world.entity.Entity): Boolean {
+        return entity !== delegate && (entity !is HitBoxImpl || entity.delegate !== delegate) && delegate.canCollideWithBukkit(entity)
+    }
+
+    override fun canCollideWithBukkit(entity: net.minecraft.world.entity.Entity): Boolean {
+        return entity !== delegate && (entity !is HitBoxImpl || entity.delegate !== delegate) && delegate.canCollideWithBukkit(entity)
+    }
+
+    override fun getActiveEffects(): Collection<MobEffectInstance?> {
+        return delegate.getActiveEffects()
+    }
+
     override fun tick() {
-        val transform = supplier.supplyTransform().rotateY(Math.toRadians(-delegate.yRot.toDouble()).toFloat())
+        yRot = delegate.yBodyRot
+        yHeadRot = yRot
+        yBodyRot = yRot
+        val transform = supplier.supplyTransform().rotateY(Math.toRadians(-yRot.toDouble()).toFloat())
         setPos(delegate.position().add(
             transform.x.toDouble(),
-            transform.y.toDouble() + delegate.passengerPosition(adapter.scale()).y,
+            transform.y.toDouble() + delegate.passengerPosition(adapter.scale()).y + source.maxY - boxHeight,
             transform.z.toDouble()
         ))
+        BlockPos.betweenClosedStream(boundingBox).forEach {
+            level().getBlockState(it).entityInside(level(), it, delegate)
+        }
+        updateInWaterStateAndDoFluidPushing()
+        if (isInLava) delegate.lavaHurt()
         delegate.addDeltaMovement(deltaMovement)
         setDeltaMovement(0.0, 0.0, 0.0)
+        setSharedFlagOnFire(delegate.remainingFireTicks > 0)
+        firstTick = false
         listener.sync(this)
     }
 
@@ -101,21 +135,9 @@ class HitBoxImpl(
         }
     }
 
-    override fun getYRot(): Float {
-        return if (!initialized) super.getYRot() else delegate.yRot
-    }
-
-    override fun getXRot(): Float {
-        return if (!initialized) super.getXRot() else delegate.xRot
-    }
-
-    override fun getYHeadRot(): Float {
-        return if (!initialized) super.getYHeadRot() else delegate.getYHeadRot()
-    }
-
     private val dimensions = EntityDimensions(
-        0F,
-        0F,
+        max(source.x(), source.z()).toFloat(),
+        source.y().toFloat(),
         true
     )
 

@@ -79,24 +79,7 @@ public record BlueprintAnimation(
         var frame = entry.getValue().points();
         if (frame.isEmpty()) return Collections.emptyList();
         var list = VectorUtil.putAnimationPoint(frame, floatSet).stream().map(AnimationPoint::toMovement).collect(Collectors.toList());
-        //reduceFrame(list);
         return processFrame(list);
-    }
-
-    private static void reduceFrame(@NotNull List<AnimationMovement> target) {
-        var iterator = target.iterator();
-        var l = 0F;
-        var f = BetterModel.inst().configManager().keyframeThreshold();
-        Vector3f beforeRot = new Vector3f();
-        while (iterator.hasNext()) {
-            var next = iterator.next();
-            var rot = next.rotation();
-            if (next.time() - l >= f || next.time() == 0 || (rot != null && new Vector3f(rot).sub(beforeRot).length() >= 45)) l = next.time();
-            else {
-                iterator.remove();
-            }
-            if (rot != null) beforeRot = rot;
-        }
     }
 
     private static @NotNull List<AnimationMovement> processFrame(@NotNull List<AnimationMovement> target) {

@@ -14,7 +14,6 @@ public interface ConfigManager {
     double maxSight();
     double minSight();
     boolean lockOnPlayAnimation();
-    float keyframeThreshold();
     @NotNull String namespace();
     @NotNull PackType packType();
     @NotNull String buildFolderLocation();
