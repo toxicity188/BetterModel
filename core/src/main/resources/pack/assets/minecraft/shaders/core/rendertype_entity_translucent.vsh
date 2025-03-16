@@ -123,6 +123,7 @@ void main() {
     }
     else if (length(inverse(ModelViewMat)[3].xyz - wpos) < 0.6) {
         vertexColor = vec4(0);
+        gl_Position = ProjMat * ModelViewMat * vec4(Position, 0.0);
     }
     else {
         vec2 UVout = UV0;

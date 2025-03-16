@@ -521,7 +521,7 @@ class NMSImpl : NMS {
                 val duration = handle.invulnerableDuration.toFloat()
                 if (duration <= 0F) return 0F
                 val knockBack = 1 - (handle.getAttribute(Attributes.KNOCKBACK_RESISTANCE)?.value?.toFloat() ?: 0F)
-                return handle.invulnerableTime.toFloat() / duration * knockBack
+                return handle.invulnerableTime.toFloat() / duration * knockBack * (1F - 1F / (handle.deltaMovement.length().toFloat() * 20 + 1F))
             }
 
             override fun walkSpeed(): Float {

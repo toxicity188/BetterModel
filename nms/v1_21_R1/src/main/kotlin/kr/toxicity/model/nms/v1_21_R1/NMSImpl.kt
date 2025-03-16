@@ -22,12 +22,8 @@ import net.minecraft.server.MinecraftServer
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.network.ServerCommonPacketListenerImpl
 import net.minecraft.world.effect.MobEffects
-import net.minecraft.world.entity.Display
+import net.minecraft.world.entity.*
 import net.minecraft.world.entity.Display.ItemDisplay
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.EntityType
-import net.minecraft.world.entity.EquipmentSlot
-import net.minecraft.world.entity.Mob
 import net.minecraft.world.entity.ai.attributes.Attributes
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.Items
@@ -521,7 +517,7 @@ class NMSImpl : NMS {
                 val duration = handle.invulnerableDuration.toFloat()
                 if (duration <= 0F) return 0F
                 val knockBack = 1 - (handle.getAttribute(Attributes.KNOCKBACK_RESISTANCE)?.value?.toFloat() ?: 0F)
-                return handle.invulnerableTime.toFloat() / duration * knockBack
+                return handle.invulnerableTime.toFloat() / duration * knockBack * (1F - 1F / (handle.deltaMovement.length().toFloat() * 20 + 1F))
             }
 
             override fun walkSpeed(): Float {

@@ -77,6 +77,8 @@ class HitBoxImpl(
             transform.y.toDouble() + delegate.passengerPosition(adapter.scale()).y,
             transform.z.toDouble()
         ))
+        delegate.addDeltaMovement(deltaMovement)
+        setDeltaMovement(0.0, 0.0, 0.0)
         listener.sync(this)
     }
 
