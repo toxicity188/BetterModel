@@ -232,6 +232,8 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
     }
     public void forceUpdate(@NotNull PacketBundler bundler) {
         var d = display;
+        var speed = currentIterator != null ? currentIterator.modifier.speedValue() : 1F;
+        delay = Math.round(speed * (double) delay);
         if (d != null && lastMovement != null && delay > 0) {
             var entityMovement = (lastTransform = lastMovement.copy().plus(relativeOffset())).plus(defaultPosition);
             d.frame((int) Math.ceil((float) delay / 5F) + 2);
@@ -485,7 +487,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
                 return new AnimationMovement((float) modifier.end() / 20, null, null, null);
             }
             var nxt = iterator.next();
-            nxt = nxt.time(Math.max(nxt.time() / modifier.speed(), 0.01F));
+            nxt = nxt.time(Math.max(nxt.time() / modifier.speedValue(), 0.01F));
             return nxt;
         }
 

@@ -42,7 +42,7 @@ public class FunctionUtil {
         private volatile R cache;
 
         @Override
-        public R apply(T t) {
+        public synchronized R apply(T t) {
             var current = System.currentTimeMillis();
             if (current - time >= 50) {
                 time = current;

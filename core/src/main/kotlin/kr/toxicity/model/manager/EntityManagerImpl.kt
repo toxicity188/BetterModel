@@ -1,6 +1,7 @@
 package kr.toxicity.model.manager
 
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent
+import com.destroystokyo.paper.event.entity.EntityJumpEvent
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.data.renderer.AnimationModifier
@@ -30,6 +31,10 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
             @EventHandler
             fun EntityAddToWorldEvent.add() {
                 EntityTracker.tracker(entity)?.refresh()
+            }
+            @EventHandler
+            fun EntityJumpEvent.jump() {
+                EntityTracker.tracker(entity)?.animateSingle("jump")
             }
         }) else registerListener(object : Listener {
             @EventHandler

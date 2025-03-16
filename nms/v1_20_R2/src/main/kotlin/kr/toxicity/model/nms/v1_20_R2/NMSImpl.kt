@@ -25,6 +25,7 @@ import net.minecraft.world.entity.Display.ItemDisplay
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.EquipmentSlot
+import net.minecraft.world.entity.Mob
 import net.minecraft.world.entity.ai.attributes.Attributes
 import net.minecraft.world.entity.monster.Slime
 import net.minecraft.world.item.ItemDisplayContext
@@ -476,10 +477,7 @@ class NMSImpl : NMS {
             override fun glow(): Boolean = handle.isCurrentlyGlowing
 
             override fun onWalk(): Boolean {
-                val delta = handle.deltaMovement.length()
-                val attribute = handle.attributes
-                return if (handle.onGround) delta / (attribute.getInstance(Attributes.MOVEMENT_SPEED)?.value ?: 0.7) > 0.4
-                else delta / (attribute.getInstance(Attributes.FLYING_SPEED)?.value ?: 0.4) > 0.1
+                return handle is Mob && handle.navigation.isInProgress
             }
 
             override fun scale(): Double {
@@ -496,6 +494,20 @@ class NMSImpl : NMS {
 
             override fun yaw(): Float {
                 return handle.bukkitYaw
+            }
+
+            override fun damageTick(): Float {
+                val duration = handle.invulnerableDuration.toFloat()
+                if (duration <= 0F) return 0F
+                val knockBack = 1 - (handle.getAttribute(Attributes.KNOCKBACK_RESISTANCE)?.value?.toFloat() ?: 0F)
+                return handle.invulnerableTime.toFloat() / duration * knockBack
+            }
+
+            override fun walkSpeed(): Float {
+                if (!handle.onGround) return 1F
+                val speed = handle.getEffect(MobEffects.MOVEMENT_SPEED)?.amplifier ?: 0
+                val slow = handle.getEffect(MobEffects.MOVEMENT_SLOWDOWN)?.amplifier ?: 0
+                return 1F + (speed - slow) * 0.2F
             }
 
             override fun passengerPosition(): Vector3f {

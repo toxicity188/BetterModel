@@ -55,6 +55,16 @@ public interface EntityAdapter {
         }
 
         @Override
+        public float damageTick() {
+            return 0;
+        }
+
+        @Override
+        public float walkSpeed() {
+            return 1;
+        }
+
+        @Override
         public @NotNull Vector3f passengerPosition() {
             return new Vector3f();
         }
@@ -120,6 +130,16 @@ public interface EntityAdapter {
             return delegate.scale() * scaleMultiplier;
         }
 
+        @Override
+        public float damageTick() {
+            return delegate.damageTick();
+        }
+
+        @Override
+        public float walkSpeed() {
+            return delegate.walkSpeed();
+        }
+
         @NotNull
         @Override
         public Vector3f passengerPosition() {
@@ -136,5 +156,7 @@ public interface EntityAdapter {
     float pitch();
     float bodyYaw();
     float yaw();
+    float damageTick();
+    float walkSpeed();
     @NotNull Vector3f passengerPosition();
 }
