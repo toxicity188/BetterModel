@@ -64,7 +64,7 @@ public abstract class Tracker implements AutoCloseable {
                 bundle.send(player);
             }
         }, 10, 10, TimeUnit.MILLISECONDS);
-        tint(false);
+        tint(0xFFFFFF);
         if (modifier.sightTrace()) instance.filter(p -> EntityUtil.canSee(p.getEyeLocation(), location()));
         tick(t -> t.instance.getScriptProcessor().tick());
     }
@@ -158,10 +158,10 @@ public abstract class Tracker implements AutoCloseable {
 
     /**
      * Toggles red tint of model.
-     * @param toggle toggle
+     * @param rgb toggle
      */
-    public void tint(boolean toggle) {
-        instance.tint(toggle);
+    public void tint(int rgb) {
+        instance.tint(rgb);
     }
 
     /**

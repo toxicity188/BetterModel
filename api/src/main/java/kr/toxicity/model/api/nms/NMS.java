@@ -14,7 +14,7 @@ public interface NMS {
     @NotNull ModelDisplay create(@NotNull Location location);
     @NotNull PlayerChannelHandler inject(@NotNull Player player);
     @NotNull PacketBundler createBundler();
-    @NotNull ItemStack tint(@NotNull ItemStack itemStack, boolean toggle);
+    @NotNull ItemStack tint(@NotNull ItemStack itemStack, int rgb);
     void mount(@NotNull EntityTracker tracker, @NotNull PacketBundler bundler);
     void hide(@NotNull Player player, @NotNull Entity entity);
     @Nullable HitBox createHitBox(@NotNull EntityAdapter entity, @NotNull TransformSupplier supplier, @NotNull NamedBoundingBox namedBoundingBox, @NotNull HitBoxListener source);

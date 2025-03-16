@@ -81,14 +81,15 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
             @EventHandler(ignoreCancelled = false)
             fun EntityDamageEvent.damage() {
                 val e = entity
-                if (e is LivingEntity) EntityTracker.tracker(e)?.let {
+                if (e !is LivingEntity) return
+                EntityTracker.tracker(e)?.let {
                     if (it.animateSingle("damage", AnimationModifier.DEFAULT) {
-                        it.tint(false)
-                    }) it.tint(true)
+                        it.tint(0xFFFFFF)
+                    }) it.tint(0xFF7878)
                     else {
-                        it.tint(true)
+                        it.tint(0xFF7878)
                         PLUGIN.scheduler().asyncTaskLater(e.maximumNoDamageTicks.toLong() / 2) {
-                            it.tint(false)
+                            it.tint(0xFFFFFF)
                         }
                     }
                 }

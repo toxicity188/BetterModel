@@ -432,11 +432,11 @@ class NMSImpl : NMS {
             )
     }
 
-    override fun tint(itemStack: ItemStack, toggle: Boolean): ItemStack {
+    override fun tint(itemStack: ItemStack, rgb: Int): ItemStack {
         val meta = itemStack.itemMeta
         if (meta is LeatherArmorMeta) {
             itemStack.itemMeta = meta.apply {
-                setColor(if (toggle) Color.fromRGB(0xFF8060) else Color.WHITE)
+                setColor(Color.fromRGB(rgb))
             }
         }
         return itemStack

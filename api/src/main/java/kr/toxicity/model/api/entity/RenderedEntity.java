@@ -54,7 +54,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
     private HitBox hitBox;
 
     private boolean visible;
-    private boolean tint;
+    private int tint;
 
     /**
      * Creates entity.
@@ -327,7 +327,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
         return d;
     }
 
-    public void tint(boolean toggle, @NotNull PacketBundler bundler) {
+    public void tint(int toggle, @NotNull PacketBundler bundler) {
         tint = toggle;
         if (applyItem()) forceUpdate(bundler);
         for (RenderedEntity value : children.values()) {

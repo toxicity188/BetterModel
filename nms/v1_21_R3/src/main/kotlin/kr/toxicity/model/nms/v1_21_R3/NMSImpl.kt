@@ -452,11 +452,11 @@ class NMSImpl : NMS {
             yHeadRot.toDouble()
         )
 
-    override fun tint(itemStack: ItemStack, toggle: Boolean): ItemStack {
+    override fun tint(itemStack: ItemStack, rgb: Int): ItemStack {
         return CraftItemStack.asBukkitCopy(CraftItemStack.asNMSCopy(itemStack).apply {
-            set(DataComponents.DYED_COLOR, if (toggle) DyedItemColor(0xFF8060, false) else DyedItemColor(0xFFFFFF, false))
+            set(DataComponents.DYED_COLOR, DyedItemColor(rgb, false))
             set(DataComponents.CUSTOM_MODEL_DATA, get(DataComponents.CUSTOM_MODEL_DATA)?.let {
-                CustomModelData(it.floats, it.flags, it.strings, if (toggle) listOf(0xFF8060) else listOf(0xFFFFFF))
+                CustomModelData(it.floats, it.flags, it.strings, listOf(rgb))
             })
         })
     }

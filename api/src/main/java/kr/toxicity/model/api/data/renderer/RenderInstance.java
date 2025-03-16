@@ -138,9 +138,9 @@ public final class RenderInstance implements AutoCloseable {
         return entityMap.values().stream().mapToDouble(RenderedEntity::height).max().orElse(0.0);
     }
 
-    public void tint(boolean toggle) {
+    public void tint(int rgb) {
         var bundler = BetterModel.inst().nms().createBundler();
-        entityMap.values().forEach(e -> e.tint(toggle, bundler));
+        entityMap.values().forEach(e -> e.tint(rgb, bundler));
         if (!bundler.isEmpty()) for (Player player : viewedPlayer()) {
             bundler.send(player);
         }
