@@ -38,6 +38,8 @@ public class EntityTracker extends Tracker {
     private final AtomicBoolean forRemoval = new AtomicBoolean();
     private final AtomicBoolean autoSpawn = new AtomicBoolean(true);
 
+    private long damageTint = -1;
+
     public @NotNull UUID world() {
         return entity.getWorld().getUID();
     }
@@ -122,6 +124,9 @@ public class EntityTracker extends Tracker {
             if (script == null) return;
             BetterModel.inst().scheduler().task(entity.getLocation(), () -> script.accept(entity));
         });
+        tick(t -> {
+            if (damageTint >= 0 && damageTint-- == 0) tint(0xFFFFFF);
+        });
     }
 
     @Override
@@ -139,6 +144,11 @@ public class EntityTracker extends Tracker {
 
     public void createHitBox(@NotNull Predicate<RenderedEntity> predicate, @NotNull HitBoxListener listener) {
         instance.createHitBox(adapter, predicate, listener);
+    }
+
+    public synchronized void damageTint() {
+        if (damageTint < 0) tint(0xFF7979);
+        damageTint = 50;
     }
 
     public void forRemoval(boolean removal) {

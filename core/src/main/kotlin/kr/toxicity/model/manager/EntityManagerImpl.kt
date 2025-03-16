@@ -87,10 +87,7 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
                         it.tint(0xFFFFFF)
                     }) it.tint(0xFF7878)
                     else {
-                        it.tint(0xFF7878)
-                        PLUGIN.scheduler().asyncTaskLater(e.maximumNoDamageTicks.toLong() / 2) {
-                            it.tint(0xFFFFFF)
-                        }
+                        it.damageTint()
                     }
                 }
             }
