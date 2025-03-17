@@ -103,7 +103,12 @@ public class EntityTracker extends Tracker {
                         ), 0);
                     }
                 });
-        instance.animateLoop("walk", new AnimationModifier(adapter::onWalk, 4, 0, () -> adapter.walkSpeed() + 4F * (float) Math.sqrt(adapter.damageTick())));
+        instance.animateLoop("walk", new AnimationModifier(
+                adapter::onWalk,
+                4,
+                0,
+                modifier.damageEffect() ? () -> adapter.walkSpeed() + 4F * (float) Math.sqrt(adapter.damageTick()) : () -> 1F
+        ));
         Supplier<TrackerMovement> supplier = () -> new TrackerMovement(
                 new Vector3f(0, 0, 0F),
                 new Vector3f((float) adapter.scale()),
@@ -147,6 +152,7 @@ public class EntityTracker extends Tracker {
     }
 
     public synchronized void damageTint() {
+        if (!modifier().damageEffect()) return;
         if (damageTint < 0) tint(0xFF7979);
         damageTint = 50;
     }
