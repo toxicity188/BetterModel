@@ -79,10 +79,6 @@ class HitBoxImpl(
         delegate.remainingFireTicks = remainingFireTicks
     }
 
-    override fun push(entity: net.minecraft.world.entity.Entity) {
-        delegate.push(entity)
-    }
-
     override fun knockback(
         d0: Double,
         d1: Double,
@@ -98,7 +94,7 @@ class HitBoxImpl(
     }
 
     override fun canCollideWith(entity: net.minecraft.world.entity.Entity): Boolean {
-        return entity !== delegate && (entity !is HitBoxImpl || entity.delegate !== delegate) && delegate.canCollideWithBukkit(entity)
+        return entity !== delegate && (entity !is HitBoxImpl || entity.delegate !== delegate) && delegate.canCollideWith(entity)
     }
 
     override fun canCollideWithBukkit(entity: net.minecraft.world.entity.Entity): Boolean {

@@ -82,7 +82,7 @@ class HitBoxImpl(
     }
 
     override fun canCollideWith(entity: net.minecraft.world.entity.Entity): Boolean {
-        return entity !== delegate && (entity !is HitBoxImpl || entity.delegate !== delegate) && delegate.canCollideWithBukkit(entity)
+        return entity !== delegate && (entity !is HitBoxImpl || entity.delegate !== delegate) && delegate.canCollideWith(entity)
     }
 
     override fun canCollideWithBukkit(entity: net.minecraft.world.entity.Entity): Boolean {
