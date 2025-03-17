@@ -3,8 +3,6 @@ package kr.toxicity.model.api.data.raw;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.UUID;
-
 /**
  * A raw model's element (cube).
  * @param name name

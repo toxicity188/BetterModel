@@ -2,7 +2,6 @@ package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
-import kr.toxicity.model.api.util.VectorPoint;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;

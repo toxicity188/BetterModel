@@ -10,7 +10,6 @@ import kr.toxicity.model.api.nms.PlayerChannelHandler
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.api.util.EntityUtil
 import kr.toxicity.model.util.*
-import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler

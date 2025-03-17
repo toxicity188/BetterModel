@@ -11,7 +11,6 @@ import dev.jorel.commandapi.executors.CommandExecutionInfo
 import dev.jorel.commandapi.executors.PlayerCommandExecutor
 import kr.toxicity.model.api.BetterModelPlugin.ReloadResult.*
 import kr.toxicity.model.api.manager.CommandManager
-import kr.toxicity.model.api.nms.NMS
 import kr.toxicity.model.api.nms.NMSVersion
 import kr.toxicity.model.util.ATTRIBUTE_SCALE
 import kr.toxicity.model.util.PLUGIN

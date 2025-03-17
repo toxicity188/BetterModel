@@ -1,6 +1,5 @@
 package kr.toxicity.model.api.data.blueprint;
 
-import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.raw.ModelAnimation;
 import kr.toxicity.model.api.data.raw.ModelAnimator;
 import kr.toxicity.model.api.data.raw.ModelKeyframe;
@@ -9,7 +8,6 @@ import kr.toxicity.model.api.util.AnimationPoint;
 import kr.toxicity.model.api.util.VectorUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
-import org.joml.Vector3f;
 
 import java.util.*;
 import java.util.stream.Collectors;

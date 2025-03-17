@@ -2,9 +2,9 @@ package kr.toxicity.model
 
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.BetterModelLogger
-import kr.toxicity.model.api.BetterModelPlugin.ReloadResult.*
 import kr.toxicity.model.api.BetterModelPlugin
 import kr.toxicity.model.api.BetterModelPlugin.ReloadResult
+import kr.toxicity.model.api.BetterModelPlugin.ReloadResult.*
 import kr.toxicity.model.api.manager.*
 import kr.toxicity.model.api.nms.NMS
 import kr.toxicity.model.api.scheduler.ModelScheduler
@@ -13,7 +13,6 @@ import kr.toxicity.model.api.version.MinecraftVersion.*
 import kr.toxicity.model.manager.*
 import kr.toxicity.model.scheduler.PaperScheduler
 import kr.toxicity.model.scheduler.StandardScheduler
-import kr.toxicity.model.util.PLUGIN
 import kr.toxicity.model.util.forEachAsync
 import kr.toxicity.model.util.handleException
 import kr.toxicity.model.util.info

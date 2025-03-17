@@ -1,6 +1,9 @@
 package kr.toxicity.model.configuration
 
-import kr.toxicity.model.util.*
+import kr.toxicity.model.util.DATA_FOLDER
+import kr.toxicity.model.util.PLUGIN
+import kr.toxicity.model.util.ifNull
+import kr.toxicity.model.util.toYaml
 import org.bukkit.configuration.file.YamlConfiguration
 import java.io.File
 
