@@ -136,7 +136,13 @@ public final class RenderInstance implements AutoCloseable {
     }
 
     public double height() {
-        return entityMap.values().stream().mapToDouble(RenderedEntity::height).max().orElse(0.0);
+        var h = 0D;
+        for (RenderedEntity renderer : renderers()) {
+            var lt = renderer.lastTransform().y;
+            if (renderer.getName().startsWith("h_")) return lt;
+            if (h < lt) h = lt;
+        }
+        return h;
     }
 
     public void tint(int rgb) {

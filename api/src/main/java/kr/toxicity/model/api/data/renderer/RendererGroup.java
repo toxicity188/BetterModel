@@ -78,7 +78,7 @@ public final class RendererGroup implements TransformSupplier {
                 .div(16));
         this.hitBox = box;
         rotation = group.rotation().toVector();
-        center = hitBox != null ? new Vector3f(position).add(hitBox.centerVector()) : position;
+        center = hitBox != null ? hitBox.centerVector() : new Vector3f();
     }
 
     /**

@@ -33,6 +33,7 @@ public class EntityTracker extends Tracker {
     private static final Map<UUID, EntityTracker> TRACKER_MAP = new ConcurrentHashMap<>();
 
     private final @NotNull Entity entity;
+    @Getter
     private final @NotNull EntityAdapter adapter;
     private final AtomicBoolean closed = new AtomicBoolean();
     private final AtomicBoolean forRemoval = new AtomicBoolean();

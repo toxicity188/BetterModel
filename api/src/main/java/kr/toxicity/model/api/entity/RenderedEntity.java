@@ -8,6 +8,8 @@ import kr.toxicity.model.api.data.renderer.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.RendererGroup;
 import kr.toxicity.model.api.nms.*;
 import kr.toxicity.model.api.tracker.ModelRotation;
+import kr.toxicity.model.api.util.MathUtil;
+import kr.toxicity.model.api.util.VectorUtil;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -210,8 +212,9 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
     }
 
     private TrackerMovement lastMovement;
-    private EntityMovement lastTransform;
+    private EntityMovement beforeTransform, lastTransform;
     private Vector3f defaultPosition = new Vector3f();
+    private ModelRotation rotation = ModelRotation.EMPTY;
 
     public void lastMovement(@NotNull TrackerMovement movement) {
         lastMovement = movement;
@@ -222,10 +225,14 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
 
     public void move(@NotNull ModelRotation rotation, @NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
         var d = display;
-        if (d != null && delay % 5 == 0) d.rotate(rotation, bundler);
+        this.rotation = rotation;
+        if (d != null && delay % 5 == 0) {
+            d.rotate(rotation, bundler);
+        }
         if (delay <= 0) {
             var f = frame();
             delay = f;
+            beforeTransform = lastTransform;
             var entityMovement = (lastTransform = (lastMovement = movement.copy()).plus(relativeOffset())).plus(defaultPosition);
             if (d != null) {
                 d.frame(f <= 0 ? 0 : toInterpolationDuration(f));
@@ -243,6 +250,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
         var speed = currentIterator != null ? currentIterator.modifier.speedValue() : 1F;
         delay = Math.round(speed * (double) delay);
         if (d != null && lastMovement != null && delay > 0) {
+            beforeTransform = lastTransform;
             var entityMovement = (lastTransform = lastMovement.copy().plus(relativeOffset())).plus(defaultPosition);
             d.frame(toInterpolationDuration(delay));
             setup(entityMovement);
@@ -255,9 +263,18 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
     }
 
     public @NotNull Vector3f lastTransform() {
-        return lastTransform != null ? new Vector3f(lastTransform.transform())
-                .add(defaultPosition)
-                .mul(progress()): new Vector3f();
+        if (lastTransform != null) {
+            var progress = 1 - progress();
+            var before = beforeTransform != null ? beforeTransform : EntityMovement.EMPTY;
+            return VectorUtil.linear(before.transform(), lastTransform.transform(), progress)
+                    .mul(VectorUtil.linear(before.scale(), lastTransform.scale(), progress))
+                    .rotate(
+                            MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(VectorUtil.linear(before.rawRotation(), lastTransform.rawRotation(), progress)))
+                    )
+                    .add(defaultPosition)
+                    .rotateY((float) -Math.toRadians(rotation.y()));
+        }
+        return new Vector3f();
     }
 
     public void setup(@NotNull TrackerMovement movement) {
@@ -328,15 +345,6 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
             );
         }
         return def;
-    }
-
-    public double height() {
-        var d = (double) defaultPosition.y + (lastTransform != null ? new Vector3f(lastTransform.transform()).mul(progress()).y : 0);
-        for (RenderedEntity value : children.values()) {
-            var v = value.height();
-            if (getGroup().getCenter().y < value.getGroup().getCenter().y) d = v;
-        }
-        return d;
     }
 
     public void tint(int toggle, @NotNull PacketBundler bundler) {
@@ -533,7 +541,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
     @NotNull
     @Override
     public Vector3f supplyTransform() {
-        return lastMovement != null ? lastMovement.plus(relativeHitBoxOffset().plus(defaultPosition)).transform() : relativeHitBoxOffset().plus(defaultPosition).transform();
+        return lastMovement != null ? lastMovement.plus(relativeHitBoxOffset()).plus(defaultPosition).transform() : relativeHitBoxOffset().plus(defaultPosition).transform();
     }
 
     @Override

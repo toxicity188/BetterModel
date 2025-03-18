@@ -19,6 +19,14 @@ public record EntityMovement(
         @NotNull Quaternionf rotation,
         @NotNull Vector3f rawRotation
 ) {
+
+    public static final EntityMovement EMPTY = new EntityMovement(
+            new Vector3f(),
+            new Vector3f(1),
+            new Quaternionf(),
+            new Vector3f()
+    );
+
     /**
      * Animates this movement.
      * @param movement animation
