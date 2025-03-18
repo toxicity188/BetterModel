@@ -129,7 +129,7 @@ public class EntityTracker extends Tracker {
             if (script == null) return;
             BetterModel.inst().scheduler().task(entity.getLocation(), () -> script.accept(entity));
         });
-        tick(t -> {
+        frame(t -> {
             if (damageTint >= 0 && damageTint-- == 0) tint(0xFFFFFF);
         });
     }

@@ -165,20 +165,28 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
             while (iterator.hasNext()) {
                 var next = iterator.next();
                 if (!next.get()) continue;
-                if (check) {
-                    if (currentIterator == null) {
-                        if (updateKeyframe(iterator, next)) currentIterator = next;
-                    } else if (currentIterator != next) {
-                        if (updateKeyframe(iterator, next)) {
-                            currentIterator = next;
-                            delay = 0;
-                        }
-                    } else if (delay <= 0) {
-                        updateKeyframe(iterator, next);
+                if (currentIterator == null) {
+                    if (updateKeyframe(iterator, next)) {
+                        currentIterator = next;
+                        check = false;
+                        break;
                     }
-                    check = false;
+                } else if (currentIterator != next) {
+                    if (updateKeyframe(iterator, next)) {
+                        currentIterator.clear();
+                        currentIterator = next;
+                        delay = 0;
+                        check = false;
+                        break;
+                    }
+                } else if (delay <= 0) {
+                    if (updateKeyframe(iterator, next)) {
+                        check = false;
+                        break;
+                    }
                 } else {
-                    next.clear();
+                    check = false;
+                    break;
                 }
             }
             if (check) {
@@ -220,7 +228,7 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
             delay = f;
             var entityMovement = (lastTransform = (lastMovement = movement.copy()).plus(relativeOffset())).plus(defaultPosition);
             if (d != null) {
-                d.frame(f <= 0 ? 0 : (int) Math.ceil((float) f / 5F) + 2);
+                d.frame(f <= 0 ? 0 : toInterpolationDuration(f));
                 setup(entityMovement);
                 d.send(bundler);
             }
@@ -236,10 +244,14 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
         delay = Math.round(speed * (double) delay);
         if (d != null && lastMovement != null && delay > 0) {
             var entityMovement = (lastTransform = lastMovement.copy().plus(relativeOffset())).plus(defaultPosition);
-            d.frame((int) Math.ceil((float) delay / 5F) + 2);
+            d.frame(toInterpolationDuration(delay));
             setup(entityMovement);
             d.send(bundler);
         }
+    }
+
+    private static int toInterpolationDuration(long delay) {
+        return (int) Math.ceil((float) delay / 5F) + 2;
     }
 
     public @NotNull Vector3f lastTransform() {
@@ -437,13 +449,15 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
     }
 
     @RequiredArgsConstructor
-    private static class TreeIterator implements BlueprintAnimator.AnimatorIterator, Supplier<Boolean>, Runnable {
+    private class TreeIterator implements BlueprintAnimator.AnimatorIterator, Supplier<Boolean>, Runnable {
         private final String name;
         private final BlueprintAnimator.AnimatorIterator iterator;
         private final AnimationModifier modifier;
         private final Runnable removeTask;
         private boolean started = false;
         private boolean ended = false;
+
+        private AnimationMovement lastMovement;
 
         @NotNull
         @Override
@@ -480,11 +494,12 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
         public AnimationMovement next() {
             if (!started) {
                 started = true;
+                lastMovement = currentIterator != null ? currentIterator.first() : keyFrame;
                 return first().time((float) modifier.start() / 20);
             }
             if (!iterator.hasNext()) {
                 ended = true;
-                return new AnimationMovement((float) modifier.end() / 20, null, null, null);
+                return lastMovement != null ? lastMovement.time((float) modifier.end() / 20) : new AnimationMovement((float) modifier.end() / 20, null, null, null);
             }
             var nxt = iterator.next();
             nxt = nxt.time(Math.max(nxt.time() / modifier.speedValue(), 0.01F));

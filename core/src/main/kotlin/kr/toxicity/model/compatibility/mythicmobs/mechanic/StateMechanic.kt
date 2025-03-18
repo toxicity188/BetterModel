@@ -12,7 +12,7 @@ import kr.toxicity.model.api.tracker.EntityTracker
 class StateMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "[BetterModel]", mlc), INoTargetSkill {
 
     private val s = mlc.getString(arrayOf("state", "s"))!!
-    private val li = mlc.getInteger(arrayOf("li"), 1)
+    private val li = mlc.getInteger(arrayOf("li"), 0)
     private val lo = mlc.getInteger(arrayOf("lo"), 0)
     private val sp = mlc.getFloat(arrayOf("speed", "sp"), 1F)
 

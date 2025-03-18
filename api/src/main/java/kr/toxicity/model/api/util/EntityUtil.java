@@ -27,7 +27,7 @@ public final class EntityUtil {
     /**
      * Default render distance.
      */
-    public static final double RENDER_DISTANCE = Bukkit.getSimulationDistance() << 3;
+    public static final double RENDER_DISTANCE = Bukkit.getViewDistance() << 4;
 
     /**
      * Y-axis threshold of user screen.

@@ -11,6 +11,7 @@ import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.script.ScriptProcessor;
 import kr.toxicity.model.api.tracker.ModelRotation;
+import kr.toxicity.model.api.util.FunctionUtil;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -54,7 +55,7 @@ public final class RenderInstance implements AutoCloseable {
     }
 
     public void filter(@NotNull Predicate<Player> filter) {
-        this.filter = this.filter.and(filter);
+        this.filter = this.filter.and(FunctionUtil.memoizeTick(filter));
     }
 
     public @NotNull Predicate<Player> spawnFilter() {

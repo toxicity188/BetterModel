@@ -9,7 +9,7 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
-public class LogUtil {
+public final class LogUtil {
     private LogUtil() {
         throw new RuntimeException();
     }

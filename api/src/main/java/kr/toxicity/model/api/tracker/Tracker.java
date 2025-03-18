@@ -24,6 +24,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -42,6 +43,7 @@ public abstract class Tracker implements AutoCloseable {
     protected final RenderInstance instance;
     private final ScheduledFuture<?> task;
     private final AtomicBoolean runningSingle = new AtomicBoolean();
+    private final AtomicLong frame = new AtomicLong();
 
     private TrackerMovement before;
     private final TrackerModifier modifier;
@@ -66,6 +68,7 @@ public abstract class Tracker implements AutoCloseable {
             if (!bundle.isEmpty()) for (Player player : instance.viewedPlayer()) {
                 bundle.send(player);
             }
+            frame.incrementAndGet();
         }, 10, 10, TimeUnit.MILLISECONDS);
         tint(0xFFFFFF);
         if (modifier.sightTrace()) instance.filter(p -> EntityUtil.canSee(p.getEyeLocation(), location()));
@@ -75,11 +78,20 @@ public abstract class Tracker implements AutoCloseable {
     public abstract @NotNull ModelRotation rotation();
 
     /**
+     * Runs consumer on frame.
+     * @param consumer consumer
+     */
+    public void frame(@NotNull Consumer<Tracker> consumer) {
+        this.consumer = this.consumer.andThen(consumer);
+    }
+    /**
      * Runs consumer on tick.
      * @param consumer consumer
      */
     public void tick(@NotNull Consumer<Tracker> consumer) {
-        this.consumer = this.consumer.andThen(consumer);
+        frame(t -> {
+            if (frame.get() % 5 == 0) consumer.accept(t);
+        });
     }
 
     /**

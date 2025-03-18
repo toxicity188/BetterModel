@@ -15,10 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -28,8 +25,31 @@ import java.util.stream.Collectors;
 public final class BlueprintRenderer {
     @Getter
     private final ModelBlueprint parent;
+    @Getter
+    @Unmodifiable
     private final Map<String, RendererGroup> rendererGroupMap;
     private final Map<String, BlueprintAnimation> animationMap;
+
+    /**
+     * Gets renderer group by tree
+     * @param name part name
+     * @return group or null
+     */
+    public @Nullable RendererGroup groupByTree(@NotNull String name) {
+        return groupByTree0(rendererGroupMap, name);
+    }
+
+    private static @Nullable RendererGroup groupByTree0(@NotNull Map<String, RendererGroup> map, @NotNull String name) {
+        if (map.isEmpty()) return null;
+        var get = map.get(name);
+        if (get != null) return get;
+        else return map.values()
+                .stream()
+                .map(g -> groupByTree0(g.getChildren(), name))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+    }
 
     /**
      * Gets all name of animation.

@@ -23,10 +23,11 @@ public enum VectorInterpolation {
         @NotNull
         @Override
         public VectorPoint interpolate(@NotNull List<VectorPoint> points, int p2Index, float time) {
-            var p0 = p2Index > 1 ? points.get(p2Index - 2) : VectorPoint.EMPTY;
-            var p1 = p2Index > 0 ? points.get(p2Index - 1) : VectorPoint.EMPTY;
+            if (p2Index >= points.size() - 1 || p2Index < 2) return LINEAR.interpolate(points, p2Index, time);
+            var p1 = points.get(p2Index - 1);
             var p2 = points.get(p2Index);
-            var p3 = p2Index < points.size() - 1 ? points.get(p2Index + 1) : p2;
+            var p0 = points.get(p2Index - 2);
+            var p3 = points.get(p2Index + 1);
             return new VectorPoint(
                     VectorUtil.catmull_rom(
                             p0.vector(),

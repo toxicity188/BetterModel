@@ -8,7 +8,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.TreeSet;
 
-public class VectorUtil {
+public final class VectorUtil {
 
     private VectorUtil() {
         throw new RuntimeException();

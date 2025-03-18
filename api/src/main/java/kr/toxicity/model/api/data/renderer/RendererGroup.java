@@ -16,6 +16,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 import org.joml.Vector3f;
 
 import java.util.Map;
@@ -37,6 +38,8 @@ public final class RendererGroup implements TransformSupplier {
     private final Vector3f position;
     private final Vector3f rotation;
     private final ItemStack itemStack;
+    @Getter
+    @Unmodifiable
     private final Map<String, RendererGroup> children;
     @Getter
     private final @Nullable NamedBoundingBox hitBox;
