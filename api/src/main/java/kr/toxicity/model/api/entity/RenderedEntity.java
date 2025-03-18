@@ -223,11 +223,13 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
         }
     }
 
-    public void move(@NotNull ModelRotation rotation, @NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
+    public void move(@Nullable ModelRotation rotation, @NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
         var d = display;
-        this.rotation = rotation;
-        if (d != null && delay % 5 == 0) {
-            d.rotate(rotation, bundler);
+        if (rotation != null) {
+            this.rotation = rotation;
+            if (d != null) {
+                d.rotate(rotation, bundler);
+            }
         }
         if (delay <= 0) {
             var f = frame();

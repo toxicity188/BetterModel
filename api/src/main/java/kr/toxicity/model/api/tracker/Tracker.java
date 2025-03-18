@@ -8,6 +8,7 @@ import kr.toxicity.model.api.entity.TrackerMovement;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.util.EntityUtil;
+import kr.toxicity.model.api.util.FunctionUtil;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -45,9 +46,9 @@ public abstract class Tracker implements AutoCloseable {
     private final AtomicBoolean runningSingle = new AtomicBoolean();
     private final AtomicLong frame = new AtomicLong();
 
-    private TrackerMovement before;
     private final TrackerModifier modifier;
 
+    private ModelRotation rotation = ModelRotation.EMPTY;
     @Getter
     private Supplier<TrackerMovement> movement;
 
@@ -60,15 +61,18 @@ public abstract class Tracker implements AutoCloseable {
     public Tracker(@NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
         this.instance = instance;
         this.modifier = modifier;
-        this.movement = () -> new TrackerMovement(new Vector3f(), new Vector3f(modifier.scale()), new Vector3f());
+        this.movement = FunctionUtil.memoizeTick(() -> new TrackerMovement(new Vector3f(), new Vector3f(modifier.scale()), new Vector3f()));
         task = EXECUTOR.scheduleAtFixedRate(() -> {
             consumer.accept(this);
             var bundle = BetterModel.inst().nms().createBundler();
-            instance.move(rotation(), isRunningSingleAnimation() && before != null && BetterModel.inst().configManager().lockOnPlayAnimation() ? before : (before = movement.get()), bundle);
+            instance.move(
+                    frame.incrementAndGet() % 15 == 0 ? (isRunningSingleAnimation() && BetterModel.inst().configManager().lockOnPlayAnimation()) ? rotation : (rotation = rotation()) : null,
+                    movement.get(),
+                    bundle
+            );
             if (!bundle.isEmpty()) for (Player player : instance.viewedPlayer()) {
                 bundle.send(player);
             }
-            frame.incrementAndGet();
         }, 10, 10, TimeUnit.MILLISECONDS);
         tint(0xFFFFFF);
         if (modifier.sightTrace()) instance.filter(p -> EntityUtil.canSee(p.getEyeLocation(), location()));
@@ -122,7 +126,7 @@ public abstract class Tracker implements AutoCloseable {
      */
     public void setMovement(Supplier<TrackerMovement> movement) {
         instance.lastMovement(movement.get());
-        this.movement = movement;
+        this.movement = FunctionUtil.memoizeTick(movement);
     }
 
     public @NotNull TrackerModifier modifier() {
