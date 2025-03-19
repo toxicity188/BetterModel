@@ -32,7 +32,7 @@ import java.util.function.Supplier;
 /**
  * A rendered item-display.
  */
-public final class RenderedEntity implements TransformSupplier, AutoCloseable {
+public final class RenderedEntity implements HitBoxSource, AutoCloseable {
 
     @Getter
     private final RendererGroup group;
@@ -265,10 +265,14 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
     }
 
     public @NotNull Vector3f lastTransform() {
+        return lastTransform(new Vector3f());
+    }
+    public @NotNull Vector3f lastTransform(@NotNull Vector3f offset) {
         if (lastTransform != null) {
             var progress = 1 - progress();
             var before = beforeTransform != null ? beforeTransform : EntityMovement.EMPTY;
             return VectorUtil.linear(before.transform(), lastTransform.transform(), progress)
+                    .add(offset)
                     .mul(VectorUtil.linear(before.scale(), lastTransform.scale(), progress))
                     .rotate(
                             MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(VectorUtil.linear(before.rawRotation(), lastTransform.rawRotation(), progress)))
@@ -322,21 +326,6 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
 
     private EntityMovement relativeOffset() {
         var def = defaultFrame();
-        if (parent != null) {
-            var p = parent.relativeOffset();
-            return new EntityMovement(
-                    new Vector3f(p.transform()).add(new Vector3f(def.transform()).mul(p.scale()).rotate(p.rotation())),
-                    new Vector3f(def.scale()).mul(p.scale()),
-                    new Quaternionf(p.rotation()).mul(def.rotation()),
-                    def.rawRotation()
-            );
-        }
-        return def;
-    }
-    private EntityMovement relativeHitBoxOffset() {
-        var def = defaultFrame();
-        var hitBox = group.getHitBox();
-        if (hitBox != null) def.transform().add(hitBox.centerVector());
         if (parent != null) {
             var p = parent.relativeOffset();
             return new EntityMovement(
@@ -542,8 +531,15 @@ public final class RenderedEntity implements TransformSupplier, AutoCloseable {
 
     @NotNull
     @Override
-    public Vector3f supplyTransform() {
-        return lastMovement != null ? lastMovement.plus(relativeHitBoxOffset()).plus(defaultPosition).transform() : relativeHitBoxOffset().plus(defaultPosition).transform();
+    public Vector3f hitBoxPosition() {
+        var hitBox = group.getHitBox();
+        return lastTransform(hitBox != null ? hitBox.centerVector() : new Vector3f());
+    }
+
+    @NotNull
+    @Override
+    public ModelRotation hitBoxRotation() {
+        return rotation;
     }
 
     @Override

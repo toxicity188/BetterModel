@@ -8,8 +8,9 @@ import kr.toxicity.model.api.event.ModelInteractEvent.Hand
 import kr.toxicity.model.api.nms.EntityAdapter
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.HitBoxListener
-import kr.toxicity.model.api.nms.TransformSupplier
+import kr.toxicity.model.api.nms.HitBoxSource
 import net.minecraft.core.BlockPos
+import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionHand.MAIN_HAND
 import net.minecraft.world.InteractionHand.OFF_HAND
@@ -39,12 +40,13 @@ class HitBoxImpl(
     private val name: String,
     private val boxHeight: Double,
     private val source: ModelBoundingBox,
-    private val supplier: TransformSupplier,
+    private val supplier: HitBoxSource,
     private val listener: HitBoxListener,
     private val delegate: LivingEntity,
     private val adapter: EntityAdapter
 ) : LivingEntity(EntityType.SLIME, delegate.level()), HitBox {
     private var initialized = false
+    private var jumpDelay = 0
 
     init {
         moveTo(delegate.position())
@@ -93,11 +95,51 @@ class HitBoxImpl(
         return delegate.getActiveEffects()
     }
 
+    override fun getControllingPassenger(): LivingEntity? {
+        return firstPassenger as? LivingEntity ?: super.getControllingPassenger()
+    }
+
+    override fun onWalk(): Boolean {
+        return isWalking()
+    }
+
+    private fun travelRidden(player: ServerPlayer, travelVector: Vec3) {
+        val riddenInput = getRiddenInput(player, travelVector)
+        val speed = delegate.getAttributeValue(Attributes.MOVEMENT_SPEED)
+        val movement = riddenInput
+            .multiply(speed, speed, speed)
+            .yRot(-Math.toRadians(player.yRot.toDouble()).toFloat())
+        if (movement.length() > 0.01) {
+            delegate.yBodyRot = player.yRot
+            delegate.move(MoverType.SELF, movement)
+            if (delegate.horizontalCollision && !delegate.jumping && jumpDelay == 0) {
+                jumpDelay = 10
+                delegate.jumpFromGround()
+            }
+        }
+    }
+
+    private fun getRiddenInput(player: ServerPlayer, travelVector: Vec3): Vec3 {
+        val f = player.xMovement() * 0.5f
+        var f1 = player.zMovement()
+        if (f1 <= 0.0f) {
+            f1 *= 0.25f
+        }
+        return Vec3(f.toDouble(), 0.0, f1.toDouble())
+    }
+
     override fun tick() {
-        yRot = delegate.yBodyRot
+        val controller = controllingPassenger
+        if (jumpDelay > 0) jumpDelay--
+        health = delegate.health
+        if (controller is ServerPlayer && !isDeadOrDying) {
+            if (delegate is Mob) delegate.navigation.stop()
+            travelRidden(controller, Vec3(delegate.xxa.toDouble(), delegate.yya.toDouble(), delegate.zza.toDouble()))
+        }
+        yRot = supplier.hitBoxRotation().y
         yHeadRot = yRot
         yBodyRot = yRot
-        val transform = supplier.supplyTransform().rotateY(Math.toRadians(-yRot.toDouble()).toFloat())
+        val transform = supplier.hitBoxPosition()
         setPos(delegate.position().add(
             transform.x.toDouble(),
             transform.y.toDouble() + delegate.passengerPosition(adapter.scale()).y + source.maxY - boxHeight,
@@ -143,10 +185,6 @@ class HitBoxImpl(
 
     override fun isDeadOrDying(): Boolean {
         return delegate.isDeadOrDying
-    }
-
-    override fun getHealth(): Float {
-        return delegate.health
     }
 
     override fun getDismountLocationForPassenger(passenger: LivingEntity): Vec3 {

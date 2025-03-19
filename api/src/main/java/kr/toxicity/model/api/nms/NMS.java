@@ -17,7 +17,7 @@ public interface NMS {
     @NotNull ItemStack tint(@NotNull ItemStack itemStack, int rgb);
     void mount(@NotNull EntityTracker tracker, @NotNull PacketBundler bundler);
     void hide(@NotNull Player player, @NotNull Entity entity);
-    @Nullable HitBox createHitBox(@NotNull EntityAdapter entity, @NotNull TransformSupplier supplier, @NotNull NamedBoundingBox namedBoundingBox, @NotNull HitBoxListener source);
+    @Nullable HitBox createHitBox(@NotNull EntityAdapter entity, @NotNull HitBoxSource supplier, @NotNull NamedBoundingBox namedBoundingBox, @NotNull HitBoxListener source);
     @NotNull NMSVersion version();
     @NotNull EntityAdapter adapt(@NotNull LivingEntity entity);
     boolean isSlim(@NotNull Player player);

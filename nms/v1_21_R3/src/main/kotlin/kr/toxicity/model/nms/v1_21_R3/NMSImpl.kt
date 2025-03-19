@@ -461,7 +461,7 @@ class NMSImpl : NMS {
         })
     }
 
-    override fun createHitBox(entity: EntityAdapter, supplier: TransformSupplier, namedBoundingBox: NamedBoundingBox, listener: HitBoxListener): HitBox? {
+    override fun createHitBox(entity: EntityAdapter, supplier: HitBoxSource, namedBoundingBox: NamedBoundingBox, listener: HitBoxListener): HitBox? {
         val handle = (entity.entity() as? CraftLivingEntity)?.handle ?: return null
         val scale = entity.scale()
         val newBox = namedBoundingBox.center() * scale
@@ -492,7 +492,7 @@ class NMSImpl : NMS {
             override fun glow(): Boolean = handle.isCurrentlyGlowing
 
             override fun onWalk(): Boolean {
-                return handle is Mob && handle.navigation.isInProgress
+                return handle.isWalking()
             }
 
             override fun scale(): Double {

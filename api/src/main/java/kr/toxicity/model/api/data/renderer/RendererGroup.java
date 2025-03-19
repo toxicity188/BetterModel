@@ -4,7 +4,6 @@ import kr.toxicity.model.api.data.blueprint.BlueprintChildren;
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox;
 import kr.toxicity.model.api.entity.EntityMovement;
 import kr.toxicity.model.api.entity.RenderedEntity;
-import kr.toxicity.model.api.nms.TransformSupplier;
 import kr.toxicity.model.api.player.PlayerLimb;
 import kr.toxicity.model.api.util.MathUtil;
 import lombok.Getter;
@@ -26,7 +25,7 @@ import java.util.stream.Collectors;
  * A group of model.
  */
 @RequiredArgsConstructor
-public final class RendererGroup implements TransformSupplier {
+public final class RendererGroup {
 
     @Getter
     private final String name;
@@ -122,11 +121,5 @@ public final class RendererGroup implements TransformSupplier {
      */
     public @NotNull ItemStack getItemStack() {
         return itemStack != null ? itemStack.clone() : new ItemStack(Material.AIR);
-    }
-
-    @NotNull
-    @Override
-    public Vector3f supplyTransform() {
-        return new Vector3f(position);
     }
 }

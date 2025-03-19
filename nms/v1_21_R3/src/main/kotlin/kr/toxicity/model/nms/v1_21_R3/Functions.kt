@@ -4,8 +4,10 @@ import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.network.syncher.SynchedEntityData.DataItem
+import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityAttachment
+import net.minecraft.world.entity.Mob
 import org.bukkit.Bukkit
 import org.bukkit.event.Cancellable
 import org.bukkit.event.Event
@@ -51,3 +53,23 @@ fun SynchedEntityData.pack(): List<SynchedEntityData.DataValue<*>> {
 }
 
 fun Float.packDegree() = floor(this * 256.0F / 360.0F).toInt().toByte()
+
+fun Entity.isWalking(): Boolean {
+    return controllingPassenger?.isWalking() ?: when (this) {
+        is Mob -> navigation.isInProgress
+        is ServerPlayer -> xMovement() != 0F || zMovement() != 0F
+        else -> false
+    }
+}
+
+fun ServerPlayer.xMovement(): Float {
+    val leftMovement: Boolean = lastClientInput.left()
+    val rightMovement: Boolean = lastClientInput.right()
+    return (if (leftMovement == rightMovement) 0 else if (leftMovement) 1 else -1).toFloat()
+}
+
+fun ServerPlayer.zMovement(): Float {
+    val forwardMovement: Boolean = lastClientInput.forward()
+    val backwardMovement: Boolean = lastClientInput.backward()
+    return (if (forwardMovement == backwardMovement) 0 else if (forwardMovement) 1 else -1).toFloat()
+}

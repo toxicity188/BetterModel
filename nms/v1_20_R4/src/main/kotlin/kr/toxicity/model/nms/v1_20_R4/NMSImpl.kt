@@ -433,7 +433,7 @@ class NMSImpl : NMS {
         return itemStack
     }
 
-    override fun createHitBox(entity: EntityAdapter, supplier: TransformSupplier, namedBoundingBox: NamedBoundingBox, listener: HitBoxListener): HitBox? {
+    override fun createHitBox(entity: EntityAdapter, supplier: HitBoxSource, namedBoundingBox: NamedBoundingBox, listener: HitBoxListener): HitBox? {
         val handle = (entity.entity() as? CraftLivingEntity)?.handle ?: return null
         val scale = entity.scale()
         val newBox = namedBoundingBox.center() * scale

@@ -105,7 +105,10 @@ public class EntityTracker extends Tracker {
                     }
                 });
         instance.animateLoop("walk", new AnimationModifier(
-                adapter::onWalk,
+                () -> adapter.onWalk() || instance.renderers().stream().anyMatch(e -> {
+                    var hitBox = e.getHitBox();
+                    return hitBox != null && hitBox.onWalk();
+                }),
                 4,
                 0,
                 modifier.damageEffect() ? () -> adapter.walkSpeed() + 4F * (float) Math.sqrt(adapter.damageTick()) : () -> 1F

@@ -6,6 +6,7 @@ import org.joml.Vector3f;
 
 public interface HitBox {
     @NotNull String name();
+    boolean onWalk();
     @NotNull Entity source();
     void addPassenger(@NotNull Entity entity);
     @NotNull Vector3f relativePosition();
