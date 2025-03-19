@@ -271,7 +271,7 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
         if (lastTransform != null) {
             var progress = 1 - progress();
             var before = beforeTransform != null ? beforeTransform : EntityMovement.EMPTY;
-            return VectorUtil.linear(before.transform(), lastTransform.transform(), progress)
+            var vec = VectorUtil.linear(before.transform(), lastTransform.transform(), progress)
                     .add(offset)
                     .mul(VectorUtil.linear(before.scale(), lastTransform.scale(), progress))
                     .rotate(
@@ -279,6 +279,7 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
                     )
                     .add(defaultPosition)
                     .rotateY((float) -Math.toRadians(rotation.y()));
+            return vec.isFinite() ? vec : new Vector3f();
         }
         return new Vector3f();
     }
