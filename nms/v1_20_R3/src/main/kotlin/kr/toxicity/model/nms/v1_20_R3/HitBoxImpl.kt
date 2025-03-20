@@ -71,6 +71,7 @@ class HitBoxImpl(
     override fun getMainArm(): HumanoidArm = HumanoidArm.RIGHT
     
     override fun addPassenger(entity: Entity) {
+        if (controllingPassenger != null) return
         bukkitEntity.addPassenger(entity)
     }
 
