@@ -79,6 +79,10 @@ class HitBoxImpl(
         delegate.remainingFireTicks = remainingFireTicks
     }
 
+    override fun getRemainingFireTicks(): Int {
+        return delegate.remainingFireTicks
+    }
+
     override fun push(x: Double, y: Double, z: Double, pushingEntity: net.minecraft.world.entity.Entity?) {
         delegate.push(x, y, z, pushingEntity)
     }

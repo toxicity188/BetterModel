@@ -139,7 +139,9 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
      */
     public boolean addAnimationMovementModifier(@NotNull Predicate<RenderedEntity> predicate, @NotNull Consumer<AnimationMovement> consumer) {
         if (predicate.test(this)) {
-            movementModifier.add(consumer);
+            synchronized (movementModifier) {
+                movementModifier.add(consumer);
+            }
             return true;
         }
         var ret = false;
@@ -247,7 +249,15 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
             e.move(rotation, movement, bundler);
         }
     }
+    
     public void forceUpdate(@NotNull PacketBundler bundler) {
+        forceUpdate0(bundler);
+        for (RenderedEntity value : children.values()) {
+            value.forceUpdate(bundler);
+        }
+    }
+
+    private void forceUpdate0(@NotNull PacketBundler bundler) {
         var d = display;
         var speed = currentIterator != null ? currentIterator.modifier.speedValue() : 1F;
         delay = Math.round(speed * (double) delay);
@@ -261,7 +271,7 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
     }
 
     private static int toInterpolationDuration(long delay) {
-        return (int) Math.ceil((float) delay / 5F) + 2;
+        return Math.round((float) delay / 5F) + 1;
     }
 
     public @NotNull Vector3f lastTransform() {
@@ -315,8 +325,10 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
 
     private EntityMovement defaultFrame() {
         var k = keyFrame != null ? keyFrame.copyNotNull() : new AnimationMovement(0, new Vector3f(), new Vector3f(), new Vector3f());
-        for (Consumer<AnimationMovement> consumer : movementModifier) {
-            consumer.accept(k);
+        synchronized (movementModifier) {
+            for (Consumer<AnimationMovement> consumer : movementModifier) {
+                consumer.accept(k);
+            }
         }
         return defaultFrame.plus(k);
     }
@@ -341,7 +353,7 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
 
     public void tint(int toggle, @NotNull PacketBundler bundler) {
         tint = toggle;
-        if (applyItem()) forceUpdate(bundler);
+        if (applyItem()) forceUpdate0(bundler);
         for (RenderedEntity value : children.values()) {
             value.tint(toggle, bundler);
         }
@@ -441,7 +453,7 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
     public void togglePart(@NotNull PacketBundler bundler, @NotNull Predicate<RenderedEntity> predicate, boolean toggle) {
         if (predicate.test(this)) {
             visible = toggle;
-            if (applyItem()) forceUpdate(bundler);
+            if (applyItem()) forceUpdate0(bundler);
         }
         for (RenderedEntity value : children.values()) {
             value.togglePart(bundler, predicate, toggle);
@@ -449,15 +461,13 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
     }
 
     @RequiredArgsConstructor
-    private class TreeIterator implements BlueprintAnimator.AnimatorIterator, Supplier<Boolean>, Runnable {
+    private static class TreeIterator implements BlueprintAnimator.AnimatorIterator, Supplier<Boolean>, Runnable {
         private final String name;
         private final BlueprintAnimator.AnimatorIterator iterator;
         private final AnimationModifier modifier;
         private final Runnable removeTask;
         private boolean started = false;
         private boolean ended = false;
-
-        private AnimationMovement lastMovement;
 
         @NotNull
         @Override
@@ -494,12 +504,11 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
         public AnimationMovement next() {
             if (!started) {
                 started = true;
-                lastMovement = currentIterator != null ? currentIterator.first() : keyFrame;
                 return first().time((float) modifier.start() / 20);
             }
             if (!iterator.hasNext()) {
                 ended = true;
-                return lastMovement != null ? lastMovement.time((float) modifier.end() / 20) : new AnimationMovement((float) modifier.end() / 20, null, null, null);
+                return new AnimationMovement((float) modifier.end() / 20, null, null, null);
             }
             var nxt = iterator.next();
             nxt = nxt.time(Math.max(nxt.time() / modifier.speedValue(), 0.01F));
@@ -508,8 +517,8 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
 
         @Override
         public void clear() {
-            started = ended = false;
             iterator.clear();
+            started = ended = !iterator.hasNext();
         }
 
         @Override

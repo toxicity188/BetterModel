@@ -81,6 +81,10 @@ class HitBoxImpl(
         delegate.remainingFireTicks = remainingFireTicks
     }
 
+    override fun getRemainingFireTicks(): Int {
+        return delegate.remainingFireTicks
+    }
+
     override fun knockback(
         d0: Double,
         d1: Double,

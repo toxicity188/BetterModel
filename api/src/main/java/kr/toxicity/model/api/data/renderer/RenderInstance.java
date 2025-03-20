@@ -106,6 +106,12 @@ public final class RenderInstance implements AutoCloseable {
         }
     }
 
+    public void forceUpdate(@NotNull PacketBundler bundler) {
+        for (RenderedEntity value : entityMap.values()) {
+            value.forceUpdate(bundler);
+        }
+    }
+
     public void itemStack(@NotNull Predicate<RenderedEntity> predicate, @NotNull ItemStack itemStack) {
         for (RenderedEntity value : entityMap.values()) {
             value.itemStack(predicate, itemStack);

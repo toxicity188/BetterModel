@@ -331,7 +331,6 @@ class NMSImpl : NMS {
         valid = true
         persist = false
         itemTransform = ItemDisplayContext.FIXED
-        transformationInterpolationDelay = -1
         entityData.set(Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID, 3)
     })
 

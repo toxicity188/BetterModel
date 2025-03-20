@@ -309,7 +309,6 @@ class NMSImpl : NMS {
         valid = true
         persist = false
         itemTransform = ItemDisplayContext.FIXED
-        interpolationDelay = -1
         interpolationDuration = 1
     })
 

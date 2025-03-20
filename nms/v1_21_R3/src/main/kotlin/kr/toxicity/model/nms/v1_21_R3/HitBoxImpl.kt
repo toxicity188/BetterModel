@@ -11,7 +11,6 @@ import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.HitBoxListener
 import kr.toxicity.model.api.nms.HitBoxSource
 import net.minecraft.core.BlockPos
-import net.minecraft.network.protocol.game.ClientboundSetEntityLinkPacket
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.InteractionHand
@@ -80,6 +79,10 @@ class HitBoxImpl(
 
     override fun setRemainingFireTicks(remainingFireTicks: Int) {
         delegate.remainingFireTicks = remainingFireTicks
+    }
+
+    override fun getRemainingFireTicks(): Int {
+        return delegate.remainingFireTicks
     }
 
     override fun knockback(

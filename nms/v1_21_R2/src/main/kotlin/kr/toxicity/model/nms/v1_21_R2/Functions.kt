@@ -65,11 +65,11 @@ fun Entity.isWalking(): Boolean {
 fun ServerPlayer.xMovement(): Float {
     val leftMovement: Boolean = lastClientInput.left()
     val rightMovement: Boolean = lastClientInput.right()
-    return (if (leftMovement == rightMovement) 0 else if (leftMovement) 1 else -1).toFloat()
+    return if (leftMovement == rightMovement) 0F else if (leftMovement) 1F else -1F
 }
 
 fun ServerPlayer.zMovement(): Float {
     val forwardMovement: Boolean = lastClientInput.forward()
     val backwardMovement: Boolean = lastClientInput.backward()
-    return (if (forwardMovement == backwardMovement) 0 else if (forwardMovement) 1 else -1).toFloat()
+    return if (forwardMovement == backwardMovement) 0F else if (forwardMovement) 1F else -1F
 }

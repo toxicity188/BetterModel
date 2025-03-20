@@ -45,6 +45,7 @@ public abstract class Tracker implements AutoCloseable {
     private final ScheduledFuture<?> task;
     private final AtomicBoolean runningSingle = new AtomicBoolean();
     private final AtomicLong frame = new AtomicLong();
+    private final AtomicBoolean readyForForceUpdate = new AtomicBoolean();
 
     private final TrackerModifier modifier;
 
@@ -65,6 +66,10 @@ public abstract class Tracker implements AutoCloseable {
         task = EXECUTOR.scheduleAtFixedRate(() -> {
             consumer.accept(this);
             var bundle = BetterModel.inst().nms().createBundler();
+            if (readyForForceUpdate.get()) {
+                instance.forceUpdate(bundle);
+                readyForForceUpdate.set(false);
+            }
             instance.move(
                     frame.incrementAndGet() % 5 == 0 ? (isRunningSingleAnimation() && BetterModel.inst().configManager().lockOnPlayAnimation()) ? rotation : (rotation = rotation()) : null,
                     movement.get(),
@@ -131,6 +136,14 @@ public abstract class Tracker implements AutoCloseable {
 
     public @NotNull TrackerModifier modifier() {
         return modifier;
+    }
+
+
+    /**
+     * Forces packet update.
+     */
+    public void forceUpdate(boolean force) {
+        readyForForceUpdate.set(force);
     }
 
     /**
