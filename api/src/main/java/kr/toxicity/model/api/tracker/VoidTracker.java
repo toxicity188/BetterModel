@@ -38,9 +38,7 @@ public final class VoidTracker extends Tracker {
         this.location = Objects.requireNonNull(location, "location");
         var bundler = BetterModel.inst().nms().createBundler();
         instance.teleport(location, bundler);
-        if (!bundler.isEmpty()) for (Player player : viewedPlayer()) {
-            bundler.send(player);
-        }
+        if (!bundler.isEmpty()) viewedPlayer().forEach(bundler::send);
     }
 
     @NotNull

@@ -7,7 +7,6 @@ import kr.toxicity.model.api.entity.RenderedEntity;
 import kr.toxicity.model.api.entity.TrackerMovement;
 import kr.toxicity.model.api.nms.EntityAdapter;
 import kr.toxicity.model.api.nms.HitBoxListener;
-import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.util.EntityUtil;
 import lombok.Getter;
 import org.bukkit.Location;
@@ -119,9 +118,9 @@ public class EntityTracker extends Tracker {
                 new Vector3f(0, 0, 0)
         );
         setMovement(supplier);
-        entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, instance.getParent().getParent().name());
         TRACKER_MAP.put(entity.getUniqueId(), this);
         BetterModel.inst().scheduler().task(entity.getLocation(), () -> {
+            entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, instance.getParent().getParent().name());
             if (!closed.get() && !forRemoval()) createHitBox();
         });
         instance.setup(getMovement().get());
@@ -172,12 +171,10 @@ public class EntityTracker extends Tracker {
     @Override
     public void close() throws Exception {
         closed.set(true);
-        for (PlayerChannelHandler playerChannelHandler : instance.allPlayer()) {
-            playerChannelHandler.endTrack(this);
-        }
+        instance.allPlayer().forEach(p -> p.endTrack(this));
         super.close();
-        entity.getPersistentDataContainer().remove(TRACKING_ID);
         TRACKER_MAP.remove(entity.getUniqueId());
+        BetterModel.inst().scheduler().task(entity.getLocation(), () -> entity.getPersistentDataContainer().remove(TRACKING_ID));
     }
 
     @Override
@@ -229,8 +226,6 @@ public class EntityTracker extends Tracker {
         instance.createHitBox(adapter, r -> r.getHitBox() != null, null);
         var bundler = BetterModel.inst().nms().createBundler();
         BetterModel.inst().nms().mount(this, bundler);
-        if (!bundler.isEmpty()) for (Player player : viewedPlayer()) {
-            bundler.send(player);
-        }
+        if (!bundler.isEmpty()) viewedPlayer().forEach(bundler::send);
     }
 }

@@ -205,18 +205,6 @@ class NMSImpl : NMS {
                         }
                     }
                 }
-                is ClientboundTeleportEntityPacket -> {
-                    id.toTracker()?.let {
-                        if (it.world() == player.world.uid) {
-                            PacketBundlerImpl(mutableListOf()).run {
-                                mount(it, this)
-                                send(player)
-                            }
-                        } else {
-                            it.remove()
-                        }
-                    }
-                }
                 is ClientboundRemoveEntitiesPacket -> {
                     entityIds
                         .asSequence()

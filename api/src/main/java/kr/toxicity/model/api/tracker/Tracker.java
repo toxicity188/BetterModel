@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * Tracker of model.
@@ -75,9 +76,7 @@ public abstract class Tracker implements AutoCloseable {
                     movement.get(),
                     bundle
             );
-            if (!bundle.isEmpty()) for (Player player : instance.viewedPlayer()) {
-                bundle.send(player);
-            }
+            if (!bundle.isEmpty()) instance.viewedPlayer().forEach(bundle::send);
         }, 10, 10, TimeUnit.MILLISECONDS);
         tint(0xFFFFFF);
         if (modifier.sightTrace()) instance.filter(p -> EntityUtil.canSee(p.getEyeLocation(), location()));
@@ -184,7 +183,7 @@ public abstract class Tracker implements AutoCloseable {
      * Gets viewed players.
      * @return viewed players list
      */
-    public @NotNull List<Player> viewedPlayer() {
+    public @NotNull Stream<Player> viewedPlayer() {
         return instance.viewedPlayer();
     }
 

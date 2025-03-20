@@ -28,6 +28,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 /**
  * A manager of each tracker.
@@ -154,9 +155,7 @@ public final class RenderInstance implements AutoCloseable {
     public void tint(int rgb) {
         var bundler = BetterModel.inst().nms().createBundler();
         entityMap.values().forEach(e -> e.tint(rgb, bundler));
-        if (!bundler.isEmpty()) for (Player player : viewedPlayer()) {
-            bundler.send(player);
-        }
+        if (!bundler.isEmpty()) viewedPlayer().forEach(bundler::send);
     }
 
 
@@ -243,23 +242,21 @@ public final class RenderInstance implements AutoCloseable {
     public void togglePart(@NotNull Predicate<RenderedEntity> predicate, boolean toggle) {
         var bundler = BetterModel.inst().nms().createBundler();
         entityMap.values().forEach(e -> e.togglePart(bundler, predicate, toggle));
-        if (!bundler.isEmpty()) for (Player player : viewedPlayer()) {
-            bundler.send(player);
-        }
+        if (!bundler.isEmpty()) viewedPlayer().forEach(bundler::send);
     }
 
     public int viewedPlayerSize() {
         return playerMap.size();
     }
 
-    public @NotNull List<PlayerChannelHandler> allPlayer() {
-        return new ArrayList<>(playerMap.values());
+    public @NotNull Stream<PlayerChannelHandler> allPlayer() {
+        return playerMap.values().stream();
     }
-    public @NotNull List<Player> viewedPlayer() {
+    public @NotNull Stream<Player> viewedPlayer() {
         return viewedPlayer(filter);
     }
-    public @NotNull List<Player> viewedPlayer(@NotNull Predicate<Player> predicate) {
-        return playerMap.values().stream().map(PlayerChannelHandler::player).filter(predicate).toList();
+    public @NotNull Stream<Player> viewedPlayer(@NotNull Predicate<Player> predicate) {
+        return allPlayer().map(PlayerChannelHandler::player).filter(predicate);
     }
 
 }

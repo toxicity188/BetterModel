@@ -17,6 +17,7 @@ import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.entity.EntityDeathEvent
 import org.bukkit.event.entity.EntityPotionEffectEvent
 import org.bukkit.event.entity.EntitySpawnEvent
+import org.bukkit.event.entity.EntityTeleportEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.world.ChunkLoadEvent
 
@@ -71,6 +72,10 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
                 chunk.entities.forEach {
                     EntityTracker.tracker(it)?.refresh()
                 }
+            }
+            @EventHandler
+            fun EntityTeleportEvent.teleport() {
+                EntityTracker.tracker(entity)?.refresh()
             }
             @EventHandler
             fun EntityDeathEvent.death() {
