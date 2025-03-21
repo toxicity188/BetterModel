@@ -59,7 +59,7 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
             }
             @EventHandler
             fun ModelInteractEvent.interact() {
-                if (hitBox.name().startsWith("p_")) {
+                if (hitBox.mountController().canMount()) {
                     hitBox.addPassenger(player)
                 }
             }

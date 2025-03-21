@@ -69,3 +69,5 @@ fun ServerPlayer.xMovement(): Float {
 fun ServerPlayer.zMovement(): Float {
     return zza
 }
+
+fun ServerPlayer.isJump() = jumping

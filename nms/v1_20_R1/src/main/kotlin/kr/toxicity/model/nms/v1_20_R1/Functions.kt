@@ -6,6 +6,7 @@ import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.network.syncher.SynchedEntityData.DataItem
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.util.Mth
+import net.minecraft.world.effect.MobEffects
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.Mob
@@ -77,6 +78,9 @@ fun LivingEntity.jumpFactor(): Float {
     return if (f.toDouble() == 1.0) f1 else f
 }
 
+val LivingEntity.gravity: Double
+    get() = if (deltaMovement.y <= 0.0 && this.hasEffect(MobEffects.SLOW_FALLING)) 0.01 else 0.08
+
 fun LivingEntity.jumpFromGround() {
     val jumpPower = getAttributeValue(Attributes.JUMP_STRENGTH).toFloat() * jumpFactor() + jumpBoostPower
     if (!(jumpPower <= 1.0E-5f)) {
@@ -89,3 +93,5 @@ fun LivingEntity.jumpFromGround() {
         hasImpulse = true
     }
 }
+
+fun ServerPlayer.isJump() = jumping

@@ -106,7 +106,7 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
                 hitBox.remove();
                 if (l == null) l = hitBox.listener();
             }
-            hitBox = BetterModel.inst().nms().createHitBox(entity, this, h, l != null ? l : HitBoxListener.EMPTY);
+            hitBox = BetterModel.inst().nms().createHitBox(entity, this, h, group.getMountController(), l != null ? l : HitBoxListener.EMPTY);
         }
         for (RenderedEntity value : children.values()) {
             value.createHitBox(entity, predicate, listener);

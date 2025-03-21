@@ -9,6 +9,7 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox
+import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.nms.*
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.api.tracker.ModelRotation
@@ -448,7 +449,7 @@ class NMSImpl : NMS {
         })
     }
 
-    override fun createHitBox(entity: EntityAdapter, supplier: HitBoxSource, namedBoundingBox: NamedBoundingBox, listener: HitBoxListener): HitBox? {
+    override fun createHitBox(entity: EntityAdapter, supplier: HitBoxSource, namedBoundingBox: NamedBoundingBox, mountController: MountController, listener: HitBoxListener): HitBox? {
         val handle = (entity.entity() as? CraftLivingEntity)?.handle ?: return null
         val scale = entity.scale()
         val newBox = namedBoundingBox.center() * scale
@@ -460,6 +461,7 @@ class NMSImpl : NMS {
             supplier,
             listener,
             handle,
+            mountController,
             entity
         ).apply {
             attributes.getInstance(Attributes.SCALE)!!.baseValue = height / 0.52

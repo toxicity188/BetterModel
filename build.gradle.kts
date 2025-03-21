@@ -4,7 +4,7 @@ import java.time.LocalDateTime
 
 plugins {
     `java-library`
-    kotlin("jvm") version "2.1.10"
+    kotlin("jvm") version "2.1.20"
     id("org.jetbrains.dokka") version "2.0.0"
     id("io.github.goooler.shadow") version "8.1.8"
     id("io.papermc.paperweight.userdev") version "2.0.0-beta.16" apply false
@@ -147,7 +147,7 @@ tasks {
                 "Dev-Build" to (buildNumber != null),
                 "Version" to version,
                 "Author" to "toxicity188",
-                "Url" to "https://github.com/toxicity188/BetterHud",
+                "Url" to "https://github.com/toxicity188/BetterModel",
                 "Created-By" to "Gradle $gradle",
                 "Build-Jdk" to "${System.getProperty("java.vendor")} ${System.getProperty("java.version")}",
                 "Build-OS" to "${System.getProperty("os.arch")} ${System.getProperty("os.name")}",

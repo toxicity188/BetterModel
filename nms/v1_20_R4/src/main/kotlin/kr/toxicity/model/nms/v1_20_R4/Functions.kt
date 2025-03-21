@@ -94,3 +94,5 @@ fun LivingEntity.jumpFromGround() {
         hasImpulse = true
     }
 }
+
+fun ServerPlayer.isJump() = jumping

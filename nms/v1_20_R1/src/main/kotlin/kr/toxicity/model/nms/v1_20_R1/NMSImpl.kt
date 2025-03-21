@@ -8,6 +8,7 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox
+import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.nms.*
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.api.tracker.ModelRotation
@@ -429,7 +430,7 @@ class NMSImpl : NMS {
         return itemStack
     }
 
-    override fun createHitBox(entity: EntityAdapter, supplier: HitBoxSource, namedBoundingBox: NamedBoundingBox, listener: HitBoxListener): HitBox? {
+    override fun createHitBox(entity: EntityAdapter, supplier: HitBoxSource, namedBoundingBox: NamedBoundingBox, mountController: MountController, listener: HitBoxListener): HitBox? {
         val handle = (entity.entity() as? CraftLivingEntity)?.handle ?: return null
         val newBox = namedBoundingBox.center() * entity.scale()
         val height = newBox.length() / 2
@@ -440,6 +441,7 @@ class NMSImpl : NMS {
             supplier,
             listener,
             handle,
+            mountController,
             entity
         ).apply {
             entityData.registrationLocked = false

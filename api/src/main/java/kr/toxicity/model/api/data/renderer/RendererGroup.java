@@ -4,6 +4,8 @@ import kr.toxicity.model.api.data.blueprint.BlueprintChildren;
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox;
 import kr.toxicity.model.api.entity.EntityMovement;
 import kr.toxicity.model.api.entity.RenderedEntity;
+import kr.toxicity.model.api.mount.MountController;
+import kr.toxicity.model.api.mount.MountControllers;
 import kr.toxicity.model.api.player.PlayerLimb;
 import kr.toxicity.model.api.util.MathUtil;
 import lombok.Getter;
@@ -48,6 +50,9 @@ public final class RendererGroup {
     @Getter
     private final @Nullable PlayerLimb limb;
 
+    @Getter
+    private final @NotNull MountController mountController;
+
     /**
      * Creates group instance.
      * @param name name
@@ -78,6 +83,11 @@ public final class RendererGroup {
         this.hitBox = box;
         rotation = group.rotation().toVector();
         center = hitBox != null ? hitBox.centerVector() : new Vector3f();
+        if (name.startsWith("p_")) {
+            mountController = MountControllers.DEFAULT;
+        } else if (name.startsWith("sp_")) {
+            mountController = MountControllers.NONE;
+        } else mountController = MountControllers.INVALID;
     }
 
     /**

@@ -73,3 +73,5 @@ fun ServerPlayer.zMovement(): Float {
     val backwardMovement: Boolean = lastClientInput.backward()
     return if (forwardMovement == backwardMovement) 0F else if (forwardMovement) 1F else -1F
 }
+
+fun ServerPlayer.isJump() = lastClientInput.jump()

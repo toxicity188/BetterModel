@@ -5,6 +5,7 @@ import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import kr.toxicity.model.api.event.ModelDamagedEvent
 import kr.toxicity.model.api.event.ModelInteractEvent
 import kr.toxicity.model.api.event.ModelInteractEvent.Hand
+import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.nms.EntityAdapter
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.HitBoxListener
@@ -41,6 +42,7 @@ class HitBoxImpl(
     private val supplier: HitBoxSource,
     private val listener: HitBoxListener,
     private val delegate: LivingEntity,
+    private val mountController: MountController,
     private val adapter: EntityAdapter
 ) : LivingEntity(EntityType.SLIME, delegate.level), HitBox {
 
@@ -58,6 +60,7 @@ class HitBoxImpl(
 
     override fun name(): String = name
     override fun source(): Entity = delegate.bukkitEntity
+    override fun mountController(): MountController = mountController
     override fun relativePosition(): Vector3f = position().run {
         Vector3f(x.toFloat(), y.toFloat(), z.toFloat())
     }
@@ -71,6 +74,7 @@ class HitBoxImpl(
     override fun getMainArm(): HumanoidArm = HumanoidArm.RIGHT
     
     override fun addPassenger(entity: Entity) {
+        if (!mountController.canMount()) return
         if (controllingPassenger != null) return
         bukkitEntity.addPassenger(entity)
     }
@@ -111,38 +115,43 @@ class HitBoxImpl(
         return isWalking()
     }
 
-    private fun travelRidden(player: ServerPlayer, travelVector: Vec3) {
-        val riddenInput = getRiddenInput(player, travelVector)
-        val speed = delegate.getAttributeValue(Attributes.MOVEMENT_SPEED)
+    private fun mountControl(player: ServerPlayer, travelVector: Vec3) {
+        val riddenInput = mountController.move(
+            player.bukkitEntity,
+            delegate.bukkitEntity as org.bukkit.entity.LivingEntity,
+            Vector3f(
+                player.xMovement(),
+                0.0F,
+                player.zMovement()
+            ),
+            Vector3f(
+                travelVector.x.toFloat(),
+                travelVector.y.toFloat(),
+                travelVector.z.toFloat()
+            )
+        )
+        val speed = delegate.getAttributeValue(Attributes.MOVEMENT_SPEED).toFloat()
         val movement = riddenInput
-            .multiply(speed, speed, speed)
-            .yRot(-Math.toRadians(player.yRot.toDouble()).toFloat())
+            .mul(speed)
+            .rotateY(-Math.toRadians(player.yRot.toDouble()).toFloat())
+        val dy = delegate.deltaMovement.y + delegate.gravity
         if (movement.length() > 0.01) {
             delegate.yBodyRot = player.yRot
-            delegate.move(MoverType.SELF, movement)
-            if (delegate.horizontalCollision && !delegate.jumping && jumpDelay == 0) {
-                jumpDelay = 10
-                delegate.jumpFromGround()
-            }
+            delegate.move(MoverType.SELF, Vec3(riddenInput.x.toDouble(), riddenInput.y.toDouble(), riddenInput.z.toDouble()))
         }
-    }
-
-    private fun getRiddenInput(player: ServerPlayer, travelVector: Vec3): Vec3 {
-        val f = player.xMovement() * 0.5f
-        var f1 = player.zMovement()
-        if (f1 <= 0.0f) {
-            f1 *= 0.25f
+        if (mountController.canJump() && (delegate.horizontalCollision || player.isJump()) && dy >= 0.0 && dy <= 0.01 && jumpDelay == 0) {
+            jumpDelay = 10
+            delegate.jumpFromGround()
         }
-        return Vec3(f.toDouble(), 0.0, f1.toDouble())
     }
 
     override fun tick() {
         val controller = controllingPassenger
         if (jumpDelay > 0) jumpDelay--
         health = delegate.health
-        if (controller is ServerPlayer && !isDeadOrDying) {
+        if (controller is ServerPlayer && !isDeadOrDying && mountController.canControl()) {
             if (delegate is Mob) delegate.navigation.stop()
-            travelRidden(controller, Vec3(delegate.xxa.toDouble(), delegate.yya.toDouble(), delegate.zza.toDouble()))
+            mountControl(controller, Vec3(delegate.xxa.toDouble(), delegate.yya.toDouble(), delegate.zza.toDouble()))
         }
         yRot = supplier.hitBoxRotation().y
         yHeadRot = yRot
