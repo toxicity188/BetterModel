@@ -58,7 +58,7 @@ fun Float.packDegree() = floor(this * 256.0F / 360.0F).toInt().toByte()
 
 fun Entity.isWalking(): Boolean {
     return controllingPassenger?.isWalking() ?: when (this) {
-        is Mob -> navigation.isInProgress && deltaMovement.horizontalDistance() > 0.01
+        is Mob -> navigation.isInProgress && deltaMovement.horizontalDistance() > 0.002
         is ServerPlayer -> xMovement() != 0F || zMovement() != 0F
         else -> false
     }
