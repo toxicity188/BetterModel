@@ -38,9 +38,13 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                     )
                     .withOptionalArguments(StringArgument("type")
                         .replaceSuggestions(ArgumentSuggestions.strings {
-                            EntityType.entries.map {
-                                it.name.lowercase()
-                            }.toTypedArray()
+                            EntityType.entries
+                                .filter {
+                                    it.isAlive
+                                }
+                                .map {
+                                    it.name.lowercase()
+                                }.toTypedArray()
                         })
                     )
                     .withOptionalArguments(DoubleArgument("scale")
@@ -59,6 +63,7 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                         val loc = player.location
                         ModelManagerImpl.renderer(n)
                             ?.create((player.world.spawnEntity(player.location, t) as LivingEntity).apply {
+                                isCollidable = false
                                 if (PLUGIN.nms().version() >= NMSVersion.V1_21_R1) getAttribute(ATTRIBUTE_SCALE)?.baseValue = s
                             })
                             ?.spawnNearby(loc)

@@ -226,6 +226,11 @@ class NMSImpl : NMS {
                             it.remove()
                         }
                 }
+                is ClientboundSetPassengersPacket -> {
+                    vehicle.toTracker()?.let {
+                        return it.mountPacket()
+                    }
+                }
                 is ClientboundSetEntityDataPacket -> if (id.toTracker() != null) return ClientboundSetEntityDataPacket(id, packedItems().map {
                     if (it.id == sharedFlag) SynchedEntityData.DataValue<Byte>(
                         it.id,
@@ -267,18 +272,21 @@ class NMSImpl : NMS {
     }
 
     override fun mount(tracker: EntityTracker, bundler: PacketBundler) {
-        val entity = (tracker.entity as CraftEntity).handle
-        val map = tracker.displays().mapNotNull {
+        (bundler as PacketBundlerImpl).add(tracker.mountPacket())
+    }
+
+    private fun EntityTracker.mountPacket(entity: Entity = (this.entity as CraftEntity).handle): ClientboundSetPassengersPacket {
+        val map = displays().mapNotNull {
             (it as? ModelDisplayImpl)?.display
         }
+        val passengers = entity.passengers
         entity.passengers = ImmutableList.builder<Entity>()
             .addAll(map)
-            .addAll(entity.passengers.filter { e ->
-                e.valid
-            })
+            .addAll(entity.passengers)
             .build()
         val packet = ClientboundSetPassengersPacket(entity)
-        (bundler as PacketBundlerImpl).add(packet)
+        entity.passengers = passengers
+        return packet
     }
 
     override fun inject(player: Player): PlayerChannelHandlerImpl = PlayerChannelHandlerImpl(player)

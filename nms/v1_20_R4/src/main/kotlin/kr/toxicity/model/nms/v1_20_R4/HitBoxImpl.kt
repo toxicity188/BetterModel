@@ -104,11 +104,18 @@ class HitBoxImpl(
     }
 
     override fun canCollideWith(entity: net.minecraft.world.entity.Entity): Boolean {
-        return entity !== delegate && (entity !is HitBoxImpl || entity.delegate !== delegate) && delegate.canCollideWith(entity)
+        return checkCollide(entity) && delegate.canCollideWith(entity)
     }
 
     override fun canCollideWithBukkit(entity: net.minecraft.world.entity.Entity): Boolean {
-        return entity !== delegate && (entity !is HitBoxImpl || entity.delegate !== delegate) && delegate.canCollideWithBukkit(entity)
+        return checkCollide(entity) && delegate.canCollideWithBukkit(entity)
+    }
+
+    private fun checkCollide(entity: net.minecraft.world.entity.Entity): Boolean {
+        return entity !== delegate
+                && passengers.none { it === entity }
+                && delegate.passengers.none { it === entity }
+                && (entity !is HitBoxImpl || entity.delegate !== delegate)
     }
 
     override fun getActiveEffects(): Collection<MobEffectInstance?> {
@@ -139,15 +146,19 @@ class HitBoxImpl(
                 travelVector.z.toFloat()
             )
         )
-        val speed = delegate.getAttributeValue(Attributes.MOVEMENT_SPEED).toFloat()
+        val f = if (delegate.onGround() && !delegate.shouldDiscardFriction()) delegate.level()
+            .getBlockState(blockPosBelowThatAffectsMyMovement)
+            .block
+            .getFriction() else 1.0f
+        val speed = delegate.getAttributeValue(Attributes.MOVEMENT_SPEED).toFloat() * f
         val movement = riddenInput
             .mul(speed)
             .rotateY(-Math.toRadians(player.yRot.toDouble()).toFloat())
-        val dy = delegate.deltaMovement.y + delegate.gravity
         if (movement.length() > 0.01) {
             delegate.yBodyRot = player.yRot
             delegate.move(MoverType.SELF, Vec3(riddenInput.x.toDouble(), riddenInput.y.toDouble(), riddenInput.z.toDouble()))
         }
+        val dy = delegate.deltaMovement.y + delegate.gravity
         if (mountController.canJump() && (delegate.horizontalCollision || player.isJump()) && dy >= 0.0 && dy <= 0.01 && jumpDelay == 0) {
             jumpDelay = 10
             delegate.jumpFromGround()
