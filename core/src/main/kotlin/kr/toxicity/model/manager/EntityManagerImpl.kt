@@ -26,7 +26,9 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
         if (BetterModel.IS_PAPER) registerListener(object : Listener {
             @EventHandler
             fun EntityRemoveFromWorldEvent.remove() {
-                EntityTracker.tracker(entity)?.close()
+                EntityTracker.tracker(entity)?.let {
+                    if (!it.forRemoval()) it.close()
+                }
             }
             @EventHandler
             fun EntityAddToWorldEvent.add() {
@@ -40,7 +42,9 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
             @EventHandler
             @Suppress("DEPRECATION")
             fun org.bukkit.event.entity.EntityRemoveEvent.remove() {
-                EntityTracker.tracker(entity)?.close()
+                EntityTracker.tracker(entity)?.let {
+                    if (!it.forRemoval()) it.close()
+                }
             }
             @EventHandler
             fun EntitySpawnEvent.add() {
