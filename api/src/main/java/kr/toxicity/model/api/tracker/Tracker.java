@@ -50,7 +50,6 @@ public abstract class Tracker implements AutoCloseable {
 
     private final TrackerModifier modifier;
 
-    private ModelRotation rotation = ModelRotation.EMPTY;
     @Getter
     private Supplier<TrackerMovement> movement;
 
@@ -72,7 +71,7 @@ public abstract class Tracker implements AutoCloseable {
                 readyForForceUpdate.set(false);
             }
             instance.move(
-                    frame.incrementAndGet() % 5 == 0 ? (isRunningSingleAnimation() && BetterModel.inst().configManager().lockOnPlayAnimation()) ? rotation : (rotation = rotation()) : null,
+                    frame.incrementAndGet() % 5 == 0 ? (isRunningSingleAnimation() && BetterModel.inst().configManager().lockOnPlayAnimation()) ? instance.getRotation() : rotation() : null,
                     movement.get(),
                     bundle
             );

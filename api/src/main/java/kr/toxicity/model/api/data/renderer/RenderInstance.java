@@ -44,6 +44,7 @@ public final class RenderInstance implements AutoCloseable {
     private Predicate<Player> filter = p -> true;
     private Predicate<Player> spawnFilter = p -> !playerMap.containsKey(p.getUniqueId());
 
+    @Getter
     private ModelRotation rotation = ModelRotation.EMPTY;
 
     @Getter
