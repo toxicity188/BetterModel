@@ -8,6 +8,7 @@ import kr.toxicity.model.api.entity.TrackerMovement;
 import kr.toxicity.model.api.nms.EntityAdapter;
 import kr.toxicity.model.api.nms.HitBoxListener;
 import kr.toxicity.model.api.util.EntityUtil;
+import kr.toxicity.model.api.util.FunctionUtil;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -103,14 +104,15 @@ public class EntityTracker extends Tracker {
                         ), 0);
                     }
                 });
+        var damageTickProvider = FunctionUtil.memoizeTick(adapter::damageTick);
         instance.animateLoop("walk", new AnimationModifier(
-                () -> adapter.onWalk() || instance.renderers().stream().anyMatch(e -> {
+                () -> adapter.onWalk() || damageTickProvider.get() > 0.25 || instance.renderers().stream().anyMatch(e -> {
                     var hitBox = e.getHitBox();
                     return hitBox != null && hitBox.onWalk();
                 }),
                 4,
                 0,
-                modifier.damageEffect() ? () -> adapter.walkSpeed() + 4F * (float) Math.sqrt(adapter.damageTick()) : () -> 1F
+                modifier.damageEffect() ? () -> adapter.walkSpeed() + 4F * (float) Math.sqrt(damageTickProvider.get()) : () -> 1F
         ));
         Supplier<TrackerMovement> supplier = () -> new TrackerMovement(
                 new Vector3f(0, 0, 0F),

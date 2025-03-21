@@ -44,6 +44,8 @@ public final class RenderInstance implements AutoCloseable {
     private Predicate<Player> filter = p -> true;
     private Predicate<Player> spawnFilter = p -> !playerMap.containsKey(p.getUniqueId());
 
+    private ModelRotation rotation = ModelRotation.EMPTY;
+
     @Getter
     private final ScriptProcessor scriptProcessor = new ScriptProcessor();
 
@@ -89,9 +91,10 @@ public final class RenderInstance implements AutoCloseable {
     }
 
     public void move(@Nullable ModelRotation rotation, @NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
+        var rot = rotation == null || rotation.equals(this.rotation) ? null : (this.rotation = rotation);
         entityMap.values().forEach(e -> {
             e.updateAnimation();
-            e.move(rotation, movement, bundler);
+            e.move(rot, movement, bundler);
         });
     }
 

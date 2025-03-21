@@ -48,6 +48,8 @@ class HitBoxImpl(
 
     private var initialized = false
     private var jumpDelay = 0
+    private var mounted = false
+    private var collision = delegate.collides
 
     init {
         moveTo(delegate.position())
@@ -56,6 +58,13 @@ class HitBoxImpl(
         isSilent = true
         initialized = true
         updatingSectionStatus = false
+    }
+
+    private fun initialSetup() {
+        if (mounted) {
+            mounted = false
+            delegate.collides = collision
+        }
     }
 
     override fun name(): String = name
@@ -76,6 +85,9 @@ class HitBoxImpl(
     override fun addPassenger(entity: Entity) {
         if (!mountController.canMount()) return
         if (controllingPassenger != null) return
+        mounted = true
+        collision = delegate.collides
+        delegate.collides = false
         bukkitEntity.addPassenger(entity)
     }
 
@@ -164,7 +176,7 @@ class HitBoxImpl(
         if (controller is ServerPlayer && !isDeadOrDying && mountController.canControl()) {
             if (delegate is Mob) delegate.navigation.stop()
             mountControl(controller, Vec3(delegate.xxa.toDouble(), delegate.yya.toDouble(), delegate.zza.toDouble()))
-        }
+        } else initialSetup()
         yRot = supplier.hitBoxRotation().y
         yHeadRot = yRot
         yBodyRot = yRot
