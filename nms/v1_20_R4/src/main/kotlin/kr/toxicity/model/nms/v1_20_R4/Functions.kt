@@ -72,6 +72,8 @@ fun ServerPlayer.xMovement(): Float {
     return xxa
 }
 
+fun ServerPlayer.yMovement(): Float = if (isJump()) 1F else if (isShiftKeyDown) -1F else 0F
+
 fun ServerPlayer.zMovement(): Float {
     return zza
 }

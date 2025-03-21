@@ -125,12 +125,13 @@ class HitBoxImpl(
     }
 
     private fun mountControl(player: ServerPlayer, travelVector: Vec3) {
+        if (!mountController.canFly() && delegate.isFallFlying) return
         val riddenInput = mountController.move(
             player.bukkitEntity,
             delegate.bukkitEntity as org.bukkit.entity.LivingEntity,
             Vector3f(
                 player.xMovement(),
-                0.0F,
+                player.yMovement(),
                 player.zMovement()
             ),
             Vector3f(

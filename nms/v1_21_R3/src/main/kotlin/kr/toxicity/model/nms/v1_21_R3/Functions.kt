@@ -68,6 +68,8 @@ fun ServerPlayer.xMovement(): Float {
     return if (leftMovement == rightMovement) 0F else if (leftMovement) 1F else -1F
 }
 
+fun ServerPlayer.yMovement(): Float = if (isJump()) 1F else if (lastClientInput.shift) -1F else 0F
+
 fun ServerPlayer.zMovement(): Float {
     val forwardMovement: Boolean = lastClientInput.forward()
     val backwardMovement: Boolean = lastClientInput.backward()

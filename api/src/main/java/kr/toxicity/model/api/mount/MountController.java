@@ -16,4 +16,7 @@ public interface MountController {
     default boolean canJump() {
         return true;
     }
+    default boolean canFly() {
+        return false;
+    }
 }
