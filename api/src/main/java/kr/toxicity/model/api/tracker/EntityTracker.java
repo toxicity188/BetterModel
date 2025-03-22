@@ -104,16 +104,17 @@ public class EntityTracker extends Tracker {
                         ), 0);
                     }
                 });
+
         var damageTickProvider = FunctionUtil.throttleTick(adapter::damageTick);
-        instance.animateLoop("walk", new AnimationModifier(
-                () -> adapter.onWalk() || damageTickProvider.get() > 0.25 || instance.renderers().stream().anyMatch(e -> {
-                    var hitBox = e.getHitBox();
-                    return hitBox != null && hitBox.onWalk();
-                }),
-                4,
-                0,
-                modifier.damageEffect() ? () -> adapter.walkSpeed() + 4F * (float) Math.sqrt(damageTickProvider.get()) : () -> 1F
-        ));
+        var walkSupplier = FunctionUtil.throttleTick(() -> adapter.onWalk() || damageTickProvider.get() > 0.25 || instance.renderers().stream().anyMatch(e -> {
+            var hitBox = e.getHitBox();
+            return hitBox != null && hitBox.onWalk();
+        }));
+        var walkSpeedSupplier = FunctionUtil.throttleTick(modifier.damageEffect() ? () -> adapter.walkSpeed() + 4F * (float) Math.sqrt(damageTickProvider.get()) : () -> 1F);
+        instance.animateLoop("walk", new AnimationModifier(walkSupplier, 4, 0, walkSpeedSupplier));
+        instance.animateLoop("idle_fly", new AnimationModifier(adapter::fly, 4, 0, 1F));
+        instance.animateLoop("walk_fly", new AnimationModifier(() -> adapter.fly() && walkSupplier.get(), 4, 0, walkSpeedSupplier));
+
         Supplier<TrackerMovement> supplier = () -> new TrackerMovement(
                 new Vector3f(0, 0, 0F),
                 new Vector3f((float) adapter.scale()),

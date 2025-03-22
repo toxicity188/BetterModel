@@ -65,6 +65,11 @@ public interface EntityAdapter {
         }
 
         @Override
+        public boolean fly() {
+            return false;
+        }
+
+        @Override
         public @NotNull Vector3f passengerPosition() {
             return new Vector3f();
         }
@@ -140,6 +145,11 @@ public interface EntityAdapter {
             return delegate.walkSpeed();
         }
 
+        @Override
+        public boolean fly() {
+            return delegate.fly();
+        }
+
         @NotNull
         @Override
         public Vector3f passengerPosition() {
@@ -152,6 +162,7 @@ public interface EntityAdapter {
     boolean invisible();
     boolean glow();
     boolean onWalk();
+    boolean fly();
     double scale();
     float pitch();
     float bodyYaw();

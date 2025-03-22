@@ -50,6 +50,9 @@ class HitBoxImpl(
     private var jumpDelay = 0
     private var mounted = false
     private var collision = delegate.collides
+    private var noGravity = delegate.isNoGravity
+    private var forceDismount = false
+    private var onFly = false
 
     init {
         moveTo(delegate.position())
@@ -67,8 +70,9 @@ class HitBoxImpl(
         }
     }
 
-    override fun name(): String = name
+    override fun groupName(): String = name
     override fun source(): Entity = delegate.bukkitEntity
+    override fun forceDismount(): Boolean = forceDismount
     override fun mountController(): MountController = mountController
     override fun relativePosition(): Vector3f = position().run {
         Vector3f(x.toFloat(), y.toFloat(), z.toFloat())
@@ -82,13 +86,21 @@ class HitBoxImpl(
     }
     override fun getMainArm(): HumanoidArm = HumanoidArm.RIGHT
     
-    override fun addPassenger(entity: Entity) {
+    override fun mount(entity: Entity) {
         if (!mountController.canMount()) return
         if (controllingPassenger != null) return
-        mounted = true
-        collision = delegate.collides
-        delegate.collides = false
-        bukkitEntity.addPassenger(entity)
+        if (bukkitEntity.addPassenger(entity) && mountController.canControl()) {
+            mounted = true
+            collision = delegate.collides
+            noGravity = delegate.isNoGravity
+            delegate.collides = false
+        }
+    }
+
+    override fun dismount(entity: Entity) {
+        forceDismount = true
+        bukkitEntity.removePassenger(entity)
+        forceDismount = false
     }
 
     override fun setRemainingFireTicks(remainingFireTicks: Int) {
@@ -127,7 +139,7 @@ class HitBoxImpl(
     }
 
     override fun getControllingPassenger(): LivingEntity? {
-        return firstPassenger as? LivingEntity ?: super.getControllingPassenger()
+        return if (mounted) firstPassenger as? LivingEntity ?: super.getControllingPassenger() else null
     }
 
     override fun onWalk(): Boolean {
@@ -136,7 +148,13 @@ class HitBoxImpl(
 
     private fun mountControl(player: ServerPlayer, travelVector: Vec3) {
         if (!mountController.canFly() && delegate.isFallFlying) return
+        val fly = (player.isJump() && mountController.canFly()) || noGravity || onFly
+        if (delegate is Mob) delegate.isNoAi = fly
+        else delegate.isNoGravity = fly
+        onFly = fly && !delegate.onGround
+        if (onFly) delegate.resetFallDistance()
         val riddenInput = mountController.move(
+            if (onFly) MountController.MoveType.FLY else MountController.MoveType.DEFAULT,
             player.bukkitEntity,
             delegate.bukkitEntity as org.bukkit.entity.LivingEntity,
             Vector3f(
@@ -150,7 +168,7 @@ class HitBoxImpl(
                 travelVector.z.toFloat()
             )
         )
-        val f = if (delegate.onGround && !delegate.shouldDiscardFriction()) delegate.level
+        val f = if (!onFly && !delegate.shouldDiscardFriction()) delegate.level
             .getBlockState(blockPosBelowThatAffectsMyMovement)
             .block
             .getFriction() else 1.0f
@@ -160,10 +178,11 @@ class HitBoxImpl(
             .rotateY(-Math.toRadians(player.yRot.toDouble()).toFloat())
         if (movement.length() > 0.01) {
             delegate.yBodyRot = player.yRot
+            if (onFly) delegate.yHeadRot = player.yRot
             delegate.move(MoverType.SELF, Vec3(riddenInput.x.toDouble(), riddenInput.y.toDouble(), riddenInput.z.toDouble()))
         }
         val dy = delegate.deltaMovement.y + delegate.gravity
-        if (mountController.canJump() && (delegate.horizontalCollision || player.isJump()) && dy >= 0.0 && dy <= 0.01 && jumpDelay == 0) {
+        if (!onFly && mountController.canJump() && (delegate.horizontalCollision || player.isJump()) && dy >= 0.0 && dy <= 0.01 && jumpDelay == 0) {
             jumpDelay = 10
             delegate.jumpFromGround()
         }
@@ -208,16 +227,18 @@ class HitBoxImpl(
 
     override fun getBukkitLivingEntity(): CraftLivingEntity {
         val c = craftEntity
-        return c ?: CraftLivingEntity(Bukkit.getServer() as CraftServer, this).apply {
+        return c ?: object : CraftLivingEntity(Bukkit.getServer() as CraftServer, this), HitBox by this {}.apply {
             craftEntity = this
         }
     }
+    
     override fun getBukkitEntity(): CraftEntity {
         val c = craftEntity
-        return c ?: CraftLivingEntity(Bukkit.getServer() as CraftServer, this).apply {
+        return c ?: object : CraftLivingEntity(Bukkit.getServer() as CraftServer, this), HitBox by this {}.apply {
             craftEntity = this
         }
     }
+
 
     private val dimensions = EntityDimensions(
         max(source.x(), source.z()).toFloat(),
@@ -294,7 +315,7 @@ class HitBoxImpl(
 
     override fun getDimensions(pose: Pose): EntityDimensions = dimensions
 
-    override fun remove() {
+    override fun removeHitBox() {
         remove(RemovalReason.KILLED)
     }
     override fun id(): Int = id

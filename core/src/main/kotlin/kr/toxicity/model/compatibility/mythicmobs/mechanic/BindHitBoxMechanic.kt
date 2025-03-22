@@ -29,7 +29,7 @@ class BindHitBoxMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.ins
                 val spawned = e.spawn(p0.caster.location, p0.caster.level).entity.bukkitEntity
                 object : HitBoxListener {
                     override fun sync(hitBox: HitBox) {
-                        if (!spawned.isValid) hitBox.remove()
+                        if (!spawned.isValid) hitBox.removeHitBox()
                         else spawned.teleport(it.entity.location)
                     }
 

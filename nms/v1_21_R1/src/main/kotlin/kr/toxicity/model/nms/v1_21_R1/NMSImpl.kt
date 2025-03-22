@@ -504,7 +504,11 @@ class NMSImpl : NMS {
             }
 
             override fun yaw(): Float {
-                return handle.bukkitYaw
+                return handle.yHeadRot
+            }
+
+            override fun fly(): Boolean {
+                return handle.isFlying
             }
 
             override fun damageTick(): Float {

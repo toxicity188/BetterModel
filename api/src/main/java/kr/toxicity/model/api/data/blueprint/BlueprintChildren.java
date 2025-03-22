@@ -71,7 +71,7 @@ public sealed interface BlueprintChildren {
         ) {
             var list = new ArrayList<BlueprintElement>();
             for (BlueprintChildren child : children) {
-                if (child instanceof BlueprintElement element) {
+                if (child instanceof BlueprintElement element && MathUtil.checkValidDegree(element.identifierDegree())) {
                     list.add(element);
                 }
             }

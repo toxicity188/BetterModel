@@ -9,9 +9,11 @@ import net.minecraft.server.level.ServerPlayer
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityAttachment
+import net.minecraft.world.entity.FlyingMob
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.Mob
 import net.minecraft.world.entity.ai.attributes.Attributes
+import net.minecraft.world.entity.animal.FlyingAnimal
 import net.minecraft.world.phys.Vec3
 import org.bukkit.Bukkit
 import org.bukkit.event.Cancellable
@@ -98,3 +100,12 @@ fun LivingEntity.jumpFromGround() {
 }
 
 fun ServerPlayer.isJump() = jumping
+
+val Entity.isFlying: Boolean
+    get() = when (this) {
+        is FlyingAnimal -> isFlying
+        is FlyingMob -> true
+        is Mob -> isNoAi
+        is LivingEntity -> isFallFlying
+        else -> false
+    }

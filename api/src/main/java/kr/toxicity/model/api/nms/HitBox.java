@@ -6,13 +6,15 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 public interface HitBox {
-    @NotNull String name();
+    @NotNull String groupName();
     @NotNull MountController mountController();
     boolean onWalk();
     @NotNull Entity source();
-    void addPassenger(@NotNull Entity entity);
+    void mount(@NotNull Entity entity);
+    void dismount(@NotNull Entity entity);
+    boolean forceDismount();
     @NotNull Vector3f relativePosition();
-    void remove();
+    void removeHitBox();
     int id();
     @NotNull HitBoxListener listener();
 }

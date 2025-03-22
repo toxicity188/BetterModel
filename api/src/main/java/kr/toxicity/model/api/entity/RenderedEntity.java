@@ -104,14 +104,12 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
         if (h != null && predicate.test(this)) {
             var l = listener;
             if (hitBox != null) {
-                hitBox.remove();
+                hitBox.removeHitBox();
                 if (l == null) l = hitBox.listener();
             }
             hitBox = BetterModel.inst().nms().createHitBox(entity, this, h, group.getMountController(), l != null ? l : HitBoxListener.EMPTY);
         }
-        for (RenderedEntity value : children.values()) {
-            value.createHitBox(entity, predicate, listener);
-        }
+        forEachChildren(e -> e.createHitBox(entity, predicate, listener));
     }
 
     /**
@@ -127,9 +125,7 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
                 display.item(itemStack);
             }
         }
-        for (RenderedEntity value : children.values()) {
-            value.itemStack(predicate, itemStack);
-        }
+        forEachChildren(e -> e.itemStack(predicate, itemStack));
     }
 
     /**
@@ -159,7 +155,7 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
     @ApiStatus.Internal
     public void renderers(List<RenderedEntity> renderers) {
         renderers.add(this);
-        children.values().forEach(c -> c.renderers(renderers));
+        forEachChildren(e -> e.renderers(renderers));
     }
 
     private TreeIterator currentIterator = null;
@@ -221,9 +217,7 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
         var d = display;
         if (rotation != null) {
             this.rotation = rotation;
-            if (d != null) {
-                d.rotate(rotation, bundler);
-            }
+            if (d != null) d.rotate(rotation, bundler);
         }
         --delay;
         updateAnimation();
@@ -532,7 +526,7 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
 
     @Override
     public void close() throws Exception {
-        if (hitBox != null) hitBox.remove();
+        if (hitBox != null) hitBox.removeHitBox();
         for (RenderedEntity value : children.values()) {
             value.close();
         }
