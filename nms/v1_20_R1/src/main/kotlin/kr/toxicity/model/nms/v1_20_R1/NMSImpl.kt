@@ -303,7 +303,7 @@ class NMSImpl : NMS {
             location.yaw,
             0F
         )
-        valid = true
+        valid = false
         persist = false
         itemTransform = ItemDisplayContext.FIXED
         interpolationDuration = 1
@@ -331,10 +331,6 @@ class NMSImpl : NMS {
             isDead = entity.dead()
             display.setGlowingTag(entity.glow())
             if (BetterModel.inst().configManager().followMobInvisibility()) display.isInvisible = entity.invisible()
-        }
-
-        override fun close() {
-            display.valid = false
         }
 
         override fun display(transform: org.bukkit.entity.ItemDisplay.ItemDisplayTransform) {

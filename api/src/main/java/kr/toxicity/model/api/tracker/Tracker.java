@@ -62,7 +62,7 @@ public abstract class Tracker implements AutoCloseable {
     public Tracker(@NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
         this.instance = instance;
         this.modifier = modifier;
-        this.movement = FunctionUtil.memoizeTick(() -> new TrackerMovement(new Vector3f(), new Vector3f(modifier.scale()), new Vector3f()));
+        this.movement = FunctionUtil.throttleTick(() -> new TrackerMovement(new Vector3f(), new Vector3f(modifier.scale()), new Vector3f()));
         task = EXECUTOR.scheduleAtFixedRate(() -> {
             consumer.accept(this);
             var bundle = BetterModel.inst().nms().createBundler();
@@ -128,8 +128,7 @@ public abstract class Tracker implements AutoCloseable {
      * @param movement movement
      */
     public void setMovement(Supplier<TrackerMovement> movement) {
-        instance.lastMovement(movement.get());
-        this.movement = FunctionUtil.memoizeTick(movement);
+        this.movement = FunctionUtil.throttleTick(movement);
     }
 
     public @NotNull TrackerModifier modifier() {

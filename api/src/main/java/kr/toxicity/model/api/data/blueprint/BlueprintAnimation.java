@@ -101,7 +101,7 @@ public record BlueprintAnimation(
             @NotNull
             @Override
             public AnimationMovement first() {
-                return new AnimationMovement(1, null, null, null);
+                return emptyAnimator.getFirst();
             }
 
             private int index = 0;
@@ -119,11 +119,6 @@ public record BlueprintAnimation(
             @Override
             public int lastIndex() {
                 return emptyAnimator.size() - 1;
-            }
-
-            @Override
-            public int length() {
-                return Math.round(length * 100);
             }
 
             @Override
@@ -151,7 +146,7 @@ public record BlueprintAnimation(
             @NotNull
             @Override
             public AnimationMovement first() {
-                return new AnimationMovement(1, null, null, null);
+                return emptyAnimator.getFirst();
             }
 
             @Override
@@ -167,11 +162,6 @@ public record BlueprintAnimation(
             @Override
             public void clear() {
                 index = Integer.MAX_VALUE;
-            }
-
-            @Override
-            public int length() {
-                return Math.round(length * 100);
             }
 
             @Override

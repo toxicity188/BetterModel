@@ -47,6 +47,7 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
     private Map<String, RenderedEntity> children = Collections.emptyMap();
 
     private final SequencedMap<String, TreeIterator> animators = new LinkedHashMap<>();
+    private final Collection<TreeIterator> reversedView = animators.sequencedValues().reversed();
     private AnimationMovement keyFrame = null;
     private long delay = 0;
     private ItemStack itemStack;
@@ -162,9 +163,10 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
     }
 
     private TreeIterator currentIterator = null;
-    public void updateAnimation() {
+
+    private void updateAnimation() {
         synchronized (animators) {
-            var iterator = animators.reversed().values().iterator();
+            var iterator = reversedView.iterator();
             var check = true;
             while (iterator.hasNext()) {
                 var next = iterator.next();
@@ -197,9 +199,6 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
                 keyFrame = null;
             }
         }
-        for (RenderedEntity e : children.values()) {
-            e.updateAnimation();
-        }
     }
 
     private boolean updateKeyframe(Iterator<TreeIterator> iterator, TreeIterator next) {
@@ -208,22 +207,15 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
             iterator.remove();
             return false;
         } else {
+            relativeOffsetCache = null;
             keyFrame = next.next();
             return true;
         }
     }
 
-    private TrackerMovement lastMovement;
-    private EntityMovement beforeTransform, lastTransform;
+    private EntityMovement beforeTransform, afterTransform, relativeOffsetCache;
     private Vector3f defaultPosition = new Vector3f();
     private ModelRotation rotation = ModelRotation.EMPTY;
-
-    public void lastMovement(@NotNull TrackerMovement movement) {
-        lastMovement = movement;
-        for (RenderedEntity value : children.values()) {
-            value.lastMovement(movement);
-        }
-    }
 
     public void move(@Nullable ModelRotation rotation, @NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
         var d = display;
@@ -233,39 +225,33 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
                 d.rotate(rotation, bundler);
             }
         }
+        --delay;
+        updateAnimation();
         if (delay <= 0) {
             var f = frame();
             delay = f;
-            beforeTransform = lastTransform;
-            var entityMovement = (lastTransform = (lastMovement = movement.copy()).plus(relativeOffset())).plus(defaultPosition);
+            beforeTransform = afterTransform;
+            var entityMovement = (afterTransform = movement.plus(relativeOffset())).plus(defaultPosition);
             if (d != null) {
                 d.frame(f <= 0 ? 0 : toInterpolationDuration(f));
                 setup(entityMovement);
                 d.send(bundler);
             }
         }
-        --delay;
-        for (RenderedEntity e : children.values()) {
-            e.move(rotation, movement, bundler);
-        }
+        forEachChildren(e -> e.move(rotation, movement, bundler));
     }
     
     public void forceUpdate(@NotNull PacketBundler bundler) {
         forceUpdate0(bundler);
-        for (RenderedEntity value : children.values()) {
-            value.forceUpdate(bundler);
-        }
+        forEachChildren(e -> e.forceUpdate(bundler));
     }
 
     private void forceUpdate0(@NotNull PacketBundler bundler) {
         var d = display;
-        var speed = currentIterator != null ? currentIterator.modifier.speedValue() : 1F;
-        delay = Math.round(speed * (double) delay);
-        if (d != null && lastMovement != null && delay > 0) {
-            beforeTransform = lastTransform;
-            var entityMovement = (lastTransform = lastMovement.copy().plus(relativeOffset())).plus(defaultPosition);
+        if (d != null && delay > 0) {
+            var speed = currentIterator != null ? currentIterator.deltaSpeed() : 1F;
+            delay = Math.round((float) delay / speed);
             d.frame(toInterpolationDuration(delay));
-            setup(entityMovement);
             d.send(bundler);
         }
     }
@@ -274,18 +260,19 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
         return Math.round((float) delay / 5F) + 1;
     }
 
-    public @NotNull Vector3f lastTransform() {
-        return lastTransform(new Vector3f());
+    public @NotNull Vector3f worldPosition() {
+        return worldPosition(new Vector3f());
     }
-    public @NotNull Vector3f lastTransform(@NotNull Vector3f offset) {
-        if (lastTransform != null) {
-            var progress = 1 - progress();
+
+    public @NotNull Vector3f worldPosition(@NotNull Vector3f offset) {
+        if (afterTransform != null) {
+            var progress = 1F - progress();
             var before = beforeTransform != null ? beforeTransform : EntityMovement.EMPTY;
-            var vec = VectorUtil.linear(before.transform(), lastTransform.transform(), progress)
+            var vec = VectorUtil.linear(before.transform(), afterTransform.transform(), progress)
                     .add(offset)
-                    .mul(VectorUtil.linear(before.scale(), lastTransform.scale(), progress))
+                    .mul(VectorUtil.linear(before.scale(), afterTransform.scale(), progress))
                     .rotate(
-                            MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(VectorUtil.linear(before.rawRotation(), lastTransform.rawRotation(), progress)))
+                            MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(VectorUtil.linear(before.rawRotation(), afterTransform.rawRotation(), progress)))
                     )
                     .add(defaultPosition)
                     .rotateY((float) -Math.toRadians(rotation.y()));
@@ -296,10 +283,9 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
 
     public void setup(@NotNull TrackerMovement movement) {
         setup(movement.plus(relativeOffset().plus(defaultPosition)));
-        for (RenderedEntity value : children.values()) {
-            value.setup(movement);
-        }
+        forEachChildren(e -> e.setup(movement));
     }
+
     private void setup(@NotNull EntityMovement entityMovement) {
         if (display != null) {
             var limb = group.getLimb();
@@ -314,9 +300,7 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
 
     public void defaultPosition(@NotNull Vector3f movement) {
         defaultPosition = group.getLimb() != null ? new Vector3f(movement).add(group.getLimb().getPosition()) : movement;
-        for (RenderedEntity value : children.values()) {
-            value.defaultPosition(movement);
-        }
+        forEachChildren(e -> e.defaultPosition(movement));
     }
 
     private int frame() {
@@ -338,25 +322,24 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
     }
 
     private EntityMovement relativeOffset() {
+        if (relativeOffsetCache != null) return relativeOffsetCache;
         var def = defaultFrame();
         if (parent != null) {
             var p = parent.relativeOffset();
-            return new EntityMovement(
+            return relativeOffsetCache = new EntityMovement(
                     new Vector3f(p.transform()).add(new Vector3f(def.transform()).mul(p.scale()).rotate(p.rotation())),
                     new Vector3f(def.scale()).mul(p.scale()),
                     new Quaternionf(p.rotation()).mul(def.rotation()),
                     def.rawRotation()
             );
         }
-        return def;
+        return relativeOffsetCache = def;
     }
 
     public void tint(int toggle, @NotNull PacketBundler bundler) {
         tint = toggle;
         if (applyItem()) forceUpdate0(bundler);
-        for (RenderedEntity value : children.values()) {
-            value.tint(toggle, bundler);
-        }
+        forEachChildren(e -> e.tint(toggle, bundler));
     }
 
     private boolean applyItem() {
@@ -372,16 +355,12 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
 
     public void teleport(@NotNull Location location, @NotNull PacketBundler bundler) {
         if (display != null) display.teleport(location, bundler);
-        children.values().forEach(e -> e.teleport(location, bundler));
+        forEachChildren(e -> e.teleport(location, bundler));
     }
 
     public void spawn(@NotNull PacketBundler bundler) {
         if (display != null) display.spawn(bundler);
-        children.values().forEach(e -> e.spawn(bundler));
-    }
-
-    private void applyAnimation() {
-        if (lastTransform != null) setup(lastTransform);
+        forEachChildren(e -> e.spawn(bundler));
     }
 
     public void addLoop(@NotNull Predicate<RenderedEntity> filter, @NotNull String parent, @NotNull BlueprintAnimation animator, AnimationModifier modifier, Runnable removeTask) {
@@ -391,9 +370,8 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
             synchronized (animators) {
                 animators.putLast(parent, iterator);
             }
-            applyAnimation();
         }
-        children.values().forEach(c -> c.addLoop(filter, parent, animator, modifier, () -> {}));
+        forEachChildren(e -> e.addLoop(filter, parent, animator, modifier, () -> {}));
     }
     public void addSingle(@NotNull Predicate<RenderedEntity> filter, @NotNull String parent, @NotNull BlueprintAnimation animator, AnimationModifier modifier, Runnable removeTask) {
         if (filter.test(this)) {
@@ -402,9 +380,8 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
             synchronized (animators) {
                 animators.putLast(parent, iterator);
             }
-            applyAnimation();
         }
-        children.values().forEach(c -> c.addSingle(filter, parent, animator, modifier, () -> {}));
+        forEachChildren(e -> e.addSingle(filter, parent, animator, modifier, () -> {}));
     }
 
     public void replaceLoop(@NotNull Predicate<RenderedEntity> filter, @NotNull String target, @NotNull String parent, @NotNull BlueprintAnimation animator) {
@@ -417,9 +394,8 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
                 }) : new TreeIterator(parent, animator.emptyLoopIterator(), AnimationModifier.DEFAULT_LOOP, () -> {
                 }));
             }
-            applyAnimation();
         }
-        children.values().forEach(c -> c.replaceLoop(filter, target, parent, animator));
+        forEachChildren(e -> e.replaceLoop(filter, target, parent, animator));
     }
     public void replaceSingle(@NotNull Predicate<RenderedEntity> filter, @NotNull String target, @NotNull String parent, @NotNull BlueprintAnimation animator) {
         if (filter.test(this)) {
@@ -431,9 +407,8 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
                 }) : new TreeIterator(parent, animator.emptySingleIterator(), AnimationModifier.DEFAULT, () -> {
                 }));
             }
-            applyAnimation();
         }
-        children.values().forEach(c -> c.replaceSingle(filter, target, parent, animator));
+        forEachChildren(e -> e.replaceSingle(filter, target, parent, animator));
     }
 
     public void stopAnimation(@NotNull Predicate<RenderedEntity> filter, @NotNull String parent) {
@@ -442,12 +417,12 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
                 animators.remove(parent);
             }
         }
-        children.values().forEach(c -> c.stopAnimation(filter, parent));
+        forEachChildren(e -> e.stopAnimation(filter, parent));
     }
 
     public void remove(@NotNull PacketBundler bundler) {
         if (display != null) display.remove(bundler);
-        children.values().forEach(e -> e.remove(bundler));
+        forEachChildren(e -> e.remove(bundler));
     }
 
     public void togglePart(@NotNull PacketBundler bundler, @NotNull Predicate<RenderedEntity> predicate, boolean toggle) {
@@ -455,9 +430,11 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
             visible = toggle;
             if (applyItem()) forceUpdate0(bundler);
         }
-        for (RenderedEntity value : children.values()) {
-            value.togglePart(bundler, predicate, toggle);
-        }
+        forEachChildren(e -> e.togglePart(bundler, predicate, toggle));
+    }
+
+    private void forEachChildren(@NotNull Consumer<RenderedEntity> consumer) {
+        children.values().forEach(consumer);
     }
 
     @RequiredArgsConstructor
@@ -468,6 +445,8 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
         private final Runnable removeTask;
         private boolean started = false;
         private boolean ended = false;
+
+        private float cachedSpeed = 1F;
 
         @NotNull
         @Override
@@ -500,6 +479,10 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
             return iterator.hasNext() || (modifier.end() > 0 && !ended);
         }
 
+        public float deltaSpeed() {
+            return modifier.speedValue() / cachedSpeed;
+        }
+
         @Override
         public AnimationMovement next() {
             if (!started) {
@@ -511,7 +494,7 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
                 return new AnimationMovement((float) modifier.end() / 20, null, null, null);
             }
             var nxt = iterator.next();
-            nxt = nxt.time(Math.max(nxt.time() / modifier.speedValue(), 0.01F));
+            nxt = nxt.time(Math.max(nxt.time() / (cachedSpeed = modifier.speedValue()), 0.01F));
             return nxt;
         }
 
@@ -519,11 +502,6 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
         public void clear() {
             iterator.clear();
             started = ended = !iterator.hasNext();
-        }
-
-        @Override
-        public int length() {
-            return iterator.length();
         }
 
         @Override
@@ -543,7 +521,7 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
     @Override
     public Vector3f hitBoxPosition() {
         var hitBox = group.getHitBox();
-        return lastTransform(hitBox != null ? hitBox.centerVector() : new Vector3f());
+        return worldPosition(hitBox != null ? hitBox.centerVector() : new Vector3f());
     }
 
     @NotNull
@@ -555,7 +533,6 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
     @Override
     public void close() throws Exception {
         if (hitBox != null) hitBox.remove();
-        if (display != null) display.close();
         for (RenderedEntity value : children.values()) {
             value.close();
         }

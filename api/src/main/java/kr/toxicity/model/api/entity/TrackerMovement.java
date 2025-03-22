@@ -31,16 +31,4 @@ public record TrackerMovement(
                 new Vector3f(movement.rawRotation())
         );
     }
-
-    /**
-     * Copy this movement.
-     * @return new movement
-     */
-    public @NotNull TrackerMovement copy() {
-        return new TrackerMovement(
-                new Vector3f(transform),
-                new Vector3f(scale),
-                new Vector3f(rotation)
-        );
-    }
 }

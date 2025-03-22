@@ -26,7 +26,7 @@ public record AnimationModifier(@NotNull Supplier<Boolean> predicate, int start,
     public record SpeedModifier(@NotNull Supplier<Float> supplier) {
 
         public SpeedModifier(@NotNull Supplier<Float> supplier) {
-            this.supplier = FunctionUtil.memoizeTick(supplier);
+            this.supplier = FunctionUtil.throttleTick(supplier);
         }
 
         public SpeedModifier(float speed) {
@@ -72,7 +72,7 @@ public record AnimationModifier(@NotNull Supplier<Boolean> predicate, int start,
      * @param speed     speed
      */
     public AnimationModifier(@NotNull Supplier<Boolean> predicate, int start, int end, @NotNull SpeedModifier speed) {
-        this.predicate = FunctionUtil.memoizeTick(predicate);
+        this.predicate = FunctionUtil.throttleTick(predicate);
         this.start = start;
         this.end = end;
         this.speed = speed;

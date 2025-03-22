@@ -7,7 +7,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Transformation;
 import org.jetbrains.annotations.NotNull;
 
-public interface ModelDisplay extends AutoCloseable {
+public interface ModelDisplay {
     void rotate(@NotNull ModelRotation rotation, @NotNull PacketBundler bundler);
     void sync(@NotNull EntityAdapter entity);
     void frame(int frame);

@@ -104,7 +104,7 @@ public class EntityTracker extends Tracker {
                         ), 0);
                     }
                 });
-        var damageTickProvider = FunctionUtil.memoizeTick(adapter::damageTick);
+        var damageTickProvider = FunctionUtil.throttleTick(adapter::damageTick);
         instance.animateLoop("walk", new AnimationModifier(
                 () -> adapter.onWalk() || damageTickProvider.get() > 0.25 || instance.renderers().stream().anyMatch(e -> {
                     var hitBox = e.getHitBox();

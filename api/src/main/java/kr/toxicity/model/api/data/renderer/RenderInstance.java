@@ -59,7 +59,7 @@ public final class RenderInstance implements AutoCloseable {
     }
 
     public void filter(@NotNull Predicate<Player> filter) {
-        this.filter = this.filter.and(FunctionUtil.memoizeTick(filter));
+        this.filter = this.filter.and(FunctionUtil.throttleTick(filter));
     }
 
     public @NotNull Predicate<Player> spawnFilter() {
@@ -93,16 +93,7 @@ public final class RenderInstance implements AutoCloseable {
 
     public void move(@Nullable ModelRotation rotation, @NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
         var rot = rotation == null || rotation.equals(this.rotation) ? null : (this.rotation = rotation);
-        entityMap.values().forEach(e -> {
-            e.updateAnimation();
-            e.move(rot, movement, bundler);
-        });
-    }
-
-    public void lastMovement(@NotNull TrackerMovement movement) {
-        for (RenderedEntity value : entityMap.values()) {
-            value.lastMovement(movement);
-        }
+        entityMap.values().forEach(e -> e.move(rot, movement, bundler));
     }
 
     public void defaultPosition(@NotNull Vector3f movement) {
@@ -149,7 +140,7 @@ public final class RenderInstance implements AutoCloseable {
     public double height() {
         var h = 0D;
         for (RenderedEntity renderer : renderers()) {
-            var lt = renderer.lastTransform().y;
+            var lt = renderer.worldPosition().y;
             if (renderer.getName().startsWith("h_")) return lt;
             if (h < lt) h = lt;
         }
@@ -183,7 +174,7 @@ public final class RenderInstance implements AutoCloseable {
         if (get == null) return false;
         scriptProcessor.animateLoop(get.script(), modifier);
         for (RenderedEntity value : entityMap.values()) {
-            value.addLoop(filter, animation, get, modifier, removeTask);
+            value.addLoop(filter, animation, get, modifier, FunctionUtil.throttleTick(removeTask));
         }
         return true;
     }
@@ -193,7 +184,7 @@ public final class RenderInstance implements AutoCloseable {
         if (get == null) return false;
         scriptProcessor.animateSingle(get.script(), modifier);
         for (RenderedEntity value : entityMap.values()) {
-            value.addSingle(filter, animation, get, modifier, removeTask);
+            value.addSingle(filter, animation, get, modifier, FunctionUtil.throttleTick(removeTask));
         }
         return true;
     }

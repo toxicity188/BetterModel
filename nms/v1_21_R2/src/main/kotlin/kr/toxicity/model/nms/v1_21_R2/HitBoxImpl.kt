@@ -190,11 +190,13 @@ class HitBoxImpl(
         yHeadRot = yRot
         yBodyRot = yRot
         val transform = supplier.hitBoxPosition()
-        setPos(delegate.position().add(
-            transform.x.toDouble(),
-            transform.y.toDouble() + delegate.passengerPosition(adapter.scale()).y + source.maxY - boxHeight,
-            transform.z.toDouble()
-        ))
+        val pos = delegate.position()
+        setPosRaw(
+            pos.x + transform.x,
+            pos.y + transform.y + delegate.passengerPosition(adapter.scale()).y + source.maxY - boxHeight,
+            pos.z + transform.z,
+            true
+        )
         BlockPos.betweenClosedStream(boundingBox).forEach {
             level().getBlockState(it).entityInside(level(), it, delegate)
         }

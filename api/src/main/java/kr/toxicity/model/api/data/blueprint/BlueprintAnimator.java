@@ -141,7 +141,6 @@ public record BlueprintAnimator(@NotNull String name, float length, @NotNull @Un
     public interface AnimatorIterator extends Iterator<AnimationMovement> {
         @NotNull AnimationMovement first();
         void clear();
-        int length();
         int index();
         int lastIndex();
     }
@@ -165,11 +164,6 @@ public record BlueprintAnimator(@NotNull String name, float length, @NotNull @Un
         @Override
         public int lastIndex() {
             return keyFrame.size() - 1;
-        }
-
-        @Override
-        public int length() {
-            return Math.round(length * 100);
         }
 
         @Override
@@ -205,11 +199,6 @@ public record BlueprintAnimator(@NotNull String name, float length, @NotNull @Un
         @Override
         public int lastIndex() {
             return keyFrame.size() - 1;
-        }
-
-        @Override
-        public int length() {
-            return Math.round(length * 100);
         }
 
         @Override
