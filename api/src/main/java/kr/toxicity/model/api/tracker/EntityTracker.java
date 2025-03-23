@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -39,7 +41,8 @@ public class EntityTracker extends Tracker {
     private final AtomicBoolean forRemoval = new AtomicBoolean();
     private final AtomicBoolean autoSpawn = new AtomicBoolean(true);
 
-    private long damageTint = -1;
+    private final AtomicInteger damageTintValue = new AtomicInteger(0xFF7979);
+    private final AtomicLong damageTint = new AtomicLong(-1);
 
     public @NotNull UUID world() {
         return entity.getWorld().getUID();
@@ -136,7 +139,7 @@ public class EntityTracker extends Tracker {
             BetterModel.inst().scheduler().task(entity.getLocation(), () -> script.accept(entity));
         });
         frame(t -> {
-            if (damageTint >= 0 && damageTint-- == 0) tint(0xFFFFFF);
+            if (damageTint.getAndDecrement() == 0) tint(0xFFFFFF);
         });
     }
 
@@ -157,10 +160,18 @@ public class EntityTracker extends Tracker {
         instance.createHitBox(adapter, predicate, listener);
     }
 
-    public synchronized void damageTint() {
+    public int damageTintValue() {
+        return damageTintValue.get();
+    }
+
+    public void damageTintValue(int tint) {
+        damageTintValue.set(tint);
+    }
+
+    public void damageTint() {
         if (!modifier().damageEffect()) return;
-        if (damageTint < 0) tint(0xFF7979);
-        damageTint = 50;
+        var get = damageTint.get();
+        if (get <= 0 && damageTint.compareAndSet(get, 50)) tint(damageTintValue.get());
     }
 
     public void forRemoval(boolean removal) {
@@ -193,6 +204,7 @@ public class EntityTracker extends Tracker {
     public boolean autoSpawn() {
         return autoSpawn.get();
     }
+
     public void autoSpawn(boolean spawn) {
         autoSpawn.set(spawn);
     }

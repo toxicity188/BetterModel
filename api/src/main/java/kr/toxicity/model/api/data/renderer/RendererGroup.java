@@ -84,7 +84,7 @@ public final class RendererGroup {
         rotation = group.rotation().toVector();
         center = hitBox != null ? hitBox.centerVector() : new Vector3f();
         if (name.startsWith("p_")) {
-            mountController = MountControllers.DEFAULT;
+            mountController = MountControllers.FLY;
         } else if (name.startsWith("sp_")) {
             mountController = MountControllers.NONE;
         } else mountController = MountControllers.INVALID;

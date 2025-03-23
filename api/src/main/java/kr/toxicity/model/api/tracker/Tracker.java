@@ -13,6 +13,7 @@ import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
@@ -190,7 +191,16 @@ public abstract class Tracker implements AutoCloseable {
      * @param rgb toggle
      */
     public void tint(int rgb) {
-        instance.tint(rgb);
+        instance.tint(e -> true, rgb);
+    }
+
+    /**
+     * Toggles red tint of model.
+     * @param predicate predicate
+     * @param rgb toggle
+     */
+    public void tint(@NotNull Predicate<RenderedEntity> predicate, int rgb) {
+        instance.tint(predicate, rgb);
     }
 
     /**
@@ -273,6 +283,9 @@ public abstract class Tracker implements AutoCloseable {
 
     public void togglePart(@NotNull Predicate<RenderedEntity> predicate, boolean toggle) {
         instance.togglePart(predicate, toggle);
+    }
+    public void itemStack(@NotNull Predicate<RenderedEntity> predicate, @NotNull ItemStack itemStack) {
+        instance.itemStack(predicate, itemStack);
     }
 
     public @Nullable RenderedEntity entity(@NotNull String name) {

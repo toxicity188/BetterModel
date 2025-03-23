@@ -46,6 +46,7 @@ class MythicMobsCompatibility : Compatibility {
                     "bindhitbox" -> e.register(BindHitBoxMechanic(e.config))
                     "changepart" -> e.register(ChangePartMechanic(e.config))
                     "vfx" -> e.register(VFXMechanic(e.config))
+                    "tint" -> e.register(TintMechanic(e.config))
                 }
             }
             @EventHandler

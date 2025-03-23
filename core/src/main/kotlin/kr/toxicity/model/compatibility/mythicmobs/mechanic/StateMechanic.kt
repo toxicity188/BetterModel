@@ -9,7 +9,7 @@ import io.lumine.mythic.core.skills.SkillMechanic
 import kr.toxicity.model.api.data.renderer.AnimationModifier
 import kr.toxicity.model.api.tracker.EntityTracker
 
-class StateMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "[BetterModel]", mlc), INoTargetSkill {
+class StateMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), INoTargetSkill {
 
     private val s = mlc.getString(arrayOf("state", "s"))!!
     private val li = mlc.getInteger(arrayOf("li"), 0)

@@ -42,7 +42,7 @@ class HitBoxImpl(
     private val supplier: HitBoxSource,
     private val listener: HitBoxListener,
     private val delegate: LivingEntity,
-    private val mountController: MountController,
+    private var mountController: MountController,
     private val adapter: EntityAdapter
 ) : LivingEntity(EntityType.SLIME, delegate.level), HitBox {
 
@@ -50,7 +50,7 @@ class HitBoxImpl(
     private var jumpDelay = 0
     private var mounted = false
     private var collision = delegate.collides
-    private var noGravity = delegate.isNoGravity
+    private var noGravity = if (delegate is Mob) delegate.isNoAi else delegate.isNoGravity
     private var forceDismount = false
     private var onFly = false
 
@@ -74,6 +74,9 @@ class HitBoxImpl(
     override fun source(): Entity = delegate.bukkitEntity
     override fun forceDismount(): Boolean = forceDismount
     override fun mountController(): MountController = mountController
+    override fun mountController(controller: MountController) {
+        this.mountController = controller
+    }
     override fun relativePosition(): Vector3f = position().run {
         Vector3f(x.toFloat(), y.toFloat(), z.toFloat())
     }
@@ -88,7 +91,7 @@ class HitBoxImpl(
     
     override fun mount(entity: Entity) {
         if (!mountController.canMount()) return
-        if (controllingPassenger != null) return
+        if (firstPassenger != null) return
         if (bukkitEntity.addPassenger(entity) && mountController.canControl()) {
             mounted = true
             collision = delegate.collides
@@ -318,5 +321,4 @@ class HitBoxImpl(
     override fun removeHitBox() {
         remove(RemovalReason.KILLED)
     }
-    override fun id(): Int = id
 }

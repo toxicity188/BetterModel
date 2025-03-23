@@ -10,7 +10,7 @@ import kr.toxicity.model.api.data.renderer.AnimationModifier
 import kr.toxicity.model.api.tracker.TrackerModifier
 import kr.toxicity.model.manager.ModelManagerImpl
 
-class VFXMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "[BetterModel]", mlc), INoTargetSkill {
+class VFXMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), INoTargetSkill {
 
     private val mid = mlc.getString(arrayOf("mid", "m", "model"))!!
     private val state = mlc.getString(arrayOf("state", "s"))!!

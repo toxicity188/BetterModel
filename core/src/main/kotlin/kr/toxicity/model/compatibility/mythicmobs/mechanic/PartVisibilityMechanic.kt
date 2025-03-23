@@ -8,9 +8,9 @@ import io.lumine.mythic.bukkit.MythicBukkit
 import io.lumine.mythic.core.skills.SkillMechanic
 import kr.toxicity.model.api.tracker.EntityTracker
 
-class PartVisibilityMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "[BetterModel]", mlc), INoTargetSkill {
+class PartVisibilityMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), INoTargetSkill {
 
-    private val p = mlc.getString(arrayOf("part", "p"))!!
+    private val p = mlc.getString(arrayOf("partid", "p", "pid", "part"))!!
     private val v = mlc.getBoolean(arrayOf("value", "v"), true)
 
     init {

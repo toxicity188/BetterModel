@@ -10,7 +10,7 @@ import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.tracker.TrackerModifier
 import kr.toxicity.model.manager.ModelManagerImpl
 
-class ModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "[BetterModel]", mlc), INoTargetSkill {
+class ModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), INoTargetSkill {
 
     private val mid = mlc.getString(arrayOf("mid", "m", "model"))!!
     private val s = mlc.getFloat(arrayOf("scale", "s"), 1F)

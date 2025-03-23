@@ -34,6 +34,8 @@ import java.util.function.Supplier;
  */
 public final class RenderedEntity implements HitBoxSource, AutoCloseable {
 
+    private static final ItemStack AIR = new ItemStack(Material.AIR);
+
     @Getter
     private final RendererGroup group;
     @Getter
@@ -50,13 +52,12 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
     private final Collection<TreeIterator> reversedView = animators.sequencedValues().reversed();
     private AnimationMovement keyFrame = null;
     private long delay = 0;
-    private ItemStack itemStack;
+    private ItemStack itemStack, cachedStack;
 
     private final List<Consumer<AnimationMovement>> movementModifier = new ArrayList<>();
     @Getter
     private HitBox hitBox;
 
-    private boolean visible;
     private int tint;
 
     /**
@@ -78,14 +79,14 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
     ) {
         this.group = group;
         this.parent = parent;
-        this.itemStack = itemStack;
+        var visible = group.getLimb() != null || group.getParent().visibility();
+        this.itemStack = cachedStack = visible ? itemStack : AIR;
         if (itemStack != null) {
             display = BetterModel.inst().nms().create(firstLocation);
             display.display(transform);
-            if (group.getParent().visibility()) display.item(itemStack);
+            if (visible) display.item(itemStack);
         }
         defaultFrame = movement;
-        visible = group.getLimb() != null || group.getParent().visibility();
     }
 
     public @NotNull ItemStack itemStack() {
@@ -120,10 +121,8 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
     @ApiStatus.Internal
     public void itemStack(@NotNull Predicate<RenderedEntity> predicate, @NotNull ItemStack itemStack) {
         if (predicate.test(this)) {
-            this.itemStack = itemStack;
-            if (display != null) {
-                display.item(itemStack);
-            }
+            this.itemStack = cachedStack = itemStack;
+            applyItem();
         }
         forEachChildren(e -> e.itemStack(predicate, itemStack));
     }
@@ -330,15 +329,17 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
         return relativeOffsetCache = def;
     }
 
-    public void tint(int toggle, @NotNull PacketBundler bundler) {
-        tint = toggle;
-        if (applyItem()) forceUpdate0(bundler);
-        forEachChildren(e -> e.tint(toggle, bundler));
+    public void tint(@NotNull Predicate<RenderedEntity> predicate, int tint, @NotNull PacketBundler bundler) {
+        if (predicate.test(this)) {
+            this.tint = tint;
+            if (applyItem()) forceUpdate0(bundler);
+        }
+        forEachChildren(e -> e.tint(predicate, tint, bundler));
     }
 
     private boolean applyItem() {
         if (display != null) {
-            display.item(visible ? BetterModel.inst().nms().tint(itemStack.clone(), tint) : new ItemStack(Material.AIR));
+            display.item(BetterModel.inst().nms().tint(itemStack.clone(), tint));
             return true;
         } else return false;
     }
@@ -421,7 +422,7 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
 
     public void togglePart(@NotNull PacketBundler bundler, @NotNull Predicate<RenderedEntity> predicate, boolean toggle) {
         if (predicate.test(this)) {
-            visible = toggle;
+            itemStack = toggle ? cachedStack : AIR;
             if (applyItem()) forceUpdate0(bundler);
         }
         forEachChildren(e -> e.togglePart(bundler, predicate, toggle));

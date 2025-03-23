@@ -8,6 +8,7 @@ import org.joml.Vector3f;
 public interface HitBox {
     @NotNull String groupName();
     @NotNull MountController mountController();
+    void mountController(@NotNull MountController controller);
     boolean onWalk();
     @NotNull Entity source();
     void mount(@NotNull Entity entity);
@@ -15,6 +16,5 @@ public interface HitBox {
     boolean forceDismount();
     @NotNull Vector3f relativePosition();
     void removeHitBox();
-    int id();
     @NotNull HitBoxListener listener();
 }
