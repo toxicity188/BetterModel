@@ -12,16 +12,19 @@ import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.script.ScriptProcessor;
 import kr.toxicity.model.api.tracker.ModelRotation;
 import kr.toxicity.model.api.util.FunctionUtil;
+import kr.toxicity.model.api.util.ScaledItemStack;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -106,9 +109,15 @@ public final class RenderInstance implements AutoCloseable {
         }
     }
 
-    public void itemStack(@NotNull Predicate<RenderedEntity> predicate, @NotNull ItemStack itemStack) {
+    public void itemStack(@NotNull Predicate<RenderedEntity> predicate, @NotNull ScaledItemStack itemStack) {
         for (RenderedEntity value : entityMap.values()) {
             value.itemStack(predicate, itemStack);
+        }
+    }
+
+    public void brightness(@NotNull Predicate<RenderedEntity> predicate, int block, int sky) {
+        for (RenderedEntity value : entityMap.values()) {
+            value.brightness(predicate, block, sky);
         }
     }
 

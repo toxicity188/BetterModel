@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.player;
 
+import kr.toxicity.model.api.util.ScaledItemStack;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Material;
@@ -33,15 +34,15 @@ public enum PlayerLimb {
     LEFT_ITEM(new Vector3f(), new Vector3f(1), new Vector3f(1), new Vector3f(), ItemDisplay.ItemDisplayTransform.THIRDPERSON_LEFTHAND) {
         @NotNull
         @Override
-        public ItemStack createItem(@NotNull Player player) {
-            return player.getInventory().getItemInOffHand();
+        public ScaledItemStack createItem(@NotNull Player player) {
+            return ScaledItemStack.of(player.getInventory().getItemInOffHand());
         }
     },
     RIGHT_ITEM(new Vector3f(), new Vector3f(1), new Vector3f(1), new Vector3f(), ItemDisplay.ItemDisplayTransform.THIRDPERSON_RIGHTHAND) {
         @NotNull
         @Override
-        public ItemStack createItem(@NotNull Player player) {
-            return player.getInventory().getItemInMainHand();
+        public ScaledItemStack createItem(@NotNull Player player) {
+            return ScaledItemStack.of(player.getInventory().getItemInMainHand());
         }
     },
     ;
@@ -51,11 +52,11 @@ public enum PlayerLimb {
     private final @NotNull Vector3f offset;
     private final @NotNull ItemDisplay.ItemDisplayTransform transform;
 
-    public @NotNull ItemStack createItem(@NotNull Player player) {
+    public @NotNull ScaledItemStack createItem(@NotNull Player player) {
         var item = new ItemStack(Material.PLAYER_HEAD);
         var meta = (SkullMeta) item.getItemMeta();
         meta.setOwningPlayer(player);
         item.setItemMeta(meta);
-        return item;
+        return ScaledItemStack.of(scale, item);
     }
 }

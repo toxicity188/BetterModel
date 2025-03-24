@@ -9,13 +9,12 @@ import kr.toxicity.model.api.data.renderer.RendererGroup;
 import kr.toxicity.model.api.nms.*;
 import kr.toxicity.model.api.tracker.ModelRotation;
 import kr.toxicity.model.api.util.MathUtil;
+import kr.toxicity.model.api.util.ScaledItemStack;
 import kr.toxicity.model.api.util.VectorUtil;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.entity.ItemDisplay;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Transformation;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -34,8 +33,6 @@ import java.util.function.Supplier;
  */
 public final class RenderedEntity implements HitBoxSource, AutoCloseable {
 
-    private static final ItemStack AIR = new ItemStack(Material.AIR);
-
     @Getter
     private final RendererGroup group;
     @Getter
@@ -52,7 +49,7 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
     private final Collection<TreeIterator> reversedView = animators.sequencedValues().reversed();
     private AnimationMovement keyFrame = null;
     private long delay = 0;
-    private ItemStack itemStack, cachedStack;
+    private ScaledItemStack itemStack, cachedStack;
 
     private final List<Consumer<AnimationMovement>> movementModifier = new ArrayList<>();
     @Getter
@@ -72,7 +69,7 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
     public RenderedEntity(
             @NotNull RendererGroup group,
             @Nullable RenderedEntity parent,
-            @Nullable ItemStack itemStack,
+            @Nullable ScaledItemStack itemStack,
             @NotNull ItemDisplay.ItemDisplayTransform transform,
             @NotNull Location firstLocation,
             @NotNull EntityMovement movement
@@ -80,17 +77,13 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
         this.group = group;
         this.parent = parent;
         var visible = group.getLimb() != null || group.getParent().visibility();
-        this.itemStack = cachedStack = visible ? itemStack : AIR;
+        this.itemStack = cachedStack = visible ? itemStack : ScaledItemStack.EMPTY;
         if (itemStack != null) {
             display = BetterModel.inst().nms().create(firstLocation);
             display.display(transform);
-            if (visible) display.item(itemStack);
+            if (visible) display.item(itemStack.itemStack());
         }
         defaultFrame = movement;
-    }
-
-    public @NotNull ItemStack itemStack() {
-        return group.getItemStack();
     }
 
     /**
@@ -119,12 +112,19 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
      * @param itemStack target item
      */
     @ApiStatus.Internal
-    public void itemStack(@NotNull Predicate<RenderedEntity> predicate, @NotNull ItemStack itemStack) {
+    public void itemStack(@NotNull Predicate<RenderedEntity> predicate, @NotNull ScaledItemStack itemStack) {
         if (predicate.test(this)) {
             this.itemStack = cachedStack = itemStack;
             applyItem();
         }
         forEachChildren(e -> e.itemStack(predicate, itemStack));
+    }
+
+    public void brightness(@NotNull Predicate<RenderedEntity> predicate, int block, int sky) {
+        if (predicate.test(this) && display != null) {
+            display.brightness(block, sky);
+        }
+        forEachChildren(e -> e.brightness(predicate, block, sky));
     }
 
     /**
@@ -280,7 +280,7 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
             display.transform(new Transformation(
                     limb != null ? new Vector3f(entityMovement.transform()).add(new Vector3f(limb.getOffset()).rotate(entityMovement.rotation())) : entityMovement.transform(),
                     entityMovement.rotation(),
-                    new Vector3f(entityMovement.scale()).mul(group.getScale()),
+                    new Vector3f(entityMovement.scale()).mul(itemStack.scale()),
                     new Quaternionf()
             ));
         }
@@ -334,7 +334,7 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
 
     private boolean applyItem() {
         if (display != null) {
-            display.item(BetterModel.inst().nms().tint(itemStack.clone(), tint));
+            display.item(BetterModel.inst().nms().tint(itemStack.itemStack().clone(), tint));
             return true;
         } else return false;
     }
@@ -428,7 +428,7 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
 
     public void togglePart(@NotNull PacketBundler bundler, @NotNull Predicate<RenderedEntity> predicate, boolean toggle) {
         if (predicate.test(this)) {
-            itemStack = toggle ? cachedStack : AIR;
+            itemStack = toggle ? cachedStack : ScaledItemStack.EMPTY;
             if (applyItem()) forceUpdate0(bundler);
         }
         forEachChildren(e -> e.togglePart(bundler, predicate, toggle));

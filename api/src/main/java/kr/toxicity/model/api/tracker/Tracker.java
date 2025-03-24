@@ -9,11 +9,11 @@ import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.util.EntityUtil;
 import kr.toxicity.model.api.util.FunctionUtil;
+import kr.toxicity.model.api.util.ScaledItemStack;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
@@ -297,8 +297,11 @@ public abstract class Tracker implements AutoCloseable {
     public void togglePart(@NotNull Predicate<RenderedEntity> predicate, boolean toggle) {
         instance.togglePart(predicate, toggle);
     }
-    public void itemStack(@NotNull Predicate<RenderedEntity> predicate, @NotNull ItemStack itemStack) {
+    public void itemStack(@NotNull Predicate<RenderedEntity> predicate, @NotNull ScaledItemStack itemStack) {
         instance.itemStack(predicate, itemStack);
+    }
+    public void brightness(@NotNull Predicate<RenderedEntity> predicate, int block, int sky) {
+        instance.brightness(predicate, block, sky);
     }
 
     public @Nullable RenderedEntity entity(@NotNull String name) {

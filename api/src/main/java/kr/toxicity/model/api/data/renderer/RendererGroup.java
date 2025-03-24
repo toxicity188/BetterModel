@@ -8,6 +8,7 @@ import kr.toxicity.model.api.mount.MountController;
 import kr.toxicity.model.api.mount.MountControllers;
 import kr.toxicity.model.api.player.PlayerLimb;
 import kr.toxicity.model.api.util.MathUtil;
+import kr.toxicity.model.api.util.ScaledItemStack;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Location;
@@ -34,11 +35,9 @@ public final class RendererGroup {
     @Getter
     private final BlueprintChildren.BlueprintGroup parent;
     @Getter
-    private final Vector3f scale;
-    @Getter
     private final Vector3f position;
     private final Vector3f rotation;
-    private final ItemStack itemStack;
+    private final ScaledItemStack itemStack;
     @Getter
     @Unmodifiable
     private final Map<String, RendererGroup> children;
@@ -74,10 +73,12 @@ public final class RendererGroup {
     ) {
         this.name = name;
         this.limb = limb;
-        this.scale = limb != null ? new Vector3f(limb.getSlimScale()) : new Vector3f(scale);
         this.parent = group;
         this.children = children;
-        this.itemStack = itemStack;
+        this.itemStack = new ScaledItemStack(
+                limb != null ? new Vector3f(limb.getSlimScale()) : new Vector3f(scale),
+                itemStack != null ? itemStack : new ItemStack(Material.AIR)
+        );
         position = MathUtil.blockBenchToDisplay(group.origin().toVector()
                 .div(16));
         this.hitBox = box;
@@ -118,7 +119,7 @@ public final class RendererGroup {
     }
 
     @Nullable
-    private ItemStack getItem(@Nullable Player player) {
+    private ScaledItemStack getItem(@Nullable Player player) {
         if (player != null) {
             return limb != null ? limb.createItem(player) : null;
         }
@@ -129,7 +130,7 @@ public final class RendererGroup {
      * Gets display item.
      * @return item
      */
-    public @NotNull ItemStack getItemStack() {
-        return itemStack != null ? itemStack.clone() : new ItemStack(Material.AIR);
+    public @NotNull ScaledItemStack getItemStack() {
+        return itemStack.copy();
     }
 }

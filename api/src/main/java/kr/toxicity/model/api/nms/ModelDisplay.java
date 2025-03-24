@@ -18,4 +18,5 @@ public interface ModelDisplay {
     void item(@NotNull ItemStack itemStack);
     void transform(@NotNull Transformation transformation);
     void send(@NotNull PacketBundler bundler);
+    void brightness(int block, int sky);
 }

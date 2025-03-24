@@ -5,11 +5,7 @@ import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.network.syncher.SynchedEntityData.DataItem
 import net.minecraft.server.level.ServerPlayer
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.EntityAttachment
-import net.minecraft.world.entity.FlyingMob
-import net.minecraft.world.entity.LivingEntity
-import net.minecraft.world.entity.Mob
+import net.minecraft.world.entity.*
 import net.minecraft.world.entity.animal.FlyingAnimal
 import org.bukkit.Bukkit
 import org.bukkit.event.Cancellable

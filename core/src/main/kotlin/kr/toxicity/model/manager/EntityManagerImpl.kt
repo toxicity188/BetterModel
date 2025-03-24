@@ -15,12 +15,7 @@ import org.bukkit.entity.LivingEntity
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
-import org.bukkit.event.entity.EntityDamageEvent
-import org.bukkit.event.entity.EntityDeathEvent
-import org.bukkit.event.entity.EntityDismountEvent
-import org.bukkit.event.entity.EntityPotionEffectEvent
-import org.bukkit.event.entity.EntitySpawnEvent
-import org.bukkit.event.entity.EntityTeleportEvent
+import org.bukkit.event.entity.*
 import org.bukkit.event.player.PlayerInteractAtEntityEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.world.ChunkLoadEvent

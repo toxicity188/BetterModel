@@ -20,7 +20,7 @@ import java.util.*;
  */
 public sealed interface BlueprintChildren {
 
-    static BlueprintChildren from(@NotNull ModelChildren children, @NotNull @Unmodifiable Map<String, ModelElement> elementMap, float scale) {
+    static BlueprintChildren from(@NotNull ModelChildren children, @NotNull @Unmodifiable Map<String, ModelElement> elementMap) {
         return switch (children) {
             case ModelChildren.ModelGroup modelGroup -> {
                 PackUtil.validatePath(modelGroup.name(), "Group name must be [a-z0-9/._-]: " + modelGroup.name());
@@ -28,11 +28,11 @@ public sealed interface BlueprintChildren {
                     modelGroup.name(),
                     modelGroup.origin(),
                     modelGroup.rotation(),
-                    modelGroup.children().stream().map(c -> from(c, elementMap, scale)).toList(),
+                    modelGroup.children().stream().map(c -> from(c, elementMap)).toList(),
                     modelGroup.visibility()
                 );
             }
-            case ModelChildren.ModelUUID modelUUID -> new BlueprintElement(Objects.requireNonNull(elementMap.get(modelUUID.uuid())), scale);
+            case ModelChildren.ModelUUID modelUUID -> new BlueprintElement(Objects.requireNonNull(elementMap.get(modelUUID.uuid())));
         };
     }
 
@@ -67,6 +67,7 @@ public sealed interface BlueprintChildren {
          * @return json
          */
         public @Nullable BlueprintJson buildJson(
+                float scale,
                 @NotNull ModelBlueprint parent
         ) {
             var list = new ArrayList<BlueprintElement>();
@@ -75,7 +76,7 @@ public sealed interface BlueprintChildren {
                     list.add(element);
                 }
             }
-            return buildJson(-2, 1, parent, Float3.ZERO, list);
+            return buildJson(-2, 1, scale, parent, Float3.ZERO, list);
         }
 
         /**
@@ -84,6 +85,7 @@ public sealed interface BlueprintChildren {
          * @return json
          */
         public @Nullable List<BlueprintJson> buildModernJson(
+                float scale,
                 @NotNull ModelBlueprint parent
         ) {
             var list = new ArrayList<BlueprintJson>();
@@ -95,7 +97,7 @@ public sealed interface BlueprintChildren {
             }
             var i = 0;
             for (Map.Entry<Float3, List<BlueprintElement>> entry : floatMap.entrySet()) {
-                var json = buildJson(0, ++i, parent, entry.getKey(), entry.getValue());
+                var json = buildJson(0, ++i, scale, parent, entry.getKey(), entry.getValue());
                 if (json != null) list.add(json);
             }
             return list.isEmpty() ? null : list;
@@ -104,6 +106,7 @@ public sealed interface BlueprintChildren {
         private BlueprintJson buildJson(
                 int tint,
                 int number,
+                float scale,
                 @NotNull ModelBlueprint parent,
                 @NotNull Float3 identifier,
                 @NotNull List<BlueprintElement> cubes
@@ -117,7 +120,7 @@ public sealed interface BlueprintChildren {
             object.add("textures", textureObject);
             var elements = new JsonArray();
             for (BlueprintElement cube : cubes) {
-                cube.buildJson(tint, parent, this, identifier, elements);
+                cube.buildJson(tint, scale, parent, this, identifier, elements);
             }
             if (elements.isEmpty()) return null;
             object.add("elements", elements);
@@ -166,40 +169,40 @@ public sealed interface BlueprintChildren {
     /**
      * Blueprint element.
      * @param element raw element
-     * @param scale display scale
      */
-    record BlueprintElement(@NotNull ModelElement element, float scale) implements BlueprintChildren {
+    record BlueprintElement(@NotNull ModelElement element) implements BlueprintChildren {
 
         private @NotNull Float3 identifierDegree() {
             var rot = element.rotation();
             return rot == null ? Float3.ZERO : MathUtil.identifier(rot);
         }
 
-        private @NotNull Float3 centralize(@NotNull Float3 target, @NotNull Float3 groupOrigin) {
+        private @NotNull Float3 centralize(@NotNull Float3 target, @NotNull Float3 groupOrigin, float scale) {
             return target.minus(groupOrigin).div(scale);
         }
 
         private void buildJson(
                 int tint,
+                float scale,
                 @NotNull ModelBlueprint parent,
                 @NotNull BlueprintGroup group,
                 @NotNull Float3 identifier,
                 @NotNull JsonArray targetArray
         ) {
             if (!element.hasTexture()) return;
-            var centerOrigin = centralize(element.origin(), group.origin);
+            var centerOrigin = centralize(element.origin(), group.origin, scale);
             var qua = MathUtil.toQuaternion(identifier.toVector()).invert();
             var rotOrigin = centerOrigin
                     .rotate(qua)
                     .minus(centerOrigin);
             var object = new JsonObject();
             var inflate = new Float3(element.inflate() / scale);
-            object.add("from", centralize(element.from(), group.origin)
+            object.add("from", centralize(element.from(), group.origin, scale)
                     .plus(rotOrigin)
                     .plus(Float3.CENTER)
                     .minus(inflate)
                     .toJson());
-            object.add("to", centralize(element.to(), group.origin)
+            object.add("to", centralize(element.to(), group.origin, scale)
                     .plus(rotOrigin)
                     .plus(Float3.CENTER)
                     .plus(inflate)

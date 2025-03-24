@@ -40,13 +40,14 @@ class MythicMobsCompatibility : Compatibility {
             fun load(e: MythicMechanicLoadEvent) {
                 when (e.mechanicName.lowercase()) {
                     "model" -> e.register(ModelMechanic(e.config))
-                    "state" -> e.register(StateMechanic(e.config))
-                    "defaultstate" -> e.register(DefaultStateMechanic(e.config))
-                    "partvisibility" -> e.register(PartVisibilityMechanic(e.config))
+                    "state", "animation" -> e.register(StateMechanic(e.config))
+                    "defaultstate", "defaultanimation" -> e.register(DefaultStateMechanic(e.config))
+                    "partvisibility", "partvis" -> e.register(PartVisibilityMechanic(e.config))
                     "bindhitbox" -> e.register(BindHitBoxMechanic(e.config))
                     "changepart" -> e.register(ChangePartMechanic(e.config))
                     "vfx" -> e.register(VFXMechanic(e.config))
-                    "tint" -> e.register(TintMechanic(e.config))
+                    "tint", "color" -> e.register(TintMechanic(e.config))
+                    "brightness", "light" -> e.register(BrightnessMechanic(e.config))
                 }
             }
             @EventHandler

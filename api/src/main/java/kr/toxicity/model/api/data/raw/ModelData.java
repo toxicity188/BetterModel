@@ -23,6 +23,11 @@ public record ModelData(
         @NotNull List<ModelTexture> textures,
         @Nullable List<ModelAnimation> animations
 ) {
+
+    public float scale() {
+        return (float) elements().stream().mapToDouble(ModelElement::max).max().orElseThrow() / 16F;
+    }
+
     /**
      * Gson parser
      */

@@ -14,23 +14,23 @@ import java.util.stream.Collectors;
 
 public record ModelBlueprint(
         @NotNull String name,
-        double scale,
+        float scale,
         @NotNull ModelResolution resolution,
         @NotNull List<BlueprintTexture> textures,
         @NotNull List<BlueprintChildren> group,
         @NotNull Map<String, BlueprintAnimation> animations
 ) {
+
     public static @NotNull ModelBlueprint from(@NotNull String name, @NotNull ModelData data) {
         var elementMap = data.elements().stream().collect(Collectors.toMap(ModelElement::uuid, e -> e));
-        var scale = data.elements().stream().mapToDouble(ModelElement::max).max().orElseThrow() / 16;
         var list = new ArrayList<BlueprintChildren>();
         for (ModelChildren modelChildren : data.outliner()) {
-            var children = BlueprintChildren.from(modelChildren, elementMap, (float) scale);
+            var children = BlueprintChildren.from(modelChildren, elementMap);
             list.add(children);
         }
         return new ModelBlueprint(
                 name.toLowerCase(),
-                scale,
+                data.scale(),
                 data.resolution(),
                 data.textures().stream().map(BlueprintTexture::from).toList(),
                 list,

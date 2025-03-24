@@ -19,7 +19,9 @@ import net.minecraft.network.syncher.EntityDataAccessor
 import net.minecraft.network.syncher.EntityDataSerializers
 import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.server.MinecraftServer
+import net.minecraft.server.level.ServerPlayer
 import net.minecraft.server.network.ServerCommonPacketListenerImpl
+import net.minecraft.util.Brightness
 import net.minecraft.world.effect.MobEffects
 import net.minecraft.world.entity.*
 import net.minecraft.world.entity.Display.ItemDisplay
@@ -88,7 +90,7 @@ class NMSImpl : NMS {
 
         private val sharedFlag = Entity::class.java.serializers().first().toSerializerId()
         private val itemId = ItemDisplay::class.java.serializers().first().toSerializerId()
-        private val transformSet = Display::class.java.serializers().subList(0, 6).map { e ->
+        private val transformSet = Display::class.java.serializers().subList(0, 9).map { e ->
             e.toSerializerId()
         }.toSet() + itemId + sharedFlag
     }
@@ -365,6 +367,13 @@ class NMSImpl : NMS {
             display.itemStack = CraftItemStack.asNMSCopy(itemStack)
         }
 
+        override fun brightness(block: Int, sky: Int) {
+            display.brightnessOverride = if (block < 0 && sky < 0) null else Brightness(
+                block,
+                sky
+            )
+        }
+
         override fun transform(transformation: Transformation) {
             display.setTransformation(com.mojang.math.Transformation(
                 transformation.translation,
@@ -467,7 +476,7 @@ class NMSImpl : NMS {
             }
 
             override fun bodyYaw(): Float {
-                return handle.visualRotationYInDegrees
+                return if (handle is ServerPlayer) handle.yRot else handle.visualRotationYInDegrees
             }
 
             override fun yaw(): Float {
@@ -489,7 +498,9 @@ class NMSImpl : NMS {
                 if (!handle.onGround) return 1F
                 val speed = handle.getEffect(MobEffects.MOVEMENT_SPEED)?.amplifier ?: 0
                 val slow = handle.getEffect(MobEffects.MOVEMENT_SLOWDOWN)?.amplifier ?: 0
-                return 1F + (speed - slow) * 0.2F
+                return (1F + (speed - slow) * 0.2F)
+                    .coerceAtLeast(0.2F)
+                    .coerceAtMost(2F)
             }
 
             override fun passengerPosition(): Vector3f {

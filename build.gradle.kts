@@ -196,6 +196,8 @@ bukkitPluginYaml {
         children = mapOf(
             "reload" to true,
             "spawn" to true,
+            "disguise" to true,
+            "undisguise" to true,
             "play" to true,
             "limb" to true
         )

@@ -12,6 +12,7 @@ import dev.jorel.commandapi.executors.PlayerCommandExecutor
 import kr.toxicity.model.api.BetterModelPlugin.ReloadResult.*
 import kr.toxicity.model.api.manager.CommandManager
 import kr.toxicity.model.api.nms.NMSVersion
+import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.util.ATTRIBUTE_SCALE
 import kr.toxicity.model.util.PLUGIN
 import kr.toxicity.model.util.handleException
@@ -28,6 +29,27 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
             .withAliases("bm")
             .withPermission("bettermodel")
             .withSubcommands(
+                CommandAPICommand("disguise")
+                    .withAliases("d")
+                    .withPermission("bettermodel.disguise")
+                    .withArguments(StringArgument("name")
+                        .replaceSuggestions(ArgumentSuggestions.strings {
+                            ModelManagerImpl.keys().toTypedArray()
+                        })
+                    )
+                    .executesPlayer(PlayerCommandExecutor { player, args ->
+                        EntityTracker.tracker(player)?.close()
+                        val name = args.get("name") as String
+                        ModelManagerImpl.renderer(name)
+                            ?.create(player)
+                            ?.spawnNearby(player.location) ?: player.sendMessage("This model doesn't exist: $name")
+                    }),
+                CommandAPICommand("undisguise")
+                    .withAliases("ud")
+                    .withPermission("bettermodel.undisguise")
+                    .executesPlayer(PlayerCommandExecutor { player, args ->
+                        EntityTracker.tracker(player)?.close() ?: player.sendMessage("Cannot find any model to undisguise")
+                    }),
                 CommandAPICommand("spawn")
                     .withAliases("s")
                     .withPermission("bettermodel.spawn")
@@ -130,6 +152,8 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
             .executes(CommandExecutionInfo {
                 it.sender().sendMessage("/bettermodel reload - reloads this plugin.")
                 it.sender().sendMessage("/bettermodel summon <model> [type] [scale] - summons some model to given type.")
+                it.sender().sendMessage("/bettermodel disguise <model> - disguises self.")
+                it.sender().sendMessage("/bettermodel undisguise <model> - undisguises self.")
                 it.sender().sendMessage("/bettermodel limb <true/false> - toggles whether sender can see some player's animation.")
                 it.sender().sendMessage("/bettermodel play <model> <animation> - plays player animation.")
             })

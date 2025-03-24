@@ -123,6 +123,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
         val modernModelsPath = "assets/${ConfigManagerImpl.namespace()}/models/modern_item"
 
         renderMap.clear()
+        val model = arrayListOf<ModelBlueprint>()
         if (ConfigManagerImpl.module().model()) {
             DATA_FOLDER.subFolder("models").forEachAllFolder {
                 if (it.extension == "bbmodel") {
@@ -137,50 +138,56 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                             }
                         }
                     }
-                    val jsonList = arrayListOf<BlueprintJson>()
-                    val modernJsonList = arrayListOf<BlueprintJson>()
-                    renderMap[load.name] = load.toRenderer render@ { blueprintGroup ->
-                        val blueprint = blueprintGroup.buildJson(load) ?: return@render null
-                        val modernBlueprint = blueprintGroup.buildModernJson(load) ?: return@render null
-                        override.add(JsonObject().apply {
-                            add("predicate", JsonObject().apply {
-                                addProperty("custom_model_data", index)
-                            })
-                            addProperty("model", "${ConfigManagerImpl.namespace()}:item/${blueprint.name}")
+                    model += load
+                }
+            }
+            val maxScale = model.maxOfOrNull {
+                it.scale()
+            } ?: 1F
+            model.forEach { load ->
+                val jsonList = arrayListOf<BlueprintJson>()
+                val modernJsonList = arrayListOf<BlueprintJson>()
+                renderMap[load.name] = load.toRenderer(maxScale) render@ { blueprintGroup ->
+                    val blueprint = blueprintGroup.buildJson(maxScale, load) ?: return@render null
+                    val modernBlueprint = blueprintGroup.buildModernJson(maxScale, load) ?: return@render null
+                    override.add(JsonObject().apply {
+                        add("predicate", JsonObject().apply {
+                            addProperty("custom_model_data", index)
                         })
-                        modernEntries.add(JsonObject().apply {
-                            addProperty("threshold", index)
-                            add("model", JsonObject().apply {
-                                addProperty("type", "minecraft:composite")
-                                add("models", JsonArray().apply {
-                                    modernBlueprint.forEach { mb ->
-                                        add(JsonObject().apply {
-                                            addProperty("type", "minecraft:model")
-                                            addProperty("model", "${ConfigManagerImpl.namespace()}:modern_item/${mb.name}")
-                                            add("tints", JsonArray().apply {
-                                                add(JsonObject().apply {
-                                                    addProperty("type", "minecraft:custom_model_data")
-                                                    addProperty("default", 0xFFFFFF)
-                                                })
+                        addProperty("model", "${ConfigManagerImpl.namespace()}:item/${blueprint.name}")
+                    })
+                    modernEntries.add(JsonObject().apply {
+                        addProperty("threshold", index)
+                        add("model", JsonObject().apply {
+                            addProperty("type", "minecraft:composite")
+                            add("models", JsonArray().apply {
+                                modernBlueprint.forEach { mb ->
+                                    add(JsonObject().apply {
+                                        addProperty("type", "minecraft:model")
+                                        addProperty("model", "${ConfigManagerImpl.namespace()}:modern_item/${mb.name}")
+                                        add("tints", JsonArray().apply {
+                                            add(JsonObject().apply {
+                                                addProperty("type", "minecraft:custom_model_data")
+                                                addProperty("default", 0xFFFFFF)
                                             })
                                         })
-                                    }
-                                })
+                                    })
+                                }
                             })
                         })
-                        jsonList += blueprint
-                        modernJsonList += modernBlueprint
-                        index++
+                    })
+                    jsonList += blueprint
+                    modernJsonList += modernBlueprint
+                    index++
+                }
+                if (!ConfigManagerImpl.disableGeneratingLegacyModels()) jsonList.forEach { json ->
+                    zipper.add(modelsPath, "${json.name}.json") {
+                        json.element.toByteArray()
                     }
-                    if (!ConfigManagerImpl.disableGeneratingLegacyModels()) jsonList.forEach { json ->
-                        zipper.add(modelsPath, "${json.name}.json") {
-                            json.element.toByteArray()
-                        }
-                    }
-                    modernJsonList.forEach { json ->
-                        zipper.add(modernModelsPath, "${json.name}.json") {
-                            json.element.toByteArray()
-                        }
+                }
+                modernJsonList.forEach { json ->
+                    zipper.add(modernModelsPath, "${json.name}.json") {
+                        json.element.toByteArray()
                     }
                 }
             }
@@ -214,11 +221,11 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
         }
     }
 
-    private fun ModelBlueprint.toRenderer(consumer: (BlueprintGroup) -> Int?): BlueprintRenderer {
+    private fun ModelBlueprint.toRenderer(scale: Float, consumer: (BlueprintGroup) -> Int?): BlueprintRenderer {
         fun BlueprintGroup.parse(): RendererGroup {
             return RendererGroup(
                 name,
-                scale.toFloat(),
+                scale,
                 consumer(this)?.let { i ->
                     ItemStack(ConfigManagerImpl.item()).apply {
                         itemMeta = itemMeta.apply {
