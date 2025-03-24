@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -51,6 +52,8 @@ public abstract class Tracker implements AutoCloseable {
 
     private final TrackerModifier modifier;
 
+    private final Runnable updater;
+
     @Getter
     private Supplier<TrackerMovement> movement;
 
@@ -64,7 +67,7 @@ public abstract class Tracker implements AutoCloseable {
         this.instance = instance;
         this.modifier = modifier;
         this.movement = FunctionUtil.throttleTick(() -> new TrackerMovement(new Vector3f(), new Vector3f(modifier.scale()), new Vector3f()));
-        task = EXECUTOR.scheduleAtFixedRate(() -> {
+        updater = () -> {
             consumer.accept(this);
             var bundle = BetterModel.inst().nms().createBundler();
             if (readyForForceUpdate.get()) {
@@ -77,7 +80,8 @@ public abstract class Tracker implements AutoCloseable {
                     bundle
             );
             if (!bundle.isEmpty()) instance.viewedPlayer().forEach(bundle::send);
-        }, 10, 10, TimeUnit.MILLISECONDS);
+        };
+        task = EXECUTOR.scheduleAtFixedRate(updater, 10, 10, TimeUnit.MILLISECONDS);
         tint(0xFFFFFF);
         if (modifier.sightTrace()) instance.filter(p -> EntityUtil.canSee(p.getEyeLocation(), location()));
         tick(t -> t.instance.getScriptProcessor().tick());
@@ -100,6 +104,10 @@ public abstract class Tracker implements AutoCloseable {
         frame(t -> {
             if (frame.get() % 5 == 0) consumer.accept(t);
         });
+    }
+
+    protected void update() {
+        updater.run();
     }
 
     /**
@@ -249,9 +257,14 @@ public abstract class Tracker implements AutoCloseable {
         return success;
     }
 
+    public void replaceModifier(@NotNull Predicate<RenderedEntity> filter, @NotNull Function<AnimationModifier, AnimationModifier> function) {
+        instance.replaceModifier(filter, function);
+    }
+
     public void stopAnimation(@NotNull String animation) {
         stopAnimation(e -> true, animation);
     }
+
     public void stopAnimation(@NotNull Predicate<RenderedEntity> filter, @NotNull String animation) {
         instance.stopAnimation(filter, animation);
     }

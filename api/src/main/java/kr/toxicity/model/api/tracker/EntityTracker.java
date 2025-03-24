@@ -129,7 +129,6 @@ public class EntityTracker extends Tracker {
             entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, instance.getParent().getParent().name());
             if (!closed.get() && !forRemoval()) createHitBox();
         });
-        instance.setup(getMovement().get());
         tick(t -> t.displays().forEach(d -> d.sync(adapter)));
         tick(t -> {
             var reader = t.instance.getScriptProcessor().getCurrentReader();
@@ -141,6 +140,7 @@ public class EntityTracker extends Tracker {
         frame(t -> {
             if (damageTint.getAndDecrement() == 0) tint(0xFFFFFF);
         });
+        update();
     }
 
     @Override
@@ -217,7 +217,6 @@ public class EntityTracker extends Tracker {
     }
 
     public void spawn(@NotNull Player player) {
-        BetterModel.inst().nms().hide(player, entity);
         var bundler = BetterModel.inst().nms().createBundler();
         spawn(player, bundler);
         BetterModel.inst().nms().mount(this, bundler);
@@ -226,6 +225,7 @@ public class EntityTracker extends Tracker {
                 .playerManager()
                 .player(player.getUniqueId());
         if (handler != null) handler.startTrack(this);
+        BetterModel.inst().nms().hide(player, entity);
     }
 
     @Override

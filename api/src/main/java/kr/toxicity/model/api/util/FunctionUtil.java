@@ -29,7 +29,7 @@ public final class FunctionUtil {
     @RequiredArgsConstructor
     private static class TickThrottledRunnable implements Runnable {
         private final @NotNull Runnable delegate;
-        private final AtomicLong time = new AtomicLong();
+        private final AtomicLong time = new AtomicLong(-51);
 
         @Override
         public void run() {
@@ -42,7 +42,7 @@ public final class FunctionUtil {
     @RequiredArgsConstructor
     private static class TickThrottledSupplier<T> implements Supplier<T> {
         private final @NotNull Supplier<T> delegate;
-        private final AtomicLong time = new AtomicLong();
+        private final AtomicLong time = new AtomicLong(-51);
         private volatile T cache;
 
         @Override
@@ -57,7 +57,7 @@ public final class FunctionUtil {
     @RequiredArgsConstructor
     private static class TickThrottledPredicate<T> implements Predicate<T> {
         private final @NotNull Predicate<T> delegate;
-        private final AtomicLong time = new AtomicLong();
+        private final AtomicLong time = new AtomicLong(-51);
         private volatile boolean cache;
 
         @Override
@@ -72,7 +72,7 @@ public final class FunctionUtil {
     @RequiredArgsConstructor
     private static class TickThrottledFunction<T, R> implements Function<T, R> {
         private final @NotNull Function<T, R> delegate;
-        private final AtomicLong time = new AtomicLong();
+        private final AtomicLong time = new AtomicLong(-51);
         private volatile R cache;
 
         @Override

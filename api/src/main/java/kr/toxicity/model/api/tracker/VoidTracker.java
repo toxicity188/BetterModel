@@ -27,7 +27,7 @@ public final class VoidTracker extends Tracker {
         super(instance, modifier);
         this.uuid = uuid;
         this.location = location;
-        instance.setup(getMovement().get());
+        update();
     }
 
     /**

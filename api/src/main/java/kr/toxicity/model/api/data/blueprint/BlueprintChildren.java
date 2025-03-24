@@ -66,7 +66,7 @@ public sealed interface BlueprintChildren {
          * @param parent parent
          * @return json
          */
-        public BlueprintJson buildJson(
+        public @Nullable BlueprintJson buildJson(
                 @NotNull ModelBlueprint parent
         ) {
             var list = new ArrayList<BlueprintElement>();
@@ -83,7 +83,7 @@ public sealed interface BlueprintChildren {
          * @param parent parent
          * @return json
          */
-        public List<BlueprintJson> buildModernJson(
+        public @Nullable List<BlueprintJson> buildModernJson(
                 @NotNull ModelBlueprint parent
         ) {
             var list = new ArrayList<BlueprintJson>();
@@ -95,9 +95,10 @@ public sealed interface BlueprintChildren {
             }
             var i = 0;
             for (Map.Entry<Float3, List<BlueprintElement>> entry : floatMap.entrySet()) {
-                list.add(buildJson(0, ++i, parent, entry.getKey(), entry.getValue()));
+                var json = buildJson(0, ++i, parent, entry.getKey(), entry.getValue());
+                if (json != null) list.add(json);
             }
-            return list;
+            return list.isEmpty() ? null : list;
         }
 
         private BlueprintJson buildJson(

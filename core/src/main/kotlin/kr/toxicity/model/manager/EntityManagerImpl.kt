@@ -60,7 +60,7 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
         registerListener(object : Listener {
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun EntityPotionEffectEvent.potion() {
-                EntityTracker.tracker(entity)?.forceUpdate(true)
+                if (!isCancelled) EntityTracker.tracker(entity)?.forceUpdate(true)
             }
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun PlayerInteractAtEntityEvent.interactBukkit() {
@@ -116,7 +116,7 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
                 EntityTracker.tracker(e)?.let {
                     if (it.animateSingle("damage", AnimationModifier.DEFAULT) {
                         it.tint(0xFFFFFF)
-                    }) it.tint(0xFF7878)
+                    }) it.tint(it.damageTintValue())
                     else {
                         it.damageTint()
                     }

@@ -22,6 +22,7 @@ import net.minecraft.network.syncher.EntityDataSerializers
 import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.server.level.ServerPlayer
 import net.minecraft.server.network.ServerCommonPacketListenerImpl
 import net.minecraft.world.effect.MobEffects
 import net.minecraft.world.entity.*
@@ -129,19 +130,15 @@ class NMSImpl : NMS {
     }
 
     override fun hide(player: Player, entity: org.bukkit.entity.Entity) {
-        val handle = (entity as CraftEntity).handle
-        val inv = handle.isInvisible
-        handle.isInvisible = true
-        (player as CraftPlayer).handle.connection.send(ClientboundBundlePacket(listOf(
-            ClientboundSetEquipmentPacket(handle.id, EquipmentSlot.entries.map { e ->
+        val connection = (player as CraftPlayer).handle
+        val entity = (entity as CraftEntity).handle
+        val task = {
+            entity.refreshEntityData(connection)
+            connection.connection.send(ClientboundSetEquipmentPacket(entity.id, EquipmentSlot.entries.map { e ->
                 Pair.of(e, Items.AIR.defaultInstance)
-            }),
-            ClientboundSetEntityDataPacket(
-                handle.id,
-                handle.entityData.pack()
-            ))
-        ))
-        handle.isInvisible = inv
+            }))
+        }
+        if (entity === connection) BetterModel.inst().scheduler().asyncTaskLater(1, task) else task()
     }
 
     inner class PlayerChannelHandlerImpl(
@@ -256,7 +253,9 @@ class NMSImpl : NMS {
                         ((it.value() as Byte).toInt() and 1.inv() or (1 shl 5) and (1 shl 6).inv()).toByte()
                     ) else it
                 })
-                is ClientboundSetEquipmentPacket -> if (entity.toTracker() != null) return null
+                is ClientboundSetEquipmentPacket -> if (entity.toTracker() != null) return ClientboundSetEquipmentPacket(entity, EquipmentSlot.entries.map { e ->
+                    Pair.of(e, Items.AIR.defaultInstance)
+                })
             }
             return this
         }
@@ -316,7 +315,7 @@ class NMSImpl : NMS {
         billboardConstraints = Display.BillboardConstraints.FIXED
         moveTo(
             location.x,
-            location.y,
+            location.y - 1024.0,
             location.z,
             location.yaw,
             0F

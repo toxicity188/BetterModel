@@ -21,12 +21,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -111,12 +109,6 @@ public final class RenderInstance implements AutoCloseable {
     public void itemStack(@NotNull Predicate<RenderedEntity> predicate, @NotNull ItemStack itemStack) {
         for (RenderedEntity value : entityMap.values()) {
             value.itemStack(predicate, itemStack);
-        }
-    }
-
-    public void setup(@NotNull TrackerMovement movement) {
-        for (RenderedEntity value : entityMap.values()) {
-            value.setup(movement);
         }
     }
 
@@ -207,6 +199,12 @@ public final class RenderInstance implements AutoCloseable {
             value.replaceSingle(filter, target, animation, get);
         }
         return true;
+    }
+
+    public void replaceModifier(@NotNull Predicate<RenderedEntity> filter, @NotNull Function<AnimationModifier, AnimationModifier> function) {
+        for (RenderedEntity value : entityMap.values()) {
+            value.replaceModifier(filter, function);
+        }
     }
 
     public void stopAnimation(@NotNull Predicate<RenderedEntity> filter, @NotNull String target) {

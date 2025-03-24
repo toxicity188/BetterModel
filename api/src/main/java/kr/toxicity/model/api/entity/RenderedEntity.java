@@ -11,7 +11,6 @@ import kr.toxicity.model.api.tracker.ModelRotation;
 import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.VectorUtil;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -26,6 +25,7 @@ import org.joml.Vector3f;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -274,11 +274,6 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
         return new Vector3f();
     }
 
-    public void setup(@NotNull TrackerMovement movement) {
-        setup(movement.plus(relativeOffset().plus(defaultPosition)));
-        forEachChildren(e -> e.setup(movement));
-    }
-
     private void setup(@NotNull EntityMovement entityMovement) {
         if (display != null) {
             var limb = group.getLimb();
@@ -379,6 +374,16 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
         forEachChildren(e -> e.addSingle(filter, parent, animator, modifier, () -> {}));
     }
 
+    public void replaceModifier(@NotNull Predicate<RenderedEntity> filter, @NotNull Function<AnimationModifier, AnimationModifier> function) {
+        if (filter.test(this)) {
+            var get = animators.get(getName());
+            if (get != null) {
+                get.modifier = Objects.requireNonNull(function.apply(get.modifier));
+            }
+        }
+        forEachChildren(e -> e.replaceModifier(filter, function));
+    }
+
     public void replaceLoop(@NotNull Predicate<RenderedEntity> filter, @NotNull String target, @NotNull String parent, @NotNull BlueprintAnimation animator) {
         if (filter.test(this)) {
             var get = animator.animator().get(getName());
@@ -392,6 +397,7 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
         }
         forEachChildren(e -> e.replaceLoop(filter, target, parent, animator));
     }
+
     public void replaceSingle(@NotNull Predicate<RenderedEntity> filter, @NotNull String target, @NotNull String parent, @NotNull BlueprintAnimation animator) {
         if (filter.test(this)) {
             var get = animator.animator().get(getName());
@@ -432,16 +438,23 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
         children.values().forEach(consumer);
     }
 
-    @RequiredArgsConstructor
     private static class TreeIterator implements BlueprintAnimator.AnimatorIterator, Supplier<Boolean>, Runnable {
         private final String name;
         private final BlueprintAnimator.AnimatorIterator iterator;
-        private final AnimationModifier modifier;
+        private AnimationModifier modifier;
         private final Runnable removeTask;
+
         private boolean started = false;
         private boolean ended = false;
 
         private float cachedSpeed = 1F;
+
+        public TreeIterator(String name, BlueprintAnimator.AnimatorIterator iterator, AnimationModifier modifier, Runnable removeTask) {
+            this.name = name;
+            this.iterator = iterator;
+            this.modifier = modifier;
+            this.removeTask = removeTask;
+        }
 
         @NotNull
         @Override
@@ -475,7 +488,8 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
         }
 
         public float deltaSpeed() {
-            return modifier.speedValue() / cachedSpeed;
+            var previous = cachedSpeed;
+            return (cachedSpeed = modifier.speedValue()) / previous;
         }
 
         @Override
