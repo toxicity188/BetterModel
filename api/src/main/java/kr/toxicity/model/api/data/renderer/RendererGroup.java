@@ -8,7 +8,7 @@ import kr.toxicity.model.api.mount.MountController;
 import kr.toxicity.model.api.mount.MountControllers;
 import kr.toxicity.model.api.player.PlayerLimb;
 import kr.toxicity.model.api.util.MathUtil;
-import kr.toxicity.model.api.util.ScaledItemStack;
+import kr.toxicity.model.api.util.TransformedItemStack;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Location;
@@ -37,7 +37,7 @@ public final class RendererGroup {
     @Getter
     private final Vector3f position;
     private final Vector3f rotation;
-    private final ScaledItemStack itemStack;
+    private final TransformedItemStack itemStack;
     @Getter
     @Unmodifiable
     private final Map<String, RendererGroup> children;
@@ -75,8 +75,9 @@ public final class RendererGroup {
         this.limb = limb;
         this.parent = group;
         this.children = children;
-        this.itemStack = new ScaledItemStack(
-                limb != null ? new Vector3f(limb.getSlimScale()) : new Vector3f(scale),
+        this.itemStack = new TransformedItemStack(
+                new Vector3f(),
+                new Vector3f(scale),
                 itemStack != null ? itemStack : new ItemStack(Material.AIR)
         );
         position = MathUtil.blockBenchToDisplay(group.origin().toVector()
@@ -118,10 +119,10 @@ public final class RendererGroup {
         return entity;
     }
 
-    @Nullable
-    private ScaledItemStack getItem(@Nullable Player player) {
+    @NotNull
+    private TransformedItemStack getItem(@Nullable Player player) {
         if (player != null) {
-            return limb != null ? limb.createItem(player) : null;
+            return limb != null ? limb.createItem(player) : TransformedItemStack.EMPTY;
         }
         return itemStack;
     }
@@ -130,7 +131,7 @@ public final class RendererGroup {
      * Gets display item.
      * @return item
      */
-    public @NotNull ScaledItemStack getItemStack() {
+    public @NotNull TransformedItemStack getItemStack() {
         return itemStack.copy();
     }
 }

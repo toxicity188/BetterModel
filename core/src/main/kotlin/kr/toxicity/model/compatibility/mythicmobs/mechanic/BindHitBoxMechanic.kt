@@ -10,11 +10,12 @@ import kr.toxicity.model.api.event.ModelDamageSource
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.HitBoxListener
 import kr.toxicity.model.api.tracker.EntityTracker
+import kr.toxicity.model.compatibility.mythicmobs.MM_PART_ID
 import org.bukkit.entity.Damageable
 
 class BindHitBoxMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), INoTargetSkill {
 
-    private val partId = mlc.getString(arrayOf("partid", "p", "pid", "part"))!!
+    private val partId = mlc.getString(MM_PART_ID)!!
     private val type = mlc.getString(arrayOf("type", "t", "mob", "m"))?.let {
         MythicBukkit.inst().mobManager.getMythicMob(it).orElseThrow()
     }

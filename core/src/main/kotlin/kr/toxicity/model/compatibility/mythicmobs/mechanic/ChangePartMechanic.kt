@@ -7,13 +7,14 @@ import io.lumine.mythic.api.skills.SkillResult
 import io.lumine.mythic.bukkit.MythicBukkit
 import io.lumine.mythic.core.skills.SkillMechanic
 import kr.toxicity.model.api.tracker.EntityTracker
+import kr.toxicity.model.compatibility.mythicmobs.MM_PART_ID
 import kr.toxicity.model.manager.ModelManagerImpl
 
 class ChangePartMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), INoTargetSkill {
 
-    private val part = mlc.getString(arrayOf("partid", "p", "pid", "part"))!!
+    private val part = mlc.getString(MM_PART_ID)!!
     private val nmid = mlc.getString(arrayOf("newmodelid", "nm", "nmid", "newmodel"))
-    private val newPart = mlc.getString(arrayOf("newpart", "np"))
+    private val newPart = mlc.getString(arrayOf("newpart", "np", "npid"))
 
     init {
         isAsyncSafe = false

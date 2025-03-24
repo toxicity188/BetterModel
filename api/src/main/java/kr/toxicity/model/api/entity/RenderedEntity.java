@@ -9,7 +9,7 @@ import kr.toxicity.model.api.data.renderer.RendererGroup;
 import kr.toxicity.model.api.nms.*;
 import kr.toxicity.model.api.tracker.ModelRotation;
 import kr.toxicity.model.api.util.MathUtil;
-import kr.toxicity.model.api.util.ScaledItemStack;
+import kr.toxicity.model.api.util.TransformedItemStack;
 import kr.toxicity.model.api.util.VectorUtil;
 import lombok.Getter;
 import lombok.Setter;
@@ -49,7 +49,7 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
     private final Collection<TreeIterator> reversedView = animators.sequencedValues().reversed();
     private AnimationMovement keyFrame = null;
     private long delay = 0;
-    private ScaledItemStack itemStack, cachedStack;
+    private TransformedItemStack itemStack, cachedStack;
 
     private final List<Consumer<AnimationMovement>> movementModifier = new ArrayList<>();
     @Getter
@@ -69,7 +69,7 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
     public RenderedEntity(
             @NotNull RendererGroup group,
             @Nullable RenderedEntity parent,
-            @Nullable ScaledItemStack itemStack,
+            @NotNull TransformedItemStack itemStack,
             @NotNull ItemDisplay.ItemDisplayTransform transform,
             @NotNull Location firstLocation,
             @NotNull EntityMovement movement
@@ -77,8 +77,8 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
         this.group = group;
         this.parent = parent;
         var visible = group.getLimb() != null || group.getParent().visibility();
-        this.itemStack = cachedStack = visible ? itemStack : ScaledItemStack.EMPTY;
-        if (itemStack != null) {
+        this.itemStack = cachedStack = visible ? itemStack : TransformedItemStack.EMPTY;
+        if (!itemStack.isEmpty()) {
             display = BetterModel.inst().nms().create(firstLocation);
             display.display(transform);
             if (visible) display.item(itemStack.itemStack());
@@ -112,7 +112,7 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
      * @param itemStack target item
      */
     @ApiStatus.Internal
-    public void itemStack(@NotNull Predicate<RenderedEntity> predicate, @NotNull ScaledItemStack itemStack) {
+    public void itemStack(@NotNull Predicate<RenderedEntity> predicate, @NotNull TransformedItemStack itemStack) {
         if (predicate.test(this)) {
             this.itemStack = cachedStack = itemStack;
             applyItem();
@@ -276,9 +276,8 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
 
     private void setup(@NotNull EntityMovement entityMovement) {
         if (display != null) {
-            var limb = group.getLimb();
             display.transform(new Transformation(
-                    limb != null ? new Vector3f(entityMovement.transform()).add(new Vector3f(limb.getOffset()).rotate(entityMovement.rotation())) : entityMovement.transform(),
+                    new Vector3f(entityMovement.transform()).add(new Vector3f(itemStack.offset()).rotate(entityMovement.rotation())),
                     entityMovement.rotation(),
                     new Vector3f(entityMovement.scale()).mul(itemStack.scale()),
                     new Quaternionf()
@@ -428,7 +427,7 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
 
     public void togglePart(@NotNull PacketBundler bundler, @NotNull Predicate<RenderedEntity> predicate, boolean toggle) {
         if (predicate.test(this)) {
-            itemStack = toggle ? cachedStack : ScaledItemStack.EMPTY;
+            itemStack = toggle ? cachedStack : TransformedItemStack.EMPTY;
             if (applyItem()) forceUpdate0(bundler);
         }
         forEachChildren(e -> e.togglePart(bundler, predicate, toggle));

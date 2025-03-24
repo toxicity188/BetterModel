@@ -97,7 +97,7 @@ public class EntityTracker extends Tracker {
                 .multiply(modifier.scale());
         instance.defaultPosition(new Vector3f(0, -adapter.passengerPosition().y, 0));
         instance.addAnimationMovementModifier(
-                r -> r.getName().startsWith("h_"),
+                r -> r.getName().startsWith("h_") || r.getName().startsWith("hi_"),
                 a -> {
                     if (a.rotation() != null && !isRunningSingleAnimation()) {
                         a.rotation().add(-adapter.pitch(), Math.clamp(

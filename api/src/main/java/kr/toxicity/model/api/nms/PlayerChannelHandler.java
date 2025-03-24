@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 
 public interface PlayerChannelHandler extends AutoCloseable {
     @NotNull Player player();
+    boolean isSlim();
     void startTrack(@NotNull EntityTracker tracker);
     void endTrack(@NotNull EntityTracker tracker);
     void unregisterAll();

@@ -121,6 +121,18 @@ class NMSImpl : NMS {
     ) : PlayerChannelHandler, ChannelDuplexHandler() {
         private val connection = (player as CraftPlayer).handle.connection
         private val entityUUIDMap = ConcurrentHashMap<UUID, EntityTracker>()
+        private val slim = run {
+            val encodedValue = (player as CraftPlayer)
+                .handle
+                .gameProfile
+                .properties["textures"]
+                .iterator()
+                .next()
+                .value
+            val json = JsonParser.parseString(String(Base64.getDecoder().decode(encodedValue))).asJsonObject
+            val skinObject = json.getAsJsonObject("textures").getAsJsonObject("SKIN")
+            skinObject.get("metadata")?.asJsonObject?.get("model")?.asString == "slim"
+        }
 
         init {
             val pipeLine = getConnection(connection).channel.pipeline()
@@ -134,6 +146,7 @@ class NMSImpl : NMS {
         override fun showPlayerLimb(show: Boolean) {
             showPlayerLimb = show
         }
+        override fun isSlim(): Boolean = slim
 
         override fun close() {
             val channel = connection.connection.channel
@@ -507,16 +520,5 @@ class NMSImpl : NMS {
                 return handle.passengerPosition(scale())
             }
         }
-    }
-
-    override fun isSlim(player: Player): Boolean {
-        val encodedValue = (player as CraftPlayer).handle.gameProfile.properties.get("textures").iterator().next().value
-        val decodedValue = String(Base64.getDecoder().decode(encodedValue))
-        val json = JsonParser.parseString(decodedValue).asJsonObject
-        val skinObject = json.getAsJsonObject("textures").getAsJsonObject("SKIN")
-        if(!skinObject.has("metadata")) return false
-        if(!skinObject.getAsJsonObject("metadata").has("model")) return false
-        val model = skinObject.getAsJsonObject("metadata").get("model").asString
-        return model == "slim"
     }
 }

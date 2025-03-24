@@ -5,10 +5,11 @@ import io.lumine.mythic.api.config.MythicLineConfig
 import io.lumine.mythic.api.skills.SkillMetadata
 import io.lumine.mythic.api.skills.targeters.ILocationTargeter
 import kr.toxicity.model.api.tracker.EntityTracker
+import kr.toxicity.model.compatibility.mythicmobs.MM_PART_ID
 
 class ModelPartTargeter(mlc: MythicLineConfig) : ILocationTargeter {
 
-    private val part = mlc.getString(arrayOf("p", "part"))
+    private val part = mlc.getString(MM_PART_ID)
 
     override fun getLocations(p0: SkillMetadata): Collection<AbstractLocation> {
         val entity = p0.caster.entity

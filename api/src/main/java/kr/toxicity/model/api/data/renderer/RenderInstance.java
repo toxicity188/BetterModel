@@ -12,7 +12,7 @@ import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.script.ScriptProcessor;
 import kr.toxicity.model.api.tracker.ModelRotation;
 import kr.toxicity.model.api.util.FunctionUtil;
-import kr.toxicity.model.api.util.ScaledItemStack;
+import kr.toxicity.model.api.util.TransformedItemStack;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -109,7 +109,7 @@ public final class RenderInstance implements AutoCloseable {
         }
     }
 
-    public void itemStack(@NotNull Predicate<RenderedEntity> predicate, @NotNull ScaledItemStack itemStack) {
+    public void itemStack(@NotNull Predicate<RenderedEntity> predicate, @NotNull TransformedItemStack itemStack) {
         for (RenderedEntity value : entityMap.values()) {
             value.itemStack(predicate, itemStack);
         }
