@@ -83,7 +83,7 @@ public class EntityTracker extends Tracker {
     @NotNull
     @Override
     public ModelRotation rotation() {
-        return new ModelRotation(0, entity instanceof LivingEntity ? adapter.bodyYaw() : entity.getYaw());
+        return adapter.dead() ? instance.getRotation() : new ModelRotation(0, entity instanceof LivingEntity ? adapter.bodyYaw() : entity.getYaw());
     }
 
     public static @NotNull List<EntityTracker> trackers(@NotNull Predicate<EntityTracker> predicate) {

@@ -250,7 +250,7 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
     }
 
     private static int toInterpolationDuration(long delay) {
-        return Math.round((float) delay / 5F) + 1;
+        return (int) Math.floor((float) delay / 5F) + 1;
     }
 
     public @NotNull Vector3f worldPosition() {
@@ -263,11 +263,13 @@ public final class RenderedEntity implements HitBoxSource, AutoCloseable {
             var before = beforeTransform != null ? beforeTransform : EntityMovement.EMPTY;
             var vec = VectorUtil.linear(before.transform(), afterTransform.transform(), progress)
                     .add(offset)
+                    .add(itemStack.offset())
                     .mul(VectorUtil.linear(before.scale(), afterTransform.scale(), progress))
                     .rotate(
                             MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(VectorUtil.linear(before.rawRotation(), afterTransform.rawRotation(), progress)))
                     )
                     .add(defaultPosition)
+                    .rotateX((float) -Math.toRadians(rotation.x()))
                     .rotateY((float) -Math.toRadians(rotation.y()));
             return vec.isFinite() ? vec : new Vector3f();
         }

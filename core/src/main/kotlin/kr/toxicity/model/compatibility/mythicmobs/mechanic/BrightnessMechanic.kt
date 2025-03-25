@@ -11,7 +11,7 @@ import kr.toxicity.model.compatibility.mythicmobs.MM_PART_ID
 
 class BrightnessMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), INoTargetSkill {
 
-    private val part = mlc.getString(MM_PART_ID)!!
+    private val part = mlc.getString(MM_PART_ID)
     private val block = mlc.getInteger("b", 0).coerceAtLeast(-1).coerceAtMost(15)
     private val sky = mlc.getInteger("s", 0).coerceAtLeast(-1).coerceAtMost(15)
 
@@ -21,7 +21,7 @@ class BrightnessMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.ins
 
     override fun cast(p0: SkillMetadata): SkillResult {
         return EntityTracker.tracker(p0.caster.entity.bukkitEntity.uniqueId)?.let {
-            it.brightness({ e -> e.name == part }, block, sky)
+            it.brightness({ e -> if (part == null) true else e.name == part }, block, sky)
             it.forceUpdate(true)
             SkillResult.SUCCESS
         } ?: SkillResult.ERROR
