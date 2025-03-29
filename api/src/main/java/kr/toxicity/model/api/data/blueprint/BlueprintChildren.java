@@ -20,6 +20,12 @@ import java.util.*;
  */
 public sealed interface BlueprintChildren {
 
+    /**
+     * Gets children from raw children
+     * @param children raw children
+     * @param elementMap element map
+     * @return children
+     */
     static BlueprintChildren from(@NotNull ModelChildren children, @NotNull @Unmodifiable Map<String, ModelElement> elementMap) {
         return switch (children) {
             case ModelChildren.ModelGroup modelGroup -> {
@@ -141,13 +147,12 @@ public sealed interface BlueprintChildren {
         public @Nullable NamedBoundingBox hitBox() {
             var elements = new ArrayList<ModelBoundingBox>();
             for (BlueprintChildren child : children) {
-                if (child instanceof BlueprintElement element) {
-                    var model = element.element;
-                    var from = model.from()
+                if (child instanceof BlueprintElement(ModelElement element)) {
+                    var from = element.from()
                             .minus(origin)
                             .toVector()
                             .div(16);
-                    var to = model.to()
+                    var to = element.to()
                             .minus(origin)
                             .toVector()
                             .div(16);

@@ -57,10 +57,5 @@ public enum MountControllers implements MountController {
         public boolean canFly() {
             return true;
         }
-
-        @Override
-        public boolean canDismountBySelf() {
-            return false;
-        }
     }
 }

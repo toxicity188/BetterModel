@@ -1,5 +1,8 @@
 package kr.toxicity.model.api.util;
 
+import kr.toxicity.model.api.animation.AnimationPoint;
+import kr.toxicity.model.api.animation.VectorPoint;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
@@ -8,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.TreeSet;
 
+@ApiStatus.Internal
 public final class VectorUtil {
 
     private VectorUtil() {

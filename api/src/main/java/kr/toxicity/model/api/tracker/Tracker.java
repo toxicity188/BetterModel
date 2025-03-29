@@ -1,7 +1,7 @@
 package kr.toxicity.model.api.tracker;
 
 import kr.toxicity.model.api.BetterModel;
-import kr.toxicity.model.api.data.renderer.AnimationModifier;
+import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.nms.ModelDisplay;
@@ -28,7 +28,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -39,6 +38,7 @@ import java.util.stream.Stream;
 public abstract class Tracker implements AutoCloseable {
 
     private static final ScheduledExecutorService EXECUTOR = Executors.newScheduledThreadPool(256);
+
     /**
      * Tracker's namespace.
      */
@@ -50,9 +50,7 @@ public abstract class Tracker implements AutoCloseable {
     private final AtomicBoolean runningSingle = new AtomicBoolean();
     private final AtomicLong frame = new AtomicLong();
     private final AtomicBoolean readyForForceUpdate = new AtomicBoolean();
-
     private final TrackerModifier modifier;
-
     private final Runnable updater;
 
     @Getter
@@ -129,6 +127,10 @@ public abstract class Tracker implements AutoCloseable {
         return instance.height();
     }
 
+    /**
+     * Checks this tracker is closed
+     * @return is closed
+     */
     public boolean isClosed() {
         return isClosed.get();
     }
@@ -142,6 +144,9 @@ public abstract class Tracker implements AutoCloseable {
         }
     }
 
+    /**
+     * Despawns this tracker to all players
+     */
     public void despawn() {
         instance.despawn();
     }
@@ -237,48 +242,105 @@ public abstract class Tracker implements AutoCloseable {
      */
     public abstract @NotNull UUID uuid();
 
+    /**
+     * Players this animation by loop
+     * @param animation animation's name
+     * @return success
+     */
     public boolean animateLoop(@NotNull String animation) {
         return animateLoop(animation, AnimationModifier.DEFAULT_LOOP);
     }
 
+    /**
+     * Players this animation by loop
+     * @param animation animation's name
+     * @param modifier modifier
+     * @return success
+     */
     public boolean animateLoop(@NotNull String animation, AnimationModifier modifier) {
         return animateLoop(animation, modifier, () -> {});
     }
 
+    /**
+     * Players this animation by loop
+     * @param animation animation's name
+     * @param modifier modifier
+     * @param removeTask remove task
+     * @return success
+     */
     public boolean animateLoop(@NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
         return animateLoop(e -> true, animation, modifier, removeTask);
     }
 
+    /**
+     * Players this animation by loop
+     * @param filter bone predicate
+     * @param animation animation's name
+     * @param modifier modifier
+     * @param removeTask remove task
+     * @return success
+     */
     public boolean animateLoop(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
         return instance.animateLoop(filter, animation, modifier, removeTask);
     }
 
+    /**
+     * Players this animation by once
+     * @param animation animation's name
+     * @return success
+     */
     public boolean animateSingle(@NotNull String animation) {
         return animateSingle(animation, AnimationModifier.DEFAULT);
     }
 
+    /**
+     * Players this animation by once
+     * @param animation animation's name
+     * @param modifier modifier
+     * @return success
+     */
     public boolean animateSingle(@NotNull String animation, AnimationModifier modifier) {
         return animateSingle(animation, modifier, () -> {});
     }
 
+    /**
+     * Players this animation by once
+     * @param animation animation's name
+     * @param modifier modifier
+     * @param removeTask remove task
+     * @return success
+     */
     public boolean animateSingle(@NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
         return animateSingle(e -> true, animation, modifier, removeTask);
     }
 
+    /**
+     * Players this animation by once
+     * @param filter bone predicate
+     * @param animation animation's name
+     * @param modifier modifier
+     * @param removeTask remove task
+     * @return success
+     */
     public boolean animateSingle(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
         var success = instance.animateSingle(filter, animation, modifier, wrapToSingle(removeTask));
         if (success) runningSingle.set(true);
         return success;
     }
 
-    public void replaceModifier(@NotNull Predicate<RenderedBone> filter, @NotNull Function<AnimationModifier, AnimationModifier> function) {
-        instance.replaceModifier(filter, function);
-    }
-
+    /**
+     * Stops some animation
+     * @param animation animation's name
+     */
     public void stopAnimation(@NotNull String animation) {
         stopAnimation(e -> true, animation);
     }
 
+    /**
+     * Stops some animation
+     * @param filter bone predicate
+     * @param animation animation's name
+     */
     public void stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String animation) {
         instance.stopAnimation(filter, animation);
     }
@@ -290,46 +352,104 @@ public abstract class Tracker implements AutoCloseable {
         };
     }
 
-
+    /**
+     * Replaces some animation by loop
+     * @param target old animation's name
+     * @param animation new animation's name
+     * @return success
+     */
     public boolean replaceLoop(@NotNull String target, @NotNull String animation) {
         return replaceLoop(e -> true, target, animation);
     }
+
+    /**
+     * Replaces some animation by once
+     * @param target old animation's name
+     * @param animation new animation's name
+     * @return success
+     */
     public boolean replaceSingle(@NotNull String target, @NotNull String animation) {
         return replaceSingle(e -> true, target, animation);
     }
 
+    /**
+     * Replaces some animation by loop
+     * @param filter bone predicate
+     * @param target old animation's name
+     * @param animation new animation's name
+     * @return success
+     */
     public boolean replaceLoop(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull String animation) {
         return instance.replaceLoop(filter, target, animation);
     }
 
+    /**
+     * Replaces some animation by once
+     * @param filter bone predicate
+     * @param target old animation's name
+     * @param animation new animation's name
+     * @return success
+     */
     public boolean replaceSingle(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull String animation) {
         var success = instance.replaceSingle(filter, target, animation);
         if (success) runningSingle.set(true);
         return success;
     }
 
+    /**
+     * Toggles some part
+     * @param predicate predicate
+     * @param toggle toggle
+     * @return success
+     */
     public boolean togglePart(@NotNull BonePredicate predicate, boolean toggle) {
         return instance.togglePart(predicate, toggle);
     }
+
+    /**
+     * Sets item of some model part
+     * @param predicate predicate
+     * @param itemStack item
+     * @return success
+     */
     public boolean itemStack(@NotNull BonePredicate predicate, @NotNull TransformedItemStack itemStack) {
         return instance.itemStack(predicate, itemStack);
     }
+
+    /**
+     * Sets brightness of some model part
+     * @param predicate predicate
+     * @param block block light
+     * @param sky skylight
+     * @return success
+     */
     public boolean brightness(@NotNull BonePredicate predicate, int block, int sky) {
         return instance.brightness(predicate, block, sky);
     }
 
-    public @Nullable RenderedBone entity(@NotNull String name) {
-        return instance.renderers().stream()
-                .filter(r -> r.getName().equals(name))
-                .findFirst()
-                .orElse(null);
+    /**
+     * Gets bone by bone's name
+     * @param name bone's name
+     * @return bone or null
+     */
+    public @Nullable RenderedBone bone(@NotNull String name) {
+        return instance.boneOf(name);
     }
-    public @NotNull List<RenderedBone> entity() {
+
+    /**
+     * Gets all bones
+     * @return all bones
+     */
+    public @NotNull List<RenderedBone> bones() {
         return instance.renderers();
     }
 
+    /**
+     * Gets all model displays
+     * @return all model displays
+     */
     public @NotNull List<ModelDisplay> displays() {
-        return instance.renderers().stream()
+        return bones().stream()
                 .map(RenderedBone::getDisplay)
                 .filter(Objects::nonNull)
                 .toList();

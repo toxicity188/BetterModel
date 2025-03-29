@@ -1,6 +1,7 @@
 package kr.toxicity.model.api.util;
 
 import kr.toxicity.model.api.data.raw.Float3;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3f;
@@ -14,6 +15,7 @@ import static java.lang.Math.*;
 /**
  * Math
  */
+@ApiStatus.Internal
 public final class MathUtil {
 
     /**

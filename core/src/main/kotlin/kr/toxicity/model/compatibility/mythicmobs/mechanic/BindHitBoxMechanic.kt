@@ -31,7 +31,7 @@ class BindHitBoxMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.ins
                 object : HitBoxListener {
                     override fun sync(hitBox: HitBox) {
                         if (!spawned.isValid) hitBox.removeHitBox()
-                        else spawned.teleport(it.entity.location)
+                        else spawned.teleport(it.source().location)
                     }
 
                     override fun damage(source: ModelDamageSource, damage: Double): Boolean {

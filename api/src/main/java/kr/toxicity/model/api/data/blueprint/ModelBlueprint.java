@@ -4,6 +4,7 @@ import kr.toxicity.model.api.data.raw.ModelChildren;
 import kr.toxicity.model.api.data.raw.ModelData;
 import kr.toxicity.model.api.data.raw.ModelElement;
 import kr.toxicity.model.api.data.raw.ModelResolution;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -12,6 +13,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Parsed BlockBench model
+ * @param name model name
+ * @param scale model cube scale
+ * @param resolution resolution
+ * @param textures textures
+ * @param group children group
+ * @param animations animations
+ */
+@ApiStatus.Internal
 public record ModelBlueprint(
         @NotNull String name,
         float scale,
@@ -21,6 +32,12 @@ public record ModelBlueprint(
         @NotNull Map<String, BlueprintAnimation> animations
 ) {
 
+    /**
+     * Creates blueprint with raw data
+     * @param name blueprint name
+     * @param data raw data
+     * @return blueprint
+     */
     public static @NotNull ModelBlueprint from(@NotNull String name, @NotNull ModelData data) {
         var elementMap = data.elements().stream().collect(Collectors.toMap(ModelElement::uuid, e -> e));
         var list = new ArrayList<BlueprintChildren>();
@@ -38,6 +55,10 @@ public record ModelBlueprint(
         );
     }
 
+    /**
+     * Builds blueprint image
+     * @return images
+     */
     public @NotNull List<BlueprintImage> buildImage() {
         var list = new ArrayList<BlueprintImage>();
         for (BlueprintTexture texture : textures) {

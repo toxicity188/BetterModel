@@ -1,10 +1,10 @@
 package kr.toxicity.model.api.bone;
 
 import kr.toxicity.model.api.BetterModel;
-import kr.toxicity.model.api.data.blueprint.AnimationMovement;
+import kr.toxicity.model.api.animation.AnimationMovement;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimator;
-import kr.toxicity.model.api.data.renderer.AnimationModifier;
+import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.RendererGroup;
 import kr.toxicity.model.api.nms.*;
 import kr.toxicity.model.api.tracker.ModelRotation;
@@ -58,6 +58,10 @@ public final class RenderedBone implements HitBoxSource {
     private HitBox hitBox;
 
     private int tint;
+    private TreeIterator currentIterator = null;
+    private BoneMovement beforeTransform, afterTransform, relativeOffsetCache;
+    private Vector3f defaultPosition = new Vector3f();
+    private ModelRotation rotation = ModelRotation.EMPTY;
 
     /**
      * Creates entity.
@@ -125,6 +129,7 @@ public final class RenderedBone implements HitBoxSource {
         return checked;
     }
 
+    @ApiStatus.Internal
     public boolean brightness(@NotNull BonePredicate predicate, int block, int sky) {
         var checked = false;
         if (predicate.test(this) && display != null) {
@@ -142,6 +147,7 @@ public final class RenderedBone implements HitBoxSource {
      * @param consumer animation consumer
      * @return whether to success
      */
+    @ApiStatus.Internal
     public boolean addAnimationMovementModifier(@NotNull BonePredicate predicate, @NotNull Consumer<AnimationMovement> consumer) {
         var checked = false;
         if (predicate.test(this)) {
@@ -165,7 +171,6 @@ public final class RenderedBone implements HitBoxSource {
         forEachChildren(e -> e.renderers(renderers));
     }
 
-    private TreeIterator currentIterator = null;
 
     private void updateAnimation() {
         synchronized (animators) {
@@ -216,10 +221,7 @@ public final class RenderedBone implements HitBoxSource {
         }
     }
 
-    private BoneMovement beforeTransform, afterTransform, relativeOffsetCache;
-    private Vector3f defaultPosition = new Vector3f();
-    private ModelRotation rotation = ModelRotation.EMPTY;
-
+    @ApiStatus.Internal
     public void move(@Nullable ModelRotation rotation, @NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
         var d = display;
         if (rotation != null) {
@@ -241,7 +243,8 @@ public final class RenderedBone implements HitBoxSource {
         }
         forEachChildren(e -> e.move(rotation, movement, bundler));
     }
-    
+
+    @ApiStatus.Internal
     public void forceUpdate(@NotNull PacketBundler bundler) {
         forceUpdate0(bundler);
         forEachChildren(e -> e.forceUpdate(bundler));
@@ -295,6 +298,7 @@ public final class RenderedBone implements HitBoxSource {
         }
     }
 
+    @ApiStatus.Internal
     public void defaultPosition(@NotNull Vector3f movement) {
         defaultPosition = group.getLimb() != null ? new Vector3f(movement).add(group.getLimb().getPosition()) : movement;
         forEachChildren(e -> e.defaultPosition(movement));
@@ -333,6 +337,7 @@ public final class RenderedBone implements HitBoxSource {
         return relativeOffsetCache = def;
     }
 
+    @ApiStatus.Internal
     public boolean tint(@NotNull BonePredicate predicate, int tint) {
         var checked = false;
         if (predicate.test(this)) {
@@ -355,16 +360,19 @@ public final class RenderedBone implements HitBoxSource {
         return getGroup().getName();
     }
 
+    @ApiStatus.Internal
     public void teleport(@NotNull Location location, @NotNull PacketBundler bundler) {
         if (display != null) display.teleport(location, bundler);
         forEachChildren(e -> e.teleport(location, bundler));
     }
 
+    @ApiStatus.Internal
     public void spawn(@NotNull PacketBundler bundler) {
         if (display != null) display.spawn(bundler);
         forEachChildren(e -> e.spawn(bundler));
     }
 
+    @ApiStatus.Internal
     public void addLoop(@NotNull Predicate<RenderedBone> filter, @NotNull String parent, @NotNull BlueprintAnimation animator, AnimationModifier modifier, Runnable removeTask) {
         if (filter.test(this)) {
             var get = animator.animator().get(getName());
@@ -375,6 +383,8 @@ public final class RenderedBone implements HitBoxSource {
         }
         forEachChildren(e -> e.addLoop(filter, parent, animator, modifier, () -> {}));
     }
+
+    @ApiStatus.Internal
     public void addSingle(@NotNull Predicate<RenderedBone> filter, @NotNull String parent, @NotNull BlueprintAnimation animator, AnimationModifier modifier, Runnable removeTask) {
         if (filter.test(this)) {
             var get = animator.animator().get(getName());
@@ -386,16 +396,7 @@ public final class RenderedBone implements HitBoxSource {
         forEachChildren(e -> e.addSingle(filter, parent, animator, modifier, () -> {}));
     }
 
-    public void replaceModifier(@NotNull Predicate<RenderedBone> filter, @NotNull Function<AnimationModifier, AnimationModifier> function) {
-        if (filter.test(this)) {
-            var get = animators.get(getName());
-            if (get != null) {
-                get.modifier = Objects.requireNonNull(function.apply(get.modifier));
-            }
-        }
-        forEachChildren(e -> e.replaceModifier(filter, function));
-    }
-
+    @ApiStatus.Internal
     public void replaceLoop(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull String parent, @NotNull BlueprintAnimation animator) {
         if (filter.test(this)) {
             var get = animator.animator().get(getName());
@@ -410,6 +411,7 @@ public final class RenderedBone implements HitBoxSource {
         forEachChildren(e -> e.replaceLoop(filter, target, parent, animator));
     }
 
+    @ApiStatus.Internal
     public void replaceSingle(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull String parent, @NotNull BlueprintAnimation animator) {
         if (filter.test(this)) {
             var get = animator.animator().get(getName());
@@ -424,6 +426,12 @@ public final class RenderedBone implements HitBoxSource {
         forEachChildren(e -> e.replaceSingle(filter, target, parent, animator));
     }
 
+    /**
+     * Stops bone's animation
+     * @param filter filter
+     * @param parent animation's name
+     */
+    @ApiStatus.Internal
     public void stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String parent) {
         if (filter.test(this)) {
             synchronized (animators) {
@@ -433,11 +441,23 @@ public final class RenderedBone implements HitBoxSource {
         forEachChildren(e -> e.stopAnimation(filter, parent));
     }
 
+    /**
+     * Removes model's display
+     * @param bundler packet bundler
+     */
+    @ApiStatus.Internal
     public void remove(@NotNull PacketBundler bundler) {
         if (display != null) display.remove(bundler);
         forEachChildren(e -> e.remove(bundler));
     }
 
+    /**
+     * Toggles some part
+     * @param predicate predicate
+     * @param toggle toggle
+     * @return success
+     */
+    @ApiStatus.Internal
     public boolean togglePart(@NotNull BonePredicate predicate, boolean toggle) {
         var checked = false;
         if (predicate.test(this)) {
@@ -449,9 +469,25 @@ public final class RenderedBone implements HitBoxSource {
         return checked;
     }
 
+    /**
+     * Gets bone
+     * @param predicate predicate
+     * @return matched bone
+     */
+    @ApiStatus.Internal
+    public @Nullable RenderedBone boneOf(@NotNull Predicate<RenderedBone> predicate) {
+        if (predicate.test(this)) return this;
+        for (RenderedBone value : children.values()) {
+            var get = value.boneOf(predicate);
+            if (get != null) return get;
+        }
+        return null;
+    }
+
     private void forEachChildren(@NotNull Consumer<RenderedBone> consumer) {
         children.values().forEach(consumer);
     }
+
     private boolean checkChildren(@NotNull Function<RenderedBone, Boolean> function) {
         var checked = false;
         for (RenderedBone value : children.values()) {
@@ -463,7 +499,7 @@ public final class RenderedBone implements HitBoxSource {
     private static class TreeIterator implements BlueprintAnimator.AnimatorIterator, Supplier<Boolean>, Runnable {
         private final String name;
         private final BlueprintAnimator.AnimatorIterator iterator;
-        private AnimationModifier modifier;
+        private final AnimationModifier modifier;
         private final Runnable removeTask;
 
         private boolean started = false;

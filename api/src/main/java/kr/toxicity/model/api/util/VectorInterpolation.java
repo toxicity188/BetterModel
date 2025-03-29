@@ -1,10 +1,13 @@
 package kr.toxicity.model.api.util;
 
+import kr.toxicity.model.api.animation.VectorPoint;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+@ApiStatus.Internal
 public enum VectorInterpolation {
     LINEAR {
         @NotNull

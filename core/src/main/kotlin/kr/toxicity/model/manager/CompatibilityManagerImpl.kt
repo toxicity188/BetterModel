@@ -21,8 +21,8 @@ object CompatibilityManagerImpl : CompatibilityManager, GlobalManagerImpl {
         Bukkit.getPluginManager().run {
             compatibilities.forEach { (k, v) ->
                 if (isPluginEnabled(k)) {
-                    info("Plugin hooks $k")
                     v().start()
+                    info("Plugin hooks $k")
                 }
             }
         }

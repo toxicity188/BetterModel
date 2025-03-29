@@ -1,5 +1,8 @@
 package kr.toxicity.model.api.data.blueprint;
 
+import kr.toxicity.model.api.animation.AnimationMovement;
+import kr.toxicity.model.api.animation.AnimationPoint;
+import kr.toxicity.model.api.animation.VectorPoint;
 import kr.toxicity.model.api.data.raw.Datapoint;
 import kr.toxicity.model.api.data.raw.ModelKeyframe;
 import kr.toxicity.model.api.util.*;
@@ -45,6 +48,7 @@ public record BlueprintAnimator(@NotNull String name, float length, @NotNull @Un
          * @return self
          */
         public @NotNull Builder addFrame(@NotNull ModelKeyframe keyframe) {
+            if (keyframe.time() > length) return this;
             var interpolation = VectorInterpolation.find(keyframe.interpolation());
             for (Datapoint dataPoint : keyframe.dataPoints()) {
                 var vec = dataPoint.toVector();
@@ -100,7 +104,7 @@ public record BlueprintAnimator(@NotNull String name, float length, @NotNull @Un
                 );
             } else {
                 var last = points.getLast();
-                if (last.time() >= length) return;
+                if (last.time() == length) return;
                 lastPoint = new VectorPoint(
                         last.vector(),
                         length,

@@ -1,6 +1,7 @@
 package kr.toxicity.model.api.util;
 
 import kr.toxicity.model.api.BetterModel;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayOutputStream;
@@ -9,6 +10,7 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
+@ApiStatus.Internal
 public final class LogUtil {
     private LogUtil() {
         throw new RuntimeException();

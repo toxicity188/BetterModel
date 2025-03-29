@@ -4,6 +4,7 @@ import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.raw.ModelAnimation;
 import kr.toxicity.model.api.data.raw.ModelAnimator;
 import kr.toxicity.model.api.data.raw.ModelKeyframe;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,12 +13,30 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * A script data of blueprint.
+ * @param name script name
+ * @param length play time
+ * @param scripts scripts
+ */
+@ApiStatus.Internal
 public record BlueprintScript(@NotNull String name, int length, @NotNull List<TimeScript> scripts) {
 
+    /**
+     * Creates empty script.
+     * @param animation animation
+     * @return blueprint script
+     */
     public static @NotNull BlueprintScript emptyOf(@NotNull ModelAnimation animation) {
         return new BlueprintScript(animation.name(), 0, Collections.emptyList());
     }
 
+    /**
+     * Creates animation's script
+     * @param animation animation
+     * @param animator animator
+     * @return blueprint script
+     */
     public static @NotNull BlueprintScript from(@NotNull ModelAnimation animation, @NotNull ModelAnimator animator) {
         return new BlueprintScript(
                 animation.name(),
@@ -36,16 +55,44 @@ public record BlueprintScript(@NotNull String name, int length, @NotNull List<Ti
                         .toList());
     }
 
+    /**
+     * Script reader
+     */
     public interface ScriptReader {
+        /**
+         * Ticks this reader
+         * @return end
+         */
         boolean tick();
+
+        /**
+         * Clears this reader
+         */
         void clear();
+
+        /**
+         * Gets current entity script
+         * @return script or null
+         */
         @Nullable EntityScript script();
     }
 
+    /**
+     * Gets script reader by once
+     * @param delay delay
+     * @param speed speed
+     * @return reader
+     */
     public @NotNull ScriptReader single(int delay, float speed) {
         return new SingleScriptReader(delay, speed);
     }
 
+    /**
+     * Gets script reader by loop
+     * @param delay delay
+     * @param speed speed
+     * @return reader
+     */
     public @NotNull ScriptReader loop(int delay, float speed) {
         return new LoopScriptReader(delay, speed);
     }

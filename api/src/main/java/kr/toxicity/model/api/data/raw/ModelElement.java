@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.data.raw;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
  * @param origin origin
  * @param faces uv
  */
+@ApiStatus.Internal
 public record ModelElement(
         @NotNull String name,
         @NotNull String uuid,

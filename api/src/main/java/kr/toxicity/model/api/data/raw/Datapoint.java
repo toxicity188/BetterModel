@@ -2,6 +2,7 @@ package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
@@ -15,6 +16,7 @@ import java.util.function.Function;
  * @param z z
  * @param script script
  */
+@ApiStatus.Internal
 public record Datapoint(
         float x,
         float y,

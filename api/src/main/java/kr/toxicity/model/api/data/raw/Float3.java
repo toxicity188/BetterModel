@@ -3,6 +3,7 @@ package kr.toxicity.model.api.data.raw;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import kr.toxicity.model.api.util.MathUtil;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -15,6 +16,7 @@ import java.util.function.Function;
  * @param y y
  * @param z z
  */
+@ApiStatus.Internal
 public record Float3(
         float x,
         float y,
@@ -28,6 +30,9 @@ public record Float3(
      * Center
      */
     public static final Float3 CENTER = new Float3(8, 8, 8);
+    /**
+     * Zero
+     */
     public static final Float3 ZERO = new Float3(0, 0, 0);
 
     /**

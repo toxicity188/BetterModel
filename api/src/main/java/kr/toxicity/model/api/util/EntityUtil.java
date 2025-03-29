@@ -4,6 +4,7 @@ import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,6 +16,7 @@ import static java.lang.Math.*;
 /**
  * Entity
  */
+@ApiStatus.Internal
 public final class EntityUtil {
 
     /**

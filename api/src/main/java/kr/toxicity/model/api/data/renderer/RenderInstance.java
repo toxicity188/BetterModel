@@ -1,7 +1,8 @@
 package kr.toxicity.model.api.data.renderer;
 
 import kr.toxicity.model.api.BetterModel;
-import kr.toxicity.model.api.data.blueprint.AnimationMovement;
+import kr.toxicity.model.api.animation.AnimationModifier;
+import kr.toxicity.model.api.animation.AnimationMovement;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.tracker.TrackerMovement;
@@ -28,7 +29,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -139,6 +139,14 @@ public final class RenderInstance {
         return list;
     }
 
+    public @Nullable RenderedBone boneOf(@NotNull String name) {
+        for (RenderedBone value : entityMap.values()) {
+            var get = value.boneOf(e -> e.getName().equals(name));
+            if (get != null) return get;
+        }
+        return null;
+    }
+
     public double height() {
         var h = 0D;
         for (RenderedBone renderer : renderers()) {
@@ -211,12 +219,6 @@ public final class RenderInstance {
             value.replaceSingle(filter, target, animation, get);
         }
         return true;
-    }
-
-    public void replaceModifier(@NotNull Predicate<RenderedBone> filter, @NotNull Function<AnimationModifier, AnimationModifier> function) {
-        for (RenderedBone value : entityMap.values()) {
-            value.replaceModifier(filter, function);
-        }
     }
 
     public void stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String target) {

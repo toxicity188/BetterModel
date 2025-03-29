@@ -3,6 +3,7 @@ package kr.toxicity.model.api.data.raw;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -16,6 +17,7 @@ import java.util.List;
  * @param textures textures
  * @param animations animations
  */
+@ApiStatus.Internal
 public record ModelData(
         @NotNull ModelResolution resolution,
         @NotNull List<ModelElement> elements,

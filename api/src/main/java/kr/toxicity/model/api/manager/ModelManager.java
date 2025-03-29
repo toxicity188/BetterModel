@@ -11,16 +11,46 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * Model Manager
+ */
 public interface ModelManager extends GlobalManager {
+
+    /**
+     * Gets renderer by name
+     * @param name name
+     * @return renderer or null
+     */
     @Nullable BlueprintRenderer renderer(@NotNull String name);
+
+    /**
+     * Gets all renderer
+     * @return all renderer
+     */
     @NotNull @Unmodifiable
     List<BlueprintRenderer> renderers();
+
+    /**
+     * Gets all key of renderer
+     * @return keys
+     */
     @NotNull @Unmodifiable
     Set<String> keys();
 
+    /**
+     * Get or creates tracker of source entity
+     * @param entity entity
+     * @return tracker or null
+     */
     default @Nullable EntityTracker tracker(@NotNull Entity entity) {
         return EntityTracker.tracker(entity);
     }
+
+    /**
+     * Gets tracker of source entity
+     * @param uuid entity's uuid
+     * @return tracker or null
+     */
     default @Nullable EntityTracker tracker(@NotNull UUID uuid) {
         return EntityTracker.tracker(uuid);
     }

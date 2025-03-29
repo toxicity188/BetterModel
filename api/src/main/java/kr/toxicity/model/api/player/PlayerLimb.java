@@ -12,6 +12,9 @@ import org.bukkit.inventory.meta.SkullMeta;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
+/**
+ * Player limb data
+ */
 @RequiredArgsConstructor
 @Getter
 public enum PlayerLimb {
@@ -58,6 +61,11 @@ public enum PlayerLimb {
     private final @NotNull Vector3f offset;
     private final @NotNull ItemDisplay.ItemDisplayTransform transform;
 
+    /**
+     * Generates transformed item from player
+     * @param player target player
+     * @return item
+     */
     public @NotNull TransformedItemStack createItem(@NotNull Player player) {
         var channel = BetterModel.inst().playerManager().player(player.getUniqueId());
         var item = new ItemStack(Material.PLAYER_HEAD);

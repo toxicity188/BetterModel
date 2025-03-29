@@ -13,8 +13,10 @@ import kr.toxicity.model.compatibility.mythicmobs.MM_PART_ID
 
 class TintMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), INoTargetSkill {
 
-    private val predicate = mlc.getString(MM_PART_ID)!!.let { part ->
-        BonePredicate.of(mlc.getBoolean(MM_CHILDREN, false)) { b ->
+    private val predicate = mlc.getString(MM_PART_ID).let { part ->
+        if (part == null) BonePredicate.of(true) {
+            true
+        } else BonePredicate.of(mlc.getBoolean(MM_CHILDREN, false)) { b ->
             b.name == part
         }
     }

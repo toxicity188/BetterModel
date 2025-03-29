@@ -1,6 +1,5 @@
-package kr.toxicity.model.api.util;
+package kr.toxicity.model.api.animation;
 
-import kr.toxicity.model.api.data.blueprint.AnimationMovement;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 

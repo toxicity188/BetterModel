@@ -26,6 +26,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     private var buildFolderLocation = "BetterModel/build".replace('/', File.separatorChar)
     private var disableGeneratingLegacyModels = false
     private var followMobInvisibility = true
+    private var animatedTextureFrameTime = 10
 
     override fun debug(): DebugConfig = debug
     override fun module(): ModuleConfig = module
@@ -40,6 +41,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     override fun buildFolderLocation(): String = buildFolderLocation
     override fun disableGeneratingLegacyModels(): Boolean = disableGeneratingLegacyModels
     override fun followMobInvisibility(): Boolean = followMobInvisibility
+    override fun animatedTextureFrameTime(): Int = animatedTextureFrameTime
 
     override fun reload() {
         val yaml = PluginConfiguration.CONFIG.create()
@@ -65,6 +67,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
         minSight = yaml.getDouble("min-sight", 5.0)
         lockOnPlayAnimation = yaml.getBoolean("lock-on-play-animation", true)
         namespace = yaml.getString("namespace") ?: "bettermodel"
+        animatedTextureFrameTime = yaml.getInt("animated-texture-frame-time", 10)
         packType = yaml.getString("pack-type")?.let {
             runCatching {
                 PackType.valueOf(it.uppercase())

@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.data.raw;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,6 +14,7 @@ import java.util.Map;
  * @param length keyframe length
  * @param animators animators
  */
+@ApiStatus.Internal
 public record ModelAnimation(
         @NotNull String name,
         @NotNull String loop,

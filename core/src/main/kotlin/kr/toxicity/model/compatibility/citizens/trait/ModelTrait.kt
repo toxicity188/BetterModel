@@ -18,7 +18,7 @@ class ModelTrait : Trait("model") {
             npc.entity?.let {
                 EntityTracker.tracker(it.uniqueId)?.close()
                 value?.create(it)?.apply {
-                    spawnNearby(npc.storedLocation)
+                    spawnNearby()
                 }
             }
             _renderer = value
@@ -44,7 +44,7 @@ class ModelTrait : Trait("model") {
         npc.entity?.let {
             if (EntityTracker.tracker(it.uniqueId) == null) {
                 renderer?.create(it)?.apply {
-                    spawnNearby(npc.storedLocation)
+                    spawnNearby()
                 }
             }
         }

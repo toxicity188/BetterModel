@@ -1,6 +1,7 @@
 package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.annotations.SerializedName;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -10,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
  * @param uvWidth uv-width
  * @param uvHeight uv-height
  */
+@ApiStatus.Internal
 public record ModelTexture(
         @NotNull String name,
         @NotNull String source,

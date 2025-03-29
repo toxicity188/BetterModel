@@ -4,7 +4,7 @@ import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent
 import com.destroystokyo.paper.event.entity.EntityJumpEvent
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent
 import kr.toxicity.model.api.BetterModel
-import kr.toxicity.model.api.data.renderer.AnimationModifier
+import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.event.ModelInteractEvent
 import kr.toxicity.model.api.manager.EntityManager
 import kr.toxicity.model.api.nms.HitBox
@@ -62,7 +62,7 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun EntityDismountEvent.dismount() {
                 val e = dismounted
-                isCancelled = e is HitBox && e.mountController().canFly() && !e.forceDismount()
+                isCancelled = e is HitBox && (e.mountController().canFly() || !e.mountController().canDismountBySelf()) && !e.forceDismount()
             }
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun ModelInteractEvent.interact() {

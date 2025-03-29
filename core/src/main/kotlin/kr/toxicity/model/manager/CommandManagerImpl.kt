@@ -42,7 +42,7 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                         val name = args.get("name") as String
                         ModelManagerImpl.renderer(name)
                             ?.create(player)
-                            ?.spawnNearby(player.location) ?: player.sendMessage("This model doesn't exist: $name")
+                            ?.spawnNearby() ?: player.sendMessage("This model doesn't exist: $name")
                     }),
                 CommandAPICommand("undisguise")
                     .withAliases("ud")
@@ -82,12 +82,11 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                             }.getOrDefault(EntityType.HUSK)
                         } ?: EntityType.HUSK
                         val s = args["scale"] as? Double ?: 1.0
-                        val loc = player.location
                         ModelManagerImpl.renderer(n)
                             ?.create((player.world.spawnEntity(player.location, t) as LivingEntity).apply {
                                 if (PLUGIN.nms().version() >= NMSVersion.V1_21_R1) getAttribute(ATTRIBUTE_SCALE)?.baseValue = s
                             })
-                            ?.spawnNearby(loc)
+                            ?.spawnNearby()
                             ?: run {
                                 player.sendMessage("Unable to find this renderer: $n")
                             }

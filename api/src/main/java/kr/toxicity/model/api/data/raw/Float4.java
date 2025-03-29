@@ -2,6 +2,7 @@ package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
@@ -13,6 +14,7 @@ import java.util.function.Function;
  * @param tx to-x
  * @param tz to-z
  */
+@ApiStatus.Internal
 public record Float4(
         float dx,
         float dz,

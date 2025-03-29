@@ -1,6 +1,6 @@
 package kr.toxicity.model.api.bone;
 
-import kr.toxicity.model.api.data.blueprint.AnimationMovement;
+import kr.toxicity.model.api.animation.AnimationMovement;
 import kr.toxicity.model.api.util.MathUtil;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;

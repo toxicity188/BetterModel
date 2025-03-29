@@ -1,6 +1,7 @@
 package kr.toxicity.model.api.util;
 
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.atomic.AtomicLong;
@@ -8,6 +9,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+@ApiStatus.Internal
 public final class FunctionUtil {
     private FunctionUtil() {
         throw new RuntimeException();

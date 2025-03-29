@@ -2,10 +2,12 @@ package kr.toxicity.model.api.tracker;
 
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Player tracker
+ */
 public final class PlayerTracker extends EntityTracker {
 
     public PlayerTracker(@NotNull Player entity, @NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {

@@ -1,6 +1,6 @@
 package kr.toxicity.model.api.script;
 
-import kr.toxicity.model.api.data.renderer.AnimationModifier;
+import kr.toxicity.model.api.animation.AnimationModifier;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

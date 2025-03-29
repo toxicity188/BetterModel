@@ -1,7 +1,7 @@
 package kr.toxicity.model.api.tracker;
 
 import kr.toxicity.model.api.BetterModel;
-import kr.toxicity.model.api.data.renderer.AnimationModifier;
+import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.nms.EntityAdapter;
@@ -15,12 +15,12 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,7 +30,9 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-@Getter
+/**
+ * Entity tracker
+ */
 public class EntityTracker extends Tracker {
     private static final Map<UUID, EntityTracker> TRACKER_MAP = new ConcurrentHashMap<>();
 
@@ -43,10 +45,19 @@ public class EntityTracker extends Tracker {
     private final AtomicInteger damageTintValue = new AtomicInteger(0xFF7979);
     private final AtomicLong damageTint = new AtomicLong(-1);
 
+    /**
+     * Gets world uuid in tracker
+     * @return world
+     */
     public @NotNull UUID world() {
         return entity.getWorld().getUID();
     }
 
+    /**
+     * Get or creates tracker
+     * @param entity source
+     * @return tracker or null
+     */
     public static @Nullable EntityTracker tracker(@NotNull Entity entity) {
         var t = tracker(entity.getUniqueId());
         if (t == null) {
@@ -57,10 +68,20 @@ public class EntityTracker extends Tracker {
         }
         return t;
     }
+
+    /**
+     * Gets tracker
+     * @param uuid entity's uuid
+     * @return tracker or null
+     */
     public static @Nullable EntityTracker tracker(@NotNull UUID uuid) {
         return TRACKER_MAP.get(uuid);
     }
 
+    /**
+     * Reloads entity tracker
+     */
+    @ApiStatus.Internal
     public static void reload() {
         for (EntityTracker value : new ArrayList<>(TRACKER_MAP.values())) {
             Entity target = value.entity;
@@ -74,7 +95,7 @@ public class EntityTracker extends Tracker {
                     return;
                 }
                 var renderer = BetterModel.inst().modelManager().renderer(name);
-                if (renderer != null) renderer.create(target, value.modifier()).spawnNearby(loc);
+                if (renderer != null) renderer.create(target, value.modifier()).spawnNearby();
             });
         }
     }
@@ -85,10 +106,13 @@ public class EntityTracker extends Tracker {
         return adapter.dead() ? instance.getRotation() : new ModelRotation(0, entity instanceof LivingEntity ? adapter.bodyYaw() : entity.getYaw());
     }
 
-    public static @NotNull List<EntityTracker> trackers(@NotNull Predicate<EntityTracker> predicate) {
-        return TRACKER_MAP.values().stream().filter(predicate).toList();
-    }
-
+    /**
+     * Creates entity tracker
+     * @param entity source entity
+     * @param instance render instance
+     * @param modifier modifier
+     */
+    @ApiStatus.Internal
     public EntityTracker(@NotNull Entity entity, @NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
         super(instance, modifier);
         this.entity = entity;
@@ -158,36 +182,62 @@ public class EntityTracker extends Tracker {
         return super.height() + adapter.passengerPosition().y;
     }
 
-    public void createHitBox() {
+    private void createHitBox() {
         createHitBox(e -> e.getName().contains("hitbox") || e.getName().startsWith("b_") || e.getGroup().getMountController().canMount());
     }
 
-    public void createHitBox(@NotNull Predicate<RenderedBone> predicate) {
+    private void createHitBox(@NotNull Predicate<RenderedBone> predicate) {
         createHitBox(predicate, HitBoxListener.EMPTY);
     }
 
+    /**
+     * Creates hit-box
+     * @param predicate predicate
+     * @param listener listener
+     */
     public void createHitBox(@NotNull Predicate<RenderedBone> predicate, @NotNull HitBoxListener listener) {
         instance.createHitBox(adapter, predicate, listener);
     }
 
+    /**
+     * Gets damage tint value
+     * @return value
+     */
     public int damageTintValue() {
         return damageTintValue.get();
     }
 
+    /**
+     * Sets damage tint value
+     * @param tint hex color
+     */
     public void damageTintValue(int tint) {
         damageTintValue.set(tint);
     }
 
+    /**
+     * Applies damage tint
+     */
     public void damageTint() {
         if (!modifier().damageEffect()) return;
         var get = damageTint.get();
         if (get <= 0 && damageTint.compareAndSet(get, 50)) tint(damageTintValue.get());
     }
 
+    /**
+     * Marks this tracker will be removed by future
+     * @param removal removal
+     */
+    @ApiStatus.Internal
     public void forRemoval(boolean removal) {
         forRemoval.set(removal);
     }
 
+    /**
+     * Checks this tracker is for removal
+     * @return for removal
+     */
+    @ApiStatus.Internal
     public boolean forRemoval() {
         return forRemoval.get();
     }
@@ -216,22 +266,42 @@ public class EntityTracker extends Tracker {
         return entity.getUniqueId();
     }
 
+    /**
+     * Checks this tracker supports auto spawn
+     * @return auto spawn
+     */
     public boolean autoSpawn() {
         return autoSpawn.get();
     }
 
+    /**
+     * Sets this tracker is auto-spawned by some player's client
+     * @param spawn auto spawn
+     */
     public void autoSpawn(boolean spawn) {
         autoSpawn.set(spawn);
     }
 
-    public void spawnNearby() {
-        spawnNearby(location());
-    }
 
+    /**
+     * Gets source entity
+     * @return source
+     */
     public @NotNull Entity source() {
         return entity;
     }
 
+    /**
+     * Spawns this tracker ranged by simulation distance
+     */
+    public void spawnNearby() {
+        spawnNearby(location());
+    }
+
+    /**
+     * Spawns this tracker ranged by simulation distance
+     * @param location center location
+     */
     public void spawnNearby(@NotNull Location location) {
         var filter = instance.spawnFilter();
         for (Entity e : location.getWorld().getNearbyEntities(location, EntityUtil.RENDER_DISTANCE , EntityUtil.RENDER_DISTANCE , EntityUtil.RENDER_DISTANCE)) {
@@ -239,10 +309,19 @@ public class EntityTracker extends Tracker {
         }
     }
 
+    /**
+     * Checks this tracker can be spawned at this player's client
+     * @param player target player
+     * @return can be spawned at
+     */
     public boolean canBeSpawnedAt(@NotNull Player player) {
         return autoSpawn() && instance.spawnFilter().test(player);
     }
 
+    /**
+     * Spawns this tracker to some player
+     * @param player target player
+     */
     public void spawn(@NotNull Player player) {
         var bundler = BetterModel.inst().nms().createBundler();
         spawn(player, bundler);
@@ -264,6 +343,10 @@ public class EntityTracker extends Tracker {
         if (handler != null) handler.endTrack(this);
     }
 
+    /**
+     * Refresh this tracker
+     */
+    @ApiStatus.Internal
     public void refresh() {
         BetterModel.inst().scheduler().task(location(), () -> instance.createHitBox(adapter, r -> r.getHitBox() != null, null));
         var bundler = BetterModel.inst().nms().createBundler();

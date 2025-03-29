@@ -212,14 +212,14 @@ class NMSImpl : NMS {
         private fun send(packet: Packet<*>) = connection.send(packet)
 
         override fun startTrack(tracker: EntityTracker) {
-            val entity = (tracker.entity as CraftEntity).handle
+            val entity = (tracker.source() as CraftEntity).handle
             entityUUIDMap.computeIfAbsent(entity.uuid) {
                 tracker
             }
         }
 
         override fun endTrack(tracker: EntityTracker) {
-            val e = tracker.entity
+            val e = tracker.source()
             val handle = (e as CraftEntity).handle
             entityUUIDMap.remove(handle.uuid)
             val list = arrayListOf<Packet<ClientGamePacketListener>>()
@@ -323,7 +323,7 @@ class NMSImpl : NMS {
         (bundler as PacketBundlerImpl).add(tracker.mountPacket())
     }
 
-    private fun EntityTracker.mountPacket(entity: Entity = (this.entity as CraftEntity).handle): ClientboundSetPassengersPacket {
+    private fun EntityTracker.mountPacket(entity: Entity = (this.source() as CraftEntity).handle): ClientboundSetPassengersPacket {
         val map = displays().mapNotNull {
             (it as? ModelDisplayImpl)?.display
         }

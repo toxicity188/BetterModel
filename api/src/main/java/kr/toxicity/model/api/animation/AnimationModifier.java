@@ -1,4 +1,4 @@
-package kr.toxicity.model.api.data.renderer;
+package kr.toxicity.model.api.animation;
 
 import kr.toxicity.model.api.util.FunctionUtil;
 import org.jetbrains.annotations.NotNull;

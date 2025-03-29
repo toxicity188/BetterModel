@@ -1,4 +1,4 @@
-package kr.toxicity.model.api.data.blueprint;
+package kr.toxicity.model.api.animation;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

@@ -2,6 +2,7 @@ package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.function.Function;
 /**
  * A raw children of model.
  */
+@ApiStatus.Internal
 public sealed interface ModelChildren {
 
     /**

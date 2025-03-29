@@ -2,6 +2,7 @@ package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonObject;
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -13,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
  * @param up up
  * @param down down
  */
+@ApiStatus.Internal
 public record ModelFace(
         @NotNull ModelUV north,
         @NotNull ModelUV east,
