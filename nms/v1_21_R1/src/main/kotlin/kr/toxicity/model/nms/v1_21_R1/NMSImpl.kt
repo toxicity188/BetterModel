@@ -322,7 +322,7 @@ class NMSImpl : NMS {
         (bundler as PacketBundlerImpl).add(tracker.mountPacket())
     }
 
-    private fun EntityTracker.mountPacket(entity: Entity = (this.source() as CraftEntity).handle): ClientboundSetPassengersPacket {
+    private fun EntityTracker.mountPacket(entity: Entity = adapter.handle() as Entity): ClientboundSetPassengersPacket {
         val map = displays().mapNotNull {
             (it as? ModelDisplayImpl)?.display
         }
@@ -512,6 +512,7 @@ class NMSImpl : NMS {
         val handle = (entity as CraftLivingEntity).handle
         return object : EntityAdapter {
             override fun entity(): LivingEntity = entity
+            override fun handle(): Any? = handle
             override fun dead(): Boolean = handle.isDeadOrDying
             override fun invisible(): Boolean = handle.isInvisible
             override fun glow(): Boolean = handle.isCurrentlyGlowing

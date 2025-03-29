@@ -25,6 +25,12 @@ public interface EntityAdapter {
             return null;
         }
 
+        @Nullable
+        @Override
+        public Object handle() {
+            return null;
+        }
+
         @Override
         public boolean invisible() {
             return false;
@@ -112,6 +118,12 @@ public interface EntityAdapter {
 
         @Nullable
         @Override
+        public Object handle() {
+            return delegate.handle();
+        }
+
+        @Nullable
+        @Override
         public LivingEntity entity() {
             return delegate.entity();
         }
@@ -178,6 +190,12 @@ public interface EntityAdapter {
      * @return source entity
      */
     @Nullable LivingEntity entity();
+
+    /**
+     * Gets vanilla entity
+     * @return vanilla entity
+     */
+    @Nullable Object handle();
 
     /**
      * Checks source entity is dead
