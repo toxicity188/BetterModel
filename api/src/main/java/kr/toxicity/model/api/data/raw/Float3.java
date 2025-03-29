@@ -23,6 +23,10 @@ public record Float3(
         float z
 ) {
 
+    /**
+     * Creates floats
+     * @param value scala
+     */
     public Float3(float value) {
         this(value, value, value);
     }
@@ -61,12 +65,20 @@ public record Float3(
         );
     }
 
+    /**
+     * Converts zxy euler to xyz euler (Minecraft)
+     * @return new float
+     */
     public @NotNull Float3 convertToMinecraftDegree() {
         var vec = MathUtil.toMinecraftVector(toVector());
         return new Float3(vec.x, vec.y, vec.z);
     }
 
-
+    /**
+     * Rotates this float
+     * @param quaternionf rotation
+     * @return new float
+     */
     public @NotNull Float3 rotate(@NotNull Quaternionf quaternionf) {
         var vec = toVector().rotate(quaternionf);
         return new Float3(vec.x, vec.y, vec.z);

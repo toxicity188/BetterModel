@@ -77,7 +77,7 @@ public interface ConfigManager {
     @NotNull String buildFolderLocation();
 
     /**
-     * Checks generating legacy model data (<1.21.3) is disabled
+     * Checks generating legacy model data is disabled
      * @return generating legacy model
      */
     boolean disableGeneratingLegacyModels();

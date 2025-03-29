@@ -11,6 +11,7 @@ import java.util.List;
  * A keyframe of model.
  * @param channel channel
  * @param dataPoints movement
+ * @param interpolation interpolation type
  * @param time keyframe time
  */
 @ApiStatus.Internal
@@ -21,6 +22,11 @@ public record ModelKeyframe(
         float time
 ) implements Comparable<ModelKeyframe> {
 
+    /**
+     * Changes keyframe's type
+     * @param time time
+     * @return new keyframe
+     */
     public @NotNull ModelKeyframe time(float time) {
         return new ModelKeyframe(
                 channel,

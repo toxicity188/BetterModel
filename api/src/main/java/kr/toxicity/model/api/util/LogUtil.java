@@ -10,12 +10,23 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
+/**
+ * Log util
+ */
 @ApiStatus.Internal
 public final class LogUtil {
+    /**
+     * No initializer
+     */
     private LogUtil() {
         throw new RuntimeException();
     }
 
+    /**
+     * Handles exception message
+     * @param message message
+     * @param throwable exception
+     */
     public static void handleException(@NotNull String message, @NotNull Throwable throwable) {
         var list = new ArrayList<String>();
         list.add(message);

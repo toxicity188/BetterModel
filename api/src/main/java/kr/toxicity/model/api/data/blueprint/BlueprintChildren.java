@@ -69,6 +69,7 @@ public sealed interface BlueprintChildren {
 
         /**
          * Gets blueprint json
+         * @param scale scale
          * @param parent parent
          * @return json
          */
@@ -87,6 +88,7 @@ public sealed interface BlueprintChildren {
 
         /**
          * Gets blueprint modern json
+         * @param scale scale
          * @param parent parent
          * @return json
          */

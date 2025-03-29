@@ -9,21 +9,50 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+/**
+ * Function util
+ */
 @ApiStatus.Internal
 public final class FunctionUtil {
+    /**
+     * No initializer
+     */
     private FunctionUtil() {
         throw new RuntimeException();
     }
 
+    /**
+     * Throttles this function by tick
+     * @param runnable target
+     * @return throttled function
+     */
     public static @NotNull Runnable throttleTick(@NotNull Runnable runnable) {
         return runnable instanceof TickThrottledRunnable ThrottledRunnable ? ThrottledRunnable : new TickThrottledRunnable(runnable);
     }
+
+    /**
+     * Throttles this function by tick
+     * @param supplier target
+     * @return throttled function
+     */
     public static <T> @NotNull Supplier<T> throttleTick(@NotNull Supplier<T> supplier) {
         return supplier instanceof TickThrottledSupplier<T> ThrottledSupplier ? ThrottledSupplier : new TickThrottledSupplier<>(supplier);
     }
+
+    /**
+     * Throttles this function by tick
+     * @param predicate target
+     * @return throttled function
+     */
     public static <T> @NotNull Predicate<T> throttleTick(@NotNull Predicate<T> predicate) {
         return predicate instanceof TickThrottledPredicate<T> ThrottledSupplier ? ThrottledSupplier : new TickThrottledPredicate<>(predicate);
     }
+
+    /**
+     * Throttles this function by tick
+     * @param function target
+     * @return throttled function
+     */
     public static <T, R> @NotNull Function<T, R> throttleTick(@NotNull Function<T, R> function) {
         return function instanceof TickThrottledFunction<T, R> ThrottledFunction ? ThrottledFunction : new TickThrottledFunction<>(function);
     }

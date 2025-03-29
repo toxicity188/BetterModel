@@ -59,8 +59,9 @@ public abstract class Tracker implements AutoCloseable {
     private Consumer<Tracker> consumer = t -> {};
 
     /**
-     * Tracker
+     * Creates tracker
      * @param instance target instance
+     * @param modifier modifier
      */
     public Tracker(@NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
         this.instance = instance;
@@ -88,6 +89,10 @@ public abstract class Tracker implements AutoCloseable {
         tick(t -> t.instance.getScriptProcessor().tick());
     }
 
+    /**
+     * Gets model rotation.
+     * @return rotation
+     */
     public abstract @NotNull ModelRotation rotation();
 
     /**
@@ -166,6 +171,7 @@ public abstract class Tracker implements AutoCloseable {
 
     /**
      * Forces packet update.
+     * @param force force
      */
     public void forceUpdate(boolean force) {
         readyForForceUpdate.set(force);

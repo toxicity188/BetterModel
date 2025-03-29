@@ -46,6 +46,7 @@ public interface PlayerManager extends GlobalManager {
 
     /**
      * Gets renderer for player animation by name.
+     * @param name renderer's name
      * @return renderer or null
      */
     @Nullable BlueprintRenderer limb(@NotNull String name);

@@ -50,7 +50,7 @@ public sealed interface ModelChildren {
 
     /**
      * A raw element's uuid.
-     * @param uuid
+     * @param uuid uuid
      */
     record ModelUUID(@NotNull String uuid) implements ModelChildren {
     }

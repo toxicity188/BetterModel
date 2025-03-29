@@ -77,10 +77,12 @@ public interface BetterModelPlugin {
 
     /**
      * Adds event handler on reload start.
+     * @param runnable task
      */
     void addReloadStartHandler(@NotNull Runnable runnable);
     /**
      * Adds event handler on reload end.
+     * @param consumer result consumer
      */
     void addReloadEndHandler(@NotNull Consumer<ReloadResult> consumer);
 

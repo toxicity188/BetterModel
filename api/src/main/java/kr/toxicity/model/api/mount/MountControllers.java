@@ -6,6 +6,9 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 public enum MountControllers implements MountController {
+    /**
+     * Invalid
+     */
     INVALID {
         @NotNull
         @Override
@@ -18,6 +21,9 @@ public enum MountControllers implements MountController {
             return false;
         }
     },
+    /**
+     * None
+     */
     NONE {
         @NotNull
         @Override
@@ -30,6 +36,9 @@ public enum MountControllers implements MountController {
             return false;
         }
     },
+    /**
+     * Walk
+     */
     WALK {
         @NotNull
         @Override
@@ -42,6 +51,9 @@ public enum MountControllers implements MountController {
             return input;
         }
     },
+    /**
+     * Fly
+     */
     FLY {
         @NotNull
         @Override

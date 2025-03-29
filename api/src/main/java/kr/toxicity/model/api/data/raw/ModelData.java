@@ -26,6 +26,10 @@ public record ModelData(
         @Nullable List<ModelAnimation> animations
 ) {
 
+    /**
+     * Gets cube scale of this model
+     * @return scale
+     */
     public float scale() {
         return (float) elements().stream().mapToDouble(ModelElement::max).max().orElseThrow() / 16F;
     }

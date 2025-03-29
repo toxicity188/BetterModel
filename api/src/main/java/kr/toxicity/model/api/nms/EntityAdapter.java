@@ -95,6 +95,11 @@ public interface EntityAdapter {
         );
     }
 
+    /**
+     * Multiplier
+     * @param delegate source
+     * @param scaleMultiplier scale multiplier
+     */
     record Multiplier(
             @NotNull EntityAdapter delegate,
             double scaleMultiplier

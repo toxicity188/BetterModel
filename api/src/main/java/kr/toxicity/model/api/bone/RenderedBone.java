@@ -116,6 +116,7 @@ public final class RenderedBone implements HitBoxSource {
      * Changes displayed item
      * @param predicate predicate
      * @param itemStack target item
+     * @return success
      */
     @ApiStatus.Internal
     public boolean itemStack(@NotNull BonePredicate predicate, @NotNull TransformedItemStack itemStack) {

@@ -25,8 +25,14 @@ public final class MathUtil {
         throw new RuntimeException();
     }
 
+    /**
+     * Valid rotation degree
+     */
     public static final float ROTATION_DEGREE = 22.5F;
 
+    /**
+     * Valid rotation degrees
+     */
     public static final Set<Float> VALID_ROTATION_DEGREES = Set.of(
             0F,
             ROTATION_DEGREE,
@@ -35,6 +41,11 @@ public final class MathUtil {
             -ROTATION_DEGREE * 2
     );
 
+    /**
+     * Checks these floats are valid Minecraft degree
+     * @param rotation rotation
+     * @return is valid
+     */
     public static boolean checkValidDegree(@NotNull Float3 rotation) {
         var i = 0;
         if (rotation.x() != 0F) i++;
@@ -43,10 +54,20 @@ public final class MathUtil {
         return i < 2 && checkValidDegree(rotation.x()) && checkValidDegree(rotation.y()) && checkValidDegree(rotation.z());
     }
 
+    /**
+     * Checks this float is valid Minecraft degree
+     * @param rotation rotation
+     * @return is valid
+     */
     public static boolean checkValidDegree(float rotation) {
         return VALID_ROTATION_DEGREES.contains(rotation);
     }
 
+    /**
+     * Creates rotation identifier
+     * @param rotation rotation
+     * @return identifier
+     */
     public static @NotNull Float3 identifier(@NotNull Float3 rotation) {
         if (checkValidDegree(rotation)) return Float3.ZERO;
         return rotation;
@@ -125,37 +146,58 @@ public final class MathUtil {
         return q;
     }
 
-    public static @Nullable Vector3f lerp(@Nullable Vector3f from, @Nullable Vector3f to, float alpha) {
-        if (to == null) to = new Vector3f();
-        if (from == null) from = new Vector3f();
-        return new Vector3f(from)
-                .add(new Vector3f(to).sub(from).mul(alpha));
-    }
-
+    /**
+     * Converts degrees to radians
+     * @param vector degrees
+     * @return radians
+     */
     public static @NotNull Vector3f toRadians(@NotNull Vector3f vector) {
         return new Vector3f(vector).div(180).mul((float) PI);
     }
+
+    /**
+     * Converts radians to degrees
+     * @param vector radians
+     * @return degrees
+     */
     public static @NotNull Vector3f toDegrees(@NotNull Vector3f vector) {
         return new Vector3f(vector).mul(180).div((float) PI);
     }
 
+    /**
+     * Converts zxy euler to xyz euler
+     * @param vec zxy euler
+     * @return xyz euler
+     */
     public static @NotNull Vector3f toMinecraftVector(@NotNull Vector3f vec) {
         return toXYZEuler(toQuaternion(vec));
     }
 
+    /**
+     * Gets rotation matrix of quaternion
+     * @param quaternion rotation
+     * @return matrix
+     */
     public static @NotNull Matrix3f toMatrix(@NotNull Quaternionf quaternion) {
         return quaternion.get(new Matrix3f());
     }
 
+    /**
+     * Converts zxy euler to xyz euler
+     * @param quaternion rotation
+     * @return xyz euler
+     */
     public static @NotNull Vector3f toXYZEuler(@NotNull Quaternionf quaternion) {
         return toXYZEuler(toMatrix(quaternion));
     }
 
-    public static float degree(@NotNull Quaternionf quaternionf) {
-        return (float) Math.toDegrees(quaternionf.angle());
-    }
 
-    public static Vector3f toXYZEuler(Matrix3f mat) {
+    /**
+     * Gets xyz euler of this matrix
+     * @param mat matrix
+     * @return xyz euler
+     */
+    public static @NotNull Vector3f toXYZEuler(@NotNull Matrix3f mat) {
         var ret = new Vector3f();
         if (abs(mat.m20) < 1F) {
             ret.x = (float) atan2(-mat.m21, mat.m22);

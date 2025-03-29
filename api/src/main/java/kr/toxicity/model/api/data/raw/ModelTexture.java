@@ -8,6 +8,8 @@ import org.jetbrains.annotations.NotNull;
  * A raw model texture.
  * @param name texture's name
  * @param source texture's base64-encoded byte array
+ * @param width width
+ * @param height height
  * @param uvWidth uv-width
  * @param uvHeight uv-height
  */

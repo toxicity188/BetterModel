@@ -24,6 +24,12 @@ import java.util.List;
 public record BlueprintAnimator(@NotNull String name, float length, @NotNull @Unmodifiable List<AnimationMovement> keyFrame) {
 
 
+    /**
+     * Animation data
+     * @param name name
+     * @param length length
+     * @param points points
+     */
     public record AnimatorData(@NotNull String name, float length, @NotNull List<AnimationPoint> points) {}
 
     /**
@@ -114,6 +120,11 @@ public record BlueprintAnimator(@NotNull String name, float length, @NotNull @Un
             points.add(lastPoint);
         }
 
+        /**
+         * Builds animation data
+         * @param name animation's name
+         * @return data
+         */
         public @NotNull AnimatorData build(@NotNull String name) {
             addLastFrame(transform);
             addLastFrame(rotation);
@@ -142,10 +153,31 @@ public record BlueprintAnimator(@NotNull String name, float length, @NotNull @Un
         return new LoopIterator();
     }
 
+    /**
+     * A keyframe iterator of animation.
+     */
     public interface AnimatorIterator extends Iterator<AnimationMovement> {
+        /**
+         * Gets first element of animation.
+         * @return first element
+         */
         @NotNull AnimationMovement first();
+
+        /**
+         * Clears this iterator
+         */
         void clear();
+
+        /**
+         * Gets current index
+         * @return current index
+         */
         int index();
+
+        /**
+         * Gets last index of animator
+         * @return last index
+         */
         int lastIndex();
     }
 

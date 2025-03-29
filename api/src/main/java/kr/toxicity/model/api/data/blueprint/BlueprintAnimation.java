@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
  * @param length frame length
  * @param animator group animator
  * @param emptyAnimator empty animation ([0, 0, 0]).
+ * @param script script
  */
 public record BlueprintAnimation(
         @NotNull String name,

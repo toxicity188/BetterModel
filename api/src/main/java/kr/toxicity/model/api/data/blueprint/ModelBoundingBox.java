@@ -17,15 +17,30 @@ public record ModelBoundingBox(
         double maxY,
         double maxZ
 ) {
+    /**
+     * Gets x
+     * @return x
+     */
     public double x() {
         return maxX - minX;
     }
+
+    /**
+     * Gets y
+     * @return y
+     */
     public double y() {
         return maxY - minY;
     }
+
+    /**
+     * Gets z
+     * @return z
+     */
     public double z() {
         return maxZ - minZ;
     }
+
     /**
      * Gets length of bounding box
      * @return length

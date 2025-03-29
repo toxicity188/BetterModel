@@ -3,11 +3,21 @@ package kr.toxicity.model.api.animation;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
+/**
+ * A keyframe point of animation
+ * @param position position
+ * @param rotation rotation
+ * @param scale scale
+ */
 public record AnimationPoint(
         @NotNull VectorPoint position,
         @NotNull VectorPoint rotation,
         @NotNull VectorPoint scale
 ) {
+    /**
+     * Creates animation movement
+     * @return movement
+     */
     public @NotNull AnimationMovement toMovement() {
         return new AnimationMovement(
                 position.time(),

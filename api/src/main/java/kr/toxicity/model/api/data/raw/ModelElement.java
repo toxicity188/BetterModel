@@ -26,9 +26,18 @@ public record ModelElement(
         @NotNull Float3 origin,
         @NotNull ModelFace faces
 ) {
+    /**
+     * Gets max length of this cube
+     * @return cube length
+     */
     public float max() {
         return to.minus(from).toVector().length();
     }
+
+    /**
+     * Checks this model has texture
+     * @return model has texture
+     */
     public boolean hasTexture() {
         return faces.hasTexture();
     }
