@@ -3,8 +3,7 @@ package kr.toxicity.model.api.tracker;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.renderer.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
-import kr.toxicity.model.api.entity.RenderedEntity;
-import kr.toxicity.model.api.entity.TrackerMovement;
+import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.nms.EntityAdapter;
 import kr.toxicity.model.api.nms.HitBoxListener;
 import kr.toxicity.model.api.util.EntityUtil;
@@ -37,7 +36,6 @@ public class EntityTracker extends Tracker {
     private final @NotNull Entity entity;
     @Getter
     private final @NotNull EntityAdapter adapter;
-    private final AtomicBoolean closed = new AtomicBoolean();
     private final AtomicBoolean forRemoval = new AtomicBoolean();
     private final AtomicBoolean autoSpawn = new AtomicBoolean(true);
 
@@ -127,7 +125,7 @@ public class EntityTracker extends Tracker {
         TRACKER_MAP.put(entity.getUniqueId(), this);
         BetterModel.inst().scheduler().task(entity.getLocation(), () -> {
             entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, instance.getParent().getParent().name());
-            if (!closed.get() && !forRemoval()) createHitBox();
+            if (!isClosed() && !forRemoval()) createHitBox();
         });
         tick(t -> t.displays().forEach(d -> d.sync(adapter)));
         tick(t -> {
@@ -152,11 +150,11 @@ public class EntityTracker extends Tracker {
         createHitBox(e -> e.getName().contains("hitbox") || e.getName().startsWith("b_") || e.getGroup().getMountController().canMount());
     }
 
-    public void createHitBox(@NotNull Predicate<RenderedEntity> predicate) {
+    public void createHitBox(@NotNull Predicate<RenderedBone> predicate) {
         createHitBox(predicate, HitBoxListener.EMPTY);
     }
 
-    public void createHitBox(@NotNull Predicate<RenderedEntity> predicate, @NotNull HitBoxListener listener) {
+    public void createHitBox(@NotNull Predicate<RenderedBone> predicate, @NotNull HitBoxListener listener) {
         instance.createHitBox(adapter, predicate, listener);
     }
 
@@ -184,11 +182,16 @@ public class EntityTracker extends Tracker {
 
     @Override
     public void close() throws Exception {
-        closed.set(true);
         instance.allPlayer().forEach(p -> p.endTrack(this));
         super.close();
         TRACKER_MAP.remove(entity.getUniqueId());
         BetterModel.inst().scheduler().task(entity.getLocation(), () -> entity.getPersistentDataContainer().remove(TRACKING_ID));
+    }
+
+    @Override
+    public void despawn() {
+        instance.allPlayer().forEach(p -> p.endTrack(this));
+        super.despawn();
     }
 
     @Override
@@ -209,6 +212,10 @@ public class EntityTracker extends Tracker {
         autoSpawn.set(spawn);
     }
 
+    public void spawnNearby() {
+        spawnNearby(location());
+    }
+
     public void spawnNearby(@NotNull Location location) {
         var filter = instance.spawnFilter();
         for (Entity e : location.getWorld().getNearbyEntities(location, EntityUtil.RENDER_DISTANCE , EntityUtil.RENDER_DISTANCE , EntityUtil.RENDER_DISTANCE)) {
@@ -216,11 +223,15 @@ public class EntityTracker extends Tracker {
         }
     }
 
+    public boolean canBeSpawnedAt(@NotNull Player player) {
+        return autoSpawn() && instance.spawnFilter().test(player);
+    }
+
     public void spawn(@NotNull Player player) {
         var bundler = BetterModel.inst().nms().createBundler();
         spawn(player, bundler);
         BetterModel.inst().nms().mount(this, bundler);
-        bundler.send(player);
+        if (!bundler.isEmpty()) bundler.send(player);
         var handler = BetterModel.inst()
                 .playerManager()
                 .player(player.getUniqueId());
@@ -238,7 +249,7 @@ public class EntityTracker extends Tracker {
     }
 
     public void refresh() {
-        instance.createHitBox(adapter, r -> r.getHitBox() != null, null);
+        BetterModel.inst().scheduler().task(location(), () -> instance.createHitBox(adapter, r -> r.getHitBox() != null, null));
         var bundler = BetterModel.inst().nms().createBundler();
         BetterModel.inst().nms().mount(this, bundler);
         if (!bundler.isEmpty()) viewedPlayer().forEach(bundler::send);

@@ -1,5 +1,6 @@
-package kr.toxicity.model.api.entity;
+package kr.toxicity.model.api.tracker;
 
+import kr.toxicity.model.api.bone.BoneMovement;
 import kr.toxicity.model.api.util.MathUtil;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
@@ -22,9 +23,9 @@ public record TrackerMovement(
      * @param movement movement
      * @return movement
      */
-    public @NotNull EntityMovement plus(@NotNull EntityMovement movement) {
+    public @NotNull BoneMovement plus(@NotNull BoneMovement movement) {
         var q = MathUtil.toQuaternion(rotation);
-        return new EntityMovement(
+        return new BoneMovement(
                 new Vector3f(transform).add(new Vector3f(movement.transform()).rotate(q).mul(scale)),
                 new Vector3f(scale).mul(movement.scale()),
                 new Quaternionf(q).mul(movement.rotation()),

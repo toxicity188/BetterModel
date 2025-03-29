@@ -30,7 +30,7 @@ public enum MountControllers implements MountController {
             return false;
         }
     },
-    DEFAULT {
+    WALK {
         @NotNull
         @Override
         public Vector3f move(@NotNull Player player, @NotNull LivingEntity entity, @NotNull Vector3f input, @NotNull Vector3f travelVector) {
@@ -56,6 +56,11 @@ public enum MountControllers implements MountController {
         @Override
         public boolean canFly() {
             return true;
+        }
+
+        @Override
+        public boolean canDismountBySelf() {
+            return false;
         }
     }
 }

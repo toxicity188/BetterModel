@@ -19,6 +19,7 @@ import org.bukkit.event.entity.*
 import org.bukkit.event.player.PlayerInteractAtEntityEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.world.ChunkLoadEvent
+import org.bukkit.event.world.ChunkUnloadEvent
 import org.bukkit.inventory.EquipmentSlot
 
 object EntityManagerImpl : EntityManager, GlobalManagerImpl {
@@ -26,9 +27,7 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
         if (BetterModel.IS_PAPER) registerListener(object : Listener {
             @EventHandler(priority = EventPriority.MONITOR)
             fun EntityRemoveFromWorldEvent.remove() {
-                EntityTracker.tracker(entity)?.let {
-                    if (!it.forRemoval()) it.close()
-                }
+                EntityTracker.tracker(entity)?.despawn()
             }
             @EventHandler(priority = EventPriority.MONITOR)
             fun EntityAddToWorldEvent.add() {
@@ -38,30 +37,23 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
             fun EntityJumpEvent.jump() {
                 EntityTracker.tracker(entity)?.animateSingle("jump")
             }
-        }) else registerListener(object : Listener {
+        })
+        registerListener(object : Listener {
             @EventHandler(priority = EventPriority.MONITOR)
-            @Suppress("DEPRECATION")
-            fun org.bukkit.event.entity.EntityRemoveEvent.remove() {
+            fun EntityRemoveEvent.remove() {
                 EntityTracker.tracker(entity)?.let {
                     if (!it.forRemoval()) it.close()
                 }
             }
-            @EventHandler(priority = EventPriority.MONITOR)
-            fun EntitySpawnEvent.add() {
-                EntityTracker.tracker(entity)?.refresh()
-            }
-        })
-
-        registerListener(object : Listener {
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun EntityPotionEffectEvent.potion() {
-                if (!isCancelled) EntityTracker.tracker(entity)?.forceUpdate(true)
+                EntityTracker.tracker(entity)?.forceUpdate(true)
             }
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun PlayerInteractAtEntityEvent.interactBukkit() {
                 if (hand != EquipmentSlot.HAND) return
                 val previous = player.vehicle
-                if (previous is HitBox && previous.source().uniqueId == rightClicked.uniqueId) {
+                if (previous is HitBox && previous.source().uniqueId == rightClicked.uniqueId && previous.mountController().canDismountBySelf()) {
                     previous.dismount(player)
                 }
             }
@@ -74,19 +66,28 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
             fun ModelInteractEvent.interact() {
                 if (hand == ModelInteractEvent.Hand.RIGHT) {
                     val previous = player.vehicle
-                    if (previous is HitBox && previous.source().uniqueId == hitBox.source().uniqueId) {
+                    if (previous is HitBox && previous.source().uniqueId == hitBox.source().uniqueId && previous.mountController().canDismountBySelf()) {
                         hitBox.dismount(player)
                     } else if (hitBox.mountController().canMount()) hitBox.mount(player)
                 }
             }
             @EventHandler(priority = EventPriority.MONITOR)
             fun PlayerQuitEvent.quit() {
-                EntityTracker.tracker(player.uniqueId)?.close()
+                EntityTracker.tracker(player)?.close()
             }
             @EventHandler(priority = EventPriority.MONITOR)
             fun ChunkLoadEvent.load() {
                 chunk.entities.forEach {
-                    EntityTracker.tracker(it)?.refresh()
+                    EntityTracker.tracker(it)?.let {
+                        it.refresh()
+                        it.spawnNearby()
+                    }
+                }
+            }
+            @EventHandler(priority = EventPriority.MONITOR)
+            fun ChunkUnloadEvent.unload() {
+                chunk.entities.forEach {
+                    EntityTracker.tracker(it)?.despawn()
                 }
             }
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

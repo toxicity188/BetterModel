@@ -12,13 +12,14 @@ import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.nms.*
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.api.tracker.ModelRotation
+import kr.toxicity.model.api.tracker.Tracker
 import net.minecraft.network.Connection
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.*
 import net.minecraft.network.syncher.EntityDataAccessor
 import net.minecraft.network.syncher.EntityDataSerializers
 import net.minecraft.network.syncher.SynchedEntityData
-import net.minecraft.server.MinecraftServer
+import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.server.network.ServerCommonPacketListenerImpl
 import net.minecraft.util.Brightness
@@ -74,9 +75,7 @@ class NMSImpl : NMS {
                 }
             }
         }
-        private fun Int.toEntity() = MinecraftServer.getServer().allLevels.firstNotNullOfOrNull {
-            it.entityLookup[this]
-        }
+        private fun Int.toEntity(level: ServerLevel) = level.entityLookup[this]
         //Spigot
 
         private fun Class<*>.serializers() = declaredFields.filter { f ->
@@ -164,7 +163,8 @@ class NMSImpl : NMS {
         override fun player(): Player = player
         private fun send(packet: Packet<*>) = connection.send(packet)
 
-        private fun Int.toTracker() = toEntity()?.let {
+        private fun Int.toPlayerEntity() = toEntity(connection.player.serverLevel())
+        private fun Int.toTracker() = toPlayerEntity()?.let {
             entityUUIDMap[it.uuid]
         }
 
@@ -208,11 +208,11 @@ class NMSImpl : NMS {
                     it.handle()
                 })
                 is ClientboundAddEntityPacket -> {
-                    id.toEntity()?.let { e ->
-                        if (entityUUIDMap[e.uuid] != null) return this
-                        BetterModel.inst().scheduler().task(e.bukkitEntity.location) {
+                    id.toPlayerEntity()?.let { e ->
+                        if (!e.bukkitEntity.persistentDataContainer.has(Tracker.TRACKING_ID)) return this
+                        BetterModel.inst().scheduler().taskLater(1, e.bukkitEntity.location) {
                             EntityTracker.tracker(e.bukkitEntity)?.let {
-                                if (it.autoSpawn()) it.spawn(player)
+                                if (it.canBeSpawnedAt(player)) it.spawn(player)
                             }
                         }
                     }
@@ -301,7 +301,7 @@ class NMSImpl : NMS {
         billboardConstraints = Display.BillboardConstraints.FIXED
         moveTo(
             location.x,
-            location.y - 1024.0,
+            location.y,
             location.z,
             location.yaw,
             0F

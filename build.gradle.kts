@@ -34,8 +34,8 @@ allprojects {
         testImplementation(kotlin("test"))
         implementation("dev.jorel:commandapi-bukkit-shade:9.7.0")
         implementation("org.bstats:bstats-bukkit:3.1.0")
-        compileOnly("net.citizensnpcs:citizens-main:2.0.37-SNAPSHOT")
-        compileOnly("io.lumine:Mythic-Dist:5.8.1")
+        compileOnly("net.citizensnpcs:citizens-main:2.0.38-SNAPSHOT")
+        compileOnly("io.lumine:Mythic-Dist:5.8.2")
     }
     tasks {
         test {
@@ -132,8 +132,8 @@ tasks {
         pluginJars(fileTree("plugins"))
         version(minecraft)
         downloadPlugins {
-            hangar("ViaVersion", "5.2.1")
-            hangar("ViaBackwards", "5.2.1")
+            hangar("ViaVersion", "5.3.0")
+            hangar("ViaBackwards", "5.3.0")
             hangar("Skript", "2.10.2")
         }
     }

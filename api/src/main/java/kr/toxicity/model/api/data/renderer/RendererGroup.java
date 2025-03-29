@@ -2,8 +2,8 @@ package kr.toxicity.model.api.data.renderer;
 
 import kr.toxicity.model.api.data.blueprint.BlueprintChildren;
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox;
-import kr.toxicity.model.api.entity.EntityMovement;
-import kr.toxicity.model.api.entity.RenderedEntity;
+import kr.toxicity.model.api.bone.BoneMovement;
+import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.mount.MountController;
 import kr.toxicity.model.api.mount.MountControllers;
 import kr.toxicity.model.api.player.PlayerLimb;
@@ -86,7 +86,7 @@ public final class RendererGroup {
         rotation = group.rotation().toVector();
         center = hitBox != null ? hitBox.centerVector() : new Vector3f();
         if (name.startsWith("p_")) {
-            mountController = MountControllers.DEFAULT;
+            mountController = MountControllers.WALK;
         } else if (name.startsWith("sp_")) {
             mountController = MountControllers.NONE;
         } else mountController = MountControllers.INVALID;
@@ -98,17 +98,17 @@ public final class RendererGroup {
      * @param location location
      * @return entity
      */
-    public @NotNull RenderedEntity create(@Nullable Player player, @NotNull Location location) {
+    public @NotNull RenderedBone create(@Nullable Player player, @NotNull Location location) {
         return create(player, null, location);
     }
-    private @NotNull RenderedEntity create(@Nullable Player player, @Nullable RenderedEntity entityParent, @NotNull Location location) {
-        var entity = new RenderedEntity(
+    private @NotNull RenderedBone create(@Nullable Player player, @Nullable RenderedBone entityParent, @NotNull Location location) {
+        var entity = new RenderedBone(
                 this,
                 entityParent,
                 getItem(player),
                 limb != null ? limb.getTransform() : ItemDisplay.ItemDisplayTransform.FIXED,
                 location,
-                new EntityMovement(
+                new BoneMovement(
                         entityParent != null ? new Vector3f(position).sub(entityParent.getGroup().position) : new Vector3f(),
                         new Vector3f(1),
                         MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(rotation)),

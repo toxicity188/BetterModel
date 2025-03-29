@@ -16,6 +16,7 @@ public final class PlayerTracker extends EntityTracker {
             var handler = BetterModel.inst().playerManager().player(p.getUniqueId());
             return handler != null && handler.showPlayerLimb();
         });
+        autoSpawn(false);
     }
 
     @Override

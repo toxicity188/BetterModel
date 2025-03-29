@@ -48,10 +48,8 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
 
     private fun Player.showAll() {
         val loc = location
-        PLUGIN.scheduler().taskLater(10, loc) {
-            loc.world.getNearbyEntities(loc, EntityUtil.RENDER_DISTANCE, EntityUtil.RENDER_DISTANCE, EntityUtil.RENDER_DISTANCE).forEach {
-                EntityTracker.tracker(it)?.spawn(this)
-            }
+        loc.world.getNearbyEntities(loc, EntityUtil.RENDER_DISTANCE, EntityUtil.RENDER_DISTANCE, EntityUtil.RENDER_DISTANCE).forEach {
+            EntityTracker.tracker(it)?.spawn(this)
         }
     }
 

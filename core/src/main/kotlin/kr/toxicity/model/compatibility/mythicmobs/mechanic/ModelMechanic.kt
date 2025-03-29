@@ -26,7 +26,7 @@ class ModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().s
             val e = p0.caster.entity.bukkitEntity
             val created = it.create(e, TrackerModifier(s, st, de))
             BetterModel.inst().scheduler().taskLater(1, e.location) {
-                created.spawnNearby(e.location)
+                created.spawnNearby()
             }
             SkillResult.SUCCESS
         } ?: SkillResult.ERROR

@@ -3,8 +3,7 @@ package kr.toxicity.model.api.tracker;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.renderer.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
-import kr.toxicity.model.api.entity.RenderedEntity;
-import kr.toxicity.model.api.entity.TrackerMovement;
+import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.util.EntityUtil;
@@ -46,6 +45,7 @@ public abstract class Tracker implements AutoCloseable {
 
     protected final RenderInstance instance;
     private final ScheduledFuture<?> task;
+    private final AtomicBoolean isClosed = new AtomicBoolean();
     private final AtomicBoolean runningSingle = new AtomicBoolean();
     private final AtomicLong frame = new AtomicLong();
     private final AtomicBoolean readyForForceUpdate = new AtomicBoolean();
@@ -81,9 +81,12 @@ public abstract class Tracker implements AutoCloseable {
             );
             if (!bundle.isEmpty()) instance.viewedPlayer().forEach(bundle::send);
         };
-        task = EXECUTOR.scheduleAtFixedRate(updater, 10, 10, TimeUnit.MILLISECONDS);
+        task = EXECUTOR.scheduleAtFixedRate(() -> {
+            if (playerCount() == 0) return;
+            updater.run();
+        }, 10, 10, TimeUnit.MILLISECONDS);
         tint(0xFFFFFF);
-        if (modifier.sightTrace()) instance.filter(p -> EntityUtil.canSee(p.getEyeLocation(), location()));
+        if (modifier.sightTrace()) instance.viewFilter(p -> EntityUtil.canSee(p.getEyeLocation(), location()));
         tick(t -> t.instance.getScriptProcessor().tick());
     }
 
@@ -126,10 +129,21 @@ public abstract class Tracker implements AutoCloseable {
         return instance.height();
     }
 
+    public boolean isClosed() {
+        return isClosed.get();
+    }
+
     @Override
     public void close() throws Exception {
-        task.cancel(true);
-        instance.close();
+        var get = isClosed();
+        if (!get && isClosed.compareAndSet(false, true)) {
+            task.cancel(true);
+            instance.despawn();
+        }
+    }
+
+    public void despawn() {
+        instance.despawn();
     }
 
     /**
@@ -182,8 +196,8 @@ public abstract class Tracker implements AutoCloseable {
      * Gets amount of viewed players.
      * @return viewed players amount
      */
-    public int viewedPlayerSize() {
-        return instance.viewedPlayerSize();
+    public int playerCount() {
+        return instance.playerCount();
     }
 
     /**
@@ -207,7 +221,7 @@ public abstract class Tracker implements AutoCloseable {
      * @param predicate predicate
      * @param rgb toggle
      */
-    public void tint(@NotNull Predicate<RenderedEntity> predicate, int rgb) {
+    public void tint(@NotNull Predicate<RenderedBone> predicate, int rgb) {
         instance.tint(predicate, rgb);
     }
 
@@ -235,7 +249,7 @@ public abstract class Tracker implements AutoCloseable {
         return animateLoop(e -> true, animation, modifier, removeTask);
     }
 
-    public boolean animateLoop(@NotNull Predicate<RenderedEntity> filter, @NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
+    public boolean animateLoop(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
         return instance.animateLoop(filter, animation, modifier, removeTask);
     }
 
@@ -251,13 +265,13 @@ public abstract class Tracker implements AutoCloseable {
         return animateSingle(e -> true, animation, modifier, removeTask);
     }
 
-    public boolean animateSingle(@NotNull Predicate<RenderedEntity> filter, @NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
+    public boolean animateSingle(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
         var success = instance.animateSingle(filter, animation, modifier, wrapToSingle(removeTask));
         if (success) runningSingle.set(true);
         return success;
     }
 
-    public void replaceModifier(@NotNull Predicate<RenderedEntity> filter, @NotNull Function<AnimationModifier, AnimationModifier> function) {
+    public void replaceModifier(@NotNull Predicate<RenderedBone> filter, @NotNull Function<AnimationModifier, AnimationModifier> function) {
         instance.replaceModifier(filter, function);
     }
 
@@ -265,7 +279,7 @@ public abstract class Tracker implements AutoCloseable {
         stopAnimation(e -> true, animation);
     }
 
-    public void stopAnimation(@NotNull Predicate<RenderedEntity> filter, @NotNull String animation) {
+    public void stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String animation) {
         instance.stopAnimation(filter, animation);
     }
 
@@ -284,39 +298,39 @@ public abstract class Tracker implements AutoCloseable {
         return replaceSingle(e -> true, target, animation);
     }
 
-    public boolean replaceLoop(@NotNull Predicate<RenderedEntity> filter, @NotNull String target, @NotNull String animation) {
+    public boolean replaceLoop(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull String animation) {
         return instance.replaceLoop(filter, target, animation);
     }
 
-    public boolean replaceSingle(@NotNull Predicate<RenderedEntity> filter, @NotNull String target, @NotNull String animation) {
+    public boolean replaceSingle(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull String animation) {
         var success = instance.replaceSingle(filter, target, animation);
         if (success) runningSingle.set(true);
         return success;
     }
 
-    public void togglePart(@NotNull Predicate<RenderedEntity> predicate, boolean toggle) {
+    public void togglePart(@NotNull Predicate<RenderedBone> predicate, boolean toggle) {
         instance.togglePart(predicate, toggle);
     }
-    public void itemStack(@NotNull Predicate<RenderedEntity> predicate, @NotNull TransformedItemStack itemStack) {
+    public void itemStack(@NotNull Predicate<RenderedBone> predicate, @NotNull TransformedItemStack itemStack) {
         instance.itemStack(predicate, itemStack);
     }
-    public void brightness(@NotNull Predicate<RenderedEntity> predicate, int block, int sky) {
+    public void brightness(@NotNull Predicate<RenderedBone> predicate, int block, int sky) {
         instance.brightness(predicate, block, sky);
     }
 
-    public @Nullable RenderedEntity entity(@NotNull String name) {
+    public @Nullable RenderedBone entity(@NotNull String name) {
         return instance.renderers().stream()
                 .filter(r -> r.getName().equals(name))
                 .findFirst()
                 .orElse(null);
     }
-    public @NotNull List<RenderedEntity> entity() {
+    public @NotNull List<RenderedBone> entity() {
         return instance.renderers();
     }
 
     public @NotNull List<ModelDisplay> displays() {
         return instance.renderers().stream()
-                .map(RenderedEntity::getDisplay)
+                .map(RenderedBone::getDisplay)
                 .filter(Objects::nonNull)
                 .toList();
     }

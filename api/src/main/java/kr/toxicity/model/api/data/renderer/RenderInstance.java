@@ -3,8 +3,8 @@ package kr.toxicity.model.api.data.renderer;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.blueprint.AnimationMovement;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
-import kr.toxicity.model.api.entity.RenderedEntity;
-import kr.toxicity.model.api.entity.TrackerMovement;
+import kr.toxicity.model.api.bone.RenderedBone;
+import kr.toxicity.model.api.tracker.TrackerMovement;
 import kr.toxicity.model.api.nms.EntityAdapter;
 import kr.toxicity.model.api.nms.HitBoxListener;
 import kr.toxicity.model.api.nms.PacketBundler;
@@ -35,15 +35,15 @@ import java.util.stream.Stream;
  * A manager of each tracker.
  */
 @ApiStatus.Internal
-public final class RenderInstance implements AutoCloseable {
+public final class RenderInstance {
     @Getter
     private final BlueprintRenderer parent;
 
-    private final Map<String, RenderedEntity> entityMap;
+    private final Map<String, RenderedBone> entityMap;
     private final Map<String, BlueprintAnimation> animationMap;
     private final Map<UUID, PlayerChannelHandler> playerMap = new ConcurrentHashMap<>();
-    private Predicate<Player> filter = p -> true;
-    private Predicate<Player> spawnFilter = p -> !playerMap.containsKey(p.getUniqueId());
+    private Predicate<Player> viewFilter = p -> true;
+    private Predicate<Player> spawnFilter = p -> true;
 
     @Getter
     private ModelRotation rotation = ModelRotation.EMPTY;
@@ -51,7 +51,7 @@ public final class RenderInstance implements AutoCloseable {
     @Getter
     private final ScriptProcessor scriptProcessor = new ScriptProcessor();
 
-    public RenderInstance(@NotNull BlueprintRenderer parent, @NotNull Map<String, RenderedEntity> entityMap, @NotNull Map<String, BlueprintAnimation> animationMap) {
+    public RenderInstance(@NotNull BlueprintRenderer parent, @NotNull Map<String, RenderedBone> entityMap, @NotNull Map<String, BlueprintAnimation> animationMap) {
         this.parent = parent;
         this.entityMap = entityMap;
         this.animationMap = animationMap;
@@ -59,8 +59,8 @@ public final class RenderInstance implements AutoCloseable {
         animateLoop("idle");
     }
 
-    public void filter(@NotNull Predicate<Player> filter) {
-        this.filter = this.filter.and(FunctionUtil.throttleTick(filter));
+    public void viewFilter(@NotNull Predicate<Player> filter) {
+        this.viewFilter = this.viewFilter.and(FunctionUtil.throttleTick(filter));
     }
 
     public @NotNull Predicate<Player> spawnFilter() {
@@ -71,16 +71,15 @@ public final class RenderInstance implements AutoCloseable {
         this.spawnFilter = this.spawnFilter.and(spawnFilter);
     }
 
-    public void createHitBox(@NotNull EntityAdapter entity, @NotNull Predicate<RenderedEntity> predicate, @Nullable HitBoxListener listener) {
-        for (RenderedEntity value : entityMap.values()) {
+    public void createHitBox(@NotNull EntityAdapter entity, @NotNull Predicate<RenderedBone> predicate, @Nullable HitBoxListener listener) {
+        for (RenderedBone value : entityMap.values()) {
             value.createHitBox(entity, predicate, listener);
         }
     }
 
-    @Override
-    public void close() throws Exception {
-        for (RenderedEntity value : entityMap.values()) {
-            value.close();
+    public void despawn() {
+        for (RenderedBone value : entityMap.values()) {
+            value.despawn();
         }
         for (PlayerChannelHandler value : playerMap.values()) {
             remove0(value.player());
@@ -98,25 +97,25 @@ public final class RenderInstance implements AutoCloseable {
     }
 
     public void defaultPosition(@NotNull Vector3f movement) {
-        for (RenderedEntity value : entityMap.values()) {
+        for (RenderedBone value : entityMap.values()) {
             value.defaultPosition(new Vector3f(movement).add(value.getGroup().getPosition()));
         }
     }
 
     public void forceUpdate(@NotNull PacketBundler bundler) {
-        for (RenderedEntity value : entityMap.values()) {
+        for (RenderedBone value : entityMap.values()) {
             value.forceUpdate(bundler);
         }
     }
 
-    public void itemStack(@NotNull Predicate<RenderedEntity> predicate, @NotNull TransformedItemStack itemStack) {
-        for (RenderedEntity value : entityMap.values()) {
+    public void itemStack(@NotNull Predicate<RenderedBone> predicate, @NotNull TransformedItemStack itemStack) {
+        for (RenderedBone value : entityMap.values()) {
             value.itemStack(predicate, itemStack);
         }
     }
 
-    public void brightness(@NotNull Predicate<RenderedEntity> predicate, int block, int sky) {
-        for (RenderedEntity value : entityMap.values()) {
+    public void brightness(@NotNull Predicate<RenderedBone> predicate, int block, int sky) {
+        for (RenderedBone value : entityMap.values()) {
             value.brightness(predicate, block, sky);
         }
     }
@@ -124,23 +123,23 @@ public final class RenderInstance implements AutoCloseable {
     public boolean addAnimationMovementModifier(@NotNull Consumer<AnimationMovement> consumer) {
         return addAnimationMovementModifier(r -> true, consumer);
     }
-    public boolean addAnimationMovementModifier(@NotNull Predicate<RenderedEntity> predicate, @NotNull Consumer<AnimationMovement> consumer) {
+    public boolean addAnimationMovementModifier(@NotNull Predicate<RenderedBone> predicate, @NotNull Consumer<AnimationMovement> consumer) {
         var ret = false;
-        for (RenderedEntity value : entityMap.values()) {
+        for (RenderedBone value : entityMap.values()) {
             if (value.addAnimationMovementModifier(predicate, consumer)) ret = true;
         }
         return ret;
     }
 
-    public @NotNull List<RenderedEntity> renderers() {
-        var list = new ArrayList<RenderedEntity>();
+    public @NotNull List<RenderedBone> renderers() {
+        var list = new ArrayList<RenderedBone>();
         entityMap.values().forEach(e -> e.renderers(list));
         return list;
     }
 
     public double height() {
         var h = 0D;
-        for (RenderedEntity renderer : renderers()) {
+        for (RenderedBone renderer : renderers()) {
             var lt = renderer.worldPosition().y;
             if (renderer.getName().startsWith("h_")) return lt;
             if (h < lt) h = lt;
@@ -148,7 +147,7 @@ public final class RenderInstance implements AutoCloseable {
         return h;
     }
 
-    public void tint(@NotNull Predicate<RenderedEntity> predicate, int rgb) {
+    public void tint(@NotNull Predicate<RenderedBone> predicate, int rgb) {
         var bundler = BetterModel.inst().nms().createBundler();
         entityMap.values().forEach(e -> e.tint(predicate, rgb, bundler));
         if (!bundler.isEmpty()) viewedPlayer().forEach(bundler::send);
@@ -170,55 +169,55 @@ public final class RenderInstance implements AutoCloseable {
         return animateSingle(e -> true, animation, modifier, () -> {});
     }
 
-    public boolean animateLoop(@NotNull Predicate<RenderedEntity> filter, @NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
+    public boolean animateLoop(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
         var get = animationMap.get(animation);
         if (get == null) return false;
         scriptProcessor.animateLoop(get.script(), modifier);
-        for (RenderedEntity value : entityMap.values()) {
+        for (RenderedBone value : entityMap.values()) {
             value.addLoop(filter, animation, get, modifier, FunctionUtil.throttleTick(removeTask));
         }
         return true;
     }
 
-    public boolean animateSingle(@NotNull Predicate<RenderedEntity> filter, @NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
+    public boolean animateSingle(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
         var get = animationMap.get(animation);
         if (get == null) return false;
         scriptProcessor.animateSingle(get.script(), modifier);
-        for (RenderedEntity value : entityMap.values()) {
+        for (RenderedBone value : entityMap.values()) {
             value.addSingle(filter, animation, get, modifier, FunctionUtil.throttleTick(removeTask));
         }
         return true;
     }
 
-    public boolean replaceLoop(@NotNull Predicate<RenderedEntity> filter, @NotNull String target, @NotNull String animation) {
+    public boolean replaceLoop(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull String animation) {
         var get = animationMap.get(animation);
         if (get == null) return false;
         scriptProcessor.replaceLoop(get.script(), AnimationModifier.DEFAULT_LOOP);
-        for (RenderedEntity value : entityMap.values()) {
+        for (RenderedBone value : entityMap.values()) {
             value.replaceLoop(filter, target, animation, get);
         }
         return true;
     }
 
-    public boolean replaceSingle(@NotNull Predicate<RenderedEntity> filter, @NotNull String target, @NotNull String animation) {
+    public boolean replaceSingle(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull String animation) {
         var get = animationMap.get(animation);
         if (get == null) return false;
         scriptProcessor.replaceSingle(get.script(), AnimationModifier.DEFAULT);
-        for (RenderedEntity value : entityMap.values()) {
+        for (RenderedBone value : entityMap.values()) {
             value.replaceSingle(filter, target, animation, get);
         }
         return true;
     }
 
-    public void replaceModifier(@NotNull Predicate<RenderedEntity> filter, @NotNull Function<AnimationModifier, AnimationModifier> function) {
-        for (RenderedEntity value : entityMap.values()) {
+    public void replaceModifier(@NotNull Predicate<RenderedBone> filter, @NotNull Function<AnimationModifier, AnimationModifier> function) {
+        for (RenderedBone value : entityMap.values()) {
             value.replaceModifier(filter, function);
         }
     }
 
-    public void stopAnimation(@NotNull Predicate<RenderedEntity> filter, @NotNull String target) {
+    public void stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String target) {
         scriptProcessor.stopAnimation(target);
-        for (RenderedEntity value : entityMap.values()) {
+        for (RenderedBone value : entityMap.values()) {
             value.stopAnimation(filter, target);
         }
     }
@@ -226,28 +225,30 @@ public final class RenderInstance implements AutoCloseable {
     public void spawn(@NotNull Player player, @NotNull PacketBundler bundler) {
         var get = BetterModel.inst().playerManager().player(player.getUniqueId());
         if (get == null) return;
-        playerMap.computeIfAbsent(player.getUniqueId(), u -> {
+        if (playerMap.get(player.getUniqueId()) != null || spawnFilter.test(player)) {
             entityMap.values().forEach(e -> e.spawn(bundler));
-            return get;
-        });
+            playerMap.put(player.getUniqueId(), get);
+        }
     }
+
     public void remove(@NotNull Player player) {
         if (playerMap.remove(player.getUniqueId()) == null) return;
         remove0(player);
     }
+
     private void remove0(@NotNull Player player) {
         var bundler = BetterModel.inst().nms().createBundler();
         entityMap.values().forEach(e -> e.remove(bundler));
         bundler.send(player);
     }
 
-    public void togglePart(@NotNull Predicate<RenderedEntity> predicate, boolean toggle) {
+    public void togglePart(@NotNull Predicate<RenderedBone> predicate, boolean toggle) {
         var bundler = BetterModel.inst().nms().createBundler();
         entityMap.values().forEach(e -> e.togglePart(bundler, predicate, toggle));
         if (!bundler.isEmpty()) viewedPlayer().forEach(bundler::send);
     }
 
-    public int viewedPlayerSize() {
+    public int playerCount() {
         return playerMap.size();
     }
 
@@ -255,7 +256,7 @@ public final class RenderInstance implements AutoCloseable {
         return playerMap.values().stream();
     }
     public @NotNull Stream<Player> viewedPlayer() {
-        return viewedPlayer(filter);
+        return viewedPlayer(viewFilter);
     }
     public @NotNull Stream<Player> viewedPlayer(@NotNull Predicate<Player> predicate) {
         return allPlayer().map(PlayerChannelHandler::player).filter(predicate);
