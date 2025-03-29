@@ -27,7 +27,9 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
         if (BetterModel.IS_PAPER) registerListener(object : Listener {
             @EventHandler(priority = EventPriority.MONITOR)
             fun EntityRemoveFromWorldEvent.remove() {
-                EntityTracker.tracker(entity)?.despawn()
+                EntityTracker.tracker(entity)?.let {
+                    if (!it.forRemoval()) it.despawn()
+                }
             }
             @EventHandler(priority = EventPriority.MONITOR)
             fun EntityAddToWorldEvent.add() {

@@ -6,6 +6,7 @@ import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
+import kr.toxicity.model.api.util.BonePredicate;
 import kr.toxicity.model.api.util.EntityUtil;
 import kr.toxicity.model.api.util.FunctionUtil;
 import kr.toxicity.model.api.util.TransformedItemStack;
@@ -70,15 +71,14 @@ public abstract class Tracker implements AutoCloseable {
         updater = () -> {
             consumer.accept(this);
             var bundle = BetterModel.inst().nms().createBundler();
-            if (readyForForceUpdate.get()) {
-                instance.forceUpdate(bundle);
-                readyForForceUpdate.set(false);
-            }
             instance.move(
                     frame.incrementAndGet() % 5 == 0 ? (isRunningSingleAnimation() && BetterModel.inst().configManager().lockOnPlayAnimation()) ? instance.getRotation() : rotation() : null,
                     movement.get(),
                     bundle
             );
+            if (readyForForceUpdate.compareAndSet(true, false) && bundle.isEmpty()) {
+                instance.forceUpdate(bundle);
+            }
             if (!bundle.isEmpty()) instance.viewedPlayer().forEach(bundle::send);
         };
         task = EXECUTOR.scheduleAtFixedRate(() -> {
@@ -181,7 +181,7 @@ public abstract class Tracker implements AutoCloseable {
      */
 
     protected void spawn(@NotNull Player player, @NotNull PacketBundler bundler) {
-        instance.spawn(player, bundler);
+        if (!isClosed()) instance.spawn(player, bundler);
     }
 
     /**
@@ -213,7 +213,7 @@ public abstract class Tracker implements AutoCloseable {
      * @param rgb toggle
      */
     public void tint(int rgb) {
-        instance.tint(e -> true, rgb);
+        if (instance.tint(BonePredicate.TRUE, rgb)) forceUpdate(true);
     }
 
     /**
@@ -221,8 +221,8 @@ public abstract class Tracker implements AutoCloseable {
      * @param predicate predicate
      * @param rgb toggle
      */
-    public void tint(@NotNull Predicate<RenderedBone> predicate, int rgb) {
-        instance.tint(predicate, rgb);
+    public void tint(@NotNull BonePredicate predicate, int rgb) {
+        if (instance.tint(predicate, rgb)) forceUpdate(true);
     }
 
     /**
@@ -308,14 +308,14 @@ public abstract class Tracker implements AutoCloseable {
         return success;
     }
 
-    public void togglePart(@NotNull Predicate<RenderedBone> predicate, boolean toggle) {
-        instance.togglePart(predicate, toggle);
+    public boolean togglePart(@NotNull BonePredicate predicate, boolean toggle) {
+        return instance.togglePart(predicate, toggle);
     }
-    public void itemStack(@NotNull Predicate<RenderedBone> predicate, @NotNull TransformedItemStack itemStack) {
-        instance.itemStack(predicate, itemStack);
+    public boolean itemStack(@NotNull BonePredicate predicate, @NotNull TransformedItemStack itemStack) {
+        return instance.itemStack(predicate, itemStack);
     }
-    public void brightness(@NotNull Predicate<RenderedBone> predicate, int block, int sky) {
-        instance.brightness(predicate, block, sky);
+    public boolean brightness(@NotNull BonePredicate predicate, int block, int sky) {
+        return instance.brightness(predicate, block, sky);
     }
 
     public @Nullable RenderedBone entity(@NotNull String name) {

@@ -6,6 +6,7 @@ import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.nms.EntityAdapter;
 import kr.toxicity.model.api.nms.HitBoxListener;
+import kr.toxicity.model.api.util.BonePredicate;
 import kr.toxicity.model.api.util.EntityUtil;
 import kr.toxicity.model.api.util.FunctionUtil;
 import lombok.Getter;
@@ -95,7 +96,18 @@ public class EntityTracker extends Tracker {
                 .multiply(modifier.scale());
         instance.defaultPosition(new Vector3f(0, -adapter.passengerPosition().y, 0));
         instance.addAnimationMovementModifier(
-                r -> r.getName().startsWith("h_") || r.getName().startsWith("hi_"),
+                BonePredicate.of(r -> r.getName().startsWith("h_")),
+                a -> {
+                    if (a.rotation() != null && !isRunningSingleAnimation()) {
+                        a.rotation().add(-adapter.pitch(), Math.clamp(
+                                -adapter.yaw() + adapter.bodyYaw(),
+                                -45,
+                                45
+                        ), 0);
+                    }
+                });
+        instance.addAnimationMovementModifier(
+                BonePredicate.of(true, r -> r.getName().startsWith("hi_")),
                 a -> {
                     if (a.rotation() != null && !isRunningSingleAnimation()) {
                         a.rotation().add(-adapter.pitch(), Math.clamp(
@@ -216,6 +228,10 @@ public class EntityTracker extends Tracker {
         spawnNearby(location());
     }
 
+    public @NotNull Entity source() {
+        return entity;
+    }
+
     public void spawnNearby(@NotNull Location location) {
         var filter = instance.spawnFilter();
         for (Entity e : location.getWorld().getNearbyEntities(location, EntityUtil.RENDER_DISTANCE , EntityUtil.RENDER_DISTANCE , EntityUtil.RENDER_DISTANCE)) {
@@ -231,7 +247,7 @@ public class EntityTracker extends Tracker {
         var bundler = BetterModel.inst().nms().createBundler();
         spawn(player, bundler);
         BetterModel.inst().nms().mount(this, bundler);
-        if (!bundler.isEmpty()) bundler.send(player);
+        bundler.send(player);
         var handler = BetterModel.inst()
                 .playerManager()
                 .player(player.getUniqueId());

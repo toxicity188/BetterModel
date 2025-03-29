@@ -119,7 +119,9 @@ class NMSImpl : NMS {
         }
 
         private val sharedFlag = Entity::class.java.serializers().first().toSerializerId()
-        private val itemId = ItemDisplay::class.java.serializers().first().toSerializerId()
+        private val itemId = ItemDisplay::class.java.serializers().map {
+            it.toSerializerId()
+        }
         private val transformSet = Display::class.java.serializers().subList(0, 9).map { e ->
             e.toSerializerId()
         }.toSet() + itemId + sharedFlag
@@ -130,7 +132,12 @@ class NMSImpl : NMS {
     ) : PacketBundler, MutableList<Packet<in ClientGamePacketListener>> by list {
         override fun copy(): PacketBundler = PacketBundlerImpl(ArrayList(list))
         override fun send(player: Player) {
-            if (isNotEmpty()) (player as CraftPlayer).handle.connection.send(ClientboundBundlePacket(this))
+            val connection = (player as CraftPlayer).handle.connection
+            when (size) {
+                0 -> {}
+                1 -> connection.send(get(0))
+                else -> connection.send(ClientboundBundlePacket(this))
+            }
         }
     }
 
@@ -138,10 +145,12 @@ class NMSImpl : NMS {
         val connection = (player as CraftPlayer).handle
         val entity = (entity as CraftEntity).handle
         val task = {
-            entity.refreshEntityData(connection)
-            connection.connection.send(ClientboundSetEquipmentPacket(entity.id, EquipmentSlot.entries.map { e ->
-                Pair.of(e, Items.AIR.defaultInstance)
-            }))
+            connection.connection.send(ClientboundBundlePacket(listOf(
+                ClientboundSetEntityDataPacket(entity.id, entity.entityData.pack()),
+                ClientboundSetEquipmentPacket(entity.id, EquipmentSlot.entries.map { e ->
+                    Pair.of(e, Items.AIR.defaultInstance)
+                })
+            )))
         }
         if (entity === connection) BetterModel.inst().scheduler().asyncTaskLater(1, task) else task()
     }
@@ -156,12 +165,14 @@ class NMSImpl : NMS {
                 .handle
                 .gameProfile
                 .properties["textures"]
-                .iterator()
-                .next()
+                .first()
                 .value
-            val json = JsonParser.parseString(String(Base64.getDecoder().decode(encodedValue))).asJsonObject
-            val skinObject = json.getAsJsonObject("textures").getAsJsonObject("SKIN")
-            skinObject.get("metadata")?.asJsonObject?.get("model")?.asString == "slim"
+            JsonParser.parseString(String(Base64.getDecoder().decode(encodedValue)))
+                .asJsonObject
+                .getAsJsonObject("textures")
+                .getAsJsonObject("SKIN")
+                .get("metadata")?.asJsonObject
+                ?.get("model")?.asString == "slim"
         }
 
         init {
@@ -210,10 +221,11 @@ class NMSImpl : NMS {
             val e = tracker.entity
             val handle = (e as CraftEntity).handle
             entityUUIDMap.remove(handle.uuid)
-            send(ClientboundSetEntityDataPacket(handle.id, handle.entityData.pack()))
+            val list = arrayListOf<Packet<ClientGamePacketListener>>()
+            list += ClientboundSetEntityDataPacket(handle.id, handle.entityData.pack())
             if (e is LivingEntity) {
                 e.equipment?.let { i ->
-                    send(ClientboundSetEquipmentPacket(handle.id, org.bukkit.inventory.EquipmentSlot.entries.mapNotNull {
+                    list += ClientboundSetEquipmentPacket(handle.id, org.bukkit.inventory.EquipmentSlot.entries.mapNotNull {
                         it to (runCatching {
                             i.getItem(it)
                         }.getOrNull() ?: return@mapNotNull null)
@@ -227,15 +239,16 @@ class NMSImpl : NMS {
                             HEAD -> EquipmentSlot.HEAD
                             BODY -> EquipmentSlot.BODY
                         }, CraftItemStack.asNMSCopy(item))
-                    }))
+                    })
                 }
             }
-            send(ClientboundSetPassengersPacket(handle))
+            list += ClientboundSetPassengersPacket(handle)
+            send(ClientboundBundlePacket(list))
         }
 
-        private fun <T : ClientGamePacketListener> Packet<in T>.handle(): Packet<in T>? {
+        private fun <T : ClientGamePacketListener> Packet<in T>.handle(): Packet<in T> {
             when (this) {
-                is ClientboundBundlePacket -> return ClientboundBundlePacket(subPackets().mapNotNull {
+                is ClientboundBundlePacket -> return ClientboundBundlePacket(subPackets().map {
                     it.handle()
                 })
                 is ClientboundAddEntityPacket -> {
@@ -279,7 +292,7 @@ class NMSImpl : NMS {
 
         override fun write(ctx: ChannelHandlerContext, msg: Any, promise: ChannelPromise) {
             if (msg is Packet<*>) {
-                super.write(ctx, msg.handle() ?: return, promise)
+                super.write(ctx, msg.handle(), promise)
                 return
             }
             super.write(ctx, msg, promise)
@@ -439,12 +452,9 @@ class NMSImpl : NMS {
         }
 
         private val dataPacket
-            get(): ClientboundSetEntityDataPacket {
-                val result = ClientboundSetEntityDataPacket(display.id, display.entityData.pack().filter {
-                    transformSet.contains(it.id)
-                })
-                return result
-            }
+            get(): ClientboundSetEntityDataPacket = ClientboundSetEntityDataPacket(display.id, display.entityData.pack().filter {
+                transformSet.contains(it.id)
+            })
 
         private val removePacket
             get() = ClientboundRemoveEntitiesPacket(display.id)
@@ -503,11 +513,11 @@ class NMSImpl : NMS {
         return object : EntityAdapter {
             override fun entity(): LivingEntity = entity
             override fun dead(): Boolean = handle.isDeadOrDying
-            override fun invisible(): Boolean = handle.isInvisible || handle.hasEffect(MobEffects.INVISIBILITY)
+            override fun invisible(): Boolean = handle.isInvisible
             override fun glow(): Boolean = handle.isCurrentlyGlowing
 
             override fun onWalk(): Boolean {
-                return handle is Mob && handle.navigation.isInProgress
+                return handle.isWalking()
             }
 
             override fun scale(): Double {

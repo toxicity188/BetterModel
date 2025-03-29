@@ -11,6 +11,7 @@ import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.script.ScriptProcessor;
 import kr.toxicity.model.api.tracker.ModelRotation;
+import kr.toxicity.model.api.util.BonePredicate;
 import kr.toxicity.model.api.util.FunctionUtil;
 import kr.toxicity.model.api.util.TransformedItemStack;
 import lombok.Getter;
@@ -108,22 +109,23 @@ public final class RenderInstance {
         }
     }
 
-    public void itemStack(@NotNull Predicate<RenderedBone> predicate, @NotNull TransformedItemStack itemStack) {
+    public boolean itemStack(@NotNull BonePredicate predicate, @NotNull TransformedItemStack itemStack) {
+        var checked = false;
         for (RenderedBone value : entityMap.values()) {
-            value.itemStack(predicate, itemStack);
+            if (value.itemStack(predicate, itemStack)) checked = true;
         }
+        return checked;
     }
 
-    public void brightness(@NotNull Predicate<RenderedBone> predicate, int block, int sky) {
+    public boolean brightness(@NotNull BonePredicate predicate, int block, int sky) {
+        var checked = false;
         for (RenderedBone value : entityMap.values()) {
-            value.brightness(predicate, block, sky);
+            if (value.brightness(predicate, block, sky)) checked = true;
         }
+        return checked;
     }
 
-    public boolean addAnimationMovementModifier(@NotNull Consumer<AnimationMovement> consumer) {
-        return addAnimationMovementModifier(r -> true, consumer);
-    }
-    public boolean addAnimationMovementModifier(@NotNull Predicate<RenderedBone> predicate, @NotNull Consumer<AnimationMovement> consumer) {
+    public boolean addAnimationMovementModifier(@NotNull BonePredicate predicate, @NotNull Consumer<AnimationMovement> consumer) {
         var ret = false;
         for (RenderedBone value : entityMap.values()) {
             if (value.addAnimationMovementModifier(predicate, consumer)) ret = true;
@@ -147,10 +149,12 @@ public final class RenderInstance {
         return h;
     }
 
-    public void tint(@NotNull Predicate<RenderedBone> predicate, int rgb) {
-        var bundler = BetterModel.inst().nms().createBundler();
-        entityMap.values().forEach(e -> e.tint(predicate, rgb, bundler));
-        if (!bundler.isEmpty()) viewedPlayer().forEach(bundler::send);
+    public boolean tint(@NotNull BonePredicate predicate, int rgb) {
+        var checked = false;
+        for (RenderedBone value : entityMap.values()) {
+            if (value.tint(predicate, rgb)) checked = true;
+        }
+        return checked;
     }
 
 
@@ -242,10 +246,12 @@ public final class RenderInstance {
         bundler.send(player);
     }
 
-    public void togglePart(@NotNull Predicate<RenderedBone> predicate, boolean toggle) {
-        var bundler = BetterModel.inst().nms().createBundler();
-        entityMap.values().forEach(e -> e.togglePart(bundler, predicate, toggle));
-        if (!bundler.isEmpty()) viewedPlayer().forEach(bundler::send);
+    public boolean togglePart(@NotNull BonePredicate predicate, boolean toggle) {
+        var checked = false;
+        for (RenderedBone value : entityMap.values()) {
+            if (value.togglePart(predicate, toggle)) checked = true;
+        }
+        return checked;
     }
 
     public int playerCount() {

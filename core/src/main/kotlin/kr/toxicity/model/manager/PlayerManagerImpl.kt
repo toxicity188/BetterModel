@@ -31,13 +31,17 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
         registerListener(object : Listener {
             @EventHandler
             fun PlayerJoinEvent.join() {
-                player.register()
-                player.showAll()
+                runCatching { //For fake player
+                    player.register()
+                    player.showAll()
+                }
             }
             @EventHandler
             fun PlayerChangedWorldEvent.change() {
-                player.register().unregisterAll()
-                player.showAll()
+                runCatching {
+                    player.register().unregisterAll()
+                    player.showAll()
+                }
             }
             @EventHandler
             fun PlayerQuitEvent.quit() {
@@ -85,7 +89,7 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
         renderMap[model]?.let {
             EntityTracker.tracker(player.uniqueId)?.close()
             val create = it.createPlayerLimb(player)
-            create.spawnNearby(player.location)
+            create.spawnNearby()
             if (!create.animateSingle(animation, AnimationModifier.DEFAULT) {
                 create.close()
             }) create.close()

@@ -9,6 +9,7 @@ import kr.toxicity.model.api.data.renderer.RendererGroup;
 import kr.toxicity.model.api.nms.*;
 import kr.toxicity.model.api.tracker.ModelRotation;
 import kr.toxicity.model.api.tracker.TrackerMovement;
+import kr.toxicity.model.api.util.BonePredicate;
 import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.TransformedItemStack;
 import kr.toxicity.model.api.util.VectorUtil;
@@ -113,19 +114,26 @@ public final class RenderedBone implements HitBoxSource {
      * @param itemStack target item
      */
     @ApiStatus.Internal
-    public void itemStack(@NotNull Predicate<RenderedBone> predicate, @NotNull TransformedItemStack itemStack) {
+    public boolean itemStack(@NotNull BonePredicate predicate, @NotNull TransformedItemStack itemStack) {
+        var checked = false;
         if (predicate.test(this)) {
             this.itemStack = cachedStack = itemStack;
-            applyItem();
+            checked = applyItem();
         }
-        forEachChildren(e -> e.itemStack(predicate, itemStack));
+        var children = predicate.children(checked);
+        if (checkChildren(e -> e.itemStack(children, itemStack))) checked = true;
+        return checked;
     }
 
-    public void brightness(@NotNull Predicate<RenderedBone> predicate, int block, int sky) {
+    public boolean brightness(@NotNull BonePredicate predicate, int block, int sky) {
+        var checked = false;
         if (predicate.test(this) && display != null) {
             display.brightness(block, sky);
+            checked = true;
         }
-        forEachChildren(e -> e.brightness(predicate, block, sky));
+        var children = predicate.children(checked);
+        if (checkChildren(e -> e.brightness(children, block, sky))) checked = true;
+        return checked;
     }
 
     /**
@@ -134,18 +142,17 @@ public final class RenderedBone implements HitBoxSource {
      * @param consumer animation consumer
      * @return whether to success
      */
-    public boolean addAnimationMovementModifier(@NotNull Predicate<RenderedBone> predicate, @NotNull Consumer<AnimationMovement> consumer) {
+    public boolean addAnimationMovementModifier(@NotNull BonePredicate predicate, @NotNull Consumer<AnimationMovement> consumer) {
+        var checked = false;
         if (predicate.test(this)) {
             synchronized (movementModifier) {
                 movementModifier.add(consumer);
             }
-            return true;
+            checked = true;
         }
-        var ret = false;
-        for (RenderedBone value : children.values()) {
-            if (value.addAnimationMovementModifier(predicate, consumer)) ret = true;
-        }
-        return ret;
+        var children = predicate.children(checked);
+        if (checkChildren(e -> e.addAnimationMovementModifier(children, consumer))) checked = true;
+        return checked;
     }
 
     /**
@@ -326,12 +333,15 @@ public final class RenderedBone implements HitBoxSource {
         return relativeOffsetCache = def;
     }
 
-    public void tint(@NotNull Predicate<RenderedBone> predicate, int tint, @NotNull PacketBundler bundler) {
+    public boolean tint(@NotNull BonePredicate predicate, int tint) {
+        var checked = false;
         if (predicate.test(this)) {
             this.tint = tint;
-            if (applyItem()) forceUpdate0(bundler);
+            checked = applyItem();
         }
-        forEachChildren(e -> e.tint(predicate, tint, bundler));
+        var children = predicate.children(checked);
+        if (checkChildren(e -> e.tint(children, tint))) checked = true;
+        return checked;
     }
 
     private boolean applyItem() {
@@ -428,16 +438,26 @@ public final class RenderedBone implements HitBoxSource {
         forEachChildren(e -> e.remove(bundler));
     }
 
-    public void togglePart(@NotNull PacketBundler bundler, @NotNull Predicate<RenderedBone> predicate, boolean toggle) {
+    public boolean togglePart(@NotNull BonePredicate predicate, boolean toggle) {
+        var checked = false;
         if (predicate.test(this)) {
             itemStack = toggle ? cachedStack : TransformedItemStack.EMPTY;
-            if (applyItem()) forceUpdate0(bundler);
+            checked = applyItem();
         }
-        forEachChildren(e -> e.togglePart(bundler, predicate, toggle));
+        var children = predicate.children(checked);
+        if (checkChildren(e -> e.togglePart(children, toggle))) checked = true;
+        return checked;
     }
 
     private void forEachChildren(@NotNull Consumer<RenderedBone> consumer) {
         children.values().forEach(consumer);
+    }
+    private boolean checkChildren(@NotNull Function<RenderedBone, Boolean> function) {
+        var checked = false;
+        for (RenderedBone value : children.values()) {
+            if (function.apply(value)) checked = true;
+        }
+        return checked;
     }
 
     private static class TreeIterator implements BlueprintAnimator.AnimatorIterator, Supplier<Boolean>, Runnable {
