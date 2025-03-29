@@ -148,14 +148,8 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                 val jsonList = arrayListOf<BlueprintJson>()
                 val modernJsonList = arrayListOf<BlueprintJson>()
                 renderMap[load.name] = load.toRenderer(maxScale) render@ { blueprintGroup ->
-                    val blueprint = blueprintGroup.buildJson(maxScale, load) ?: return@render null
+                    //Modern
                     val modernBlueprint = blueprintGroup.buildModernJson(maxScale, load) ?: return@render null
-                    override.add(JsonObject().apply {
-                        add("predicate", JsonObject().apply {
-                            addProperty("custom_model_data", index)
-                        })
-                        addProperty("model", "${ConfigManagerImpl.namespace()}:item/${blueprint.name}")
-                    })
                     modernEntries.add(JsonObject().apply {
                         addProperty("threshold", index)
                         add("model", JsonObject().apply {
@@ -176,8 +170,17 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                             })
                         })
                     })
-                    jsonList += blueprint
                     modernJsonList += modernBlueprint
+                    //Legacy
+                    if (!ConfigManagerImpl.disableGeneratingLegacyModels()) blueprintGroup.buildJson(maxScale, load)?.let { blueprint ->
+                        override.add(JsonObject().apply {
+                            add("predicate", JsonObject().apply {
+                                addProperty("custom_model_data", index)
+                            })
+                            addProperty("model", "${ConfigManagerImpl.namespace()}:item/${blueprint.name}")
+                        })
+                        jsonList += blueprint
+                    }
                     index++
                 }
                 if (!ConfigManagerImpl.disableGeneratingLegacyModels()) jsonList.forEach { json ->

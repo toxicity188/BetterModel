@@ -489,16 +489,17 @@ class NMSImpl : NMS {
     override fun version(): NMSVersion = NMSVersion.V1_20_R3
 
     override fun adapt(entity: LivingEntity): EntityAdapter {
-        val handle = (entity as CraftLivingEntity).handle
+        val craftEntity = entity as CraftLivingEntity
         return object : EntityAdapter {
+
             override fun entity(): LivingEntity = entity
-            override fun handle(): Any? = handle
-            override fun dead(): Boolean = handle.isDeadOrDying
-            override fun invisible(): Boolean = handle.isInvisible
-            override fun glow(): Boolean = handle.isCurrentlyGlowing
+            override fun handle(): net.minecraft.world.entity.LivingEntity = craftEntity.vanillaEntity as net.minecraft.world.entity.LivingEntity
+            override fun dead(): Boolean = handle().isDeadOrDying
+            override fun invisible(): Boolean = handle().isInvisible
+            override fun glow(): Boolean = handle().isCurrentlyGlowing
 
             override fun onWalk(): Boolean {
-                return handle.isWalking()
+                return handle().isWalking()
             }
 
             override fun scale(): Double {
@@ -506,22 +507,24 @@ class NMSImpl : NMS {
             }
 
             override fun pitch(): Float {
-                return handle.xRot
+                return handle().xRot
             }
 
             override fun bodyYaw(): Float {
+                val handle = handle()
                 return if (handle is ServerPlayer) handle.yRot else handle.visualRotationYInDegrees
             }
 
             override fun yaw(): Float {
-                return handle.yHeadRot
+                return handle().yHeadRot
             }
 
             override fun fly(): Boolean {
-                return handle.isFlying
+                return handle().isFlying
             }
 
             override fun damageTick(): Float {
+                val handle = handle()
                 val duration = handle.invulnerableDuration.toFloat()
                 if (duration <= 0F) return 0F
                 val knockBack = 1 - (handle.getAttribute(Attributes.KNOCKBACK_RESISTANCE)?.value?.toFloat() ?: 0F)
@@ -529,6 +532,7 @@ class NMSImpl : NMS {
             }
 
             override fun walkSpeed(): Float {
+                val handle = handle()
                 if (!handle.onGround) return 1F
                 val speed = handle.getEffect(MobEffects.MOVEMENT_SPEED)?.amplifier ?: 0
                 val slow = handle.getEffect(MobEffects.MOVEMENT_SLOWDOWN)?.amplifier ?: 0
@@ -538,7 +542,7 @@ class NMSImpl : NMS {
             }
 
             override fun passengerPosition(): Vector3f {
-                return handle.passengerPosition(scale())
+                return handle().passengerPosition(scale())
             }
         }
     }

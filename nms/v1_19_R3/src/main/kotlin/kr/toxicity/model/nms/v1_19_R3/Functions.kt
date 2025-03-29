@@ -15,6 +15,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes
 import net.minecraft.world.entity.animal.FlyingAnimal
 import net.minecraft.world.phys.Vec3
 import org.bukkit.Bukkit
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftEntity
 import org.bukkit.event.Cancellable
 import org.bukkit.event.Event
 import org.joml.Vector3f
@@ -108,3 +109,6 @@ val Entity.isFlying: Boolean
         is LivingEntity -> isFallFlying
         else -> false
     }
+
+val CraftEntity.vanillaEntity: Entity
+    get() = handle
