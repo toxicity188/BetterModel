@@ -203,6 +203,10 @@ class HitBoxImpl(
     }
 
     override fun tick() {
+        if (!delegate.valid) {
+            if (valid) removeHitBox()
+            return
+        }
         val controller = controllingPassenger
         if (jumpDelay > 0) jumpDelay--
         health = delegate.health

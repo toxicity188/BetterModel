@@ -4,6 +4,7 @@ import kr.toxicity.model.api.data.raw.ModelChildren;
 import kr.toxicity.model.api.data.raw.ModelData;
 import kr.toxicity.model.api.data.raw.ModelElement;
 import kr.toxicity.model.api.data.raw.ModelResolution;
+import kr.toxicity.model.api.util.PackUtil;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -62,7 +63,7 @@ public record ModelBlueprint(
     public @NotNull List<BlueprintImage> buildImage() {
         var list = new ArrayList<BlueprintImage>();
         for (BlueprintTexture texture : textures) {
-            list.add(new BlueprintImage(name + "_" + texture.name(), texture.image(), texture.isAnimatedTexture() ? texture.toMcmeta() : null));
+            list.add(new BlueprintImage(PackUtil.toPackName(name + "_" + texture.name()), texture.image(), texture.isAnimatedTexture() ? texture.toMcmeta() : null));
         }
         return list;
     }

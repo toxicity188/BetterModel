@@ -28,16 +28,13 @@ public sealed interface BlueprintChildren {
      */
     static BlueprintChildren from(@NotNull ModelChildren children, @NotNull @Unmodifiable Map<String, ModelElement> elementMap) {
         return switch (children) {
-            case ModelChildren.ModelGroup modelGroup -> {
-                PackUtil.validatePath(modelGroup.name(), "Group name must be [a-z0-9/._-]: " + modelGroup.name());
-                yield new BlueprintGroup(
+            case ModelChildren.ModelGroup modelGroup -> new BlueprintGroup(
                     modelGroup.name(),
                     modelGroup.origin(),
                     modelGroup.rotation(),
                     modelGroup.children().stream().map(c -> from(c, elementMap)).toList(),
                     modelGroup.visibility()
-                );
-            }
+            );
             case ModelChildren.ModelUUID modelUUID -> new BlueprintElement(Objects.requireNonNull(elementMap.get(modelUUID.uuid())));
         };
     }
@@ -64,7 +61,7 @@ public sealed interface BlueprintChildren {
          * @return name
          */
         public @NotNull String jsonName(@NotNull ModelBlueprint parent) {
-            return parent.name().toLowerCase() + "_" + name.toLowerCase();
+            return PackUtil.toPackName(parent.name() + "_" + name);
         }
 
         /**
@@ -173,6 +170,7 @@ public sealed interface BlueprintChildren {
         }
     }
 
+
     /**
      * Blueprint element.
      * @param element raw element
@@ -184,7 +182,7 @@ public sealed interface BlueprintChildren {
             return rot == null ? Float3.ZERO : MathUtil.identifier(rot);
         }
 
-        private @NotNull Float3 centralize(@NotNull Float3 target, @NotNull Float3 groupOrigin, float scale) {
+        private static @NotNull Float3 centralize(@NotNull Float3 target, @NotNull Float3 groupOrigin, float scale) {
             return target.minus(groupOrigin).div(scale);
         }
 

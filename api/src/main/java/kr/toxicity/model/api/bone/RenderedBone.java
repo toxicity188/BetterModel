@@ -273,7 +273,7 @@ public final class RenderedBone implements HitBoxSource {
         if (afterTransform != null) {
             var progress = 1F - progress();
             var before = beforeTransform != null ? beforeTransform : BoneMovement.EMPTY;
-            var vec = VectorUtil.linear(before.transform(), afterTransform.transform(), progress)
+            return VectorUtil.linear(before.transform(), afterTransform.transform(), progress)
                     .add(offset)
                     .add(itemStack.offset())
                     .mul(VectorUtil.linear(before.scale(), afterTransform.scale(), progress))
@@ -283,7 +283,6 @@ public final class RenderedBone implements HitBoxSource {
                     .add(defaultPosition)
                     .rotateX((float) -Math.toRadians(rotation.x()))
                     .rotateY((float) -Math.toRadians(rotation.y()));
-            return vec.isFinite() ? vec : new Vector3f();
         }
         return new Vector3f();
     }
@@ -320,7 +319,8 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     private float progress() {
-        return delay / (float) frame();
+        var f = frame();
+        return f == 0 ? 0F : delay / (float) f;
     }
 
     private BoneMovement relativeOffset() {

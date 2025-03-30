@@ -18,17 +18,9 @@ public final class PackUtil {
         throw new RuntimeException();
     }
 
-    /**
-     * Pack validator
-     */
-    public static final Pattern PATH_PATTERN = Pattern.compile("^[a-z0-9/._-]+$");
+    private static final Pattern REPLACE_SOURCE = Pattern.compile("[ -]");
 
-    /**
-     * Checks some path is valid
-     * @param path path
-     * @param message error message
-     */
-    public static void validatePath(@NotNull String path, @NotNull String message) {
-        if (!PATH_PATTERN.matcher(path).find()) throw new RuntimeException(message);
+    public static @NotNull String toPackName(@NotNull String raw) {
+        return REPLACE_SOURCE.matcher(raw.toLowerCase()).replaceAll("_");
     }
 }
