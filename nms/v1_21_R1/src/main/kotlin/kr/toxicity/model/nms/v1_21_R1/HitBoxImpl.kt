@@ -30,7 +30,6 @@ import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import org.bukkit.Bukkit
 import org.bukkit.craftbukkit.CraftServer
-import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.craftbukkit.entity.CraftLivingEntity
 import org.bukkit.entity.Entity
 import org.bukkit.event.entity.EntityPotionEffectEvent
@@ -190,7 +189,7 @@ class HitBoxImpl(
 
     override fun tick() {
         if (!delegate.valid) {
-            if (valid) removeHitBox()
+            if (valid) remove(RemovalReason.KILLED)
             return
         }
         val controller = controllingPassenger
@@ -223,26 +222,18 @@ class HitBoxImpl(
 
     override fun remove(reason: RemovalReason) {
         initialSetup()
-        BetterModel.inst().scheduler().task(bukkitEntity.location) {
-            super.remove(reason)
-            listener.remove(this)
-        }
+        listener.remove(this)
+        super.remove(reason)
     }
 
-    override fun getBukkitLivingEntity(): CraftLivingEntity {
-        val c = craftEntity
-        return c ?: object : CraftLivingEntity(Bukkit.getServer() as CraftServer, this), HitBox by this {}.apply {
-            craftEntity = this
-        }
-    }
+    override fun getBukkitLivingEntity(): CraftLivingEntity = bukkitEntity
     
-    override fun getBukkitEntity(): CraftEntity {
+    override fun getBukkitEntity(): CraftLivingEntity {
         val c = craftEntity
         return c ?: object : CraftLivingEntity(Bukkit.getServer() as CraftServer, this), HitBox by this {}.apply {
             craftEntity = this
         }
     }
-
 
     private val dimensions = EntityDimensions(
         max(source.x(), source.z()).toFloat(),
@@ -326,6 +317,8 @@ class HitBoxImpl(
     override fun getDefaultDimensions(pose: Pose): EntityDimensions = dimensions
 
     override fun removeHitBox() {
-        remove(RemovalReason.KILLED)
+        BetterModel.inst().scheduler().task(bukkitEntity.location) {
+            remove(RemovalReason.KILLED)
+        }
     }
 }

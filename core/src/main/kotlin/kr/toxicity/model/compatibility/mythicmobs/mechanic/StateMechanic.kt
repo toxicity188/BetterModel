@@ -15,6 +15,7 @@ class StateMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().s
     private val li = mlc.getInteger(arrayOf("li"), 0)
     private val lo = mlc.getInteger(arrayOf("lo"), 0)
     private val sp = mlc.getFloat(arrayOf("speed", "sp"), 1F)
+    private val remove = mlc.getBoolean(arrayOf("remove", "r"), false)
 
     init {
         isAsyncSafe = false
@@ -22,7 +23,7 @@ class StateMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().s
 
     override fun cast(p0: SkillMetadata): SkillResult {
         return EntityTracker.tracker(p0.caster.entity.bukkitEntity)?.let {
-            it.animateSingle(s, AnimationModifier({ true }, li, lo, sp))
+            if (remove) it.stopAnimation(s) else it.animateSingle(s, AnimationModifier({ true }, li, lo, sp))
             SkillResult.SUCCESS
         } ?: SkillResult.ERROR
     }
