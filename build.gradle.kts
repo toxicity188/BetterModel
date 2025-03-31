@@ -132,8 +132,8 @@ tasks {
         pluginJars(fileTree("plugins"))
         version(minecraft)
         downloadPlugins {
-            hangar("ViaVersion", "5.3.0")
-            hangar("ViaBackwards", "5.3.0")
+            hangar("ViaVersion", "5.3.1")
+            hangar("ViaBackwards", "5.3.1")
             hangar("Skript", "2.10.2")
         }
     }
@@ -205,9 +205,6 @@ bukkitPluginYaml {
 }
 
 val supportedVersion = listOf(
-    "1.19.4",
-    "1.20",
-    "1.20.1",
     "1.20.2",
     "1.20.3",
     "1.20.4",

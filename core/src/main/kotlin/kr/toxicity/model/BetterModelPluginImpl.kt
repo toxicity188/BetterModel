@@ -78,8 +78,6 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
             V1_20_5, V1_20_6 -> kr.toxicity.model.nms.v1_20_R4.NMSImpl()
             V1_20_3, V1_20_4 -> kr.toxicity.model.nms.v1_20_R3.NMSImpl()
             V1_20_2 -> kr.toxicity.model.nms.v1_20_R2.NMSImpl()
-            V1_20, V1_20_1 -> kr.toxicity.model.nms.v1_20_R1.NMSImpl()
-            V1_19_4 -> kr.toxicity.model.nms.v1_19_R3.NMSImpl()
             else -> {
                 warn(
                     "Unsupported version: $version",

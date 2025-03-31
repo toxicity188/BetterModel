@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.raw.ModelResolution;
 import kr.toxicity.model.api.data.raw.ModelTexture;
+import kr.toxicity.model.api.util.PackUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.imageio.ImageIO;
@@ -41,7 +42,7 @@ public record BlueprintTexture(
             throw new RuntimeException("image");
         }
         return new BlueprintTexture(
-                blueprint.name().split("\\.")[0].toLowerCase(),
+                blueprint.name().split("\\.")[0],
                 image,
                 blueprint.uvWidth(),
                 blueprint.uvHeight()
@@ -67,6 +68,15 @@ public record BlueprintTexture(
         animation.addProperty("frametime", BetterModel.inst().configManager().animatedTextureFrameTime());
         json.add("animation", animation);
         return json;
+    }
+
+    /**
+     * Creates pack name
+     * @param parentName parent name
+     * @return texture name in pack
+     */
+    public @NotNull String packName(@NotNull String parentName) {
+        return BetterModel.inst().configManager().namespace() + ":item/" + PackUtil.toPackName(parentName + "_" + name());
     }
 
     /**

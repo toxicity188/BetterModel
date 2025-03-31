@@ -18,7 +18,6 @@ uniform mat4 ProjMat;
 
 uniform vec3 Light0_Direction;
 uniform vec3 Light1_Direction;
-uniform vec3 ChunkOffset;
 
 uniform int FogShape;
 
@@ -111,7 +110,7 @@ void main() {
     overlayColor = texelFetch(Sampler1, UV1, 0);
     normal = ProjMat * ModelViewMat * vec4(Normal, 0.0);
 
-    vec3 wpos = Position + ChunkOffset;
+    vec3 wpos = Position;
     ivec2 dim = textureSize(Sampler0, 0);
 
     if (ProjMat[2][3] == 0.0 || dim.x != 64 || dim.y != 64) { // short circuit if cannot be player
@@ -121,7 +120,7 @@ void main() {
         vertexDistance = fog_distance(Position, FogShape);
         gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
     }
-    else if (length(inverse(ModelViewMat)[3].xyz - wpos) < 0.6) {
+    else if (length(inverse(ModelViewMat)[3].xyz - wpos) < 0.75) {
         part = 0.0;
         texCoord0 = UV0;
         texCoord1 = UV1;

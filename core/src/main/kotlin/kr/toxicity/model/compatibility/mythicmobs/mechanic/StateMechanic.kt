@@ -23,7 +23,7 @@ class StateMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().s
 
     override fun cast(p0: SkillMetadata): SkillResult {
         return EntityTracker.tracker(p0.caster.entity.bukkitEntity)?.let {
-            if (remove) it.stopAnimation(s) else it.animateSingle(s, AnimationModifier({ true }, li, lo, sp))
+            if (remove) it.stopAnimation(s) else it.animateSingle(s, AnimationModifier(li, lo, sp))
             SkillResult.SUCCESS
         } ?: SkillResult.ERROR
     }

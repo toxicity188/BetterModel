@@ -57,7 +57,7 @@ partvisibility
 ### Version
 - Spigot, Paper or a fork (e.g. Folia)
 - Java 21
-- Minecraft 1.19.4-1.21.4
+- Minecraft 1.20.2-1.21.4
 
 ### Dependency
 No

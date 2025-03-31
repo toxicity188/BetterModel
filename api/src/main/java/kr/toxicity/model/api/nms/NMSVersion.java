@@ -2,6 +2,7 @@ package kr.toxicity.model.api.nms;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents server's version.
@@ -9,14 +10,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Getter
 public enum NMSVersion {
-    /**
-     * 1.19.4
-     */
-    V1_19_R3(19,3, 13),
-    /**
-     * 1.20-1.20.1
-     */
-    V1_20_R1(20,1, 15),
     /**
      * 1.20.2
      */
@@ -58,4 +51,13 @@ public enum NMSVersion {
      * That client version's resource pack mcmeta version.
      */
     private final int metaVersion;
+
+    public static @NotNull NMSVersion first() {
+        return values()[0];
+    }
+
+    public static @NotNull NMSVersion latest() {
+        var entries = values();
+        return entries[entries.length - 1];
+    }
 }

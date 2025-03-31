@@ -16,6 +16,7 @@ import java.io.File
 import java.security.DigestOutputStream
 import java.security.MessageDigest
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
@@ -31,16 +32,24 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
     private class PackData(
         val path: String,
         val byteArray: () -> ByteArray
-    ) : () -> ByteArray by byteArray
+    ) : () -> ByteArray by byteArray {
+        fun prefixed(prefix: String) = PackData("$prefix/$path", byteArray)
+    }
 
     private class PackDataZipper {
-        private val map = hashMapOf<String, PackData>()
+        private val map = ConcurrentHashMap<String, PackData>()
 
         fun add(parent: String, name: String, byteArray: () -> ByteArray) {
-            val n = "$parent/$name"
+            val n = if (parent.isEmpty()) name else "$parent/$name"
             if (map.put(n, PackData(n, byteArray)) != null) warn(
                 "Name collision found: $n"
             )
+        }
+
+        fun add(prefix: String, other: PackDataZipper) {
+            map += other.map.entries.associate {
+                "$prefix/${it.key}" to it.value.prefixed(prefix)
+            }
         }
 
         fun toFileTree(file: File) {
@@ -62,11 +71,6 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                     output.write(it.byteArray())
                 }
             }
-            if (ConfigManagerImpl.module().playerAnimation()) PLUGIN.loadAssets("pack") { s, i ->
-                s.toFile().outputStream().buffered().use { output ->
-                    i.copyTo(output)
-                }
-            }
             fileTree.values.forEach(File::delete)
             map.clear()
         }
@@ -85,13 +89,6 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                         zip.closeEntry()
                     }
                 }
-                if (ConfigManagerImpl.module().playerAnimation()) PLUGIN.loadAssets("pack") { s, i ->
-                    synchronized(zip) {
-                        zip.putNextEntry(ZipEntry(s))
-                        zip.write(i.readAllBytes())
-                        zip.closeEntry()
-                    }
-                }
             }
         }
     }
@@ -99,7 +96,11 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
     override fun reload() {
         renderMap.clear()
         index = 1
+
         val zipper = PackDataZipper()
+        val modernModel = PackDataZipper()
+        val legacyModel = PackDataZipper()
+
         val itemName = ConfigManagerImpl.item().name.lowercase()
         val modelJson = JsonObject().apply {
             addProperty("parent", "minecraft:item/generated")
@@ -124,6 +125,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
 
         renderMap.clear()
         val model = arrayListOf<ModelBlueprint>()
+
         if (ConfigManagerImpl.module().model()) {
             DATA_FOLDER.subFolder("models").forEachAllFolder {
                 if (it.extension == "bbmodel") {
@@ -172,7 +174,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                     })
                     modernJsonList += modernBlueprint
                     //Legacy
-                    if (!ConfigManagerImpl.disableGeneratingLegacyModels()) blueprintGroup.buildJson(maxScale, load)?.let { blueprint ->
+                    blueprintGroup.buildJson(maxScale, load)?.let { blueprint ->
                         override.add(JsonObject().apply {
                             add("predicate", JsonObject().apply {
                                 addProperty("custom_model_data", index)
@@ -183,23 +185,23 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                     }
                     index++
                 }
-                if (!ConfigManagerImpl.disableGeneratingLegacyModels()) jsonList.forEach { json ->
-                    zipper.add(modelsPath, "${json.name}.json") {
+                jsonList.forEach { json ->
+                    legacyModel.add(modelsPath, "${json.name}.json") {
                         json.element.toByteArray()
                     }
                 }
                 modernJsonList.forEach { json ->
-                    zipper.add(modernModelsPath, "${json.name}.json") {
+                    modernModel.add(modernModelsPath, "${json.name}.json") {
                         json.element.toByteArray()
                     }
                 }
             }
-            if (!ConfigManagerImpl.disableGeneratingLegacyModels()) zipper.add(MINECRAFT_ITEM_PATH, "$itemName.json") {
+            legacyModel.add(MINECRAFT_ITEM_PATH, "$itemName.json") {
                 modelJson.apply {
                     add("overrides", override)
                 }.toByteArray()
             }
-            zipper.add(MODERN_MINECRAFT_ITEM_PATH, "$itemName.json") {
+            modernModel.add(MODERN_MINECRAFT_ITEM_PATH, "$itemName.json") {
                 JsonObject().apply {
                     add("model", modernModelJson.apply {
                         add("entries", modernEntries)
@@ -208,6 +210,26 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
             }
         }
 
+        if (ConfigManagerImpl.module().playerAnimation()) {
+            PLUGIN.loadAssets("pack") { s, i ->
+                val read = i.readAllBytes()
+                legacyModel.add("", s) {
+                    read
+                }
+            }
+            PLUGIN.loadAssets("modern_pack") { s, i ->
+                val read = i.readAllBytes()
+                modernModel.add("", s) {
+                    read
+                }
+            }
+        }
+
+        zipper.add("${ConfigManagerImpl.namespace()}_modern", modernModel)
+        if (ConfigManagerImpl.createPackMcmeta()) zipper.add("", "pack.mcmeta") {
+            PACK_MCMETA.toByteArray()
+        }
+        if (!ConfigManagerImpl.disableGeneratingLegacyModels()) zipper.add("${ConfigManagerImpl.namespace()}_legacy", legacyModel)
         runCatching {
             when (ConfigManagerImpl.packType()) {
                 FOLDER -> zipper.toFileTree(File(DATA_FOLDER.parent, ConfigManagerImpl.buildFolderLocation()).apply {

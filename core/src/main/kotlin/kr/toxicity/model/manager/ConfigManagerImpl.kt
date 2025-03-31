@@ -27,6 +27,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     private var disableGeneratingLegacyModels = false
     private var followMobInvisibility = true
     private var animatedTextureFrameTime = 10
+    private var createPackMcmeta = true
 
     override fun debug(): DebugConfig = debug
     override fun module(): ModuleConfig = module
@@ -42,6 +43,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     override fun disableGeneratingLegacyModels(): Boolean = disableGeneratingLegacyModels
     override fun followMobInvisibility(): Boolean = followMobInvisibility
     override fun animatedTextureFrameTime(): Int = animatedTextureFrameTime
+    override fun createPackMcmeta(): Boolean = createPackMcmeta
 
     override fun reload() {
         val yaml = PluginConfiguration.CONFIG.create()
@@ -68,6 +70,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
         lockOnPlayAnimation = yaml.getBoolean("lock-on-play-animation", true)
         namespace = yaml.getString("namespace") ?: "bettermodel"
         animatedTextureFrameTime = yaml.getInt("animated-texture-frame-time", 10)
+        createPackMcmeta = yaml.getBoolean("create-pack-mcmeta", true)
         packType = yaml.getString("pack-type")?.let {
             runCatching {
                 PackType.valueOf(it.uppercase())

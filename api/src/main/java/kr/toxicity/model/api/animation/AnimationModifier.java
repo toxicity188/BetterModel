@@ -75,6 +75,17 @@ public record AnimationModifier(@NotNull Supplier<Boolean> predicate, int start,
     /**
      * Creates modifier
      *
+     * @param start     start time
+     * @param end       end time
+     * @param speed     speed
+     */
+    public AnimationModifier(int start, int end, float speed) {
+        this(() -> true, start, end, speed);
+    }
+
+    /**
+     * Creates modifier
+     *
      * @param predicate animation predicate
      * @param start     start time
      * @param end       end time
@@ -112,6 +123,6 @@ public record AnimationModifier(@NotNull Supplier<Boolean> predicate, int start,
         this.speed = speed;
     }
 
-    public static final AnimationModifier DEFAULT = new AnimationModifier(() -> true, 1, 0, 1F);
-    public static final AnimationModifier DEFAULT_LOOP = new AnimationModifier(() -> true, 4, 0, 1F);
+    public static final AnimationModifier DEFAULT = new AnimationModifier(1, 0, 1F);
+    public static final AnimationModifier DEFAULT_LOOP = new AnimationModifier(4, 0, 1F);
 }

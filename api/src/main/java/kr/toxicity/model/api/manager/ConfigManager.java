@@ -95,6 +95,12 @@ public interface ConfigManager {
     int animatedTextureFrameTime();
 
     /**
+     * Checks whether BetterModel should create pack.mcmeta or not
+     * @return create pack mcmeta
+     */
+    boolean createPackMcmeta();
+
+    /**
      * Pack type
      */
     enum PackType {

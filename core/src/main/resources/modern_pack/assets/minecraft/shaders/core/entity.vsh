@@ -1,6 +1,7 @@
 #version 150
 
-#moj_import <light.glsl>
+#moj_import <minecraft:light.glsl>
+#moj_import <minecraft:fog.glsl>
 
 in vec3 Position;
 in vec4 Color;
@@ -15,11 +16,11 @@ uniform sampler2D Sampler2;
 
 uniform mat4 ModelViewMat;
 uniform mat4 ProjMat;
+uniform mat4 TextureMat;
+uniform int FogShape;
 
 uniform vec3 Light0_Direction;
 uniform vec3 Light1_Direction;
-
-uniform int FogShape;
 
 out float vertexDistance;
 out vec4 vertexColor;
@@ -27,7 +28,6 @@ out vec4 lightMapColor;
 out vec4 overlayColor;
 out vec2 texCoord0;
 out vec2 texCoord1;
-out vec4 normal;
 out float part;
 
 #define SPACING 512.0
@@ -93,35 +93,36 @@ vec2(0.0,  48.0)
 
 const int[] faceremap = int[](0, 0, 1, 1, 2, 3, 4, 5);
 
-float fog_distance(vec3 pos, int shape) {
-    if (shape == 0) {
-        return length(pos);
-    } else {
-        float distXZ = length(pos.xz);
-        float distY = abs(pos.y);
-        return max(distXZ, distY);
-    }
-}
-
-
 void main() {
-    vertexColor = minecraft_mix_light(Light0_Direction, Light1_Direction, normalize(Normal), Color);
+    gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
+
+    vertexDistance = fog_distance(Position, FogShape);
+#ifdef NO_CARDINAL_LIGHTING
+    vertexColor = Color;
+#else
+    vertexColor = minecraft_mix_light(Light0_Direction, Light1_Direction, Normal, Color);
+#endif
     lightMapColor = texelFetch(Sampler2, UV2 / 16, 0);
     overlayColor = texelFetch(Sampler1, UV1, 0);
-    normal = ProjMat * ModelViewMat * vec4(Normal, 0.0);
 
+    texCoord0 = UV0;
+#ifdef APPLY_TEXTURE_MATRIX
+    texCoord0 = (TextureMat * vec4(UV0, 0.0, 1.0)).xy;
+#endif
+
+
+//Start player display - https://github.com/bradleyq/stable_player_display
+    part = 0.0;
+    texCoord1 = vec2(0.0);
+#if defined(ALPHA_CUTOUT) && !defined(EMISSIVE) && !defined(NO_OVERLAY)
     vec3 wpos = Position;
     ivec2 dim = textureSize(Sampler0, 0);
 
     if (ProjMat[2][3] == 0.0 || dim.x != 64 || dim.y != 64) { // short circuit if cannot be player
-        part = 0.0;
         texCoord0 = UV0;
-        texCoord1 = vec2(0.0);
         vertexDistance = fog_distance(Position, FogShape);
-        gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
     }
     else if (length(inverse(ModelViewMat)[3].xyz - wpos) < 0.75) {
-        part = 0.0;
         texCoord0 = UV0;
         texCoord1 = UV1;
         vertexDistance = 0;
@@ -135,10 +136,7 @@ void main() {
 
         part = float(partId);
 
-        if (partId == 0) { // higher precision position if no translation is needed
-            gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
-        }
-        else {
+        if (partId > 0) {
             vec4 samp1 = texture(Sampler0, vec2(54.0 / 64.0, 20.0 / 64.0));
             vec4 samp2 = texture(Sampler0, vec2(55.0 / 64.0, 20.0 / 64.0));
             bool slim = samp1.a == 0.0 || (((samp1.r + samp1.g + samp1.b) == 0.0) && ((samp2.r + samp2.g + samp2.b) == 0.0) && samp1.a == 1.0 && samp2.a == 1.0);
@@ -227,4 +225,6 @@ void main() {
         texCoord0 = UVout;
         texCoord1 = UVout2;
     }
+#endif
+//End player display
 }
