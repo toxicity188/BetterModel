@@ -52,6 +52,9 @@ model
 state
 defaultstate
 partvisibility
+changepart
+tint
+brightness
 ```
 
 ### Version
@@ -65,6 +68,8 @@ No
 ### Command
 /bettermodel reload - Reloads this plugin.  
 /bettermodel spawn <model> - Summons this model to husk.  
+/bettermodel disguise <model> - disguises self.  
+/bettermodel undisguise <model> - undisguises self  
 /bettermodel limb <true/false> - Shows/Hides player limb.  
 /bettermodel play <model> <animation> - Plays player animation.  
 
