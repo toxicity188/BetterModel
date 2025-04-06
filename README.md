@@ -1,6 +1,6 @@
 <div align="center">  
 
-![0](https://github.com/user-attachments/assets/4cb52a01-b938-42f4-ade6-83b33ce53320)
+![0](https://github.com/user-attachments/assets/d9b46080-e7ab-4e12-a395-174c94e63cea)
 
 Welcome to BetterModel!
 
