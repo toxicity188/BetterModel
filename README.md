@@ -28,11 +28,8 @@ The main reason I created it is:
 - To provide more flexible API - MEG is a closed-source plugin and API is very limited.
 
 ### Summary
-![1](https://github.com/user-attachments/assets/142136b7-f508-457e-8d69-ba93b8ddb567)  
+![1](https://github.com/user-attachments/assets/397a1ff3-37f2-4e3a-9868-732d3a044c4c)  
 This plugin, of course, implements generic block bench model with animation.  
-![2](https://github.com/user-attachments/assets/e6d899e4-a3b0-4ee9-a62d-664e10b06709)  
-This plugin can track entity's movement and head rotation.
-
 
 ### Network optimization
 ![3](https://github.com/user-attachments/assets/6c421f33-682e-4674-a5d2-13310e5dbbfe)  
@@ -44,8 +41,8 @@ This plugin can optimize network by **sight-trace**. It won't send packets when 
 This plugin provides multiple hit-box both client and server. (tracking animation rotation)
 
 ### MythicMobs support (experimental)
-![6](https://github.com/user-attachments/assets/542f80ea-e3a7-4ea1-9875-181c77229739)  
-![7](https://github.com/user-attachments/assets/13e95fab-bb3d-40f3-b205-76751d3007cf)  
+![6](https://github.com/user-attachments/assets/06804f8c-af0d-46ce-adff-b868b65ba44a)  
+![7](https://github.com/user-attachments/assets/d2f7e69f-dce1-4fa6-84cd-83b35560a0b4)  
 Like MEG, This plugin implements simple MythicMobs support.
 ```
 model
@@ -57,10 +54,14 @@ tint
 brightness
 ```
 
+### Player animation
+![8](https://github.com/user-attachments/assets/1683eae7-e22d-4919-a660-2f0df2ab8a09)  
+This plugin supports player animation.
+
 ### Version
 - Spigot, Paper or a fork (e.g. Folia)
 - Java 21
-- Minecraft 1.20.2-1.21.4
+- Minecraft 1.20.2-1.21.5
 
 ### Dependency
 No
