@@ -60,7 +60,7 @@ brightness
 ### Version
 - Spigot, Paper or a fork (e.g. Folia)
 - Java 21
-- Minecraft 1.20.2-1.21.4
+- Minecraft 1.20.2-1.21.5
 
 ### Dependency
 No
