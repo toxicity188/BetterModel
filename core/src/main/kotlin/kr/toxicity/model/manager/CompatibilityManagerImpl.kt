@@ -2,6 +2,7 @@ package kr.toxicity.model.manager
 
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.manager.CompatibilityManager
+import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.compatibility.citizens.CitizensCompatibility
 import kr.toxicity.model.compatibility.mythicmobs.MythicMobsCompatibility
 import kr.toxicity.model.purpur.PurpurHook
@@ -31,6 +32,6 @@ object CompatibilityManagerImpl : CompatibilityManager, GlobalManagerImpl {
         }
     }
 
-    override fun reload() {
+    override fun reload(info: ReloadInfo) {
     }
 }

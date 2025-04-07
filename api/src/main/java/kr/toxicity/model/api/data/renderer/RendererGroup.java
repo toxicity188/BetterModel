@@ -103,7 +103,7 @@ public final class RendererGroup {
         return create(player, modifier, null, location);
     }
     private @NotNull RenderedBone create(@Nullable Player player, @NotNull TrackerModifier modifier, @Nullable RenderedBone entityParent, @NotNull Location location) {
-        var entity = new RenderedBone(
+        return new RenderedBone(
                 this,
                 entityParent,
                 getItem(player),
@@ -115,10 +115,9 @@ public final class RendererGroup {
                         MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(rotation)),
                         rotation
                 ),
-                modifier
+                modifier,
+                parent1 -> children.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().create(player, modifier, parent1, location)))
         );
-        entity.setChildren(children.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().create(player, modifier, entity, location))));
-        return entity;
     }
 
     @NotNull

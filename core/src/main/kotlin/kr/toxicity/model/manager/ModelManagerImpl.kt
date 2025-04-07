@@ -10,6 +10,7 @@ import kr.toxicity.model.api.data.renderer.RendererGroup
 import kr.toxicity.model.api.manager.ConfigManager.PackType.FOLDER
 import kr.toxicity.model.api.manager.ConfigManager.PackType.ZIP
 import kr.toxicity.model.api.manager.ModelManager
+import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.util.*
 import org.bukkit.inventory.ItemStack
 import java.io.File
@@ -93,7 +94,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
         }
     }
 
-    override fun reload() {
+    override fun reload(info: ReloadInfo) {
         renderMap.clear()
         index = 1
 
@@ -210,35 +211,34 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
             }
         }
 
-        if (ConfigManagerImpl.module().playerAnimation()) {
-            PLUGIN.loadAssets("pack") { s, i ->
-                val read = i.readAllBytes()
-                legacyModel.add("", s) {
-                    read
+        if (!info.firstReload) runCatching {
+            if (ConfigManagerImpl.module().playerAnimation()) {
+                PLUGIN.loadAssets("pack") { s, i ->
+                    val read = i.readAllBytes()
+                    legacyModel.add("", s) {
+                        read
+                    }
+                }
+                PLUGIN.loadAssets("modern_pack") { s, i ->
+                    val read = i.readAllBytes()
+                    modernModel.add("", s) {
+                        read
+                    }
                 }
             }
-            PLUGIN.loadAssets("modern_pack") { s, i ->
-                val read = i.readAllBytes()
-                modernModel.add("", s) {
-                    read
+            zipper.add("${ConfigManagerImpl.namespace()}_modern", modernModel)
+            if (!ConfigManagerImpl.disableGeneratingLegacyModels()) zipper.add("${ConfigManagerImpl.namespace()}_legacy", legacyModel)
+            if (ConfigManagerImpl.createPackMcmeta()) {
+                PLUGIN.getResource("icon.png")?.buffered()?.let {
+                    val read = it.readAllBytes()
+                    zipper.add("", "pack.png") {
+                        read
+                    }
+                }
+                zipper.add("", "pack.mcmeta") {
+                    PACK_MCMETA.toByteArray()
                 }
             }
-        }
-
-        zipper.add("${ConfigManagerImpl.namespace()}_modern", modernModel)
-        if (ConfigManagerImpl.createPackMcmeta()) {
-            PLUGIN.getResource("icon.png")?.buffered()?.let {
-                val read = it.readAllBytes()
-                zipper.add("", "pack.png") {
-                    read
-                }
-            }
-            zipper.add("", "pack.mcmeta") {
-                PACK_MCMETA.toByteArray()
-            }
-        }
-        if (!ConfigManagerImpl.disableGeneratingLegacyModels()) zipper.add("${ConfigManagerImpl.namespace()}_legacy", legacyModel)
-        runCatching {
             when (ConfigManagerImpl.packType()) {
                 FOLDER -> zipper.toFileTree(File(DATA_FOLDER.parent, ConfigManagerImpl.buildFolderLocation()).apply {
                     mkdirs()

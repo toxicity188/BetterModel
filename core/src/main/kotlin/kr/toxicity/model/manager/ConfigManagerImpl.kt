@@ -4,6 +4,7 @@ import kr.toxicity.model.api.config.DebugConfig
 import kr.toxicity.model.api.config.ModuleConfig
 import kr.toxicity.model.api.manager.ConfigManager
 import kr.toxicity.model.api.manager.ConfigManager.PackType
+import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.configuration.PluginConfiguration
 import kr.toxicity.model.util.PLUGIN
 import kr.toxicity.model.util.ifNull
@@ -47,7 +48,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     override fun createPackMcmeta(): Boolean = createPackMcmeta
     override fun usePurpurAfk(): Boolean = usePurpurAfk
 
-    override fun reload() {
+    override fun reload(info: ReloadInfo) {
         val yaml = PluginConfiguration.CONFIG.create()
         if (yaml.getBoolean("metrics", true)) {
             if (metrics == null) metrics = Metrics(PLUGIN, 24237)

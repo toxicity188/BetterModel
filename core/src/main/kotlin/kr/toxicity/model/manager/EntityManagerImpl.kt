@@ -7,6 +7,7 @@ import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.event.ModelInteractEvent
 import kr.toxicity.model.api.manager.EntityManager
+import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.util.PLUGIN
@@ -23,7 +24,7 @@ import org.bukkit.event.world.ChunkUnloadEvent
 import org.bukkit.inventory.EquipmentSlot
 
 object EntityManagerImpl : EntityManager, GlobalManagerImpl {
-    override fun reload() {
+    override fun reload(info: ReloadInfo) {
         if (BetterModel.IS_PAPER) registerListener(object : Listener {
             @EventHandler(priority = EventPriority.MONITOR)
             fun EntityRemoveFromWorldEvent.remove() {

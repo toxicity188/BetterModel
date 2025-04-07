@@ -13,6 +13,7 @@ import kr.toxicity.model.api.version.MinecraftVersion.*
 import kr.toxicity.model.manager.*
 import kr.toxicity.model.scheduler.PaperScheduler
 import kr.toxicity.model.scheduler.StandardScheduler
+import kr.toxicity.model.util.DATA_FOLDER
 import kr.toxicity.model.util.forEachAsync
 import kr.toxicity.model.util.handleException
 import kr.toxicity.model.util.info
@@ -89,7 +90,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
             }
         }
         managers.forEach(GlobalManagerImpl::start)
-        when (val result = reload()) {
+        when (val result = reload(ReloadInfo(DATA_FOLDER.exists()))) {
             is Failure -> result.throwable.handleException("Unable to load plugin properly.")
             is OnReload -> throw RuntimeException("Plugin load failed.")
             is Success -> info(
@@ -108,15 +109,17 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
         managers.forEach(GlobalManagerImpl::end)
     }
 
-    override fun reload(): ReloadResult {
-        if (onReload.get()) return OnReload()
-        onReload.set(true)
+    override fun reload(): ReloadResult = reload(ReloadInfo.DEFAULT)
+    private fun reload(info: ReloadInfo): ReloadResult {
+        if (!onReload.compareAndSet(false, true)) return OnReload()
         reloadStartTask.forEach {
             it()
         }
         val result = runCatching {
             val time = System.currentTimeMillis()
-            managers.forEach(GlobalManagerImpl::reload)
+            managers.forEach {
+                it.reload(info)
+            }
             Success(System.currentTimeMillis() - time)
         }.getOrElse {
             Failure(it)

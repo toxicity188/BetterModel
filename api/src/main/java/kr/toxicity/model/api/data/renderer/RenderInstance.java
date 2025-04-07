@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -86,7 +87,7 @@ public final class RenderInstance {
 
     public void createHitBox(@NotNull EntityAdapter entity, @NotNull Predicate<RenderedBone> predicate, @Nullable HitBoxListener listener) {
         for (RenderedBone value : entityMap.values()) {
-            value.createHitBox(entity, predicate, listener);
+            value.iterateTree(b -> b.createHitBox(entity, predicate, listener));
         }
     }
 
@@ -103,53 +104,47 @@ public final class RenderInstance {
     }
 
     public void teleport(@NotNull Location location, @NotNull PacketBundler bundler) {
-        entityMap.values().forEach(e -> e.teleport(location, bundler));
+        for (RenderedBone value : entityMap.values()) {
+            value.iterateTree(b -> b.teleport(location, bundler));
+        }
     }
 
     public void move(@Nullable ModelRotation rotation, @NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
         var rot = rotation == null || rotation.equals(this.rotation) ? null : (this.rotation = rotation);
-        entityMap.values().forEach(e -> e.move(rot, movement, bundler));
+        for (RenderedBone value : entityMap.values()) {
+            value.iterateTree(b -> b.move(rot, movement, bundler));
+        }
     }
 
     public void defaultPosition(@NotNull Vector3f movement) {
         for (RenderedBone value : entityMap.values()) {
-            value.defaultPosition(new Vector3f(movement).add(value.getGroup().getPosition()));
+            value.iterateTree(b -> b.defaultPosition(new Vector3f(movement).add(value.getGroup().getPosition())));
         }
     }
 
     public void forceUpdate(@NotNull PacketBundler bundler) {
         for (RenderedBone value : entityMap.values()) {
-            value.forceUpdate(bundler);
+            value.iterateTree(b -> b.forceUpdate(bundler));
         }
     }
 
     public boolean itemStack(@NotNull BonePredicate predicate, @NotNull TransformedItemStack itemStack) {
-        var checked = false;
-        for (RenderedBone value : entityMap.values()) {
-            if (value.itemStack(predicate, itemStack)) checked = true;
-        }
-        return checked;
+        return anyMatch(predicate, (b, p) -> b.itemStack(p, itemStack));
     }
 
     public boolean brightness(@NotNull BonePredicate predicate, int block, int sky) {
-        var checked = false;
-        for (RenderedBone value : entityMap.values()) {
-            if (value.brightness(predicate, block, sky)) checked = true;
-        }
-        return checked;
+        return anyMatch(predicate, (b, p) -> b.brightness(p, block, sky));
     }
 
     public boolean addAnimationMovementModifier(@NotNull BonePredicate predicate, @NotNull Consumer<AnimationMovement> consumer) {
-        var ret = false;
-        for (RenderedBone value : entityMap.values()) {
-            if (value.addAnimationMovementModifier(predicate, consumer)) ret = true;
-        }
-        return ret;
+        return anyMatch(predicate, (b, p) -> b.addAnimationMovementModifier(p, consumer));
     }
 
     public @NotNull List<RenderedBone> renderers() {
         var list = new ArrayList<RenderedBone>();
-        entityMap.values().forEach(e -> e.renderers(list));
+        for (RenderedBone value : entityMap.values()) {
+            value.iterateTree(list::add);
+        }
         return list;
     }
 
@@ -172,13 +167,8 @@ public final class RenderInstance {
     }
 
     public boolean tint(@NotNull BonePredicate predicate, int rgb) {
-        var checked = false;
-        for (RenderedBone value : entityMap.values()) {
-            if (value.tint(predicate, rgb)) checked = true;
-        }
-        return checked;
+        return anyMatch(predicate, (b, p) -> b.tint(p, rgb));
     }
-
 
     public boolean animateLoop(@NotNull String animation) {
         return animateLoop(e -> true, animation, AnimationModifier.DEFAULT_LOOP, () -> {});
@@ -200,7 +190,7 @@ public final class RenderInstance {
         if (get == null) return false;
         scriptProcessor.animateLoop(get.script(), modifier);
         for (RenderedBone value : entityMap.values()) {
-            value.addLoop(filter, animation, get, modifier, FunctionUtil.throttleTick(removeTask));
+            value.iterateTree(b -> b.addLoop(filter, animation, get, modifier, FunctionUtil.throttleTick(removeTask)));
         }
         return true;
     }
@@ -210,7 +200,7 @@ public final class RenderInstance {
         if (get == null) return false;
         scriptProcessor.animateSingle(get.script(), modifier);
         for (RenderedBone value : entityMap.values()) {
-            value.addSingle(filter, animation, get, modifier, FunctionUtil.throttleTick(removeTask));
+            value.iterateTree(b -> b.addSingle(filter, animation, get, modifier, FunctionUtil.throttleTick(removeTask)));
         }
         return true;
     }
@@ -220,7 +210,7 @@ public final class RenderInstance {
         if (get == null) return false;
         scriptProcessor.replaceLoop(get.script(), AnimationModifier.DEFAULT_LOOP);
         for (RenderedBone value : entityMap.values()) {
-            value.replaceLoop(filter, target, animation, get);
+            value.iterateTree(b -> b.replaceLoop(filter, target, animation, get));
         }
         return true;
     }
@@ -230,7 +220,7 @@ public final class RenderInstance {
         if (get == null) return false;
         scriptProcessor.replaceSingle(get.script(), AnimationModifier.DEFAULT);
         for (RenderedBone value : entityMap.values()) {
-            value.replaceSingle(filter, target, animation, get);
+            value.iterateTree(b -> b.replaceSingle(filter, target, animation, get));
         }
         return true;
     }
@@ -238,7 +228,7 @@ public final class RenderInstance {
     public void stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String target) {
         scriptProcessor.stopAnimation(target);
         for (RenderedBone value : entityMap.values()) {
-            value.stopAnimation(filter, target);
+            value.iterateTree(b -> b.stopAnimation(filter, target));
         }
     }
 
@@ -247,7 +237,9 @@ public final class RenderInstance {
         if (get == null) return;
         if (playerMap.get(player.getUniqueId()) != null || spawnFilter.test(player)) {
             spawnPacketHandler.accept(bundler);
-            entityMap.values().forEach(e -> e.spawn(bundler));
+            for (RenderedBone value : entityMap.values()) {
+                value.iterateTree(b -> b.spawn(bundler));
+            }
             playerMap.put(player.getUniqueId(), get);
         }
     }
@@ -261,15 +253,19 @@ public final class RenderInstance {
 
     private void remove0(@NotNull PacketBundler bundler) {
         despawnPacketHandler.accept(bundler);
-        entityMap.values().forEach(e -> e.remove(bundler));
+        for (RenderedBone value : entityMap.values()) {
+            value.iterateTree(b -> b.remove(bundler));
+        }
     }
 
     public boolean togglePart(@NotNull BonePredicate predicate, boolean toggle) {
-        var checked = false;
-        for (RenderedBone value : entityMap.values()) {
-            if (value.togglePart(predicate, toggle)) checked = true;
-        }
-        return checked;
+        return anyMatch(predicate, (b, p) -> b.togglePart(p, toggle));
+    }
+
+    private boolean anyMatch(@NotNull BonePredicate predicate, BiFunction<RenderedBone, BonePredicate, Boolean> mapper) {
+        return entityMap.values()
+                .stream()
+                .anyMatch(v -> v.iterateTree(predicate, mapper));
     }
 
     public int playerCount() {

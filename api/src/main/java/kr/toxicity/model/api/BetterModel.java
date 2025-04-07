@@ -1,5 +1,7 @@
 package kr.toxicity.model.api;
 
+import kr.toxicity.model.api.event.PluginEndReloadEvent;
+import kr.toxicity.model.api.event.PluginStartReloadEvent;
 import kr.toxicity.model.api.tracker.EntityTracker;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -69,7 +71,9 @@ public final class BetterModel {
     @ApiStatus.Internal
     public static void inst(@NotNull BetterModelPlugin instance) {
         if (BetterModel.instance != null) throw new RuntimeException();
+        instance.addReloadStartHandler(() -> new PluginStartReloadEvent().callEvent());
         instance.addReloadEndHandler(t -> EntityTracker.reload());
+        instance.addReloadEndHandler(t -> new PluginEndReloadEvent(t).callEvent());
         BetterModel.instance = instance;
     }
 }
