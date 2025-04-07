@@ -170,6 +170,10 @@ public final class RenderInstance {
         return anyMatch(predicate, (b, p) -> b.tint(p, rgb));
     }
 
+    public boolean enchant(@NotNull BonePredicate predicate, boolean enchant) {
+        return anyMatch(predicate, (b, p) -> b.enchant(p, enchant));
+    }
+
     public boolean animateLoop(@NotNull String animation) {
         return animateLoop(e -> true, animation, AnimationModifier.DEFAULT_LOOP, () -> {});
     }

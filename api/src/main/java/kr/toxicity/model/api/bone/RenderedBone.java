@@ -13,6 +13,7 @@ import kr.toxicity.model.api.tracker.TrackerMovement;
 import kr.toxicity.model.api.util.*;
 import lombok.Getter;
 import org.bukkit.Location;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.util.Transformation;
 import org.jetbrains.annotations.ApiStatus;
@@ -46,13 +47,15 @@ public final class RenderedBone implements HitBoxSource {
     private final Collection<TreeIterator> reversedView = animators.sequencedValues().reversed();
     private AnimationMovement keyFrame = null;
     private long delay = 0;
-    private TransformedItemStack itemStack, cachedStack;
+    private TransformedItemStack itemStack;
 
     private final List<Consumer<AnimationMovement>> movementModifier = new ArrayList<>();
     @Getter
     private HitBox hitBox;
 
     private int tint;
+    @Getter
+    private boolean visible;
     private TreeIterator currentIterator = null;
     private BoneMovement beforeTransform, afterTransform, relativeOffsetCache;
     private Vector3f defaultPosition = new Vector3f();
@@ -82,7 +85,8 @@ public final class RenderedBone implements HitBoxSource {
         this.group = group;
         this.parent = parent;
         var visible = group.getLimb() != null || group.getParent().visibility();
-        this.itemStack = cachedStack = visible ? itemStack : itemStack.asAir();
+        this.itemStack = itemStack;
+        this.visible = visible;
         if (!itemStack.isEmpty()) {
             display = BetterModel.inst().nms().create(firstLocation);
             display.display(transform);
@@ -112,6 +116,29 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     /**
+     * Make item has enchantment or not
+     * @param predicate predicate
+     * @param enchant should enchant
+     * @return success or not
+     */
+    public boolean enchant(@NotNull BonePredicate predicate, boolean enchant) {
+        if (predicate.test(this)) {
+            itemStack = itemStack.modify(i -> {
+                var meta = i.getItemMeta();
+                if (enchant) {
+                    meta.addEnchant(Enchantment.UNBREAKING, 0, true);
+                } else {
+                    meta.removeEnchant(Enchantment.UNBREAKING);
+                }
+                i.setItemMeta(meta);
+                return i;
+            });
+            return applyItem();
+        }
+        return false;
+    }
+
+    /**
      * Changes displayed item
      * @param predicate predicate
      * @param itemStack target item
@@ -119,7 +146,7 @@ public final class RenderedBone implements HitBoxSource {
      */
     public boolean itemStack(@NotNull BonePredicate predicate, @NotNull TransformedItemStack itemStack) {
         if (predicate.test(this)) {
-            this.itemStack = cachedStack = itemStack;
+            this.itemStack = itemStack;
             return applyItem();
         }
         return false;
@@ -314,7 +341,7 @@ public final class RenderedBone implements HitBoxSource {
 
     private boolean applyItem() {
         if (display != null) {
-            display.item(BetterModel.inst().nms().tint(itemStack.itemStack().clone(), tint));
+            display.item(visible ? BetterModel.inst().nms().tint(itemStack.itemStack().clone(), tint) : itemStack.asAir().itemStack());
             return true;
         } else return false;
     }
@@ -406,7 +433,7 @@ public final class RenderedBone implements HitBoxSource {
      */
     public boolean togglePart(@NotNull BonePredicate predicate, boolean toggle) {
         if (predicate.test(this)) {
-            itemStack = toggle ? cachedStack : cachedStack.asAir();
+            visible = toggle;
             return applyItem();
         }
         return true;
@@ -544,9 +571,8 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     public void despawn() {
-        if (hitBox != null) hitBox.removeHitBox();
-        for (RenderedBone value : children.values()) {
-            value.despawn();
-        }
+        iterateTree(b -> {
+            if (b.hitBox != null) b.hitBox.removeHitBox();
+        });
     }
 }

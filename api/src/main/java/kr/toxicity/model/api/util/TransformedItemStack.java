@@ -5,6 +5,8 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
+import java.util.function.Function;
+
 /**
  * ItemStack with offset and scale
  * @see ItemStack
@@ -23,6 +25,7 @@ public record TransformedItemStack(@NotNull Vector3f offset, @NotNull Vector3f s
         return of(new Vector3f(), new Vector3f(1), itemStack);
     }
 
+
     /**
      * Creates transformed item
      * @param offset offset
@@ -39,7 +42,16 @@ public record TransformedItemStack(@NotNull Vector3f offset, @NotNull Vector3f s
      * @return air item
      */
     public @NotNull TransformedItemStack asAir() {
-        return new TransformedItemStack(offset, scale, new ItemStack(Material.AIR));
+        return of(offset, scale, new ItemStack(Material.AIR));
+    }
+
+    /**
+     * Modify item
+     * @param mapper mapper
+     * @return modified item
+     */
+    public @NotNull TransformedItemStack modify(@NotNull Function<ItemStack, ItemStack> mapper) {
+        return of(offset, scale, mapper.apply(itemStack.clone()));
     }
 
     /**

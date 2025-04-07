@@ -9,18 +9,18 @@ import io.lumine.mythic.core.skills.SkillMechanic
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.compatibility.mythicmobs.bonePredicateNullable
 
-class PartVisibilityMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), INoTargetSkill {
+class EnchantMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), INoTargetSkill {
 
     private val predicate = mlc.bonePredicateNullable
-    private val v = mlc.getBoolean(arrayOf("value", "v"), true)
+    private val enchant = mlc.getBoolean(arrayOf("enchant", "en"), true)
 
     init {
         isAsyncSafe = false
     }
 
     override fun cast(p0: SkillMetadata): SkillResult {
-        return EntityTracker.tracker(p0.caster.entity.bukkitEntity)?.let {
-            if (it.togglePart(predicate, v)) it.forceUpdate(true)
+        return EntityTracker.tracker(p0.caster.entity.bukkitEntity.uniqueId)?.let {
+            if (it.enchant(predicate, enchant)) it.forceUpdate(true)
             SkillResult.SUCCESS
         } ?: SkillResult.ERROR
     }

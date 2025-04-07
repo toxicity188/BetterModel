@@ -424,6 +424,16 @@ public abstract class Tracker implements AutoCloseable {
     }
 
     /**
+     * Sets enchantment of some model part
+     * @param predicate predicate
+     * @param enchant should enchant
+     * @return success
+     */
+    public boolean enchant(@NotNull BonePredicate predicate, boolean enchant) {
+        return instance.enchant(predicate, enchant);
+    }
+
+    /**
      * Sets brightness of some model part
      * @param predicate predicate
      * @param block block light
