@@ -27,7 +27,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -44,6 +44,7 @@ public abstract class Tracker implements AutoCloseable {
      */
     public static final NamespacedKey TRACKING_ID = Objects.requireNonNull(NamespacedKey.fromString("bettermodel_tracker"));
 
+    @Getter
     protected final RenderInstance instance;
     private final ScheduledFuture<?> task;
     private final AtomicBoolean isClosed = new AtomicBoolean();
@@ -56,7 +57,7 @@ public abstract class Tracker implements AutoCloseable {
     @Getter
     private Supplier<TrackerMovement> movement;
 
-    private Consumer<Tracker> consumer = t -> {};
+    private BiConsumer<Tracker, PacketBundler> consumer = (t, b) -> {};
 
     /**
      * Creates tracker
@@ -68,7 +69,6 @@ public abstract class Tracker implements AutoCloseable {
         this.modifier = modifier;
         this.movement = FunctionUtil.throttleTick(() -> new TrackerMovement(new Vector3f(), new Vector3f(modifier.scale()), new Vector3f()));
         updater = () -> {
-            consumer.accept(this);
             var bundle = BetterModel.inst().nms().createBundler();
             instance.move(
                     frame.incrementAndGet() % 5 == 0 ? (isRunningSingleAnimation() && BetterModel.inst().configManager().lockOnPlayAnimation()) ? instance.getRotation() : rotation() : null,
@@ -78,6 +78,7 @@ public abstract class Tracker implements AutoCloseable {
             if (readyForForceUpdate.compareAndSet(true, false) && bundle.isEmpty()) {
                 instance.forceUpdate(bundle);
             }
+            consumer.accept(this, bundle);
             if (!bundle.isEmpty()) instance.viewedPlayer().forEach(bundle::send);
         };
         task = EXECUTOR.scheduleAtFixedRate(() -> {
@@ -86,7 +87,7 @@ public abstract class Tracker implements AutoCloseable {
         }, 10, 10, TimeUnit.MILLISECONDS);
         tint(0xFFFFFF);
         if (modifier.sightTrace()) instance.viewFilter(p -> EntityUtil.canSee(p.getEyeLocation(), location()));
-        tick(t -> t.instance.getScriptProcessor().tick());
+        tick((t, b) -> t.instance.getScriptProcessor().tick());
     }
 
     /**
@@ -99,16 +100,16 @@ public abstract class Tracker implements AutoCloseable {
      * Runs consumer on frame.
      * @param consumer consumer
      */
-    public void frame(@NotNull Consumer<Tracker> consumer) {
+    public void frame(@NotNull BiConsumer<Tracker, PacketBundler> consumer) {
         this.consumer = this.consumer.andThen(consumer);
     }
     /**
      * Runs consumer on tick.
      * @param consumer consumer
      */
-    public void tick(@NotNull Consumer<Tracker> consumer) {
-        frame(t -> {
-            if (frame.get() % 5 == 0) consumer.accept(t);
+    public void tick(@NotNull BiConsumer<Tracker, PacketBundler> consumer) {
+        frame((t, b) -> {
+            if (frame.get() % 5 == 0) consumer.accept(t, b);
         });
     }
 

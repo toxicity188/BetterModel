@@ -80,4 +80,10 @@ public interface NMS {
      * @return adapter
      */
     @NotNull EntityAdapter adapt(@NotNull LivingEntity entity);
+
+    /**
+     * Checks current thread is sync or not
+     * @return sync or not
+     */
+    boolean isSync();
 }

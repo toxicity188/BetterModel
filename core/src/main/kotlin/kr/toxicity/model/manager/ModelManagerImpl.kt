@@ -226,8 +226,16 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
         }
 
         zipper.add("${ConfigManagerImpl.namespace()}_modern", modernModel)
-        if (ConfigManagerImpl.createPackMcmeta()) zipper.add("", "pack.mcmeta") {
-            PACK_MCMETA.toByteArray()
+        if (ConfigManagerImpl.createPackMcmeta()) {
+            PLUGIN.getResource("icon.png")?.buffered()?.let {
+                val read = it.readAllBytes()
+                zipper.add("", "pack.png") {
+                    read
+                }
+            }
+            zipper.add("", "pack.mcmeta") {
+                PACK_MCMETA.toByteArray()
+            }
         }
         if (!ConfigManagerImpl.disableGeneratingLegacyModels()) zipper.add("${ConfigManagerImpl.namespace()}_legacy", legacyModel)
         runCatching {

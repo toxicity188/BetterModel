@@ -28,6 +28,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     private var followMobInvisibility = true
     private var animatedTextureFrameTime = 10
     private var createPackMcmeta = true
+    private var usePurpurAfk = true
 
     override fun debug(): DebugConfig = debug
     override fun module(): ModuleConfig = module
@@ -44,6 +45,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     override fun followMobInvisibility(): Boolean = followMobInvisibility
     override fun animatedTextureFrameTime(): Int = animatedTextureFrameTime
     override fun createPackMcmeta(): Boolean = createPackMcmeta
+    override fun usePurpurAfk(): Boolean = usePurpurAfk
 
     override fun reload() {
         val yaml = PluginConfiguration.CONFIG.create()
@@ -79,5 +81,6 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
         buildFolderLocation = (yaml.getString("build-folder-location") ?: "BetterModel/build").replace('/', File.separatorChar)
         disableGeneratingLegacyModels = yaml.getBoolean("disable-generating-legacy-models")
         followMobInvisibility = yaml.getBoolean("follow-mob-invisibility", true)
+        usePurpurAfk = yaml.getBoolean("use-purpur-afk", true)
     }
 }

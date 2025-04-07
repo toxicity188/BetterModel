@@ -17,6 +17,7 @@ import kr.toxicity.model.api.util.FunctionUtil;
 import kr.toxicity.model.api.util.TransformedItemStack;
 import lombok.Getter;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +45,10 @@ public final class RenderInstance {
     private final Map<String, BlueprintAnimation> animationMap;
     private final Map<UUID, PlayerChannelHandler> playerMap = new ConcurrentHashMap<>();
     private Predicate<Player> viewFilter = p -> true;
-    private Predicate<Player> spawnFilter = p -> true;
+    private Predicate<Player> spawnFilter = OfflinePlayer::isOnline;
+
+    private Consumer<PacketBundler> spawnPacketHandler = b -> {};
+    private Consumer<PacketBundler> despawnPacketHandler = b -> {};
 
     @Getter
     private ModelRotation rotation = ModelRotation.EMPTY;
@@ -62,6 +66,14 @@ public final class RenderInstance {
 
     public void viewFilter(@NotNull Predicate<Player> filter) {
         this.viewFilter = this.viewFilter.and(FunctionUtil.throttleTick(filter));
+    }
+
+    public void spawnPacketHandler(@NotNull Consumer<PacketBundler> spawnPacketHandler) {
+        this.spawnPacketHandler = this.spawnPacketHandler.andThen(spawnPacketHandler);
+    }
+
+    public void despawnPacketHandler(@NotNull Consumer<PacketBundler> despawnPacketHandler) {
+        this.despawnPacketHandler = this.despawnPacketHandler.andThen(despawnPacketHandler);
     }
 
     public @NotNull Predicate<Player> spawnFilter() {
@@ -82,8 +94,10 @@ public final class RenderInstance {
         for (RenderedBone value : entityMap.values()) {
             value.despawn();
         }
-        for (PlayerChannelHandler value : playerMap.values()) {
-            remove0(value.player());
+        var bundler = BetterModel.inst().nms().createBundler();
+        remove0(bundler);
+        if (!bundler.isEmpty()) for (PlayerChannelHandler value : playerMap.values()) {
+            bundler.send(value.player());
         }
         playerMap.clear();
     }
@@ -232,6 +246,7 @@ public final class RenderInstance {
         var get = BetterModel.inst().playerManager().player(player.getUniqueId());
         if (get == null) return;
         if (playerMap.get(player.getUniqueId()) != null || spawnFilter.test(player)) {
+            spawnPacketHandler.accept(bundler);
             entityMap.values().forEach(e -> e.spawn(bundler));
             playerMap.put(player.getUniqueId(), get);
         }
@@ -239,13 +254,14 @@ public final class RenderInstance {
 
     public void remove(@NotNull Player player) {
         if (playerMap.remove(player.getUniqueId()) == null) return;
-        remove0(player);
+        var bundler = BetterModel.inst().nms().createBundler();
+        remove0(bundler);
+        bundler.send(player);
     }
 
-    private void remove0(@NotNull Player player) {
-        var bundler = BetterModel.inst().nms().createBundler();
+    private void remove0(@NotNull PacketBundler bundler) {
+        despawnPacketHandler.accept(bundler);
         entityMap.values().forEach(e -> e.remove(bundler));
-        bundler.send(player);
     }
 
     public boolean togglePart(@NotNull BonePredicate predicate, boolean toggle) {

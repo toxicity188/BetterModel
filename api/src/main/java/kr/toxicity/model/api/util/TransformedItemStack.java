@@ -15,11 +15,6 @@ import org.joml.Vector3f;
 public record TransformedItemStack(@NotNull Vector3f offset, @NotNull Vector3f scale, @NotNull ItemStack itemStack) {
 
     /**
-     * Air
-     */
-    public static final @NotNull TransformedItemStack EMPTY = of(new ItemStack(Material.AIR));
-
-    /**
      * Creates transformed item
      * @param itemStack item
      * @return transformed item
@@ -37,6 +32,14 @@ public record TransformedItemStack(@NotNull Vector3f offset, @NotNull Vector3f s
      */
     public static @NotNull TransformedItemStack of(@NotNull Vector3f offset, @NotNull Vector3f scale, @NotNull ItemStack itemStack) {
         return new TransformedItemStack(offset, scale, itemStack);
+    }
+
+    /**
+     * Gets transformed item as air
+     * @return air item
+     */
+    public @NotNull TransformedItemStack asAir() {
+        return new TransformedItemStack(offset, scale, new ItemStack(Material.AIR));
     }
 
     /**

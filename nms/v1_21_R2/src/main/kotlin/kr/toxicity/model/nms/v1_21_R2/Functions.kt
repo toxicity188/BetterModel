@@ -1,9 +1,10 @@
 package kr.toxicity.model.nms.v1_21_R2
 
+import ca.spottedleaf.moonrise.common.util.TickThread
 import kr.toxicity.model.api.BetterModel
-import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.network.syncher.SynchedEntityData.DataItem
+import net.minecraft.server.MinecraftServer
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.*
 import net.minecraft.world.entity.animal.FlyingAnimal
@@ -14,14 +15,17 @@ import org.bukkit.event.Event
 import org.joml.Vector3f
 import kotlin.math.floor
 
-operator fun ModelBoundingBox.times(scale: Double) = ModelBoundingBox(
-    minX * scale,
-    minY * scale,
-    minZ * scale,
-    maxX * scale,
-    maxY * scale,
-    maxZ * scale
-)
+inline fun <reified T, reified R> createAdaptedFieldGetter(noinline paperGetter: (T) -> R): (T) -> R {
+    return if (BetterModel.IS_PAPER) paperGetter else T::class.java.declaredFields.first {
+        R::class.java.isAssignableFrom(it.type)
+    }.apply {
+        isAccessible = true
+    }.let { getter ->
+        { t ->
+            getter[t] as R
+        }
+    }
+}
 
 fun Entity.passengerPosition(scale: Double): Vector3f {
     return attachments.get(EntityAttachment.PASSENGER, 0, yRot).let { v ->
@@ -89,3 +93,6 @@ val Entity.isFlying: Boolean
 
 val CraftEntity.vanillaEntity: Entity
     get() = if (BetterModel.IS_PAPER) handleRaw else handle
+
+val isTickThread
+    get() = if (BetterModel.IS_PAPER) TickThread.isTickThread() else Thread.currentThread() === MinecraftServer.getServer().serverThread

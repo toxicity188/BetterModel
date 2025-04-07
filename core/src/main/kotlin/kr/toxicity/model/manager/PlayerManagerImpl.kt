@@ -31,16 +31,20 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
         registerListener(object : Listener {
             @EventHandler
             fun PlayerJoinEvent.join() {
-                runCatching { //For fake player
+                if (player.isOnline) runCatching { //For fake player
                     player.register()
                     player.showAll()
+                }.getOrElse {
+                    it.handleException("Unable to load ${player.name}'s data.")
                 }
             }
             @EventHandler
             fun PlayerChangedWorldEvent.change() {
-                runCatching {
+                if (player.isOnline) runCatching {
                     player.register().unregisterAll()
                     player.showAll()
+                }.getOrElse {
+                    it.handleException("Unable to refresh ${player.name}'s data.")
                 }
             }
             @EventHandler

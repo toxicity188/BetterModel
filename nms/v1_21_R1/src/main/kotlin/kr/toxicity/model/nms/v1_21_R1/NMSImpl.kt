@@ -3,6 +3,7 @@ package kr.toxicity.model.nms.v1_21_R1
 import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.EntityLookup
 import com.google.common.collect.ImmutableList
 import com.google.gson.JsonParser
+import com.mojang.authlib.GameProfile
 import com.mojang.datafixers.util.Pair
 import io.netty.channel.ChannelDuplexHandler
 import io.netty.channel.ChannelHandlerContext
@@ -68,21 +69,8 @@ class NMSImpl : NMS {
         private const val INJECT_NAME = "bettermodel_channel_handler"
 
         //Spigot
-        private val getConnection: (ServerCommonPacketListenerImpl) -> Connection = if (BetterModel.IS_PAPER) {
-            {
-                it.connection
-            }
-        } else {
-            ServerCommonPacketListenerImpl::class.java.declaredFields.first { f ->
-                f.type == Connection::class.java
-            }.apply {
-                isAccessible = true
-            }.let { get ->
-                {
-                    get[it] as Connection
-                }
-            }
-        }
+        private val getGameProfile: (net.minecraft.world.entity.player.Player) -> GameProfile = createAdaptedFieldGetter { it.gameProfile }
+        private val getConnection: (ServerCommonPacketListenerImpl) -> Connection = createAdaptedFieldGetter { it.connection }
         private val entityTracker = ServerLevel::class.java.fields.firstOrNull {
             it.type == PersistentEntitySectionManager::class.java
         }?.apply {
@@ -125,7 +113,7 @@ class NMSImpl : NMS {
         private val itemId = ItemDisplay::class.java.serializers().map {
             it.toSerializerId()
         }
-        private val transformSet = Display::class.java.serializers().subList(0, 9).map { e ->
+        private val transformSet = Display::class.java.serializers().map { e ->
             e.toSerializerId()
         }.toSet() + itemId + sharedFlag
     }
@@ -164,13 +152,9 @@ class NMSImpl : NMS {
         private val connection = (player as CraftPlayer).handle.connection
         private val entityUUIDMap = ConcurrentHashMap<UUID, EntityTracker>()
         private val slim = run {
-            val encodedValue = (player as CraftPlayer)
-                .handle
-                .gameProfile
+            val encodedValue = getGameProfile((player as CraftPlayer).handle)
                 .properties["textures"]
-                .first()
-                .value
-            JsonParser.parseString(String(Base64.getDecoder().decode(encodedValue)))
+            encodedValue.isNotEmpty() && JsonParser.parseString(String(Base64.getDecoder().decode(encodedValue.first().value)))
                 .asJsonObject
                 .getAsJsonObject("textures")
                 .getAsJsonObject("SKIN")
@@ -193,7 +177,7 @@ class NMSImpl : NMS {
         override fun isSlim(): Boolean = slim
 
         override fun close() {
-            val channel = connection.connection.channel
+            val channel = getConnection(connection).channel
             channel.eventLoop().submit {
                 channel.pipeline().remove(INJECT_NAME)
             }
@@ -434,6 +418,23 @@ class NMSImpl : NMS {
             )
         }
 
+        override fun viewRange(range: Float) {
+            display.viewRange = range
+        }
+
+        override fun shadowRadius(radius: Float) {
+            display.shadowRadius = radius
+        }
+
+        override fun syncPosition(adapter: EntityAdapter, bundler: PacketBundler) {
+            val handle = adapter.handle() as net.minecraft.world.entity.LivingEntity? ?: return
+            display.setPos(handle.position())
+            display.onGround = handle.onGround
+            adapter.entity()?.location?.let {
+                teleport(it, bundler)
+            }
+        }
+
         override fun transform(transformation: Transformation) {
             display.setTransformation(com.mojang.math.Transformation(
                 transformation.translation,
@@ -492,7 +493,7 @@ class NMSImpl : NMS {
         val handle = (entity.entity() as? CraftLivingEntity)?.handle ?: return null
         val scale = entity.scale()
         val newBox = namedBoundingBox.center() * scale
-        val height = newBox.length() / 2
+        val height = newBox.y() / 2
         return HitBoxImpl(
             namedBoundingBox.name,
             height,
@@ -569,4 +570,6 @@ class NMSImpl : NMS {
             }
         }
     }
+
+    override fun isSync(): Boolean = isTickThread
 }

@@ -22,24 +22,40 @@ public final class BetterModel {
     public static final boolean IS_PAPER;
 
     /**
+     * Checks running platform is Purpur.
+     */
+    public static final boolean IS_PURPUR;
+
+    /**
      * Plugin instance.
      */
     private static BetterModelPlugin instance;
 
     static {
-        boolean paper;
+        boolean purpur;
         try {
-            Class.forName("io.papermc.paper.configuration.PaperConfigurations");
-            paper = true;
+            Class.forName("org.purpurmc.purpur.PurpurConfig");
+            purpur = true;
         } catch (Exception e) {
-            paper = false;
+            purpur = false;
         }
-        IS_PAPER = paper;
+        IS_PURPUR = purpur;
+        if (IS_PURPUR) IS_PAPER = true;
+        else {
+            boolean paper;
+            try {
+                Class.forName("io.papermc.paper.configuration.PaperConfigurations");
+                paper = true;
+            } catch (Exception e) {
+                paper = false;
+            }
+            IS_PAPER = paper;
+        }
     }
 
     /**
      * Gets plugin instance of BetterModel.
-     * @see BetterModelPlugin
+     * @see org.bukkit.plugin.java.JavaPlugin
      * @return instance
      */
     public static @NotNull BetterModelPlugin inst() {

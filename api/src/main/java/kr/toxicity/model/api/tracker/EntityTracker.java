@@ -6,6 +6,7 @@ import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.nms.EntityAdapter;
 import kr.toxicity.model.api.nms.HitBoxListener;
+import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.util.BonePredicate;
 import kr.toxicity.model.api.util.EntityUtil;
 import kr.toxicity.model.api.util.FunctionUtil;
@@ -22,6 +23,7 @@ import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -118,6 +120,27 @@ public class EntityTracker extends Tracker {
         this.entity = entity;
         adapter = (entity instanceof LivingEntity livingEntity ? BetterModel.inst().nms().adapt(livingEntity) : EntityAdapter.EMPTY)
                 .multiply(modifier.scale());
+        //Shadow
+        if (modifier.shadow()) {
+            var shadow = BetterModel.inst().nms().create(entity.getLocation());
+            shadow.shadowRadius((float) instance.renderers()
+                    .stream()
+                    .filter(b -> b.getGroup().getParent().visibility())
+                    .map(b -> b.getGroup().getHitBox())
+                    .filter(Objects::nonNull)
+                    .mapToDouble(b -> b.box().lengthZX() / 2)
+                    .max()
+                    .orElse(0D));
+            tick(((t, b) -> {
+                shadow.sync(adapter);
+                if (!b.isEmpty()) shadow.send(b);
+                shadow.syncPosition(adapter, b);
+            }));
+            instance.spawnPacketHandler(shadow::spawn);
+            instance.despawnPacketHandler(shadow::remove);
+        }
+
+        //Animation
         instance.defaultPosition(new Vector3f(0, -adapter.passengerPosition().y, 0));
         instance.addAnimationMovementModifier(
                 BonePredicate.of(r -> r.getName().startsWith("h_")),
@@ -163,15 +186,15 @@ public class EntityTracker extends Tracker {
             entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, instance.getParent().getParent().name());
             if (!isClosed() && !forRemoval()) createHitBox();
         });
-        tick(t -> t.displays().forEach(d -> d.sync(adapter)));
-        tick(t -> {
+        tick((t, b) -> t.displays().forEach(d -> d.sync(adapter)));
+        tick((t, b) -> {
             var reader = t.instance.getScriptProcessor().getCurrentReader();
             if (reader == null) return;
             var script = reader.script();
             if (script == null) return;
             BetterModel.inst().scheduler().task(entity.getLocation(), () -> script.accept(entity));
         });
-        frame(t -> {
+        frame((t, b) -> {
             if (damageTint.getAndDecrement() == 0) tint(0xFFFFFF);
         });
         update();
@@ -292,14 +315,14 @@ public class EntityTracker extends Tracker {
     }
 
     /**
-     * Spawns this tracker ranged by simulation distance
+     * Spawns this tracker ranged by view distance
      */
     public void spawnNearby() {
         spawnNearby(location());
     }
 
     /**
-     * Spawns this tracker ranged by simulation distance
+     * Spawns this tracker ranged by view distance
      * @param location center location
      */
     public void spawnNearby(@NotNull Location location) {

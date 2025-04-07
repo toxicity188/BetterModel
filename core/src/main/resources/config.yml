@@ -17,3 +17,4 @@ disable-generating-legacy-models: false
 follow-mob-invisibility: true
 animated-texture-frame-time: 10
 create-pack-mcmeta: true
+use-purpur-afk: true

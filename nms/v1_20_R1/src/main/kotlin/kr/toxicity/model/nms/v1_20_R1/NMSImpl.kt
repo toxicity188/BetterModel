@@ -105,7 +105,7 @@ class NMSImpl : NMS {
         private val itemId = ItemDisplay::class.java.serializers().map {
             it.toSerializerId()
         }
-        private val transformSet = Display::class.java.serializers().subList(0, 8).map { e ->
+        private val transformSet = Display::class.java.serializers().map { e ->
             e.toSerializerId()
         }.toSet() + itemId + sharedFlag
     }
@@ -144,13 +144,9 @@ class NMSImpl : NMS {
         private val connection = (player as CraftPlayer).handle.connection
         private val entityUUIDMap = ConcurrentHashMap<UUID, EntityTracker>()
         private val slim = run {
-            val encodedValue = (player as CraftPlayer)
-                .handle
-                .gameProfile
+            val encodedValue = getGameProfile((player as CraftPlayer).handle)
                 .properties["textures"]
-                .first()
-                .value
-            JsonParser.parseString(String(Base64.getDecoder().decode(encodedValue)))
+            encodedValue.isNotEmpty() && JsonParser.parseString(String(Base64.getDecoder().decode(encodedValue.first().value)))
                 .asJsonObject
                 .getAsJsonObject("textures")
                 .getAsJsonObject("SKIN")
@@ -413,6 +409,23 @@ class NMSImpl : NMS {
             )
         }
 
+        override fun viewRange(range: Float) {
+            display.viewRange = range
+        }
+
+        override fun shadowRadius(radius: Float) {
+            display.shadowRadius = radius
+        }
+
+        override fun syncPosition(adapter: EntityAdapter, bundler: PacketBundler) {
+            val handle = adapter.handle() as net.minecraft.world.entity.LivingEntity? ?: return
+            display.setPos(handle.position())
+            display.onGround = handle.onGround
+            adapter.entity()?.location?.let {
+                teleport(it, bundler)
+            }
+        }
+
         override fun transform(transformation: Transformation) {
             display.setTransformation(com.mojang.math.Transformation(
                 transformation.translation,
@@ -470,7 +483,7 @@ class NMSImpl : NMS {
     override fun createHitBox(entity: EntityAdapter, supplier: HitBoxSource, namedBoundingBox: NamedBoundingBox, mountController: MountController, listener: HitBoxListener): HitBox? {
         val handle = (entity.entity() as? CraftLivingEntity)?.handle ?: return null
         val newBox = namedBoundingBox.center() * entity.scale()
-        val height = newBox.length() / 2
+        val height = newBox.y() / 2
         return HitBoxImpl(
             namedBoundingBox.name,
             height,

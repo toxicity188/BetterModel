@@ -2,12 +2,11 @@ package kr.toxicity.model.api.data.renderer;
 
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint;
-import kr.toxicity.model.api.tracker.EntityTracker;
-import kr.toxicity.model.api.tracker.PlayerTracker;
-import kr.toxicity.model.api.tracker.TrackerModifier;
-import kr.toxicity.model.api.tracker.VoidTracker;
+import kr.toxicity.model.api.event.CreateTrackerEvent;
+import kr.toxicity.model.api.tracker.*;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -16,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -84,11 +84,11 @@ public final class BlueprintRenderer {
     public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull TrackerModifier modifier) {
         var tracker = EntityTracker.tracker(entity.getUniqueId());
         if (tracker != null) return tracker;
-        return new EntityTracker(
+        return generate(() -> new EntityTracker(
                 entity,
-                instance(null, entity.getLocation().add(0, -1024, 0)),
+                instance(null, entity.getLocation().add(0, -1024, 0), modifier),
                 modifier
-        );
+        ));
     }
 
     /**
@@ -108,11 +108,11 @@ public final class BlueprintRenderer {
     public @NotNull EntityTracker createPlayerLimb(@NotNull Player player, @NotNull TrackerModifier modifier) {
         var tracker = EntityTracker.tracker(player.getUniqueId());
         if (tracker != null) return tracker;
-        return new PlayerTracker(
+        return generate(() -> new PlayerTracker(
                 player,
-                instance(player, player.getLocation().add(0, -1024, 0)),
+                instance(player, player.getLocation().add(0, -1024, 0), modifier),
                 modifier
-        );
+        ));
     }
 
     /**
@@ -133,13 +133,19 @@ public final class BlueprintRenderer {
      * @return void tracker
      */
     public @NotNull VoidTracker create(@NotNull UUID uuid, @NotNull TrackerModifier modifier, @NotNull Location location) {
-        return new VoidTracker(uuid, instance(null, location), modifier, location);
+        return generate(() -> new VoidTracker(uuid, instance(null, location, modifier), modifier, location));
     }
 
-    private @NotNull RenderInstance instance(@Nullable Player player, @NotNull Location location) {
+    private @NotNull RenderInstance instance(@Nullable Player player, @NotNull Location location, @NotNull TrackerModifier modifier) {
         return new RenderInstance(this, rendererGroupMap
                 .entrySet()
                 .stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().create(player, location))), animationMap);
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().create(player, modifier, location))), animationMap);
+    }
+
+    private static <T extends Tracker> T generate(Supplier<T> supplier) {
+        var created = supplier.get();
+        Bukkit.getPluginManager().callEvent(new CreateTrackerEvent(created));
+        return created;
     }
 }

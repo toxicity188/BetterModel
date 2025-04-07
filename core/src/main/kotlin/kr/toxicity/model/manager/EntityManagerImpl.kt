@@ -51,14 +51,14 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
             fun EntityPotionEffectEvent.potion() {
                 EntityTracker.tracker(entity)?.forceUpdate(true)
             }
-            @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-            fun PlayerInteractAtEntityEvent.interactBukkit() {
-                if (hand != EquipmentSlot.HAND) return
-                val previous = player.vehicle
-                if (previous is HitBox && previous.source().uniqueId == rightClicked.uniqueId && previous.mountController().canDismountBySelf()) {
-                    previous.dismount(player)
-                }
-            }
+//            @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+//            fun PlayerInteractAtEntityEvent.interactBukkit() {
+//                if (hand != EquipmentSlot.HAND) return
+//                val previous = player.vehicle
+//                if (previous is HitBox && previous.source().uniqueId == rightClicked.uniqueId && previous.mountController().canDismountBySelf()) {
+//                    previous.dismount(player)
+//                }
+//            }
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun EntityDismountEvent.dismount() {
                 val e = dismounted

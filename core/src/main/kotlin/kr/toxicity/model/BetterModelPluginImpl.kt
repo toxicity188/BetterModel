@@ -72,6 +72,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
 
     override fun onEnable() {
         nms = when (version) {
+            V1_21_5 -> kr.toxicity.model.nms.v1_21_R4.NMSImpl()
             V1_21_4 -> kr.toxicity.model.nms.v1_21_R3.NMSImpl()
             V1_21_2, V1_21_3 -> kr.toxicity.model.nms.v1_21_R2.NMSImpl()
             V1_21, V1_21_1 -> kr.toxicity.model.nms.v1_21_R1.NMSImpl()
@@ -91,7 +92,15 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
         when (val result = reload()) {
             is Failure -> result.throwable.handleException("Unable to load plugin properly.")
             is OnReload -> throw RuntimeException("Plugin load failed.")
-            is Success -> info("Plugin is loaded (${result.time} ms)")
+            is Success -> info(
+                "Plugin is loaded. (${result.time} ms)",
+                "Minecraft version: $version, NMS version: ${nms.version()}",
+                "Platform: ${when {
+                    BetterModel.IS_PURPUR -> "Purpur"
+                    BetterModel.IS_PAPER -> "Paper"
+                    else -> "Bukkit"
+                }}"
+            )
         }
     }
 

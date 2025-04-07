@@ -25,7 +25,7 @@ class VFXMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().ski
     override fun cast(p0: SkillMetadata): SkillResult {
         return ModelManagerImpl.renderer(mid)?.let {
             val e = p0.caster.entity.bukkitEntity
-            val created = it.create(e, TrackerModifier(scl, st, false))
+            val created = it.create(e, TrackerModifier(scl, st, false, 0F, false))
             if (created.animateSingle(state, AnimationModifier(0, 0, spd)) {
                 created.close()
             }) created.spawnNearby() else created.close()

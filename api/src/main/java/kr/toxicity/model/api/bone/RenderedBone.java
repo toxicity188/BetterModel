@@ -8,11 +8,9 @@ import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.RendererGroup;
 import kr.toxicity.model.api.nms.*;
 import kr.toxicity.model.api.tracker.ModelRotation;
+import kr.toxicity.model.api.tracker.TrackerModifier;
 import kr.toxicity.model.api.tracker.TrackerMovement;
-import kr.toxicity.model.api.util.BonePredicate;
-import kr.toxicity.model.api.util.MathUtil;
-import kr.toxicity.model.api.util.TransformedItemStack;
-import kr.toxicity.model.api.util.VectorUtil;
+import kr.toxicity.model.api.util.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Location;
@@ -72,21 +70,24 @@ public final class RenderedBone implements HitBoxSource {
      * @param firstLocation spawn location
      * @param movement spawn movement
      */
+    @ApiStatus.Internal
     public RenderedBone(
             @NotNull RendererGroup group,
             @Nullable RenderedBone parent,
             @NotNull TransformedItemStack itemStack,
             @NotNull ItemDisplay.ItemDisplayTransform transform,
             @NotNull Location firstLocation,
-            @NotNull BoneMovement movement
+            @NotNull BoneMovement movement,
+            @NotNull TrackerModifier modifier
     ) {
         this.group = group;
         this.parent = parent;
         var visible = group.getLimb() != null || group.getParent().visibility();
-        this.itemStack = cachedStack = visible ? itemStack : TransformedItemStack.EMPTY;
+        this.itemStack = cachedStack = visible ? itemStack : itemStack.asAir();
         if (!itemStack.isEmpty()) {
             display = BetterModel.inst().nms().create(firstLocation);
             display.display(transform);
+            display.viewRange(modifier.viewRange() > 0 ? modifier.viewRange() : EntityUtil.ENTITY_MODEL_VIEW_RADIUS);
             if (visible) display.item(itemStack.itemStack());
         }
         defaultFrame = movement;
@@ -462,7 +463,7 @@ public final class RenderedBone implements HitBoxSource {
     public boolean togglePart(@NotNull BonePredicate predicate, boolean toggle) {
         var checked = false;
         if (predicate.test(this)) {
-            itemStack = toggle ? cachedStack : TransformedItemStack.EMPTY;
+            itemStack = toggle ? cachedStack : cachedStack.asAir();
             checked = applyItem();
         }
         var children = predicate.children(checked);
@@ -589,7 +590,7 @@ public final class RenderedBone implements HitBoxSource {
     @Override
     public Vector3f hitBoxPosition() {
         var hitBox = group.getHitBox();
-        return worldPosition(hitBox != null ? hitBox.centerVector() : new Vector3f());
+        return worldPosition(hitBox != null ? hitBox.centerPoint() : new Vector3f());
     }
 
     @NotNull
