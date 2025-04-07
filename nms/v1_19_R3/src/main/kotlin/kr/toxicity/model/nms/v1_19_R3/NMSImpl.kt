@@ -346,8 +346,8 @@ class NMSImpl : NMS {
             display.yRot = rotation.y
             bundler.unwrap().add(ClientboundMoveEntityPacket.Rot(
                 display.id,
-                rotation.y.packDegree(),
-                rotation.x.packDegree(),
+                rotation.packedY(),
+                rotation.packedX(),
                 display.onGround
             ))
         }

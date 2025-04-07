@@ -62,8 +62,6 @@ fun SynchedEntityData.pack(): List<SynchedEntityData.DataValue<*>> {
     return list
 }
 
-fun Float.packDegree() = floor(this * 256.0F / 360.0F).toInt().toByte()
-
 fun Entity.isWalking(): Boolean {
     return controllingPassenger?.isWalking() ?: when (this) {
         is Mob -> navigation.isInProgress && deltaMovement.horizontalDistance() > 0.002
