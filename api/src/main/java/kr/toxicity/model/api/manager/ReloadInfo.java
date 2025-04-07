@@ -4,7 +4,7 @@ import lombok.Builder;
 
 @Builder
 public record ReloadInfo(boolean firstReload) {
-    public static ReloadInfo DEFAULT = ReloadInfo.builder()
+    public static final ReloadInfo DEFAULT = ReloadInfo.builder()
             .firstReload(false)
             .build();
 }

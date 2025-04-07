@@ -4,6 +4,8 @@ import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.bone.RenderedBone;
+import kr.toxicity.model.api.event.ModelDespawnAtPlayerEvent;
+import kr.toxicity.model.api.event.ModelSpawnAtPlayerEvent;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.util.BonePredicate;
@@ -11,6 +13,7 @@ import kr.toxicity.model.api.util.EntityUtil;
 import kr.toxicity.model.api.util.FunctionUtil;
 import kr.toxicity.model.api.util.TransformedItemStack;
 import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
@@ -154,7 +157,7 @@ public abstract class Tracker implements AutoCloseable {
      * Despawns this tracker to all players
      */
     public void despawn() {
-        instance.despawn();
+        if (!isClosed()) instance.despawn();
     }
 
     /**
@@ -190,18 +193,28 @@ public abstract class Tracker implements AutoCloseable {
      * Creates model spawn packet and registers player.
      * @param player target player
      * @param bundler bundler
+     * @return success
      */
-
-    protected void spawn(@NotNull Player player, @NotNull PacketBundler bundler) {
-        if (!isClosed()) instance.spawn(player, bundler);
+    protected boolean spawn(@NotNull Player player, @NotNull PacketBundler bundler) {
+        if (isClosed()) return false;
+        var event = new ModelSpawnAtPlayerEvent(player, this);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) return false;
+        instance.spawn(player, bundler);
+        return true;
     }
 
     /**
      * Removes model from player
      * @param player player
+     * @return success
      */
-    public void remove(@NotNull Player player) {
+    public boolean remove(@NotNull Player player) {
+        if (isClosed()) return false;
+        var event = new ModelDespawnAtPlayerEvent(player, this);
+        Bukkit.getPluginManager().callEvent(event);
         instance.remove(player);
+        return true;
     }
 
     /**

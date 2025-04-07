@@ -6,7 +6,6 @@ import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.nms.EntityAdapter;
 import kr.toxicity.model.api.nms.HitBoxListener;
-import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.util.BonePredicate;
 import kr.toxicity.model.api.util.EntityUtil;
 import kr.toxicity.model.api.util.FunctionUtil;
@@ -344,10 +343,11 @@ public class EntityTracker extends Tracker {
     /**
      * Spawns this tracker to some player
      * @param player target player
+     * @return success
      */
-    public void spawn(@NotNull Player player) {
+    public boolean spawn(@NotNull Player player) {
         var bundler = BetterModel.inst().nms().createBundler();
-        spawn(player, bundler);
+        if (!spawn(player, bundler)) return false;
         BetterModel.inst().nms().mount(this, bundler);
         bundler.send(player);
         var handler = BetterModel.inst()
@@ -355,15 +355,17 @@ public class EntityTracker extends Tracker {
                 .player(player.getUniqueId());
         if (handler != null) handler.startTrack(this);
         BetterModel.inst().nms().hide(player, entity);
+        return true;
     }
 
     @Override
-    public void remove(@NotNull Player player) {
-        super.remove(player);
+    public boolean remove(@NotNull Player player) {
+        if (!super.remove(player)) return false;
         var handler = BetterModel.inst()
                 .playerManager()
                 .player(player.getUniqueId());
         if (handler != null) handler.endTrack(this);
+        return true;
     }
 
     /**
