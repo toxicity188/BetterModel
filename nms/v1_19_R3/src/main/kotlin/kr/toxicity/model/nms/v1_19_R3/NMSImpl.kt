@@ -483,7 +483,7 @@ class NMSImpl : NMS {
     override fun createHitBox(entity: EntityAdapter, supplier: HitBoxSource, namedBoundingBox: NamedBoundingBox, mountController: MountController, listener: HitBoxListener): HitBox? {
         val handle = (entity.entity() as? CraftLivingEntity)?.handle ?: return null
         val newBox = namedBoundingBox.center() * entity.scale()
-        val height = newBox.y() / 2
+        val height = newBox.lengthZX() / 2
         return HitBoxImpl(
             namedBoundingBox.name,
             height,

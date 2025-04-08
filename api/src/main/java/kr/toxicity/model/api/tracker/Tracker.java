@@ -111,8 +111,18 @@ public abstract class Tracker implements AutoCloseable {
      * @param consumer consumer
      */
     public void tick(@NotNull BiConsumer<Tracker, PacketBundler> consumer) {
+        schedule(5, consumer);
+    }
+
+    /**
+     * Schedules some task.
+     * @param period period
+     * @param consumer consumer
+     */
+    public void schedule(long period, @NotNull BiConsumer<Tracker, PacketBundler> consumer) {
+        if (period <= 0) throw new RuntimeException("period cannot be <= 0");
         frame((t, b) -> {
-            if (frame.get() % 5 == 0) consumer.accept(t, b);
+            if (frame.get() % period == 0) consumer.accept(t, b);
         });
     }
 

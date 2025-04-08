@@ -267,9 +267,11 @@ public final class RenderInstance {
     }
 
     private boolean anyMatch(@NotNull BonePredicate predicate, BiFunction<RenderedBone, BonePredicate, Boolean> mapper) {
-        return entityMap.values()
-                .stream()
-                .anyMatch(v -> v.iterateTree(predicate, mapper));
+        var result = false;
+        for (RenderedBone value : entityMap.values()) {
+            if (value.iterateTree(predicate, mapper)) result = true;
+        }
+        return result;
     }
 
     public int playerCount() {

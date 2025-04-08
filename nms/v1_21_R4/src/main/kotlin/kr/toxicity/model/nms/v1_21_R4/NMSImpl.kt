@@ -489,7 +489,7 @@ class NMSImpl : NMS {
         val handle = (entity.entity() as? CraftLivingEntity)?.handle ?: return null
         val scale = entity.scale()
         val newBox = namedBoundingBox.center() * scale
-        val height = newBox.y() / 2
+        val height = newBox.lengthZX() / 2
         return HitBoxImpl(
             namedBoundingBox.name,
             height,
