@@ -4,9 +4,9 @@ import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint;
 import kr.toxicity.model.api.event.CreateTrackerEvent;
 import kr.toxicity.model.api.tracker.*;
+import kr.toxicity.model.api.util.EventUtil;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -145,7 +145,7 @@ public final class BlueprintRenderer {
 
     private static <T extends Tracker> T generate(Supplier<T> supplier) {
         var created = supplier.get();
-        Bukkit.getPluginManager().callEvent(new CreateTrackerEvent(created));
+        EventUtil.call(new CreateTrackerEvent(created));
         return created;
     }
 }

@@ -8,12 +8,8 @@ import kr.toxicity.model.api.event.ModelDespawnAtPlayerEvent;
 import kr.toxicity.model.api.event.ModelSpawnAtPlayerEvent;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
-import kr.toxicity.model.api.util.BonePredicate;
-import kr.toxicity.model.api.util.EntityUtil;
-import kr.toxicity.model.api.util.FunctionUtil;
-import kr.toxicity.model.api.util.TransformedItemStack;
+import kr.toxicity.model.api.util.*;
 import lombok.Getter;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
@@ -207,9 +203,7 @@ public abstract class Tracker implements AutoCloseable {
      */
     protected boolean spawn(@NotNull Player player, @NotNull PacketBundler bundler) {
         if (isClosed()) return false;
-        var event = new ModelSpawnAtPlayerEvent(player, this);
-        Bukkit.getPluginManager().callEvent(event);
-        if (event.isCancelled()) return false;
+        if (!EventUtil.call(new ModelSpawnAtPlayerEvent(player, this))) return false;
         instance.spawn(player, bundler);
         return true;
     }
@@ -221,8 +215,7 @@ public abstract class Tracker implements AutoCloseable {
      */
     public boolean remove(@NotNull Player player) {
         if (isClosed()) return false;
-        var event = new ModelDespawnAtPlayerEvent(player, this);
-        Bukkit.getPluginManager().callEvent(event);
+        EventUtil.call(new ModelDespawnAtPlayerEvent(player, this));
         instance.remove(player);
         return true;
     }

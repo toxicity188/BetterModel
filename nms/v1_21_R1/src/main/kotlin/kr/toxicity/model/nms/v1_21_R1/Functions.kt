@@ -2,18 +2,16 @@ package kr.toxicity.model.nms.v1_21_R1
 
 import ca.spottedleaf.moonrise.common.util.TickThread
 import kr.toxicity.model.api.BetterModel
+import kr.toxicity.model.api.util.EventUtil
 import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.network.syncher.SynchedEntityData.DataItem
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.*
 import net.minecraft.world.entity.animal.FlyingAnimal
-import org.bukkit.Bukkit
 import org.bukkit.craftbukkit.entity.CraftEntity
-import org.bukkit.event.Cancellable
 import org.bukkit.event.Event
 import org.joml.Vector3f
-import kotlin.math.floor
 
 inline fun <reified T, reified R> createAdaptedFieldGetter(noinline paperGetter: (T) -> R): (T) -> R {
     return if (BetterModel.IS_PAPER) paperGetter else T::class.java.declaredFields.first {
@@ -33,10 +31,7 @@ fun Entity.passengerPosition(scale: Double): Vector3f {
     }
 }
 
-fun Event.call(): Boolean {
-    Bukkit.getPluginManager().callEvent(this)
-    return if (this is Cancellable) !isCancelled else true
-}
+fun Event.call(): Boolean = EventUtil.call(this)
 
 private val DATA_ITEMS by lazy {
     SynchedEntityData::class.java.declaredFields.first {

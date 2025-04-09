@@ -50,9 +50,9 @@ public final class HttpUtil {
                         .asList()
                         .stream()
                         .map(e -> GSON.fromJson(e, PluginVersion.class))
+                        .filter(v -> v.versions.contains(version))
                         .sorted(Comparator.comparing((PluginVersion v) -> v.versionNumber)
                                 .reversed())
-                        .filter(v -> v.versions.contains(version))
                         .toList());
             }
         }).orElse(e -> {
@@ -118,6 +118,6 @@ public final class HttpUtil {
 
     @FunctionalInterface
     public interface HttpClientConsumer<T> {
-        T accept(@NotNull HttpClient client) throws Exception;
+        @NotNull T accept(@NotNull HttpClient client) throws Exception;
     }
 }

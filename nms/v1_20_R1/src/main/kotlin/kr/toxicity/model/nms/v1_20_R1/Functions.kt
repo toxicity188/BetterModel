@@ -39,10 +39,7 @@ fun Entity.passengerPosition(scale: Double): Vector3f {
     return Vector3f(0F, getDimensions(pose).height * scale.toFloat(), 0F)
 }
 
-fun Event.call(): Boolean {
-    Bukkit.getPluginManager().callEvent(this)
-    return if (this is Cancellable) !isCancelled else true
-}
+fun Event.call(): Boolean = EventUtil.call(this)
 
 private val DATA_ITEMS by lazy {
     SynchedEntityData::class.java.declaredFields.first {

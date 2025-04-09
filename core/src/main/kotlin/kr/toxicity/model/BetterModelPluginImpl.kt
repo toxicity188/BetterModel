@@ -85,6 +85,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
     }
 
     override fun onEnable() {
+        audiences()
         nms = when (version) {
             V1_21_5 -> kr.toxicity.model.nms.v1_21_R4.NMSImpl()
             V1_21_4 -> kr.toxicity.model.nms.v1_21_R3.NMSImpl()
@@ -103,12 +104,12 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
             }
         }
         managers.forEach(GlobalManagerImpl::start)
-        val version = HttpUtil.versionList()
+        val latestVersion = HttpUtil.versionList()
         val versionNoticeList = arrayListOf<Component>()
-        version.release?.let {
+        latestVersion.release?.let {
             if (semver < it.versionNumber()) versionNoticeList += Component.text("New BetterModel release found: ").append(it.toURLComponent())
         }
-        version.snapshot?.let {
+        latestVersion.snapshot?.let {
             if (semver < it.versionNumber()) versionNoticeList += Component.text("New BetterModel snapshot found: ").append(it.toURLComponent())
         }
         if (versionNoticeList.isNotEmpty()) {
