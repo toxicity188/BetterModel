@@ -247,7 +247,8 @@ class HitBoxImpl(
         return c ?: object : CraftLivingEntity(Bukkit.getServer() as CraftServer, this), HitBox by this {}.apply {
             craftEntity = this
         }
-    }    private val dimensions = EntityDimensions(
+    }
+    private val dimensions = EntityDimensions(
         max(source.x(), source.z()).toFloat(),
         source.y().toFloat(),
         delegate.eyeHeight,

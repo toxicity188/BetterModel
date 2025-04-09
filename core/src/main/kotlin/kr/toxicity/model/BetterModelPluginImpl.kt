@@ -1,5 +1,6 @@
 package kr.toxicity.model
 
+import com.vdurmont.semver4j.Semver
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.BetterModelLogger
 import kr.toxicity.model.api.BetterModelPlugin
@@ -8,6 +9,7 @@ import kr.toxicity.model.api.BetterModelPlugin.ReloadResult.*
 import kr.toxicity.model.api.manager.*
 import kr.toxicity.model.api.nms.NMS
 import kr.toxicity.model.api.scheduler.ModelScheduler
+import kr.toxicity.model.api.util.HttpUtil
 import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.api.version.MinecraftVersion.*
 import kr.toxicity.model.manager.*
@@ -17,8 +19,14 @@ import kr.toxicity.model.util.DATA_FOLDER
 import kr.toxicity.model.util.forEachAsync
 import kr.toxicity.model.util.handleException
 import kr.toxicity.model.util.info
+import kr.toxicity.model.util.registerListener
 import kr.toxicity.model.util.warn
+import net.kyori.adventure.platform.bukkit.BukkitAudiences
+import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
+import org.bukkit.event.EventHandler
+import org.bukkit.event.Listener
+import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.plugin.java.JavaPlugin
 import java.io.InputStream
 import java.util.concurrent.atomic.AtomicBoolean
@@ -63,6 +71,11 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
             }
         }
     }
+    @Suppress("DEPRECATION")
+    private val semver = Semver(description.version, Semver.SemverType.LOOSE)
+    private val audiences by lazy {
+        BukkitAudiences.create(this)
+    }
 
     private val reloadStartTask = arrayListOf<() -> Unit>()
     private val reloadEndTask = arrayListOf<(ReloadResult) -> Unit>()
@@ -90,6 +103,25 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
             }
         }
         managers.forEach(GlobalManagerImpl::start)
+        val version = HttpUtil.versionList()
+        val versionNoticeList = arrayListOf<Component>()
+        version.release?.let {
+            if (semver < it.versionNumber()) versionNoticeList += Component.text("New BetterModel release found: ").append(it.toURLComponent())
+        }
+        version.snapshot?.let {
+            if (semver < it.versionNumber()) versionNoticeList += Component.text("New BetterModel snapshot found: ").append(it.toURLComponent())
+        }
+        if (versionNoticeList.isNotEmpty()) {
+            registerListener(object : Listener {
+                @EventHandler
+                fun PlayerJoinEvent.join() {
+                    if (!player.isOp) return
+                    versionNoticeList.forEach {
+                        audiences.player(player).sendMessage(it)
+                    }
+                }
+            })
+        }
         when (val result = reload(ReloadInfo(DATA_FOLDER.exists()))) {
             is Failure -> result.throwable.handleException("Unable to load plugin properly.")
             is OnReload -> throw RuntimeException("Plugin load failed.")
@@ -106,6 +138,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
     }
 
     override fun onDisable() {
+        audiences.close()
         managers.forEach(GlobalManagerImpl::end)
     }
 
@@ -155,7 +188,9 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
     override fun scriptManager(): ScriptManager = ScriptManagerImpl
 
     override fun version(): MinecraftVersion = version
+    override fun semver(): Semver = semver
     override fun nms(): NMS = nms
+    override fun audiences(): BukkitAudiences = audiences
 
     override fun addReloadStartHandler(runnable: Runnable) {
         reloadStartTask += {

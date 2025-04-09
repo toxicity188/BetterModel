@@ -1,9 +1,11 @@
 package kr.toxicity.model.api;
 
+import com.vdurmont.semver4j.Semver;
 import kr.toxicity.model.api.manager.*;
 import kr.toxicity.model.api.nms.NMS;
 import kr.toxicity.model.api.scheduler.ModelScheduler;
 import kr.toxicity.model.api.version.MinecraftVersion;
+import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
@@ -27,6 +29,12 @@ public interface BetterModelPlugin {
      * @return minecraft version
      */
     @NotNull MinecraftVersion version();
+
+    /**
+     * Gets plugin semver.
+     * @return semver
+     */
+    @NotNull Semver semver();
 
     /**
      * Gets minecraft version volatile code.
@@ -91,6 +99,12 @@ public interface BetterModelPlugin {
      * @return logger
      */
     @NotNull BetterModelLogger logger();
+
+    /**
+     * Gets bukkit audiences
+     * @return bukkit audiences
+     */
+    @NotNull BukkitAudiences audiences();
 
     /**
      * A result of reload.

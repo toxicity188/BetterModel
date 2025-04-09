@@ -5,6 +5,7 @@ import kr.toxicity.model.api.config.ModuleConfig
 import kr.toxicity.model.api.manager.ConfigManager
 import kr.toxicity.model.api.manager.ConfigManager.PackType
 import kr.toxicity.model.api.manager.ReloadInfo
+import kr.toxicity.model.api.util.EntityUtil
 import kr.toxicity.model.configuration.PluginConfiguration
 import kr.toxicity.model.util.PLUGIN
 import kr.toxicity.model.util.ifNull
@@ -68,7 +69,8 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
                 Material.getMaterial(it).ifNull("This item doesn't exist: $it")
             }.getOrDefault(Material.LEATHER_HORSE_ARMOR)
         } ?: Material.LEATHER_HORSE_ARMOR
-        maxSight = yaml.getDouble("max-sight", 45.0)
+        maxSight = yaml.getDouble("max-sight", -1.0)
+        if (maxSight <= 0.0) maxSight = EntityUtil.RENDER_DISTANCE
         minSight = yaml.getDouble("min-sight", 5.0)
         lockOnPlayAnimation = yaml.getBoolean("lock-on-play-animation", true)
         namespace = yaml.getString("namespace") ?: "bettermodel"
