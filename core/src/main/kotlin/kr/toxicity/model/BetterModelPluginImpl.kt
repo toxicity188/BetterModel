@@ -21,6 +21,7 @@ import kr.toxicity.model.util.handleException
 import kr.toxicity.model.util.info
 import kr.toxicity.model.util.registerListener
 import kr.toxicity.model.util.warn
+import kr.toxicity.model.util.withComma
 import net.kyori.adventure.platform.bukkit.BukkitAudiences
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
@@ -127,7 +128,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
             is Failure -> result.throwable.handleException("Unable to load plugin properly.")
             is OnReload -> throw RuntimeException("Plugin load failed.")
             is Success -> info(
-                "Plugin is loaded. (${result.time} ms)",
+                "Plugin is loaded. (${result.time.withComma()} ms)",
                 "Minecraft version: $version, NMS version: ${nms.version()}",
                 "Platform: ${when {
                     BetterModel.IS_PURPUR -> "Purpur"

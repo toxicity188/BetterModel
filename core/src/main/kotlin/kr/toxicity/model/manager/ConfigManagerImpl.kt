@@ -66,7 +66,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
         sightTrace = yaml.getBoolean("sight-trace", true)
         item = yaml.getString("item")?.let {
             runCatching {
-                Material.getMaterial(it).ifNull("This item doesn't exist: $it")
+                Material.getMaterial(it).ifNull { "This item doesn't exist: $it" }
             }.getOrDefault(Material.LEATHER_HORSE_ARMOR)
         } ?: Material.LEATHER_HORSE_ARMOR
         maxSight = yaml.getDouble("max-sight", -1.0)

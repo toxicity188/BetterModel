@@ -17,6 +17,7 @@ import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.util.ATTRIBUTE_SCALE
 import kr.toxicity.model.util.PLUGIN
 import kr.toxicity.model.util.handleException
+import kr.toxicity.model.util.withComma
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
@@ -99,7 +100,7 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                         PLUGIN.scheduler().asyncTask {
                             when (val result = PLUGIN.reload()) {
                                 is OnReload -> it.sender().sendMessage("The plugin still on reload!")
-                                is Success -> it.sender().sendMessage("Reload completed (${result.time} ms)")
+                                is Success -> it.sender().sendMessage("Reload completed (${result.time.withComma()} ms)")
                                 is Failure -> {
                                     it.sender().sendMessage("Reload failed.")
                                     it.sender().sendMessage("Please read the log to find the problem.")
