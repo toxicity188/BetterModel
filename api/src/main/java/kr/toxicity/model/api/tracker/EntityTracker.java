@@ -18,12 +18,10 @@ import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 import org.joml.Vector3f;
 
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -36,6 +34,7 @@ import java.util.function.Supplier;
  */
 public class EntityTracker extends Tracker {
     private static final Map<UUID, EntityTracker> TRACKER_MAP = new ConcurrentHashMap<>();
+    private static final Collection<EntityTracker> TRACKERS_VIEW = Collections.unmodifiableCollection(TRACKER_MAP.values());
 
     private final @NotNull Entity entity;
     @Getter
@@ -68,6 +67,10 @@ public class EntityTracker extends Tracker {
             if (render != null) return render.create(entity);
         }
         return t;
+    }
+
+    public static @NotNull @Unmodifiable Collection<EntityTracker> trackers() {
+        return TRACKERS_VIEW;
     }
 
     /**

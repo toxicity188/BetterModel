@@ -120,6 +120,7 @@ class NMSImpl : NMS {
     ) : PlayerChannelHandler, ChannelDuplexHandler() {
         private val connection = (player as CraftPlayer).handle.connection
         private val entityUUIDMap = ConcurrentHashMap<UUID, EntityTracker>()
+        private val uuidValuesView = Collections.unmodifiableCollection(entityUUIDMap.values)
         private val slim = run {
             val encodedValue = getGameProfile((player as CraftPlayer).handle)
                 .properties["textures"]
@@ -144,6 +145,7 @@ class NMSImpl : NMS {
             showPlayerLimb = show
         }
         override fun isSlim(): Boolean = slim
+        override fun trackedTrackers(): Collection<EntityTracker> = uuidValuesView
 
         override fun close() {
             val channel = getConnection(connection).channel

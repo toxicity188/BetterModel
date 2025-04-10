@@ -25,7 +25,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -48,10 +47,10 @@ public abstract class Tracker implements AutoCloseable {
     private final ScheduledFuture<?> task;
     private final AtomicBoolean isClosed = new AtomicBoolean();
     private final AtomicBoolean runningSingle = new AtomicBoolean();
-    private final AtomicLong frame = new AtomicLong();
     private final AtomicBoolean readyForForceUpdate = new AtomicBoolean();
     private final TrackerModifier modifier;
     private final Runnable updater;
+    private long frame = 0;
 
     @Getter
     private Supplier<TrackerMovement> movement;
@@ -70,7 +69,7 @@ public abstract class Tracker implements AutoCloseable {
         updater = () -> {
             var bundle = BetterModel.inst().nms().createBundler();
             instance.move(
-                    frame.incrementAndGet() % 5 == 0 ? (isRunningSingleAnimation() && BetterModel.inst().configManager().lockOnPlayAnimation()) ? instance.getRotation() : rotation() : null,
+                    frame % 5 == 0 ? (isRunningSingleAnimation() && BetterModel.inst().configManager().lockOnPlayAnimation()) ? instance.getRotation() : rotation() : null,
                     movement.get(),
                     bundle
             );
@@ -81,8 +80,8 @@ public abstract class Tracker implements AutoCloseable {
             if (!bundle.isEmpty()) instance.viewedPlayer().forEach(bundle::send);
         };
         task = EXECUTOR.scheduleAtFixedRate(() -> {
-            if (playerCount() == 0) return;
-            updater.run();
+            if (playerCount() > 0) updater.run();
+            frame++;
         }, 10, 10, TimeUnit.MILLISECONDS);
         tint(0xFFFFFF);
         if (modifier.sightTrace()) instance.viewFilter(p -> EntityUtil.canSee(p.getEyeLocation(), location()));
@@ -118,7 +117,7 @@ public abstract class Tracker implements AutoCloseable {
     public void schedule(long period, @NotNull BiConsumer<Tracker, PacketBundler> consumer) {
         if (period <= 0) throw new RuntimeException("period cannot be <= 0");
         frame((t, b) -> {
-            if (frame.get() % period == 0) consumer.accept(t, b);
+            if (frame % period == 0) consumer.accept(t, b);
         });
     }
 

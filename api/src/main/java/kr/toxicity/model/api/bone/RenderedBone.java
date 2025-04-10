@@ -97,6 +97,11 @@ public final class RenderedBone implements HitBoxSource {
         children = Collections.unmodifiableMap(childrenMapper.apply(this));
     }
 
+    public @Nullable String runningAnimation() {
+        var iterator = currentIterator;
+        return iterator != null ? iterator.name : null;
+    }
+
     /**
      * Creates hit box.
      * @param entity target entity
@@ -445,10 +450,15 @@ public final class RenderedBone implements HitBoxSource {
      * @return matched bone
      */
     public @Nullable RenderedBone boneOf(@NotNull Predicate<RenderedBone> predicate) {
-        if (predicate.test(this)) return this;
-        for (RenderedBone value : children.values()) {
-            var get = value.boneOf(predicate);
-            if (get != null) return get;
+        return findNotNullByTree(b -> predicate.test(b) ? b : null);
+    }
+
+    public <T> @Nullable T findNotNullByTree(@NotNull Function<RenderedBone, T> mapper) {
+        var value = mapper.apply(this);
+        if (value != null) return value;
+        for (RenderedBone renderedBone : children.values()) {
+            var childValue = renderedBone.findNotNullByTree(mapper);
+            if (childValue != null) return childValue;
         }
         return null;
     }
