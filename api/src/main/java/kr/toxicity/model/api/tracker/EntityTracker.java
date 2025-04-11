@@ -120,8 +120,7 @@ public class EntityTracker extends Tracker {
     public EntityTracker(@NotNull Entity entity, @NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
         super(instance, modifier);
         this.entity = entity;
-        adapter = (entity instanceof LivingEntity livingEntity ? BetterModel.inst().nms().adapt(livingEntity) : EntityAdapter.EMPTY)
-                .multiply(modifier.scale());
+        adapter = BetterModel.inst().nms().adapt(entity).multiply(modifier.scale());
         //Shadow
         if (modifier.shadow()) {
             var shadow = BetterModel.inst().nms().create(entity.getLocation());
@@ -221,7 +220,7 @@ public class EntityTracker extends Tracker {
      * @param listener listener
      */
     public void createHitBox(@NotNull Predicate<RenderedBone> predicate, @NotNull HitBoxListener listener) {
-        instance.createHitBox(adapter, predicate, listener);
+        if (entity instanceof LivingEntity) instance.createHitBox(adapter, predicate, listener);
     }
 
     /**

@@ -12,8 +12,8 @@ import kr.toxicity.model.compatibility.mythicmobs.bonePredicateNullable
 class BrightnessMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), INoTargetSkill {
 
     private val predicate = mlc.bonePredicateNullable
-    private val block = mlc.getInteger("b", 0).coerceAtLeast(-1).coerceAtMost(15)
-    private val sky = mlc.getInteger("s", 0).coerceAtLeast(-1).coerceAtMost(15)
+    private val block = mlc.getInteger(arrayOf("block", "b"), 0).coerceAtLeast(-1).coerceAtMost(15)
+    private val sky = mlc.getInteger(arrayOf("sky", "s"), 0).coerceAtLeast(-1).coerceAtMost(15)
 
     init {
         isAsyncSafe = false

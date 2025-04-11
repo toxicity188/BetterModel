@@ -40,7 +40,6 @@ import net.minecraft.world.level.entity.PersistentEntitySectionManager
 import org.bukkit.Location
 import org.bukkit.craftbukkit.CraftWorld
 import org.bukkit.craftbukkit.entity.CraftEntity
-import org.bukkit.craftbukkit.entity.CraftLivingEntity
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.craftbukkit.inventory.CraftItemStack
 import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.*
@@ -125,7 +124,7 @@ class NMSImpl : NMS {
 
     override fun hide(player: Player, entity: org.bukkit.entity.Entity) {
         val connection = (player as CraftPlayer).handle
-        val entity = (entity as CraftEntity).handle
+        val entity = (entity as CraftEntity).vanillaEntity
         val task = {
             connection.connection.send(ClientboundBundlePacket(listOf(
                 ClientboundSetEntityDataPacket(entity.id, entity.entityData.pack()),
@@ -192,7 +191,7 @@ class NMSImpl : NMS {
         }
 
         override fun startTrack(tracker: EntityTracker) {
-            val entity = (tracker.source() as CraftEntity).handle
+            val entity = (tracker.source() as CraftEntity).vanillaEntity
             entityUUIDMap.computeIfAbsent(entity.uuid) {
                 tracker
             }
@@ -200,7 +199,7 @@ class NMSImpl : NMS {
 
         override fun endTrack(tracker: EntityTracker) {
             val e = tracker.source()
-            val handle = (e as CraftEntity).handle
+            val handle = (e as CraftEntity).vanillaEntity
             entityUUIDMap.remove(handle.uuid)
             val list = arrayListOf<Packet<ClientGamePacketListener>>()
             list += ClientboundSetEntityDataPacket(handle.id, handle.entityData.pack())
@@ -423,7 +422,7 @@ class NMSImpl : NMS {
         }
 
         override fun syncPosition(adapter: EntityAdapter, bundler: PacketBundler) {
-            val handle = adapter.handle() as net.minecraft.world.entity.LivingEntity? ?: return
+            val handle = adapter.handle() as? net.minecraft.world.entity.LivingEntity ?: return
             display.setPos(handle.position())
             display.onGround = handle.onGround
             bundler.unwrap().add(ClientboundEntityPositionSyncPacket(
@@ -488,7 +487,7 @@ class NMSImpl : NMS {
     }
 
     override fun createHitBox(entity: EntityAdapter, supplier: HitBoxSource, namedBoundingBox: NamedBoundingBox, mountController: MountController, listener: HitBoxListener): HitBox? {
-        val handle = (entity.entity() as? CraftLivingEntity)?.handle ?: return null
+        val handle = entity.handle() as? net.minecraft.world.entity.LivingEntity ?: return null
         val scale = entity.scale()
         val newBox = namedBoundingBox.center() * scale
         val height = newBox.lengthZX() / 2
@@ -509,13 +508,13 @@ class NMSImpl : NMS {
     }
     override fun version(): NMSVersion = NMSVersion.V1_21_R4
 
-    override fun adapt(entity: LivingEntity): EntityAdapter {
-        val craftEntity = entity as CraftLivingEntity
+    override fun adapt(entity: org.bukkit.entity.Entity): EntityAdapter {
+        entity as CraftEntity
         return object : EntityAdapter {
             
-            override fun entity(): LivingEntity = entity
-            override fun handle(): net.minecraft.world.entity.LivingEntity = craftEntity.vanillaEntity as net.minecraft.world.entity.LivingEntity
-            override fun dead(): Boolean = handle().isDeadOrDying
+            override fun entity(): org.bukkit.entity.Entity = entity
+            override fun handle(): Entity = entity.vanillaEntity
+            override fun dead(): Boolean = (handle() as? net.minecraft.world.entity.LivingEntity)?.isDeadOrDying == true
             override fun invisible(): Boolean = handle().isInvisible
             override fun glow(): Boolean = handle().isCurrentlyGlowing
 
@@ -524,7 +523,9 @@ class NMSImpl : NMS {
             }
 
             override fun scale(): Double {
-                return handle().attributes.getInstance(Attributes.SCALE)?.value ?: 1.0
+                val handle = handle()
+                return if (handle is net.minecraft.world.entity.LivingEntity) handle.attributes.getInstance(Attributes.SCALE)?.value ?: 1.0
+                else 1.0
             }
 
             override fun pitch(): Float {
@@ -546,6 +547,7 @@ class NMSImpl : NMS {
 
             override fun damageTick(): Float {
                 val handle = handle()
+                if (handle !is net.minecraft.world.entity.LivingEntity) return 0F
                 val duration = handle.invulnerableDuration.toFloat()
                 if (duration <= 0F) return 0F
                 val knockBack = 1 - (handle.getAttribute(Attributes.KNOCKBACK_RESISTANCE)?.value?.toFloat() ?: 0F)
@@ -554,6 +556,7 @@ class NMSImpl : NMS {
 
             override fun walkSpeed(): Float {
                 val handle = handle()
+                if (handle !is net.minecraft.world.entity.LivingEntity) return 0F
                 if (!handle.onGround) return 1F
                 val speed = handle.getEffect(MobEffects.SPEED)?.amplifier ?: 0
                 val slow = handle.getEffect(MobEffects.SLOWNESS)?.amplifier ?: 0
