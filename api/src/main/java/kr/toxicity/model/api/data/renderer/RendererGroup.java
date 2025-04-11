@@ -7,6 +7,7 @@ import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.mount.MountController;
 import kr.toxicity.model.api.mount.MountControllers;
 import kr.toxicity.model.api.player.PlayerLimb;
+import kr.toxicity.model.api.tracker.TrackerModifier;
 import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.TransformedItemStack;
 import lombok.Getter;
@@ -84,7 +85,7 @@ public final class RendererGroup {
                 .div(16));
         this.hitBox = box;
         rotation = group.rotation().toVector();
-        center = hitBox != null ? hitBox.centerVector() : new Vector3f();
+        center = hitBox != null ? hitBox.centerPoint() : new Vector3f();
         if (name.startsWith("p_")) {
             mountController = MountControllers.WALK;
         } else if (name.startsWith("sp_")) {
@@ -98,11 +99,11 @@ public final class RendererGroup {
      * @param location location
      * @return entity
      */
-    public @NotNull RenderedBone create(@Nullable Player player, @NotNull Location location) {
-        return create(player, null, location);
+    public @NotNull RenderedBone create(@Nullable Player player, @NotNull TrackerModifier modifier, @NotNull Location location) {
+        return create(player, modifier, null, location);
     }
-    private @NotNull RenderedBone create(@Nullable Player player, @Nullable RenderedBone entityParent, @NotNull Location location) {
-        var entity = new RenderedBone(
+    private @NotNull RenderedBone create(@Nullable Player player, @NotNull TrackerModifier modifier, @Nullable RenderedBone entityParent, @NotNull Location location) {
+        return new RenderedBone(
                 this,
                 entityParent,
                 getItem(player),
@@ -113,16 +114,16 @@ public final class RendererGroup {
                         new Vector3f(1),
                         MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(rotation)),
                         rotation
-                )
+                ),
+                modifier,
+                parent1 -> children.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().create(player, modifier, parent1, location)))
         );
-        entity.setChildren(children.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().create(player, entity, location))));
-        return entity;
     }
 
     @NotNull
     private TransformedItemStack getItem(@Nullable Player player) {
         if (player != null) {
-            return limb != null ? limb.createItem(player) : TransformedItemStack.EMPTY;
+            return limb != null ? limb.createItem(player) : itemStack.asAir();
         }
         return itemStack;
     }

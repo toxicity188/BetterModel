@@ -1,5 +1,8 @@
 package kr.toxicity.model.util
 
-fun <T> T?.ifNull(message: String): T & Any = this ?: throw RuntimeException(message)
+import java.text.DecimalFormat
 
-fun rgb(r: Int, g: Int, b: Int) = ((r and 255) shl 16) or ((g and 255) shl 8) or (b and 255)
+val COMMA_FORMAT = DecimalFormat("#,###")
+
+fun <T> T?.ifNull(lazyMessage: () -> String): T & Any = this ?: throw RuntimeException(lazyMessage())
+fun Number.withComma(): String = COMMA_FORMAT.format(this)

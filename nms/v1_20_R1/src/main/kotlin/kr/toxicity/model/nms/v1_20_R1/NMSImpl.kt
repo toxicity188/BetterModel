@@ -105,7 +105,7 @@ class NMSImpl : NMS {
         private val itemId = ItemDisplay::class.java.serializers().map {
             it.toSerializerId()
         }
-        private val transformSet = Display::class.java.serializers().subList(0, 8).map { e ->
+        private val transformSet = Display::class.java.serializers().map { e ->
             e.toSerializerId()
         }.toSet() + itemId + sharedFlag
     }
@@ -126,7 +126,7 @@ class NMSImpl : NMS {
 
     override fun hide(player: Player, entity: org.bukkit.entity.Entity) {
         val connection = (player as CraftPlayer).handle
-        val entity = (entity as CraftEntity).handle
+        val entity = (entity as CraftEntity).vanillaEntity
         val task = {
             connection.connection.send(ClientboundBundlePacket(listOf(
                 ClientboundSetEntityDataPacket(entity.id, entity.entityData.pack()),
@@ -143,14 +143,11 @@ class NMSImpl : NMS {
     ) : PlayerChannelHandler, ChannelDuplexHandler() {
         private val connection = (player as CraftPlayer).handle.connection
         private val entityUUIDMap = ConcurrentHashMap<UUID, EntityTracker>()
+        private val uuidValuesView = Collections.unmodifiableCollection(entityUUIDMap.values)
         private val slim = run {
-            val encodedValue = (player as CraftPlayer)
-                .handle
-                .gameProfile
+            val encodedValue = getGameProfile((player as CraftPlayer).handle)
                 .properties["textures"]
-                .first()
-                .value
-            JsonParser.parseString(String(Base64.getDecoder().decode(encodedValue)))
+            encodedValue.isNotEmpty() && JsonParser.parseString(String(Base64.getDecoder().decode(encodedValue.first().value)))
                 .asJsonObject
                 .getAsJsonObject("textures")
                 .getAsJsonObject("SKIN")
@@ -171,6 +168,7 @@ class NMSImpl : NMS {
             showPlayerLimb = show
         }
         override fun isSlim(): Boolean = slim
+        override fun trackedTrackers(): Collection<EntityTracker> = uuidValuesView
 
         override fun close() {
             val channel = getConnection(connection).channel
@@ -194,7 +192,7 @@ class NMSImpl : NMS {
         }
 
         override fun startTrack(tracker: EntityTracker) {
-            val entity = (tracker.source() as CraftEntity).handle
+            val entity = (tracker.source() as CraftEntity).vanillaEntity
             entityUUIDMap.computeIfAbsent(entity.uuid) {
                 tracker
             }
@@ -202,7 +200,7 @@ class NMSImpl : NMS {
 
         override fun endTrack(tracker: EntityTracker) {
             val e = tracker.source()
-            val handle = (e as CraftEntity).handle
+            val handle = (e as CraftEntity).vanillaEntity
             entityUUIDMap.remove(handle.uuid)
             val list = arrayListOf<Packet<ClientGamePacketListener>>()
             list += ClientboundSetEntityDataPacket(handle.id, handle.entityData.nonDefaultValues!!)
@@ -350,8 +348,8 @@ class NMSImpl : NMS {
             display.yRot = rotation.y
             bundler.unwrap().add(ClientboundMoveEntityPacket.Rot(
                 display.id,
-                rotation.y.packDegree(),
-                rotation.x.packDegree(),
+                rotation.packedY(),
+                rotation.packedX(),
                 display.onGround
             ))
         }
@@ -413,6 +411,21 @@ class NMSImpl : NMS {
             )
         }
 
+        override fun viewRange(range: Float) {
+            display.viewRange = range
+        }
+
+        override fun shadowRadius(radius: Float) {
+            display.shadowRadius = radius
+        }
+
+        override fun syncPosition(adapter: EntityAdapter, bundler: PacketBundler) {
+            val handle = adapter.handle() as? net.minecraft.world.entity.LivingEntity ?: return
+            display.setPos(handle.position())
+            display.onGround = handle.onGround
+            teleport(adapter.entity().location, bundler)
+        }
+
         override fun transform(transformation: Transformation) {
             display.setTransformation(com.mojang.math.Transformation(
                 transformation.translation,
@@ -468,9 +481,9 @@ class NMSImpl : NMS {
     }
 
     override fun createHitBox(entity: EntityAdapter, supplier: HitBoxSource, namedBoundingBox: NamedBoundingBox, mountController: MountController, listener: HitBoxListener): HitBox? {
-        val handle = (entity.entity() as? CraftLivingEntity)?.handle ?: return null
+        val handle = entity.handle() as? net.minecraft.world.entity.LivingEntity ?: return null
         val newBox = namedBoundingBox.center() * entity.scale()
-        val height = newBox.length() / 2
+        val height = newBox.lengthZX() / 2
         return HitBoxImpl(
             namedBoundingBox.name,
             height,
@@ -491,13 +504,13 @@ class NMSImpl : NMS {
 
     override fun version(): NMSVersion = NMSVersion.V1_20_R1
 
-    override fun adapt(entity: LivingEntity): EntityAdapter {
-        val craftEntity = entity as CraftLivingEntity
+    override fun adapt(entity: org.bukkit.entity.Entity): EntityAdapter {
+        entity as CraftEntity
         return object : EntityAdapter {
 
-            override fun entity(): LivingEntity = entity
-            override fun handle(): net.minecraft.world.entity.LivingEntity = craftEntity.vanillaEntity as net.minecraft.world.entity.LivingEntity
-            override fun dead(): Boolean = handle().isDeadOrDying
+            override fun entity(): org.bukkit.entity.Entity = entity
+            override fun handle(): Entity = entity.vanillaEntity
+            override fun dead(): Boolean = (handle() as? net.minecraft.world.entity.LivingEntity)?.isDeadOrDying == true
             override fun invisible(): Boolean = handle().isInvisible
             override fun glow(): Boolean = handle().isCurrentlyGlowing
 
@@ -528,6 +541,7 @@ class NMSImpl : NMS {
 
             override fun damageTick(): Float {
                 val handle = handle()
+                if (handle !is net.minecraft.world.entity.LivingEntity) return 0F
                 val duration = handle.invulnerableDuration.toFloat()
                 if (duration <= 0F) return 0F
                 val knockBack = 1 - (handle.getAttribute(Attributes.KNOCKBACK_RESISTANCE)?.value?.toFloat() ?: 0F)
@@ -536,6 +550,7 @@ class NMSImpl : NMS {
 
             override fun walkSpeed(): Float {
                 val handle = handle()
+                if (handle !is net.minecraft.world.entity.LivingEntity) return 0F
                 if (!handle.onGround) return 1F
                 val speed = handle.getEffect(MobEffects.MOVEMENT_SPEED)?.amplifier ?: 0
                 val slow = handle.getEffect(MobEffects.MOVEMENT_SLOWDOWN)?.amplifier ?: 0

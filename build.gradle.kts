@@ -23,17 +23,21 @@ allprojects {
     apply(plugin = "kotlin")
     apply(plugin = "org.jetbrains.dokka")
     group = "kr.toxicity.model"
-    version = "1.4.3" + (buildNumber?.let { "-SNAPSHOT-$it" } ?: "")
+    version = "1.5" + (buildNumber?.let { "-SNAPSHOT-$it" } ?: "")
     repositories {
         mavenCentral()
         maven("https://repo.papermc.io/repository/maven-public/")
+        maven("https://repo.purpurmc.org/snapshots")
         maven("https://maven.citizensnpcs.co/repo/")
         maven("https://mvn.lumine.io/repository/maven-public/")
     }
     dependencies {
         testImplementation(kotlin("test"))
-        implementation("dev.jorel:commandapi-bukkit-shade:9.7.0")
+        implementation("dev.jorel:commandapi-bukkit-shade:10.0.0")
         implementation("org.bstats:bstats-bukkit:3.1.0")
+        compileOnly("com.vdurmont:semver4j:3.1.0")
+        testImplementation("com.vdurmont:semver4j:3.1.0")
+        compileOnly("net.kyori:adventure-platform-bukkit:4.3.4")
         compileOnly("net.citizensnpcs:citizens-main:2.0.38-SNAPSHOT")
         compileOnly("io.lumine:Mythic-Dist:5.8.2")
     }
@@ -78,8 +82,10 @@ fun Project.dependency(any: Any) = also { project ->
 }
 
 fun Project.paper() = dependency("io.papermc.paper:paper-api:$minecraft-R0.1-SNAPSHOT")
+fun Project.purpur() = dependency("org.purpurmc.purpur:purpur-api:$minecraft-R0.1-SNAPSHOT")
 
 val api = project("api").paper()
+val purpur = project("purpur").dependency(api).purpur()
 val nms = project("nms").subprojects.map {
     it.dependency(api)
         .also { project ->
@@ -89,10 +95,12 @@ val nms = project("nms").subprojects.map {
 val core = project("core")
     .paper()
     .dependency(api)
+    .dependency(purpur)
     .dependency(nms)
 
 dependencies {
     implementation(api)
+    implementation(purpur)
     implementation(core)
     nms.forEach {
         implementation(project("nms:${it.name}", configuration = "reobf"))
@@ -179,16 +187,21 @@ tasks.modrinth {
 }
 
 bukkitPluginYaml {
-    main = "${project.group}.BetterModelPluginImpl"
+    main = "$groupString.BetterModelPluginImpl"
     version = project.version.toString()
     name = rootProject.name
     foliaSupported = true
-    apiVersion = "1.19"
+    apiVersion = "1.20"
     author = "toxicity"
     description = "Modern lightweight Minecraft model implementation for Paper, Folia"
     softDepend = listOf(
         "MythicMobs",
         "Citizens"
+    )
+    libraries = listOf(
+        "com.vdurmont:semver4j:3.1.0",
+        "net.kyori:adventure-api:4.20.0",
+        "net.kyori:adventure-platform-bukkit:4.3.4"
     )
     permissions.create("bettermodel") {
         default = Permission.Default.OP

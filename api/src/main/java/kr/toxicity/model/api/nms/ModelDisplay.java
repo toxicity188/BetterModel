@@ -79,4 +79,23 @@ public interface ModelDisplay {
      * @param sky sky
      */
     void brightness(int block, int sky);
+
+    /**
+     * Sets view range
+     * @param range range
+     */
+    void viewRange(float range);
+
+    /**
+     * Sets shadow radius
+     * @param radius radius
+     */
+    void shadowRadius(float radius);
+
+    /**
+     * Syncs entity position
+     * @param adapter adapter
+     * @param bundler packet bundler
+     */
+    void syncPosition(@NotNull EntityAdapter adapter, @NotNull PacketBundler bundler);
 }

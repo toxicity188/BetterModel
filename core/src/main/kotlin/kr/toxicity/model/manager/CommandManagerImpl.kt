@@ -11,11 +11,13 @@ import dev.jorel.commandapi.executors.CommandExecutionInfo
 import dev.jorel.commandapi.executors.PlayerCommandExecutor
 import kr.toxicity.model.api.BetterModelPlugin.ReloadResult.*
 import kr.toxicity.model.api.manager.CommandManager
+import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.api.nms.NMSVersion
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.util.ATTRIBUTE_SCALE
 import kr.toxicity.model.util.PLUGIN
 import kr.toxicity.model.util.handleException
+import kr.toxicity.model.util.withComma
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
@@ -98,7 +100,7 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                         PLUGIN.scheduler().asyncTask {
                             when (val result = PLUGIN.reload()) {
                                 is OnReload -> it.sender().sendMessage("The plugin still on reload!")
-                                is Success -> it.sender().sendMessage("Reload completed (${result.time} ms)")
+                                is Success -> it.sender().sendMessage("Reload completed (${result.time.withComma()} ms)")
                                 is Failure -> {
                                     it.sender().sendMessage("Reload failed.")
                                     it.sender().sendMessage("Please read the log to find the problem.")
@@ -160,7 +162,7 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
         CommandAPI.onEnable()
     }
 
-    override fun reload() {
+    override fun reload(info: ReloadInfo) {
 
     }
 

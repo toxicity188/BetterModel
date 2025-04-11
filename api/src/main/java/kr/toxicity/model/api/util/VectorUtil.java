@@ -32,6 +32,7 @@ public final class VectorUtil {
                 points
         );
     }
+
     public static @NotNull List<AnimationPoint> sum(@NotNull List<VectorPoint> position, @NotNull List<VectorPoint> rotation, @NotNull List<VectorPoint> scale) {
         var set = new TreeSet<Float>();
         point(set, position);

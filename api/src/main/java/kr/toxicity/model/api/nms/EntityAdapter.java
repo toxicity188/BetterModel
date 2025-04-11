@@ -1,92 +1,13 @@
 package kr.toxicity.model.api.nms;
 
-import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 /**
  * An adapter of entity
  */
 public interface EntityAdapter {
-    /**
-     * Empty adapter
-     */
-    EntityAdapter EMPTY = new EntityAdapter() {
-
-        @Override
-        public boolean dead() {
-            return false;
-        }
-
-        @Nullable
-        @Override
-        public LivingEntity entity() {
-            return null;
-        }
-
-        @Nullable
-        @Override
-        public Object handle() {
-            return null;
-        }
-
-        @Override
-        public boolean invisible() {
-            return false;
-        }
-
-        @Override
-        public boolean glow() {
-            return false;
-        }
-
-        @Override
-        public boolean onWalk() {
-            return false;
-        }
-
-        @Override
-        public double scale() {
-            return 1;
-        }
-
-        @Override
-        public float bodyYaw() {
-            return 0;
-        }
-
-        @Override
-        public float pitch() {
-            return 0;
-        }
-
-        @Override
-        public float yaw() {
-            return 0;
-        }
-
-        @Override
-        public float damageTick() {
-            return 0;
-        }
-
-        @Override
-        public float walkSpeed() {
-            return 1;
-        }
-
-        @Override
-        public boolean fly() {
-            return false;
-        }
-
-        @Override
-        public @NotNull Vector3f passengerPosition() {
-            return new Vector3f();
-        }
-    };
-
     /**
      * Multiplies this adapter
      * @param scaleMultiplier scale multiplier
@@ -116,15 +37,15 @@ public interface EntityAdapter {
             return delegate.dead();
         }
 
-        @Nullable
+        @NotNull
         @Override
         public Object handle() {
             return delegate.handle();
         }
 
-        @Nullable
+        @NotNull
         @Override
-        public LivingEntity entity() {
+        public Entity entity() {
             return delegate.entity();
         }
 
@@ -189,13 +110,13 @@ public interface EntityAdapter {
      * Gets source
      * @return source entity
      */
-    @Nullable LivingEntity entity();
+    @NotNull Entity entity();
 
     /**
      * Gets vanilla entity
      * @return vanilla entity
      */
-    @Nullable Object handle();
+    @NotNull Object handle();
 
     /**
      * Checks source entity is dead

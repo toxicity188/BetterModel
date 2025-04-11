@@ -5,24 +5,23 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Supplier;
 
 public class ScriptProcessor {
-    private final Map<String, PredicatedScript> scriptMap = new LinkedHashMap<>();
+    private final SequencedMap<String, PredicatedScript> scriptMap = new LinkedHashMap<>();
+    private final Collection<PredicatedScript> scriptView = scriptMap.sequencedValues().reversed();
     @Getter
     private @Nullable BlueprintScript.ScriptReader currentReader;
 
     public void animateSingle(@NotNull BlueprintScript script, @NotNull AnimationModifier modifier) {
         synchronized (scriptMap) {
-            scriptMap.put(script.name(), new PredicatedScript(script.name(), modifier.predicate(), script.single(modifier.start(), modifier.speedValue())));
+            scriptMap.putLast(script.name(), new PredicatedScript(script.name(), modifier.predicate(), script.single(modifier.start(), modifier.speedValue())));
         }
     }
     public void animateLoop(@NotNull BlueprintScript script, @NotNull AnimationModifier modifier) {
         synchronized (scriptMap) {
-            scriptMap.put(script.name(), new PredicatedScript(script.name(), modifier.predicate(), script.loop(modifier.start(), modifier.speedValue())));
+            scriptMap.putLast(script.name(), new PredicatedScript(script.name(), modifier.predicate(), script.loop(modifier.start(), modifier.speedValue())));
         }
     }
 
@@ -46,10 +45,12 @@ public class ScriptProcessor {
     public void tick() {
         synchronized (scriptMap) {
             var check = true;
-            for (PredicatedScript predicatedScript : new ArrayList<>(scriptMap.values()).reversed()) {
+            var iterator = scriptView.iterator();
+            while (iterator.hasNext()) {
+                var predicatedScript = iterator.next();
                 if (predicatedScript.supplier.get() && check) {
                     check = false;
-                    if (predicatedScript.reader.tick()) scriptMap.remove(predicatedScript.name);
+                    if (predicatedScript.reader.tick()) iterator.remove();
                     else currentReader = predicatedScript.reader;
                 } else {
                     predicatedScript.reader.clear();

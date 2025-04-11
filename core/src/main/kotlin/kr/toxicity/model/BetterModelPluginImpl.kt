@@ -1,5 +1,6 @@
 package kr.toxicity.model
 
+import com.vdurmont.semver4j.Semver
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.BetterModelLogger
 import kr.toxicity.model.api.BetterModelPlugin
@@ -8,16 +9,25 @@ import kr.toxicity.model.api.BetterModelPlugin.ReloadResult.*
 import kr.toxicity.model.api.manager.*
 import kr.toxicity.model.api.nms.NMS
 import kr.toxicity.model.api.scheduler.ModelScheduler
+import kr.toxicity.model.api.util.HttpUtil
 import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.api.version.MinecraftVersion.*
 import kr.toxicity.model.manager.*
 import kr.toxicity.model.scheduler.PaperScheduler
 import kr.toxicity.model.scheduler.StandardScheduler
+import kr.toxicity.model.util.DATA_FOLDER
 import kr.toxicity.model.util.forEachAsync
 import kr.toxicity.model.util.handleException
 import kr.toxicity.model.util.info
+import kr.toxicity.model.util.registerListener
 import kr.toxicity.model.util.warn
+import kr.toxicity.model.util.withComma
+import net.kyori.adventure.platform.bukkit.BukkitAudiences
+import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
+import org.bukkit.event.EventHandler
+import org.bukkit.event.Listener
+import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.plugin.java.JavaPlugin
 import java.io.InputStream
 import java.util.concurrent.atomic.AtomicBoolean
@@ -62,6 +72,11 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
             }
         }
     }
+    @Suppress("DEPRECATION")
+    private val semver = Semver(description.version, Semver.SemverType.LOOSE)
+    private val audiences by lazy {
+        BukkitAudiences.create(this)
+    }
 
     private val reloadStartTask = arrayListOf<() -> Unit>()
     private val reloadEndTask = arrayListOf<(ReloadResult) -> Unit>()
@@ -71,7 +86,9 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
     }
 
     override fun onEnable() {
+        audiences()
         nms = when (version) {
+            V1_21_5 -> kr.toxicity.model.nms.v1_21_R4.NMSImpl()
             V1_21_4 -> kr.toxicity.model.nms.v1_21_R3.NMSImpl()
             V1_21_2, V1_21_3 -> kr.toxicity.model.nms.v1_21_R2.NMSImpl()
             V1_21, V1_21_1 -> kr.toxicity.model.nms.v1_21_R1.NMSImpl()
@@ -88,26 +105,56 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
             }
         }
         managers.forEach(GlobalManagerImpl::start)
-        when (val result = reload()) {
+        val latestVersion = HttpUtil.versionList()
+        val versionNoticeList = arrayListOf<Component>()
+        latestVersion.release?.let {
+            if (semver < it.versionNumber()) versionNoticeList += Component.text("New BetterModel release found: ").append(it.toURLComponent())
+        }
+        latestVersion.snapshot?.let {
+            if (semver < it.versionNumber()) versionNoticeList += Component.text("New BetterModel snapshot found: ").append(it.toURLComponent())
+        }
+        if (versionNoticeList.isNotEmpty()) {
+            registerListener(object : Listener {
+                @EventHandler
+                fun PlayerJoinEvent.join() {
+                    if (!player.isOp) return
+                    versionNoticeList.forEach {
+                        audiences.player(player).sendMessage(it)
+                    }
+                }
+            })
+        }
+        when (val result = reload(ReloadInfo(DATA_FOLDER.exists()))) {
             is Failure -> result.throwable.handleException("Unable to load plugin properly.")
             is OnReload -> throw RuntimeException("Plugin load failed.")
-            is Success -> info("Plugin is loaded (${result.time} ms)")
+            is Success -> info(
+                "Plugin is loaded. (${result.time.withComma()} ms)",
+                "Minecraft version: $version, NMS version: ${nms.version()}",
+                "Platform: ${when {
+                    BetterModel.IS_PURPUR -> "Purpur"
+                    BetterModel.IS_PAPER -> "Paper"
+                    else -> "Bukkit"
+                }}"
+            )
         }
     }
 
     override fun onDisable() {
+        audiences.close()
         managers.forEach(GlobalManagerImpl::end)
     }
 
-    override fun reload(): ReloadResult {
-        if (onReload.get()) return OnReload()
-        onReload.set(true)
+    override fun reload(): ReloadResult = reload(ReloadInfo.DEFAULT)
+    private fun reload(info: ReloadInfo): ReloadResult {
+        if (!onReload.compareAndSet(false, true)) return OnReload()
         reloadStartTask.forEach {
             it()
         }
         val result = runCatching {
             val time = System.currentTimeMillis()
-            managers.forEach(GlobalManagerImpl::reload)
+            managers.forEach {
+                it.reload(info)
+            }
             Success(System.currentTimeMillis() - time)
         }.getOrElse {
             Failure(it)
@@ -143,7 +190,9 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
     override fun scriptManager(): ScriptManager = ScriptManagerImpl
 
     override fun version(): MinecraftVersion = version
+    override fun semver(): Semver = semver
     override fun nms(): NMS = nms
+    override fun audiences(): BukkitAudiences = audiences
 
     override fun addReloadStartHandler(runnable: Runnable) {
         reloadStartTask += {

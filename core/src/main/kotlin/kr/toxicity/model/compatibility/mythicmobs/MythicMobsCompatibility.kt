@@ -48,6 +48,7 @@ class MythicMobsCompatibility : Compatibility {
                     "vfx" -> e.register(VFXMechanic(e.config))
                     "tint", "color" -> e.register(TintMechanic(e.config))
                     "brightness", "light" -> e.register(BrightnessMechanic(e.config))
+                    "enchant" -> e.register(EnchantMechanic(e.config))
                 }
             }
             @EventHandler

@@ -6,6 +6,7 @@ import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.data.renderer.BlueprintRenderer
 import kr.toxicity.model.api.data.renderer.RendererGroup
 import kr.toxicity.model.api.manager.PlayerManager
+import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.api.nms.PlayerChannelHandler
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.api.util.EntityUtil
@@ -31,16 +32,20 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
         registerListener(object : Listener {
             @EventHandler
             fun PlayerJoinEvent.join() {
-                runCatching { //For fake player
+                if (player.isOnline) runCatching { //For fake player
                     player.register()
                     player.showAll()
+                }.getOrElse {
+                    it.handleException("Unable to load ${player.name}'s data.")
                 }
             }
             @EventHandler
             fun PlayerChangedWorldEvent.change() {
-                runCatching {
+                if (player.isOnline) runCatching {
                     player.register().unregisterAll()
                     player.showAll()
+                }.getOrElse {
+                    it.handleException("Unable to refresh ${player.name}'s data.")
                 }
             }
             @EventHandler
@@ -61,7 +66,7 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
         PLUGIN.nms().inject(this)
     }
 
-    override fun reload() {
+    override fun reload(info: ReloadInfo) {
         renderMap.clear()
         if (ConfigManagerImpl.module().playerAnimation()) {
             val folder = File(DATA_FOLDER, "players")

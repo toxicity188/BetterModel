@@ -9,19 +9,9 @@ import kr.toxicity.model.api.nms.NMSVersion
 import kr.toxicity.model.api.player.PlayerLimb
 import kr.toxicity.model.manager.ConfigManagerImpl
 import java.io.File
-import java.io.InputStream
 
 fun File.toModel(): ModelBlueprint = bufferedReader().use {
     ModelBlueprint.from(nameWithoutExtension, ModelData.GSON.fromJson(it, ModelData::class.java))
-}
-fun InputStream.toModel(name: String = "unknown"): ModelBlueprint = bufferedReader().use {
-    ModelBlueprint.from(name, ModelData.GSON.fromJson(it, ModelData::class.java))
-}
-
-fun JsonElement.save(file: File) {
-    file.bufferedWriter().use {
-        ModelData.GSON.toJson(this, it)
-    }
 }
 
 fun String.toLimb() = runCatching {
@@ -29,9 +19,7 @@ fun String.toLimb() = runCatching {
 }.getOrNull()
 
 fun JsonElement.toByteArray(): ByteArray {
-    val sb = StringBuilder()
-    ModelData.GSON.toJson(this, sb)
-    return sb.toString().toByteArray(Charsets.UTF_8)
+    return ModelData.GSON.toJson(this).toByteArray(Charsets.UTF_8)
 }
 
 fun versionRangeOf(min: Int, max: Int) = JsonObject().apply {

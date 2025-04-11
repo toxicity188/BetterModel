@@ -16,6 +16,8 @@ class ModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().s
     private val s = mlc.getFloat(arrayOf("scale", "s"), 1F)
     private val st = mlc.getBoolean(arrayOf("sight-trace", "st"), true)
     private val de = mlc.getBoolean(arrayOf("damage-effect", "de"), true)
+    private val vr = mlc.getFloat(arrayOf("view-range", "vr"), 0F)
+    private val shadow = mlc.getBoolean(arrayOf("shadow"), false)
 
     init {
         isAsyncSafe = false
@@ -24,7 +26,7 @@ class ModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().s
     override fun cast(p0: SkillMetadata): SkillResult {
         return ModelManagerImpl.renderer(mid)?.let {
             val e = p0.caster.entity.bukkitEntity
-            val created = it.create(e, TrackerModifier(s, st, de))
+            val created = it.create(e, TrackerModifier(s, st, de, vr, shadow))
             BetterModel.inst().scheduler().taskLater(1, e.location) {
                 created.spawnNearby()
             }

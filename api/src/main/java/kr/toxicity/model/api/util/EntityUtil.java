@@ -29,7 +29,12 @@ public final class EntityUtil {
     /**
      * Default render distance.
      */
-    public static final double RENDER_DISTANCE = Bukkit.getSimulationDistance() << 4;
+    public static final double RENDER_DISTANCE = Bukkit.getViewDistance() << 3;
+
+    /**
+     * Entity model view radius.
+     */
+    public static final float ENTITY_MODEL_VIEW_RADIUS = (float) Bukkit.getViewDistance() / 4;
 
     /**
      * Y-axis threshold of user screen.
@@ -80,7 +85,7 @@ public final class EntityUtil {
      */
     public static @Nullable ModelBoundingBox max(@NotNull List<ModelBoundingBox> target) {
         return target.stream()
-                .max(Comparator.comparingDouble(b -> Math.sqrt(Math.pow(b.maxX() - b.minX(), 2) + Math.pow(b.maxY() - b.minY(), 2) + Math.pow(b.maxZ() - b.minZ(), 2))))
+                .max(Comparator.comparingDouble(ModelBoundingBox::length))
                 .orElse(null);
     }
 }

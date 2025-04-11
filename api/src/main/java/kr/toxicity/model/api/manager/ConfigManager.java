@@ -101,6 +101,12 @@ public interface ConfigManager {
     boolean createPackMcmeta();
 
     /**
+     * Checks use Purpur afk.
+     * @return use Purpur afk
+     */
+    boolean usePurpurAfk();
+
+    /**
      * Pack type
      */
     enum PackType {

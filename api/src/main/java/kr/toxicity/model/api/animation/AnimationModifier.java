@@ -123,6 +123,6 @@ public record AnimationModifier(@NotNull Supplier<Boolean> predicate, int start,
         this.speed = speed;
     }
 
-    public static final AnimationModifier DEFAULT = new AnimationModifier(1, 0, 1F);
-    public static final AnimationModifier DEFAULT_LOOP = new AnimationModifier(4, 0, 1F);
+    public static final AnimationModifier DEFAULT = new AnimationModifier(0, 0, 1F);
+    public static final AnimationModifier DEFAULT_LOOP = new AnimationModifier(6, 0, 1F);
 }

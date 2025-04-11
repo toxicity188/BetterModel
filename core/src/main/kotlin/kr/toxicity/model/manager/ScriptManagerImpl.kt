@@ -1,5 +1,6 @@
 package kr.toxicity.model.manager
 
+import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.api.manager.ScriptManager
 import kr.toxicity.model.api.script.EntityScript
 import kr.toxicity.model.api.script.EntityScriptBuilder
@@ -14,6 +15,6 @@ object ScriptManagerImpl : ScriptManager, GlobalManagerImpl {
         scriptMap[name] = script
     }
 
-    override fun reload() {
+    override fun reload(info: ReloadInfo) {
     }
 }
