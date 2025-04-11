@@ -426,7 +426,7 @@ class NMSImpl : NMS {
         }
 
         override fun syncPosition(adapter: EntityAdapter, bundler: PacketBundler) {
-            val handle = adapter.handle() as? net.minecraft.world.entity.LivingEntity ?: return
+            val handle = adapter.handle() as Entity
             display.setPos(handle.position())
             display.onGround = handle.onGround
             bundler.unwrap().add(ClientboundEntityPositionSyncPacket(
