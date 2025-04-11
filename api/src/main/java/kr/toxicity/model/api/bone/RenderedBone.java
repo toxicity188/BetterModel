@@ -47,15 +47,13 @@ public final class RenderedBone implements HitBoxSource {
     private final Collection<TreeIterator> reversedView = animators.sequencedValues().reversed();
     private AnimationMovement keyFrame = null;
     private long delay = 0;
-    private TransformedItemStack itemStack;
+    private TransformedItemStack cachedItem, itemStack;
 
     private final List<Consumer<AnimationMovement>> movementModifier = new ArrayList<>();
     @Getter
     private HitBox hitBox;
 
     private int tint;
-    @Getter
-    private boolean visible;
     private TreeIterator currentIterator = null;
     private BoneMovement beforeTransform, afterTransform, relativeOffsetCache;
     private Vector3f defaultPosition = new Vector3f();
@@ -85,8 +83,8 @@ public final class RenderedBone implements HitBoxSource {
         this.group = group;
         this.parent = parent;
         var visible = group.getLimb() != null || group.getParent().visibility();
-        this.itemStack = itemStack;
-        this.visible = visible;
+        this.cachedItem = itemStack;
+        this.itemStack = visible ? itemStack : itemStack.asAir();
         if (!itemStack.isEmpty()) {
             display = BetterModel.inst().nms().create(firstLocation);
             display.display(transform);
@@ -151,7 +149,7 @@ public final class RenderedBone implements HitBoxSource {
      */
     public boolean itemStack(@NotNull BonePredicate predicate, @NotNull TransformedItemStack itemStack) {
         if (predicate.test(this)) {
-            this.itemStack = itemStack;
+            this.itemStack = cachedItem = itemStack;
             return applyItem();
         }
         return false;
@@ -346,7 +344,7 @@ public final class RenderedBone implements HitBoxSource {
 
     private boolean applyItem() {
         if (display != null) {
-            display.item(visible ? BetterModel.inst().nms().tint(itemStack.itemStack().clone(), tint) : itemStack.asAir().itemStack());
+            display.item(BetterModel.inst().nms().tint(itemStack.itemStack().clone(), tint));
             return true;
         } else return false;
     }
@@ -438,10 +436,10 @@ public final class RenderedBone implements HitBoxSource {
      */
     public boolean togglePart(@NotNull BonePredicate predicate, boolean toggle) {
         if (predicate.test(this)) {
-            visible = toggle;
+            itemStack = toggle ? cachedItem : cachedItem.asAir();
             return applyItem();
         }
-        return true;
+        return false;
     }
 
     /**
