@@ -14,7 +14,7 @@ plugins {
     id("io.papermc.hangar-publish-plugin") version "0.1.2"
 }
 
-val minecraft = "1.21.4"
+val minecraft = property("minecraft_version").toString()
 val targetJavaVersion = 21
 val buildNumber: String? = System.getenv("BUILD_NUMBER")
 
@@ -27,7 +27,6 @@ allprojects {
     repositories {
         mavenCentral()
         maven("https://repo.papermc.io/repository/maven-public/")
-        maven("https://repo.purpurmc.org/snapshots")
         maven("https://maven.citizensnpcs.co/repo/")
         maven("https://mvn.lumine.io/repository/maven-public/")
     }
@@ -82,10 +81,9 @@ fun Project.dependency(any: Any) = also { project ->
 }
 
 fun Project.paper() = dependency("io.papermc.paper:paper-api:$minecraft-R0.1-SNAPSHOT")
-fun Project.purpur() = dependency("org.purpurmc.purpur:purpur-api:$minecraft-R0.1-SNAPSHOT")
 
 val api = project("api").paper()
-val purpur = project("purpur").dependency(api).purpur()
+val purpur = project("purpur").dependency(api)
 val nms = project("nms").subprojects.map {
     it.dependency(api)
         .also { project ->
@@ -228,7 +226,7 @@ val supportedVersion = listOf(
     "1.21.2",
     "1.21.3",
     "1.21.4",
-    //"1.21.5", TODO - Add this line when 1.21.5 paper is out and can be compatible
+    "1.21.5"
 )
 
 hangarPublish {
