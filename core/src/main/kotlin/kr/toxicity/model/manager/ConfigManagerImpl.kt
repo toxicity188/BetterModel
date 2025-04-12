@@ -4,6 +4,8 @@ import kr.toxicity.model.api.config.DebugConfig
 import kr.toxicity.model.api.config.ModuleConfig
 import kr.toxicity.model.api.manager.ConfigManager
 import kr.toxicity.model.api.manager.ConfigManager.PackType
+import kr.toxicity.model.api.manager.ReloadInfo
+import kr.toxicity.model.api.util.EntityUtil
 import kr.toxicity.model.configuration.PluginConfiguration
 import kr.toxicity.model.util.PLUGIN
 import kr.toxicity.model.util.ifNull
@@ -28,6 +30,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     private var followMobInvisibility = true
     private var animatedTextureFrameTime = 10
     private var createPackMcmeta = true
+    private var usePurpurAfk = true
 
     override fun debug(): DebugConfig = debug
     override fun module(): ModuleConfig = module
@@ -44,8 +47,9 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     override fun followMobInvisibility(): Boolean = followMobInvisibility
     override fun animatedTextureFrameTime(): Int = animatedTextureFrameTime
     override fun createPackMcmeta(): Boolean = createPackMcmeta
+    override fun usePurpurAfk(): Boolean = usePurpurAfk
 
-    override fun reload() {
+    override fun reload(info: ReloadInfo) {
         val yaml = PluginConfiguration.CONFIG.create()
         if (yaml.getBoolean("metrics", true)) {
             if (metrics == null) metrics = Metrics(PLUGIN, 24237)
@@ -62,10 +66,11 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
         sightTrace = yaml.getBoolean("sight-trace", true)
         item = yaml.getString("item")?.let {
             runCatching {
-                Material.getMaterial(it).ifNull("This item doesn't exist: $it")
+                Material.getMaterial(it).ifNull { "This item doesn't exist: $it" }
             }.getOrDefault(Material.LEATHER_HORSE_ARMOR)
         } ?: Material.LEATHER_HORSE_ARMOR
-        maxSight = yaml.getDouble("max-sight", 45.0)
+        maxSight = yaml.getDouble("max-sight", -1.0)
+        if (maxSight <= 0.0) maxSight = EntityUtil.RENDER_DISTANCE
         minSight = yaml.getDouble("min-sight", 5.0)
         lockOnPlayAnimation = yaml.getBoolean("lock-on-play-animation", true)
         namespace = yaml.getString("namespace") ?: "bettermodel"
@@ -79,5 +84,6 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
         buildFolderLocation = (yaml.getString("build-folder-location") ?: "BetterModel/build").replace('/', File.separatorChar)
         disableGeneratingLegacyModels = yaml.getBoolean("disable-generating-legacy-models")
         followMobInvisibility = yaml.getBoolean("follow-mob-invisibility", true)
+        usePurpurAfk = yaml.getBoolean("use-purpur-afk", true)
     }
 }

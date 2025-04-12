@@ -18,11 +18,10 @@ import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 import org.joml.Vector3f;
 
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -35,6 +34,7 @@ import java.util.function.Supplier;
  */
 public class EntityTracker extends Tracker {
     private static final Map<UUID, EntityTracker> TRACKER_MAP = new ConcurrentHashMap<>();
+    private static final Collection<EntityTracker> TRACKERS_VIEW = Collections.unmodifiableCollection(TRACKER_MAP.values());
 
     private final @NotNull Entity entity;
     @Getter
@@ -67,6 +67,10 @@ public class EntityTracker extends Tracker {
             if (render != null) return render.create(entity);
         }
         return t;
+    }
+
+    public static @NotNull @Unmodifiable Collection<EntityTracker> trackers() {
+        return TRACKERS_VIEW;
     }
 
     /**
@@ -116,8 +120,28 @@ public class EntityTracker extends Tracker {
     public EntityTracker(@NotNull Entity entity, @NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
         super(instance, modifier);
         this.entity = entity;
-        adapter = (entity instanceof LivingEntity livingEntity ? BetterModel.inst().nms().adapt(livingEntity) : EntityAdapter.EMPTY)
-                .multiply(modifier.scale());
+        adapter = BetterModel.inst().nms().adapt(entity).multiply(modifier.scale());
+        //Shadow
+        if (modifier.shadow()) {
+            var shadow = BetterModel.inst().nms().create(entity.getLocation());
+            shadow.shadowRadius((float) instance.renderers()
+                    .stream()
+                    .filter(b -> b.getGroup().getParent().visibility())
+                    .map(b -> b.getGroup().getHitBox())
+                    .filter(Objects::nonNull)
+                    .mapToDouble(b -> b.box().lengthZX() / 2)
+                    .max()
+                    .orElse(0D));
+            tick(((t, b) -> {
+                shadow.sync(adapter);
+                if (!b.isEmpty()) shadow.send(b);
+                shadow.syncPosition(adapter, b);
+            }));
+            instance.spawnPacketHandler(shadow::spawn);
+            instance.despawnPacketHandler(shadow::remove);
+        }
+
+        //Animation
         instance.defaultPosition(new Vector3f(0, -adapter.passengerPosition().y, 0));
         instance.addAnimationMovementModifier(
                 BonePredicate.of(r -> r.getName().startsWith("h_")),
@@ -163,15 +187,23 @@ public class EntityTracker extends Tracker {
             entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, instance.getParent().getParent().name());
             if (!isClosed() && !forRemoval()) createHitBox();
         });
-        tick(t -> t.displays().forEach(d -> d.sync(adapter)));
-        tick(t -> {
+        tick((t, b) -> t.displays().forEach(d -> d.sync(adapter)));
+        tick((t, b) -> {
             var reader = t.instance.getScriptProcessor().getCurrentReader();
             if (reader == null) return;
             var script = reader.script();
             if (script == null) return;
             BetterModel.inst().scheduler().task(entity.getLocation(), () -> script.accept(entity));
         });
-        frame(t -> {
+        tick((t, b) -> {
+            if (adapter.dead() && !forRemoval()) {
+                try {
+                    close();
+                } catch (Exception ignored) {
+                }
+            }
+        });
+        frame((t, b) -> {
             if (damageTint.getAndDecrement() == 0) tint(0xFFFFFF);
         });
         update();
@@ -196,7 +228,7 @@ public class EntityTracker extends Tracker {
      * @param listener listener
      */
     public void createHitBox(@NotNull Predicate<RenderedBone> predicate, @NotNull HitBoxListener listener) {
-        instance.createHitBox(adapter, predicate, listener);
+        if (entity instanceof LivingEntity) instance.createHitBox(adapter, predicate, listener);
     }
 
     /**
@@ -292,14 +324,14 @@ public class EntityTracker extends Tracker {
     }
 
     /**
-     * Spawns this tracker ranged by simulation distance
+     * Spawns this tracker ranged by view distance
      */
     public void spawnNearby() {
         spawnNearby(location());
     }
 
     /**
-     * Spawns this tracker ranged by simulation distance
+     * Spawns this tracker ranged by view distance
      * @param location center location
      */
     public void spawnNearby(@NotNull Location location) {
@@ -321,10 +353,11 @@ public class EntityTracker extends Tracker {
     /**
      * Spawns this tracker to some player
      * @param player target player
+     * @return success
      */
-    public void spawn(@NotNull Player player) {
+    public boolean spawn(@NotNull Player player) {
         var bundler = BetterModel.inst().nms().createBundler();
-        spawn(player, bundler);
+        if (!spawn(player, bundler)) return false;
         BetterModel.inst().nms().mount(this, bundler);
         bundler.send(player);
         var handler = BetterModel.inst()
@@ -332,15 +365,17 @@ public class EntityTracker extends Tracker {
                 .player(player.getUniqueId());
         if (handler != null) handler.startTrack(this);
         BetterModel.inst().nms().hide(player, entity);
+        return true;
     }
 
     @Override
-    public void remove(@NotNull Player player) {
-        super.remove(player);
+    public boolean remove(@NotNull Player player) {
+        if (!super.remove(player)) return false;
         var handler = BetterModel.inst()
                 .playerManager()
                 .player(player.getUniqueId());
         if (handler != null) handler.endTrack(this);
+        return true;
     }
 
     /**

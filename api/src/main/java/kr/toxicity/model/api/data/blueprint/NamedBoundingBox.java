@@ -14,12 +14,8 @@ public record NamedBoundingBox(@NotNull String name, @NotNull ModelBoundingBox b
      * Gets center location to vector.
      * @return vector
      */
-    public @NotNull Vector3f centerVector() {
-        return new Vector3f(
-                (float) (box.maxX() + box.minX()),
-                (float) (box.maxY() + box.minY()),
-                (float) (box.maxZ() + box.minZ())
-        ).div(2);
+    public @NotNull Vector3f centerPoint() {
+        return box.centerPoint();
     }
 
     /**
@@ -27,14 +23,6 @@ public record NamedBoundingBox(@NotNull String name, @NotNull ModelBoundingBox b
      * @return bounding box
      */
     public @NotNull ModelBoundingBox center() {
-        var center = centerVector();
-        return new ModelBoundingBox(
-                box.minX() - center.x,
-                box.minY() - center.y,
-                box.minZ() - center.z,
-                box.maxX() - center.x,
-                box.maxY() - center.y,
-                box.maxZ() - center.z
-        );
+        return box.center();
     }
 }

@@ -2,6 +2,7 @@ package kr.toxicity.model.nms.v1_20_R4
 
 import com.google.common.collect.ImmutableList
 import com.google.gson.JsonParser
+import com.mojang.authlib.GameProfile
 import com.mojang.datafixers.util.Pair
 import io.netty.channel.ChannelDuplexHandler
 import io.netty.channel.ChannelHandlerContext
@@ -36,7 +37,6 @@ import org.bukkit.Color
 import org.bukkit.Location
 import org.bukkit.craftbukkit.CraftWorld
 import org.bukkit.craftbukkit.entity.CraftEntity
-import org.bukkit.craftbukkit.entity.CraftLivingEntity
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.craftbukkit.inventory.CraftItemStack
 import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.FIRSTPERSON_LEFTHAND
@@ -63,21 +63,8 @@ class NMSImpl : NMS {
     companion object {
         private const val INJECT_NAME = "bettermodel_channel_handler"
         //Spigot
-        private val getConnection: (ServerCommonPacketListenerImpl) -> Connection = if (BetterModel.IS_PAPER) {
-            {
-                it.connection
-            }
-        } else {
-            ServerCommonPacketListenerImpl::class.java.declaredFields.first { f ->
-                f.type == Connection::class.java
-            }.apply {
-                isAccessible = true
-            }.let { get ->
-                {
-                    get[it] as Connection
-                }
-            }
-        }
+        private val getGameProfile: (net.minecraft.world.entity.player.Player) -> GameProfile = createAdaptedFieldGetter { it.gameProfile }
+        private val getConnection: (ServerCommonPacketListenerImpl) -> Connection = createAdaptedFieldGetter { it.connection }
         private fun Int.toEntity(level: ServerLevel) = level.entityLookup[this]
         //Spigot
 
@@ -94,7 +81,7 @@ class NMSImpl : NMS {
         private val itemId = ItemDisplay::class.java.serializers().map {
             it.toSerializerId()
         }
-        private val transformSet = Display::class.java.serializers().subList(0, 9).map { e ->
+        private val transformSet = Display::class.java.serializers().map { e ->
             e.toSerializerId()
         }.toSet() + itemId + sharedFlag
     }
@@ -115,7 +102,7 @@ class NMSImpl : NMS {
 
     override fun hide(player: Player, entity: org.bukkit.entity.Entity) {
         val connection = (player as CraftPlayer).handle
-        val entity = (entity as CraftEntity).handle
+        val entity = (entity as CraftEntity).vanillaEntity
         val task = {
             connection.connection.send(ClientboundBundlePacket(listOf(
                 ClientboundSetEntityDataPacket(entity.id, entity.entityData.pack()),
@@ -132,14 +119,11 @@ class NMSImpl : NMS {
     ) : PlayerChannelHandler, ChannelDuplexHandler() {
         private val connection = (player as CraftPlayer).handle.connection
         private val entityUUIDMap = ConcurrentHashMap<UUID, EntityTracker>()
+        private val uuidValuesView = Collections.unmodifiableCollection(entityUUIDMap.values)
         private val slim = run {
-            val encodedValue = (player as CraftPlayer)
-                .handle
-                .gameProfile
+            val encodedValue = getGameProfile((player as CraftPlayer).handle)
                 .properties["textures"]
-                .first()
-                .value
-            JsonParser.parseString(String(Base64.getDecoder().decode(encodedValue)))
+            encodedValue.isNotEmpty() && JsonParser.parseString(String(Base64.getDecoder().decode(encodedValue.first().value)))
                 .asJsonObject
                 .getAsJsonObject("textures")
                 .getAsJsonObject("SKIN")
@@ -160,9 +144,10 @@ class NMSImpl : NMS {
             showPlayerLimb = show
         }
         override fun isSlim(): Boolean = slim
+        override fun trackedTrackers(): Collection<EntityTracker> = uuidValuesView
 
         override fun close() {
-            val channel = connection.connection.channel
+            val channel = getConnection(connection).channel
             channel.eventLoop().submit {
                 channel.pipeline().remove(INJECT_NAME)
             }
@@ -183,7 +168,7 @@ class NMSImpl : NMS {
         }
 
         override fun startTrack(tracker: EntityTracker) {
-            val entity = (tracker.source() as CraftEntity).handle
+            val entity = (tracker.source() as CraftEntity).vanillaEntity
             entityUUIDMap.computeIfAbsent(entity.uuid) {
                 tracker
             }
@@ -191,7 +176,7 @@ class NMSImpl : NMS {
 
         override fun endTrack(tracker: EntityTracker) {
             val e = tracker.source()
-            val handle = (e as CraftEntity).handle
+            val handle = (e as CraftEntity).vanillaEntity
             entityUUIDMap.remove(handle.uuid)
             val list = arrayListOf<Packet<ClientGamePacketListener>>()
             list += ClientboundSetEntityDataPacket(handle.id, handle.entityData.pack())
@@ -340,8 +325,8 @@ class NMSImpl : NMS {
             display.yRot = rotation.y
             bundler.unwrap().add(ClientboundMoveEntityPacket.Rot(
                 display.id,
-                rotation.y.packDegree(),
-                rotation.x.packDegree(),
+                rotation.packedY(),
+                rotation.packedX(),
                 display.onGround
             ))
         }
@@ -403,6 +388,21 @@ class NMSImpl : NMS {
             )
         }
 
+        override fun viewRange(range: Float) {
+            display.viewRange = range
+        }
+
+        override fun shadowRadius(radius: Float) {
+            display.shadowRadius = radius
+        }
+
+        override fun syncPosition(adapter: EntityAdapter, bundler: PacketBundler) {
+            val handle = adapter.handle() as Entity
+            display.setPos(handle.position())
+            display.onGround = handle.onGround
+            teleport(adapter.entity().location, bundler)
+        }
+
         override fun transform(transformation: Transformation) {
             display.setTransformation(com.mojang.math.Transformation(
                 transformation.translation,
@@ -459,10 +459,10 @@ class NMSImpl : NMS {
     }
 
     override fun createHitBox(entity: EntityAdapter, supplier: HitBoxSource, namedBoundingBox: NamedBoundingBox, mountController: MountController, listener: HitBoxListener): HitBox? {
-        val handle = (entity.entity() as? CraftLivingEntity)?.handle ?: return null
+        val handle = entity.handle() as? net.minecraft.world.entity.LivingEntity ?: return null
         val scale = entity.scale()
         val newBox = namedBoundingBox.center() * scale
-        val height = newBox.length() / 2
+        val height = newBox.lengthZX() / 2
         return HitBoxImpl(
             namedBoundingBox.name,
             height,
@@ -481,13 +481,13 @@ class NMSImpl : NMS {
 
     override fun version(): NMSVersion = NMSVersion.V1_20_R4
 
-    override fun adapt(entity: LivingEntity): EntityAdapter {
-        val craftEntity = entity as CraftLivingEntity
+    override fun adapt(entity: org.bukkit.entity.Entity): EntityAdapter {
+        entity as CraftEntity
         return object : EntityAdapter {
 
-            override fun entity(): LivingEntity = entity
-            override fun handle(): net.minecraft.world.entity.LivingEntity = craftEntity.vanillaEntity as net.minecraft.world.entity.LivingEntity
-            override fun dead(): Boolean = handle().isDeadOrDying
+            override fun entity(): org.bukkit.entity.Entity = entity
+            override fun handle(): Entity = entity.vanillaEntity
+            override fun dead(): Boolean = (handle() as? net.minecraft.world.entity.LivingEntity)?.isDeadOrDying == true || !handle().valid
             override fun invisible(): Boolean = handle().isInvisible
             override fun glow(): Boolean = handle().isCurrentlyGlowing
 
@@ -496,7 +496,9 @@ class NMSImpl : NMS {
             }
 
             override fun scale(): Double {
-                return handle().attributes.getInstance(Attributes.SCALE)?.value ?: 1.0
+                val handle = handle()
+                return if (handle is net.minecraft.world.entity.LivingEntity) handle.attributes.getInstance(Attributes.SCALE)?.value ?: 1.0
+                else 1.0
             }
 
             override fun pitch(): Float {
@@ -518,6 +520,7 @@ class NMSImpl : NMS {
 
             override fun damageTick(): Float {
                 val handle = handle()
+                if (handle !is net.minecraft.world.entity.LivingEntity) return 0F
                 val duration = handle.invulnerableDuration.toFloat()
                 if (duration <= 0F) return 0F
                 val knockBack = 1 - (handle.getAttribute(Attributes.KNOCKBACK_RESISTANCE)?.value?.toFloat() ?: 0F)
@@ -526,6 +529,7 @@ class NMSImpl : NMS {
 
             override fun walkSpeed(): Float {
                 val handle = handle()
+                if (handle !is net.minecraft.world.entity.LivingEntity) return 0F
                 if (!handle.onGround) return 1F
                 val speed = handle.getEffect(MobEffects.MOVEMENT_SPEED)?.amplifier ?: 0
                 val slow = handle.getEffect(MobEffects.MOVEMENT_SLOWDOWN)?.amplifier ?: 0
@@ -539,4 +543,6 @@ class NMSImpl : NMS {
             }
         }
     }
+
+    override fun isSync(): Boolean = isTickThread
 }

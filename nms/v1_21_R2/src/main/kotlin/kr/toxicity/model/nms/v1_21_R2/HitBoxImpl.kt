@@ -130,6 +130,10 @@ class HitBoxImpl(
         delegate.push(x, y, z, pushingEntity)
     }
 
+    override fun isCollidable(ignoreClimbing: Boolean): Boolean {
+        return delegate.isCollidable(ignoreClimbing)
+    }
+
     override fun canCollideWith(entity: net.minecraft.world.entity.Entity): Boolean {
         return checkCollide(entity) && delegate.canCollideWith(entity)
     }
@@ -201,7 +205,7 @@ class HitBoxImpl(
 
     override fun tick() {
         if (!delegate.valid) {
-            if (valid) remove(RemovalReason.KILLED)
+            if (valid) remove(delegate.removalReason ?: RemovalReason.KILLED)
             return
         }
         val controller = controllingPassenger
@@ -211,16 +215,16 @@ class HitBoxImpl(
             if (delegate is Mob) delegate.navigation.stop()
             mountControl(controller, Vec3(delegate.xxa.toDouble(), delegate.yya.toDouble(), delegate.zza.toDouble()))
         } else initialSetup()
-        yRot = supplier.hitBoxRotation().y
+        val rotation = supplier.hitBoxRotation()
+        yRot = rotation.y
         yHeadRot = yRot
         yBodyRot = yRot
         val transform = supplier.hitBoxPosition()
         val pos = delegate.position()
-        setPosRaw(
+        setPos(
             pos.x + transform.x,
             pos.y + transform.y + delegate.passengerPosition(adapter.scale()).y + source.maxY - boxHeight,
-            pos.z + transform.z,
-            true
+            pos.z + transform.z
         )
         BlockPos.betweenClosedStream(boundingBox).forEach {
             level().getBlockState(it).entityInside(level(), it, delegate)
@@ -343,7 +347,7 @@ class HitBoxImpl(
 
     override fun removeHitBox() {
         BetterModel.inst().scheduler().task(bukkitEntity.location) {
-            remove(RemovalReason.KILLED)
+            remove(delegate.removalReason ?: RemovalReason.KILLED)
         }
     }
 }

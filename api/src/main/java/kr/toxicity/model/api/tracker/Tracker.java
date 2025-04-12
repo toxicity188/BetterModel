@@ -4,12 +4,11 @@ import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.bone.RenderedBone;
+import kr.toxicity.model.api.event.ModelDespawnAtPlayerEvent;
+import kr.toxicity.model.api.event.ModelSpawnAtPlayerEvent;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
-import kr.toxicity.model.api.util.BonePredicate;
-import kr.toxicity.model.api.util.EntityUtil;
-import kr.toxicity.model.api.util.FunctionUtil;
-import kr.toxicity.model.api.util.TransformedItemStack;
+import kr.toxicity.model.api.util.*;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -26,8 +25,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -44,19 +42,20 @@ public abstract class Tracker implements AutoCloseable {
      */
     public static final NamespacedKey TRACKING_ID = Objects.requireNonNull(NamespacedKey.fromString("bettermodel_tracker"));
 
+    @Getter
     protected final RenderInstance instance;
     private final ScheduledFuture<?> task;
     private final AtomicBoolean isClosed = new AtomicBoolean();
     private final AtomicBoolean runningSingle = new AtomicBoolean();
-    private final AtomicLong frame = new AtomicLong();
     private final AtomicBoolean readyForForceUpdate = new AtomicBoolean();
     private final TrackerModifier modifier;
     private final Runnable updater;
+    private long frame = 0;
 
     @Getter
     private Supplier<TrackerMovement> movement;
 
-    private Consumer<Tracker> consumer = t -> {};
+    private BiConsumer<Tracker, PacketBundler> consumer = (t, b) -> {};
 
     /**
      * Creates tracker
@@ -68,25 +67,25 @@ public abstract class Tracker implements AutoCloseable {
         this.modifier = modifier;
         this.movement = FunctionUtil.throttleTick(() -> new TrackerMovement(new Vector3f(), new Vector3f(modifier.scale()), new Vector3f()));
         updater = () -> {
-            consumer.accept(this);
             var bundle = BetterModel.inst().nms().createBundler();
             instance.move(
-                    frame.incrementAndGet() % 5 == 0 ? (isRunningSingleAnimation() && BetterModel.inst().configManager().lockOnPlayAnimation()) ? instance.getRotation() : rotation() : null,
+                    frame % 5 == 0 ? (isRunningSingleAnimation() && BetterModel.inst().configManager().lockOnPlayAnimation()) ? instance.getRotation() : rotation() : null,
                     movement.get(),
                     bundle
             );
             if (readyForForceUpdate.compareAndSet(true, false) && bundle.isEmpty()) {
                 instance.forceUpdate(bundle);
             }
+            consumer.accept(this, bundle);
             if (!bundle.isEmpty()) instance.viewedPlayer().forEach(bundle::send);
         };
         task = EXECUTOR.scheduleAtFixedRate(() -> {
-            if (playerCount() == 0) return;
-            updater.run();
+            if (playerCount() > 0) updater.run();
+            frame++;
         }, 10, 10, TimeUnit.MILLISECONDS);
         tint(0xFFFFFF);
         if (modifier.sightTrace()) instance.viewFilter(p -> EntityUtil.canSee(p.getEyeLocation(), location()));
-        tick(t -> t.instance.getScriptProcessor().tick());
+        tick((t, b) -> t.instance.getScriptProcessor().tick());
     }
 
     /**
@@ -99,16 +98,26 @@ public abstract class Tracker implements AutoCloseable {
      * Runs consumer on frame.
      * @param consumer consumer
      */
-    public void frame(@NotNull Consumer<Tracker> consumer) {
+    public void frame(@NotNull BiConsumer<Tracker, PacketBundler> consumer) {
         this.consumer = this.consumer.andThen(consumer);
     }
     /**
      * Runs consumer on tick.
      * @param consumer consumer
      */
-    public void tick(@NotNull Consumer<Tracker> consumer) {
-        frame(t -> {
-            if (frame.get() % 5 == 0) consumer.accept(t);
+    public void tick(@NotNull BiConsumer<Tracker, PacketBundler> consumer) {
+        schedule(5, consumer);
+    }
+
+    /**
+     * Schedules some task.
+     * @param period period
+     * @param consumer consumer
+     */
+    public void schedule(long period, @NotNull BiConsumer<Tracker, PacketBundler> consumer) {
+        if (period <= 0) throw new RuntimeException("period cannot be <= 0");
+        frame((t, b) -> {
+            if (frame % period == 0) consumer.accept(t, b);
         });
     }
 
@@ -153,7 +162,7 @@ public abstract class Tracker implements AutoCloseable {
      * Despawns this tracker to all players
      */
     public void despawn() {
-        instance.despawn();
+        if (!isClosed()) instance.despawn();
     }
 
     /**
@@ -189,18 +198,25 @@ public abstract class Tracker implements AutoCloseable {
      * Creates model spawn packet and registers player.
      * @param player target player
      * @param bundler bundler
+     * @return success
      */
-
-    protected void spawn(@NotNull Player player, @NotNull PacketBundler bundler) {
-        if (!isClosed()) instance.spawn(player, bundler);
+    protected boolean spawn(@NotNull Player player, @NotNull PacketBundler bundler) {
+        if (isClosed()) return false;
+        if (!EventUtil.call(new ModelSpawnAtPlayerEvent(player, this))) return false;
+        instance.spawn(player, bundler);
+        return true;
     }
 
     /**
      * Removes model from player
      * @param player player
+     * @return success
      */
-    public void remove(@NotNull Player player) {
+    public boolean remove(@NotNull Player player) {
+        if (isClosed()) return false;
+        EventUtil.call(new ModelDespawnAtPlayerEvent(player, this));
         instance.remove(player);
+        return true;
     }
 
     /**
@@ -420,6 +436,16 @@ public abstract class Tracker implements AutoCloseable {
      */
     public boolean itemStack(@NotNull BonePredicate predicate, @NotNull TransformedItemStack itemStack) {
         return instance.itemStack(predicate, itemStack);
+    }
+
+    /**
+     * Sets enchantment of some model part
+     * @param predicate predicate
+     * @param enchant should enchant
+     * @return success
+     */
+    public boolean enchant(@NotNull BonePredicate predicate, boolean enchant) {
+        return instance.enchant(predicate, enchant);
     }
 
     /**

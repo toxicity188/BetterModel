@@ -6,9 +6,9 @@ import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.data.renderer.BlueprintRenderer
 import kr.toxicity.model.api.data.renderer.RendererGroup
 import kr.toxicity.model.api.manager.PlayerManager
+import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.api.nms.PlayerChannelHandler
 import kr.toxicity.model.api.tracker.EntityTracker
-import kr.toxicity.model.api.util.EntityUtil
 import kr.toxicity.model.util.*
 import org.bukkit.Material
 import org.bukkit.entity.Player
@@ -31,16 +31,18 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
         registerListener(object : Listener {
             @EventHandler
             fun PlayerJoinEvent.join() {
-                runCatching { //For fake player
+                if (player.isOnline) runCatching { //For fake player
                     player.register()
-                    player.showAll()
+                }.getOrElse {
+                    it.handleException("Unable to load ${player.name}'s data.")
                 }
             }
             @EventHandler
             fun PlayerChangedWorldEvent.change() {
-                runCatching {
+                if (player.isOnline) runCatching {
                     player.register().unregisterAll()
-                    player.showAll()
+                }.getOrElse {
+                    it.handleException("Unable to refresh ${player.name}'s data.")
                 }
             }
             @EventHandler
@@ -50,18 +52,11 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
         })
     }
 
-    private fun Player.showAll() {
-        val loc = location
-        loc.world.getNearbyEntities(loc, EntityUtil.RENDER_DISTANCE, EntityUtil.RENDER_DISTANCE, EntityUtil.RENDER_DISTANCE).forEach {
-            EntityTracker.tracker(it)?.spawn(this)
-        }
-    }
-
     private fun Player.register() = playerMap.computeIfAbsent(uniqueId) {
         PLUGIN.nms().inject(this)
     }
 
-    override fun reload() {
+    override fun reload(info: ReloadInfo) {
         renderMap.clear()
         if (ConfigManagerImpl.module().playerAnimation()) {
             val folder = File(DATA_FOLDER, "players")

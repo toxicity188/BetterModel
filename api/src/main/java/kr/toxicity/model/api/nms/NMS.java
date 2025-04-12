@@ -5,7 +5,6 @@ import kr.toxicity.model.api.mount.MountController;
 import kr.toxicity.model.api.tracker.EntityTracker;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -79,5 +78,11 @@ public interface NMS {
      * @param entity entity
      * @return adapter
      */
-    @NotNull EntityAdapter adapt(@NotNull LivingEntity entity);
+    @NotNull EntityAdapter adapt(@NotNull Entity entity);
+
+    /**
+     * Checks current thread is sync or not
+     * @return sync or not
+     */
+    boolean isSync();
 }

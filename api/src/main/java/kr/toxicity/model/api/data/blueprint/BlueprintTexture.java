@@ -49,22 +49,18 @@ public record BlueprintTexture(
         );
     }
 
-    @Override
-    public int uvHeight() {
-        return uvHeight != 0 ? uvHeight : image.getHeight();
-    }
-
-    @Override
-    public int uvWidth() {
-        return uvWidth != 0 ? uvWidth : image.getWidth();
-    }
-
     /**
      * Checks this texture is animated
      * @return whether to animate
      */
     public boolean isAnimatedTexture() {
-        return image.getHeight() / uvHeight() > image.getWidth() / uvWidth();
+        if (uvWidth > 0 && uvHeight > 0) {
+            var h = (float) image.getHeight() / uvHeight;
+            var w = (float) image.getWidth() / uvWidth;
+            return h > w;
+        } else {
+            return image.getHeight() / image.getWidth() > 1;
+        }
     }
 
     /**
