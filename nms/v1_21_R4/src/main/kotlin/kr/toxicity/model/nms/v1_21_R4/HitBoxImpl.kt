@@ -202,7 +202,7 @@ class HitBoxImpl(
 
     override fun tick() {
         if (!delegate.valid) {
-            if (valid) remove(RemovalReason.KILLED)
+            if (valid) remove(delegate.removalReason ?: RemovalReason.KILLED)
             return
         }
         val controller = controllingPassenger
@@ -341,7 +341,7 @@ class HitBoxImpl(
 
     override fun removeHitBox() {
         BetterModel.inst().scheduler().task(bukkitEntity.location) {
-            remove(RemovalReason.KILLED)
+            remove(delegate.removalReason ?: RemovalReason.KILLED)
         }
     }
 }
