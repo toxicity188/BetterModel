@@ -180,9 +180,9 @@ tasks {
     }
 }
 
-tasks.modrinth {
-    dependsOn(tasks.modrinthSyncBody)
-}
+//tasks.modrinth {
+//    dependsOn(tasks.modrinthSyncBody)
+//}
 
 bukkitPluginYaml {
     main = "$groupString.BetterModelPluginImpl"
