@@ -487,7 +487,7 @@ class NMSImpl : NMS {
 
             override fun entity(): org.bukkit.entity.Entity = entity
             override fun handle(): Entity = entity.vanillaEntity
-            override fun dead(): Boolean = (handle() as? net.minecraft.world.entity.LivingEntity)?.isDeadOrDying == true
+            override fun dead(): Boolean = (handle() as? net.minecraft.world.entity.LivingEntity)?.isDeadOrDying == true || !handle().valid
             override fun invisible(): Boolean = handle().isInvisible
             override fun glow(): Boolean = handle().isCurrentlyGlowing
 

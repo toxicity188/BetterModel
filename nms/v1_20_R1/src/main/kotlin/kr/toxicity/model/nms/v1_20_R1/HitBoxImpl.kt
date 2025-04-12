@@ -121,6 +121,10 @@ class HitBoxImpl(
         delegate.push(x, y, z, pushingEntity)
     }
 
+    override fun isCollidable(ignoreClimbing: Boolean): Boolean {
+        return delegate.isCollidable(ignoreClimbing)
+    }
+
     override fun canCollideWith(entity: net.minecraft.world.entity.Entity): Boolean {
         return checkCollide(entity) && delegate.canCollideWith(entity)
     }

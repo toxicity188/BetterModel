@@ -195,6 +195,14 @@ public class EntityTracker extends Tracker {
             if (script == null) return;
             BetterModel.inst().scheduler().task(entity.getLocation(), () -> script.accept(entity));
         });
+        tick((t, b) -> {
+            if (adapter.dead() && !forRemoval()) {
+                try {
+                    close();
+                } catch (Exception ignored) {
+                }
+            }
+        });
         frame((t, b) -> {
             if (damageTint.getAndDecrement() == 0) tint(0xFFFFFF);
         });

@@ -9,7 +9,6 @@ import kr.toxicity.model.api.manager.PlayerManager
 import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.api.nms.PlayerChannelHandler
 import kr.toxicity.model.api.tracker.EntityTracker
-import kr.toxicity.model.api.util.EntityUtil
 import kr.toxicity.model.util.*
 import org.bukkit.Material
 import org.bukkit.entity.Player
@@ -34,7 +33,6 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
             fun PlayerJoinEvent.join() {
                 if (player.isOnline) runCatching { //For fake player
                     player.register()
-                    player.showAll()
                 }.getOrElse {
                     it.handleException("Unable to load ${player.name}'s data.")
                 }
@@ -43,7 +41,6 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
             fun PlayerChangedWorldEvent.change() {
                 if (player.isOnline) runCatching {
                     player.register().unregisterAll()
-                    player.showAll()
                 }.getOrElse {
                     it.handleException("Unable to refresh ${player.name}'s data.")
                 }
@@ -53,13 +50,6 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
                 playerMap.remove(player.uniqueId)?.close()
             }
         })
-    }
-
-    private fun Player.showAll() {
-        val loc = location
-        loc.world.getNearbyEntities(loc, EntityUtil.RENDER_DISTANCE, EntityUtil.RENDER_DISTANCE, EntityUtil.RENDER_DISTANCE).forEach {
-            EntityTracker.tracker(it)?.spawn(this)
-        }
     }
 
     private fun Player.register() = playerMap.computeIfAbsent(uniqueId) {

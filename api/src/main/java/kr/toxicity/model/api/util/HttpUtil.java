@@ -2,6 +2,7 @@ package kr.toxicity.model.api.util;
 
 import com.google.gson.*;
 import com.google.gson.annotations.SerializedName;
+import com.google.gson.stream.JsonReader;
 import com.vdurmont.semver4j.Semver;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.version.MinecraftVersion;
@@ -17,13 +18,17 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
 
 public final class HttpUtil {
 
-    private static final HttpClient CLIENT = HttpClient.newHttpClient();
+    private static final HttpClient CLIENT = HttpClient.newBuilder()
+            .connectTimeout(Duration.of(5, ChronoUnit.SECONDS))
+            .build();
     private static final Gson GSON = new GsonBuilder()
             .registerTypeAdapter(MinecraftVersion.class, (JsonDeserializer<MinecraftVersion>) (json, typeOfT, context) -> new MinecraftVersion(json.getAsString()))
             .registerTypeAdapter(Semver.class, (JsonDeserializer<Semver>) (json, typeOfT, context) -> new Semver(json.getAsString(), Semver.SemverType.LOOSE))
@@ -43,8 +48,10 @@ public final class HttpUtil {
                     .GET()
                     .uri(URI.create("https://api.modrinth.com/v2/project/bettermodel/version"))
                     .build(), HttpResponse.BodyHandlers.ofInputStream()).body();
-                 var reader = new InputStreamReader(stream)
+                 var reader = new InputStreamReader(stream);
+                 var jsonReader = new JsonReader(reader)
             ) {
+                jsonReader.setStrictness(Strictness.LENIENT);
                 return latestOf(JsonParser.parseReader(reader)
                         .getAsJsonArray()
                         .asList()
