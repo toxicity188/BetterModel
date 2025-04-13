@@ -53,6 +53,8 @@ public final class RenderedBone implements HitBoxSource {
     @Getter
     private HitBox hitBox;
 
+    @Getter
+    private final boolean dummyBone;
     private int tint;
     private TreeIterator currentIterator = null;
     private BoneMovement beforeTransform, afterTransform, relativeOffsetCache;
@@ -85,11 +87,12 @@ public final class RenderedBone implements HitBoxSource {
         var visible = group.getLimb() != null || group.getParent().visibility();
         this.cachedItem = itemStack;
         this.itemStack = visible ? itemStack : itemStack.asAir();
-        if (!itemStack.isEmpty()) {
+        this.dummyBone = itemStack.isEmpty();
+        if (!dummyBone) {
             display = BetterModel.inst().nms().create(firstLocation);
             display.display(transform);
-            display.viewRange(modifier.viewRange() > 0 ? modifier.viewRange() : EntityUtil.ENTITY_MODEL_VIEW_RADIUS);
-            if (visible) display.item(itemStack.itemStack());
+            display.viewRange(modifier.viewRange());
+            display.item(this.itemStack.itemStack());
         }
         defaultFrame = movement;
         children = Collections.unmodifiableMap(childrenMapper.apply(this));

@@ -196,12 +196,7 @@ public class EntityTracker extends Tracker {
             BetterModel.inst().scheduler().task(entity.getLocation(), () -> script.accept(entity));
         });
         tick((t, b) -> {
-            if (adapter.dead() && !forRemoval()) {
-                try {
-                    close();
-                } catch (Exception ignored) {
-                }
-            }
+            if (adapter.dead() && !forRemoval()) close();
         });
         frame((t, b) -> {
             if (damageTint.getAndDecrement() == 0) tint(0xFFFFFF);
@@ -215,7 +210,12 @@ public class EntityTracker extends Tracker {
     }
 
     private void createHitBox() {
-        createHitBox(e -> e.getName().contains("hitbox") || e.getName().startsWith("b_") || e.getGroup().getMountController().canMount());
+        createHitBox(e ->
+                e.getName().contains("hitbox")
+                        || e.getName().startsWith("b_")
+                        || e.getName().startsWith("ob_")
+                        || e.getGroup().getMountController().canMount()
+        );
     }
 
     private void createHitBox(@NotNull Predicate<RenderedBone> predicate) {
@@ -228,7 +228,7 @@ public class EntityTracker extends Tracker {
      * @param listener listener
      */
     public void createHitBox(@NotNull Predicate<RenderedBone> predicate, @NotNull HitBoxListener listener) {
-        if (entity instanceof LivingEntity) instance.createHitBox(adapter, predicate, listener);
+        instance.createHitBox(adapter, predicate, listener);
     }
 
     /**
@@ -275,7 +275,7 @@ public class EntityTracker extends Tracker {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         instance.allPlayer().forEach(p -> p.endTrack(this));
         super.close();
         TRACKER_MAP.remove(entity.getUniqueId());

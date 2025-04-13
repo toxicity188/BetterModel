@@ -150,7 +150,7 @@ public abstract class Tracker implements AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         var get = isClosed();
         if (!get && isClosed.compareAndSet(false, true)) {
             task.cancel(true);

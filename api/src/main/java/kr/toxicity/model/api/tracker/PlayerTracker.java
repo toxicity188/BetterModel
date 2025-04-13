@@ -32,7 +32,7 @@ public final class PlayerTracker extends EntityTracker {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         super.close();
         source().updateInventory();
     }

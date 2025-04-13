@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.tracker;
 
+import kr.toxicity.model.api.util.EntityUtil;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -23,7 +24,7 @@ public record TrackerModifier(
             1F,
             true,
             true,
-            0,
+            EntityUtil.ENTITY_MODEL_VIEW_RADIUS,
             true
     );
 

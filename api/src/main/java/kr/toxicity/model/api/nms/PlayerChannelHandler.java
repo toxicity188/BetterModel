@@ -58,4 +58,7 @@ public interface PlayerChannelHandler extends AutoCloseable {
      * @return show or not
      */
     boolean showPlayerLimb();
+
+    @Override
+    void close();
 }
