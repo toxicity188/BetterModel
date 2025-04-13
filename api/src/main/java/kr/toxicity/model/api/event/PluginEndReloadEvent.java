@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 
 @RequiredArgsConstructor
 @Getter
-public class PluginEndReloadEvent extends AbstractModelEvent {
+public final class PluginEndReloadEvent extends AbstractModelEvent {
     /**
      * Handler list
      */

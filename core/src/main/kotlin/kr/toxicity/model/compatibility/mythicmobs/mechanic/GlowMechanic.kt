@@ -5,19 +5,20 @@ import io.lumine.mythic.api.skills.INoTargetSkill
 import io.lumine.mythic.api.skills.SkillMetadata
 import io.lumine.mythic.api.skills.SkillResult
 import io.lumine.mythic.bukkit.MythicBukkit
+import io.lumine.mythic.bukkit.utils.serialize.Chroma
 import io.lumine.mythic.core.skills.SkillMechanic
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.compatibility.mythicmobs.bonePredicateNullable
 
-class BrightnessMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), INoTargetSkill {
+class GlowMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), INoTargetSkill {
 
     private val predicate = mlc.bonePredicateNullable
-    private val block = mlc.getInteger(arrayOf("block", "b"), 0).coerceAtLeast(-1).coerceAtMost(15)
-    private val sky = mlc.getInteger(arrayOf("sky", "s"), 0).coerceAtLeast(-1).coerceAtMost(15)
+    private val glow = mlc.getBoolean(arrayOf("glow", "g"), true)
+    private val color = mlc.getColor(arrayOf("color", "c"), Chroma.of(0xFFFFFF)).toBukkitColor().asRGB()
 
     override fun cast(p0: SkillMetadata): SkillResult {
         return EntityTracker.tracker(p0.caster.entity.bukkitEntity.uniqueId)?.let {
-            if (it.brightness(predicate, block, sky)) it.forceUpdate(true)
+            if (it.glow(predicate, glow, color)) it.forceUpdate(true)
             SkillResult.SUCCESS
         } ?: SkillResult.ERROR
     }

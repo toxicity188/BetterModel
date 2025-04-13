@@ -98,4 +98,16 @@ public interface ModelDisplay {
      * @param bundler packet bundler
      */
     void syncPosition(@NotNull EntityAdapter adapter, @NotNull PacketBundler bundler);
+
+    /**
+     * Toggles glow.
+     * @param glow glow
+     */
+    void glow(boolean glow);
+
+    /**
+     * Sets glow color.
+     * @param glowColor hex glow color
+     */
+    void glowColor(int glowColor);
 }

@@ -347,6 +347,7 @@ class NMSImpl : NMS {
     ) : ModelDisplay {
 
         private var isDead = false
+        private var forceGlow = false
 
         override fun rotate(rotation: ModelRotation, bundler: PacketBundler) {
             if (isDead) return
@@ -362,7 +363,7 @@ class NMSImpl : NMS {
 
         override fun sync(entity: EntityAdapter) {
             isDead = entity.dead()
-            display.setGlowingTag(entity.glow())
+            display.setGlowingTag(entity.glow() || forceGlow)
             if (BetterModel.inst().configManager().followMobInvisibility()) display.isInvisible = entity.invisible()
         }
 
@@ -423,6 +424,15 @@ class NMSImpl : NMS {
 
         override fun shadowRadius(radius: Float) {
             display.shadowRadius = radius
+        }
+
+        override fun glow(glow: Boolean) {
+            forceGlow = glow
+            display.setGlowingTag(display.isCurrentlyGlowing || forceGlow)
+        }
+
+        override fun glowColor(glowColor: Int) {
+            display.glowColorOverride = glowColor
         }
 
         override fun syncPosition(adapter: EntityAdapter, bundler: PacketBundler) {

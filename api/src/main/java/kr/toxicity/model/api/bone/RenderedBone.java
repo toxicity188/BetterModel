@@ -5,6 +5,7 @@ import kr.toxicity.model.api.animation.AnimationMovement;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimator;
 import kr.toxicity.model.api.animation.AnimationModifier;
+import kr.toxicity.model.api.data.blueprint.ModelBoundingBox;
 import kr.toxicity.model.api.data.renderer.RendererGroup;
 import kr.toxicity.model.api.nms.*;
 import kr.toxicity.model.api.tracker.ModelRotation;
@@ -31,8 +32,10 @@ import java.util.function.*;
 public final class RenderedBone implements HitBoxSource {
 
     @Getter
+    @NotNull
     private final RendererGroup group;
     @Getter
+    @Nullable
     private ModelDisplay display;
     private final BoneMovement defaultFrame;
 
@@ -41,6 +44,7 @@ public final class RenderedBone implements HitBoxSource {
     private final RenderedBone parent;
 
     @Getter
+    @NotNull
     private final Map<String, RenderedBone> children;
 
     private final SequencedMap<String, TreeIterator> animators = new LinkedHashMap<>();
@@ -51,6 +55,7 @@ public final class RenderedBone implements HitBoxSource {
 
     private final List<Consumer<AnimationMovement>> movementModifier = new ArrayList<>();
     @Getter
+    @Nullable
     private HitBox hitBox;
 
     @Getter
@@ -109,16 +114,19 @@ public final class RenderedBone implements HitBoxSource {
      * @param predicate predicate
      * @param listener hit box listener
      */
-    public void createHitBox(@NotNull EntityAdapter entity, @NotNull Predicate<RenderedBone> predicate, @Nullable HitBoxListener listener) {
-        var h = group.getHitBox();
-        if (h != null && predicate.test(this)) {
+    public boolean createHitBox(@NotNull EntityAdapter entity, @NotNull Predicate<RenderedBone> predicate, @Nullable HitBoxListener listener) {
+        if (predicate.test(this)) {
+            var h = group.getHitBox();
+            if (h == null) h = ModelBoundingBox.MIN.named(group.getName());
             var l = listener;
             if (hitBox != null) {
                 hitBox.removeHitBox();
                 if (l == null) l = hitBox.listener();
             }
             hitBox = BetterModel.inst().nms().createHitBox(entity, this, h, group.getMountController(), l != null ? l : HitBoxListener.EMPTY);
+            return hitBox != null;
         }
+        return false;
     }
 
     /**
@@ -140,6 +148,21 @@ public final class RenderedBone implements HitBoxSource {
                 return i;
             });
             return applyItem();
+        }
+        return false;
+    }
+
+    /**
+     * Apply glow to this model.
+     * @param glow should glow
+     * @param glowColor hex glow color
+     * @return success or not
+     */
+    public boolean glow(@NotNull BonePredicate predicate, boolean glow, int glowColor) {
+        if (predicate.test(this) && display != null) {
+            display.glow(glow);
+            display.glowColor(glowColor);
+            return true;
         }
         return false;
     }

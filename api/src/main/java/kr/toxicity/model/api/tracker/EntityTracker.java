@@ -104,12 +104,6 @@ public class EntityTracker extends Tracker {
         }
     }
 
-    @NotNull
-    @Override
-    public ModelRotation rotation() {
-        return adapter.dead() ? instance.getRotation() : new ModelRotation(0, entity instanceof LivingEntity ? adapter.bodyYaw() : entity.getYaw());
-    }
-
     /**
      * Creates entity tracker
      * @param entity source entity
@@ -185,7 +179,7 @@ public class EntityTracker extends Tracker {
         TRACKER_MAP.put(entity.getUniqueId(), this);
         BetterModel.inst().scheduler().task(entity.getLocation(), () -> {
             entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, instance.getParent().getParent().name());
-            if (!isClosed() && !forRemoval()) createHitBox();
+            if (!isClosed()) createHitBox();
         });
         tick((t, b) -> t.displays().forEach(d -> d.sync(adapter)));
         tick((t, b) -> {
@@ -201,6 +195,7 @@ public class EntityTracker extends Tracker {
         frame((t, b) -> {
             if (damageTint.getAndDecrement() == 0) tint(0xFFFFFF);
         });
+        rotation(() -> adapter.dead() ? instance.getRotation() : new ModelRotation(0, entity instanceof LivingEntity ? adapter.bodyYaw() : entity.getYaw()));
         update();
     }
 

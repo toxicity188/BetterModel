@@ -51,10 +51,10 @@ public abstract class Tracker implements AutoCloseable {
     private final TrackerModifier modifier;
     private final Runnable updater;
     private long frame = 0;
+    private Supplier<ModelRotation> rotationSupplier = () -> ModelRotation.EMPTY;
 
     @Getter
     private Supplier<TrackerMovement> movement;
-
     private BiConsumer<Tracker, PacketBundler> consumer = (t, b) -> {};
 
     /**
@@ -92,7 +92,13 @@ public abstract class Tracker implements AutoCloseable {
      * Gets model rotation.
      * @return rotation
      */
-    public abstract @NotNull ModelRotation rotation();
+    public final @NotNull ModelRotation rotation() {
+        return rotationSupplier.get();
+    }
+
+    public final void rotation(@NotNull Supplier<ModelRotation> rotationSupplier) {
+        this.rotationSupplier = rotationSupplier;
+    }
 
     /**
      * Runs consumer on frame.
@@ -436,6 +442,16 @@ public abstract class Tracker implements AutoCloseable {
      */
     public boolean itemStack(@NotNull BonePredicate predicate, @NotNull TransformedItemStack itemStack) {
         return instance.itemStack(predicate, itemStack);
+    }
+
+    /**
+     * Sets glow of some model part
+     * @param glow glow
+     * @param glowColor glowColor
+     * @return success
+     */
+    public boolean glow(@NotNull BonePredicate predicate, boolean glow, int glowColor) {
+        return instance.glow(predicate, glow, glowColor);
     }
 
     /**

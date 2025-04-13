@@ -14,10 +14,6 @@ class PartVisibilityMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit
     private val predicate = mlc.bonePredicateNullable
     private val v = mlc.getBoolean(arrayOf("value", "v"), true)
 
-    init {
-        isAsyncSafe = false
-    }
-
     override fun cast(p0: SkillMetadata): SkillResult {
         return EntityTracker.tracker(p0.caster.entity.bukkitEntity)?.let {
             if (it.togglePart(predicate, v)) it.forceUpdate(true)

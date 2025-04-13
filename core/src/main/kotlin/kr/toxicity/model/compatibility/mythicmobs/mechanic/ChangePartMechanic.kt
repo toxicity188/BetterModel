@@ -16,10 +16,6 @@ class ChangePartMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.ins
     private val nmid = mlc.getString(arrayOf("newmodelid", "nm", "nmid", "newmodel"))
     private val newPart = mlc.getString(arrayOf("newpart", "np", "npid"))
 
-    init {
-        isAsyncSafe = false
-    }
-
     override fun cast(p0: SkillMetadata): SkillResult {
         val model = ModelManagerImpl.renderer(nmid)?.groupByTree(newPart)?.itemStack ?: return SkillResult.ERROR
         return EntityTracker.tracker(p0.caster.entity.bukkitEntity.uniqueId)?.let {

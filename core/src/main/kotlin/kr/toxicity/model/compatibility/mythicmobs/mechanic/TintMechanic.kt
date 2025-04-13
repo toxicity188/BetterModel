@@ -15,10 +15,6 @@ class TintMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().sk
     private val damageTint = mlc.getBoolean(arrayOf("damagetint", "d", "dmg", "damage"), false)
     private val color = mlc.getString(arrayOf("color", "c")).toInt(16)
 
-    init {
-        isAsyncSafe = false
-    }
-
     override fun cast(p0: SkillMetadata): SkillResult {
         return EntityTracker.tracker(p0.caster.entity.bukkitEntity.uniqueId)?.let {
             if (damageTint) {

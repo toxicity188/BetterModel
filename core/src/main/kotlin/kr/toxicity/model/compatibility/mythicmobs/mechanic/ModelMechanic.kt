@@ -8,6 +8,7 @@ import io.lumine.mythic.bukkit.MythicBukkit
 import io.lumine.mythic.core.skills.SkillMechanic
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.tracker.TrackerModifier
+import kr.toxicity.model.api.util.EntityUtil
 import kr.toxicity.model.manager.ModelManagerImpl
 
 class ModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), INoTargetSkill {
@@ -16,7 +17,7 @@ class ModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().s
     private val s = mlc.getFloat(arrayOf("scale", "s"), 1F)
     private val st = mlc.getBoolean(arrayOf("sight-trace", "st"), true)
     private val de = mlc.getBoolean(arrayOf("damage-effect", "de"), true)
-    private val vr = mlc.getFloat(arrayOf("view-range", "vr"), 0F)
+    private val vr = mlc.getFloat(arrayOf("view-range", "vr"), EntityUtil.ENTITY_MODEL_VIEW_RADIUS)
     private val shadow = mlc.getBoolean(arrayOf("shadow"), false)
 
     init {

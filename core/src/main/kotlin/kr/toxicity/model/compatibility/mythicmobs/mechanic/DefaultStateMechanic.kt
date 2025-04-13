@@ -13,10 +13,6 @@ class DefaultStateMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.i
     private val t = mlc.getString(arrayOf("t", "type"))!!
     private val s = mlc.getString(arrayOf("state", "s"))!!
 
-    init {
-        isAsyncSafe = false
-    }
-
     override fun cast(p0: SkillMetadata): SkillResult {
         return EntityTracker.tracker(p0.caster.entity.bukkitEntity)?.let {
             it.replaceLoop(t, s)

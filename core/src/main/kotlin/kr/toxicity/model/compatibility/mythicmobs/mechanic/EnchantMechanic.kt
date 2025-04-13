@@ -14,10 +14,6 @@ class EnchantMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst()
     private val predicate = mlc.bonePredicateNullable
     private val enchant = mlc.getBoolean(arrayOf("enchant", "en"), true)
 
-    init {
-        isAsyncSafe = false
-    }
-
     override fun cast(p0: SkillMetadata): SkillResult {
         return EntityTracker.tracker(p0.caster.entity.bukkitEntity.uniqueId)?.let {
             if (it.enchant(predicate, enchant)) it.forceUpdate(true)

@@ -63,9 +63,6 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                     .withOptionalArguments(StringArgument("type")
                         .replaceSuggestions(ArgumentSuggestions.strings {
                             EntityType.entries
-                                .filter {
-                                    it.isAlive
-                                }
                                 .map {
                                     it.name.lowercase()
                                 }.toTypedArray()
@@ -85,8 +82,8 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                         } ?: EntityType.HUSK
                         val s = args["scale"] as? Double ?: 1.0
                         ModelManagerImpl.renderer(n)
-                            ?.create((player.world.spawnEntity(player.location, t) as LivingEntity).apply {
-                                if (PLUGIN.nms().version() >= NMSVersion.V1_21_R1) getAttribute(ATTRIBUTE_SCALE)?.baseValue = s
+                            ?.create(player.world.spawnEntity(player.location, t).apply {
+                                if (PLUGIN.nms().version() >= NMSVersion.V1_21_R1 && this is LivingEntity) getAttribute(ATTRIBUTE_SCALE)?.baseValue = s
                             })
                             ?.spawnNearby()
                             ?: run {

@@ -22,6 +22,8 @@ public record ModelBoundingBox(
         double maxZ
 ) {
 
+    public static final ModelBoundingBox MIN = of(0.1, 0.1, 0.1);
+
     public static @NotNull ModelBoundingBox of(@NotNull Vector3d min, @NotNull Vector3d max) {
         return new ModelBoundingBox(
                 min.x,
@@ -31,6 +33,26 @@ public record ModelBoundingBox(
                 max.y,
                 max.z
         );
+    }
+
+    public static @NotNull ModelBoundingBox of(double x, double y, double z) {
+        return new ModelBoundingBox(
+                -x / 2,
+                -y / 2,
+                -z / 2,
+                x / 2,
+                y / 2,
+                z / 2
+        );
+    }
+
+    /**
+     * Gets bounding box with name
+     * @param name name
+     * @return named box
+     */
+    public @NotNull NamedBoundingBox named(@NotNull String name) {
+        return new NamedBoundingBox(name, this);
     }
 
     /**

@@ -3,7 +3,7 @@ package kr.toxicity.model.api.event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
-public class PluginStartReloadEvent extends AbstractModelEvent {
+public final class PluginStartReloadEvent extends AbstractModelEvent {
     /**
      * Handler list
      */

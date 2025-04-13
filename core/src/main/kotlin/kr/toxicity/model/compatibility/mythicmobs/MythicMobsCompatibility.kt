@@ -49,6 +49,7 @@ class MythicMobsCompatibility : Compatibility {
                     "tint", "color" -> e.register(TintMechanic(e.config))
                     "brightness", "light" -> e.register(BrightnessMechanic(e.config))
                     "enchant" -> e.register(EnchantMechanic(e.config))
+                    "glow", "glowbone" -> e.register(GlowMechanic(e.config))
                 }
             }
             @EventHandler

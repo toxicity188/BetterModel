@@ -27,6 +27,7 @@ public final class VoidTracker extends Tracker {
         super(instance, modifier);
         this.uuid = uuid;
         this.location = location;
+        rotation(() -> new ModelRotation(0, this.location.getYaw()));
         update();
     }
 
@@ -39,12 +40,6 @@ public final class VoidTracker extends Tracker {
         var bundler = BetterModel.inst().nms().createBundler();
         instance.teleport(location, bundler);
         if (!bundler.isEmpty()) viewedPlayer().forEach(bundler::send);
-    }
-
-    @NotNull
-    @Override
-    public ModelRotation rotation() {
-        return new ModelRotation(0, location.getYaw());
     }
 
     /**

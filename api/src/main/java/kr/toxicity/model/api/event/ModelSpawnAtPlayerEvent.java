@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 @Getter
 @Setter
-public class ModelSpawnAtPlayerEvent extends AbstractPlayerModelEvent implements Cancellable {
+public final class ModelSpawnAtPlayerEvent extends AbstractPlayerModelEvent implements Cancellable {
     /**
      * Handler list
      */

@@ -140,6 +140,10 @@ public final class RenderInstance {
         return anyMatch(predicate, (b, p) -> b.itemStack(p, itemStack));
     }
 
+    public boolean glow(@NotNull BonePredicate predicate, boolean glow, int glowColor) {
+        return anyMatch(predicate, (b, p) -> b.glow(p, glow, glowColor));
+    }
+
     public boolean brightness(@NotNull BonePredicate predicate, int block, int sky) {
         return anyMatch(predicate, (b, p) -> b.brightness(p, block, sky));
     }
