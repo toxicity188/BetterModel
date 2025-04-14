@@ -6,8 +6,6 @@ import io.lumine.mythic.api.skills.SkillMetadata
 import io.lumine.mythic.api.skills.SkillResult
 import io.lumine.mythic.bukkit.MythicBukkit
 import io.lumine.mythic.core.skills.SkillMechanic
-import kr.toxicity.model.api.event.ModelDamageSource
-import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.HitBoxListener
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.compatibility.mythicmobs.MM_PART_ID
@@ -28,24 +26,21 @@ class BindHitBoxMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.ins
         return EntityTracker.tracker(p0.caster.entity.bukkitEntity)?.let {
             val handler = type?.let { e ->
                 val spawned = e.spawn(p0.caster.location, p0.caster.level).entity.bukkitEntity
-                object : HitBoxListener {
-                    override fun sync(hitBox: HitBox) {
+                HitBoxListener.builder()
+                    .sync { hitBox ->
                         if (!spawned.isValid) hitBox.removeHitBox()
                         else spawned.teleport(it.source().location)
                     }
-
-                    override fun damage(source: ModelDamageSource, damage: Double): Boolean {
+                    .damage { source, damage ->
                         if (spawned is Damageable) {
                             spawned.damage(damage, source.causingEntity)
-                            return true
-                        } else return false
+                            true
+                        } else false
                     }
-
-                    override fun remove(hitBox: HitBox) {
+                    .remove { hitBox ->
                         spawned.remove()
                     }
-
-                }
+                    .build()
             } ?: HitBoxListener.EMPTY
             it.createHitBox({ e ->
                 e.name == partId

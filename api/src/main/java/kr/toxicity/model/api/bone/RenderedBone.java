@@ -254,7 +254,7 @@ public final class RenderedBone implements HitBoxSource {
         }
     }
 
-    public void move(@Nullable ModelRotation rotation, @NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
+    public boolean move(@Nullable ModelRotation rotation, @NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
         var d = display;
         if (rotation != null) {
             this.rotation = rotation;
@@ -271,8 +271,10 @@ public final class RenderedBone implements HitBoxSource {
                 d.frame(f <= 0 ? 0 : toInterpolationDuration(f));
                 setup(entityMovement);
                 d.send(bundler);
+                return true;
             }
         }
+        return false;
     }
 
     public void forceUpdate(@NotNull PacketBundler bundler) {
@@ -494,8 +496,16 @@ public final class RenderedBone implements HitBoxSource {
         }
     }
 
-    public boolean iterateTree(@NotNull BonePredicate predicate, @NotNull BiFunction<RenderedBone, BonePredicate, Boolean> mapper) {
-        var parentResult = mapper.apply(this, predicate);
+    public boolean matchTree(@NotNull Predicate<RenderedBone> bonePredicate) {
+        var result = bonePredicate.test(this);
+        for (RenderedBone value : children.values()) {
+            if (value.matchTree(bonePredicate)) result = true;
+        }
+        return result;
+    }
+
+    public boolean iterateTree(@NotNull BonePredicate predicate, @NotNull BiPredicate<RenderedBone, BonePredicate> mapper) {
+        var parentResult = mapper.test(this, predicate);
         var childPredicate = predicate.children(parentResult);
         for (RenderedBone value : children.values()) {
             if (value.iterateTree(childPredicate, mapper)) parentResult = true;

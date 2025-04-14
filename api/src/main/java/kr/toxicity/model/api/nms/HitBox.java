@@ -47,6 +47,12 @@ public interface HitBox {
     void mount(@NotNull Entity entity);
 
     /**
+     * Gets this hit-box has mount driver.
+     * @return has mount driver
+     */
+    boolean hasMountDriver();
+
+    /**
      * Dismounts this hit-box
      * @param entity dismount
      */

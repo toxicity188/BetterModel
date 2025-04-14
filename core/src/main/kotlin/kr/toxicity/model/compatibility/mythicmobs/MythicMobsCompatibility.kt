@@ -50,6 +50,7 @@ class MythicMobsCompatibility : Compatibility {
                     "brightness", "light" -> e.register(BrightnessMechanic(e.config))
                     "enchant" -> e.register(EnchantMechanic(e.config))
                     "glow", "glowbone" -> e.register(GlowMechanic(e.config))
+                    "mountmodel" -> e.register(MountModelMechanic(e.config))
                 }
             }
             @EventHandler

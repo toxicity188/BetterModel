@@ -118,7 +118,7 @@ public class EntityTracker extends Tracker {
         //Shadow
         if (modifier.shadow()) {
             var shadow = BetterModel.inst().nms().create(entity.getLocation());
-            shadow.shadowRadius((float) instance.renderers()
+            shadow.shadowRadius((float) instance.bones()
                     .stream()
                     .filter(b -> b.getGroup().getParent().visibility())
                     .map(b -> b.getGroup().getHitBox())
@@ -161,7 +161,7 @@ public class EntityTracker extends Tracker {
                 });
 
         var damageTickProvider = FunctionUtil.throttleTick(adapter::damageTick);
-        var walkSupplier = FunctionUtil.throttleTick(() -> adapter.onWalk() || damageTickProvider.get() > 0.25 || instance.renderers().stream().anyMatch(e -> {
+        var walkSupplier = FunctionUtil.throttleTick(() -> adapter.onWalk() || damageTickProvider.get() > 0.25 || instance.bones().stream().anyMatch(e -> {
             var hitBox = e.getHitBox();
             return hitBox != null && hitBox.onWalk();
         }));
@@ -169,7 +169,7 @@ public class EntityTracker extends Tracker {
         instance.animateLoop("walk", new AnimationModifier(walkSupplier, 4, 0, walkSpeedSupplier));
         instance.animateLoop("idle_fly", new AnimationModifier(adapter::fly, 4, 0, 1F));
         instance.animateLoop("walk_fly", new AnimationModifier(() -> adapter.fly() && walkSupplier.get(), 4, 0, walkSpeedSupplier));
-
+        instance.animateSingle("spawn");
         Supplier<TrackerMovement> supplier = () -> new TrackerMovement(
                 new Vector3f(0, 0, 0F),
                 new Vector3f((float) adapter.scale()),

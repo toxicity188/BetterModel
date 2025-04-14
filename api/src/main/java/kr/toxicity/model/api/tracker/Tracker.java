@@ -68,14 +68,12 @@ public abstract class Tracker implements AutoCloseable {
         this.movement = FunctionUtil.throttleTick(() -> new TrackerMovement(new Vector3f(), new Vector3f(modifier.scale()), new Vector3f()));
         updater = () -> {
             var bundle = BetterModel.inst().nms().createBundler();
-            instance.move(
+            var moveAccepted = instance.move(
                     frame % 5 == 0 ? (isRunningSingleAnimation() && BetterModel.inst().configManager().lockOnPlayAnimation()) ? instance.getRotation() : rotation() : null,
                     movement.get(),
                     bundle
             );
-            if (readyForForceUpdate.compareAndSet(true, false) && bundle.isEmpty()) {
-                instance.forceUpdate(bundle);
-            }
+            if (readyForForceUpdate.compareAndSet(true, false) && !moveAccepted) instance.forceUpdate(bundle);
             consumer.accept(this, bundle);
             if (!bundle.isEmpty()) instance.viewedPlayer().forEach(bundle::send);
         };
@@ -246,7 +244,7 @@ public abstract class Tracker implements AutoCloseable {
      * @param rgb toggle
      */
     public void tint(int rgb) {
-        if (instance.tint(BonePredicate.TRUE, rgb)) forceUpdate(true);
+        tint(BonePredicate.TRUE, rgb);
     }
 
     /**
@@ -481,7 +479,16 @@ public abstract class Tracker implements AutoCloseable {
      * @return bone or null
      */
     public @Nullable RenderedBone bone(@NotNull String name) {
-        return instance.boneOf(name);
+        return bone(b -> b.getName().equals(name));
+    }
+
+    /**
+     * Gets bone by bone's name
+     * @param predicate bone's predicate
+     * @return bone or null
+     */
+    public @Nullable RenderedBone bone(@NotNull Predicate<RenderedBone> predicate) {
+        return instance.boneOf(predicate);
     }
 
     /**
@@ -489,7 +496,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return all bones
      */
     public @NotNull List<RenderedBone> bones() {
-        return instance.renderers();
+        return instance.bones();
     }
 
     /**

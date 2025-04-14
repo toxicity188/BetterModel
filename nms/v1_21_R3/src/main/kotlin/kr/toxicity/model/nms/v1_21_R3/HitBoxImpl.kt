@@ -88,6 +88,7 @@ class HitBoxImpl(
 
     private var craftEntity: CraftLivingEntity? = null
     override fun getArmorSlots(): MutableIterable<ItemStack> = mutableSetOf()
+    override fun hasMountDriver(): Boolean = controllingPassenger != null
     override fun getItemBySlot(slot: EquipmentSlot): ItemStack = Items.AIR.defaultInstance
     override fun setItemSlot(slot: EquipmentSlot, stack: ItemStack) {
     }
@@ -96,17 +97,21 @@ class HitBoxImpl(
     override fun mount(entity: Entity) {
         if (!mountController.canMount()) return
         if (firstPassenger != null) return
-        if (bukkitEntity.addPassenger(entity) && mountController.canControl()) {
-            mounted = true
-            collision = delegate.collides
-            noGravity = delegate.isNoGravity
-            delegate.collides = false
+        if (bukkitEntity.addPassenger(entity)) {
+            if (mountController.canControl()) {
+                mounted = true
+                collision = delegate.collides
+                noGravity = delegate.isNoGravity
+                delegate.collides = false
+            }
+            listener.mount(this, entity)
         }
     }
     
     override fun dismount(entity: Entity) {
         forceDismount = true
         bukkitEntity.removePassenger(entity)
+        listener.dismount(this, entity)
         forceDismount = false
     }
 
@@ -307,6 +312,7 @@ class HitBoxImpl(
     }
 
     override fun hurtServer(world: ServerLevel, source: DamageSource, amount: Float): Boolean {
+        if (source.entity === delegate) return false
         val ds = ModelDamageSourceImpl(source)
         val event = ModelDamagedEvent(this, ds, amount)
         if (!event.call()) return false
@@ -315,6 +321,7 @@ class HitBoxImpl(
     }
 
     override fun deflection(projectile: Projectile): ProjectileDeflection {
+        if (projectile.owner === delegate) return ProjectileDeflection.NONE
         return delegate.deflection(projectile)
     }
 

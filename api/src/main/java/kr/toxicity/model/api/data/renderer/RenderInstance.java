@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -117,11 +117,13 @@ public final class RenderInstance {
         }
     }
 
-    public void move(@Nullable ModelRotation rotation, @NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
+    public boolean move(@Nullable ModelRotation rotation, @NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
         var rot = rotation == null || rotation.equals(this.rotation) ? null : (this.rotation = rotation);
+        var match = false;
         for (RenderedBone value : entityMap.values()) {
-            value.iterateTree(b -> b.move(rot, movement, bundler));
+            if (value.matchTree(b -> b.move(rot, movement, bundler))) match = true;
         }
+        return match;
     }
 
     public void defaultPosition(@NotNull Vector3f movement) {
@@ -152,7 +154,7 @@ public final class RenderInstance {
         return anyMatch(predicate, (b, p) -> b.addAnimationMovementModifier(p, consumer));
     }
 
-    public @NotNull List<RenderedBone> renderers() {
+    public @NotNull List<RenderedBone> bones() {
         var list = new ArrayList<RenderedBone>();
         for (RenderedBone value : entityMap.values()) {
             value.iterateTree(list::add);
@@ -160,9 +162,9 @@ public final class RenderInstance {
         return list;
     }
 
-    public @Nullable RenderedBone boneOf(@NotNull String name) {
+    public @Nullable RenderedBone boneOf(@NotNull Predicate<RenderedBone> predicate) {
         for (RenderedBone value : entityMap.values()) {
-            var get = value.boneOf(e -> e.getName().equals(name));
+            var get = value.boneOf(predicate);
             if (get != null) return get;
         }
         return null;
@@ -170,7 +172,7 @@ public final class RenderInstance {
 
     public double height() {
         var h = 0D;
-        for (RenderedBone renderer : renderers()) {
+        for (RenderedBone renderer : bones()) {
             var lt = renderer.worldPosition().y;
             if (renderer.getName().startsWith("h_")) return lt;
             if (h < lt) h = lt;
@@ -278,7 +280,7 @@ public final class RenderInstance {
         return anyMatch(predicate, (b, p) -> b.togglePart(p, toggle));
     }
 
-    private boolean anyMatch(@NotNull BonePredicate predicate, BiFunction<RenderedBone, BonePredicate, Boolean> mapper) {
+    private boolean anyMatch(@NotNull BonePredicate predicate, BiPredicate<RenderedBone, BonePredicate> mapper) {
         var result = false;
         for (RenderedBone value : entityMap.values()) {
             if (value.iterateTree(predicate, mapper)) result = true;
