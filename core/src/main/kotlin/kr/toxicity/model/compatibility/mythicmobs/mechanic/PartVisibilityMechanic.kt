@@ -8,15 +8,18 @@ import io.lumine.mythic.bukkit.MythicBukkit
 import io.lumine.mythic.core.skills.SkillMechanic
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.compatibility.mythicmobs.bonePredicateNullable
+import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderArgs
+import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderBoolean
 
 class PartVisibilityMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), INoTargetSkill {
 
     private val predicate = mlc.bonePredicateNullable
-    private val v = mlc.getBoolean(arrayOf("value", "v"), true)
+    private val v = mlc.toPlaceholderBoolean(arrayOf("value", "v"), true)
 
     override fun cast(p0: SkillMetadata): SkillResult {
+        val args = p0.toPlaceholderArgs()
         return EntityTracker.tracker(p0.caster.entity.bukkitEntity)?.let {
-            if (it.togglePart(predicate, v)) it.forceUpdate(true)
+            if (it.togglePart(predicate(args), v(args))) it.forceUpdate(true)
             SkillResult.SUCCESS
         } ?: SkillResult.ERROR
     }

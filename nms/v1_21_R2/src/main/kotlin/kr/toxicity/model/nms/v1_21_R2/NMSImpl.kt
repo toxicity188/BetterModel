@@ -1,7 +1,6 @@
 package kr.toxicity.model.nms.v1_21_R2
 
 import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.EntityLookup
-import com.google.common.collect.ImmutableList
 import com.google.gson.JsonParser
 import com.mojang.authlib.GameProfile
 import com.mojang.datafixers.util.Pair
@@ -259,7 +258,11 @@ class NMSImpl : NMS {
                 }
                 is ClientboundSetPassengersPacket -> {
                     vehicle.toTracker()?.let {
-                        return it.mountPacket()
+                        return it.mountPacket(array = useByteBuf { buffer ->
+                            ClientboundSetPassengersPacket.STREAM_CODEC.encode(buffer, this)
+                            buffer.readVarInt()
+                            buffer.readVarIntArray()
+                        })
                     }
                 }
                 is ClientboundSetEntityDataPacket -> if (id.toTracker() != null) return ClientboundSetEntityDataPacket(id, packedItems().map {
@@ -308,18 +311,16 @@ class NMSImpl : NMS {
         (bundler as PacketBundlerImpl).add(tracker.mountPacket())
     }
 
-    private fun EntityTracker.mountPacket(entity: Entity = adapter.handle() as Entity): ClientboundSetPassengersPacket {
-        val map = displays().mapNotNull {
-            (it as? ModelDisplayImpl)?.display
+    private fun EntityTracker.mountPacket(entity: Entity = adapter.handle() as Entity, array: IntArray = entity.passengers.map { 
+        it.id
+    }.toIntArray()): ClientboundSetPassengersPacket {
+        return useByteBuf { buffer ->
+            buffer.writeVarInt(entity.id)
+            buffer.writeVarIntArray((displays().mapNotNull {
+                (it as? ModelDisplayImpl)?.display?.id
+            }.toIntArray() + array))
+            ClientboundSetPassengersPacket.STREAM_CODEC.decode(buffer)
         }
-        val passengers = entity.passengers
-        entity.passengers = ImmutableList.builder<Entity>()
-            .addAll(map)
-            .addAll(entity.passengers)
-            .build()
-        val packet = ClientboundSetPassengersPacket(entity)
-        entity.passengers = passengers
-        return packet
     }
 
     override fun inject(player: Player): PlayerChannelHandlerImpl = PlayerChannelHandlerImpl(player)

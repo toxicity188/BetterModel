@@ -1,38 +1,103 @@
 package kr.toxicity.model.compatibility.mythicmobs
 
+import io.lumine.mythic.api.adapters.AbstractEntity
 import io.lumine.mythic.api.config.MythicLineConfig
+import io.lumine.mythic.api.skills.SkillMetadata
 import kr.toxicity.model.api.bone.RenderedBone
 import kr.toxicity.model.api.util.BonePredicate
 
 val MM_PART_ID = arrayOf("partid", "p", "pid", "part")
 val MM_CHILDREN = arrayOf("children", "child")
 val MM_EXACT_MATCH = arrayOf("exactmatch", "em", "exact", "match")
+val MM_SEAT = arrayOf("seat", "p", "pbone")
 
-val MythicLineConfig.bonePredicateNullable: BonePredicate
-    get() = getString(MM_PART_ID).let { part ->
-        if (part == null) BonePredicate.TRUE else {
-            val predicate: (RenderedBone) -> Boolean = if (getBoolean(MM_EXACT_MATCH, true)) {
-                { b ->
-                    b.name == part
-                }
-            } else {
-                { b ->
-                    b.name.contains(part, ignoreCase = true)
-                }
-            }
-            BonePredicate.of(getBoolean(MM_CHILDREN, false), predicate)
+const val WHITE = 0xFFFFFF
+
+fun MythicLineConfig.toPlaceholderString(array: Array<String>, defaultValue: String? = null) = toPlaceholderString(array, defaultValue) { it }
+fun MythicLineConfig.toPlaceholderStringSet(array: Array<String>) = toPlaceholderString(array) {
+    it?.split(",")?.toSet() ?: emptySet()
+}
+fun <T> MythicLineConfig.toPlaceholderString(array: Array<String>, defaultValue: String? = null, mapper: (String?) -> T): (PlaceholderArgument) -> T {
+    return getPlaceholderString(array, defaultValue).let {
+        { meta ->
+            mapper(when (meta) {
+                is PlaceholderArgument.SkillMeta -> it[meta.meta]
+                is PlaceholderArgument.Entity -> it[meta.entity]
+            })
         }
     }
+}
+fun MythicLineConfig.toPlaceholderInteger(array: Array<String>, defaultValue: Int = 0) = toPlaceholderInteger(array, defaultValue) { it }
+fun <T> MythicLineConfig.toPlaceholderInteger(array: Array<String>, defaultValue: Int = 0, mapper: (Int) -> T): (PlaceholderArgument) -> T {
+    return getPlaceholderInteger(array, defaultValue).let {
+        { meta ->
+            mapper(when (meta) {
+                is PlaceholderArgument.SkillMeta -> it[meta.meta]
+                is PlaceholderArgument.Entity -> it[meta.entity]
+            })
+        }
+    }
+}
+fun MythicLineConfig.toPlaceholderFloat(array: Array<String>, defaultValue: Float = 0F) = toPlaceholderFloat(array, defaultValue) { it }
+fun <T> MythicLineConfig.toPlaceholderFloat(array: Array<String>, defaultValue: Float = 0F, mapper: (Float) -> T): (PlaceholderArgument) -> T {
+    return getPlaceholderFloat(array, defaultValue).let {
+        { meta ->
+            mapper(when (meta) {
+                is PlaceholderArgument.SkillMeta -> it[meta.meta]
+                is PlaceholderArgument.Entity -> it[meta.entity]
+            })
+        }
+    }
+}
+fun MythicLineConfig.toPlaceholderBoolean(array: Array<String>, defaultValue: Boolean = false) = toPlaceholderBoolean(array, defaultValue) { it }
+fun <T> MythicLineConfig.toPlaceholderBoolean(array: Array<String>, defaultValue: Boolean = false, mapper: (Boolean) -> T): (PlaceholderArgument) -> T {
+    return getPlaceholderBoolean(array, defaultValue).let {
+        { meta ->
+            mapper(when (meta) {
+                is PlaceholderArgument.SkillMeta -> it[meta.meta]
+                is PlaceholderArgument.Entity -> it[meta.entity]
+            })
+        }
+    }
+}
+fun MythicLineConfig.toPlaceholderColor(array: Array<String>, defaultValue: String = "FFFFFF") = toPlaceholderColor(array, defaultValue) { it }
+fun <T> MythicLineConfig.toPlaceholderColor(array: Array<String>, defaultValue: String = "FFFFFF", mapper: (Int) -> T): (PlaceholderArgument) -> T {
+    return toPlaceholderString(array, defaultValue) {
+        mapper(it?.toIntOrNull(16) ?: WHITE)
+    }
+}
+
+val MythicLineConfig.bonePredicateNullable
+    get() = toBonePredicate(BonePredicate.TRUE)
 val MythicLineConfig.bonePredicate
-    get() = getString(MM_PART_ID)!!.let { part ->
-        val predicate: (RenderedBone) -> Boolean = if (getBoolean(MM_EXACT_MATCH, true)) {
-            { b ->
-                b.name == part
-            }
-        } else {
-            { b ->
-                b.name.contains(part, ignoreCase = true)
+    get() = toBonePredicate(BonePredicate.FALSE)
+
+fun MythicLineConfig.toBonePredicate(defaultPredicate: BonePredicate): (PlaceholderArgument) -> BonePredicate {
+    val match = toPlaceholderBoolean(MM_EXACT_MATCH, true)
+    val children = toPlaceholderBoolean(MM_CHILDREN, false)
+    return toPlaceholderString(MM_PART_ID).let { partSupplier ->
+        { meta ->
+            val part = partSupplier(meta)
+            if (part == null) defaultPredicate else {
+                val predicate: (RenderedBone) -> Boolean = if (match(meta)) {
+                    { b ->
+                        b.name == part
+                    }
+                } else {
+                    { b ->
+                        b.name.contains(part, ignoreCase = true)
+                    }
+                }
+                BonePredicate.of(children(meta), predicate)
             }
         }
-        BonePredicate.of(getBoolean(MM_CHILDREN, false), predicate)
     }
+}
+
+fun SkillMetadata.toPlaceholderArgs() = PlaceholderArgument.SkillMeta(this)
+fun AbstractEntity.toPlaceholderArgs() = PlaceholderArgument.Entity(this)
+
+sealed interface PlaceholderArgument {
+    data class SkillMeta(val meta: SkillMetadata) : PlaceholderArgument
+    data class Entity(val entity: AbstractEntity) : PlaceholderArgument
+}

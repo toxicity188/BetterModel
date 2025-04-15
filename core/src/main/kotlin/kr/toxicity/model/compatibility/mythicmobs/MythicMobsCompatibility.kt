@@ -4,12 +4,14 @@ import io.lumine.mythic.api.adapters.AbstractEntity
 import io.lumine.mythic.api.skills.SkillCaster
 import io.lumine.mythic.bukkit.BukkitAdapter
 import io.lumine.mythic.bukkit.MythicBukkit
+import io.lumine.mythic.bukkit.events.MythicConditionLoadEvent
 import io.lumine.mythic.bukkit.events.MythicMechanicLoadEvent
 import io.lumine.mythic.bukkit.events.MythicTargeterLoadEvent
 import io.lumine.mythic.core.skills.SkillMetadataImpl
 import io.lumine.mythic.core.skills.SkillTriggers
 import kr.toxicity.model.api.script.EntityScript
 import kr.toxicity.model.compatibility.Compatibility
+import kr.toxicity.model.compatibility.mythicmobs.condition.ModelHasPassengerCondition
 import kr.toxicity.model.compatibility.mythicmobs.mechanic.*
 import kr.toxicity.model.compatibility.mythicmobs.targeter.ModelPartTargeter
 import kr.toxicity.model.manager.ScriptManagerImpl
@@ -37,26 +39,33 @@ class MythicMobsCompatibility : Compatibility {
         }
         registerListener(object : Listener {
             @EventHandler
-            fun load(e: MythicMechanicLoadEvent) {
-                when (e.mechanicName.lowercase()) {
-                    "model" -> e.register(ModelMechanic(e.config))
-                    "state", "animation" -> e.register(StateMechanic(e.config))
-                    "defaultstate", "defaultanimation" -> e.register(DefaultStateMechanic(e.config))
-                    "partvisibility", "partvis" -> e.register(PartVisibilityMechanic(e.config))
-                    "bindhitbox" -> e.register(BindHitBoxMechanic(e.config))
-                    "changepart" -> e.register(ChangePartMechanic(e.config))
-                    "vfx" -> e.register(VFXMechanic(e.config))
-                    "tint", "color" -> e.register(TintMechanic(e.config))
-                    "brightness", "light" -> e.register(BrightnessMechanic(e.config))
-                    "enchant" -> e.register(EnchantMechanic(e.config))
-                    "glow", "glowbone" -> e.register(GlowMechanic(e.config))
-                    "mountmodel" -> e.register(MountModelMechanic(e.config))
+            fun MythicMechanicLoadEvent.load() {
+                when (mechanicName.lowercase()) {
+                    "model" -> register(ModelMechanic(config))
+                    "state", "animation" -> register(StateMechanic(config))
+                    "defaultstate", "defaultanimation" -> register(DefaultStateMechanic(config))
+                    "partvisibility", "partvis" -> register(PartVisibilityMechanic(config))
+                    "bindhitbox" -> register(BindHitBoxMechanic(config))
+                    "changepart" -> register(ChangePartMechanic(config))
+                    "vfx" -> register(VFXMechanic(config))
+                    "tint", "color" -> register(TintMechanic(config))
+                    "brightness", "light" -> register(BrightnessMechanic(config))
+                    "enchant" -> register(EnchantMechanic(config))
+                    "glow", "glowbone" -> register(GlowMechanic(config))
+                    "mountmodel" -> register(MountModelMechanic(config))
+                    "dismountmodel" -> register(DismountModelMechanic(config))
                 }
             }
             @EventHandler
-            fun load(e: MythicTargeterLoadEvent) {
-                when (e.targeterName.lowercase()) {
-                    "modelpart" -> e.register(ModelPartTargeter(e.config))
+            fun MythicConditionLoadEvent.load() {
+                when (conditionName.lowercase()) {
+                    "modelhaspassenger" -> ModelHasPassengerCondition(config)
+                }
+            }
+            @EventHandler
+            fun MythicTargeterLoadEvent.load() {
+                when (targeterName.lowercase()) {
+                    "modelpart" -> register(ModelPartTargeter(config))
                 }
             }
         })

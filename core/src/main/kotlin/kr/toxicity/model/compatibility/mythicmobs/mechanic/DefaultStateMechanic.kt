@@ -7,14 +7,20 @@ import io.lumine.mythic.api.skills.SkillResult
 import io.lumine.mythic.bukkit.MythicBukkit
 import io.lumine.mythic.core.skills.SkillMechanic
 import kr.toxicity.model.api.tracker.EntityTracker
+import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderArgs
+import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderString
 
 class DefaultStateMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), INoTargetSkill {
 
-    private val t = mlc.getString(arrayOf("t", "type"))!!
-    private val s = mlc.getString(arrayOf("state", "s"))!!
+    private val type = mlc.toPlaceholderString(arrayOf("t", "type"))
+    private val state = mlc.toPlaceholderString(arrayOf("state", "s"))
 
     override fun cast(p0: SkillMetadata): SkillResult {
+        val args = p0.toPlaceholderArgs()
         return EntityTracker.tracker(p0.caster.entity.bukkitEntity)?.let {
+            val t = type(args)
+            val s = state(args)
+            if (t == null || s == null) return SkillResult.ERROR
             it.replaceLoop(t, s)
             SkillResult.SUCCESS
         } ?: SkillResult.ERROR

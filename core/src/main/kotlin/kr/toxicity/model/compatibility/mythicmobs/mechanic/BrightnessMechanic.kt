@@ -8,16 +8,23 @@ import io.lumine.mythic.bukkit.MythicBukkit
 import io.lumine.mythic.core.skills.SkillMechanic
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.compatibility.mythicmobs.bonePredicateNullable
+import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderArgs
+import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderInteger
 
 class BrightnessMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), INoTargetSkill {
 
     private val predicate = mlc.bonePredicateNullable
-    private val block = mlc.getInteger(arrayOf("block", "b"), 0).coerceAtLeast(-1).coerceAtMost(15)
-    private val sky = mlc.getInteger(arrayOf("sky", "s"), 0).coerceAtLeast(-1).coerceAtMost(15)
+    private val block = mlc.toPlaceholderInteger(arrayOf("block", "b")) {
+        it.coerceAtLeast(-1).coerceAtMost(15)
+    }
+    private val sky = mlc.toPlaceholderInteger(arrayOf("sky", "s")) {
+        it.coerceAtLeast(-1).coerceAtMost(15)
+    }
 
     override fun cast(p0: SkillMetadata): SkillResult {
+        val args = p0.toPlaceholderArgs()
         return EntityTracker.tracker(p0.caster.entity.bukkitEntity.uniqueId)?.let {
-            if (it.brightness(predicate, block, sky)) it.forceUpdate(true)
+            if (it.brightness(predicate(args), block(args), sky(args))) it.forceUpdate(true)
             SkillResult.SUCCESS
         } ?: SkillResult.ERROR
     }

@@ -1,8 +1,10 @@
 package kr.toxicity.model.nms.v1_21_R3
 
 import ca.spottedleaf.moonrise.common.util.TickThread
+import io.netty.buffer.Unpooled
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.util.EventUtil
+import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.network.syncher.SynchedEntityData.DataItem
 import net.minecraft.server.MinecraftServer
@@ -89,3 +91,12 @@ val CraftEntity.vanillaEntity: Entity
 
 val isTickThread
     get() = if (BetterModel.IS_PAPER) TickThread.isTickThread() else Thread.currentThread() === MinecraftServer.getServer().serverThread
+
+fun <T> useByteBuf(block: (FriendlyByteBuf) -> T): T {
+    val buffer = FriendlyByteBuf(Unpooled.buffer())
+    return try {
+        block(buffer)
+    } finally {
+        buffer.release()
+    }
+}

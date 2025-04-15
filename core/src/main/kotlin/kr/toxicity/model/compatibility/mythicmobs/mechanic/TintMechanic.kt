@@ -8,18 +8,22 @@ import io.lumine.mythic.bukkit.MythicBukkit
 import io.lumine.mythic.core.skills.SkillMechanic
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.compatibility.mythicmobs.bonePredicateNullable
+import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderArgs
+import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderBoolean
+import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderColor
 
 class TintMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), INoTargetSkill {
 
     private val predicate = mlc.bonePredicateNullable
-    private val damageTint = mlc.getBoolean(arrayOf("damagetint", "d", "dmg", "damage"), false)
-    private val color = mlc.getString(arrayOf("color", "c")).toInt(16)
+    private val damageTint = mlc.toPlaceholderBoolean(arrayOf("damagetint", "d", "dmg", "damage"))
+    private val color = mlc.toPlaceholderColor(arrayOf("color", "c"))
 
     override fun cast(p0: SkillMetadata): SkillResult {
+        val args = p0.toPlaceholderArgs()
         return EntityTracker.tracker(p0.caster.entity.bukkitEntity.uniqueId)?.let {
-            if (damageTint) {
-                it.damageTintValue(color)
-            } else it.tint(predicate, color)
+            if (damageTint(args)) {
+                it.damageTintValue(color(args))
+            } else it.tint(predicate(args), color(args))
             SkillResult.SUCCESS
         } ?: SkillResult.ERROR
     }

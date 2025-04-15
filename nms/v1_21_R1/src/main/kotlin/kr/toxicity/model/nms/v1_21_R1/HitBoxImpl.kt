@@ -106,8 +106,7 @@ class HitBoxImpl(
 
     override fun dismount(entity: Entity) {
         forceDismount = true
-        bukkitEntity.removePassenger(entity)
-        listener.dismount(this, entity)
+        if (bukkitEntity.removePassenger(entity)) listener.dismount(this, entity)
         forceDismount = false
     }
 
@@ -120,6 +119,7 @@ class HitBoxImpl(
     }
 
     override fun push(x: Double, y: Double, z: Double, pushingEntity: net.minecraft.world.entity.Entity?) {
+        if (pushingEntity === delegate) return
         delegate.push(x, y, z, pushingEntity)
     }
 
@@ -274,6 +274,7 @@ class HitBoxImpl(
     }
 
     override fun addEffect(effectInstance: MobEffectInstance, entity: net.minecraft.world.entity.Entity?): Boolean {
+        if (entity === delegate) return false
         return delegate.addEffect(effectInstance, entity)
     }
 
@@ -282,6 +283,7 @@ class HitBoxImpl(
         entity: net.minecraft.world.entity.Entity?,
         cause: EntityPotionEffectEvent.Cause
     ): Boolean {
+        if (entity === delegate) return false
         return delegate.addEffect(effectInstance, entity, cause)
     }
 
