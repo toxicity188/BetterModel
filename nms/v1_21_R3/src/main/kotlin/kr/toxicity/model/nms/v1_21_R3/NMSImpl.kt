@@ -4,7 +4,6 @@ import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.EntityLookup
 import com.google.gson.JsonParser
 import com.mojang.authlib.GameProfile
 import com.mojang.datafixers.util.Pair
-import io.netty.buffer.Unpooled
 import io.netty.channel.ChannelDuplexHandler
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
@@ -17,7 +16,6 @@ import kr.toxicity.model.api.tracker.ModelRotation
 import kr.toxicity.model.api.tracker.Tracker
 import net.minecraft.core.component.DataComponents
 import net.minecraft.network.Connection
-import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.*
 import net.minecraft.network.syncher.EntityDataAccessor
@@ -296,13 +294,12 @@ class NMSImpl : NMS {
     private fun EntityTracker.mountPacket(entity: Entity = adapter.handle() as Entity, array: IntArray = entity.passengers.map {
         it.id
     }.toIntArray()): ClientboundSetPassengersPacket {
-        val buffer = FriendlyByteBuf(Unpooled.buffer())
-        buffer.writeVarInt(entity.id)
-        buffer.writeVarIntArray((displays().mapNotNull {
-            (it as? ModelDisplayImpl)?.display?.id
-        }.toIntArray() + array))
-        return ClientboundSetPassengersPacket.STREAM_CODEC.decode(buffer).apply {
-            buffer.release()
+        return useByteBuf { buffer ->
+            buffer.writeVarInt(entity.id)
+            buffer.writeVarIntArray((displays().mapNotNull {
+                (it as? ModelDisplayImpl)?.display?.id
+            }.toIntArray() + array))
+            ClientboundSetPassengersPacket.STREAM_CODEC.decode(buffer)
         }
     }
 
@@ -477,6 +474,7 @@ class NMSImpl : NMS {
         )
 
     override fun tint(itemStack: ItemStack, rgb: Int): ItemStack {
+        if (itemStack.isEmpty) return itemStack
         return CraftItemStack.asBukkitCopy(CraftItemStack.asNMSCopy(itemStack).apply {
             set(DataComponents.DYED_COLOR, DyedItemColor(rgb, false))
             set(DataComponents.CUSTOM_MODEL_DATA, get(DataComponents.CUSTOM_MODEL_DATA)?.let {

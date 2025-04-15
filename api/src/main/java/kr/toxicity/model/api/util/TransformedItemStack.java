@@ -59,10 +59,7 @@ public record TransformedItemStack(@NotNull Vector3f offset, @NotNull Vector3f s
      * @return is air
      */
     public boolean isEmpty() {
-        return switch (itemStack.getType()) {
-            case AIR, CAVE_AIR, VOID_AIR -> true;
-            default -> false;
-        };
+        return itemStack.isEmpty();
     }
 
     /**

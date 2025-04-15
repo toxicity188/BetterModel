@@ -138,6 +138,7 @@ public final class RenderedBone implements HitBoxSource {
     public boolean enchant(@NotNull BonePredicate predicate, boolean enchant) {
         if (predicate.test(this)) {
             itemStack = itemStack.modify(i -> {
+                if (i.isEmpty()) return i;
                 var meta = i.getItemMeta();
                 if (enchant) {
                     meta.addEnchant(Enchantment.UNBREAKING, 0, true);
