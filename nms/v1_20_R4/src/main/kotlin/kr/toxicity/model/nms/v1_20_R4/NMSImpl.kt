@@ -24,11 +24,8 @@ import net.minecraft.server.level.ServerPlayer
 import net.minecraft.server.network.ServerCommonPacketListenerImpl
 import net.minecraft.util.Brightness
 import net.minecraft.world.effect.MobEffects
-import net.minecraft.world.entity.Display
+import net.minecraft.world.entity.*
 import net.minecraft.world.entity.Display.ItemDisplay
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.EntityType
-import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.ai.attributes.Attributes
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.Items
@@ -38,17 +35,8 @@ import org.bukkit.craftbukkit.CraftWorld
 import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.craftbukkit.inventory.CraftItemStack
-import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.FIRSTPERSON_LEFTHAND
-import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.FIRSTPERSON_RIGHTHAND
-import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.FIXED
-import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.GROUND
-import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.GUI
-import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.NONE
-import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.THIRDPERSON_LEFTHAND
-import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.THIRDPERSON_RIGHTHAND
-import org.bukkit.entity.LivingEntity
+import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.*
 import org.bukkit.entity.Player
-import org.bukkit.inventory.EquipmentSlot.*
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.LeatherArmorMeta
 import org.bukkit.util.Transformation
@@ -179,24 +167,12 @@ class NMSImpl : NMS {
             entityUUIDMap.remove(handle.uuid)
             val list = arrayListOf<Packet<ClientGamePacketListener>>()
             list += ClientboundSetEntityDataPacket(handle.id, handle.entityData.pack())
-            if (e is LivingEntity) {
-                e.equipment?.let { i ->
-                    list += ClientboundSetEquipmentPacket(handle.id, org.bukkit.inventory.EquipmentSlot.entries.mapNotNull {
-                        it to (runCatching {
-                            i.getItem(it)
-                        }.getOrNull() ?: return@mapNotNull null)
-                    }.map { (type, item) ->
-                        Pair.of(when (type) {
-                            HAND -> EquipmentSlot.MAINHAND
-                            OFF_HAND -> EquipmentSlot.OFFHAND
-                            FEET -> EquipmentSlot.FEET
-                            LEGS -> EquipmentSlot.LEGS
-                            CHEST -> EquipmentSlot.CHEST
-                            HEAD -> EquipmentSlot.HEAD
-                            BODY -> EquipmentSlot.BODY
-                        }, CraftItemStack.asNMSCopy(item))
-                    })
-                }
+            if (handle is Mob) {
+                list += ClientboundSetEquipmentPacket(handle.id, EquipmentSlot.entries.mapNotNull {
+                    runCatching {
+                        Pair.of(it, handle.getItemBySlot(it))
+                    }.getOrNull()
+                })
             }
             list += ClientboundSetPassengersPacket(handle)
             send(ClientboundBundlePacket(list))
@@ -210,7 +186,7 @@ class NMSImpl : NMS {
                 is ClientboundAddEntityPacket -> {
                     id.toPlayerEntity()?.let { e ->
                         if (!e.bukkitEntity.persistentDataContainer.has(Tracker.TRACKING_ID)) return this
-                        BetterModel.inst().scheduler().taskLater(1, e.bukkitEntity.location) {
+                        BetterModel.inst().scheduler().taskLater(1, e.bukkitEntity) {
                             EntityTracker.tracker(e.bukkitEntity)?.let {
                                 if (it.canBeSpawnedAt(player)) it.spawn(player)
                             }
@@ -346,7 +322,7 @@ class NMSImpl : NMS {
                 THIRDPERSON_RIGHTHAND -> ItemDisplayContext.THIRD_PERSON_RIGHT_HAND
                 FIRSTPERSON_LEFTHAND -> ItemDisplayContext.FIRST_PERSON_LEFT_HAND
                 FIRSTPERSON_RIGHTHAND -> ItemDisplayContext.FIRST_PERSON_RIGHT_HAND
-                org.bukkit.entity.ItemDisplay.ItemDisplayTransform.HEAD -> ItemDisplayContext.HEAD
+                HEAD -> ItemDisplayContext.HEAD
                 GUI -> ItemDisplayContext.GUI
                 GROUND -> ItemDisplayContext.GROUND
                 FIXED -> ItemDisplayContext.FIXED
@@ -470,7 +446,7 @@ class NMSImpl : NMS {
     }
 
     override fun createHitBox(entity: EntityAdapter, supplier: HitBoxSource, namedBoundingBox: NamedBoundingBox, mountController: MountController, listener: HitBoxListener): HitBox? {
-        val handle = entity.handle() as? net.minecraft.world.entity.LivingEntity ?: return null
+        val handle = entity.handle() as? LivingEntity ?: return null
         val scale = entity.scale()
         val newBox = namedBoundingBox.center() * scale
         val height = newBox.lengthZX() / 2
@@ -498,7 +474,7 @@ class NMSImpl : NMS {
 
             override fun entity(): org.bukkit.entity.Entity = entity
             override fun handle(): Entity = entity.vanillaEntity
-            override fun dead(): Boolean = (handle() as? net.minecraft.world.entity.LivingEntity)?.isDeadOrDying == true || !handle().valid
+            override fun dead(): Boolean = (handle() as? LivingEntity)?.isDeadOrDying == true || !handle().valid
             override fun invisible(): Boolean = handle().isInvisible
             override fun glow(): Boolean = handle().isCurrentlyGlowing
 
@@ -508,7 +484,7 @@ class NMSImpl : NMS {
 
             override fun scale(): Double {
                 val handle = handle()
-                return if (handle is net.minecraft.world.entity.LivingEntity) handle.attributes.getInstance(Attributes.SCALE)?.value ?: 1.0
+                return if (handle is LivingEntity) handle.attributes.getInstance(Attributes.SCALE)?.value ?: 1.0
                 else 1.0
             }
 
@@ -531,7 +507,7 @@ class NMSImpl : NMS {
 
             override fun damageTick(): Float {
                 val handle = handle()
-                if (handle !is net.minecraft.world.entity.LivingEntity) return 0F
+                if (handle !is LivingEntity) return 0F
                 val duration = handle.invulnerableDuration.toFloat()
                 if (duration <= 0F) return 0F
                 val knockBack = 1 - (handle.getAttribute(Attributes.KNOCKBACK_RESISTANCE)?.value?.toFloat() ?: 0F)
@@ -540,7 +516,7 @@ class NMSImpl : NMS {
 
             override fun walkSpeed(): Float {
                 val handle = handle()
-                if (handle !is net.minecraft.world.entity.LivingEntity) return 0F
+                if (handle !is LivingEntity) return 0F
                 if (!handle.onGround) return 1F
                 val speed = handle.getEffect(MobEffects.MOVEMENT_SPEED)?.amplifier ?: 0
                 val slow = handle.getEffect(MobEffects.MOVEMENT_SLOWDOWN)?.amplifier ?: 0

@@ -5,7 +5,7 @@ import kr.toxicity.model.api.scheduler.ModelScheduler
 import kr.toxicity.model.api.scheduler.ModelTask
 import kr.toxicity.model.util.PLUGIN
 import org.bukkit.Bukkit
-import org.bukkit.Location
+import org.bukkit.entity.Entity
 import java.util.concurrent.TimeUnit
 
 class PaperScheduler : ModelScheduler {
@@ -17,13 +17,13 @@ class PaperScheduler : ModelScheduler {
         }
     }
 
-    override fun task(location: Location, runnable: Runnable) = Bukkit.getRegionScheduler().run(PLUGIN, location) {
+    override fun task(entity: Entity, runnable: Runnable): ModelTask? = entity.scheduler.run(PLUGIN, {
         runnable.run()
-    }.wrap()
+    }, null)?.wrap()
 
-    override fun taskLater(delay: Long, location: Location, runnable: Runnable) = Bukkit.getRegionScheduler().runDelayed(PLUGIN, location, {
+    override fun taskLater(delay: Long, entity: Entity, runnable: Runnable) = entity.scheduler.runDelayed(PLUGIN, {
         runnable.run()
-    }, delay).wrap()
+    }, null, delay)?.wrap()
 
     override fun asyncTask(runnable: Runnable) = Bukkit.getAsyncScheduler().runNow(PLUGIN) {
         runnable.run()

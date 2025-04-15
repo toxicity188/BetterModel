@@ -89,8 +89,7 @@ public class EntityTracker extends Tracker {
     public static void reload() {
         for (EntityTracker value : new ArrayList<>(TRACKER_MAP.values())) {
             Entity target = value.entity;
-            var loc = target.getLocation();
-            BetterModel.inst().scheduler().task(loc, () -> {
+            BetterModel.inst().scheduler().task(target, () -> {
                 String name;
                 try (value) {
                     if (value.forRemoval()) return;
@@ -177,7 +176,7 @@ public class EntityTracker extends Tracker {
         );
         setMovement(supplier);
         TRACKER_MAP.put(entity.getUniqueId(), this);
-        BetterModel.inst().scheduler().task(entity.getLocation(), () -> {
+        BetterModel.inst().scheduler().task(entity, () -> {
             entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, instance.getParent().getParent().name());
             if (!isClosed()) createHitBox();
         });
@@ -187,7 +186,7 @@ public class EntityTracker extends Tracker {
             if (reader == null) return;
             var script = reader.script();
             if (script == null) return;
-            BetterModel.inst().scheduler().task(entity.getLocation(), () -> script.accept(entity));
+            BetterModel.inst().scheduler().task(entity, () -> script.accept(entity));
         });
         tick((t, b) -> {
             if (adapter.dead() && !forRemoval()) close();
@@ -274,7 +273,7 @@ public class EntityTracker extends Tracker {
         instance.allPlayer().forEach(p -> p.endTrack(this));
         super.close();
         TRACKER_MAP.remove(entity.getUniqueId());
-        BetterModel.inst().scheduler().task(entity.getLocation(), () -> entity.getPersistentDataContainer().remove(TRACKING_ID));
+        BetterModel.inst().scheduler().task(entity, () -> entity.getPersistentDataContainer().remove(TRACKING_ID));
     }
 
     @Override
@@ -378,7 +377,7 @@ public class EntityTracker extends Tracker {
      */
     @ApiStatus.Internal
     public void refresh() {
-        BetterModel.inst().scheduler().task(location(), () -> instance.createHitBox(adapter, r -> r.getHitBox() != null, null));
+        BetterModel.inst().scheduler().task(entity, () -> instance.createHitBox(adapter, r -> r.getHitBox() != null, null));
         var bundler = BetterModel.inst().nms().createBundler();
         BetterModel.inst().nms().mount(this, bundler);
         if (!bundler.isEmpty()) viewedPlayer().forEach(bundler::send);

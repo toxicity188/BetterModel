@@ -357,7 +357,7 @@ class HitBoxImpl(
     override fun getDefaultDimensions(pose: Pose): EntityDimensions = dimensions
 
     override fun removeHitBox() {
-        BetterModel.inst().scheduler().task(bukkitEntity.location) {
+        BetterModel.inst().scheduler().task(bukkitEntity) {
             remove(delegate.removalReason ?: RemovalReason.KILLED)
         }
     }

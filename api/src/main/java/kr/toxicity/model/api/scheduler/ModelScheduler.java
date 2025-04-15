@@ -1,7 +1,8 @@
 package kr.toxicity.model.api.scheduler;
 
-import org.bukkit.Location;
+import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A scheduler of BetterModel
@@ -9,21 +10,21 @@ import org.jetbrains.annotations.NotNull;
 public interface ModelScheduler {
 
     /**
-     * Runs sync task
-     * @param location location
+     * Runs entity sync task
+     * @param entity entity
      * @param runnable task
      * @return scheduled task
      */
-    @NotNull ModelTask task(@NotNull Location location, @NotNull Runnable runnable);
+    @Nullable ModelTask task(@NotNull Entity entity, @NotNull Runnable runnable);
 
     /**
-     * Runs sync task
+     * Runs entity sync task
      * @param delay delay
-     * @param location location
+     * @param entity entity
      * @param runnable task
      * @return scheduled task
      */
-    @NotNull ModelTask taskLater(long delay, @NotNull Location location, @NotNull Runnable runnable);
+    @Nullable ModelTask taskLater(long delay, @NotNull Entity entity, @NotNull Runnable runnable);
 
     /**
      * Runs async task

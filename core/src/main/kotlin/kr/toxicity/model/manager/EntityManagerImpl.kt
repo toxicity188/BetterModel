@@ -10,18 +10,15 @@ import kr.toxicity.model.api.manager.EntityManager
 import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.tracker.EntityTracker
-import kr.toxicity.model.util.PLUGIN
 import kr.toxicity.model.util.registerListener
 import org.bukkit.entity.LivingEntity
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.*
-import org.bukkit.event.player.PlayerInteractAtEntityEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.world.ChunkLoadEvent
 import org.bukkit.event.world.ChunkUnloadEvent
-import org.bukkit.inventory.EquipmentSlot
 
 object EntityManagerImpl : EntityManager, GlobalManagerImpl {
     override fun reload(info: ReloadInfo) {
@@ -101,9 +98,7 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
             fun EntityDeathEvent.death() {
                 EntityTracker.tracker(entity)?.let {
                     if (!it.animateSingle("death", AnimationModifier.DEFAULT) {
-                        PLUGIN.scheduler().task(entity.location) {
-                            it.close()
-                        }
+                        it.close()
                     }) it.close()
                     else it.forRemoval(true)
                 }

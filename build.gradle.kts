@@ -18,6 +18,8 @@ val minecraft = property("minecraft_version").toString()
 val targetJavaVersion = 21
 val buildNumber: String? = System.getenv("BUILD_NUMBER")
 
+val commandApi = "10.0.0"
+
 allprojects {
     apply(plugin = "java")
     apply(plugin = "kotlin")
@@ -32,7 +34,7 @@ allprojects {
     }
     dependencies {
         testImplementation(kotlin("test"))
-        implementation("dev.jorel:commandapi-bukkit-shade:10.0.0")
+        implementation("dev.jorel:commandapi-bukkit-shade:$commandApi")
         implementation("org.bstats:bstats-bukkit:3.1.0")
         compileOnly("com.vdurmont:semver4j:3.1.0")
         testImplementation("com.vdurmont:semver4j:3.1.0")

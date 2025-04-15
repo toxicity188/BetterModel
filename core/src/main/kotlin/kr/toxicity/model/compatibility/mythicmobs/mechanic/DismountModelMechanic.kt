@@ -23,7 +23,7 @@ class DismountModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.
     }
 
     override fun castAtEntity(p0: SkillMetadata, p1: AbstractEntity): SkillResult {
-        val args = p0.toPlaceholderArgs()
+        val args = toPlaceholderArgs(p0, p1)
         return EntityTracker.tracker(p0.caster.entity.bukkitEntity)?.let { tracker ->
             val set = seat(args)
             val d = driver(args)

@@ -27,7 +27,10 @@ class MythicMobsCompatibility : Compatibility {
                     skill.execute(SkillMetadataImpl(
                         SkillTriggers.API,
                         object : SkillCaster {
-                            override fun getEntity(): AbstractEntity = BukkitAdapter.adapt(entity)
+                            private val lazyEntity by lazy {
+                                BukkitAdapter.adapt(entity)
+                            }
+                            override fun getEntity(): AbstractEntity = lazyEntity
                             override fun setUsingDamageSkill(p0: Boolean) {
                             }
                             override fun isUsingDamageSkill(): Boolean = false

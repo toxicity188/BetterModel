@@ -9,6 +9,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
+import static kr.toxicity.model.api.util.ReflectionUtil.*;
+
 /**
  * A dummy class for BetterModel plugin instance.
  */
@@ -20,41 +22,22 @@ public final class BetterModel {
     private BetterModel() {}
 
     /**
-     * Checks running platform is Paper.
+     * Checks running platform is Folia.
      */
-    public static final boolean IS_PAPER;
-
+    public static final boolean IS_FOLIA = classExists("io.papermc.paper.threadedregions.RegionizedServer");
     /**
      * Checks running platform is Purpur.
      */
-    public static final boolean IS_PURPUR;
+    public static final boolean IS_PURPUR = classExists("org.purpurmc.purpur.PurpurConfig");
+    /**
+     * Checks running platform is Paper.
+     */
+    public static final boolean IS_PAPER = IS_PURPUR || IS_FOLIA || classExists("io.papermc.paper.configuration.PaperConfigurations");
 
     /**
      * Plugin instance.
      */
     private static BetterModelPlugin instance;
-
-    static {
-        boolean purpur;
-        try {
-            Class.forName("org.purpurmc.purpur.PurpurConfig");
-            purpur = true;
-        } catch (Exception e) {
-            purpur = false;
-        }
-        IS_PURPUR = purpur;
-        if (IS_PURPUR) IS_PAPER = true;
-        else {
-            boolean paper;
-            try {
-                Class.forName("io.papermc.paper.configuration.PaperConfigurations");
-                paper = true;
-            } catch (Exception e) {
-                paper = false;
-            }
-            IS_PAPER = paper;
-        }
-    }
 
     /**
      * Gets plugin instance of BetterModel.

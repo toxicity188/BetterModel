@@ -131,6 +131,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
                 "Plugin is loaded. (${result.time.withComma()} ms)",
                 "Minecraft version: $version, NMS version: ${nms.version()}",
                 "Platform: ${when {
+                    BetterModel.IS_FOLIA -> "Folia"
                     BetterModel.IS_PURPUR -> "Purpur"
                     BetterModel.IS_PAPER -> "Paper"
                     else -> "Bukkit"
