@@ -78,10 +78,7 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
             @EventHandler(priority = EventPriority.MONITOR)
             fun ChunkLoadEvent.load() {
                 chunk.entities.forEach {
-                    EntityTracker.tracker(it)?.let {
-                        it.refresh()
-                        it.spawnNearby()
-                    }
+                    EntityTracker.tracker(it)?.refresh()
                 }
             }
             @EventHandler(priority = EventPriority.MONITOR)
@@ -90,10 +87,10 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
                     EntityTracker.tracker(it)?.despawn()
                 }
             }
-            @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-            fun EntityTeleportEvent.teleport() {
-                EntityTracker.tracker(entity)?.refresh()
-            }
+//            @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+//            fun EntityTeleportEvent.teleport() {
+//                EntityTracker.tracker(entity)?.refresh()
+//            }
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun EntityDeathEvent.death() {
                 EntityTracker.tracker(entity)?.let {

@@ -368,8 +368,5 @@ public class EntityTracker extends Tracker {
     @ApiStatus.Internal
     public void refresh() {
         BetterModel.inst().scheduler().task(entity, () -> instance.createHitBox(adapter, r -> r.getHitBox() != null, null));
-        var bundler = BetterModel.inst().nms().createBundler();
-        BetterModel.inst().nms().mount(this, bundler);
-        if (!bundler.isEmpty()) viewedPlayer().forEach(bundler::send);
     }
 }
