@@ -234,7 +234,7 @@ class HitBoxImpl(
         val pos = delegate.position()
         setPos(
             pos.x + transform.x,
-            pos.y + transform.y + source.maxY - boxHeight / 2,
+            pos.y + transform.y + source.maxY * adapter.scale() - boxHeight,
             pos.z + transform.z
         )
         BlockPos.betweenClosedStream(boundingBox).forEach {
