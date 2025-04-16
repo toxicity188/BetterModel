@@ -112,18 +112,20 @@ public class EntityTracker extends Tracker {
         super(instance, modifier);
         this.entity = entity;
         adapter = BetterModel.inst().nms().adapt(entity);
+        var scale = FunctionUtil.throttleTick(() -> modifier.scale().get() * (float) adapter.scale());
         //Shadow
         if (modifier.shadow()) {
             var shadow = BetterModel.inst().nms().create(entity.getLocation());
-            shadow.shadowRadius((float) instance.bones()
+            var baseScale = (float) instance.bones()
                     .stream()
                     .filter(b -> b.getGroup().getParent().visibility())
                     .map(b -> b.getGroup().getHitBox())
                     .filter(Objects::nonNull)
                     .mapToDouble(b -> b.box().lengthZX() / 2)
                     .max()
-                    .orElse(0D));
+                    .orElse(0D);
             tick(((t, b) -> {
+                shadow.shadowRadius(scale.get() * baseScale);
                 shadow.sync(adapter);
                 if (!b.isEmpty()) shadow.send(b);
                 shadow.syncPosition(adapter, b);
@@ -134,7 +136,7 @@ public class EntityTracker extends Tracker {
 
         //Animation
         instance.defaultPosition(FunctionUtil.throttleTick(() -> adapter.passengerPosition().mul(-1)));
-        instance.scale(() -> modifier.scale().get() * (float) adapter.scale());
+        instance.scale(scale);
         instance.addAnimationMovementModifier(
                 BonePredicate.of(r -> r.getName().startsWith("h_")),
                 a -> {
