@@ -53,7 +53,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
         )
     }
 
-    private val scheduler = if (BetterModel.IS_PAPER) PaperScheduler() else StandardScheduler()
+    private val scheduler = if (BetterModel.IS_FOLIA) PaperScheduler() else StandardScheduler()
     private val log = object : BetterModelLogger {
         override fun info(vararg message: String) {
             val logger = logger

@@ -485,12 +485,9 @@ class NMSImpl : NMS {
 
     override fun createHitBox(entity: EntityAdapter, supplier: HitBoxSource, namedBoundingBox: NamedBoundingBox, mountController: MountController, listener: HitBoxListener): HitBox? {
         val handle = entity.handle() as? LivingEntity ?: return null
-        val scale = entity.scale()
-        val newBox = namedBoundingBox.center() * scale
-        val height = newBox.lengthZX() / 2
+        val newBox = namedBoundingBox.center()
         return HitBoxImpl(
             namedBoundingBox.name,
-            height,
             newBox,
             supplier,
             listener,
@@ -498,7 +495,6 @@ class NMSImpl : NMS {
             mountController,
             entity
         ).apply {
-            attributes.getInstance(Attributes.SCALE)!!.baseValue = height / 0.52
             refreshDimensions()
             handle.level().addFreshEntity(this)
         }
@@ -563,7 +559,7 @@ class NMSImpl : NMS {
             }
 
             override fun passengerPosition(): Vector3f {
-                return handle().passengerPosition(scale())
+                return handle().passengerPosition()
             }
         }
     }

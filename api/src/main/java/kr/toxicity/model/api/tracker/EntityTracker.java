@@ -19,7 +19,6 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
-import org.joml.Vector3f;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,7 +26,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 /**
  * Entity tracker
@@ -113,7 +111,7 @@ public class EntityTracker extends Tracker {
     public EntityTracker(@NotNull Entity entity, @NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
         super(instance, modifier);
         this.entity = entity;
-        adapter = BetterModel.inst().nms().adapt(entity).multiply(modifier.scale());
+        adapter = BetterModel.inst().nms().adapt(entity);
         //Shadow
         if (modifier.shadow()) {
             var shadow = BetterModel.inst().nms().create(entity.getLocation());
@@ -135,7 +133,8 @@ public class EntityTracker extends Tracker {
         }
 
         //Animation
-        instance.defaultPosition(new Vector3f(0, -adapter.passengerPosition().y, 0));
+        instance.defaultPosition(FunctionUtil.throttleTick(() -> adapter.passengerPosition().mul(-1)));
+        instance.scale(() -> modifier.scale().get() * (float) adapter.scale());
         instance.addAnimationMovementModifier(
                 BonePredicate.of(r -> r.getName().startsWith("h_")),
                 a -> {
@@ -169,12 +168,6 @@ public class EntityTracker extends Tracker {
         instance.animateLoop("idle_fly", new AnimationModifier(adapter::fly, 4, 0, 1F));
         instance.animateLoop("walk_fly", new AnimationModifier(() -> adapter.fly() && walkSupplier.get(), 4, 0, walkSpeedSupplier));
         instance.animateSingle("spawn");
-        Supplier<TrackerMovement> supplier = () -> new TrackerMovement(
-                new Vector3f(0, 0, 0F),
-                new Vector3f((float) adapter.scale()),
-                new Vector3f(0, 0, 0)
-        );
-        setMovement(supplier);
         TRACKER_MAP.put(entity.getUniqueId(), this);
         BetterModel.inst().scheduler().task(entity, () -> {
             entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, instance.getParent().getParent().name());
@@ -196,11 +189,6 @@ public class EntityTracker extends Tracker {
         });
         rotation(() -> adapter.dead() ? instance.getRotation() : new ModelRotation(0, entity instanceof LivingEntity ? adapter.bodyYaw() : entity.getYaw()));
         update();
-    }
-
-    @Override
-    public double height() {
-        return super.height() + adapter.passengerPosition().y;
     }
 
     private void createHitBox() {

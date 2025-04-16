@@ -32,7 +32,7 @@ class ModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().s
         val args = p0.toPlaceholderArgs()
         return ModelManagerImpl.renderer(mid(args) ?: return SkillResult.ERROR)?.let {
             val e = p0.caster.entity.bukkitEntity
-            val created = it.create(e, TrackerModifier(s(args), st(args), de(args), vr(args), shadow(args)))
+            val created = it.create(e, TrackerModifier({ s(args) }, st(args), de(args), vr(args), shadow(args)))
             BetterModel.inst().scheduler().taskLater(1, e) {
                 created.spawnNearby()
             }

@@ -6,6 +6,7 @@ import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.util.EventUtil
 import net.minecraft.core.BlockPos
 import net.minecraft.network.FriendlyByteBuf
+import net.minecraft.network.syncher.EntityDataAccessor
 import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.network.syncher.SynchedEntityData.DataItem
 import net.minecraft.server.MinecraftServer
@@ -18,6 +19,7 @@ import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.Mob
 import net.minecraft.world.entity.ai.attributes.Attributes
 import net.minecraft.world.entity.animal.FlyingAnimal
+import net.minecraft.world.entity.monster.Slime
 import net.minecraft.world.phys.Vec3
 import org.bukkit.craftbukkit.v1_20_R3.entity.CraftEntity
 import org.bukkit.event.Event
@@ -36,8 +38,8 @@ inline fun <reified T, reified R> createAdaptedFieldGetter(noinline paperGetter:
     }
 }
 
-fun Entity.passengerPosition(scale: Double): Vector3f {
-    return Vector3f(0F, getDimensions(pose).height * scale.toFloat(), 0F)
+fun Entity.passengerPosition(): Vector3f {
+    return Vector3f(0F, getDimensions(pose).height, 0F)
 }
 
 fun Event.call(): Boolean = EventUtil.call(this)
@@ -58,6 +60,15 @@ fun SynchedEntityData.pack(): List<SynchedEntityData.DataValue<*>> {
     }
     return list
 }
+
+@Suppress("UNCHECKED_CAST")
+val SLIME_SIZE = Slime::class.java.declaredFields.first {
+    EntityDataAccessor::class.java.isAssignableFrom(it.type)
+}.run {
+    isAccessible = true
+    get(null) as EntityDataAccessor<Int>
+}
+
 
 fun Entity.isWalking(): Boolean {
     return controllingPassenger?.isWalking() ?: when (this) {

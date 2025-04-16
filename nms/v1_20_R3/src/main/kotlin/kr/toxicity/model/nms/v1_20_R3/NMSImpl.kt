@@ -27,7 +27,6 @@ import net.minecraft.world.effect.MobEffects
 import net.minecraft.world.entity.*
 import net.minecraft.world.entity.Display.ItemDisplay
 import net.minecraft.world.entity.ai.attributes.Attributes
-import net.minecraft.world.entity.monster.Slime
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.Items
 import org.bukkit.Color
@@ -45,7 +44,6 @@ import org.joml.Vector3f
 import java.lang.reflect.Field
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.math.roundToInt
 
 class NMSImpl : NMS {
 
@@ -57,14 +55,6 @@ class NMSImpl : NMS {
         private val getConnection: (ServerCommonPacketListenerImpl) -> Connection = createAdaptedFieldGetter { it.connection }
         private fun Int.toEntity(level: ServerLevel) = level.entityLookup[this]
         //Spigot
-
-        @Suppress("UNCHECKED_CAST")
-        private val slimeSize = Slime::class.java.declaredFields.first {
-            EntityDataAccessor::class.java.isAssignableFrom(it.type)
-        }.run {
-            isAccessible = true
-            get(null) as EntityDataAccessor<Int>
-        }
 
         private fun Class<*>.serializers() = declaredFields.filter { f ->
             EntityDataAccessor::class.java.isAssignableFrom(f.type)
@@ -457,11 +447,9 @@ class NMSImpl : NMS {
 
     override fun createHitBox(entity: EntityAdapter, supplier: HitBoxSource, namedBoundingBox: NamedBoundingBox, mountController: MountController, listener: HitBoxListener): HitBox? {
         val handle = entity.handle() as? LivingEntity ?: return null
-        val newBox = namedBoundingBox.center() * entity.scale()
-        val height = newBox.lengthZX() / 2
+        val newBox = namedBoundingBox.center()
         return HitBoxImpl(
             namedBoundingBox.name,
-            height,
             newBox,
             supplier,
             listener,
@@ -470,8 +458,7 @@ class NMSImpl : NMS {
             entity
         ).apply {
             entityData.registrationLocked = false
-            entityData.define(slimeSize, 1)
-            entityData.set(slimeSize, (height / 0.52).roundToInt(), true)
+            entityData.define(SLIME_SIZE, 1)
             refreshDimensions()
             handle.level().addFreshEntity(this)
         }
@@ -535,7 +522,7 @@ class NMSImpl : NMS {
             }
 
             override fun passengerPosition(): Vector3f {
-                return handle().passengerPosition(scale())
+                return handle().passengerPosition()
             }
         }
     }

@@ -40,7 +40,6 @@ import kotlin.math.max
 
 class HitBoxImpl(
     private val name: String,
-    private val boxHeight: Double,
     private val source: ModelBoundingBox,
     private val supplier: HitBoxSource,
     private val listener: HitBoxListener,
@@ -211,11 +210,15 @@ class HitBoxImpl(
         }
     }
 
+    private val boxHeight
+        get() = source.lengthZX() / 2 * adapter.scale()
+    
     override fun tick() {
         if (!delegate.valid) {
             if (valid) remove(delegate.removalReason ?: RemovalReason.KILLED)
             return
         }
+        attributes.getInstance(Attributes.SCALE)!!.baseValue = boxHeight / 0.52
         val controller = controllingPassenger
         if (jumpDelay > 0) jumpDelay--
         health = delegate.health
@@ -231,7 +234,7 @@ class HitBoxImpl(
         val pos = delegate.position()
         setPos(
             pos.x + transform.x,
-            pos.y + transform.y + delegate.passengerPosition(adapter.scale()).y + source.maxY - boxHeight,
+            pos.y + transform.y + source.maxY - boxHeight / 2,
             pos.z + transform.z
         )
         BlockPos.betweenClosedStream(boundingBox).forEach {
@@ -344,13 +347,14 @@ class HitBoxImpl(
         return if (!initialized) {
             super.makeBoundingBox(vec3)
         } else {
+            val scale = adapter.scale()
             AABB(
-                vec3.x + source.minX,
-                vec3.y + source.minY,
-                vec3.z + source.minZ,
-                vec3.x + source.maxX,
-                vec3.y + source.maxY,
-                vec3.z + source.maxZ
+                vec3.x - source.minX * scale,
+                vec3.y + source.minY * scale,
+                vec3.z - source.minZ * scale,
+                vec3.x - source.maxX * scale,
+                vec3.y + source.maxY * scale,
+                vec3.z - source.maxZ * scale
             )
         }
     }

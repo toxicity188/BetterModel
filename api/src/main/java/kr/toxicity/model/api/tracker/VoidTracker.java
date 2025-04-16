@@ -28,6 +28,7 @@ public final class VoidTracker extends Tracker {
         this.uuid = uuid;
         this.location = location;
         instance.animateSingle("spawn");
+        instance.scale(modifier.scale());
         rotation(() -> new ModelRotation(0, this.location.getYaw()));
         update();
     }

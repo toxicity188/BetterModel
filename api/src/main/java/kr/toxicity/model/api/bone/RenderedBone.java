@@ -10,7 +10,6 @@ import kr.toxicity.model.api.data.renderer.RendererGroup;
 import kr.toxicity.model.api.nms.*;
 import kr.toxicity.model.api.tracker.ModelRotation;
 import kr.toxicity.model.api.tracker.TrackerModifier;
-import kr.toxicity.model.api.tracker.TrackerMovement;
 import kr.toxicity.model.api.util.*;
 import lombok.Getter;
 import org.bukkit.Location;
@@ -39,6 +38,9 @@ public final class RenderedBone implements HitBoxSource {
     private ModelDisplay display;
     private final BoneMovement defaultFrame;
 
+    @NotNull
+    @Getter
+    private final RenderedBone root;
     @Nullable
     @Getter
     private final RenderedBone parent;
@@ -63,8 +65,9 @@ public final class RenderedBone implements HitBoxSource {
     private int tint;
     private TreeIterator currentIterator = null;
     private BoneMovement beforeTransform, afterTransform, relativeOffsetCache;
-    private Vector3f defaultPosition = new Vector3f();
+    private Supplier<Vector3f> defaultPosition = Vector3f::new;
     private ModelRotation rotation = ModelRotation.EMPTY;
+    private Supplier<Float> scale = () -> 1F;
 
     /**
      * Creates entity.
@@ -89,6 +92,9 @@ public final class RenderedBone implements HitBoxSource {
     ) {
         this.group = group;
         this.parent = parent;
+        var r = this;
+        while (r.getParent() != null) r = r.getParent();
+        root = r;
         var visible = group.getLimb() != null || group.getParent().visibility();
         this.cachedItem = itemStack;
         this.itemStack = visible ? itemStack : itemStack.asAir();
@@ -151,6 +157,10 @@ public final class RenderedBone implements HitBoxSource {
             return applyItem();
         }
         return false;
+    }
+
+    public void scale(@NotNull Supplier<Float> scale) {
+        this.scale = scale;
     }
 
     /**
@@ -255,7 +265,7 @@ public final class RenderedBone implements HitBoxSource {
         }
     }
 
-    public boolean move(@Nullable ModelRotation rotation, @NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
+    public boolean move(@Nullable ModelRotation rotation, @NotNull PacketBundler bundler) {
         var d = display;
         if (rotation != null) {
             this.rotation = rotation;
@@ -267,7 +277,7 @@ public final class RenderedBone implements HitBoxSource {
             var f = frame();
             delay = f;
             beforeTransform = afterTransform;
-            var entityMovement = (afterTransform = movement.plus(relativeOffset())).plus(defaultPosition);
+            var entityMovement = afterTransform = relativeOffset();
             if (d != null) {
                 d.frame(f <= 0 ? 0 : toInterpolationDuration(f));
                 setup(entityMovement);
@@ -301,13 +311,14 @@ public final class RenderedBone implements HitBoxSource {
             var progress = 1F - progress();
             var before = beforeTransform != null ? beforeTransform : BoneMovement.EMPTY;
             return VectorUtil.linear(before.transform(), afterTransform.transform(), progress)
-                    .add(offset)
                     .add(itemStack.offset())
+                    .add(offset)
                     .mul(VectorUtil.linear(before.scale(), afterTransform.scale(), progress))
                     .rotate(
                             MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(VectorUtil.linear(before.rawRotation(), afterTransform.rawRotation(), progress)))
                     )
-                    .add(defaultPosition)
+                    .add(root.getGroup().getPosition())
+                    .mul(scale.get())
                     .rotateX((float) -Math.toRadians(rotation.x()))
                     .rotateY((float) -Math.toRadians(rotation.y()));
         }
@@ -316,17 +327,24 @@ public final class RenderedBone implements HitBoxSource {
 
     private void setup(@NotNull BoneMovement boneMovement) {
         if (display != null) {
+            var mul = scale.get();
             display.transform(new Transformation(
-                    new Vector3f(boneMovement.transform()).add(new Vector3f(itemStack.offset()).rotate(boneMovement.rotation())),
+                    new Vector3f(boneMovement.transform())
+                            .add(root.group.getPosition())
+                            .add(new Vector3f(itemStack.offset()).rotate(boneMovement.rotation()))
+                            .mul(mul)
+                            .add(defaultPosition.get()),
                     boneMovement.rotation(),
-                    new Vector3f(boneMovement.scale()).mul(itemStack.scale()),
+                    new Vector3f(boneMovement.scale())
+                            .mul(itemStack.scale())
+                            .mul(mul),
                     new Quaternionf()
             ));
         }
     }
 
-    public void defaultPosition(@NotNull Vector3f movement) {
-        defaultPosition = group.getLimb() != null ? new Vector3f(movement).add(group.getLimb().getPosition()) : movement;
+    public void defaultPosition(@NotNull Supplier<Vector3f> movement) {
+        defaultPosition = group.getLimb() != null ? () -> new Vector3f(movement.get()).add(group.getLimb().getPosition()) : movement;
     }
 
     private int frame() {
@@ -605,8 +623,9 @@ public final class RenderedBone implements HitBoxSource {
     @NotNull
     @Override
     public Vector3f hitBoxPosition() {
-        var hitBox = group.getHitBox();
-        return worldPosition(hitBox != null ? hitBox.centerPoint() : new Vector3f());
+        var box = getGroup().getHitBox();
+        if (box != null) return worldPosition(box.centerPoint().mul(-1F, 1F, -1F));
+        return worldPosition();
     }
 
     @NotNull

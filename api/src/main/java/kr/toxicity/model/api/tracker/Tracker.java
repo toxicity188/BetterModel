@@ -15,7 +15,6 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Vector3f;
 
 import java.util.List;
 import java.util.Objects;
@@ -53,8 +52,6 @@ public abstract class Tracker implements AutoCloseable {
     private long frame = 0;
     private Supplier<ModelRotation> rotationSupplier = () -> ModelRotation.EMPTY;
 
-    @Getter
-    private Supplier<TrackerMovement> movement;
     private BiConsumer<Tracker, PacketBundler> consumer = (t, b) -> {};
 
     /**
@@ -65,12 +62,10 @@ public abstract class Tracker implements AutoCloseable {
     public Tracker(@NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
         this.instance = instance;
         this.modifier = modifier;
-        this.movement = FunctionUtil.throttleTick(() -> new TrackerMovement(new Vector3f(), new Vector3f(modifier.scale()), new Vector3f()));
         updater = () -> {
             var bundle = BetterModel.inst().nms().createBundler();
             var moveAccepted = instance.move(
                     frame % 5 == 0 ? (isRunningSingleAnimation() && BetterModel.inst().configManager().lockOnPlayAnimation()) ? instance.getRotation() : rotation() : null,
-                    movement.get(),
                     bundle
             );
             if (readyForForceUpdate.compareAndSet(true, false) && !moveAccepted) instance.forceUpdate(bundle);
@@ -167,14 +162,6 @@ public abstract class Tracker implements AutoCloseable {
      */
     public void despawn() {
         if (!isClosed()) instance.despawn();
-    }
-
-    /**
-     * Sets tracker movement.
-     * @param movement movement
-     */
-    public void setMovement(Supplier<TrackerMovement> movement) {
-        this.movement = FunctionUtil.throttleTick(movement);
     }
 
     public @NotNull TrackerModifier modifier() {

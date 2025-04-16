@@ -5,7 +5,6 @@ import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.animation.AnimationMovement;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.bone.RenderedBone;
-import kr.toxicity.model.api.tracker.TrackerMovement;
 import kr.toxicity.model.api.nms.EntityAdapter;
 import kr.toxicity.model.api.nms.HitBoxListener;
 import kr.toxicity.model.api.nms.PacketBundler;
@@ -32,6 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -117,24 +117,30 @@ public final class RenderInstance {
         }
     }
 
-    public boolean move(@Nullable ModelRotation rotation, @NotNull TrackerMovement movement, @NotNull PacketBundler bundler) {
+    public boolean move(@Nullable ModelRotation rotation, @NotNull PacketBundler bundler) {
         var rot = rotation == null || rotation.equals(this.rotation) ? null : (this.rotation = rotation);
         var match = false;
         for (RenderedBone value : entityMap.values()) {
-            if (value.matchTree(b -> b.move(rot, movement, bundler))) match = true;
+            if (value.matchTree(b -> b.move(rot, bundler))) match = true;
         }
         return match;
     }
 
-    public void defaultPosition(@NotNull Vector3f movement) {
+    public void defaultPosition(@NotNull Supplier<Vector3f> movement) {
         for (RenderedBone value : entityMap.values()) {
-            value.iterateTree(b -> b.defaultPosition(new Vector3f(movement).add(value.getGroup().getPosition())));
+            value.iterateTree(b -> b.defaultPosition(movement));
         }
     }
 
     public void forceUpdate(@NotNull PacketBundler bundler) {
         for (RenderedBone value : entityMap.values()) {
             value.iterateTree(b -> b.forceUpdate(bundler));
+        }
+    }
+
+    public void scale(@NotNull Supplier<Float> scale) {
+        for (RenderedBone value : entityMap.values()) {
+            value.iterateTree(b -> b.scale(scale));
         }
     }
 

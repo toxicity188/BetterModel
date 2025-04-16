@@ -3,6 +3,8 @@ package kr.toxicity.model.api.tracker;
 import kr.toxicity.model.api.util.EntityUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Supplier;
+
 /**
  * Tracker's modifier
  * @param scale model scale
@@ -10,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
  * @param damageEffect enables damage effect
  */
 public record TrackerModifier(
-        float scale,
+        @NotNull Supplier<Float> scale,
         boolean sightTrace,
         boolean damageEffect,
         float viewRange,
@@ -21,7 +23,7 @@ public record TrackerModifier(
      * Default modifier
      */
     public static final TrackerModifier DEFAULT = new TrackerModifier(
-            1F,
+            () -> 1F,
             true,
             true,
             EntityUtil.ENTITY_MODEL_VIEW_RADIUS,
@@ -40,7 +42,7 @@ public record TrackerModifier(
      * Builder class
      */
     public static final class Builder {
-        private float scale = DEFAULT.scale;
+        private Supplier<Float> scale = DEFAULT.scale;
         private boolean sightTrace = DEFAULT.sightTrace;
         private boolean damageEffect = DEFAULT.damageEffect;
         private float viewRange = DEFAULT.viewRange;
@@ -57,7 +59,7 @@ public record TrackerModifier(
          * @param scale scale
          * @return self
          */
-        public @NotNull Builder scale(float scale) {
+        public @NotNull Builder scale(Supplier<Float> scale) {
             this.scale = scale;
             return this;
         }

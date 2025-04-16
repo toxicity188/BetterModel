@@ -21,7 +21,7 @@ class ModelPartTargeter(mlc: MythicLineConfig) : ILocationTargeter {
         return tracker.bone(part(args) ?: return emptyList())?.worldPosition()?.let {
             listOf(entity.location.add(
                 it.x.toDouble(),
-                it.y.toDouble() + tracker.adapter.passengerPosition().y(),
+                it.y.toDouble(),
                 it.z.toDouble()
             ))
         } ?: emptyList()

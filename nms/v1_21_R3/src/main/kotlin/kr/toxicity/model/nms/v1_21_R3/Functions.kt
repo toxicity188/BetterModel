@@ -27,9 +27,9 @@ inline fun <reified T, reified R> createAdaptedFieldGetter(noinline paperGetter:
     }
 }
 
-fun Entity.passengerPosition(scale: Double): Vector3f {
+fun Entity.passengerPosition(): Vector3f {
     return attachments.get(EntityAttachment.PASSENGER, 0, yRot).let { v ->
-        Vector3f((v.x * scale).toFloat(), (v.y * scale).toFloat(), (v.z * scale).toFloat())
+        Vector3f(v.x.toFloat(), v.y.toFloat(), v.z.toFloat())
     }
 }
 
