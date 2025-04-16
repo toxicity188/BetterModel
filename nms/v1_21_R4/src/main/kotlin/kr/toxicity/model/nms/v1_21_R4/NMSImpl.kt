@@ -517,8 +517,7 @@ class NMSImpl : NMS {
 
             override fun scale(): Double {
                 val handle = handle()
-                return if (handle is LivingEntity) handle.attributes.getInstance(Attributes.SCALE)?.value ?: 1.0
-                else 1.0
+                return if (handle is LivingEntity) handle.scale.toDouble() else 1.0
             }
 
             override fun pitch(): Float {

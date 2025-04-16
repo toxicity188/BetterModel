@@ -208,7 +208,7 @@ class HitBoxImpl(
             if (valid) remove(delegate.removalReason ?: RemovalReason.KILLED)
             return
         }
-        entityData.set(SLIME_SIZE, ceil(boxHeight).roundToInt())
+        entityData.set(SLIME_SIZE, ceil(boxHeight / 0.52).roundToInt())
         val controller = controllingPassenger
         if (jumpDelay > 0) jumpDelay--
         health = delegate.health
