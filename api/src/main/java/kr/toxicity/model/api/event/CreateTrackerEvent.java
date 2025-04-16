@@ -29,6 +29,7 @@ public final class CreateTrackerEvent extends AbstractModelEvent {
      * Gets handler list
      * @return handler list
      */
+    @SuppressWarnings("unused") //This method is necessary for event API.
     public static @NotNull HandlerList getHandlerList() {
         return HANDLER_LIST;
     }

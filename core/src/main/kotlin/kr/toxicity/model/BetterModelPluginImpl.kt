@@ -72,7 +72,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
             }
         }
     }
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION") //To support Spigot :(
     private val semver = Semver(description.version, Semver.SemverType.LOOSE)
     private val audiences by lazy {
         BukkitAudiences.create(this)

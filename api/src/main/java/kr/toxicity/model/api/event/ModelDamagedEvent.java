@@ -51,6 +51,7 @@ public final class ModelDamagedEvent extends EntityEvent implements Cancellable 
      * Gets handler list
      * @return handler list
      */
+    @SuppressWarnings("unused") //This method is necessary for event API.
     public static @NotNull HandlerList getHandlerList() {
         return HANDLER_LIST;
     }

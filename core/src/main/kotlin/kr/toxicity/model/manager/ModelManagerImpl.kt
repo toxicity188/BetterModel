@@ -262,6 +262,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                 consumer(this)?.let { i ->
                     ItemStack(ConfigManagerImpl.item()).apply {
                         itemMeta = itemMeta.apply {
+                            @Suppress("DEPRECATION") //To support legacy server :(
                             setCustomModelData(i)
                         }
                     }

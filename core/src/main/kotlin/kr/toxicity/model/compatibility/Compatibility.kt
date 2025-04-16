@@ -1,5 +1,5 @@
 package kr.toxicity.model.compatibility
 
-interface Compatibility {
+fun interface Compatibility {
     fun start()
 }

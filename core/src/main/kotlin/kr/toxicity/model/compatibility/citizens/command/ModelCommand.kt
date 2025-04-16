@@ -22,6 +22,7 @@ class ModelCommand {
         max = 2,
         permission = "citizens.npc.model"
     )
+    @Suppress("UNUSED")
     fun model(args: CommandContext, sender: CommandSender, npc: NPC?, @Arg(1, completionsProvider = TabComplete::class) model: String?) {
         if (npc == null) throw CommandException(CommandMessages.MUST_HAVE_SELECTED)
         npc.getOrAddTrait(ModelTrait::class.java).renderer = model?.let {

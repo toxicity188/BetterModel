@@ -28,6 +28,7 @@ import net.minecraft.world.effect.MobEffects
 import net.minecraft.world.entity.*
 import net.minecraft.world.entity.Display.ItemDisplay
 import net.minecraft.world.entity.ai.attributes.Attributes
+import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.Items
 import net.minecraft.world.level.entity.LevelEntityGetter
@@ -198,7 +199,7 @@ class NMSImpl : NMS {
             entityUUIDMap.remove(handle.uuid)
             val list = arrayListOf<Packet<ClientGamePacketListener>>()
             list += ClientboundSetEntityDataPacket(handle.id, handle.entityData.pack())
-            if (handle is Mob) {
+            if (handle is Mob || handle is ArmorStand) {
                 list += ClientboundSetEquipmentPacket(handle.id, EquipmentSlot.entries.mapNotNull {
                     runCatching {
                         Pair.of(it, handle.getItemBySlot(it))
