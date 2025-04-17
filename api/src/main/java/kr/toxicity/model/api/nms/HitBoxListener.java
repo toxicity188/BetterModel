@@ -127,13 +127,13 @@ public interface HitBoxListener {
     }
 
     /**
-     * Listens hit-box tick
+     * Listens to hit-box tick
      * @param hitBox target hit-box
      */
     void sync(@NotNull HitBox hitBox);
 
     /**
-     * Listens hit-box damage
+     * Listens to hit-box damage
      * @param source damage source
      * @param damage damage
      * @return cancel
@@ -141,20 +141,20 @@ public interface HitBoxListener {
     boolean damage(@NotNull ModelDamageSource source, double damage);
 
     /**
-     * Listens hit-box remove
+     * Listens to hit-box remove
      * @param hitBox target hit-box
      */
     void remove(@NotNull HitBox hitBox);
 
     /**
-     * Listens hit-box mount
+     * Listens to hit-box mount
      * @param hitBox target hit-box
      * @param entity entity
      */
     void mount(@NotNull HitBox hitBox, @NotNull Entity entity);
 
     /**
-     * Listens hit-box dismount
+     * Listens to hit-box dismount
      * @param hitBox target hit-box
      * @param entity entity
      */

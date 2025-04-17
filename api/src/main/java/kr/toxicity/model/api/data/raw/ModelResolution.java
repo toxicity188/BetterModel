@@ -4,7 +4,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A texture resolution of model
+ * A texture resolution of a model
  * @param width width
  * @param height height
  */
@@ -15,7 +15,7 @@ public record ModelResolution(
 ) {
     /**
      * Selects correct resolution to use
-     * @param other other resolution
+     * @param other another resolution
      * @return correct resolution
      */
     public @NotNull ModelResolution then(@NotNull ModelResolution other) {

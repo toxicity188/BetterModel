@@ -43,7 +43,7 @@ public interface PlayerChannelHandler extends AutoCloseable {
     Collection<EntityTracker> trackedTrackers();
 
     /**
-     * Stops tracking all entity tracker
+     * Stops tracking all entity trackers
      */
     void unregisterAll();
 

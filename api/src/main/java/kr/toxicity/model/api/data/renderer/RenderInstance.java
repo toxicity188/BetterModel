@@ -3,6 +3,8 @@ package kr.toxicity.model.api.data.renderer;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.animation.AnimationMovement;
+import kr.toxicity.model.api.bone.BoneName;
+import kr.toxicity.model.api.bone.BoneTag;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.nms.EntityAdapter;
@@ -42,7 +44,7 @@ public final class RenderInstance {
     @Getter
     private final BlueprintRenderer parent;
 
-    private final Map<String, RenderedBone> entityMap;
+    private final Map<BoneName, RenderedBone> entityMap;
     private final Map<String, BlueprintAnimation> animationMap;
     private final Map<UUID, PlayerChannelHandler> playerMap = new ConcurrentHashMap<>();
     private Predicate<Player> viewFilter = p -> true;
@@ -57,7 +59,7 @@ public final class RenderInstance {
     @Getter
     private final ScriptProcessor scriptProcessor = new ScriptProcessor();
 
-    public RenderInstance(@NotNull BlueprintRenderer parent, @NotNull Map<String, RenderedBone> entityMap, @NotNull Map<String, BlueprintAnimation> animationMap) {
+    public RenderInstance(@NotNull BlueprintRenderer parent, @NotNull Map<BoneName, RenderedBone> entityMap, @NotNull Map<String, BlueprintAnimation> animationMap) {
         this.parent = parent;
         this.entityMap = entityMap;
         this.animationMap = animationMap;
@@ -180,7 +182,7 @@ public final class RenderInstance {
         var h = 0D;
         for (RenderedBone renderer : bones()) {
             var lt = renderer.worldPosition().y;
-            if (renderer.getName().startsWith("h_")) return lt;
+            if (renderer.getName().tagged(BoneTag.HEAD, BoneTag.HEAD_WITH_CHILDREN)) return lt;
             if (h < lt) h = lt;
         }
         return h;

@@ -2,6 +2,7 @@ package kr.toxicity.model.api.tracker;
 
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationModifier;
+import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.event.ModelDespawnAtPlayerEvent;
@@ -30,7 +31,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
- * Tracker of model.
+ * Tracker of a model.
  */
 public abstract class Tracker implements AutoCloseable {
 
@@ -211,8 +212,8 @@ public abstract class Tracker implements AutoCloseable {
     }
 
     /**
-     * Gets amount of viewed players.
-     * @return viewed players amount
+     * Gets number of viewed players.
+     * @return viewed player amount
      */
     public int playerCount() {
         return instance.playerCount();
@@ -227,7 +228,7 @@ public abstract class Tracker implements AutoCloseable {
     }
 
     /**
-     * Toggles red tint of model.
+     * Toggles red tint of a model.
      * @param rgb toggle
      */
     public void tint(int rgb) {
@@ -235,7 +236,7 @@ public abstract class Tracker implements AutoCloseable {
     }
 
     /**
-     * Toggles red tint of model.
+     * Toggles red tint of a model.
      * @param predicate predicate
      * @param rgb toggle
      */
@@ -244,13 +245,13 @@ public abstract class Tracker implements AutoCloseable {
     }
 
     /**
-     * Gets location of model.
+     * Gets location of a model.
      * @return location
      */
     public abstract @NotNull Location location();
 
     /**
-     * Gets uuid of model.
+     * Gets uuid of a model.
      * @return uuid
      */
     public abstract @NotNull UUID uuid();
@@ -465,8 +466,17 @@ public abstract class Tracker implements AutoCloseable {
      * @param name bone's name
      * @return bone or null
      */
-    public @Nullable RenderedBone bone(@NotNull String name) {
+    public @Nullable RenderedBone bone(@NotNull BoneName name) {
         return bone(b -> b.getName().equals(name));
+    }
+
+    /**
+     * Gets bone by bone's name
+     * @param name bone's name
+     * @return bone or null
+     */
+    public @Nullable RenderedBone bone(@NotNull String name) {
+        return bone(b -> b.getName().name().equals(name));
     }
 
     /**

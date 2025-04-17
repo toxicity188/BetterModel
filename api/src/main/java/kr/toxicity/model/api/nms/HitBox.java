@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.nms;
 
+import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.mount.MountController;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
@@ -14,7 +15,7 @@ public interface HitBox {
      * Gets bone name
      * @return name
      */
-    @NotNull String groupName();
+    @NotNull BoneName groupName();
 
     /**
      * Gets mount controller

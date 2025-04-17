@@ -21,7 +21,7 @@ public interface MountController {
     @NotNull Vector3f move(@NotNull Player player, @NotNull LivingEntity entity, @NotNull Vector3f input, @NotNull Vector3f travelVector);
 
     /**
-     * Moves entity by player's input on fly
+     * Moves entity by player's input on the fly
      * @param player passenger
      * @param entity target
      * @param input input vector
@@ -57,7 +57,7 @@ public interface MountController {
     }
 
     /**
-     * Checks some player can dismount by self (right click or sneak)
+     * Checks some player can dismount by self (right-click or sneak)
      * @return can dismount by self
      */
     default boolean canDismountBySelf() {
@@ -94,7 +94,7 @@ public interface MountController {
      */
     enum MoveType {
         /**
-         * On ground
+         * On the ground
          */
         DEFAULT,
         /**
@@ -125,7 +125,7 @@ public interface MountController {
         private boolean canFly;
 
         /**
-         * Modifier of source
+         * Modifier of a source
          * @param controller source
          */
         private Modifier(@NotNull MountController controller) {
@@ -138,7 +138,7 @@ public interface MountController {
         }
 
         /**
-         * Sets some player can dismount by self (right click or sneak)
+         * Sets some player can dismount by self (right-click or sneak)
          * @param canDismountBySelf can dismount
          * @return self
          */

@@ -47,7 +47,7 @@ class BindHitBoxMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.ins
             } ?: HitBoxListener.EMPTY
             val get = partId(args) ?: return SkillResult.ERROR
             it.createHitBox({ e ->
-                e.name == get
+                e.name.name == get
             }, handler)
             SkillResult.SUCCESS
         } ?: SkillResult.ERROR

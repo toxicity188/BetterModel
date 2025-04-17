@@ -94,22 +94,22 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
     private fun ModelBlueprint.toRenderer(): BlueprintRenderer {
         fun BlueprintGroup.parse(): RendererGroup {
             return RendererGroup(
-                name,
-                scale.toFloat(),
+                boneName(),
+                scale,
                 ItemStack(Material.AIR),
                 this,
                 children.mapNotNull {
                     if (it is BlueprintGroup) {
-                        it.name to it.parse()
+                        it.boneName() to it.parse()
                     } else null
                 }.toMap(),
                 hitBox(),
-                name.toLimb()
+                boneName().name.toLimb()
             )
         }
         return BlueprintRenderer(this, group.mapNotNull {
             if (it is BlueprintGroup) {
-                it.name to it.parse()
+                it.boneName() to it.parse()
             } else null
         }.toMap(), animations)
     }

@@ -33,6 +33,8 @@ import java.io.InputStream
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Consumer
 import java.util.jar.JarFile
+import java.util.jar.Manifest
+import java.util.zip.ZipEntry
 
 @Suppress("UNUSED")
 class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
@@ -76,6 +78,18 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
     private val semver = Semver(description.version, Semver.SemverType.LOOSE)
     private val audiences by lazy {
         BukkitAudiences.create(this)
+    }
+    private val snapshot by lazy {
+        runCatching {
+            JarFile(file).use {
+                it.getInputStream(ZipEntry("META-INF/MANIFEST.MF")).use { stream ->
+                    Manifest(stream).mainAttributes.getValue("Dev-Build").toInt()
+                }
+            }
+        }.getOrElse {
+            it.handleException("Unable to parse manifest.")
+            -1
+        }
     }
 
     private val reloadStartTask = arrayListOf<() -> Unit>()
@@ -124,6 +138,10 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
                 }
             })
         }
+        if (isSnapshot) warn(
+            "This build is dev version: be careful to use it!",
+            "Build number: $snapshot"
+        )
         when (val result = reload(ReloadInfo(DATA_FOLDER.exists()))) {
             is Failure -> result.throwable.handleException("Unable to load plugin properly.")
             is OnReload -> throw RuntimeException("Plugin load failed.")
@@ -145,8 +163,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
         managers.forEach(GlobalManagerImpl::end)
     }
 
-    override fun reload(): ReloadResult = reload(ReloadInfo.DEFAULT)
-    private fun reload(info: ReloadInfo): ReloadResult {
+    override fun reload(info: ReloadInfo): ReloadResult {
         if (!onReload.compareAndSet(false, true)) return OnReload()
         reloadStartTask.forEach {
             it()
@@ -194,6 +211,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
     override fun semver(): Semver = semver
     override fun nms(): NMS = nms
     override fun audiences(): BukkitAudiences = audiences
+    override fun isSnapshot(): Boolean = snapshot > 0
 
     override fun addReloadStartHandler(runnable: Runnable) {
         reloadStartTask += {

@@ -6,7 +6,7 @@ package kr.toxicity.model.api.scheduler;
 public interface ModelTask {
 
     /**
-     * Checks this task is cancelled
+     * Checks this task is canceled
      * @return whether to cancel
      */
     boolean isCancelled();

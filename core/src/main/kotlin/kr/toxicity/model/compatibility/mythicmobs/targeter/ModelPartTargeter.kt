@@ -17,8 +17,7 @@ class ModelPartTargeter(mlc: MythicLineConfig) : ILocationTargeter {
         val args = p0.toPlaceholderArgs()
         val entity = p0.caster.entity
         val bukkit = entity.bukkitEntity
-        val tracker = EntityTracker.tracker(bukkit.uniqueId) ?: return emptyList()
-        return tracker.bone(part(args) ?: return emptyList())?.worldPosition()?.let {
+        return EntityTracker.tracker(bukkit.uniqueId)?.bone(part(args) ?: return emptyList())?.worldPosition()?.let {
             listOf(entity.location.add(
                 it.x.toDouble(),
                 it.y.toDouble(),

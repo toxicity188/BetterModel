@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 @FunctionalInterface
 public interface EntityScriptBuilder {
     /**
-     * Build entity script by line
+     * Build an entity script by line
      * @param arg raw line
      * @return script
      */

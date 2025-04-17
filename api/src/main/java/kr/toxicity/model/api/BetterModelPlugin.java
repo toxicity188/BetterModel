@@ -22,7 +22,23 @@ public interface BetterModelPlugin {
      * Reloads this plugin.
      * @return reload result
      */
-    @NotNull ReloadResult reload();
+    default @NotNull ReloadResult reload() {
+        return reload(ReloadInfo.DEFAULT);
+    }
+
+    /**
+     * Reloads this plugin.
+     * @param info info
+     * @return reload result
+     */
+    @NotNull ReloadResult reload(@NotNull ReloadInfo info);
+
+
+    /**
+     * Check running BetterModel is snapshot.
+     * @return is snapshot
+     */
+    boolean isSnapshot();
 
     /**
      * Gets running server's minecraft version.
@@ -89,7 +105,7 @@ public interface BetterModelPlugin {
      */
     void addReloadStartHandler(@NotNull Runnable runnable);
     /**
-     * Adds event handler on reload end.
+     * Adds event handler on the reload end.
      * @param consumer result consumer
      */
     void addReloadEndHandler(@NotNull Consumer<ReloadResult> consumer);

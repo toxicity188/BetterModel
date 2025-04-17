@@ -10,7 +10,7 @@ import org.joml.Vector3f;
 import java.util.function.Function;
 
 /**
- * A raw json vector.
+ * A raw JSON vector.
  * @param x x
  * @param y y
  * @param z z

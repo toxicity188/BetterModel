@@ -24,8 +24,8 @@ public interface ModelManager extends GlobalManager {
     @Nullable BlueprintRenderer renderer(@NotNull String name);
 
     /**
-     * Gets all renderer
-     * @return all renderer
+     * Gets all renderers
+     * @return all renderers
      */
     @NotNull @Unmodifiable
     List<BlueprintRenderer> renderers();

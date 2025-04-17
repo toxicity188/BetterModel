@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.data.blueprint;
 
+import kr.toxicity.model.api.bone.BoneName;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
@@ -51,7 +52,7 @@ public record ModelBoundingBox(
      * @param name name
      * @return named box
      */
-    public @NotNull NamedBoundingBox named(@NotNull String name) {
+    public @NotNull NamedBoundingBox named(@NotNull BoneName name) {
         return new NamedBoundingBox(name, this);
     }
 

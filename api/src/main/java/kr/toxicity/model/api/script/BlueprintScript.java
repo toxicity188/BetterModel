@@ -16,14 +16,14 @@ import java.util.Objects;
 /**
  * A script data of blueprint.
  * @param name script name
- * @param length play time
+ * @param length playtime
  * @param scripts scripts
  */
 @ApiStatus.Internal
 public record BlueprintScript(@NotNull String name, int length, @NotNull List<TimeScript> scripts) {
 
     /**
-     * Creates empty script.
+     * Creates an empty script.
      * @param animation animation
      * @return blueprint script
      */

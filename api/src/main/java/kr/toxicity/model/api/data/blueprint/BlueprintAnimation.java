@@ -1,6 +1,8 @@
 package kr.toxicity.model.api.data.blueprint;
 
 import kr.toxicity.model.api.animation.AnimationMovement;
+import kr.toxicity.model.api.bone.BoneName;
+import kr.toxicity.model.api.bone.BoneTag;
 import kr.toxicity.model.api.data.raw.ModelAnimation;
 import kr.toxicity.model.api.data.raw.ModelAnimator;
 import kr.toxicity.model.api.data.raw.ModelKeyframe;
@@ -24,7 +26,7 @@ import java.util.stream.Collectors;
 public record BlueprintAnimation(
         @NotNull String name,
         float length,
-        @NotNull @Unmodifiable Map<String, BlueprintAnimator> animator,
+        @NotNull @Unmodifiable Map<BoneName, BlueprintAnimator> animator,
         @NotNull BlueprintScript script,
         @NotNull List<AnimationMovement> emptyAnimator
 ) {
@@ -34,7 +36,7 @@ public record BlueprintAnimation(
      * @return converted animation
      */
     public static @NotNull BlueprintAnimation from(@NotNull ModelAnimation animation) {
-        var map = new HashMap<String, BlueprintAnimator.AnimatorData>();
+        var map = new HashMap<BoneName, BlueprintAnimator.AnimatorData>();
         BlueprintScript blueprintScript = BlueprintScript.emptyOf(animation);
         var animator = animation.animators();
         if (animator != null) for (Map.Entry<String, ModelAnimator> entry : animator.entrySet()) {
@@ -48,7 +50,7 @@ public record BlueprintAnimation(
             if (entry.getKey().equals("effects")) {
                 blueprintScript = BlueprintScript.from(animation, entry.getValue());
             }
-            else map.put(name, builder.build(name));
+            else map.put(BoneTag.parse(name), builder.build(name));
         }
         var newMap = newMap(map);
         return new BlueprintAnimation(animation.name(), animation.length(), newMap, blueprintScript, newMap.isEmpty() ? List.of(new AnimationMovement(0, null, null, null)) : newMap.values()
@@ -60,11 +62,11 @@ public record BlueprintAnimation(
                 .toList());
     }
 
-    private static Map<String, BlueprintAnimator> newMap(@NotNull Map<String, BlueprintAnimator.AnimatorData> oldMap) {
-        var newMap = new HashMap<String, BlueprintAnimator>();
+    private static Map<BoneName, BlueprintAnimator> newMap(@NotNull Map<BoneName, BlueprintAnimator.AnimatorData> oldMap) {
+        var newMap = new HashMap<BoneName, BlueprintAnimator>();
         Set<Float> floatSet = new TreeSet<>(Comparator.naturalOrder());
         oldMap.values().forEach(a -> a.points().stream().map(t -> t.position().time()).forEach(floatSet::add));
-        for (Map.Entry<String, BlueprintAnimator.AnimatorData> entry : oldMap.entrySet()) {
+        for (Map.Entry<BoneName, BlueprintAnimator.AnimatorData> entry : oldMap.entrySet()) {
             var list = getAnimationMovements(floatSet, entry);
             newMap.put(entry.getKey(), new BlueprintAnimator(
                     entry.getValue().name(),
@@ -75,7 +77,7 @@ public record BlueprintAnimation(
         return newMap;
     }
 
-    private static @NotNull List<AnimationMovement> getAnimationMovements(Set<Float> floatSet, Map.Entry<String, BlueprintAnimator.AnimatorData> entry) {
+    private static @NotNull List<AnimationMovement> getAnimationMovements(Set<Float> floatSet, Map.Entry<BoneName, BlueprintAnimator.AnimatorData> entry) {
         var frame = entry.getValue().points();
         if (frame.isEmpty()) return Collections.emptyList();
         var list = VectorUtil.putAnimationPoint(frame, floatSet).stream().map(AnimationPoint::toMovement).collect(Collectors.toList());

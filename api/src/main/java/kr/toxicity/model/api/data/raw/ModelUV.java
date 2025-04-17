@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * UV data of model
+ * UV data of a model
  * @param uv uv
  * @param rotation rotation
  * @param texture texture

@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.data.blueprint;
 
+import kr.toxicity.model.api.bone.BoneName;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
@@ -8,7 +9,7 @@ import org.joml.Vector3f;
  * @param name name
  * @param box box
  */
-public record NamedBoundingBox(@NotNull String name, @NotNull ModelBoundingBox box) {
+public record NamedBoundingBox(@NotNull BoneName name, @NotNull ModelBoundingBox box) {
 
     /**
      * Gets center location to vector.

@@ -1,5 +1,7 @@
 package kr.toxicity.model.api.data.renderer;
 
+import kr.toxicity.model.api.bone.BoneName;
+import kr.toxicity.model.api.bone.BoneTag;
 import kr.toxicity.model.api.data.blueprint.BlueprintChildren;
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox;
 import kr.toxicity.model.api.bone.BoneMovement;
@@ -26,13 +28,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * A group of model.
+ * A group of models.
  */
 @RequiredArgsConstructor
 public final class RendererGroup {
 
     @Getter
-    private final String name;
+    private final BoneName name;
     @Getter
     private final BlueprintChildren.BlueprintGroup parent;
     @Getter
@@ -41,7 +43,7 @@ public final class RendererGroup {
     private final TransformedItemStack itemStack;
     @Getter
     @Unmodifiable
-    private final Map<String, RendererGroup> children;
+    private final Map<BoneName, RendererGroup> children;
     @Getter
     private final @Nullable NamedBoundingBox hitBox;
 
@@ -64,11 +66,11 @@ public final class RendererGroup {
      * @param limb player limb
      */
     public RendererGroup(
-            @NotNull String name,
+            @NotNull BoneName name,
             float scale,
             @Nullable ItemStack itemStack,
             @NotNull BlueprintChildren.BlueprintGroup group,
-            @NotNull Map<String, RendererGroup> children,
+            @NotNull Map<BoneName, RendererGroup> children,
             @Nullable NamedBoundingBox box,
             @Nullable PlayerLimb limb
     ) {
@@ -86,9 +88,9 @@ public final class RendererGroup {
         this.hitBox = box;
         rotation = group.rotation().toVector();
         center = hitBox != null ? hitBox.centerPoint() : new Vector3f();
-        if (name.startsWith("p_")) {
+        if (name.tagged(BoneTag.SEAT)) {
             mountController = MountControllers.WALK;
-        } else if (name.startsWith("sp_")) {
+        } else if (name.tagged(BoneTag.SUB_SEAT)) {
             mountController = MountControllers.NONE;
         } else mountController = MountControllers.INVALID;
     }

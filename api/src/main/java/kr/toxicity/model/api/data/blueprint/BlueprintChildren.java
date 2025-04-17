@@ -2,6 +2,8 @@ package kr.toxicity.model.api.data.blueprint;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import kr.toxicity.model.api.bone.BoneName;
+import kr.toxicity.model.api.bone.BoneTag;
 import kr.toxicity.model.api.data.raw.Float3;
 import kr.toxicity.model.api.data.raw.ModelChildren;
 import kr.toxicity.model.api.data.raw.ModelElement;
@@ -54,8 +56,12 @@ public sealed interface BlueprintChildren {
             boolean visibility
     ) implements BlueprintChildren {
 
+        public @NotNull BoneName boneName() {
+            return BoneTag.parse(name);
+        }
+
         /**
-         * Gets json name of blueprint.
+         * Gets JSON name of blueprint.
          * @param parent parent
          * @return name
          */
@@ -167,7 +173,7 @@ public sealed interface BlueprintChildren {
                 }
             }
             var max = EntityUtil.max(elements);
-            return max != null ? new NamedBoundingBox(name, max) : null;
+            return max != null ? new NamedBoundingBox(boneName(), max) : null;
         }
     }
 

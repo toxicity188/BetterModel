@@ -95,7 +95,7 @@ public record TrackerModifier(
         }
 
         /**
-         * Sets shadow
+         * Set shadow
          * @param shadow shadow
          * @return self
          */

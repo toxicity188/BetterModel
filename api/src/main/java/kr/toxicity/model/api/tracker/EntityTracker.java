@@ -2,6 +2,7 @@ package kr.toxicity.model.api.tracker;
 
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationModifier;
+import kr.toxicity.model.api.bone.BoneTag;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.nms.EntityAdapter;
@@ -138,7 +139,7 @@ public class EntityTracker extends Tracker {
         instance.defaultPosition(FunctionUtil.throttleTick(() -> adapter.passengerPosition().mul(-1)));
         instance.scale(scale);
         instance.addAnimationMovementModifier(
-                BonePredicate.of(r -> r.getName().startsWith("h_")),
+                BonePredicate.of(r -> r.getName().tagged(BoneTag.HEAD)),
                 a -> {
                     if (a.rotation() != null && !isRunningSingleAnimation()) {
                         a.rotation().add(-adapter.pitch(), Math.clamp(
@@ -149,7 +150,7 @@ public class EntityTracker extends Tracker {
                     }
                 });
         instance.addAnimationMovementModifier(
-                BonePredicate.of(true, r -> r.getName().startsWith("hi_")),
+                BonePredicate.of(true, r -> r.getName().tagged(BoneTag.HEAD_WITH_CHILDREN)),
                 a -> {
                     if (a.rotation() != null && !isRunningSingleAnimation()) {
                         a.rotation().add(-adapter.pitch(), Math.clamp(
@@ -195,9 +196,8 @@ public class EntityTracker extends Tracker {
 
     private void createHitBox() {
         createHitBox(e ->
-                e.getName().contains("hitbox")
-                        || e.getName().startsWith("b_")
-                        || e.getName().startsWith("ob_")
+                e.getName().name().equals("hitbox")
+                        || e.getName().tagged(BoneTag.HITBOX)
                         || e.getGroup().getMountController().canMount()
         );
     }
@@ -241,7 +241,7 @@ public class EntityTracker extends Tracker {
     }
 
     /**
-     * Marks this tracker will be removed by future
+     * Marks future will remove this tracker
      * @param removal removal
      */
     @ApiStatus.Internal

@@ -10,10 +10,7 @@ import io.lumine.mythic.core.skills.SkillMechanic
 import kr.toxicity.model.api.mount.MountControllers
 import kr.toxicity.model.api.nms.HitBoxListener
 import kr.toxicity.model.api.tracker.EntityTracker
-import kr.toxicity.model.compatibility.mythicmobs.MM_SEAT
-import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderArgs
-import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderString
-import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderStringSet
+import kr.toxicity.model.compatibility.mythicmobs.*
 
 class MountModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), ITargetedEntitySkill {
 
@@ -25,6 +22,7 @@ class MountModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.ins
             .build()
     }
 
+    private val driver = mlc.toPlaceholderBoolean(arrayOf("driver", "d", "drive"), true)
     private val interact = mlc.toPlaceholderString(arrayOf("mode", "m")) exec@ {
         when (it) {
             "walking" -> MountControllers.WALK.modifier()
@@ -33,12 +31,13 @@ class MountModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.ins
             "flying" -> MountControllers.FLY.modifier()
             "force_flying" -> MountControllers.FLY.modifier()
                 .canDismountBySelf(false)
-            else -> return@exec MountControllers.WALK
-        }.canControl(mlc.getBoolean(arrayOf("driver", "d", "drive"), true))
-            .build()
+            else -> null
+        }?.canMount(false)
     }
 
-    private val seat = mlc.toPlaceholderStringSet(MM_SEAT)
+    private val seat = mlc.toPlaceholderStringList(MM_SEAT) {
+        it.toSet()
+    }
 
     init {
         isAsyncSafe = false
@@ -46,15 +45,15 @@ class MountModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.ins
 
     override fun castAtEntity(p0: SkillMetadata, p1: AbstractEntity): SkillResult {
         val args = toPlaceholderArgs(p0, p1)
-        return EntityTracker.tracker(p0.caster.entity.bukkitEntity)?.let { tracker ->
+        return EntityTracker.tracker(p0.caster.entity.bukkitEntity.uniqueId)?.let { tracker ->
             val set = seat(args)
             tracker.bone {
-                set.contains(it.name)
-                        && (it.hitBox?.hasMountDriver() == false)
+                set.contains(it.name.name)
+                        && (it.hitBox?.hasMountDriver() != true)
                         && (it.hitBox != null || it.createHitBox(tracker.adapter, { true }, dismountListener))
             }?.let {
                 it.hitBox?.let { hitBox ->
-                    hitBox.mountController(interact(args))
+                    hitBox.mountController(interact(args)?.canControl(driver(args))?.build() ?: MountControllers.WALK)
                     hitBox.mount(p1.bukkitEntity)
                 }
                 SkillResult.SUCCESS

@@ -246,18 +246,14 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                 ZIP -> zipper.zip(File(DATA_FOLDER.parent, "${ConfigManagerImpl.buildFolderLocation()}.zip"))
             }
         }.onFailure {
-            warn(
-                "Unable to pack resource pack.",
-                "Reason: ${it.message ?: it.javaClass.simpleName}",
-                "Stack trace: ${it.stackTraceToString()}"
-            )
+            it.handleException("Unable to pack resource pack.")
         }
     }
 
     private fun ModelBlueprint.toRenderer(scale: Float, consumer: (BlueprintGroup) -> Int?): BlueprintRenderer {
         fun BlueprintGroup.parse(): RendererGroup {
             return RendererGroup(
-                name,
+                boneName(),
                 scale,
                 consumer(this)?.let { i ->
                     ItemStack(ConfigManagerImpl.item()).apply {
@@ -270,7 +266,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                 this,
                 children.mapNotNull {
                     if (it is BlueprintGroup) {
-                        it.name to it.parse()
+                        it.boneName() to it.parse()
                     } else null
                 }.toMap(),
                 hitBox(),
@@ -279,7 +275,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
         }
         return BlueprintRenderer(this, group.mapNotNull {
             if (it is BlueprintGroup) {
-                it.name to it.parse()
+                it.boneName() to it.parse()
             } else null
         }.toMap(), animations)
     }

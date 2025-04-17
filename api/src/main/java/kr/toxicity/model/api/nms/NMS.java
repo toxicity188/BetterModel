@@ -43,14 +43,14 @@ public interface NMS {
     @NotNull ItemStack tint(@NotNull ItemStack itemStack, int rgb);
 
     /**
-     * Adds mount packet for this tracker to bundler
+     * Adds a mount packet for this tracker to bundler
      * @param tracker tracker
      * @param bundler bundler
      */
     void mount(@NotNull EntityTracker tracker, @NotNull PacketBundler bundler);
 
     /**
-     * Sends hide packet for some entity to some player
+     * Sends a hide packet for some entity to some player
      * @param player player
      * @param entity entity
      */

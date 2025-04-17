@@ -11,7 +11,7 @@ import java.util.List;
 
 /**
  * Raw BlockBench model's data.
- * @param resolution resoltion
+ * @param resolution resolution
  * @param elements elements
  * @param outliner children
  * @param textures textures

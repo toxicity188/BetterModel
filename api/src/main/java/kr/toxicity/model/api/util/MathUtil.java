@@ -3,7 +3,6 @@ package kr.toxicity.model.api.util;
 import kr.toxicity.model.api.data.raw.Float3;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -107,7 +106,7 @@ public final class MathUtil {
     }
 
     /**
-     * Converts BlockBench position(right-hand) to display position(left-hand)
+     * Converts BlockBench position (right-hand) to display position (left-hand)
      * @param vector original
      * @return vector
      */

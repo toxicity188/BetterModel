@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface ScriptManager extends GlobalManager {
     /**
-     * Creates script for line
+     * Creates a script for line
      * @param script raw script
      * @return entity script
      */

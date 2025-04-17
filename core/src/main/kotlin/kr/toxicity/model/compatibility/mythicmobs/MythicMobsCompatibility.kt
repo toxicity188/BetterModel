@@ -62,7 +62,7 @@ class MythicMobsCompatibility : Compatibility {
             @EventHandler
             fun MythicConditionLoadEvent.load() {
                 when (conditionName.lowercase()) {
-                    "modelhaspassenger" -> ModelHasPassengerCondition(config)
+                    "modelhaspassenger" -> register(ModelHasPassengerCondition(config))
                 }
             }
             @EventHandler

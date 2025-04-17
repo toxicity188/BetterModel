@@ -59,7 +59,7 @@ public record Float4(
     }
 
     /**
-     * Converts floats to json array.
+     * Converts floats to JSON array.
      * @return json array
      */
     public @NotNull JsonArray toJson() {

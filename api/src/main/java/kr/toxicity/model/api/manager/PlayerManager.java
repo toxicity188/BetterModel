@@ -38,7 +38,7 @@ public interface PlayerManager extends GlobalManager {
     void animate(@NotNull Player player, @NotNull String model, @NotNull String animation);
 
     /**
-     * Gets all renderer for player animation.
+     * Gets all renderers for player animation.
      * @return renderers
      */
     @NotNull @Unmodifiable

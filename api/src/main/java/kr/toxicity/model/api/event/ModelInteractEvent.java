@@ -10,7 +10,7 @@ import org.bukkit.event.player.PlayerEvent;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * An interact event of damage event
+ * An interacted event of damage event
  */
 @Getter
 public final class ModelInteractEvent extends PlayerEvent implements Cancellable {
@@ -57,7 +57,7 @@ public final class ModelInteractEvent extends PlayerEvent implements Cancellable
     }
 
     /**
-     * Gets handler list
+     * Gets a handler list
      * @return handler list
      */
     @SuppressWarnings("unused") //This method is necessary for event API.

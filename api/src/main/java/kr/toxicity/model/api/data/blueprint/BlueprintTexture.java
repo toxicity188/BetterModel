@@ -14,7 +14,7 @@ import java.io.ByteArrayInputStream;
 import java.util.Base64;
 
 /**
- * Texture of model
+ * Texture of the model
  * @param name texture name
  * @param image image
  * @param uvWidth uv width

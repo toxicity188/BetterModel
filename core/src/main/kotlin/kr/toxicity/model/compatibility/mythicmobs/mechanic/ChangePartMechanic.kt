@@ -11,12 +11,15 @@ import kr.toxicity.model.compatibility.mythicmobs.bonePredicate
 import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderArgs
 import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderString
 import kr.toxicity.model.manager.ModelManagerImpl
+import kr.toxicity.model.util.boneName
 
 class ChangePartMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), INoTargetSkill {
 
     private val predicate = mlc.bonePredicate
     private val nmid = mlc.toPlaceholderString(arrayOf("newmodelid", "nm", "nmid", "newmodel"))
-    private val newPart = mlc.toPlaceholderString(arrayOf("newpart", "np", "npid"))
+    private val newPart = mlc.toPlaceholderString(arrayOf("newpart", "np", "npid")) {
+        it?.boneName
+    }
 
     override fun cast(p0: SkillMetadata): SkillResult {
         val args = p0.toPlaceholderArgs()

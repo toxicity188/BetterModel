@@ -22,15 +22,15 @@ public final class BetterModel {
     private BetterModel() {}
 
     /**
-     * Checks running platform is Folia.
+     * Check a running platform is Folia.
      */
     public static final boolean IS_FOLIA = classExists("io.papermc.paper.threadedregions.RegionizedServer");
     /**
-     * Checks running platform is Purpur.
+     * Check a running platform is Purpur.
      */
     public static final boolean IS_PURPUR = classExists("org.purpurmc.purpur.PurpurConfig");
     /**
-     * Checks running platform is Paper.
+     * Check a running platform is Paper.
      */
     public static final boolean IS_PAPER = IS_PURPUR || IS_FOLIA || classExists("io.papermc.paper.configuration.PaperConfigurations");
 

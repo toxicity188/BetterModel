@@ -23,10 +23,6 @@ public enum PlayerLimb {
      */
     HEAD(new Vector3f(0, 0F, 0), new Vector3f(0.9375F,0.9375F,0.9375F),  new Vector3f(0.9375F,0.9375F,0.9375F), head(0, 0.9375F, 0), ItemDisplay.ItemDisplayTransform.FIXED),
     /**
-     * Head
-     */
-    H_HEAD(new Vector3f(0, 0F, 0), new Vector3f(0.9375F,0.9375F,0.9375F),  new Vector3f(0.9375F,0.9375F,0.9375F), head(0, 0.9375F, 0), ItemDisplay.ItemDisplayTransform.FIXED),
-    /**
      * Right arm
      */
     RIGHT_ARM(new Vector3f(0, -512F, 0), new Vector3f(0.46875F,0.703125F,0.46875F), new Vector3f(0.3515625F,0.703125F,0.46875F), head(0F, -0.703125F, 0), ItemDisplay.ItemDisplayTransform.FIXED),

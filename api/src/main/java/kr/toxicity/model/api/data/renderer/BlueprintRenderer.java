@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.data.renderer;
 
+import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint;
 import kr.toxicity.model.api.event.CreateTrackerEvent;
@@ -27,19 +28,19 @@ public final class BlueprintRenderer {
     private final ModelBlueprint parent;
     @Getter
     @Unmodifiable
-    private final Map<String, RendererGroup> rendererGroupMap;
+    private final Map<BoneName, RendererGroup> rendererGroupMap;
     private final Map<String, BlueprintAnimation> animationMap;
 
     /**
-     * Gets renderer group by tree
+     * Gets a renderer group by tree
      * @param name part name
      * @return group or null
      */
-    public @Nullable RendererGroup groupByTree(@NotNull String name) {
+    public @Nullable RendererGroup groupByTree(@NotNull BoneName name) {
         return groupByTree0(rendererGroupMap, name);
     }
 
-    private static @Nullable RendererGroup groupByTree0(@NotNull Map<String, RendererGroup> map, @NotNull String name) {
+    private static @Nullable RendererGroup groupByTree0(@NotNull Map<BoneName, RendererGroup> map, @NotNull BoneName name) {
         if (map.isEmpty()) return null;
         var get = map.get(name);
         if (get != null) return get;
@@ -52,7 +53,7 @@ public final class BlueprintRenderer {
     }
 
     /**
-     * Gets all name of animation.
+     * Gets all names of animation.
      * @return names
      */
     public @NotNull @Unmodifiable Set<String> animations() {

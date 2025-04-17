@@ -21,7 +21,7 @@ public record DebugConfig(
     );
 
     /**
-     * Creates config from yaml
+     * Creates config from YAML
      * @param section yaml
      * @return config
      */

@@ -9,7 +9,7 @@ import org.joml.Vector3f;
  */
 public interface EntityAdapter {
     /**
-     * Gets source
+     * Gets a source
      * @return source entity
      */
     @NotNull Entity entity();
@@ -33,19 +33,19 @@ public interface EntityAdapter {
     boolean invisible();
 
     /**
-     * Checks source entity is on glow
+     * Check source entity is on a glow
      * @return glow
      */
     boolean glow();
 
     /**
-     * Checks source entity is on walk
+     * Check source entity is on a walk
      * @return walk
      */
     boolean onWalk();
 
     /**
-     * Checks source entity is on fly
+     * Check source entity is on the fly
      * @return fly
      */
     boolean fly();

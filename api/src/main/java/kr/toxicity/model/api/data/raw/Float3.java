@@ -124,7 +124,7 @@ public record Float3(
     }
 
     /**
-     * Converts floats to json array.
+     * Converts floats to JSON array.
      * @return json array
      */
     public @NotNull JsonArray toJson() {

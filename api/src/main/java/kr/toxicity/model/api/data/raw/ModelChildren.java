@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 /**
- * A raw children of model.
+ * A raw children of the model.
  */
 @ApiStatus.Internal
 public sealed interface ModelChildren {
@@ -56,7 +56,7 @@ public sealed interface ModelChildren {
     }
 
     /**
-     * A raw group of model.
+     * A raw group of models.
      * @param name group name
      * @param origin origin
      * @param rotation rotation

@@ -152,7 +152,7 @@ tasks {
         manifest {
             attributes(
                 "paperweight-mappings-namespace" to "spigot",
-                "Dev-Build" to (buildNumber != null),
+                "Dev-Build" to (buildNumber ?: -1),
                 "Version" to version,
                 "Author" to "toxicity188",
                 "Url" to "https://github.com/toxicity188/BetterModel",

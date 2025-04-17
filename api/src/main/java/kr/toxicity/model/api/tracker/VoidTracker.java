@@ -34,7 +34,7 @@ public final class VoidTracker extends Tracker {
     }
 
     /**
-     * Moves model to other location.
+     * Moves model to another location.
      * @param location location
      */
     public void location(Location location) {

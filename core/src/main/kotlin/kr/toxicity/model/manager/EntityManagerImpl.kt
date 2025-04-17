@@ -87,10 +87,6 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
                     EntityTracker.tracker(it)?.despawn()
                 }
             }
-//            @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-//            fun EntityTeleportEvent.teleport() {
-//                EntityTracker.tracker(entity)?.refresh()
-//            }
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun EntityDeathEvent.death() {
                 EntityTracker.tracker(entity)?.let {

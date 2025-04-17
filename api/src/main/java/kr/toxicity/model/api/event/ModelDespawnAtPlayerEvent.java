@@ -26,7 +26,7 @@ public class ModelDespawnAtPlayerEvent extends AbstractPlayerModelEvent {
     }
 
     /**
-     * Gets handler list
+     * Gets a handler list
      * @return handler list
      */
     @SuppressWarnings("unused") //This method is necessary for event API.

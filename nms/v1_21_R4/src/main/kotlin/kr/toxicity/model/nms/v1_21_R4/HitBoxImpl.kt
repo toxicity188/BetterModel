@@ -2,6 +2,7 @@ package kr.toxicity.model.nms.v1_21_R4
 
 import io.papermc.paper.event.entity.EntityKnockbackEvent
 import kr.toxicity.model.api.BetterModel
+import kr.toxicity.model.api.bone.BoneName
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import kr.toxicity.model.api.event.ModelDamagedEvent
 import kr.toxicity.model.api.event.ModelInteractEvent
@@ -39,7 +40,7 @@ import org.joml.Vector3f
 import kotlin.math.max
 
 class HitBoxImpl(
-    private val name: String,
+    private val name: BoneName,
     private val source: ModelBoundingBox,
     private val supplier: HitBoxSource,
     private val listener: HitBoxListener,
@@ -73,7 +74,7 @@ class HitBoxImpl(
         }
     }
 
-    override fun groupName(): String = name
+    override fun groupName(): BoneName = name
     override fun source(): Entity = delegate.bukkitEntity
     override fun forceDismount(): Boolean = forceDismount
     override fun mountController(): MountController = mountController

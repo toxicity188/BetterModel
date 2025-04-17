@@ -29,7 +29,7 @@ public interface ConfigManager {
     boolean metrics();
 
     /**
-     * Checks sight trace is enabled
+     * Check sight trace is enabled
      * @return enabled
      */
     boolean sightTrace();
@@ -65,7 +65,7 @@ public interface ConfigManager {
     @NotNull String namespace();
 
     /**
-     * Gets pack type
+     * Gets a pack type
      * @return type
      */
     @NotNull PackType packType();
@@ -83,7 +83,7 @@ public interface ConfigManager {
     boolean disableGeneratingLegacyModels();
 
     /**
-     * Checks model tracker will follow source entity's invisibility
+     * Check model tracker will follow source entity's invisibility
      * @return follow invisibility
      */
     boolean followMobInvisibility();

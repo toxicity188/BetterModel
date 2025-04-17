@@ -6,7 +6,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A UV mappings of element (cube).
+ * A UV mappings of an element (cube).
  * @param north north
  * @param east east
  * @param south south
@@ -24,7 +24,7 @@ public record ModelFace(
         @NotNull ModelUV down
 ) {
     /**
-     * Converts UV to json object.
+     * Converts UV to JSON object.
      * @param parent parent
      * @param tint tint index
      * @return json object.

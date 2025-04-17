@@ -7,7 +7,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 
 /**
- * Raw animation of model.
+ * Raw animation of a model.
  * @param name name
  * @param loop whether to loop
  * @param uuid uuid

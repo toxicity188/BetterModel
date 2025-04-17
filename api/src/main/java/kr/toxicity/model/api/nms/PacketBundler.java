@@ -20,7 +20,7 @@ public interface PacketBundler {
     @NotNull PacketBundler copy();
 
     /**
-     * Sends all packet to player
+     * Sends all packets to player
      * @param player target player
      */
     void send(@NotNull Player player);

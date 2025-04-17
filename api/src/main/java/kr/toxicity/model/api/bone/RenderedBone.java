@@ -47,7 +47,7 @@ public final class RenderedBone implements HitBoxSource {
 
     @Getter
     @NotNull
-    private final Map<String, RenderedBone> children;
+    private final Map<BoneName, RenderedBone> children;
 
     private final SequencedMap<String, TreeIterator> animators = new LinkedHashMap<>();
     private final Collection<TreeIterator> reversedView = animators.sequencedValues().reversed();
@@ -88,7 +88,7 @@ public final class RenderedBone implements HitBoxSource {
             @NotNull Location firstLocation,
             @NotNull BoneMovement movement,
             @NotNull TrackerModifier modifier,
-            @NotNull Function<RenderedBone, Map<String, RenderedBone>> childrenMapper
+            @NotNull Function<RenderedBone, Map<BoneName, RenderedBone>> childrenMapper
     ) {
         this.group = group;
         this.parent = parent;
@@ -396,7 +396,7 @@ public final class RenderedBone implements HitBoxSource {
         } else return false;
     }
 
-    public @NotNull String getName() {
+    public @NotNull BoneName getName() {
         return getGroup().getName();
     }
 

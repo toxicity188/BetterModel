@@ -27,7 +27,7 @@ public interface EntityScript extends Consumer<Entity> {
     }
 
     /**
-     * Creates timed script
+     * Creates a timed script
      * @param time time
      * @return timed script
      */
@@ -36,8 +36,8 @@ public interface EntityScript extends Consumer<Entity> {
     }
 
     /**
-     * Sums script list to one
-     * @param scriptList list of script
+     * Sums a script list to one
+     * @param scriptList list of a script
      * @return merged script
      */
     static @NotNull EntityScript of(@NotNull List<EntityScript> scriptList) {

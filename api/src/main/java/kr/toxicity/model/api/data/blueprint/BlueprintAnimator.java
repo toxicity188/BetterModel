@@ -158,7 +158,7 @@ public record BlueprintAnimator(@NotNull String name, float length, @NotNull @Un
      */
     public interface AnimatorIterator extends Iterator<AnimationMovement> {
         /**
-         * Gets first element of animation.
+         * Gets the first element of animation.
          * @return first element
          */
         @NotNull AnimationMovement first();

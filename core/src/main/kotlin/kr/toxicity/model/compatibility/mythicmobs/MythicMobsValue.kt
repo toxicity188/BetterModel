@@ -13,8 +13,8 @@ val MM_SEAT = arrayOf("seat", "p", "pbone")
 const val WHITE = 0xFFFFFF
 
 fun MythicLineConfig.toPlaceholderString(array: Array<String>, defaultValue: String? = null) = toPlaceholderString(array, defaultValue) { it }
-fun MythicLineConfig.toPlaceholderStringSet(array: Array<String>) = toPlaceholderString(array) {
-    it?.split(",")?.toSet() ?: emptySet()
+fun <T> MythicLineConfig.toPlaceholderStringList(array: Array<String>, mapper: (List<String>) -> T) = toPlaceholderString(array) {
+    mapper(it?.split(",")?.toList() ?: emptyList())
 }
 fun <T> MythicLineConfig.toPlaceholderString(array: Array<String>, defaultValue: String? = null, mapper: (String?) -> T): (PlaceholderArgument) -> T {
     return getPlaceholderString(array, defaultValue).let {
@@ -88,11 +88,11 @@ fun MythicLineConfig.toBonePredicate(defaultPredicate: BonePredicate): (Placehol
             if (part == null) defaultPredicate else {
                 BonePredicate.of(children(meta), if (match(meta)) {
                     { b ->
-                        b.name == part
+                        b.name.name == part
                     }
                 } else {
                     { b ->
-                        b.name.contains(part, ignoreCase = true)
+                        b.name.name.contains(part, ignoreCase = true)
                     }
                 })
             }
