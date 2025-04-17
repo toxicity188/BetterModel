@@ -65,9 +65,9 @@ public final class RenderedBone implements HitBoxSource {
     private int tint;
     private TreeIterator currentIterator = null;
     private BoneMovement beforeTransform, afterTransform, relativeOffsetCache;
-    private Supplier<Vector3f> defaultPosition = Vector3f::new;
+    private Supplier<Vector3f> defaultPosition = FunctionUtil.asSupplier(new Vector3f());
     private ModelRotation rotation = ModelRotation.EMPTY;
-    private Supplier<Float> scale = () -> 1F;
+    private Supplier<Float> scale = FunctionUtil.asSupplier(1F);
 
     /**
      * Creates entity.
@@ -164,7 +164,7 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     /**
-     * Apply glow to this model.
+     * Apply a glow to this model.
      * @param glow should glow
      * @param glowColor hex glow color
      * @return success or not

@@ -22,6 +22,16 @@ public final class FunctionUtil {
     }
 
     /**
+     * Makes constant value as supplier.
+     * @param t value
+     * @return supplier that returns always the same object.
+     * @param <T> supplier
+     */
+    public static <T> @NotNull Supplier<T> asSupplier(@NotNull T t) {
+        return () -> t;
+    }
+
+    /**
      * Throttles this function by tick
      * @param runnable target
      * @return throttled function

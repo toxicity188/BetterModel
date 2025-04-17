@@ -1,6 +1,7 @@
 package kr.toxicity.model.api.tracker;
 
 import kr.toxicity.model.api.util.EntityUtil;
+import kr.toxicity.model.api.util.FunctionUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
@@ -23,7 +24,7 @@ public record TrackerModifier(
      * Default modifier
      */
     public static final TrackerModifier DEFAULT = new TrackerModifier(
-            () -> 1F,
+            FunctionUtil.asSupplier(1F),
             true,
             true,
             EntityUtil.ENTITY_MODEL_VIEW_RADIUS,

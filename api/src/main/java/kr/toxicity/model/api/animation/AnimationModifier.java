@@ -60,7 +60,7 @@ public record AnimationModifier(@NotNull Supplier<Boolean> predicate, int start,
          * @param speed speed
          */
         public SpeedModifier(float speed) {
-            this(() -> speed);
+            this(FunctionUtil.asSupplier(speed));
         }
 
         /**

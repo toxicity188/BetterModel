@@ -14,22 +14,26 @@ Welcome to BetterModel!
 
 </div>
 
-### Modern lightweight Minecraft model implementation for Bukkit, Folia
-This plugin implements server-side model by using packet-based item display.
+### Lightweight BlockBench model engine & entity animation
+This plugin implements the server-side model by using an item-display packet.
 
-- Importing .bbmodel
-- Resource pack auto-generation
-- Multiple hit-box
+- Importing Generic BlockBench model (.bbmodel)
+- Auto-generating resource pack
+- Playing animation
+- Syncing with base entity
+- Custom hit box
+- Player animation
 
-### Why I created BetterModel even though ModelEngine already exists?
+### Why do I create BetterModel even though ModelEngine already exists?
 The main reason I created it is:
-- To reduce traffic - MEG uses too many packet, making significant network issue.
-- To provide faster update - MEG's update is too slow.
-- To provide more flexible API - MEG is a closed-source plugin and API is very limited.
+- To reduce traffic usage—MEG’s traffic optimization is outdated and insufficient for modern servers.
+- To enable faster updates—We can’t afford to wait for MEG’s slow update cycle anymore.
+- To provide a more flexible API—MEG is closed-source with a very limited API, which makes extending or integrating difficult.
+- To restore vanilla behavior-MEG breaks several vanilla entity features and physics, which this project aims to fix.
 
 ### Summary
 ![1](https://github.com/user-attachments/assets/397a1ff3-37f2-4e3a-9868-732d3a044c4c)  
-This plugin, of course, implements generic block bench model with animation.  
+This plugin, of course, implements a Generic BlockBench model with animation.  
 
 ### Network optimization
 ![3](https://github.com/user-attachments/assets/6c421f33-682e-4674-a5d2-13310e5dbbfe)  
@@ -44,6 +48,7 @@ This plugin provides multiple hit-box both client and server. (tracking animatio
 ![6](https://github.com/user-attachments/assets/06804f8c-af0d-46ce-adff-b868b65ba44a)  
 ![7](https://github.com/user-attachments/assets/d2f7e69f-dce1-4fa6-84cd-83b35560a0b4)  
 Like MEG, This plugin implements simple MythicMobs support.
+- mechanics
 ```
 model
 state
@@ -52,14 +57,27 @@ partvisibility
 changepart
 tint
 brightness
+glow
+enchant
+```
+- targeter
+```
+modelpart
 ```
 
 ### Player animation
 ![8](https://github.com/user-attachments/assets/1683eae7-e22d-4919-a660-2f0df2ab8a09)  
 This plugin supports player animation.
 
+### Library
+- [Kotlin stdlib](https://github.com/JetBrains/kotlin): modern functional programming
+- [semver4j](https://github.com/vdurmont/semver4j): semver parser
+- [CommandAPI](https://github.com/CommandAPI/CommandAPI): command
+- [adventure](https://github.com/KyoriPowered/adventure): component
+- [stable player display](https://github.com/bradleyq/stable_player_display): player animation
+
 ### Version
-- Spigot, Paper or a fork (e.g. Folia)
+- Spigot, Paper or a fork (e.g., Folia)
 - Java 21
 - Minecraft 1.20.2-1.21.5
 
@@ -75,7 +93,7 @@ No
 /bettermodel play <model> <animation> - Plays player animation.  
 
 ### Permission
-bettermodel - Accesses to command.
+bettermodel— Access to command.
 
 ### Build
 ./gradlew build
