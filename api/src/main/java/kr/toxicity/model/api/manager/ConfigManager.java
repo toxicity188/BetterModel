@@ -107,6 +107,12 @@ public interface ConfigManager {
     boolean usePurpurAfk();
 
     /**
+     * Should BetterModel sends version update message when op has joined.
+     * @return send or not
+     */
+    boolean versionCheck();
+
+    /**
      * Pack type
      */
     enum PackType {

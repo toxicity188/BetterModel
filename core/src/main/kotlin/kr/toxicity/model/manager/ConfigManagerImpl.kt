@@ -31,6 +31,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     private var animatedTextureFrameTime = 10
     private var createPackMcmeta = true
     private var usePurpurAfk = true
+    private var versionCheck = true
 
     override fun debug(): DebugConfig = debug
     override fun module(): ModuleConfig = module
@@ -48,6 +49,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     override fun animatedTextureFrameTime(): Int = animatedTextureFrameTime
     override fun createPackMcmeta(): Boolean = createPackMcmeta
     override fun usePurpurAfk(): Boolean = usePurpurAfk
+    override fun versionCheck(): Boolean = versionCheck
 
     override fun reload(info: ReloadInfo) {
         val yaml = PluginConfiguration.CONFIG.create()
@@ -85,5 +87,6 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
         disableGeneratingLegacyModels = yaml.getBoolean("disable-generating-legacy-models")
         followMobInvisibility = yaml.getBoolean("follow-mob-invisibility", true)
         usePurpurAfk = yaml.getBoolean("use-purpur-afk", true)
+        versionCheck = yaml.getBoolean("version-check", true)
     }
 }

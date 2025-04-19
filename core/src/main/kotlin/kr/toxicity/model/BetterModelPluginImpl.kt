@@ -131,7 +131,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
             registerListener(object : Listener {
                 @EventHandler
                 fun PlayerJoinEvent.join() {
-                    if (!player.isOp) return
+                    if (!player.isOp || !ConfigManagerImpl.versionCheck()) return
                     versionNoticeList.forEach {
                         audiences.player(player).sendMessage(it)
                     }
