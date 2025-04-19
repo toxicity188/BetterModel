@@ -74,7 +74,7 @@ public abstract class Tracker implements AutoCloseable {
             if (!bundle.isEmpty()) instance.viewedPlayer().forEach(bundle::send);
         };
         task = EXECUTOR.scheduleAtFixedRate(() -> {
-            if (playerCount() > 0) updater.run();
+            if (playerCount() > 0 || isRunningSingleAnimation()) updater.run();
             frame++;
         }, 10, 10, TimeUnit.MILLISECONDS);
         tint(0xFFFFFF);

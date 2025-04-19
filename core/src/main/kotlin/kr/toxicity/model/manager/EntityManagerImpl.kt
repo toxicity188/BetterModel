@@ -16,6 +16,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.*
+import org.bukkit.event.player.PlayerPortalEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.world.ChunkLoadEvent
 import org.bukkit.event.world.ChunkUnloadEvent
@@ -38,13 +39,29 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
                 EntityTracker.tracker(entity)?.animateSingle("jump")
             }
         })
-        registerListener(object : Listener {
+        else registerListener(object : Listener {
             @EventHandler(priority = EventPriority.MONITOR)
             fun EntityRemoveEvent.remove() {
                 EntityTracker.tracker(entity)?.let {
-                    if (!it.forRemoval()) it.close()
+                    if (!it.forRemoval()) it.despawn()
                 }
             }
+            @EventHandler(priority = EventPriority.MONITOR)
+            fun EntityPortalEvent.add() {
+                EntityTracker.tracker(entity)?.let {
+                    if (!it.forRemoval()) it.despawn()
+                    if (!it.adapter.dead()) it.refresh()
+                }
+            }
+            @EventHandler(priority = EventPriority.MONITOR)
+            fun PlayerPortalEvent.add() {
+                EntityTracker.tracker(player)?.let {
+                    if (!it.forRemoval()) it.despawn()
+                    if (!it.adapter.dead()) it.refresh()
+                }
+            }
+        })
+        registerListener(object : Listener {
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun EntityPotionEffectEvent.potion() {
                 EntityTracker.tracker(entity)?.forceUpdate(true)

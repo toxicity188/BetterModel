@@ -268,6 +268,10 @@ public class EntityTracker extends Tracker {
 
     @Override
     public void despawn() {
+        if (adapter.dead()) {
+            close();
+            return;
+        }
         instance.allPlayer().forEach(p -> p.endTrack(this));
         super.despawn();
     }
