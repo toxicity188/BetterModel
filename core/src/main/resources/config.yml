@@ -11,7 +11,7 @@ max-sight: -1
 min-sight: 5
 lock-on-play-animation: true
 namespace: "bettermodel"
-pack-type: folder #folder, zip
+pack-type: zip #folder, zip
 build-folder-location: BetterModel/build
 disable-generating-legacy-models: false
 follow-mob-invisibility: true

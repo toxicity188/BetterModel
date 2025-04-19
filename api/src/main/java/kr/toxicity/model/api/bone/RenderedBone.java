@@ -30,6 +30,8 @@ import java.util.function.*;
  */
 public final class RenderedBone implements HitBoxSource {
 
+    private static final Vector3f EMPTY_VECTOR = new Vector3f();
+
     @Getter
     @NotNull
     private final RendererGroup group;
@@ -303,26 +305,29 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     public @NotNull Vector3f worldPosition() {
-        return worldPosition(new Vector3f());
+        return worldPosition(EMPTY_VECTOR);
     }
 
-    public @NotNull Vector3f worldPosition(@NotNull Vector3f offset) {
-        if (afterTransform != null) {
-            var progress = 1F - progress();
-            var before = beforeTransform != null ? beforeTransform : BoneMovement.EMPTY;
-            return VectorUtil.linear(before.transform(), afterTransform.transform(), progress)
-                    .add(itemStack.offset())
-                    .add(offset)
-                    .mul(VectorUtil.linear(before.scale(), afterTransform.scale(), progress))
-                    .rotate(
-                            MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(VectorUtil.linear(before.rawRotation(), afterTransform.rawRotation(), progress)))
-                    )
-                    .add(root.getGroup().getPosition())
-                    .mul(scale.get())
-                    .rotateX((float) -Math.toRadians(rotation.x()))
-                    .rotateY((float) -Math.toRadians(rotation.y()));
-        }
-        return new Vector3f();
+    public @NotNull Vector3f worldPosition(@NotNull Vector3f localOffset) {
+        return worldPosition(localOffset, EMPTY_VECTOR);
+    }
+
+    public @NotNull Vector3f worldPosition(@NotNull Vector3f localOffset, @NotNull Vector3f globalOffset) {
+        var progress = 1F - progress();
+        var after = afterTransform != null ? afterTransform : relativeOffset();
+        var before = beforeTransform != null ? beforeTransform : BoneMovement.EMPTY;
+        return VectorUtil.linear(before.transform(), after.transform(), progress)
+                .add(itemStack.offset())
+                .add(localOffset)
+                .mul(VectorUtil.linear(before.scale(), after.scale(), progress))
+                .rotate(
+                        MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(VectorUtil.linear(before.rawRotation(), after.rawRotation(), progress)))
+                )
+                .add(globalOffset)
+                .add(root.getGroup().getPosition())
+                .mul(scale.get())
+                .rotateX((float) -Math.toRadians(rotation.x()))
+                .rotateY((float) -Math.toRadians(rotation.y()));
     }
 
     private void setup(@NotNull BoneMovement boneMovement) {

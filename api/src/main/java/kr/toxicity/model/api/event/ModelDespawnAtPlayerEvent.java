@@ -7,7 +7,7 @@ import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
 @Getter
-public class ModelDespawnAtPlayerEvent extends AbstractPlayerModelEvent {
+public final class ModelDespawnAtPlayerEvent extends AbstractPlayerModelEvent {
     /**
      * Handler list
      */
