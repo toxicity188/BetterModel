@@ -44,18 +44,4 @@ public record BoneMovement(
                 rawRot
         );
     }
-
-    /**
-     * Adds other position.
-     * @param position position
-     * @return new movement
-     */
-    public @NotNull BoneMovement plus(@NotNull Vector3f position) {
-        return new BoneMovement(
-                new Vector3f(transform).add(position),
-                scale,
-                rotation,
-                rawRotation
-        );
-    }
 }

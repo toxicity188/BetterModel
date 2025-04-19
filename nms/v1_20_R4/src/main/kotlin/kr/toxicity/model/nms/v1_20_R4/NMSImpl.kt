@@ -437,6 +437,7 @@ class NMSImpl : NMS {
     }
 
     override fun tint(itemStack: ItemStack, rgb: Int): ItemStack {
+        if (itemStack.isAirOrEmpty) return itemStack
         val meta = itemStack.itemMeta
         if (meta is LeatherArmorMeta) {
             itemStack.itemMeta = meta.apply {

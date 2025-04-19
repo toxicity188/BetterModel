@@ -475,7 +475,7 @@ class NMSImpl : NMS {
         )
 
     override fun tint(itemStack: ItemStack, rgb: Int): ItemStack {
-        if (itemStack.isEmpty) return itemStack
+        if (itemStack.isAirOrEmpty) return itemStack
         return CraftItemStack.asBukkitCopy(CraftItemStack.asNMSCopy(itemStack).apply {
             set(DataComponents.DYED_COLOR, DyedItemColor(rgb))
             set(DataComponents.CUSTOM_MODEL_DATA, get(DataComponents.CUSTOM_MODEL_DATA)?.let {

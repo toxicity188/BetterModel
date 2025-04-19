@@ -98,7 +98,7 @@ public final class RenderedBone implements HitBoxSource {
         var visible = group.getLimb() != null || group.getParent().visibility();
         this.cachedItem = itemStack;
         this.itemStack = visible ? itemStack : itemStack.asAir();
-        this.dummyBone = itemStack.isEmpty();
+        this.dummyBone = ItemUtil.isEmpty(itemStack);
         if (!dummyBone) {
             display = BetterModel.inst().nms().create(firstLocation);
             display.display(transform);
@@ -144,7 +144,7 @@ public final class RenderedBone implements HitBoxSource {
     public boolean enchant(@NotNull BonePredicate predicate, boolean enchant) {
         if (predicate.test(this)) {
             itemStack = itemStack.modify(i -> {
-                if (i.isEmpty()) return i;
+                if (ItemUtil.isEmpty(i)) return i;
                 var meta = i.getItemMeta();
                 if (enchant) {
                     meta.addEnchant(Enchantment.UNBREAKING, 0, true);

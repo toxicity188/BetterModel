@@ -4,6 +4,7 @@ import ca.spottedleaf.moonrise.common.util.TickThread
 import io.netty.buffer.Unpooled
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.util.EventUtil
+import kr.toxicity.model.api.util.ItemUtil
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.network.syncher.SynchedEntityData.DataItem
@@ -13,6 +14,7 @@ import net.minecraft.world.entity.*
 import net.minecraft.world.entity.animal.FlyingAnimal
 import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.event.Event
+import org.bukkit.inventory.ItemStack
 import org.joml.Vector3f
 
 inline fun <reified T, reified R> createAdaptedFieldGetter(noinline paperGetter: (T) -> R): (T) -> R {
@@ -100,3 +102,5 @@ fun <T> useByteBuf(block: (FriendlyByteBuf) -> T): T {
         buffer.release()
     }
 }
+
+val ItemStack.isAirOrEmpty get() = ItemUtil.isEmpty(this)

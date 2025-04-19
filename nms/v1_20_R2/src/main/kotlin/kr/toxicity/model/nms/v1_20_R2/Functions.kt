@@ -4,6 +4,7 @@ import io.netty.buffer.Unpooled
 import io.papermc.paper.util.TickThread
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.util.EventUtil
+import kr.toxicity.model.api.util.ItemUtil
 import net.minecraft.core.BlockPos
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.network.syncher.EntityDataAccessor
@@ -23,6 +24,7 @@ import net.minecraft.world.entity.monster.Slime
 import net.minecraft.world.phys.Vec3
 import org.bukkit.craftbukkit.v1_20_R2.entity.CraftEntity
 import org.bukkit.event.Event
+import org.bukkit.inventory.ItemStack
 import org.joml.Vector3f
 import kotlin.math.max
 
@@ -135,3 +137,5 @@ fun <T> useByteBuf(block: (FriendlyByteBuf) -> T): T {
         buffer.release()
     }
 }
+
+val ItemStack.isAirOrEmpty get() = ItemUtil.isEmpty(this)
