@@ -51,8 +51,7 @@ public final class HttpUtil {
                  var reader = new InputStreamReader(stream);
                  var jsonReader = new JsonReader(reader)
             ) {
-                jsonReader.setStrictness(Strictness.LENIENT);
-                return latestOf(JsonParser.parseReader(reader)
+                return latestOf(JsonParser.parseReader(jsonReader)
                         .getAsJsonArray()
                         .asList()
                         .stream()
