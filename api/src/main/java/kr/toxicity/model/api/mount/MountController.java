@@ -90,6 +90,14 @@ public interface MountController {
     }
 
     /**
+     * Checks can rider damage this entity
+     * @return can damage
+     */
+    default boolean canBeDamagedByRider() {
+        return false;
+    }
+
+    /**
      * Movement type
      */
     enum MoveType {
@@ -123,6 +131,7 @@ public interface MountController {
         private boolean canControl;
         private boolean canJump;
         private boolean canFly;
+        private boolean canBeDamagedByRider;
 
         /**
          * Modifier of a source
@@ -188,6 +197,16 @@ public interface MountController {
         }
 
         /**
+         * Sets can rider damage this entity
+         * @param canBeDamagedByRider can be damaged by rider
+         * @return self
+         */
+        public @NotNull Modifier canBeDamagedByRider(boolean canBeDamagedByRider) {
+            this.canBeDamagedByRider = canBeDamagedByRider;
+            return this;
+        }
+
+        /**
          * Builds controller with modified value
          * @return modified controller
          */
@@ -222,6 +241,11 @@ public interface MountController {
                 @Override
                 public boolean canMount() {
                     return canMount;
+                }
+
+                @Override
+                public boolean canBeDamagedByRider() {
+                    return canBeDamagedByRider;
                 }
             };
         }

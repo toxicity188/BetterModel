@@ -59,10 +59,18 @@ tint
 brightness
 glow
 enchant
+bindhitbox
+moutmodel
+dismountmodel
+dismountallmodel
 ```
 - targeter
 ```
 modelpart
+```
+- condition
+```
+modelhaspassenger
 ```
 
 ### Player animation

@@ -60,6 +60,11 @@ public interface HitBox {
     void dismount(@NotNull Entity entity);
 
     /**
+     * Dismounts all passengers
+     */
+    void dismountAll();
+
+    /**
      * Check dismount call is forced by HitBox#dismount(Entity)
      * @return force dismount
      */

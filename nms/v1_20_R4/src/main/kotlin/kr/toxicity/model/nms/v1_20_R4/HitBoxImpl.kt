@@ -94,7 +94,6 @@ class HitBoxImpl(
     override fun getMainArm(): HumanoidArm = HumanoidArm.RIGHT
     
     override fun mount(entity: Entity) {
-        if (!mountController.canMount()) return
         if (firstPassenger != null) return
         if (bukkitEntity.addPassenger(entity)) {
             if (mountController.canControl()) {
@@ -110,6 +109,15 @@ class HitBoxImpl(
     override fun dismount(entity: Entity) {
         forceDismount = true
         if (bukkitEntity.removePassenger(entity)) listener.dismount(craftEntity, entity)
+        forceDismount = false
+    }
+
+    override fun dismountAll() {
+        forceDismount = true
+        passengers.forEach {
+            it.stopRiding(true)
+            listener.dismount(craftEntity, it.bukkitEntity)
+        }
         forceDismount = false
     }
 
@@ -301,6 +309,7 @@ class HitBoxImpl(
 
     override fun hurt(source: DamageSource, amount: Float): Boolean {
         if (source.entity === delegate) return false
+        if (source.entity === controllingPassenger && !mountController.canBeDamagedByRider()) return false
         val ds = ModelDamageSourceImpl(source)
         val event = ModelDamagedEvent(craftEntity, ds, amount)
         if (!event.call()) return false

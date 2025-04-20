@@ -23,6 +23,7 @@ class MountModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.ins
     }
 
     private val driver = mlc.toPlaceholderBoolean(arrayOf("driver", "d", "drive"), true)
+    private val damagemount = mlc.toPlaceholderBoolean(arrayOf("damagemount", "dmg"), false)
     private val interact = mlc.toPlaceholderString(arrayOf("mode", "m")) exec@ {
         when (it) {
             "walking" -> MountControllers.WALK.modifier()
@@ -53,7 +54,11 @@ class MountModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.ins
                         && (it.hitBox != null || it.createHitBox(tracker.adapter, { true }, dismountListener))
             }?.let {
                 it.hitBox?.let { hitBox ->
-                    hitBox.mountController(interact(args)?.canControl(driver(args))?.build() ?: MountControllers.WALK)
+                    hitBox.mountController(interact(args)
+                        ?.canControl(driver(args))
+                        ?.canBeDamagedByRider(damagemount(args))
+                        ?.build()
+                        ?: MountControllers.WALK)
                     hitBox.mount(p1.bukkitEntity)
                 }
                 SkillResult.SUCCESS

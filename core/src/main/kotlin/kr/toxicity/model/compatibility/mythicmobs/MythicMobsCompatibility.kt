@@ -57,6 +57,7 @@ class MythicMobsCompatibility : Compatibility {
                     "glow", "glowbone" -> register(GlowMechanic(config))
                     "mountmodel" -> register(MountModelMechanic(config))
                     "dismountmodel" -> register(DismountModelMechanic(config))
+                    "dismountallmodel", "dismountall" -> register(DismountAllModelMechanic(config))
                 }
             }
             @EventHandler

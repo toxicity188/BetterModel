@@ -15,7 +15,7 @@ const val WHITE = 0xFFFFFF
 
 fun MythicLineConfig.toPlaceholderString(array: Array<String>, defaultValue: String? = null) = toPlaceholderString(array, defaultValue) { it }
 fun <T> MythicLineConfig.toPlaceholderStringList(array: Array<String>, mapper: (List<String>) -> T) = toPlaceholderString(array) {
-    mapper(it?.split(",")?.toList() ?: emptyList())
+    mapper(it?.split(",") ?: emptyList())
 }
 fun <T> MythicLineConfig.toPlaceholderString(array: Array<String>, defaultValue: String? = null, mapper: (String?) -> T): (PlaceholderArgument) -> T {
     return getPlaceholderString(array, defaultValue).let {
