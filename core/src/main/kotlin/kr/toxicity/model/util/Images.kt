@@ -5,9 +5,8 @@ import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
 
 fun RenderedImage.toByteArray(): ByteArray {
-    val byte = ByteArrayOutputStream()
-    byte.buffered().use { buffer ->
+    return ByteArrayOutputStream().use { buffer ->
         ImageIO.write(this, "png", buffer)
+        buffer.toByteArray()
     }
-    return byte.toByteArray()
 }

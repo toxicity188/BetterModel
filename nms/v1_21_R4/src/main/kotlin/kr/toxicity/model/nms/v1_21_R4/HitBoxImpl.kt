@@ -87,7 +87,9 @@ class HitBoxImpl(
     }
     override fun listener(): HitBoxListener = listener
 
-    private var craftEntity: CraftLivingEntity? = null
+    private val craftEntity: CraftLivingEntity by lazy {
+        object : CraftLivingEntity(Bukkit.getServer() as CraftServer, this), HitBox by this {}
+    }
     override fun getItemBySlot(slot: EquipmentSlot): ItemStack = Items.AIR.defaultInstance
     override fun setItemSlot(slot: EquipmentSlot, stack: ItemStack) {
     }
@@ -254,13 +256,8 @@ class HitBoxImpl(
     }
 
     override fun getBukkitLivingEntity(): CraftLivingEntity = bukkitEntity
+    override fun getBukkitEntity(): CraftLivingEntity = craftEntity
 
-    override fun getBukkitEntity(): CraftLivingEntity {
-        val c = craftEntity
-        return c ?: object : CraftLivingEntity(Bukkit.getServer() as CraftServer, this), HitBox by this {}.apply {
-            craftEntity = this
-        }
-    }    
     private val dimensions = EntityDimensions(
         max(source.x(), source.z()).toFloat(),
         source.y().toFloat(),

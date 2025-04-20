@@ -15,15 +15,13 @@ fun <T> List<T>.forEachAsync(block: (T) -> Unit) {
                 }
             }
         } else {
-            val queue = ArrayList<() -> Unit>()
+            val queue = arrayListOf<() -> Unit>()
             var i = 0
             val add = (size.toDouble() / available).toInt()
             while (i <= size) {
                 val get = subList(i, (i + add).coerceAtMost(size))
                 queue += {
-                    get.forEach { t ->
-                        block(t)
-                    }
+                    get.forEach(block)
                 }
                 i += add
             }

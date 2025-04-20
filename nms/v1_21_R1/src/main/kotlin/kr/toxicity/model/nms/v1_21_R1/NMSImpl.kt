@@ -58,7 +58,7 @@ class NMSImpl : NMS {
         //Spigot
         private val getGameProfile: (net.minecraft.world.entity.player.Player) -> GameProfile = createAdaptedFieldGetter { it.gameProfile }
         private val getConnection: (ServerCommonPacketListenerImpl) -> Connection = createAdaptedFieldGetter { it.connection }
-        private val entityTracker = ServerLevel::class.java.fields.firstOrNull {
+        private val spigotChunkAccess = ServerLevel::class.java.fields.firstOrNull {
             it.type == PersistentEntitySectionManager::class.java
         }?.apply {
             isAccessible = true
@@ -69,7 +69,7 @@ class NMSImpl : NMS {
                 return if (BetterModel.IS_PAPER) {
                     `moonrise$getEntityLookup`()
                 } else {
-                    entityTracker?.get(this)?.let {
+                    spigotChunkAccess?.get(this)?.let {
                         (it as PersistentEntitySectionManager<*>).entityGetter as LevelEntityGetter<Entity>
                     } ?: throw RuntimeException("LevelEntityGetter")
                 }

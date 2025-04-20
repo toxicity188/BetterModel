@@ -48,7 +48,7 @@ class MountModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.ins
         return EntityTracker.tracker(p0.caster.entity.bukkitEntity.uniqueId)?.let { tracker ->
             val set = seat(args)
             tracker.bone {
-                set.contains(it.name.name)
+                (set.isEmpty() || set.contains(it.name.name))
                         && (it.hitBox?.hasMountDriver() != true)
                         && (it.hitBox != null || it.createHitBox(tracker.adapter, { true }, dismountListener))
             }?.let {

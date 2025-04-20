@@ -25,7 +25,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
 
     private var index = 1
 
-    private val renderMap = HashMap<String, BlueprintRenderer>()
+    private val renderMap = hashMapOf<String, BlueprintRenderer>()
 
     private const val MINECRAFT_ITEM_PATH = "assets/minecraft/models/item"
     private const val MODERN_MINECRAFT_ITEM_PATH = "assets/minecraft/items"
@@ -54,7 +54,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
         }
 
         fun toFileTree(file: File) {
-            val fileTree = Collections.synchronizedMap(TreeMap<String, File>(Comparator.reverseOrder()))
+            val fileTree = Collections.synchronizedMap(sortedMapOf<String, File>(Comparator.reverseOrder()))
             val l = file.path.length + 1
             file.forEach { sub ->
                 sub.forEachAll {

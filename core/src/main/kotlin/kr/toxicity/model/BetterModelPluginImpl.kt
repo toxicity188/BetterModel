@@ -177,10 +177,10 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
         }.getOrElse {
             Failure(it)
         }
-        onReload.set(false)
         reloadEndTask.forEach {
             it(result)
         }
+        onReload.set(false)
         return result
     }
 

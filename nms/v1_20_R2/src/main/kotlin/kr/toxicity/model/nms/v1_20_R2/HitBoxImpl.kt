@@ -61,7 +61,7 @@ class HitBoxImpl(
         persist = false
         isSilent = true
         initialized = true
-        updatingSectionStatus = false
+        if (BetterModel.IS_PAPER) updatingSectionStatus = false
     }
 
     private fun initialSetup() {
@@ -83,7 +83,9 @@ class HitBoxImpl(
     }
     override fun listener(): HitBoxListener = listener
 
-    private var craftEntity: CraftLivingEntity? = null
+    private val craftEntity: CraftLivingEntity by lazy {
+        object : CraftLivingEntity(Bukkit.getServer() as CraftServer, this), HitBox by this {}
+    }
     override fun getArmorSlots(): MutableIterable<ItemStack> = mutableSetOf()
     override fun hasMountDriver(): Boolean = controllingPassenger != null
     override fun getItemBySlot(slot: EquipmentSlot): ItemStack = Items.AIR.defaultInstance
@@ -245,13 +247,7 @@ class HitBoxImpl(
     }
 
     override fun getBukkitLivingEntity(): CraftLivingEntity = bukkitEntity
-    
-    override fun getBukkitEntity(): CraftLivingEntity {
-        val c = craftEntity
-        return c ?: object : CraftLivingEntity(Bukkit.getServer() as CraftServer, this), HitBox by this {}.apply {
-            craftEntity = this
-        }
-    }
+    override fun getBukkitEntity(): CraftLivingEntity = craftEntity
 
     private val dimensions = EntityDimensions(
         max(source.x(), source.z()).toFloat(),

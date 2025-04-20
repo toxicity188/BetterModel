@@ -6,6 +6,7 @@ import com.mojang.datafixers.util.Pair
 import io.netty.channel.ChannelDuplexHandler
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
+import io.papermc.paper.chunk.system.entity.EntityLookup
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox
 import kr.toxicity.model.api.mount.MountController
@@ -30,6 +31,9 @@ import net.minecraft.world.entity.ai.attributes.Attributes
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.Items
+import net.minecraft.world.level.entity.LevelEntityGetter
+import net.minecraft.world.level.entity.LevelEntityGetterAdapter
+import net.minecraft.world.level.entity.PersistentEntitySectionManager
 import org.bukkit.Color
 import org.bukkit.Location
 import org.bukkit.craftbukkit.v1_20_R2.CraftWorld
@@ -54,7 +58,33 @@ class NMSImpl : NMS {
         //Spigot
         private val getGameProfile: (net.minecraft.world.entity.player.Player) -> GameProfile = createAdaptedFieldGetter { it.gameProfile }
         private val getConnection: (ServerCommonPacketListenerImpl) -> Connection = createAdaptedFieldGetter { it.connection }
-        private fun Int.toEntity(level: ServerLevel) = level.entityLookup[this]
+        private val spigotChunkAccess = ServerLevel::class.java.fields.firstOrNull {
+            it.type == PersistentEntitySectionManager::class.java
+        }?.apply {
+            isAccessible = true
+        }
+        @Suppress("UNCHECKED_CAST")
+        private val ServerLevel.levelGetter
+            get(): LevelEntityGetter<Entity> {
+                return if (BetterModel.IS_PAPER) {
+                    entityLookup
+                } else {
+                    spigotChunkAccess?.get(this)?.let {
+                        (it as PersistentEntitySectionManager<*>).entityGetter as LevelEntityGetter<Entity>
+                    } ?: throw RuntimeException("LevelEntityGetter")
+                }
+            }
+        private val getEntityById: (LevelEntityGetter<Entity>, Int) -> Entity? = if (BetterModel.IS_PAPER)  { g, i ->
+            (g as EntityLookup)[i]
+        } else LevelEntityGetterAdapter::class.java.declaredFields.first {
+            net.minecraft.world.level.entity.EntityLookup::class.java.isAssignableFrom(it.type)
+        }.let {
+            it.isAccessible = true
+            { e, i ->
+                (it[e] as net.minecraft.world.level.entity.EntityLookup<*>).getEntity(i) as? Entity
+            }
+        }
+        private fun Int.toEntity(level: ServerLevel) = getEntityById(level.levelGetter, this)
         //Spigot
 
         private fun Class<*>.serializers() = declaredFields.filter { f ->

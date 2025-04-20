@@ -30,7 +30,7 @@ class DismountModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.
             val set = seat(args)
             val d = driver(args)
             tracker.bone {
-                set.contains(it.name.name)
+                (set.isEmpty() || set.contains(it.name.name))
                         && (it.hitBox?.hasMountDriver() == true)
                         && (d || it.hitBox?.mountController()?.canControl() == true)
             }?.let {
