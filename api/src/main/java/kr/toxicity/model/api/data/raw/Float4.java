@@ -1,10 +1,10 @@
 package kr.toxicity.model.api.data.raw;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
+import com.google.gson.*;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.Type;
 import java.util.function.Function;
 
 /**
@@ -21,18 +21,33 @@ public record Float4(
         float tx,
         float tz
 ) {
+
     /**
      * Parser
      */
-    public static final Function<JsonElement, Float4> PARSER = element -> {
-        var array = element.getAsJsonArray();
-        return new Float4(
-                array.get(0).getAsFloat(),
-                array.get(1).getAsFloat(),
-                array.get(2).getAsFloat(),
-                array.get(3).getAsFloat()
-        );
-    };
+    public static final Parser PARSER = new Parser();
+
+    public static final class Parser implements Function<JsonElement, Float4>, JsonDeserializer<Float4> {
+
+        private Parser() {
+        }
+
+        @Override
+        public Float4 deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            return apply(json);
+        }
+
+        @Override
+        public Float4 apply(JsonElement element) {
+            var array = element.getAsJsonArray();
+            return new Float4(
+                    array.get(0).getAsFloat(),
+                    array.get(1).getAsFloat(),
+                    array.get(2).getAsFloat(),
+                    array.get(3).getAsFloat()
+            );
+        }
+    }
 
     /**
      * Divides floats by resolution.

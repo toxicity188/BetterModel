@@ -1,12 +1,13 @@
 package kr.toxicity.model.api.data.raw;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
+import com.google.gson.*;
+import com.google.gson.annotations.SerializedName;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Type;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Function;
 
 /**
@@ -23,7 +24,7 @@ public sealed interface ModelChildren {
     /**
      * Parser
      */
-    final class Parser implements Function<JsonElement, ModelChildren> {
+    final class Parser implements Function<JsonElement, ModelChildren>, JsonDeserializer<ModelChildren> {
 
         /**
          * Private initializer.
@@ -32,19 +33,15 @@ public sealed interface ModelChildren {
         }
 
         @Override
+        public ModelChildren deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            return apply(json);
+        }
+
+        @Override
         public ModelChildren apply(JsonElement element) {
             if (element.isJsonPrimitive()) return new ModelUUID(element.getAsString());
-            else if (element.isJsonObject()) {
-                var object = element.getAsJsonObject();
-                return new ModelGroup(
-                        object.getAsJsonPrimitive("name").getAsString(),
-                        Float3.PARSER.apply(object.get("origin")),
-                        Float3.PARSER.apply(object.get("rotation")),
-                        object.getAsJsonPrimitive("uuid").getAsString(),
-                        object.getAsJsonArray("children").asList().stream().map(this).toList(),
-                        Optional.ofNullable(object.getAsJsonPrimitive("visibility")).map(JsonPrimitive::getAsBoolean).orElse(true)
-                );
-            } else throw new RuntimeException();
+            else if (element.isJsonObject()) return ModelData.GSON.fromJson(element, ModelGroup.class);
+            else throw new RuntimeException();
         }
     }
 
@@ -62,15 +59,30 @@ public sealed interface ModelChildren {
      * @param rotation rotation
      * @param uuid uuid
      * @param children children
-     * @param visibility visibility
+     * @param _visibility visibility
      */
     record ModelGroup(
             @NotNull String name,
-            @NotNull Float3 origin,
-            @NotNull Float3 rotation,
+            @Nullable Float3 origin,
+            @Nullable Float3 rotation,
             @NotNull String uuid,
             @NotNull List<ModelChildren> children,
-            boolean visibility
+            @Nullable @SerializedName("visibility") Boolean _visibility
     ) implements ModelChildren {
+        @Override
+        @NotNull
+        public Float3 origin() {
+            return origin != null ? origin : Float3.ZERO;
+        }
+
+        @Override
+        @NotNull
+        public Float3 rotation() {
+            return rotation != null ? rotation : Float3.ZERO;
+        }
+
+        public boolean visibility() {
+            return !Boolean.FALSE.equals(_visibility);
+        }
     }
 }

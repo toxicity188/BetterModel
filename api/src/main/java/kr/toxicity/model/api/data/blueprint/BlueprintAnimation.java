@@ -1,6 +1,7 @@
 package kr.toxicity.model.api.data.blueprint;
 
 import kr.toxicity.model.api.animation.AnimationMovement;
+import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.BoneTag;
 import kr.toxicity.model.api.data.raw.ModelAnimation;
@@ -99,84 +100,15 @@ public record BlueprintAnimation(
      * Gets loop iterator.
      * @return iterator
      */
-    public BlueprintAnimator.AnimatorIterator emptyLoopIterator() {
-        return new BlueprintAnimator.AnimatorIterator() {
-
-            @NotNull
-            @Override
-            public AnimationMovement first() {
-                return emptyAnimator.getFirst();
-            }
-
-            private int index = 0;
-
-            @Override
-            public int index() {
-                return index;
-            }
-
-            @Override
-            public void clear() {
-                index = 0;
-            }
-
-            @Override
-            public int lastIndex() {
-                return emptyAnimator.size() - 1;
-            }
-
-            @Override
-            public boolean hasNext() {
-                return true;
-            }
-
-            @Override
-            public AnimationMovement next() {
-                if (index >= emptyAnimator.size()) index = 0;
-                return emptyAnimator.get(index++);
-            }
-        };
+    public AnimationIterator.Loop emptyLoopIterator() {
+        return AnimationIterator.loop(emptyAnimator);
     }
 
     /**
      * Gets single iterator.
      * @return iterator
      */
-    public BlueprintAnimator.AnimatorIterator emptySingleIterator() {
-        return new BlueprintAnimator.AnimatorIterator() {
-
-            private int index = 0;
-
-            @NotNull
-            @Override
-            public AnimationMovement first() {
-                return emptyAnimator.getFirst();
-            }
-
-            @Override
-            public int index() {
-                return index;
-            }
-
-            @Override
-            public int lastIndex() {
-                return emptyAnimator.size() - 1;
-            }
-
-            @Override
-            public void clear() {
-                index = Integer.MAX_VALUE;
-            }
-
-            @Override
-            public boolean hasNext() {
-                return index < emptyAnimator.size();
-            }
-
-            @Override
-            public AnimationMovement next() {
-                return emptyAnimator.get(index++);
-            }
-        };
+    public AnimationIterator.PlayOnce emptySingleIterator() {
+        return AnimationIterator.playOnce(emptyAnimator);
     }
 }

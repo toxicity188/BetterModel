@@ -1,6 +1,7 @@
 package kr.toxicity.model.api.tracker;
 
 import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
@@ -46,7 +47,6 @@ public abstract class Tracker implements AutoCloseable {
     protected final RenderInstance instance;
     private final ScheduledFuture<?> task;
     private final AtomicBoolean isClosed = new AtomicBoolean();
-    private final AtomicBoolean runningSingle = new AtomicBoolean();
     private final AtomicBoolean readyForForceUpdate = new AtomicBoolean();
     private final TrackerModifier modifier;
     private final Runnable updater;
@@ -182,7 +182,8 @@ public abstract class Tracker implements AutoCloseable {
      * @return whether to playing single.
      */
     public boolean isRunningSingleAnimation() {
-        return runningSingle.get();
+        var runningAnimation = instance.runningAnimation();
+        return runningAnimation != null && runningAnimation.type() == AnimationIterator.Type.PLAY_ONCE;
     }
 
     /**
@@ -336,9 +337,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return success
      */
     public boolean animateSingle(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
-        var success = instance.animateSingle(filter, animation, modifier, wrapToSingle(removeTask));
-        if (success) runningSingle.set(true);
-        return success;
+        return instance.animateSingle(filter, animation, modifier, removeTask);
     }
 
     /**
@@ -356,13 +355,6 @@ public abstract class Tracker implements AutoCloseable {
      */
     public void stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String animation) {
         instance.stopAnimation(filter, animation);
-    }
-
-    private Runnable wrapToSingle(@NotNull Runnable runnable) {
-        return () -> {
-            runnable.run();
-            runningSingle.set(false);
-        };
     }
 
     /**
@@ -404,9 +396,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return success
      */
     public boolean replaceSingle(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull String animation) {
-        var success = instance.replaceSingle(filter, target, animation);
-        if (success) runningSingle.set(true);
-        return success;
+        return instance.replaceSingle(filter, target, animation);
     }
 
     /**

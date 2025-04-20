@@ -137,7 +137,17 @@ public interface BetterModelPlugin {
         /**
          * Still on reload.
          */
-        record OnReload() implements ReloadResult {
+        OnReload ON_RELOAD = new OnReload();
+
+        /**
+         * Still on reload.
+         */
+        final class OnReload implements ReloadResult {
+            /**
+             * Private initializer for singleton.
+             */
+            private OnReload() {
+            }
         }
 
         /**

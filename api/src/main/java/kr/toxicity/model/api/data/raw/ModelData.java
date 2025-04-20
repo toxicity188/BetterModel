@@ -38,10 +38,10 @@ public record ModelData(
      * Gson parser
      */
     public static final Gson GSON = new GsonBuilder()
-            .registerTypeAdapter(Float3.class, (JsonDeserializer<Float3>) (json, typeOfT, context) -> Float3.PARSER.apply(json))
-            .registerTypeAdapter(Float4.class, (JsonDeserializer<Float4>) (json, typeOfT, context) -> Float4.PARSER.apply(json))
-            .registerTypeAdapter(Datapoint.class, (JsonDeserializer<Datapoint>) (json, typeOfT, context) -> Datapoint.PARSER.apply(json))
+            .registerTypeAdapter(Float3.class, Float3.PARSER)
+            .registerTypeAdapter(Float4.class, Float4.PARSER)
+            .registerTypeAdapter(Datapoint.class, Datapoint.PARSER)
             .registerTypeAdapter(KeyframeChannel.class, (JsonDeserializer<KeyframeChannel>) (json, typeOfT, context) -> KeyframeChannel.valueOf(json.getAsString().toUpperCase()))
-            .registerTypeAdapter(ModelChildren.class, (JsonDeserializer<ModelChildren>) (json, typeOfT, context) -> ModelChildren.PARSER.apply(json))
+            .registerTypeAdapter(ModelChildren.class, ModelChildren.PARSER)
             .create();
 }

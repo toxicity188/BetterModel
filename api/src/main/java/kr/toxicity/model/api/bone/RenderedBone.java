@@ -2,8 +2,8 @@ package kr.toxicity.model.api.bone;
 
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationMovement;
+import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
-import kr.toxicity.model.api.data.blueprint.BlueprintAnimator;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox;
 import kr.toxicity.model.api.data.renderer.RendererGroup;
@@ -111,9 +111,9 @@ public final class RenderedBone implements HitBoxSource {
         children = Collections.unmodifiableMap(childrenMapper.apply(this));
     }
 
-    public @Nullable String runningAnimation() {
+    public @Nullable RunningAnimation runningAnimation() {
         var iterator = currentIterator;
-        return iterator != null ? iterator.name : null;
+        return iterator != null ? iterator.animation : null;
     }
 
     /**
@@ -537,9 +537,11 @@ public final class RenderedBone implements HitBoxSource {
         return parentResult;
     }
 
-    private static class TreeIterator implements BlueprintAnimator.AnimatorIterator, Supplier<Boolean>, Runnable {
-        private final String name;
-        private final BlueprintAnimator.AnimatorIterator iterator;
+    public record RunningAnimation(@NotNull String name, @NotNull AnimationIterator.Type type) {}
+
+    private static class TreeIterator implements AnimationIterator, Supplier<Boolean>, Runnable {
+        private final RunningAnimation animation;
+        private final AnimationIterator iterator;
         private final AnimationModifier modifier;
         private final Runnable removeTask;
 
@@ -548,8 +550,8 @@ public final class RenderedBone implements HitBoxSource {
 
         private float cachedSpeed = 1F;
 
-        public TreeIterator(String name, BlueprintAnimator.AnimatorIterator iterator, AnimationModifier modifier, Runnable removeTask) {
-            this.name = name;
+        public TreeIterator(String name, AnimationIterator iterator, AnimationModifier modifier, Runnable removeTask) {
+            animation = new RunningAnimation(name, iterator.type());
             this.iterator = iterator;
             this.modifier = modifier;
             this.removeTask = removeTask;
@@ -612,16 +614,10 @@ public final class RenderedBone implements HitBoxSource {
             started = ended = !iterator.hasNext();
         }
 
+        @NotNull
         @Override
-        public boolean equals(Object o) {
-            if (o == null || getClass() != o.getClass()) return false;
-            TreeIterator that = (TreeIterator) o;
-            return Objects.equals(name, that.name);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(name);
+        public Type type() {
+            return iterator.type();
         }
     }
 

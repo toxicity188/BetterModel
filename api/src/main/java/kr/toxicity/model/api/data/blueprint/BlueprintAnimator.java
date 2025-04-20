@@ -2,6 +2,7 @@ package kr.toxicity.model.api.data.blueprint;
 
 import kr.toxicity.model.api.animation.AnimationMovement;
 import kr.toxicity.model.api.animation.AnimationPoint;
+import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.VectorPoint;
 import kr.toxicity.model.api.data.raw.Datapoint;
 import kr.toxicity.model.api.data.raw.ModelKeyframe;
@@ -12,7 +13,6 @@ import org.jetbrains.annotations.Unmodifiable;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -141,116 +141,15 @@ public record BlueprintAnimator(@NotNull String name, float length, @NotNull @Un
      * Gets single iterator.
      * @return iterator
      */
-    public @NotNull AnimatorIterator singleIterator() {
-        return new SingleIterator();
+    public @NotNull AnimationIterator.PlayOnce singleIterator() {
+        return AnimationIterator.playOnce(keyFrame);
     }
 
     /**
      * Gets loop iterator.
      * @return iterator
      */
-    public @NotNull AnimatorIterator loopIterator() {
-        return new LoopIterator();
-    }
-
-    /**
-     * A keyframe iterator of animation.
-     */
-    public interface AnimatorIterator extends Iterator<AnimationMovement> {
-        /**
-         * Gets the first element of animation.
-         * @return first element
-         */
-        @NotNull AnimationMovement first();
-
-        /**
-         * Clears this iterator
-         */
-        void clear();
-
-        /**
-         * Gets current index
-         * @return current index
-         */
-        int index();
-
-        /**
-         * Gets last index of animator
-         * @return last index
-         */
-        int lastIndex();
-    }
-
-
-    private class SingleIterator implements AnimatorIterator {
-
-        private int index = 0;
-
-        @NotNull
-        @Override
-        public AnimationMovement first() {
-            return keyFrame.getFirst();
-        }
-
-        @Override
-        public int index() {
-            return index;
-        }
-
-        @Override
-        public int lastIndex() {
-            return keyFrame.size() - 1;
-        }
-
-        @Override
-        public void clear() {
-            index = Integer.MAX_VALUE;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return index < keyFrame.size();
-        }
-
-        @Override
-        public AnimationMovement next() {
-            return keyFrame.get(index++);
-        }
-    }
-    private class LoopIterator implements AnimatorIterator {
-
-        private int index = 0;
-
-        @NotNull
-        @Override
-        public AnimationMovement first() {
-            return keyFrame.getFirst();
-        }
-
-        @Override
-        public int index() {
-            return index;
-        }
-
-        @Override
-        public int lastIndex() {
-            return keyFrame.size() - 1;
-        }
-
-        @Override
-        public void clear() {
-            index = 0;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return true;
-        }
-
-        @Override
-        public AnimationMovement next() {
-            if (index >= keyFrame.size()) index = 0;
-            return keyFrame.get(index++);
-        }
+    public @NotNull AnimationIterator.Loop loopIterator() {
+        return AnimationIterator.loop(keyFrame);
     }
 }

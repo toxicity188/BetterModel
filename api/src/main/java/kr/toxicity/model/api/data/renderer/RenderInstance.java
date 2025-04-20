@@ -93,7 +93,7 @@ public final class RenderInstance {
         }
     }
 
-    public @Nullable String runningAnimation() {
+    public @Nullable RenderedBone.RunningAnimation runningAnimation() {
         for (RenderedBone value : entityMap.values()) {
             var get = value.findNotNullByTree(RenderedBone::runningAnimation);
             if (get != null) return get;

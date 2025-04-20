@@ -164,7 +164,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
     }
 
     override fun reload(info: ReloadInfo): ReloadResult {
-        if (!onReload.compareAndSet(false, true)) return OnReload()
+        if (!onReload.compareAndSet(false, true)) return ON_RELOAD
         reloadStartTask.forEach {
             it()
         }
