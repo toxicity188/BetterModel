@@ -7,10 +7,10 @@ import kr.toxicity.model.api.event.ModelDamagedEvent
 import kr.toxicity.model.api.event.ModelInteractEvent
 import kr.toxicity.model.api.event.ModelInteractEvent.Hand
 import kr.toxicity.model.api.mount.MountController
-import kr.toxicity.model.api.nms.EntityAdapter
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.HitBoxListener
 import kr.toxicity.model.api.nms.HitBoxSource
+import kr.toxicity.model.api.util.FunctionUtil
 import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.InteractionHand
@@ -33,9 +33,7 @@ import org.bukkit.craftbukkit.v1_20_R2.entity.CraftLivingEntity
 import org.bukkit.entity.Entity
 import org.bukkit.event.entity.EntityPotionEffectEvent
 import org.joml.Vector3f
-import kotlin.math.ceil
-import kotlin.math.max
-import kotlin.math.roundToInt
+import java.util.function.Supplier
 
 class HitBoxImpl(
     private val name: BoneName,
@@ -43,8 +41,7 @@ class HitBoxImpl(
     private val supplier: HitBoxSource,
     private val listener: HitBoxListener,
     private val delegate: LivingEntity,
-    private var mountController: MountController,
-    private val adapter: EntityAdapter
+    private var mountController: MountController
 ) : LivingEntity(EntityType.SLIME, delegate.level()), HitBox {
 
     private var initialized = false
@@ -55,6 +52,22 @@ class HitBoxImpl(
     private var forceDismount = false
     private var onFly = false
 
+    val craftEntity: HitBox by lazy {
+        object : CraftLivingEntity(Bukkit.getServer() as CraftServer, this), HitBox by this {}
+    }
+    private val positionSupplier = FunctionUtil.throttleTick(Supplier {
+        delegate.position().run {
+            supplier.hitBoxPosition().add(x.toFloat(), y.toFloat(), z.toFloat())
+        }
+    })
+    private val _dimensions = EntityDimensions(
+        (source.x() + source.z()).toFloat() / 2,
+        source.y().toFloat(),
+        false
+    )
+    private val dimensions: EntityDimensions get() = _dimensions.scale(supplier.hitBoxScale())
+    private val interaction = HitBoxInteraction(this)
+
     init {
         moveTo(delegate.position())
         if (!BetterModel.inst().configManager().debug().hitBox()) isInvisible = true
@@ -62,6 +75,9 @@ class HitBoxImpl(
         isSilent = true
         initialized = true
         if (BetterModel.IS_PAPER) updatingSectionStatus = false
+        refreshDimensions()
+        level().addFreshEntity(this)
+        level().addFreshEntity(interaction)
     }
 
     private fun initialSetup() {
@@ -78,14 +94,9 @@ class HitBoxImpl(
     override fun mountController(controller: MountController) {
         this.mountController = controller
     }
-    override fun relativePosition(): Vector3f = position().run {
-        Vector3f(x.toFloat(), y.toFloat(), z.toFloat())
-    }
+    override fun relativePosition(): Vector3f = positionSupplier.get()
     override fun listener(): HitBoxListener = listener
 
-    val craftEntity: HitBox by lazy {
-        object : CraftLivingEntity(Bukkit.getServer() as CraftServer, this), HitBox by this {}
-    }
     override fun getArmorSlots(): MutableIterable<ItemStack> = mutableSetOf()
     override fun hasMountDriver(): Boolean = controllingPassenger != null
     override fun getItemBySlot(slot: EquipmentSlot): ItemStack = Items.AIR.defaultInstance
@@ -210,16 +221,12 @@ class HitBoxImpl(
             delegate.jumpFromGround()
         }
     }
-
-    private val boxHeight
-        get() = source.lengthZX() / 2 * adapter.scale()
     
     override fun tick() {
         if (!delegate.valid) {
             if (valid) remove(delegate.removalReason ?: RemovalReason.KILLED)
             return
         }
-        entityData.set(SLIME_SIZE, ceil(boxHeight / 0.52).roundToInt())
         val controller = controllingPassenger
         if (jumpDelay > 0) jumpDelay--
         health = delegate.health
@@ -231,12 +238,11 @@ class HitBoxImpl(
         yRot = rotation.y
         yHeadRot = yRot
         yBodyRot = yRot
-        val transform = supplier.hitBoxPosition()
-        val pos = delegate.position()
+        val pos = relativePosition()
         setPos(
-            pos.x + transform.x,
-            pos.y + transform.y + source.maxY * adapter.scale() - boxHeight,
-            pos.z + transform.z
+            pos.x.toDouble(),
+            pos.y.toDouble() + source.maxY * supplier.hitBoxScale() - type.height,
+            pos.z.toDouble()
         )
         BlockPos.betweenClosedStream(boundingBox).forEach {
             level().getBlockState(it).entityInside(level(), it, delegate)
@@ -251,17 +257,12 @@ class HitBoxImpl(
     override fun remove(reason: RemovalReason) {
         initialSetup()
         listener.remove(craftEntity)
+        interaction.remove(reason)
         super.remove(reason)
     }
 
     override fun getBukkitLivingEntity(): CraftLivingEntity = bukkitEntity
     override fun getBukkitEntity(): CraftLivingEntity = craftEntity as CraftLivingEntity
-
-    private val dimensions = EntityDimensions(
-        max(source.x(), source.z()).toFloat(),
-        source.y().toFloat(),
-        true
-    )
 
     override fun isDeadOrDying(): Boolean {
         return delegate.isDeadOrDying
@@ -322,8 +323,8 @@ class HitBoxImpl(
         return if (!initialized) {
             super.makeBoundingBox()
         } else {
-            val pos = position()
-            val scale = adapter.scale()
+            val pos = relativePosition()
+            val scale = supplier.hitBoxScale()
             AABB(
                 pos.x - source.minX * scale,
                 pos.y + source.minY * scale,

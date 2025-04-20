@@ -65,10 +65,11 @@ public abstract class Tracker implements AutoCloseable {
     public Tracker(@NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
         this.instance = instance;
         this.modifier = modifier;
+        var config = BetterModel.inst().configManager();
         updater = () -> {
             var bundle = BetterModel.inst().nms().createBundler();
             var moveAccepted = instance.move(
-                    frame % 5 == 0 ? (isRunningSingleAnimation() && BetterModel.inst().configManager().lockOnPlayAnimation()) ? instance.getRotation() : rotation() : null,
+                    frame % 5 == 0 ? (isRunningSingleAnimation() && config.lockOnPlayAnimation()) ? instance.getRotation() : rotation() : null,
                     bundle
             );
             if (readyForForceUpdate.compareAndSet(true, false) && !moveAccepted) instance.forceUpdate(bundle);

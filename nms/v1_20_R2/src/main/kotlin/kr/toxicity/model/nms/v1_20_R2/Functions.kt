@@ -7,7 +7,6 @@ import kr.toxicity.model.api.util.EventUtil
 import kr.toxicity.model.api.util.ItemUtil
 import net.minecraft.core.BlockPos
 import net.minecraft.network.FriendlyByteBuf
-import net.minecraft.network.syncher.EntityDataAccessor
 import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.network.syncher.SynchedEntityData.DataItem
 import net.minecraft.server.MinecraftServer
@@ -20,7 +19,6 @@ import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.Mob
 import net.minecraft.world.entity.ai.attributes.Attributes
 import net.minecraft.world.entity.animal.FlyingAnimal
-import net.minecraft.world.entity.monster.Slime
 import net.minecraft.world.phys.Vec3
 import org.bukkit.craftbukkit.v1_20_R2.entity.CraftEntity
 import org.bukkit.event.Event
@@ -61,14 +59,6 @@ fun SynchedEntityData.pack(): List<SynchedEntityData.DataValue<*>> {
         list += (it ?: return@forEach).value()
     }
     return list
-}
-
-@Suppress("UNCHECKED_CAST")
-val SLIME_SIZE = Slime::class.java.declaredFields.first {
-    EntityDataAccessor::class.java.isAssignableFrom(it.type)
-}.run {
-    isAccessible = true
-    get(null) as EntityDataAccessor<Int>
 }
 
 fun Entity.isWalking(): Boolean {

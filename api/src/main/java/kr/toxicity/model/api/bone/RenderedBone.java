@@ -629,6 +629,11 @@ public final class RenderedBone implements HitBoxSource {
         return worldPosition();
     }
 
+    @Override
+    public float hitBoxScale() {
+        return scale.get();
+    }
+
     @NotNull
     @Override
     public ModelRotation hitBoxRotation() {

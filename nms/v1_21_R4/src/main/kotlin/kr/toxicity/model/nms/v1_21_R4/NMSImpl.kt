@@ -492,12 +492,8 @@ class NMSImpl : NMS {
             supplier,
             listener,
             handle,
-            mountController,
-            entity
-        ).apply {
-            refreshDimensions()
-            handle.level().addFreshEntity(this)
-        }.craftEntity
+            mountController
+        ).craftEntity
     }
     override fun version(): NMSVersion = NMSVersion.V1_21_R4
 

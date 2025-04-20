@@ -19,4 +19,10 @@ public interface HitBoxSource {
      * @return rotation
      */
     @NotNull ModelRotation hitBoxRotation();
+
+    /**
+     * Gets hit-box scale
+     * @return scale
+     */
+    float hitBoxScale();
 }

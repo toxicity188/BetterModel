@@ -11,6 +11,7 @@ import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.util.registerListener
+import org.bukkit.entity.Entity
 import org.bukkit.entity.LivingEntity
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -118,6 +119,16 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
                 val e = entity
                 if (e !is LivingEntity) return
                 EntityTracker.tracker(e)?.let {
+                    if (this is EntityDamageByEntityEvent) {
+                        val a = damager
+                        it.bones().forEach { bone ->
+                            val hb = bone?.hitBox ?: return@forEach
+                            if (!hb.mountController().canBeDamagedByRider() && (hb as Entity).passengers.contains(a)) {
+                                isCancelled = true
+                                return
+                            }
+                        }
+                    }
                     if (it.animateSingle("damage", AnimationModifier.DEFAULT) {
                         it.tint(0xFFFFFF)
                     }) it.tint(it.damageTintValue())

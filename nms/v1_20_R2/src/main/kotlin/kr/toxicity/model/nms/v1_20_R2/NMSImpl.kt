@@ -485,14 +485,8 @@ class NMSImpl : NMS {
             supplier,
             listener,
             handle,
-            mountController,
-            entity
-        ).apply {
-            entityData.registrationLocked = false
-            entityData.define(SLIME_SIZE, 1)
-            refreshDimensions()
-            handle.level().addFreshEntity(this)
-        }.craftEntity
+            mountController
+        ).craftEntity
     }
 
     override fun version(): NMSVersion = NMSVersion.V1_20_R2
