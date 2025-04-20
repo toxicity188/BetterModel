@@ -82,20 +82,19 @@ val MythicLineConfig.bonePredicate
 fun MythicLineConfig.toBonePredicate(defaultPredicate: BonePredicate): (PlaceholderArgument) -> BonePredicate {
     val match = toPlaceholderBoolean(MM_EXACT_MATCH, true)
     val children = toPlaceholderBoolean(MM_CHILDREN, false)
-    return toPlaceholderString(MM_PART_ID).let { partSupplier ->
-        { meta ->
-            val part = partSupplier(meta)
-            if (part == null) defaultPredicate else {
-                BonePredicate.of(children(meta), if (match(meta)) {
-                    { b ->
-                        b.name.name == part
-                    }
-                } else {
-                    { b ->
-                        b.name.name.contains(part, ignoreCase = true)
-                    }
-                })
-            }
+    val partSupplier = toPlaceholderString(MM_PART_ID)
+    return { meta ->
+        val part = partSupplier(meta)
+        if (part == null) defaultPredicate else {
+            BonePredicate.of(children(meta), if (match(meta)) {
+                { b ->
+                    b.name.name == part
+                }
+            } else {
+                { b ->
+                    b.name.name.contains(part, ignoreCase = true)
+                }
+            })
         }
     }
 }

@@ -28,7 +28,6 @@ import net.minecraft.world.effect.MobEffects
 import net.minecraft.world.entity.*
 import net.minecraft.world.entity.Display.ItemDisplay
 import net.minecraft.world.entity.ai.attributes.Attributes
-import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.Items
 import net.minecraft.world.level.entity.LevelEntityGetter
@@ -40,14 +39,7 @@ import org.bukkit.craftbukkit.CraftWorld
 import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.craftbukkit.inventory.CraftItemStack
-import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.FIRSTPERSON_LEFTHAND
-import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.FIRSTPERSON_RIGHTHAND
-import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.FIXED
-import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.GROUND
-import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.GUI
-import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.NONE
-import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.THIRDPERSON_LEFTHAND
-import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.THIRDPERSON_RIGHTHAND
+import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.*
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.LeatherArmorMeta
@@ -207,7 +199,7 @@ class NMSImpl : NMS {
             entityUUIDMap.remove(handle.uuid)
             val list = arrayListOf<Packet<ClientGamePacketListener>>()
             list += ClientboundSetEntityDataPacket(handle.id, handle.entityData.pack())
-            if (handle is Mob || handle is ArmorStand) {
+            if (handle is LivingEntity) {
                 list += ClientboundSetEquipmentPacket(handle.id, EquipmentSlot.entries.mapNotNull {
                     runCatching {
                         Pair.of(it, handle.getItemBySlot(it))

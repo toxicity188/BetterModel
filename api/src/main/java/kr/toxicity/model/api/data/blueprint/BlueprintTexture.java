@@ -35,9 +35,8 @@ public record BlueprintTexture(
         BufferedImage image;
         try (
                 var input = new ByteArrayInputStream(Base64.getDecoder().decode(blueprint.source().split(",")[1]));
-                var buffered = new BufferedInputStream(input)
         ) {
-            image = ImageIO.read(buffered);
+            image = ImageIO.read(input);
         } catch (Exception e) {
             throw new RuntimeException("image");
         }
