@@ -25,6 +25,7 @@ class HitBoxInteraction(
         xRot = delegate.xRot
         val pos = delegate.relativePosition()
         setPos(pos.x.toDouble(), pos.y.toDouble() - height / 2, pos.z.toDouble())
+        setSharedFlagOnFire(delegate.remainingFireTicks > 0)
     }
 
     override fun skipAttackInteraction(entity: Entity): Boolean {

@@ -248,7 +248,6 @@ class HitBoxImpl(
         }
         updateInWaterStateAndDoFluidPushing()
         if (isInLava) delegate.lavaHurt()
-        setSharedFlagOnFire(delegate.remainingFireTicks > 0)
         firstTick = false
         listener.sync(craftEntity)
     }
