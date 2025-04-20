@@ -66,7 +66,9 @@ class HitBoxImpl(
         false
     )
     private val dimensions: EntityDimensions get() = _dimensions.scale(supplier.hitBoxScale())
-    private val interaction = HitBoxInteraction(this)
+    private val interaction by lazy {
+        HitBoxInteraction(this)
+    }
 
     init {
         moveTo(delegate.position())
@@ -77,7 +79,9 @@ class HitBoxImpl(
         if (BetterModel.IS_PAPER) updatingSectionStatus = false
         refreshDimensions()
         level().addFreshEntity(this)
-        level().addFreshEntity(interaction)
+        level().addFreshEntity(interaction.apply {
+            moveTo(delegate.position())
+        })
     }
 
     private fun initialSetup() {
