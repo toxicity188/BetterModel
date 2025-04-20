@@ -26,6 +26,6 @@ class BrightnessMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.ins
         return EntityTracker.tracker(p0.caster.entity.bukkitEntity.uniqueId)?.let {
             if (it.brightness(predicate(args), block(args), sky(args))) it.forceUpdate(true)
             SkillResult.SUCCESS
-        } ?: SkillResult.ERROR
+        } ?: SkillResult.CONDITION_FAILED
     }
 }

@@ -492,7 +492,7 @@ class NMSImpl : NMS {
             entityData.define(SLIME_SIZE, 1)
             refreshDimensions()
             handle.level().addFreshEntity(this)
-        }
+        }.craftEntity
     }
 
     override fun version(): NMSVersion = NMSVersion.V1_20_R2

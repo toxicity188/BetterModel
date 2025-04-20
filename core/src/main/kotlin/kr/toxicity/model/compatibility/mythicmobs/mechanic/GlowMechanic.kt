@@ -23,6 +23,6 @@ class GlowMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().sk
         return EntityTracker.tracker(p0.caster.entity.bukkitEntity.uniqueId)?.let {
             if (it.glow(predicate(args), glow(args), color(args))) it.forceUpdate(true)
             SkillResult.SUCCESS
-        } ?: SkillResult.ERROR
+        } ?: SkillResult.CONDITION_FAILED
     }
 }

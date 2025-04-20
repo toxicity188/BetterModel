@@ -21,6 +21,6 @@ class EnchantMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst()
         return EntityTracker.tracker(p0.caster.entity.bukkitEntity.uniqueId)?.let {
             if (it.enchant(predicate(args), enchant(args))) it.forceUpdate(true)
             SkillResult.SUCCESS
-        } ?: SkillResult.ERROR
+        } ?: SkillResult.CONDITION_FAILED
     }
 }

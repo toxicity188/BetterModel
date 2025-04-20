@@ -8,16 +8,17 @@ import io.lumine.mythic.bukkit.MythicBukkit
 import io.lumine.mythic.core.skills.SkillMechanic
 import kr.toxicity.model.api.nms.HitBoxListener
 import kr.toxicity.model.api.tracker.EntityTracker
-import kr.toxicity.model.compatibility.mythicmobs.MM_PART_ID
+import kr.toxicity.model.compatibility.mythicmobs.bonePredicate
 import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderArgs
 import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderString
 import org.bukkit.entity.Damageable
+import org.bukkit.entity.Entity
 
 class BindHitBoxMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), INoTargetSkill {
 
-    private val partId = mlc.toPlaceholderString(MM_PART_ID)
+    private val predicate = mlc.bonePredicate
     private val type = mlc.toPlaceholderString(arrayOf("type", "t", "mob", "m")) {
-        if (it != null) MythicBukkit.inst().mobManager.getMythicMob(it).orElseThrow() else null
+        if (it != null) MythicBukkit.inst().mobManager.getMythicMob(it).orElse(null) else null
     }
 
     init {
@@ -27,12 +28,15 @@ class BindHitBoxMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.ins
     override fun cast(p0: SkillMetadata): SkillResult {
         val args = p0.toPlaceholderArgs()
         return EntityTracker.tracker(p0.caster.entity.bukkitEntity)?.let {
-            val handler = type(args)?.let { e ->
-                val spawned = e.spawn(p0.caster.location, p0.caster.level).entity.bukkitEntity
-                HitBoxListener.builder()
+            type(args)?.let { e ->
+                val spawned = e.spawn(p0.caster.location, p0.caster.level).apply {
+                    setParent(p0.caster)
+                    setOwner(p0.caster.entity.uniqueId)
+                }.entity.bukkitEntity
+                it.createHitBox(predicate(args), HitBoxListener.builder()
                     .sync { hitBox ->
                         if (!spawned.isValid) hitBox.removeHitBox()
-                        else spawned.teleport(it.source().location)
+                        else spawned.teleportAsync((hitBox as Entity).location)
                     }
                     .damage { source, damage ->
                         if (spawned is Damageable) {
@@ -43,13 +47,9 @@ class BindHitBoxMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.ins
                     .remove { hitBox ->
                         spawned.remove()
                     }
-                    .build()
-            } ?: HitBoxListener.EMPTY
-            val get = partId(args) ?: return SkillResult.ERROR
-            it.createHitBox({ e ->
-                e.name.name == get
-            }, handler)
-            SkillResult.SUCCESS
-        } ?: SkillResult.ERROR
+                    .build())
+                SkillResult.SUCCESS
+            } ?: SkillResult.CONDITION_FAILED
+        } ?: SkillResult.CONDITION_FAILED
     }
 }

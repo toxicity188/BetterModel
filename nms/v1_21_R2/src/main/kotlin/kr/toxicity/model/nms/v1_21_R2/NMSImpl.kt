@@ -354,7 +354,7 @@ class NMSImpl : NMS {
                 THIRDPERSON_RIGHTHAND -> ItemDisplayContext.THIRD_PERSON_RIGHT_HAND
                 FIRSTPERSON_LEFTHAND -> ItemDisplayContext.FIRST_PERSON_LEFT_HAND
                 FIRSTPERSON_RIGHTHAND -> ItemDisplayContext.FIRST_PERSON_RIGHT_HAND
-                org.bukkit.entity.ItemDisplay.ItemDisplayTransform.HEAD -> ItemDisplayContext.HEAD
+                HEAD -> ItemDisplayContext.HEAD
                 GUI -> ItemDisplayContext.GUI
                 GROUND -> ItemDisplayContext.GROUND
                 FIXED -> ItemDisplayContext.FIXED
@@ -498,7 +498,7 @@ class NMSImpl : NMS {
         ).apply {
             refreshDimensions()
             handle.level().addFreshEntity(this)
-        }
+        }.craftEntity
     }
 
     override fun version(): NMSVersion = NMSVersion.V1_21_R2

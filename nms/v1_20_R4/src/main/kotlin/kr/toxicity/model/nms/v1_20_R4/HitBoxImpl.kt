@@ -83,7 +83,7 @@ class HitBoxImpl(
     }
     override fun listener(): HitBoxListener = listener
 
-    private val craftEntity: CraftLivingEntity by lazy {
+    val craftEntity: HitBox by lazy {
         object : CraftLivingEntity(Bukkit.getServer() as CraftServer, this), HitBox by this {}
     }
     override fun getArmorSlots(): MutableIterable<ItemStack> = mutableSetOf()
@@ -103,13 +103,13 @@ class HitBoxImpl(
                 noGravity = delegate.isNoGravity
                 delegate.collides = false
             }
-            listener.mount(this, entity)
+            listener.mount(craftEntity, entity)
         }
     }
 
     override fun dismount(entity: Entity) {
         forceDismount = true
-        if (bukkitEntity.removePassenger(entity)) listener.dismount(this, entity)
+        if (bukkitEntity.removePassenger(entity)) listener.dismount(craftEntity, entity)
         forceDismount = false
     }
 
@@ -244,17 +244,17 @@ class HitBoxImpl(
         if (isInLava) delegate.lavaHurt()
         setSharedFlagOnFire(delegate.remainingFireTicks > 0)
         firstTick = false
-        listener.sync(this)
+        listener.sync(craftEntity)
     }
 
     override fun remove(reason: RemovalReason) {
         initialSetup()
-        listener.remove(this)
+        listener.remove(craftEntity)
         super.remove(reason)
     }
 
     override fun getBukkitLivingEntity(): CraftLivingEntity = bukkitEntity
-    override fun getBukkitEntity(): CraftLivingEntity = craftEntity
+    override fun getBukkitEntity(): CraftLivingEntity = craftEntity as CraftLivingEntity
 
     private val dimensions = EntityDimensions(
         max(source.x(), source.z()).toFloat(),
@@ -273,7 +273,7 @@ class HitBoxImpl(
     }
 
     override fun interact(player: Player, hand: InteractionHand): InteractionResult {
-        val interact = ModelInteractEvent(player.bukkitEntity as org.bukkit.entity.Player, this, when (hand) {
+        val interact = ModelInteractEvent(player.bukkitEntity as org.bukkit.entity.Player, craftEntity, when (hand) {
             MAIN_HAND -> Hand.RIGHT
             OFF_HAND -> Hand.LEFT
         })
@@ -302,7 +302,7 @@ class HitBoxImpl(
     override fun hurt(source: DamageSource, amount: Float): Boolean {
         if (source.entity === delegate) return false
         val ds = ModelDamageSourceImpl(source)
-        val event = ModelDamagedEvent(this, ds, amount)
+        val event = ModelDamagedEvent(craftEntity, ds, amount)
         if (!event.call()) return false
         if (listener.damage(ds, amount.toDouble())) return false
         return delegate.hurt(source, event.damage)

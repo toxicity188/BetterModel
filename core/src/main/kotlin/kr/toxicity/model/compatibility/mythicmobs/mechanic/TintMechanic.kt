@@ -25,6 +25,6 @@ class TintMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().sk
                 it.damageTintValue(color(args))
             } else it.tint(predicate(args), color(args))
             SkillResult.SUCCESS
-        } ?: SkillResult.ERROR
+        } ?: SkillResult.CONDITION_FAILED
     }
 }

@@ -30,13 +30,13 @@ class ModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().s
 
     override fun cast(p0: SkillMetadata): SkillResult {
         val args = p0.toPlaceholderArgs()
-        return ModelManagerImpl.renderer(mid(args) ?: return SkillResult.ERROR)?.let {
+        return ModelManagerImpl.renderer(mid(args) ?: return SkillResult.CONDITION_FAILED)?.let {
             val e = p0.caster.entity.bukkitEntity
             val created = it.create(e, TrackerModifier({ s(args) }, st(args), de(args), vr(args), shadow(args)))
             BetterModel.inst().scheduler().taskLater(1, e) {
                 created.spawnNearby()
             }
             SkillResult.SUCCESS
-        } ?: SkillResult.ERROR
+        } ?: SkillResult.CONDITION_FAILED
     }
 }

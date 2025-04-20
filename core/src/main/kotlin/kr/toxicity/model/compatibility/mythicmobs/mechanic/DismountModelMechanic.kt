@@ -37,6 +37,6 @@ class DismountModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.
                 it.hitBox?.dismount(p1.bukkitEntity)
                 SkillResult.SUCCESS
             }
-        } ?: SkillResult.ERROR
+        } ?: SkillResult.CONDITION_FAILED
     }
 }

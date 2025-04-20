@@ -28,8 +28,8 @@ class VFXMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().ski
 
     override fun cast(p0: SkillMetadata): SkillResult {
         val args = p0.toPlaceholderArgs()
-        val m1 = mid(args) ?: return SkillResult.ERROR
-        val s1 = state(args) ?: return SkillResult.ERROR
+        val m1 = mid(args) ?: return SkillResult.CONDITION_FAILED
+        val s1 = state(args) ?: return SkillResult.CONDITION_FAILED
         return ModelManagerImpl.renderer(m1)?.let {
             val e = p0.caster.entity.bukkitEntity
             val created = it.create(e, TrackerModifier({ scl(args) }, st(args), false, 0F, false))
@@ -37,6 +37,6 @@ class VFXMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().ski
                 created.close()
             }) created.spawnNearby() else created.close()
             SkillResult.SUCCESS
-        } ?: SkillResult.ERROR
+        } ?: SkillResult.CONDITION_FAILED
     }
 }

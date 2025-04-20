@@ -20,9 +20,9 @@ class DefaultStateMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.i
         return EntityTracker.tracker(p0.caster.entity.bukkitEntity)?.let {
             val t = type(args)
             val s = state(args)
-            if (t == null || s == null) return SkillResult.ERROR
+            if (t == null || s == null) return SkillResult.CONDITION_FAILED
             it.replaceLoop(t, s)
             SkillResult.SUCCESS
-        } ?: SkillResult.ERROR
+        } ?: SkillResult.CONDITION_FAILED
     }
 }

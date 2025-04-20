@@ -23,12 +23,12 @@ class ChangePartMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.ins
 
     override fun cast(p0: SkillMetadata): SkillResult {
         val args = p0.toPlaceholderArgs()
-        val n1 = nmid(args) ?: return SkillResult.ERROR
-        val n2 = newPart(args) ?: return SkillResult.ERROR
-        val model = ModelManagerImpl.renderer(n1)?.groupByTree(n2)?.itemStack ?: return SkillResult.ERROR
+        val n1 = nmid(args) ?: return SkillResult.CONDITION_FAILED
+        val n2 = newPart(args) ?: return SkillResult.CONDITION_FAILED
+        val model = ModelManagerImpl.renderer(n1)?.groupByTree(n2)?.itemStack ?: return SkillResult.CONDITION_FAILED
         return EntityTracker.tracker(p0.caster.entity.bukkitEntity.uniqueId)?.let {
             if (it.itemStack(predicate(args), model)) it.forceUpdate(true)
             SkillResult.SUCCESS
-        } ?: SkillResult.ERROR
+        } ?: SkillResult.CONDITION_FAILED
     }
 }

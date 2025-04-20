@@ -58,6 +58,6 @@ class MountModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.ins
                 }
                 SkillResult.SUCCESS
             }
-        } ?: SkillResult.ERROR
+        } ?: SkillResult.CONDITION_FAILED
     }
 }

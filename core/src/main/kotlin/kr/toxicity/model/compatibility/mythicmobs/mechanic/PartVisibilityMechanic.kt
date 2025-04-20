@@ -21,6 +21,6 @@ class PartVisibilityMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit
         return EntityTracker.tracker(p0.caster.entity.bukkitEntity)?.let {
             if (it.togglePart(predicate(args), v(args))) it.forceUpdate(true)
             SkillResult.SUCCESS
-        } ?: SkillResult.ERROR
+        } ?: SkillResult.CONDITION_FAILED
     }
 }

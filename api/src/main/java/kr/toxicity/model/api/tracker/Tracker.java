@@ -6,6 +6,8 @@ import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.bone.RenderedBone;
+import kr.toxicity.model.api.event.CloseTrackerEvent;
+import kr.toxicity.model.api.event.CreateTrackerEvent;
 import kr.toxicity.model.api.event.ModelDespawnAtPlayerEvent;
 import kr.toxicity.model.api.event.ModelSpawnAtPlayerEvent;
 import kr.toxicity.model.api.nms.ModelDisplay;
@@ -80,6 +82,7 @@ public abstract class Tracker implements AutoCloseable {
         tint(0xFFFFFF);
         if (modifier.sightTrace()) instance.viewFilter(p -> EntityUtil.canSee(p.getEyeLocation(), location()));
         tick((t, b) -> t.instance.getScriptProcessor().tick());
+        EventUtil.call(new CreateTrackerEvent(this));
     }
 
     /**
@@ -152,6 +155,7 @@ public abstract class Tracker implements AutoCloseable {
     @Override
     public void close() {
         if (isClosed.compareAndSet(false, true)) {
+            EventUtil.call(new CloseTrackerEvent(this));
             task.cancel(true);
             instance.despawn();
         }

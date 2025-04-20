@@ -48,8 +48,8 @@ public interface HitBox {
     void mount(@NotNull Entity entity);
 
     /**
-     * Gets this hit-box has mount driver.
-     * @return has mount driver
+     * Gets this hit-box has a mount driver.
+     * @return has a mount driver
      */
     boolean hasMountDriver();
 
@@ -60,7 +60,7 @@ public interface HitBox {
     void dismount(@NotNull Entity entity);
 
     /**
-     * Checks dismount call is forced by HitBox#dismount(Entity)
+     * Check dismount call is forced by HitBox#dismount(Entity)
      * @return force dismount
      */
     boolean forceDismount();

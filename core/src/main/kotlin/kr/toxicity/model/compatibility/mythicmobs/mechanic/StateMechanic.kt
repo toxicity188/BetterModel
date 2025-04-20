@@ -21,9 +21,9 @@ class StateMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().s
     override fun cast(p0: SkillMetadata): SkillResult {
         val args = p0.toPlaceholderArgs()
         return EntityTracker.tracker(p0.caster.entity.bukkitEntity)?.let {
-            val s = state(args) ?: return SkillResult.ERROR
+            val s = state(args) ?: return SkillResult.CONDITION_FAILED
             if (remove(args)) it.stopAnimation(s) else it.animateSingle(s, AnimationModifier(li(args), lo(args), sp(args)))
             SkillResult.SUCCESS
-        } ?: SkillResult.ERROR
+        } ?: SkillResult.CONDITION_FAILED
     }
 }

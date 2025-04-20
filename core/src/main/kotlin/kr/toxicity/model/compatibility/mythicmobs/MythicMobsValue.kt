@@ -4,6 +4,7 @@ import io.lumine.mythic.api.adapters.AbstractEntity
 import io.lumine.mythic.api.config.MythicLineConfig
 import io.lumine.mythic.api.skills.SkillMetadata
 import kr.toxicity.model.api.util.BonePredicate
+import kr.toxicity.model.util.boneName
 
 val MM_PART_ID = arrayOf("partid", "p", "pid", "part")
 val MM_CHILDREN = arrayOf("children", "child")
@@ -82,7 +83,9 @@ val MythicLineConfig.bonePredicate
 fun MythicLineConfig.toBonePredicate(defaultPredicate: BonePredicate): (PlaceholderArgument) -> BonePredicate {
     val match = toPlaceholderBoolean(MM_EXACT_MATCH, true)
     val children = toPlaceholderBoolean(MM_CHILDREN, false)
-    val partSupplier = toPlaceholderString(MM_PART_ID)
+    val partSupplier = toPlaceholderString(MM_PART_ID) {
+        it?.boneName?.name
+    }
     return { meta ->
         val part = partSupplier(meta)
         if (part == null) defaultPredicate else {
