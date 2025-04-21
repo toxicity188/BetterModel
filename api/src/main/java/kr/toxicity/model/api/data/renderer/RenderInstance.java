@@ -103,7 +103,10 @@ public final class RenderInstance {
 
     public void despawn() {
         for (RenderedBone value : entityMap.values()) {
-            value.despawn();
+            value.iterateTree(b -> {
+                var hb = b.getHitBox();
+                if (hb != null) hb.removeHitBox();
+            });
         }
         var bundler = BetterModel.inst().nms().createBundler();
         remove0(bundler);

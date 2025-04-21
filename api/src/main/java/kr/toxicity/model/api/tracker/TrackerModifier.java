@@ -4,6 +4,7 @@ import kr.toxicity.model.api.util.EntityUtil;
 import kr.toxicity.model.api.util.FunctionUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
@@ -60,8 +61,8 @@ public record TrackerModifier(
          * @param scale scale
          * @return self
          */
-        public @NotNull Builder scale(Supplier<Float> scale) {
-            this.scale = scale;
+        public @NotNull Builder scale(@NotNull Supplier<Float> scale) {
+            this.scale = Objects.requireNonNull(scale, "scale cannot be null.");
             return this;
         }
 

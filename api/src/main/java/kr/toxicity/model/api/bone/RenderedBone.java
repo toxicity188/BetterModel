@@ -55,6 +55,8 @@ public final class RenderedBone implements HitBoxSource {
     private final Collection<TreeIterator> reversedView = animators.sequencedValues().reversed();
     private AnimationMovement keyFrame = null;
     private long delay = 0;
+    private int cachedAnimatorCount;
+    private boolean forceUpdateAnimation;
     private TransformedItemStack cachedItem, itemStack;
 
     private final List<Consumer<AnimationMovement>> movementModifier = new ArrayList<>();
@@ -218,41 +220,52 @@ public final class RenderedBone implements HitBoxSource {
         return false;
     }
 
-    private void updateAnimation() {
+    private boolean shouldUpdateAnimation() {
+        var success = false;
+        var size = animators.size();
+        if (size != cachedAnimatorCount) {
+            cachedAnimatorCount = size;
+            success = true;
+        }
+        if (forceUpdateAnimation) {
+            forceUpdateAnimation = false;
+            success = true;
+        }
+        return success || delay <= 0;
+    }
+
+    private boolean updateAnimation() {
         synchronized (animators) {
             var iterator = reversedView.iterator();
-            var check = true;
             while (iterator.hasNext()) {
                 var next = iterator.next();
                 if (!next.get()) continue;
                 if (currentIterator == null) {
                     if (updateKeyframe(iterator, next)) {
                         currentIterator = next;
-                        check = false;
-                        break;
+                        return true;
                     }
                 } else if (currentIterator != next) {
                     if (updateKeyframe(iterator, next)) {
                         currentIterator.clear();
                         currentIterator = next;
                         delay = 0;
-                        check = false;
-                        break;
+                        return true;
                     }
                 } else if (delay <= 0) {
                     if (updateKeyframe(iterator, next)) {
-                        check = false;
-                        break;
+                        return true;
                     }
                 } else {
-                    check = false;
-                    break;
+                    return false;
                 }
             }
-            if (check) {
+            if (keyFrame != null) {
                 keyFrame = null;
+                return true;
             }
         }
+        return false;
     }
 
     private boolean updateKeyframe(Iterator<TreeIterator> iterator, TreeIterator next) {
@@ -274,8 +287,7 @@ public final class RenderedBone implements HitBoxSource {
             if (d != null) d.rotate(rotation, bundler);
         }
         --delay;
-        updateAnimation();
-        if (delay <= 0) {
+        if (shouldUpdateAnimation() && updateAnimation()) {
             var f = frame();
             delay = f;
             beforeTransform = afterTransform;
@@ -326,8 +338,8 @@ public final class RenderedBone implements HitBoxSource {
                 .add(globalOffset)
                 .add(root.getGroup().getPosition())
                 .mul(scale.get())
-                .rotateX((float) -Math.toRadians(rotation.x()))
-                .rotateY((float) -Math.toRadians(rotation.y()));
+                .rotateX(-rotation.radianX())
+                .rotateY(-rotation.radianY());
     }
 
     private void setup(@NotNull BoneMovement boneMovement) {
@@ -356,7 +368,7 @@ public final class RenderedBone implements HitBoxSource {
         return keyFrame != null ? Math.round(keyFrame.time() * 100) : parent != null ? parent.frame() : 5;
     }
 
-    private BoneMovement defaultFrame() {
+    private @NotNull BoneMovement defaultFrame() {
         var k = keyFrame != null ? keyFrame.copyNotNull() : new AnimationMovement(0, new Vector3f(), new Vector3f(), new Vector3f());
         synchronized (movementModifier) {
             for (Consumer<AnimationMovement> consumer : movementModifier) {
@@ -371,7 +383,7 @@ public final class RenderedBone implements HitBoxSource {
         return f == 0 ? 0F : delay / (float) f;
     }
 
-    private BoneMovement relativeOffset() {
+    private @NotNull BoneMovement relativeOffset() {
         if (relativeOffsetCache != null) return relativeOffsetCache;
         var def = defaultFrame();
         if (parent != null) {
@@ -420,6 +432,7 @@ public final class RenderedBone implements HitBoxSource {
             synchronized (animators) {
                 animators.putLast(parent, iterator);
             }
+            forceUpdateAnimation = true;
         }
     }
 
@@ -430,6 +443,7 @@ public final class RenderedBone implements HitBoxSource {
             synchronized (animators) {
                 animators.putLast(parent, iterator);
             }
+            forceUpdateAnimation = true;
         }
     }
 
@@ -443,6 +457,7 @@ public final class RenderedBone implements HitBoxSource {
                 }) : new TreeIterator(parent, animator.emptyLoopIterator(), AnimationModifier.DEFAULT_LOOP, () -> {
                 }));
             }
+            forceUpdateAnimation = true;
         }
     }
 
@@ -456,6 +471,7 @@ public final class RenderedBone implements HitBoxSource {
                 }) : new TreeIterator(parent, animator.emptySingleIterator(), AnimationModifier.DEFAULT, () -> {
                 }));
             }
+            forceUpdateAnimation = true;
         }
     }
 
@@ -539,11 +555,13 @@ public final class RenderedBone implements HitBoxSource {
 
     public record RunningAnimation(@NotNull String name, @NotNull AnimationIterator.Type type) {}
 
-    private static class TreeIterator implements AnimationIterator, Supplier<Boolean>, Runnable {
+    private class TreeIterator implements AnimationIterator, Supplier<Boolean>, Runnable {
         private final RunningAnimation animation;
         private final AnimationIterator iterator;
         private final AnimationModifier modifier;
         private final Runnable removeTask;
+
+        private final AnimationMovement previous;
 
         private boolean started = false;
         private boolean ended = false;
@@ -555,6 +573,8 @@ public final class RenderedBone implements HitBoxSource {
             this.iterator = iterator;
             this.modifier = modifier;
             this.removeTask = removeTask;
+
+            previous = keyFrame != null ? keyFrame.time((float) modifier.end() / 20) : new AnimationMovement((float) modifier.end() / 20, null, null, null);
         }
 
         @NotNull
@@ -601,7 +621,7 @@ public final class RenderedBone implements HitBoxSource {
             }
             if (!iterator.hasNext()) {
                 ended = true;
-                return new AnimationMovement((float) modifier.end() / 20, null, null, null);
+                return previous;
             }
             var nxt = iterator.next();
             nxt = nxt.time(Math.max(nxt.time() / (cachedSpeed = modifier.speedValue()), 0.01F));
@@ -638,11 +658,5 @@ public final class RenderedBone implements HitBoxSource {
     @Override
     public ModelRotation hitBoxRotation() {
         return rotation;
-    }
-
-    public void despawn() {
-        iterateTree(b -> {
-            if (b.hitBox != null) b.hitBox.removeHitBox();
-        });
     }
 }

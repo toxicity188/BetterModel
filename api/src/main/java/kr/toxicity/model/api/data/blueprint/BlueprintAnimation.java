@@ -40,7 +40,7 @@ public record BlueprintAnimation(
         var map = new HashMap<BoneName, BlueprintAnimator.AnimatorData>();
         BlueprintScript blueprintScript = BlueprintScript.emptyOf(animation);
         var animator = animation.animators();
-        if (animator != null) for (Map.Entry<String, ModelAnimator> entry : animator.entrySet()) {
+        for (Map.Entry<String, ModelAnimator> entry : animator.entrySet()) {
             var builder = new BlueprintAnimator.Builder(animation.length());
             var frameList = new ArrayList<>(entry.getValue().keyframes());
             frameList.sort(Comparator.naturalOrder());
@@ -63,7 +63,7 @@ public record BlueprintAnimation(
                 .toList());
     }
 
-    private static Map<BoneName, BlueprintAnimator> newMap(@NotNull Map<BoneName, BlueprintAnimator.AnimatorData> oldMap) {
+    private static @NotNull Map<BoneName, BlueprintAnimator> newMap(@NotNull Map<BoneName, BlueprintAnimator.AnimatorData> oldMap) {
         var newMap = new HashMap<BoneName, BlueprintAnimator>();
         Set<Float> floatSet = new TreeSet<>(Comparator.naturalOrder());
         oldMap.values().forEach(a -> a.points().stream().map(t -> t.position().time()).forEach(floatSet::add));
@@ -78,7 +78,7 @@ public record BlueprintAnimation(
         return newMap;
     }
 
-    private static @NotNull List<AnimationMovement> getAnimationMovements(Set<Float> floatSet, Map.Entry<BoneName, BlueprintAnimator.AnimatorData> entry) {
+    private static @NotNull List<AnimationMovement> getAnimationMovements(@NotNull Set<Float> floatSet, @NotNull Map.Entry<BoneName, BlueprintAnimator.AnimatorData> entry) {
         var frame = entry.getValue().points();
         if (frame.isEmpty()) return Collections.emptyList();
         var list = VectorUtil.putAnimationPoint(frame, floatSet).stream().map(AnimationPoint::toMovement).collect(Collectors.toList());
@@ -100,7 +100,7 @@ public record BlueprintAnimation(
      * Gets loop iterator.
      * @return iterator
      */
-    public AnimationIterator.Loop emptyLoopIterator() {
+    public @NotNull AnimationIterator.Loop emptyLoopIterator() {
         return AnimationIterator.loop(emptyAnimator);
     }
 
@@ -108,7 +108,7 @@ public record BlueprintAnimation(
      * Gets single iterator.
      * @return iterator
      */
-    public AnimationIterator.PlayOnce emptySingleIterator() {
+    public @NotNull AnimationIterator.PlayOnce emptySingleIterator() {
         return AnimationIterator.playOnce(emptyAnimator);
     }
 }

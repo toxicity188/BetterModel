@@ -14,15 +14,25 @@ public record ModelRotation(float x, float y) {
     public static final ModelRotation EMPTY = new ModelRotation(0, 0);
 
     private static final float DEGREE_TO_PACK = 256F / 360F;
+    private static final float DEGREE_TO_RADIAN = (float) Math.PI / 180F;
 
     @Override
     public boolean equals(Object o) {
+        if (o == this) return true;
         return o instanceof ModelRotation other && packedX() == other.packedX() && packedY() == other.packedY();
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(packedX(), packedY());
+    }
+
+    public float radianX() {
+        return x * DEGREE_TO_RADIAN;
+    }
+
+    public float radianY() {
+        return y * DEGREE_TO_RADIAN;
     }
 
     public byte packedX() {

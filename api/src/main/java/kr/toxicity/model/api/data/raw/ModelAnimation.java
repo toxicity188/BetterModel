@@ -4,6 +4,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -22,4 +23,9 @@ public record ModelAnimation(
         float length,
         @Nullable Map<String, ModelAnimator> animators
 ) {
+    @Override
+    @NotNull
+    public Map<String, ModelAnimator> animators() {
+        return animators != null ? animators : Collections.emptyMap();
+    }
 }

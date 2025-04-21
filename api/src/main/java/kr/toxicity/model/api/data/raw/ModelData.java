@@ -31,7 +31,7 @@ public record ModelData(
      * @return scale
      */
     public float scale() {
-        return (float) elements().stream().mapToDouble(ModelElement::max).max().orElseThrow() / 16F;
+        return (float) elements().stream().mapToDouble(ModelElement::max).max().orElse(16F) / 16F;
     }
 
     /**

@@ -44,7 +44,7 @@ public interface BonePredicate extends Predicate<RenderedBone> {
      * @return bone predicate
      */
     static @NotNull BonePredicate of(boolean applyAtChildren, @NotNull Predicate<RenderedBone> predicate) {
-        Objects.requireNonNull(predicate);
+        Objects.requireNonNull(predicate, "predicate cannot be null.");
         return new BonePredicate() {
             @Override
             public boolean applyAtChildren() {

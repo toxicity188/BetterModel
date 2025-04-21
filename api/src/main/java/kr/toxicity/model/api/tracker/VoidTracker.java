@@ -37,7 +37,7 @@ public final class VoidTracker extends Tracker {
      * Moves model to another location.
      * @param location location
      */
-    public void location(Location location) {
+    public void location(@NotNull Location location) {
         this.location = Objects.requireNonNull(location, "location");
         var bundler = BetterModel.inst().nms().createBundler();
         instance.teleport(location, bundler);
