@@ -2,6 +2,7 @@ package kr.toxicity.model.api.manager;
 
 import kr.toxicity.model.api.config.DebugConfig;
 import kr.toxicity.model.api.config.ModuleConfig;
+import kr.toxicity.model.api.mount.MountController;
 import org.bukkit.Material;
 import org.jetbrains.annotations.NotNull;
 
@@ -111,6 +112,13 @@ public interface ConfigManager {
      * @return send or not
      */
     boolean versionCheck();
+
+    /**
+     * Gets the default mount controller
+     * @see kr.toxicity.model.api.mount.MountControllers
+     * @return mount controller
+     */
+    @NotNull MountController defaultMountController();
 
     /**
      * Pack type

@@ -5,6 +5,8 @@ import kr.toxicity.model.api.config.ModuleConfig
 import kr.toxicity.model.api.manager.ConfigManager
 import kr.toxicity.model.api.manager.ConfigManager.PackType
 import kr.toxicity.model.api.manager.ReloadInfo
+import kr.toxicity.model.api.mount.MountController
+import kr.toxicity.model.api.mount.MountControllers
 import kr.toxicity.model.api.util.EntityUtil
 import kr.toxicity.model.configuration.PluginConfiguration
 import kr.toxicity.model.util.PLUGIN
@@ -32,6 +34,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     private var createPackMcmeta = true
     private var usePurpurAfk = true
     private var versionCheck = true
+    private var defaultMountController = MountControllers.WALK
 
     override fun debug(): DebugConfig = debug
     override fun module(): ModuleConfig = module
@@ -50,6 +53,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     override fun createPackMcmeta(): Boolean = createPackMcmeta
     override fun usePurpurAfk(): Boolean = usePurpurAfk
     override fun versionCheck(): Boolean = versionCheck
+    override fun defaultMountController(): MountController = defaultMountController
 
     override fun reload(info: ReloadInfo) {
         val yaml = PluginConfiguration.CONFIG.create()
@@ -88,5 +92,11 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
         followMobInvisibility = yaml.getBoolean("follow-mob-invisibility", true)
         usePurpurAfk = yaml.getBoolean("use-purpur-afk", true)
         versionCheck = yaml.getBoolean("version-check", true)
+        defaultMountController = when (yaml.getString("default-mount-controller")?.lowercase()) {
+            "invalid" -> MountControllers.INVALID
+            "none" -> MountControllers.NONE
+            "fly" -> MountControllers.FLY
+            else -> MountControllers.WALK
+        }
     }
 }

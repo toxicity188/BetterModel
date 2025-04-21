@@ -19,3 +19,4 @@ animated-texture-frame-time: 10
 create-pack-mcmeta: true
 use-purpur-afk: true
 version-check: true
+default-mount-controller: walk

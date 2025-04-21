@@ -10,7 +10,6 @@ import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.HitBoxListener
 import kr.toxicity.model.api.nms.HitBoxSource
-import kr.toxicity.model.api.util.FunctionUtil
 import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.InteractionHand
@@ -35,7 +34,6 @@ import org.bukkit.craftbukkit.entity.CraftLivingEntity
 import org.bukkit.entity.Entity
 import org.bukkit.event.entity.EntityPotionEffectEvent
 import org.joml.Vector3f
-import java.util.function.Supplier
 
 class HitBoxImpl(
     private val name: BoneName,
@@ -44,7 +42,7 @@ class HitBoxImpl(
     private val listener: HitBoxListener,
     private val delegate: LivingEntity,
     private var mountController: MountController
-) : LivingEntity(EntityType.SLIME, delegate.level()), HitBox {
+) : LivingEntity(EntityType.ARMOR_STAND, delegate.level()), HitBox {
     private var initialized = false
     private var jumpDelay = 0
     private var mounted = false
@@ -56,11 +54,6 @@ class HitBoxImpl(
     val craftEntity: HitBox by lazy {
         object : CraftLivingEntity(Bukkit.getServer() as CraftServer, this), HitBox by this {}
     }
-    private val positionSupplier = FunctionUtil.throttleTick(Supplier {
-        delegate.position().run {
-            supplier.hitBoxPosition().add(x.toFloat(), y.toFloat(), z.toFloat())
-        }
-    })
     private val _dimensions = EntityDimensions(
         (source.x() + source.z()).toFloat() / 2,
         source.y().toFloat(),
@@ -101,7 +94,9 @@ class HitBoxImpl(
     override fun mountController(controller: MountController) {
         this.mountController = controller
     }
-    override fun relativePosition(): Vector3f = positionSupplier.get()
+    override fun relativePosition(): Vector3f = delegate.position().run {
+        supplier.hitBoxPosition().add(x.toFloat(), y.toFloat(), z.toFloat())
+    }
     override fun listener(): HitBoxListener = listener
 
     override fun getArmorSlots(): MutableIterable<ItemStack> = mutableSetOf()

@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.data.renderer;
 
+import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.BoneTag;
 import kr.toxicity.model.api.data.blueprint.BlueprintChildren;
@@ -89,7 +90,7 @@ public final class RendererGroup {
         rotation = group.rotation().toVector();
         center = hitBox != null ? hitBox.centerPoint() : new Vector3f();
         if (name.tagged(BoneTag.SEAT)) {
-            mountController = MountControllers.WALK;
+            mountController = BetterModel.inst().configManager().defaultMountController();
         } else if (name.tagged(BoneTag.SUB_SEAT)) {
             mountController = MountControllers.NONE;
         } else mountController = MountControllers.INVALID;

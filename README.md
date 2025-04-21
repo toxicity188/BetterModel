@@ -22,7 +22,7 @@ This plugin implements the server-side model by using an item-display packet.
 - Playing animation
 - Syncing with base entity
 - Custom hit box
-- Player animation
+- Supports 12-limb player animation
 
 ### Why do I create BetterModel even though ModelEngine already exists?
 The main reason I created it is:
@@ -44,7 +44,7 @@ This plugin can optimize network by **sight-trace**. It won't send packets when 
 ![5](https://github.com/user-attachments/assets/0fc3250d-ef4f-4e64-9cc2-c143a474d046)  
 This plugin provides multiple hit-box both client and server. (tracking animation rotation)
 
-### MythicMobs support (experimental)
+### MythicMobs support
 ![6](https://github.com/user-attachments/assets/06804f8c-af0d-46ce-adff-b868b65ba44a)  
 ![7](https://github.com/user-attachments/assets/d2f7e69f-dce1-4fa6-84cd-83b35560a0b4)  
 Like MEG, This plugin implements simple MythicMobs support.
@@ -61,7 +61,7 @@ glow
 enchant
 bindhitbox
 moutmodel
-dismountmodel
+dismountmodel****
 dismountallmodel
 ```
 - targeter
