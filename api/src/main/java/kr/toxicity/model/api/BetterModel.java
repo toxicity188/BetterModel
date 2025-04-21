@@ -19,7 +19,9 @@ public final class BetterModel {
     /**
      * Private initializer
      */
-    private BetterModel() {}
+    private BetterModel() {
+        throw new RuntimeException();
+    }
 
     /**
      * Check a running platform is Folia.

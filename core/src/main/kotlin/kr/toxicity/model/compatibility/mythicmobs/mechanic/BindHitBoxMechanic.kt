@@ -28,28 +28,27 @@ class BindHitBoxMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.ins
     override fun cast(p0: SkillMetadata): SkillResult {
         val args = p0.toPlaceholderArgs()
         return EntityTracker.tracker(p0.caster.entity.bukkitEntity)?.let {
-            type(args)?.let { e ->
-                val spawned = e.spawn(p0.caster.location, p0.caster.level).apply {
-                    setParent(p0.caster)
-                    setOwner(p0.caster.entity.uniqueId)
-                }.entity.bukkitEntity
-                it.createHitBox(predicate(args), HitBoxListener.builder()
-                    .sync { hitBox ->
-                        if (!spawned.isValid) hitBox.removeHitBox()
-                        else spawned.teleportAsync((hitBox as Entity).location)
-                    }
-                    .damage { source, damage ->
-                        if (spawned is Damageable) {
-                            spawned.damage(damage, source.causingEntity)
-                            true
-                        } else false
-                    }
-                    .remove { hitBox ->
-                        spawned.remove()
-                    }
-                    .build())
-                SkillResult.SUCCESS
-            } ?: SkillResult.CONDITION_FAILED
+            val e = type(args) ?: return SkillResult.CONDITION_FAILED
+            val spawned = e.spawn(p0.caster.location, p0.caster.level).apply {
+                setParent(p0.caster)
+                setOwner(p0.caster.entity.uniqueId)
+            }.entity.bukkitEntity
+            it.createHitBox(predicate(args), HitBoxListener.builder()
+                .sync { hitBox ->
+                    if (!spawned.isValid) hitBox.removeHitBox()
+                    else spawned.teleportAsync((hitBox as Entity).location)
+                }
+                .damage { source, damage ->
+                    if (spawned is Damageable) {
+                        spawned.damage(damage, source.causingEntity)
+                        true
+                    } else false
+                }
+                .remove { hitBox ->
+                    spawned.remove()
+                }
+                .build())
+            SkillResult.SUCCESS
         } ?: SkillResult.CONDITION_FAILED
     }
 }

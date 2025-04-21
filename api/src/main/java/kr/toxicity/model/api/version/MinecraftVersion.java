@@ -12,18 +12,6 @@ import java.util.Comparator;
  */
 public record MinecraftVersion(int first, int second, int third) implements Comparable<MinecraftVersion> {
     /**
-     * Comparator
-     */
-    private static final Comparator<MinecraftVersion> COMPARATOR = Comparator.comparing(MinecraftVersion::first)
-            .thenComparing(MinecraftVersion::second)
-            .thenComparing(MinecraftVersion::third);
-
-    @Override
-    public int compareTo(@NotNull MinecraftVersion o) {
-        return COMPARATOR.compare(this, o);
-    }
-
-    /**
      * 1.21.5
      */
     public static final MinecraftVersion V1_21_5 = new MinecraftVersion(1, 21, 5);
@@ -69,6 +57,13 @@ public record MinecraftVersion(int first, int second, int third) implements Comp
     public static final MinecraftVersion V1_20_2 = new MinecraftVersion(1, 20, 2);
 
     /**
+     * Comparator
+     */
+    private static final Comparator<MinecraftVersion> COMPARATOR = Comparator.comparing(MinecraftVersion::first)
+            .thenComparing(MinecraftVersion::second)
+            .thenComparing(MinecraftVersion::third);
+
+    /**
      * Parses version from string
      * @param version version like "1.21.5"
      */
@@ -85,6 +80,11 @@ public record MinecraftVersion(int first, int second, int third) implements Comp
                 version.length > 1 ? Integer.parseInt(version[1]) : 0,
                 version.length > 2 ? Integer.parseInt(version[2]) : 0
         );
+    }
+
+    @Override
+    public int compareTo(@NotNull MinecraftVersion o) {
+        return COMPARATOR.compare(this, o);
     }
 
     @NotNull

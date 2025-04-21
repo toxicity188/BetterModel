@@ -31,6 +31,7 @@ import java.util.function.*;
 public final class RenderedBone implements HitBoxSource {
 
     private static final Vector3f EMPTY_VECTOR = new Vector3f();
+    private static final Quaternionf EMPTY_QUATERNION = new Quaternionf();
 
     @Getter
     @NotNull
@@ -55,7 +56,6 @@ public final class RenderedBone implements HitBoxSource {
     private final Collection<TreeIterator> reversedView = animators.sequencedValues().reversed();
     private AnimationMovement keyFrame = null;
     private long delay = 0;
-    private int cachedAnimatorCount;
     private boolean forceUpdateAnimation;
     private TransformedItemStack cachedItem, itemStack;
 
@@ -222,16 +222,11 @@ public final class RenderedBone implements HitBoxSource {
 
     private boolean shouldUpdateAnimation() {
         var success = false;
-        var size = animators.size();
-        if (size != cachedAnimatorCount) {
-            cachedAnimatorCount = size;
-            success = true;
-        }
         if (forceUpdateAnimation) {
             forceUpdateAnimation = false;
             success = true;
         }
-        return success || delay <= 0;
+        return success || delay <= 0 || delay % 5 == 0;
     }
 
     private boolean updateAnimation() {
@@ -355,7 +350,7 @@ public final class RenderedBone implements HitBoxSource {
                     new Vector3f(boneMovement.scale())
                             .mul(itemStack.scale())
                             .mul(mul),
-                    new Quaternionf()
+                    EMPTY_QUATERNION
             ));
         }
     }

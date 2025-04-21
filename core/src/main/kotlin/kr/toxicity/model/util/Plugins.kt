@@ -13,3 +13,7 @@ fun info(vararg message: String) = PLUGIN.logger().info(*message)
 fun warn(vararg message: String) = PLUGIN.logger().warn(*message)
 
 fun Throwable.handleException(message: String) = LogUtil.handleException(message, this)
+
+fun <T> Result<T>.handleFailure(lazyMessage: () -> String) = onFailure {
+    it.handleException(lazyMessage())
+}
