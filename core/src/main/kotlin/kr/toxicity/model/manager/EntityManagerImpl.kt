@@ -37,7 +37,7 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
             }
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun EntityJumpEvent.jump() {
-                EntityTracker.tracker(entity)?.animateSingle("jump")
+                EntityTracker.tracker(entity)?.animate("jump")
             }
         })
         else registerListener(object : Listener {
@@ -108,7 +108,7 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun EntityDeathEvent.death() {
                 EntityTracker.tracker(entity)?.let {
-                    if (!it.animateSingle("death", AnimationModifier.DEFAULT) {
+                    if (!it.animate("death", AnimationModifier.DEFAULT) {
                         it.close()
                     }) it.close()
                     else it.forRemoval(true)
@@ -127,7 +127,7 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
                     }
                 }
                 EntityTracker.tracker(entity)?.let {
-                    if (it.animateSingle("damage", AnimationModifier.DEFAULT) {
+                    if (it.animate("damage", AnimationModifier.DEFAULT) {
                         it.tint(0xFFFFFF)
                     }) it.tint(it.damageTintValue())
                     else {

@@ -2,6 +2,7 @@ package kr.toxicity.model.api.data.raw;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -12,7 +13,7 @@ import java.util.List;
  */
 @ApiStatus.Internal
 public record ModelAnimator(
-        @NotNull String name,
+        @Nullable String name,
         @NotNull List<ModelKeyframe> keyframes
 ) {
 }

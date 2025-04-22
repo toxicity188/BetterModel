@@ -33,7 +33,7 @@ class VFXMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().ski
         return ModelManagerImpl.renderer(m1)?.let {
             val e = p0.caster.entity.bukkitEntity
             val created = it.create(e, TrackerModifier({ scl(args) }, st(args), false, 0F, false))
-            if (created.animateSingle(s1, AnimationModifier(0, 0, spd(args))) {
+            if (created.animate(s1, AnimationModifier(0, 0, spd(args))) {
                 created.close()
             }) created.spawnNearby() else created.close()
             SkillResult.SUCCESS

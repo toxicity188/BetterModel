@@ -1,6 +1,7 @@
 package kr.toxicity.model.api.tracker;
 
 import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.bone.BoneTag;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
@@ -167,10 +168,10 @@ public class EntityTracker extends Tracker {
             return hitBox != null && hitBox.onWalk();
         }));
         var walkSpeedSupplier = FunctionUtil.throttleTick(modifier.damageEffect() ? () -> adapter.walkSpeed() + 4F * (float) Math.sqrt(damageTickProvider.get()) : () -> 1F);
-        instance.animateLoop("walk", new AnimationModifier(walkSupplier, 4, 0, walkSpeedSupplier));
-        instance.animateLoop("idle_fly", new AnimationModifier(adapter::fly, 4, 0, 1F));
-        instance.animateLoop("walk_fly", new AnimationModifier(() -> adapter.fly() && walkSupplier.get(), 4, 0, walkSpeedSupplier));
-        instance.animateSingle("spawn");
+        instance.animate("walk", new AnimationModifier(walkSupplier, 4, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
+        instance.animate("idle_fly", new AnimationModifier(adapter::fly, 4, 0, AnimationIterator.Type.LOOP, 1F));
+        instance.animate("walk_fly", new AnimationModifier(() -> adapter.fly() && walkSupplier.get(), 4, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
+        instance.animate("spawn");
         TRACKER_MAP.put(entity.getUniqueId(), this);
         BetterModel.inst().scheduler().task(entity, () -> {
             entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, instance.getParent().getParent().name());

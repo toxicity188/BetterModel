@@ -1,16 +1,22 @@
 package kr.toxicity.model.api.animation;
 
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * A keyframe iterator of animation.
  */
 public interface AnimationIterator extends Iterator<AnimationMovement> {
+
     /**
      * Gets the first element of animation.
      * @return first element
@@ -36,9 +42,32 @@ public interface AnimationIterator extends Iterator<AnimationMovement> {
 
     @NotNull Type type();
 
+    @RequiredArgsConstructor
     enum Type {
-        PLAY_ONCE,
-        LOOP
+        PLAY_ONCE(PlayOnce::new),
+        LOOP(Loop::new),
+        HOLD_ON_LAST(HoldOnLast::new)
+        ;
+
+        public static final JsonDeserializer<Type> DESERIALIZER = new JsonDeserializer<>() {
+            @Override
+            public Type deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+                if (json.isJsonPrimitive()) {
+                    return switch (json.getAsString()) {
+                        case "loop" -> LOOP;
+                        case "hold" -> HOLD_ON_LAST;
+                        default -> PLAY_ONCE;
+                    };
+                }
+                return PLAY_ONCE;
+            }
+        };
+
+        private final Function<List<AnimationMovement>, AnimationIterator> mapper;
+
+        public @NotNull AnimationIterator create(@NotNull List<AnimationMovement> keyFrames) {
+            return mapper.apply(keyFrames);
+        }
     }
 
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
@@ -82,6 +111,50 @@ public interface AnimationIterator extends Iterator<AnimationMovement> {
         @Override
         public Type type() {
             return Type.PLAY_ONCE;
+        }
+    }
+
+    @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+    final class HoldOnLast implements AnimationIterator {
+        private final List<AnimationMovement> keyFrame;
+        private int index = 0;
+
+        @NotNull
+        @Override
+        public AnimationMovement first() {
+            return keyFrame.getFirst();
+        }
+
+        @Override
+        public int index() {
+            return index;
+        }
+
+        @Override
+        public int lastIndex() {
+            return keyFrame.size() - 1;
+        }
+
+        @Override
+        public void clear() {
+            index = 0;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return index < keyFrame.size();
+        }
+
+        @Override
+        @NotNull
+        public AnimationMovement next() {
+            return (index < keyFrame.size()) ? keyFrame.get(index++) : keyFrame.getLast();
+        }
+
+        @NotNull
+        @Override
+        public Type type() {
+            return Type.HOLD_ON_LAST;
         }
     }
 

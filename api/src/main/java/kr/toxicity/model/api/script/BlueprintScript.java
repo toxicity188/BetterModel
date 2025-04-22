@@ -97,6 +97,16 @@ public record BlueprintScript(@NotNull String name, int length, @NotNull List<Ti
         return new LoopScriptReader(delay, speed);
     }
 
+    /**
+     * Gets script reader by hold on last
+     * @param delay delay
+     * @param speed speed
+     * @return reader
+     */
+    public @NotNull ScriptReader holdOn(int delay, float speed) {
+        return new HoldOnLastScriptReader(delay, speed);
+    }
+
     private class SingleScriptReader implements ScriptReader {
 
         private final int initialDelay;
@@ -136,6 +146,7 @@ public record BlueprintScript(@NotNull String name, int length, @NotNull List<Ti
             return script;
         }
     }
+
     private class LoopScriptReader implements ScriptReader {
 
         private final int initialDelay;
@@ -160,6 +171,47 @@ public record BlueprintScript(@NotNull String name, int length, @NotNull List<Ti
                 if (index >= scripts.size()) {
                     delay = Math.round((float) length / speed);
                     index = 0;
+                    script = null;
+                    return false;
+                }
+                var next = scripts.get(index++);
+                delay = Math.round(next.time() * 20 / speed);
+                script = next.script();
+            } else {
+                script = null;
+            }
+            return false;
+        }
+
+        @Nullable
+        @Override
+        public EntityScript script() {
+            return script;
+        }
+    }
+
+    private class HoldOnLastScriptReader implements ScriptReader {
+
+        private final int initialDelay;
+        private int index, delay;
+        private final float speed;
+        private @Nullable EntityScript script;
+
+        private HoldOnLastScriptReader(int initialDelay, float speed) {
+            this.initialDelay = delay = initialDelay;
+            this.speed = speed;
+        }
+
+        @Override
+        public void clear() {
+            index = 0;
+            delay = initialDelay;
+        }
+
+        @Override
+        public boolean tick() {
+            if (--delay <= 0) {
+                if (index >= scripts.size()) {
                     script = null;
                     return false;
                 }

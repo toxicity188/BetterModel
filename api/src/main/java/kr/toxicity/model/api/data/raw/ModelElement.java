@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.data.raw;
 
+import com.google.gson.annotations.SerializedName;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
  * @param rotation rotation
  * @param origin origin
  * @param faces uv
+ * @param _visibility visibility
  */
 @ApiStatus.Internal
 public record ModelElement(
@@ -24,7 +26,8 @@ public record ModelElement(
         float inflate,
         @Nullable Float3 rotation,
         @NotNull Float3 origin,
-        @NotNull ModelFace faces
+        @NotNull ModelFace faces,
+        @SerializedName("visibility") @Nullable Boolean _visibility
 ) {
     /**
      * Gets max length of this cube
@@ -32,6 +35,10 @@ public record ModelElement(
      */
     public float max() {
         return to.minus(from).toVector().length();
+    }
+
+    public boolean visibility() {
+        return !Boolean.FALSE.equals(_visibility);
     }
 
     /**

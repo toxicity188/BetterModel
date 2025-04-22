@@ -14,6 +14,9 @@ import net.minecraft.server.level.ServerPlayer
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.*
 import net.minecraft.world.entity.ai.attributes.Attributes
+import net.minecraft.world.entity.ai.goal.RangedAttackGoal
+import net.minecraft.world.entity.ai.goal.RangedBowAttackGoal
+import net.minecraft.world.entity.ai.goal.RangedCrossbowAttackGoal
 import net.minecraft.world.entity.animal.FlyingAnimal
 import net.minecraft.world.phys.Vec3
 import org.bukkit.craftbukkit.entity.CraftEntity
@@ -62,7 +65,12 @@ fun SynchedEntityData.pack(): List<SynchedEntityData.DataValue<*>> {
 
 fun Entity.isWalking(): Boolean {
     return controllingPassenger?.isWalking() ?: when (this) {
-        is Mob -> navigation.isInProgress && deltaMovement.horizontalDistance() > 0.002
+        is Mob -> (navigation.isInProgress || goalSelector.availableGoals.any {
+            it.isRunning && when (it.goal) {
+                is RangedAttackGoal, is RangedCrossbowAttackGoal<*>, is RangedBowAttackGoal<*> -> true
+                else -> false
+            }
+        }) && deltaMovement.horizontalDistance() > 0.002
         is ServerPlayer -> xMovement() != 0F || zMovement() != 0F
         else -> false
     }

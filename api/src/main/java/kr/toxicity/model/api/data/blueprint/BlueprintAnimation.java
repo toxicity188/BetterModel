@@ -19,14 +19,18 @@ import java.util.stream.Collectors;
 /**
  * A model animation.
  * @param name animation name
+ * @param loop loop mode
  * @param length frame length
+ * @param override override
  * @param animator group animator
  * @param emptyAnimator empty animation ([0, 0, 0]).
  * @param script script
  */
 public record BlueprintAnimation(
         @NotNull String name,
+        @NotNull AnimationIterator.Type loop,
         float length,
+        boolean override,
         @NotNull @Unmodifiable Map<BoneName, BlueprintAnimator> animator,
         @NotNull BlueprintScript script,
         @NotNull List<AnimationMovement> emptyAnimator
@@ -41,26 +45,35 @@ public record BlueprintAnimation(
         BlueprintScript blueprintScript = BlueprintScript.emptyOf(animation);
         var animator = animation.animators();
         for (Map.Entry<String, ModelAnimator> entry : animator.entrySet()) {
+            var name = entry.getValue().name();
+            if (name == null) continue;
             var builder = new BlueprintAnimator.Builder(animation.length());
             var frameList = new ArrayList<>(entry.getValue().keyframes());
             frameList.sort(Comparator.naturalOrder());
             for (ModelKeyframe keyframe : frameList) {
                 builder.addFrame(keyframe);
             }
-            var name = entry.getValue().name();
             if (entry.getKey().equals("effects")) {
                 blueprintScript = BlueprintScript.from(animation, entry.getValue());
             }
             else map.put(BoneTag.parse(name), builder.build(name));
         }
         var newMap = newMap(map);
-        return new BlueprintAnimation(animation.name(), animation.length(), newMap, blueprintScript, newMap.isEmpty() ? List.of(new AnimationMovement(0, null, null, null)) : newMap.values()
-                .iterator()
-                .next()
-                .keyFrame()
-                .stream()
-                .map(a -> new AnimationMovement(a.time(), null, null, null))
-                .toList());
+        return new BlueprintAnimation(
+                animation.name(),
+                animation.loop(),
+                animation.length(),
+                animation.override(),
+                newMap,
+                blueprintScript,
+                newMap.isEmpty() ? List.of(new AnimationMovement(0, null, null, null)) : newMap.values()
+                        .iterator()
+                        .next()
+                        .keyFrame()
+                        .stream()
+                        .map(a -> new AnimationMovement(a.time(), null, null, null))
+                        .toList()
+        );
     }
 
     private static @NotNull Map<BoneName, BlueprintAnimator> newMap(@NotNull Map<BoneName, BlueprintAnimator.AnimatorData> oldMap) {
@@ -97,18 +110,18 @@ public record BlueprintAnimation(
     }
 
     /**
-     * Gets loop iterator.
+     * Gets iterator.
      * @return iterator
      */
-    public @NotNull AnimationIterator.Loop emptyLoopIterator() {
-        return AnimationIterator.loop(emptyAnimator);
+    public @NotNull AnimationIterator emptyIterator() {
+        return emptyIterator(loop);
     }
-
     /**
-     * Gets single iterator.
+     * Gets iterator.
+     * @param type type
      * @return iterator
      */
-    public @NotNull AnimationIterator.PlayOnce emptySingleIterator() {
-        return AnimationIterator.playOnce(emptyAnimator);
+    public @NotNull AnimationIterator emptyIterator(@NotNull AnimationIterator.Type type) {
+        return type.create(emptyAnimator);
     }
 }

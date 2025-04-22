@@ -14,10 +14,13 @@ import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderBoolean
 import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderFloat
 import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderString
 import kr.toxicity.model.manager.ModelManagerImpl
+import kr.toxicity.model.util.toPackName
 
 class ModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), INoTargetSkill {
 
-    private val mid = mlc.toPlaceholderString(arrayOf("mid", "m", "model"))
+    private val mid = mlc.toPlaceholderString(arrayOf("mid", "m", "model")) {
+        it?.toPackName()
+    }
     private val s = mlc.toPlaceholderFloat(arrayOf("scale", "s"), 1F)
     private val st = mlc.toPlaceholderBoolean(arrayOf("sight-trace", "st"), true)
     private val de = mlc.toPlaceholderBoolean(arrayOf("damage-effect", "de"), true)

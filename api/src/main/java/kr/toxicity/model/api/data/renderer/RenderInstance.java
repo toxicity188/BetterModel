@@ -3,6 +3,7 @@ package kr.toxicity.model.api.data.renderer;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.animation.AnimationMovement;
+import kr.toxicity.model.api.animation.AnimationPredicate;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.BoneTag;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
@@ -64,7 +65,7 @@ public final class RenderInstance {
         this.entityMap = entityMap;
         this.animationMap = animationMap;
 
-        animateLoop("idle");
+        animate("idle");
     }
 
     public void viewFilter(@NotNull Predicate<Player> filter) {
@@ -199,57 +200,30 @@ public final class RenderInstance {
         return anyMatch(predicate, (b, p) -> b.enchant(p, enchant));
     }
 
-    public boolean animateLoop(@NotNull String animation) {
-        return animateLoop(e -> true, animation, AnimationModifier.DEFAULT_LOOP, () -> {});
+    public boolean animate(@NotNull String animation) {
+        return animate(e -> true, animation, AnimationModifier.DEFAULT, () -> {});
     }
 
-    public boolean animateSingle(@NotNull String animation) {
-        return animateSingle(e -> true, animation, AnimationModifier.DEFAULT, () -> {});
-    }
-    public boolean animateLoop(@NotNull String animation, AnimationModifier modifier) {
-        return animateLoop(e -> true, animation, modifier, () -> {});
+    public boolean animate(@NotNull String animation, AnimationModifier modifier) {
+        return animate(e -> true, animation, modifier, () -> {});
     }
 
-    public boolean animateSingle(@NotNull String animation, AnimationModifier modifier) {
-        return animateSingle(e -> true, animation, modifier, () -> {});
-    }
-
-    public boolean animateLoop(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
+    public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
         var get = animationMap.get(animation);
         if (get == null) return false;
-        scriptProcessor.animateLoop(get.script(), modifier);
+        scriptProcessor.animate(get.script(), get.loop(), modifier);
         for (RenderedBone value : entityMap.values()) {
-            value.iterateTree(b -> b.addLoop(filter, animation, get, modifier, FunctionUtil.throttleTick(removeTask)));
+            value.iterateAnimation(AnimationPredicate.of(filter), (b, a) -> b.addAnimation(a, animation, get, modifier, FunctionUtil.throttleTick(removeTask)));
         }
         return true;
     }
 
-    public boolean animateSingle(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
+    public boolean replace(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull String animation, @NotNull AnimationModifier modifier) {
         var get = animationMap.get(animation);
         if (get == null) return false;
-        scriptProcessor.animateSingle(get.script(), modifier);
+        scriptProcessor.replace(get.script(), get.loop(), modifier);
         for (RenderedBone value : entityMap.values()) {
-            value.iterateTree(b -> b.addSingle(filter, animation, get, modifier, FunctionUtil.throttleTick(removeTask)));
-        }
-        return true;
-    }
-
-    public boolean replaceLoop(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull String animation) {
-        var get = animationMap.get(animation);
-        if (get == null) return false;
-        scriptProcessor.replaceLoop(get.script(), AnimationModifier.DEFAULT_LOOP);
-        for (RenderedBone value : entityMap.values()) {
-            value.iterateTree(b -> b.replaceLoop(filter, target, animation, get));
-        }
-        return true;
-    }
-
-    public boolean replaceSingle(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull String animation) {
-        var get = animationMap.get(animation);
-        if (get == null) return false;
-        scriptProcessor.replaceSingle(get.script(), AnimationModifier.DEFAULT);
-        for (RenderedBone value : entityMap.values()) {
-            value.iterateTree(b -> b.replaceSingle(filter, target, animation, get));
+            value.iterateAnimation(AnimationPredicate.of(filter), (b, a) -> b.replaceAnimation(a, target, animation, get, modifier));
         }
         return true;
     }

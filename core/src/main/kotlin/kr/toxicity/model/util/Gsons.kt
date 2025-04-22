@@ -11,7 +11,7 @@ import kr.toxicity.model.manager.ConfigManagerImpl
 import java.io.File
 
 fun File.toModel(): ModelBlueprint = bufferedReader().use {
-    ModelBlueprint.from(nameWithoutExtension, ModelData.GSON.fromJson(it, ModelData::class.java))
+    ModelBlueprint.from(nameWithoutExtension.toPackName(), ModelData.GSON.fromJson(it, ModelData::class.java))
 }
 
 fun String.toLimb() = runCatching {

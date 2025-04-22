@@ -264,55 +264,14 @@ public abstract class Tracker implements AutoCloseable {
      */
     public abstract @NotNull UUID uuid();
 
-    /**
-     * Players this animation by loop
-     * @param animation animation's name
-     * @return success
-     */
-    public boolean animateLoop(@NotNull String animation) {
-        return animateLoop(animation, AnimationModifier.DEFAULT_LOOP);
-    }
-
-    /**
-     * Players this animation by loop
-     * @param animation animation's name
-     * @param modifier modifier
-     * @return success
-     */
-    public boolean animateLoop(@NotNull String animation, AnimationModifier modifier) {
-        return animateLoop(animation, modifier, () -> {});
-    }
-
-    /**
-     * Players this animation by loop
-     * @param animation animation's name
-     * @param modifier modifier
-     * @param removeTask remove task
-     * @return success
-     */
-    public boolean animateLoop(@NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
-        return animateLoop(e -> true, animation, modifier, removeTask);
-    }
-
-    /**
-     * Players this animation by loop
-     * @param filter bone predicate
-     * @param animation animation's name
-     * @param modifier modifier
-     * @param removeTask remove task
-     * @return success
-     */
-    public boolean animateLoop(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
-        return instance.animateLoop(filter, animation, modifier, removeTask);
-    }
 
     /**
      * Players this animation by once
      * @param animation animation's name
      * @return success
      */
-    public boolean animateSingle(@NotNull String animation) {
-        return animateSingle(animation, AnimationModifier.DEFAULT);
+    public boolean animate(@NotNull String animation) {
+        return animate(animation, AnimationModifier.DEFAULT);
     }
 
     /**
@@ -321,8 +280,8 @@ public abstract class Tracker implements AutoCloseable {
      * @param modifier modifier
      * @return success
      */
-    public boolean animateSingle(@NotNull String animation, AnimationModifier modifier) {
-        return animateSingle(animation, modifier, () -> {});
+    public boolean animate(@NotNull String animation, AnimationModifier modifier) {
+        return animate(animation, modifier, () -> {});
     }
 
     /**
@@ -332,8 +291,8 @@ public abstract class Tracker implements AutoCloseable {
      * @param removeTask remove task
      * @return success
      */
-    public boolean animateSingle(@NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
-        return animateSingle(e -> true, animation, modifier, removeTask);
+    public boolean animate(@NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
+        return animate(e -> true, animation, modifier, removeTask);
     }
 
     /**
@@ -344,8 +303,8 @@ public abstract class Tracker implements AutoCloseable {
      * @param removeTask remove task
      * @return success
      */
-    public boolean animateSingle(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
-        return instance.animateSingle(filter, animation, modifier, removeTask);
+    public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
+        return instance.animate(filter, animation, modifier, removeTask);
     }
 
     /**
@@ -369,20 +328,11 @@ public abstract class Tracker implements AutoCloseable {
      * Replaces some animation by loop
      * @param target old animation's name
      * @param animation new animation's name
+     * @param modifier modifier
      * @return success
      */
-    public boolean replaceLoop(@NotNull String target, @NotNull String animation) {
-        return replaceLoop(e -> true, target, animation);
-    }
-
-    /**
-     * Replaces some animation by once
-     * @param target old animation's name
-     * @param animation new animation's name
-     * @return success
-     */
-    public boolean replaceSingle(@NotNull String target, @NotNull String animation) {
-        return replaceSingle(e -> true, target, animation);
+    public boolean replace(@NotNull String target, @NotNull String animation, @NotNull AnimationModifier modifier) {
+        return replace(t -> true, target, animation, modifier);
     }
 
     /**
@@ -390,22 +340,13 @@ public abstract class Tracker implements AutoCloseable {
      * @param filter bone predicate
      * @param target old animation's name
      * @param animation new animation's name
+     * @param modifier modifier
      * @return success
      */
-    public boolean replaceLoop(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull String animation) {
-        return instance.replaceLoop(filter, target, animation);
+    public boolean replace(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull String animation, @NotNull AnimationModifier modifier) {
+        return instance.replace(filter, target, animation, modifier);
     }
 
-    /**
-     * Replaces some animation by once
-     * @param filter bone predicate
-     * @param target old animation's name
-     * @param animation new animation's name
-     * @return success
-     */
-    public boolean replaceSingle(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull String animation) {
-        return instance.replaceSingle(filter, target, animation);
-    }
 
     /**
      * Toggles some part

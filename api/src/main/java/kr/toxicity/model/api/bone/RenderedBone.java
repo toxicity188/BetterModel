@@ -3,6 +3,7 @@ package kr.toxicity.model.api.bone;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationMovement;
 import kr.toxicity.model.api.animation.AnimationIterator;
+import kr.toxicity.model.api.animation.AnimationPredicate;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox;
@@ -255,11 +256,8 @@ public final class RenderedBone implements HitBoxSource {
                     return false;
                 }
             }
-            if (keyFrame != null) {
-                keyFrame = null;
-                return true;
-            }
         }
+        if (keyFrame != null) keyFrame = null;
         return true;
     }
 
@@ -420,54 +418,37 @@ public final class RenderedBone implements HitBoxSource {
         if (display != null) display.spawn(bundler);
     }
 
-    public void addLoop(@NotNull Predicate<RenderedBone> filter, @NotNull String parent, @NotNull BlueprintAnimation animator, AnimationModifier modifier, Runnable removeTask) {
+    public boolean addAnimation(@NotNull AnimationPredicate filter, @NotNull String parent, @NotNull BlueprintAnimation animator, @NotNull AnimationModifier modifier, Runnable removeTask) {
         if (filter.test(this)) {
             var get = animator.animator().get(getName());
-            var iterator = get != null ? new TreeIterator(parent, get.loopIterator(), modifier, removeTask) : new TreeIterator(parent, animator.emptyLoopIterator(), modifier, removeTask);
+            if (get == null && animator.override() && !filter.isChildren()) return false;
+            var type = modifier.type() != null ? modifier.type() : animator.loop();
+            var iterator = get != null ? new TreeIterator(parent, get.iterator(type), modifier, removeTask) : new TreeIterator(parent, animator.emptyIterator(type), modifier, removeTask);
             synchronized (animators) {
                 animators.putLast(parent, iterator);
             }
             forceUpdateAnimation = true;
+            return true;
         }
+        return false;
     }
 
-    public void addSingle(@NotNull Predicate<RenderedBone> filter, @NotNull String parent, @NotNull BlueprintAnimation animator, AnimationModifier modifier, Runnable removeTask) {
+    public boolean replaceAnimation(@NotNull AnimationPredicate filter, @NotNull String target, @NotNull String parent, @NotNull BlueprintAnimation animator, @NotNull AnimationModifier modifier) {
         if (filter.test(this)) {
             var get = animator.animator().get(getName());
-            var iterator = get != null ? new TreeIterator(parent, get.singleIterator(), modifier, removeTask) : new TreeIterator(parent, animator.emptySingleIterator(), modifier, removeTask);
-            synchronized (animators) {
-                animators.putLast(parent, iterator);
-            }
-            forceUpdateAnimation = true;
-        }
-    }
-
-    public void replaceLoop(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull String parent, @NotNull BlueprintAnimation animator) {
-        if (filter.test(this)) {
-            var get = animator.animator().get(getName());
+            if (get == null && animator.override() && !filter.isChildren()) return false;
+            var type = animator.loop();
             synchronized (animators) {
                 var v = animators.get(target);
-                if (v != null) animators.replace(target, get != null ? new TreeIterator(parent, get.loopIterator(), v.modifier, v.removeTask) : new TreeIterator(parent, animator.emptyLoopIterator(), v.modifier, v.removeTask));
-                else animators.replace(target, get != null ? new TreeIterator(parent, get.loopIterator(), AnimationModifier.DEFAULT_LOOP, () -> {
-                }) : new TreeIterator(parent, animator.emptyLoopIterator(), AnimationModifier.DEFAULT_LOOP, () -> {
+                if (v != null) animators.replace(target, get != null ? new TreeIterator(parent, get.iterator(type), v.modifier, v.removeTask) : new TreeIterator(parent, animator.emptyIterator(type), v.modifier, v.removeTask));
+                else animators.replace(target, get != null ? new TreeIterator(parent, get.iterator(type), modifier, () -> {
+                }) : new TreeIterator(parent, animator.emptyIterator(type), modifier, () -> {
                 }));
             }
             forceUpdateAnimation = true;
+            return true;
         }
-    }
-
-    public void replaceSingle(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull String parent, @NotNull BlueprintAnimation animator) {
-        if (filter.test(this)) {
-            var get = animator.animator().get(getName());
-            synchronized (animators) {
-                var v = animators.get(target);
-                if (v != null) animators.replace(target, get != null ? new TreeIterator(parent, get.singleIterator(), v.modifier, v.removeTask) : new TreeIterator(parent, animator.emptySingleIterator(), v.modifier, v.removeTask));
-                else animators.replace(target, get != null ? new TreeIterator(parent, get.singleIterator(), AnimationModifier.DEFAULT, () -> {
-                }) : new TreeIterator(parent, animator.emptySingleIterator(), AnimationModifier.DEFAULT, () -> {
-                }));
-            }
-            forceUpdateAnimation = true;
-        }
+        return false;
     }
 
     /**
@@ -544,6 +525,16 @@ public final class RenderedBone implements HitBoxSource {
         var childPredicate = predicate.children(parentResult);
         for (RenderedBone value : children.values()) {
             if (value.iterateTree(childPredicate, mapper)) parentResult = true;
+        }
+        return parentResult;
+    }
+
+    public boolean iterateAnimation(@NotNull AnimationPredicate predicate, @NotNull BiPredicate<RenderedBone, AnimationPredicate> mapper) {
+        var parentResult = mapper.test(this, predicate);
+        var childPredicate = predicate;
+        if (parentResult) childPredicate = childPredicate.children();
+        for (RenderedBone value : children.values()) {
+            if (value.iterateAnimation(childPredicate, mapper)) parentResult = true;
         }
         return parentResult;
     }

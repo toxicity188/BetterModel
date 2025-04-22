@@ -29,13 +29,19 @@ public sealed interface BlueprintChildren {
      */
     static BlueprintChildren from(@NotNull ModelChildren children, @NotNull @Unmodifiable Map<String, ModelElement> elementMap) {
         return switch (children) {
-            case ModelChildren.ModelGroup modelGroup -> new BlueprintGroup(
-                    modelGroup.name(),
-                    modelGroup.origin(),
-                    modelGroup.rotation(),
-                    modelGroup.children().stream().map(c -> from(c, elementMap)).toList(),
-                    modelGroup.visibility()
-            );
+            case ModelChildren.ModelGroup modelGroup -> {
+                var child = modelGroup.children().stream().map(c -> from(c, elementMap)).toList();
+                yield new BlueprintGroup(
+                        modelGroup.name(),
+                        modelGroup.origin(),
+                        modelGroup.rotation(),
+                        child,
+                        modelGroup.visibility() && child.stream()
+                                .map(c -> c instanceof BlueprintElement element ? element : null)
+                                .filter(Objects::nonNull)
+                                .anyMatch(element -> element.element.visibility())
+                );
+            }
             case ModelChildren.ModelUUID modelUUID -> new BlueprintElement(Objects.requireNonNull(elementMap.get(modelUUID.uuid())));
         };
     }

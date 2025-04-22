@@ -3,6 +3,7 @@ package kr.toxicity.model.util
 import kr.toxicity.model.BetterModelPluginImpl
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.util.LogUtil
+import kr.toxicity.model.api.util.PackUtil
 
 val PLUGIN
     get() = BetterModel.inst() as BetterModelPluginImpl
@@ -17,3 +18,5 @@ fun Throwable.handleException(message: String) = LogUtil.handleException(message
 fun <T> Result<T>.handleFailure(lazyMessage: () -> String) = onFailure {
     it.handleException(lazyMessage())
 }
+
+fun String.toPackName() = PackUtil.toPackName(this)

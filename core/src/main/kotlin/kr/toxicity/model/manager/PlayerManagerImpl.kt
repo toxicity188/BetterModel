@@ -85,7 +85,7 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
             EntityTracker.tracker(player.uniqueId)?.close()
             val create = it.createPlayerLimb(player)
             create.spawnNearby()
-            if (!create.animateSingle(animation, AnimationModifier.DEFAULT) {
+            if (!create.animate(animation, AnimationModifier.DEFAULT) {
                 create.close()
             }) create.close()
         }

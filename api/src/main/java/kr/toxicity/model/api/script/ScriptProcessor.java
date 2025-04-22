@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.script;
 
+import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -8,31 +9,31 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.Supplier;
 
-public class ScriptProcessor {
+public final class ScriptProcessor {
     private final SequencedMap<String, PredicatedScript> scriptMap = new LinkedHashMap<>();
     private final Collection<PredicatedScript> scriptView = scriptMap.sequencedValues().reversed();
     @Getter
     private @Nullable BlueprintScript.ScriptReader currentReader;
 
-    public void animateSingle(@NotNull BlueprintScript script, @NotNull AnimationModifier modifier) {
+    public void animate(@NotNull BlueprintScript script, @NotNull AnimationIterator.Type defaultType, @NotNull AnimationModifier modifier) {
         synchronized (scriptMap) {
-            scriptMap.putLast(script.name(), new PredicatedScript(script.name(), modifier.predicate(), script.single(modifier.start(), modifier.speedValue())));
-        }
-    }
-    public void animateLoop(@NotNull BlueprintScript script, @NotNull AnimationModifier modifier) {
-        synchronized (scriptMap) {
-            scriptMap.putLast(script.name(), new PredicatedScript(script.name(), modifier.predicate(), script.loop(modifier.start(), modifier.speedValue())));
+            var type = modifier.type() != null ? modifier.type() : defaultType;
+            scriptMap.putLast(script.name(), new PredicatedScript(script.name(), modifier.predicate(), switch (type) {
+                case PLAY_ONCE -> script.single(modifier.start(), modifier.speedValue());
+                case LOOP -> script.loop(modifier.start(), modifier.speedValue());
+                case HOLD_ON_LAST -> script.holdOn(modifier.start(), modifier.speedValue());
+            }));
         }
     }
 
-    public void replaceSingle(@NotNull BlueprintScript script, @NotNull AnimationModifier modifier) {
+    public void replace(@NotNull BlueprintScript script,@ NotNull AnimationIterator.Type defaultType, @NotNull AnimationModifier modifier) {
         synchronized (scriptMap) {
-            scriptMap.replace(script.name(), new PredicatedScript(script.name(), modifier.predicate(), script.single(modifier.start(), modifier.speedValue())));
-        }
-    }
-    public void replaceLoop(@NotNull BlueprintScript script, @NotNull AnimationModifier modifier) {
-        synchronized (scriptMap) {
-            scriptMap.replace(script.name(), new PredicatedScript(script.name(), modifier.predicate(), script.loop(modifier.start(), modifier.speedValue())));
+            var type = modifier.type() != null ? modifier.type() : defaultType;
+            scriptMap.replace(script.name(), new PredicatedScript(script.name(), modifier.predicate(), switch (type) {
+                case PLAY_ONCE -> script.single(modifier.start(), modifier.speedValue());
+                case LOOP -> script.loop(modifier.start(), modifier.speedValue());
+                case HOLD_ON_LAST -> script.holdOn(modifier.start(), modifier.speedValue());
+            }));
         }
     }
 

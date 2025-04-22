@@ -21,7 +21,11 @@ import java.util.List;
  * @param length frame length
  * @param keyFrame keyframes
  */
-public record BlueprintAnimator(@NotNull String name, float length, @NotNull @Unmodifiable List<AnimationMovement> keyFrame) {
+public record BlueprintAnimator(
+        @NotNull String name,
+        float length,
+        @NotNull @Unmodifiable List<AnimationMovement> keyFrame
+) {
 
 
     /**
@@ -138,18 +142,11 @@ public record BlueprintAnimator(@NotNull String name, float length, @NotNull @Un
     }
 
     /**
-     * Gets single iterator.
-     * @return iterator
-     */
-    public @NotNull AnimationIterator.PlayOnce singleIterator() {
-        return AnimationIterator.playOnce(keyFrame);
-    }
-
-    /**
      * Gets loop iterator.
+     * @param type type
      * @return iterator
      */
-    public @NotNull AnimationIterator.Loop loopIterator() {
-        return AnimationIterator.loop(keyFrame);
+    public @NotNull AnimationIterator iterator(@NotNull AnimationIterator.Type type) {
+        return type.create(keyFrame);
     }
 }

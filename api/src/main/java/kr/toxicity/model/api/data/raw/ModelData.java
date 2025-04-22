@@ -3,6 +3,7 @@ package kr.toxicity.model.api.data.raw;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
+import kr.toxicity.model.api.animation.AnimationIterator;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,5 +51,6 @@ public record ModelData(
             .registerTypeAdapter(Datapoint.class, Datapoint.PARSER)
             .registerTypeAdapter(KeyframeChannel.class, (JsonDeserializer<KeyframeChannel>) (json, typeOfT, context) -> KeyframeChannel.valueOf(json.getAsString().toUpperCase()))
             .registerTypeAdapter(ModelChildren.class, ModelChildren.PARSER)
+            .registerTypeAdapter(AnimationIterator.Type.class, AnimationIterator.Type.DESERIALIZER)
             .create();
 }
