@@ -56,7 +56,7 @@ public final class RenderedBone implements HitBoxSource {
     private final Collection<TreeIterator> reversedView = animators.sequencedValues().reversed();
     private AnimationMovement keyFrame = null;
     private long delay = 0;
-    private boolean forceUpdateAnimation;
+    private boolean forceUpdateAnimation = true;
     private TransformedItemStack cachedItem, itemStack;
 
     private final List<Consumer<AnimationMovement>> movementModifier = new ArrayList<>();
@@ -260,7 +260,7 @@ public final class RenderedBone implements HitBoxSource {
                 return true;
             }
         }
-        return false;
+        return true;
     }
 
     private boolean updateKeyframe(Iterator<TreeIterator> iterator, TreeIterator next) {
