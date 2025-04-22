@@ -52,7 +52,7 @@ public record ModelBlueprint(
                 data.resolution(),
                 data.textures().stream().map(BlueprintTexture::from).toList(),
                 list,
-                data.animations() == null ? Collections.emptyMap() : data.animations().stream().map(BlueprintAnimation::from).collect(Collectors.toMap(BlueprintAnimation::name, a -> a))
+                data.animations().stream().map(BlueprintAnimation::from).collect(Collectors.toMap(BlueprintAnimation::name, a -> a))
         );
     }
 

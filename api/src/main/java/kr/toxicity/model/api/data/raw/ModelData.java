@@ -7,6 +7,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -32,6 +33,12 @@ public record ModelData(
      */
     public float scale() {
         return (float) elements().stream().mapToDouble(ModelElement::max).max().orElse(16F) / 16F;
+    }
+
+    @Override
+    @NotNull
+    public List<ModelAnimation> animations() {
+        return animations != null ? animations : Collections.emptyList();
     }
 
     /**
