@@ -23,7 +23,8 @@ import org.bukkit.event.world.ChunkUnloadEvent
 import org.bukkit.inventory.EquipmentSlot
 
 object EntityManagerImpl : EntityManager, GlobalManagerImpl {
-    override fun reload(info: ReloadInfo) {
+
+    override fun start() {
         if (BetterModel.IS_PAPER) registerListener(object : Listener {
             @EventHandler(priority = EventPriority.MONITOR)
             fun EntityRemoveFromWorldEvent.remove() {
@@ -109,8 +110,8 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
             fun EntityDeathEvent.death() {
                 EntityTracker.tracker(entity)?.let {
                     if (!it.animate("death", AnimationModifier.DEFAULT) {
-                        it.close()
-                    }) it.close()
+                            it.close()
+                        }) it.close()
                     else it.forRemoval(true)
                 }
             }
@@ -128,13 +129,16 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
                 }
                 EntityTracker.tracker(entity)?.let {
                     if (it.animate("damage", AnimationModifier.DEFAULT) {
-                        it.tint(0xFFFFFF)
-                    }) it.tint(it.damageTintValue())
+                            it.tint(0xFFFFFF)
+                        }) it.tint(it.damageTintValue())
                     else {
                         it.damageTint()
                     }
                 }
             }
         })
+    }
+
+    override fun reload(info: ReloadInfo) {
     }
 }

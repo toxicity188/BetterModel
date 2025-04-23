@@ -13,12 +13,12 @@ public interface AnimationPredicate extends Predicate<RenderedBone> {
         return of(false, bonePredicate);
     }
 
-    static @NotNull AnimationPredicate of(boolean finished, @NotNull Predicate<RenderedBone> bonePredicate) {
+    static @NotNull AnimationPredicate of(boolean children, @NotNull Predicate<RenderedBone> bonePredicate) {
         Objects.requireNonNull(bonePredicate, "bonePredicate cannot be null.");
         return new AnimationPredicate() {
             @Override
             public boolean isChildren() {
-                return finished;
+                return children;
             }
 
             @Override
@@ -29,6 +29,6 @@ public interface AnimationPredicate extends Predicate<RenderedBone> {
     }
 
     default @NotNull AnimationPredicate children() {
-        return of(true, this);
+        return isChildren() ? this : of(true, this);
     }
 }

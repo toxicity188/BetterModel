@@ -153,4 +153,8 @@ public record AnimationModifier(@NotNull Supplier<Boolean> predicate, int start,
     }
 
     public static final AnimationModifier DEFAULT = new AnimationModifier(0, 0, 1F);
+
+    public @NotNull AnimationIterator.Type type(@NotNull AnimationIterator.Type defaultType) {
+        return type != null ? type : defaultType;
+    }
 }

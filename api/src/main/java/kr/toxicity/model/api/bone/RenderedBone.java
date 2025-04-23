@@ -422,7 +422,7 @@ public final class RenderedBone implements HitBoxSource {
         if (filter.test(this)) {
             var get = animator.animator().get(getName());
             if (get == null && animator.override() && !filter.isChildren()) return false;
-            var type = modifier.type() != null ? modifier.type() : animator.loop();
+            var type = modifier.type(animator.loop());
             var iterator = get != null ? new TreeIterator(parent, get.iterator(type), modifier, removeTask) : new TreeIterator(parent, animator.emptyIterator(type), modifier, removeTask);
             synchronized (animators) {
                 animators.putLast(parent, iterator);
@@ -437,7 +437,7 @@ public final class RenderedBone implements HitBoxSource {
         if (filter.test(this)) {
             var get = animator.animator().get(getName());
             if (get == null && animator.override() && !filter.isChildren()) return false;
-            var type = animator.loop();
+            var type = modifier.type(animator.loop());
             synchronized (animators) {
                 var v = animators.get(target);
                 if (v != null) animators.replace(target, get != null ? new TreeIterator(parent, get.iterator(type), v.modifier, v.removeTask) : new TreeIterator(parent, animator.emptyIterator(type), v.modifier, v.removeTask));

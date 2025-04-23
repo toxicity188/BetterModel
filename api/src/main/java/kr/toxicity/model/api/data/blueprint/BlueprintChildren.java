@@ -36,7 +36,7 @@ public sealed interface BlueprintChildren {
                         modelGroup.origin(),
                         modelGroup.rotation(),
                         child,
-                        modelGroup.visibility() && child.stream()
+                        child.stream()
                                 .map(c -> c instanceof BlueprintElement element ? element : null)
                                 .filter(Objects::nonNull)
                                 .anyMatch(element -> element.element.visibility())
