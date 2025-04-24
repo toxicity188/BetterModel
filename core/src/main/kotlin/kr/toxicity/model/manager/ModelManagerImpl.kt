@@ -12,6 +12,7 @@ import kr.toxicity.model.api.manager.ConfigManager.PackType.ZIP
 import kr.toxicity.model.api.manager.ModelManager
 import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.util.*
+import net.kyori.adventure.key.Key
 import org.bukkit.inventory.ItemStack
 import java.io.File
 import java.security.DigestOutputStream
@@ -130,6 +131,10 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
         if (ConfigManagerImpl.module().model()) {
             DATA_FOLDER.subFolder("models").forEachAllFolder {
                 if (it.extension == "bbmodel") {
+                    if (!Key.parseableValue(it.nameWithoutExtension)) {
+                        warn("Skipping model with invalid name: '${it.name}', it will not be loaded. Only a-z, 0-9, '-', '_' and '.' characters allowed.")
+                        return@forEachAllFolder
+                    }
                     val load = it.toModel()
                     load.buildImage().forEach { image ->
                         zipper.add(texturesPath, "${image.name}.png") {
