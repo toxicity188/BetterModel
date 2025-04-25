@@ -18,7 +18,7 @@ public final class PackUtil {
         throw new RuntimeException();
     }
 
-    private static final Pattern REPLACE_SOURCE = Pattern.compile("[ -]");
+    private static final Pattern REPLACE_SOURCE = Pattern.compile("[^a-z0-9_.]");
 
     public static @NotNull String toPackName(@NotNull String raw) {
         return REPLACE_SOURCE.matcher(raw.toLowerCase()).replaceAll("_");
