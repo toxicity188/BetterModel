@@ -18,7 +18,7 @@ fun <T> MythicLineConfig.toPlaceholderStringList(array: Array<String>, mapper: (
     mapper(it?.split(",") ?: emptyList())
 }
 fun <T> MythicLineConfig.toPlaceholderString(array: Array<String>, defaultValue: String? = null, mapper: (String?) -> T): (PlaceholderArgument) -> T {
-    return getPlaceholderString(array, defaultValue).let {
+    return getPlaceholderString(array, defaultValue)?.let {
         { meta ->
             mapper(when (meta) {
                 is PlaceholderArgument.None -> it.get()
@@ -26,6 +26,10 @@ fun <T> MythicLineConfig.toPlaceholderString(array: Array<String>, defaultValue:
                 is PlaceholderArgument.TargetedSkillMeta -> it.get(meta.meta, meta.target)
                 is PlaceholderArgument.Entity -> it[meta.entity]
             })
+        }
+    } ?: mapper(null).let { mapped ->
+        {
+            mapped
         }
     }
 }

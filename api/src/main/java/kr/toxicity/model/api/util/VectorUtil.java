@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 @ApiStatus.Internal
 public final class VectorUtil {
@@ -86,9 +87,13 @@ public final class VectorUtil {
         for (int i = 0; i < vectorPoints.size() - 1; i++) {
             var before = vectorPoints.get(i);
             var after = vectorPoints.get(i + 1);
-            var angle = (float) Math.floor(new Vector3f(after.vector())
-                    .sub(before.vector())
-                    .length() / 180) + 1;
+            var degree = new Vector3f(after.vector())
+                    .sub(before.vector());
+            var angle = (float) Math.floor(Stream.of(
+                    degree.x,
+                    degree.y,
+                    degree.z
+            ).mapToDouble(Math::abs).max().orElse(0) / 90) + 1;
             if (angle > 1) {
                 for (float t = 1; t < angle; t++) {
                     frames.add(linear(before.time(), after.time(), t / angle));

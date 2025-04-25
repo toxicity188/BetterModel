@@ -168,10 +168,10 @@ public class EntityTracker extends Tracker {
             return hitBox != null && hitBox.onWalk();
         }));
         var walkSpeedSupplier = FunctionUtil.throttleTick(modifier.damageEffect() ? () -> adapter.walkSpeed() + 4F * (float) Math.sqrt(damageTickProvider.get()) : () -> 1F);
-        instance.animate("walk", new AnimationModifier(walkSupplier, 4, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
-        instance.animate("idle_fly", new AnimationModifier(adapter::fly, 4, 0, AnimationIterator.Type.LOOP, 1F));
-        instance.animate("walk_fly", new AnimationModifier(() -> adapter.fly() && walkSupplier.get(), 4, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
-        instance.animate("spawn");
+        instance.animate("walk", new AnimationModifier(walkSupplier, 6, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
+        instance.animate("idle_fly", new AnimationModifier(adapter::fly, 6, 0, AnimationIterator.Type.LOOP, 1F));
+        instance.animate("walk_fly", new AnimationModifier(() -> adapter.fly() && walkSupplier.get(), 6, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
+        instance.animate("spawn", AnimationModifier.DEFAULT_WITH_PLAY_ONCE);
         TRACKER_MAP.put(entity.getUniqueId(), this);
         BetterModel.inst().scheduler().task(entity, () -> {
             entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, instance.getParent().getParent().name());

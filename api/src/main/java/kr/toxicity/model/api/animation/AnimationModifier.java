@@ -153,6 +153,7 @@ public record AnimationModifier(@NotNull Supplier<Boolean> predicate, int start,
     }
 
     public static final AnimationModifier DEFAULT = new AnimationModifier(0, 0, 1F);
+    public static final AnimationModifier DEFAULT_WITH_PLAY_ONCE = new AnimationModifier(() -> true, 0, 0, AnimationIterator.Type.PLAY_ONCE, 1F);
 
     public @NotNull AnimationIterator.Type type(@NotNull AnimationIterator.Type defaultType) {
         return type != null ? type : defaultType;

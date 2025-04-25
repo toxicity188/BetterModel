@@ -109,7 +109,7 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun EntityDeathEvent.death() {
                 EntityTracker.tracker(entity)?.let {
-                    if (!it.animate("death", AnimationModifier.DEFAULT) {
+                    if (!it.animate("death", AnimationModifier.DEFAULT_WITH_PLAY_ONCE) {
                             it.close()
                         }) it.close()
                     else it.forRemoval(true)
@@ -128,7 +128,7 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
                     }
                 }
                 EntityTracker.tracker(entity)?.let {
-                    if (it.animate("damage", AnimationModifier.DEFAULT) {
+                    if (it.animate("damage", AnimationModifier.DEFAULT_WITH_PLAY_ONCE) {
                             it.tint(0xFFFFFF)
                         }) it.tint(it.damageTintValue())
                     else {
