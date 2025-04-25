@@ -35,6 +35,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     private var usePurpurAfk = true
     private var versionCheck = true
     private var defaultMountController = MountControllers.WALK
+    private var lerpFrameTime = 5
 
     override fun debug(): DebugConfig = debug
     override fun module(): ModuleConfig = module
@@ -54,6 +55,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     override fun usePurpurAfk(): Boolean = usePurpurAfk
     override fun versionCheck(): Boolean = versionCheck
     override fun defaultMountController(): MountController = defaultMountController
+    override fun lerpFrameTime(): Int = lerpFrameTime
 
     override fun reload(info: ReloadInfo) {
         val yaml = PluginConfiguration.CONFIG.create()
@@ -98,5 +100,6 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
             "fly" -> MountControllers.FLY
             else -> MountControllers.WALK
         }
+        lerpFrameTime = yaml.getInt("lerp-frame-time", 5)
     }
 }

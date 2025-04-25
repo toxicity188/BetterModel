@@ -48,10 +48,6 @@ public record BlueprintAnimator(
         private final List<VectorPoint> scale = new ArrayList<>();
         private final List<VectorPoint> rotation = new ArrayList<>();
 
-        private static int checkSplit(float angle) {
-            return (int) Math.floor(Math.toDegrees(angle) / 45) + 1;
-        }
-
         /**
          * Adds raw model frame.
          * @param keyframe raw frame
@@ -68,32 +64,11 @@ public record BlueprintAnimator(
                             keyframe.time(),
                             interpolation
                     ));
-                    case ROTATION -> {
-                        var rot = new VectorPoint(
-                                MathUtil.animationToDisplay(vec),
-                                keyframe.time(),
-                                interpolation
-                        );
-                        if (!rotation.isEmpty() && rot.time() > 0) {
-                            var last = rotation.getLast();
-                            var split = checkSplit(
-                                    MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(rot.vector()))
-                                            .mul(MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(last.vector())).invert())
-                                            .angle()
-                            );
-                            if (split > 1) {
-                                for (int i = 1; i < split; i++) {
-                                    var alpha = (float) i / (float) split;
-                                    rotation.add(new VectorPoint(
-                                            VectorUtil.linear(last.vector(), rot.vector(), alpha),
-                                            VectorUtil.linear(last.time(), rot.time(), alpha),
-                                            interpolation
-                                    ));
-                                }
-                            }
-                        }
-                        rotation.add(rot);
-                    }
+                    case ROTATION -> rotation.add(new VectorPoint(
+                            MathUtil.animationToDisplay(vec),
+                            keyframe.time(),
+                            interpolation
+                    ));
                     case SCALE -> scale.add(new VectorPoint(
                             vec.sub(1, 1, 1),
                             keyframe.time(),

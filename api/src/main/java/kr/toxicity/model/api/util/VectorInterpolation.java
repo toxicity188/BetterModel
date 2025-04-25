@@ -4,6 +4,7 @@ import kr.toxicity.model.api.animation.VectorPoint;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3f;
 
 import java.util.List;
 
@@ -12,11 +13,17 @@ public enum VectorInterpolation {
     LINEAR {
         @NotNull
         @Override
+        public Vector3f interpolate(@NotNull Vector3f p0, @NotNull Vector3f p1, float alpha) {
+            return VectorUtil.linear(p0, p1, alpha);
+        }
+
+        @NotNull
+        @Override
         public VectorPoint interpolate(@NotNull List<VectorPoint> points, int p2Index, float time) {
             var p1 = p2Index > 0 ? points.get(p2Index - 1) : VectorPoint.EMPTY;
             var p2 = points.get(p2Index);
             return new VectorPoint(
-                    VectorUtil.linear(p1.vector(), p2.vector(), VectorUtil.alpha(p1.time(), p2.time(), time)),
+                    interpolate(p1.vector(), p2.vector(), VectorUtil.alpha(p1.time(), p2.time(), time)),
                     time,
                     this
             );
@@ -25,8 +32,23 @@ public enum VectorInterpolation {
     CATMULLROM {
         @NotNull
         @Override
+        public Vector3f interpolate(@NotNull Vector3f p0, @NotNull Vector3f p1, float alpha) {
+            //return VectorUtil.linear(p0, p1, VectorUtil.smooth(alpha));
+            return VectorUtil.linear(p0, p1, alpha);
+        }
+
+        @NotNull
+        @Override
         public VectorPoint interpolate(@NotNull List<VectorPoint> points, int p2Index, float time) {
-            if (p2Index >= points.size() - 1 || p2Index < 2) return LINEAR.interpolate(points, p2Index, time);
+            if (p2Index >= points.size() - 1 || p2Index < 2) {
+                var p1 = p2Index > 0 ? points.get(p2Index - 1) : VectorPoint.EMPTY;
+                var p2 = points.get(p2Index);
+                return new VectorPoint(
+                        interpolate(p1.vector(), p2.vector(), VectorUtil.alpha(p1.time(), p2.time(), time)),
+                        time,
+                        this
+                );
+            }
             var p1 = points.get(p2Index - 1);
             var p2 = points.get(p2Index);
             var p0 = points.get(p2Index - 2);
@@ -46,6 +68,7 @@ public enum VectorInterpolation {
     }
     ;
 
+    public abstract @NotNull Vector3f interpolate(@NotNull Vector3f p0, @NotNull Vector3f p1, float alpha);
     public abstract @NotNull VectorPoint interpolate(@NotNull List<VectorPoint> points, int p2Index, float time);
 
     public static @NotNull VectorInterpolation find(@Nullable String name) {

@@ -20,3 +20,4 @@ create-pack-mcmeta: true
 use-purpur-afk: true
 version-check: true
 default-mount-controller: walk
+lerp-frame-time: 5

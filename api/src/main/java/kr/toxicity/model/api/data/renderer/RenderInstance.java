@@ -65,7 +65,7 @@ public final class RenderInstance {
         this.entityMap = entityMap;
         this.animationMap = animationMap;
 
-        animate("idle");
+        animate("idle", new AnimationModifier(6, 0, 1));
     }
 
     public void viewFilter(@NotNull Predicate<Player> filter) {

@@ -286,7 +286,7 @@ public final class RenderedBone implements HitBoxSource {
             beforeTransform = afterTransform;
             var entityMovement = afterTransform = relativeOffset();
             if (d != null) {
-                d.frame(f <= 0 ? 0 : toInterpolationDuration(f));
+                d.frame(toInterpolationDuration(f));
                 setup(entityMovement);
                 d.send(bundler);
                 return true;
@@ -306,7 +306,7 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     private static int toInterpolationDuration(long delay) {
-        return (int) Math.floor((float) delay / 5F) + 1;
+        return (int) Math.ceil((float) delay / 5F);
     }
 
     public @NotNull Vector3f worldPosition() {

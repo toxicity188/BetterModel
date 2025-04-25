@@ -121,6 +121,12 @@ public interface ConfigManager {
     @NotNull MountController defaultMountController();
 
     /**
+     * Gets lerp frame time
+     * @return lerp frame time
+     */
+    int lerpFrameTime();
+
+    /**
      * Pack type
      */
     enum PackType {

@@ -1,15 +1,13 @@
 package kr.toxicity.model.api.util;
 
+import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationPoint;
 import kr.toxicity.model.api.animation.VectorPoint;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.TreeSet;
+import java.util.*;
 
 @ApiStatus.Internal
 public final class VectorUtil {
@@ -38,6 +36,8 @@ public final class VectorUtil {
         point(set, position);
         point(set, scale);
         point(set, rotation);
+        insertRotationFrame(set, rotation);
+        insertLerpFrame(set);
         return sum(position, rotation, scale, set);
     }
 
@@ -63,28 +63,62 @@ public final class VectorUtil {
         var i = 0;
         var p2 = vectors.getFirst();
         var t = p2.time();
-        var lastIndex = vectors.size() - 1;
-        var newVectors = new ArrayList<VectorPoint>();
-        var finalizedVectors = new ArrayList<VectorPoint>();
+        var newVectors = new ArrayList<>(vectors);
         for (float point : points) {
-            if (point > length) continue;
-            while (i < lastIndex && t < point) {
-                newVectors.add(p2);
-                t = (p2 = vectors.get(++i)).time();
+            while (i < newVectors.size() - 1 && t < point) {
+                t = (p2 = newVectors.get(++i)).time();
             }
             if (t == point) continue;
-            if (i == lastIndex && point >= t) finalizedVectors.add(new VectorPoint(
+            if (point > length) newVectors.add(new VectorPoint(
                     last.vector(),
                     point,
                     last.interpolation()
             ));
             else {
-                newVectors.add(p2.interpolation().interpolate(vectors, i, point));
+                newVectors.add(i, p2.interpolation().interpolate(newVectors, i, point));
+                t = point;
             }
         }
-        newVectors.addAll(vectors.subList(i, vectors.size()));
-        newVectors.addAll(finalizedVectors);
         return newVectors;
+    }
+
+    public static void insertRotationFrame(@NotNull Set<Float> frames, @NotNull List<VectorPoint> vectorPoints) {
+        for (int i = 0; i < vectorPoints.size() - 1; i++) {
+            var before = vectorPoints.get(i);
+            var after = vectorPoints.get(i);
+            var angle = checkSplit(MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(before.vector()))
+                    .mul(MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(after.vector())).invert())
+                    .angle());
+            if (angle > 1) {
+                for (float t = 1; t < angle; t++) {
+                    frames.add(linear(before.time(), after.time(), t / angle));
+                }
+            }
+        }
+    }
+    private static float checkSplit(float angle) {
+        return (float) Math.floor(Math.toDegrees(angle) / 60F) + 1F;
+    }
+
+    public static void insertLerpFrame(@NotNull Set<Float> frames) {
+        insertLerpFrame(frames, (float) BetterModel.inst().configManager().lerpFrameTime() / 20F);
+    }
+
+    public static void insertLerpFrame(@NotNull Set<Float> frames, float frame) {
+        if (frame <= 0) return;
+        var list = new ArrayList<>(frames);
+        var init = 0F;
+        var initAfter = list.getFirst();
+        while (init < initAfter) {
+            frames.add(init += frame);
+        }
+        for (int i = 0; i < list.size() - 1; i++) {
+            var before = list.get(i);
+            var after = list.get(i + 1);
+            while (before < after) {
+                frames.add(before += frame);
+            }
+        }
     }
 
     public static float alpha(float p0, float p1, float alpha) {
