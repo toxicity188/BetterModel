@@ -134,6 +134,7 @@ val javadocJar by tasks.registering(Jar::class) {
 }
 
 val groupString = group.toString()
+val versionString = version.toString()
 
 tasks {
     runServer {
@@ -153,7 +154,7 @@ tasks {
             attributes(
                 "paperweight-mappings-namespace" to "spigot",
                 "Dev-Build" to (buildNumber ?: -1),
-                "Version" to version,
+                "Version" to versionString,
                 "Author" to "toxicity188",
                 "Url" to "https://github.com/toxicity188/BetterModel",
                 "Created-By" to "Gradle $gradle",
@@ -188,7 +189,7 @@ tasks.modrinth {
 
 bukkitPluginYaml {
     main = "$groupString.BetterModelPluginImpl"
-    version = project.version.toString()
+    version = versionString
     name = rootProject.name
     foliaSupported = true
     apiVersion = "1.20"
@@ -241,7 +242,7 @@ hangarPublish {
             changelog = log
             channel = "Snapshot"
         } else {
-            changelog = rootProject.file("changelog/${project.version}.md").readText()
+            changelog = rootProject.file("changelog/$versionString.md").readText()
             channel = "Release"
         }
         platforms {
@@ -263,15 +264,15 @@ modrinth {
         changelog = log
     } else {
         versionType = "release"
-        changelog = rootProject.file("changelog/${project.version}.md").readText()
+        changelog = rootProject.file("changelog/$versionString.md").readText()
     }
     uploadFile = tasks.shadowJar.get()
     additionalFiles = listOf(
         sourcesJar.get(),
         javadocJar.get()
     )
-    versionName = "BetterModel ${project.version}"
-    versionNumber = project.version as String
+    versionName = "BetterModel $versionString"
+    versionNumber = versionString
     gameVersions = supportedVersion
     loaders = listOf("bukkit", "spigot", "paper", "purpur", "folia")
 }

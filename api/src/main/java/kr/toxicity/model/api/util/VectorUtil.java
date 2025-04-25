@@ -85,19 +85,16 @@ public final class VectorUtil {
     public static void insertRotationFrame(@NotNull Set<Float> frames, @NotNull List<VectorPoint> vectorPoints) {
         for (int i = 0; i < vectorPoints.size() - 1; i++) {
             var before = vectorPoints.get(i);
-            var after = vectorPoints.get(i);
-            var angle = checkSplit(MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(before.vector()))
-                    .mul(MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(after.vector())).invert())
-                    .angle());
+            var after = vectorPoints.get(i + 1);
+            var angle = (float) Math.floor(new Vector3f(after.vector())
+                    .sub(before.vector())
+                    .length() / 180) + 1;
             if (angle > 1) {
                 for (float t = 1; t < angle; t++) {
                     frames.add(linear(before.time(), after.time(), t / angle));
                 }
             }
         }
-    }
-    private static float checkSplit(float angle) {
-        return (float) Math.floor(Math.toDegrees(angle) / 60F) + 1F;
     }
 
     public static void insertLerpFrame(@NotNull Set<Float> frames) {
@@ -109,13 +106,13 @@ public final class VectorUtil {
         var list = new ArrayList<>(frames);
         var init = 0F;
         var initAfter = list.getFirst();
-        while (init < initAfter) {
+        while (init < initAfter - 0.05) {
             frames.add(init += frame);
         }
         for (int i = 0; i < list.size() - 1; i++) {
             var before = list.get(i);
             var after = list.get(i + 1);
-            while (before < after) {
+            while (before < after - 0.05) {
                 frames.add(before += frame);
             }
         }

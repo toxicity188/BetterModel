@@ -33,7 +33,6 @@ public enum VectorInterpolation {
         @NotNull
         @Override
         public Vector3f interpolate(@NotNull Vector3f p0, @NotNull Vector3f p1, float alpha) {
-            //return VectorUtil.linear(p0, p1, VectorUtil.smooth(alpha));
             return VectorUtil.linear(p0, p1, alpha);
         }
 
