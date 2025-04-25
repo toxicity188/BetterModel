@@ -126,11 +126,19 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
 
         renderMap.clear()
         val model = arrayListOf<ModelBlueprint>()
+        val modelNames = hashMapOf<String, String>() // Map of model name -> source file name
 
         if (ConfigManagerImpl.module().model()) {
             DATA_FOLDER.subFolder("models").forEachAllFolder {
                 if (it.extension == "bbmodel") {
                     val load = it.toModel()
+                    val existingFile = modelNames[load.name]
+                    if (existingFile != null) {
+                        // A model with the same name already exists from a different file
+                        warn("Duplicate model name '${load.name}'. Files '${existingFile}' and '${it.name}' result in the same name. '${it.name}' will not be loaded.")
+                        return@forEachAllFolder
+                    }
+                    modelNames[load.name] = it.name
                     load.buildImage().forEach { image ->
                         zipper.add(texturesPath, "${image.name}.png") {
                             image.image.toByteArray()
