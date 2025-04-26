@@ -31,12 +31,6 @@ public final class PlayerTracker extends EntityTracker {
         return false;
     }
 
-    @Override
-    public void close() {
-        super.close();
-        source().updateInventory();
-    }
-
     @NotNull
     @Override
     public Player source() {
