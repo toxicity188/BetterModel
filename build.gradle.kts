@@ -9,7 +9,7 @@ plugins {
     id("io.github.goooler.shadow") version "8.1.8"
     id("io.papermc.paperweight.userdev") version "2.0.0-beta.16" apply false
     id("xyz.jpenilla.run-paper") version "2.3.1"
-    id("xyz.jpenilla.resource-factory-bukkit-convention") version "1.2.0"
+    id("xyz.jpenilla.resource-factory-bukkit-convention") version "1.2.1"
     id("com.modrinth.minotaur") version "2.+"
     id("io.papermc.hangar-publish-plugin") version "0.1.3"
 }
