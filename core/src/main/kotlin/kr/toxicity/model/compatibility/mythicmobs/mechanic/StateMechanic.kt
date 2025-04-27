@@ -13,7 +13,7 @@ import kr.toxicity.model.compatibility.mythicmobs.*
 class StateMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), INoTargetSkill {
 
     private val state = mlc.toPlaceholderString(arrayOf("state", "s"))
-    private val li = mlc.toPlaceholderInteger(arrayOf("li"))
+    private val li = mlc.toPlaceholderInteger(arrayOf("li"), 1)
     private val lo = mlc.toPlaceholderInteger(arrayOf("lo"))
     private val sp = mlc.toPlaceholderFloat(arrayOf("speed", "sp"), 1F)
     private val remove = mlc.toPlaceholderBoolean(arrayOf("remove", "r"))
