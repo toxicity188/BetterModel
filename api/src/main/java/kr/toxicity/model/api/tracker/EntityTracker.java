@@ -185,7 +185,7 @@ public class EntityTracker extends Tracker {
             if (script == null) return;
             BetterModel.inst().scheduler().task(entity, () -> script.accept(entity));
         });
-        tick((t, b) -> {
+        tick(2, (t, b) -> {
             if (adapter.dead() && !forRemoval()) close();
         });
         frame((t, b) -> {

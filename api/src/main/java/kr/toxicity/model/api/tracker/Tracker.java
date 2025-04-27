@@ -115,6 +115,14 @@ public abstract class Tracker implements AutoCloseable {
     public void tick(@NotNull BiConsumer<Tracker, PacketBundler> consumer) {
         schedule(5, consumer);
     }
+    /**
+     * Runs consumer on tick.
+     * @param tick tick
+     * @param consumer consumer
+     */
+    public void tick(long tick, @NotNull BiConsumer<Tracker, PacketBundler> consumer) {
+        schedule(5 * tick, consumer);
+    }
 
     /**
      * Schedules some task.
