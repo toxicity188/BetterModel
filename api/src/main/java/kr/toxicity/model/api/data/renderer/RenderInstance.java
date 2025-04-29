@@ -186,7 +186,7 @@ public final class RenderInstance {
         var h = 0D;
         for (RenderedBone renderer : bones()) {
             var lt = renderer.worldPosition().y;
-            if (renderer.getName().tagged(BoneTag.HEAD, BoneTag.HEAD_WITH_CHILDREN)) return lt;
+            if (renderer.getName().tagged(BoneTag.HEAD)) return lt;
             if (h < lt) h = lt;
         }
         return h;
@@ -198,6 +198,12 @@ public final class RenderInstance {
 
     public boolean enchant(@NotNull BonePredicate predicate, boolean enchant) {
         return anyMatch(predicate, (b, p) -> b.enchant(p, enchant));
+    }
+
+    public void moveDuration(int duration) {
+        for (RenderedBone value : entityMap.values()) {
+            value.iterateTree(b -> b.moveDuration(duration));
+        }
     }
 
     public boolean animate(@NotNull String animation) {

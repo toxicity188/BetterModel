@@ -374,6 +374,10 @@ class NMSImpl : NMS {
             display.transformationInterpolationDuration = frame
         }
 
+        override fun moveDuration(duration: Int) {
+            display.entityData[Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID] = duration
+        }
+
         override fun remove(bundler: PacketBundler) {
             bundler.unwrap().add(removePacket)
         }

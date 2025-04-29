@@ -76,8 +76,7 @@ public final class VectorUtil {
                     last.interpolation()
             ));
             else {
-                newVectors.add(i, p2.interpolation().interpolate(newVectors, i, point));
-                t = point;
+                newVectors.add(i, p2.interpolation().interpolate(newVectors, i, t = point));
             }
         }
         return newVectors;

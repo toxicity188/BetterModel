@@ -31,6 +31,12 @@ public interface ModelDisplay {
     void frame(int frame);
 
     /**
+     * Sets pos-rot movement interpolation duration
+     * @param duration duration
+     */
+    void moveDuration(int duration);
+
+    /**
      * Sets item billboard
      * @param transform billboard
      */

@@ -30,7 +30,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -54,7 +53,8 @@ public abstract class Tracker implements AutoCloseable {
     private final Runnable updater;
     private PacketBundler bundler = BetterModel.inst().nms().createBundler();
     private long frame = 0;
-    private Supplier<ModelRotation> rotationSupplier = () -> ModelRotation.EMPTY;
+    @Getter
+    private ModelRotator rotator = ModelRotator.EMPTY;
 
     private BiConsumer<Tracker, PacketBundler> consumer = (t, b) -> {};
 
@@ -94,11 +94,11 @@ public abstract class Tracker implements AutoCloseable {
      * @return rotation
      */
     public final @NotNull ModelRotation rotation() {
-        return rotationSupplier.get();
+        return rotator.get();
     }
 
-    public final void rotation(@NotNull Supplier<ModelRotation> rotationSupplier) {
-        this.rotationSupplier = rotationSupplier;
+    public final void rotation(@NotNull ModelRotator newRotator) {
+        this.rotator = newRotator;
     }
 
     /**

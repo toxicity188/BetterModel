@@ -60,8 +60,8 @@ brightness
 glow
 enchant
 bindhitbox
-moutmodel
-dismountmodel****
+mountmodel
+dismountmodel
 dismountallmodel
 ```
 - targeter

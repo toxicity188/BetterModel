@@ -142,18 +142,7 @@ public class EntityTracker extends Tracker {
         instance.addAnimationMovementModifier(
                 BonePredicate.of(r -> r.getName().tagged(BoneTag.HEAD)),
                 a -> {
-                    if (a.rotation() != null && !isRunningSingleAnimation()) {
-                        a.rotation().add(-adapter.pitch(), Math.clamp(
-                                -adapter.yaw() + adapter.bodyYaw(),
-                                -45,
-                                45
-                        ), 0);
-                    }
-                });
-        instance.addAnimationMovementModifier(
-                BonePredicate.of(true, r -> r.getName().tagged(BoneTag.HEAD_WITH_CHILDREN)),
-                a -> {
-                    if (a.rotation() != null && !isRunningSingleAnimation()) {
+                    if (a.rotation() != null) {
                         a.rotation().add(-adapter.pitch(), Math.clamp(
                                 -adapter.yaw() + adapter.bodyYaw(),
                                 -45,
@@ -174,8 +163,9 @@ public class EntityTracker extends Tracker {
         instance.animate("spawn", AnimationModifier.DEFAULT_WITH_PLAY_ONCE);
         TRACKER_MAP.put(entity.getUniqueId(), this);
         BetterModel.inst().scheduler().task(entity, () -> {
+            if (isClosed()) return;
             entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, instance.getParent().getParent().name());
-            if (!isClosed()) createHitBox();
+            createHitBox();
         });
         tick((t, b) -> t.displays().forEach(d -> d.sync(adapter)));
         tick((t, b) -> {
@@ -340,6 +330,15 @@ public class EntityTracker extends Tracker {
      */
     public boolean canBeSpawnedAt(@NotNull Player player) {
         return autoSpawn() && instance.spawnFilter().test(player);
+    }
+
+    /**
+     * Sets move duration of this model.
+     * @param duration duration
+     */
+    public void moveDuration(int duration) {
+        instance.moveDuration(duration);
+        forceUpdate(true);
     }
 
     /**

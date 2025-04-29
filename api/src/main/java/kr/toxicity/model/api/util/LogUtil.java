@@ -42,7 +42,7 @@ public final class LogUtil {
             } catch (IOException e) {
                 list.add("Unknown");
             }
-        } else list.add("If you want to see the stack trace, turn debug.exception to true in config.yml");
+        } else list.add("If you want to see the stack trace, set debug.exception to true in config.yml");
         BetterModel.inst().logger().warn(list.toArray(String[]::new));
     }
 }

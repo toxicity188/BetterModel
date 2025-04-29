@@ -47,7 +47,7 @@ public final class BetterModel {
      * @return instance
      */
     public static @NotNull BetterModelPlugin inst() {
-        return Objects.requireNonNull(instance);
+        return Objects.requireNonNull(instance, "BetterModel hasn't been initialized yet!");
     }
 
     /**
@@ -60,6 +60,6 @@ public final class BetterModel {
         instance.addReloadStartHandler(() -> EventUtil.call(new PluginStartReloadEvent()));
         instance.addReloadEndHandler(t -> EntityTracker.reload());
         instance.addReloadEndHandler(t -> EventUtil.call(new PluginEndReloadEvent(t)));
-        BetterModel.instance = instance;
+        BetterModel.instance = Objects.requireNonNull(instance);
     }
 }

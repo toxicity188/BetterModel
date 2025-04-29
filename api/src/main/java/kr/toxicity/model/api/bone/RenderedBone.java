@@ -164,6 +164,14 @@ public final class RenderedBone implements HitBoxSource {
         return false;
     }
 
+    /**
+     * Sets bone's move duration.
+     * @param duration duration
+     */
+    public void moveDuration(int duration) {
+        if (display != null) display.moveDuration(duration);
+    }
+
     public void scale(@NotNull Supplier<Float> scale) {
         this.scale = scale;
     }

@@ -13,8 +13,7 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public enum BoneTag {
     NONE(new String[] {}),
-    HEAD(new String[] { "h" }),
-    HEAD_WITH_CHILDREN(new String[] { "hi" }),
+    HEAD(new String[] { "h", "hi" }),
     HITBOX(new String[] { "b", "ob" }),
     SEAT(new String[] { "p" }),
     SUB_SEAT(new String[] { "sp" })
