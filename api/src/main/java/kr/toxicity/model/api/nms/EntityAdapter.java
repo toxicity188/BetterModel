@@ -27,6 +27,12 @@ public interface EntityAdapter {
     boolean dead();
 
     /**
+     * Checks source entity is on the ground
+     * @return on the ground
+     */
+    boolean ground();
+
+    /**
      * Checks source entity is invisible
      * @return invisible
      */

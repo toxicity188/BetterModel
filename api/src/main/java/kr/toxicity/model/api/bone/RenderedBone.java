@@ -265,7 +265,8 @@ public final class RenderedBone implements HitBoxSource {
                 }
             }
         }
-        if (keyFrame != null) keyFrame = null;
+        relativeOffsetCache = null;
+        keyFrame = null;
         return true;
     }
 
@@ -314,7 +315,7 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     private static int toInterpolationDuration(long delay) {
-        return (int) Math.ceil((float) delay / 5F);
+        return delay <= 0 ? 0 : (int) Math.floor((float) delay / 5F) + 1;
     }
 
     public @NotNull Vector3f worldPosition() {

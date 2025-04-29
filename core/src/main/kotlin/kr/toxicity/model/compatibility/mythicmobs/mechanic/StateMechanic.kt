@@ -7,7 +7,6 @@ import io.lumine.mythic.api.skills.SkillResult
 import io.lumine.mythic.bukkit.MythicBukkit
 import io.lumine.mythic.core.skills.SkillMechanic
 import kr.toxicity.model.api.animation.AnimationModifier
-import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.compatibility.mythicmobs.*
 
 class StateMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), INoTargetSkill {
@@ -20,7 +19,7 @@ class StateMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().s
 
     override fun cast(p0: SkillMetadata): SkillResult {
         val args = p0.toPlaceholderArgs()
-        return EntityTracker.tracker(p0.caster.entity.bukkitEntity)?.let {
+        return p0.toTracker()?.let {
             val s = state(args) ?: return SkillResult.CONDITION_FAILED
             if (remove(args)) it.stopAnimation(s) else it.animate(s, AnimationModifier(li(args), lo(args), sp(args)))
             SkillResult.SUCCESS

@@ -315,8 +315,6 @@ class NMSImpl : NMS {
             location.yaw,
             0F
         )
-        valid = false
-        persist = false
         itemTransform = ItemDisplayContext.FIXED
         entityData.set(Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID, 3)
     })
@@ -325,11 +323,10 @@ class NMSImpl : NMS {
         val display: ItemDisplay
     ) : ModelDisplay {
 
-        private var isDead = false
         private var forceGlow = false
 
         override fun rotate(rotation: ModelRotation, bundler: PacketBundler) {
-            if (isDead) return
+            if (!display.valid) return
             display.xRot = rotation.x
             display.yRot = rotation.y
             bundler.unwrap().add(ClientboundMoveEntityPacket.Rot(
@@ -341,7 +338,8 @@ class NMSImpl : NMS {
         }
 
         override fun sync(entity: EntityAdapter) {
-            isDead = entity.dead()
+            display.valid = !entity.dead()
+            display.onGround = entity.ground()
             display.setGlowingTag(entity.glow() || forceGlow)
             if (BetterModel.inst().configManager().followMobInvisibility()) display.isInvisible = entity.invisible()
         }
@@ -516,6 +514,10 @@ class NMSImpl : NMS {
 
             override fun pitch(): Float {
                 return handle().xRot
+            }
+
+            override fun ground(): Boolean {
+                return handle().onGround()
             }
 
             override fun bodyYaw(): Float {

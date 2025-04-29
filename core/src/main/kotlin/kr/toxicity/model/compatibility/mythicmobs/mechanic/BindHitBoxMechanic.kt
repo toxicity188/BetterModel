@@ -7,10 +7,10 @@ import io.lumine.mythic.api.skills.SkillResult
 import io.lumine.mythic.bukkit.MythicBukkit
 import io.lumine.mythic.core.skills.SkillMechanic
 import kr.toxicity.model.api.nms.HitBoxListener
-import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.compatibility.mythicmobs.bonePredicate
 import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderArgs
 import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderString
+import kr.toxicity.model.compatibility.mythicmobs.toTracker
 import org.bukkit.entity.Damageable
 import org.bukkit.entity.Entity
 
@@ -27,7 +27,7 @@ class BindHitBoxMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.ins
 
     override fun cast(p0: SkillMetadata): SkillResult {
         val args = p0.toPlaceholderArgs()
-        return EntityTracker.tracker(p0.caster.entity.bukkitEntity)?.let {
+        return p0.toTracker()?.let {
             val e = type(args) ?: return SkillResult.CONDITION_FAILED
             val spawned = e.spawn(p0.caster.location, p0.caster.level).apply {
                 setParent(p0.caster)

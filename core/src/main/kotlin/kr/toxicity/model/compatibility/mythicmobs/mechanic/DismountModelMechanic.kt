@@ -7,11 +7,7 @@ import io.lumine.mythic.api.skills.SkillMetadata
 import io.lumine.mythic.api.skills.SkillResult
 import io.lumine.mythic.bukkit.MythicBukkit
 import io.lumine.mythic.core.skills.SkillMechanic
-import kr.toxicity.model.api.tracker.EntityTracker
-import kr.toxicity.model.compatibility.mythicmobs.MM_SEAT
-import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderArgs
-import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderBoolean
-import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderStringList
+import kr.toxicity.model.compatibility.mythicmobs.*
 
 class DismountModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), ITargetedEntitySkill {
 
@@ -26,7 +22,7 @@ class DismountModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.
 
     override fun castAtEntity(p0: SkillMetadata, p1: AbstractEntity): SkillResult {
         val args = toPlaceholderArgs(p0, p1)
-        return EntityTracker.tracker(p0.caster.entity.bukkitEntity.uniqueId)?.let { tracker ->
+        return p0.toTracker()?.let { tracker ->
             val set = seat(args)
             val d = driver(args)
             tracker.bone {

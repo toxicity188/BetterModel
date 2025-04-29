@@ -4,10 +4,10 @@ import io.lumine.mythic.api.adapters.AbstractLocation
 import io.lumine.mythic.api.config.MythicLineConfig
 import io.lumine.mythic.api.skills.SkillMetadata
 import io.lumine.mythic.api.skills.targeters.ILocationTargeter
-import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.compatibility.mythicmobs.MM_PART_ID
 import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderArgs
 import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderString
+import kr.toxicity.model.compatibility.mythicmobs.toTracker
 import kr.toxicity.model.util.boneName
 
 class ModelPartTargeter(mlc: MythicLineConfig) : ILocationTargeter {
@@ -18,10 +18,8 @@ class ModelPartTargeter(mlc: MythicLineConfig) : ILocationTargeter {
 
     override fun getLocations(p0: SkillMetadata): Collection<AbstractLocation> {
         val args = p0.toPlaceholderArgs()
-        val entity = p0.caster.entity
-        val bukkit = entity.bukkitEntity
-        return EntityTracker.tracker(bukkit.uniqueId)?.bone(part(args) ?: return emptyList())?.worldPosition()?.let {
-            listOf(entity.location.add(
+        return p0.toTracker()?.bone(part(args) ?: return emptyList())?.worldPosition()?.let {
+            listOf(p0.caster.entity.location.add(
                 it.x.toDouble(),
                 it.y.toDouble(),
                 it.z.toDouble()

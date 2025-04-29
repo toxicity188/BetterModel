@@ -3,6 +3,7 @@ package kr.toxicity.model.compatibility.mythicmobs
 import io.lumine.mythic.api.adapters.AbstractEntity
 import io.lumine.mythic.api.config.MythicLineConfig
 import io.lumine.mythic.api.skills.SkillMetadata
+import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.api.util.BonePredicate
 import kr.toxicity.model.util.boneName
 
@@ -12,6 +13,9 @@ val MM_EXACT_MATCH = arrayOf("exactmatch", "em", "exact", "match")
 val MM_SEAT = arrayOf("seat", "p", "pbone")
 
 const val WHITE = 0xFFFFFF
+
+fun SkillMetadata.toTracker() = caster.entity.toTracker()
+fun AbstractEntity.toTracker() = EntityTracker.tracker(bukkitEntity)
 
 fun MythicLineConfig.toPlaceholderString(array: Array<String>, defaultValue: String? = null) = toPlaceholderString(array, defaultValue) { it }
 fun <T> MythicLineConfig.toPlaceholderStringList(array: Array<String>, mapper: (List<String>) -> T) = toPlaceholderString(array) {
