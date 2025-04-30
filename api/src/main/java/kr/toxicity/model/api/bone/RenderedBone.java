@@ -315,7 +315,7 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     private static int toInterpolationDuration(long delay) {
-        return delay <= 0 ? 0 : (int) Math.floor((float) delay / 5F) + 1;
+        return (int) Math.ceil((float) delay / 5F);
     }
 
     public @NotNull Vector3f worldPosition() {
