@@ -79,7 +79,7 @@ public final class RendererGroup {
         this.limb = limb;
         this.parent = group;
         this.children = children;
-        this.itemStack = new TransformedItemStack(
+        this.itemStack = (itemStack == null && limb != null) ? limb.createItem() : new TransformedItemStack(
                 new Vector3f(),
                 new Vector3f(scale),
                 itemStack != null ? itemStack : new ItemStack(Material.AIR)

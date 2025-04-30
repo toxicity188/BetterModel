@@ -10,7 +10,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Player limb data
@@ -88,6 +92,21 @@ public enum PlayerLimb {
     },
     ;
 
+    private static final Map<String, PlayerLimb> PLAYER_LIMBS = new HashMap<>();
+
+    static {
+        for (PlayerLimb value : values()) {
+            var name = value.name();
+            if (name.endsWith("ITEM")) continue;
+            var key = "PLAYER_" + name;
+            PLAYER_LIMBS.put(key, value);
+        }
+    }
+
+    public static @Nullable PlayerLimb getLimb(@NotNull String key) {
+        return PLAYER_LIMBS.get(key);
+    }
+
     private static Vector3f head(float x, float y, float z) {
         return new Vector3f(x, y, z).mul(0.25F);
     }
@@ -110,5 +129,10 @@ public enum PlayerLimb {
         meta.setOwningPlayer(player);
         item.setItemMeta(meta);
         return TransformedItemStack.of(offset, channel == null || channel.isSlim() ? slimScale : scale, item);
+    }
+
+    public @NotNull TransformedItemStack createItem() {
+        var item = new ItemStack(Material.PLAYER_HEAD);
+        return TransformedItemStack.of(offset, scale, item);
     }
 }

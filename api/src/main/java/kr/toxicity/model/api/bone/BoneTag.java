@@ -16,7 +16,19 @@ public enum BoneTag {
     HEAD(new String[] { "h", "hi" }),
     HITBOX(new String[] { "b", "ob" }),
     SEAT(new String[] { "p" }),
-    SUB_SEAT(new String[] { "sp" })
+    SUB_SEAT(new String[] { "sp" }),
+    PLAYER_HEAD(new String[] { "ph" }),
+    PLAYER_RIGHT_ARM(new String[] { "pra" }),
+    PLAYER_RIGHT_FOREARM(new String[] { "prfa" }),
+    PLAYER_LEFT_ARM(new String[] { "pla" }),
+    PLAYER_LEFT_FOREARM(new String[] { "plfa" }),
+    PLAYER_HIP(new String[] { "phip" }),
+    PLAYER_WAIST(new String[] { "pw" }),
+    PLAYER_CHEST(new String[] { "pc" }),
+    PLAYER_RIGHT_LEG(new String[] { "prl" }),
+    PLAYER_RIGHT_FORELEG(new String[] { "prfl" }),
+    PLAYER_LEFT_LEG(new String[] { "pll" }),
+    PLAYER_LEFT_FORELEG(new String[] { "plfl" })
     ;
 
     public static final Pattern TAG_PATTERN = Pattern.compile("^(?<tag>[a-zA-Z]+)_(?<name>(\\w|\\W)+)$");
