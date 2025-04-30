@@ -201,7 +201,7 @@ bukkitPluginYaml {
     )
     libraries = listOf(
         "com.vdurmont:semver4j:3.1.0",
-        "net.kyori:adventure-api:4.20.0",
+        "net.kyori:adventure-api:4.21.0",
         "net.kyori:adventure-platform-bukkit:4.3.4"
     )
     permissions.create("bettermodel") {
