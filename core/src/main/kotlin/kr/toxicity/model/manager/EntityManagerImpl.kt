@@ -15,12 +15,10 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.*
-import org.bukkit.event.player.PlayerInteractAtEntityEvent
 import org.bukkit.event.player.PlayerPortalEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.world.ChunkLoadEvent
 import org.bukkit.event.world.ChunkUnloadEvent
-import org.bukkit.inventory.EquipmentSlot
 
 object EntityManagerImpl : EntityManager, GlobalManagerImpl {
 
@@ -67,14 +65,6 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun EntityPotionEffectEvent.potion() {
                 EntityTracker.tracker(entity)?.forceUpdate(true)
-            }
-            @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-            fun PlayerInteractAtEntityEvent.interactBukkit() {
-                if (hand != EquipmentSlot.HAND) return
-                val previous = player.vehicle
-                if (previous is HitBox && previous.source().uniqueId == rightClicked.uniqueId && previous.mountController().canDismountBySelf()) {
-                    previous.dismount(player)
-                }
             }
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun EntityDismountEvent.dismount() {

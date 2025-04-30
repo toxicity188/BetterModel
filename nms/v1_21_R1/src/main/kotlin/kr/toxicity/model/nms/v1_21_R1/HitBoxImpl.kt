@@ -4,6 +4,7 @@ import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.bone.BoneName
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import kr.toxicity.model.api.event.ModelDamagedEvent
+import kr.toxicity.model.api.event.ModelInteractAtEvent
 import kr.toxicity.model.api.event.ModelInteractEvent
 import kr.toxicity.model.api.event.ModelInteractEvent.Hand
 import kr.toxicity.model.api.mount.MountController
@@ -11,6 +12,7 @@ import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.HitBoxListener
 import kr.toxicity.model.api.nms.HitBoxSource
 import net.minecraft.core.BlockPos
+import net.minecraft.network.protocol.game.ServerboundInteractPacket
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionHand.MAIN_HAND
@@ -31,6 +33,7 @@ import net.minecraft.world.phys.Vec3
 import org.bukkit.Bukkit
 import org.bukkit.craftbukkit.CraftServer
 import org.bukkit.craftbukkit.entity.CraftLivingEntity
+import org.bukkit.craftbukkit.util.CraftVector
 import org.bukkit.entity.Entity
 import org.bukkit.event.entity.EntityPotionEffectEvent
 import org.joml.Vector3f
@@ -275,7 +278,18 @@ class HitBoxImpl(
             OFF_HAND -> Hand.LEFT
         })
         if (!interact.call()) return InteractionResult.FAIL
-        return delegate.interact(player, hand)
+        (player as ServerPlayer).connection.handleInteract(ServerboundInteractPacket.createInteractionPacket(delegate, false, hand))
+        return InteractionResult.SUCCESS
+    }
+
+    override fun interactAt(player: Player, vec: Vec3, hand: InteractionHand): InteractionResult {
+        val interact = ModelInteractAtEvent(player.bukkitEntity as org.bukkit.entity.Player, craftEntity, when (hand) {
+            MAIN_HAND -> Hand.RIGHT
+            OFF_HAND -> Hand.LEFT
+        }, CraftVector.toBukkit(vec))
+        if (!interact.call()) return InteractionResult.FAIL
+        (player as ServerPlayer).connection.handleInteract(ServerboundInteractPacket.createInteractionPacket(delegate, false, hand, vec))
+        return InteractionResult.SUCCESS
     }
 
     override fun addEffect(effectInstance: MobEffectInstance, cause: EntityPotionEffectEvent.Cause): Boolean {
