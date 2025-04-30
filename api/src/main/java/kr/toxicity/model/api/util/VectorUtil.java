@@ -92,7 +92,7 @@ public final class VectorUtil {
                     degree.x,
                     degree.y,
                     degree.z
-            ).mapToDouble(Math::abs).max().orElse(0) / 90) + 1;
+            ).mapToDouble(Math::abs).max().orElse(0) / 45) + 1;
             if (angle > 1) {
                 for (float t = 1; t < angle; t++) {
                     frames.add(linear(before.time(), after.time(), t / angle));
@@ -106,18 +106,19 @@ public final class VectorUtil {
     }
 
     public static void insertLerpFrame(@NotNull Set<Float> frames, float frame) {
-        if (frame <= 0) return;
+        if (frame <= 0.031F) return;
+        frame -= 0.031F;
         var list = new ArrayList<>(frames);
         var init = 0F;
         var initAfter = list.getFirst();
-        while (init < initAfter - 0.05) {
-            frames.add(init += frame);
+        while ((init += frame) < initAfter) {
+            frames.add(init);
         }
         for (int i = 0; i < list.size() - 1; i++) {
             var before = list.get(i);
             var after = list.get(i + 1);
-            while (before < after - 0.05) {
-                frames.add(before += frame);
+            while ((before += frame) < after) {
+                frames.add(before);
             }
         }
     }

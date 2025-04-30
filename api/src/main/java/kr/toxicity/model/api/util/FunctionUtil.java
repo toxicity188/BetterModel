@@ -37,7 +37,7 @@ public final class FunctionUtil {
      * @return throttled function
      */
     public static @NotNull Runnable throttleTick(@NotNull Runnable runnable) {
-        return runnable instanceof TickThrottledRunnable ThrottledRunnable ? ThrottledRunnable : new TickThrottledRunnable(runnable);
+        return runnable instanceof TickThrottledRunnable throttledRunnable ? throttledRunnable : new TickThrottledRunnable(runnable);
     }
 
     /**
@@ -46,7 +46,7 @@ public final class FunctionUtil {
      * @return throttled function
      */
     public static <T> @NotNull Supplier<T> throttleTick(@NotNull Supplier<T> supplier) {
-        return supplier instanceof TickThrottledSupplier<T> ThrottledSupplier ? ThrottledSupplier : new TickThrottledSupplier<>(supplier);
+        return supplier instanceof TickThrottledSupplier<T> throttledSupplier ? throttledSupplier : new TickThrottledSupplier<>(supplier);
     }
 
     /**
@@ -55,7 +55,7 @@ public final class FunctionUtil {
      * @return throttled function
      */
     public static <T> @NotNull Predicate<T> throttleTick(@NotNull Predicate<T> predicate) {
-        return predicate instanceof TickThrottledPredicate<T> ThrottledSupplier ? ThrottledSupplier : new TickThrottledPredicate<>(predicate);
+        return predicate instanceof TickThrottledPredicate<T> throttledSupplier ? throttledSupplier : new TickThrottledPredicate<>(predicate);
     }
 
     /**
@@ -64,7 +64,7 @@ public final class FunctionUtil {
      * @return throttled function
      */
     public static <T, R> @NotNull Function<T, R> throttleTick(@NotNull Function<T, R> function) {
-        return function instanceof TickThrottledFunction<T, R> ThrottledFunction ? ThrottledFunction : new TickThrottledFunction<>(function);
+        return function instanceof TickThrottledFunction<T, R> throttledFunction ? throttledFunction : new TickThrottledFunction<>(function);
     }
 
     @RequiredArgsConstructor
