@@ -37,6 +37,8 @@ public final class RendererGroup {
     @Getter
     private final BoneName name;
     @Getter
+    private final BoneName[] names;
+    @Getter
     private final BlueprintChildren.BlueprintGroup parent;
     @Getter
     private final Vector3f position;
@@ -68,6 +70,7 @@ public final class RendererGroup {
      */
     public RendererGroup(
             @NotNull BoneName name,
+            @NotNull BoneName[] names,
             float scale,
             @Nullable ItemStack itemStack,
             @NotNull BlueprintChildren.BlueprintGroup group,
@@ -76,6 +79,7 @@ public final class RendererGroup {
             @Nullable PlayerLimb limb
     ) {
         this.name = name;
+        this.names = names;
         this.limb = limb;
         this.parent = group;
         this.children = children;

@@ -140,7 +140,7 @@ public class EntityTracker extends Tracker {
         instance.defaultPosition(FunctionUtil.throttleTick(() -> adapter.passengerPosition().mul(-1)));
         instance.scale(scale);
         instance.addAnimationMovementModifier(
-                BonePredicate.of(r -> r.getName().tagged(BoneTag.HEAD)),
+                BonePredicate.of(r -> r.getName().tagged(BoneTag.HEAD) || Arrays.stream(r.getNames()).anyMatch(it -> it.tagged(BoneTag.HEAD))),
                 a -> {
                     if (a.rotation() != null) {
                         a.rotation().add(-adapter.pitch(), Math.clamp(

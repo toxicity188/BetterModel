@@ -419,6 +419,10 @@ public final class RenderedBone implements HitBoxSource {
         return getGroup().getName();
     }
 
+    public @NotNull BoneName[] getNames() {
+        return getGroup().getNames();
+    }
+
     public void teleport(@NotNull Location location, @NotNull PacketBundler bundler) {
         if (display != null) display.teleport(location, bundler);
     }

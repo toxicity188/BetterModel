@@ -95,6 +95,7 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
         fun BlueprintGroup.parse(): RendererGroup {
             return RendererGroup(
                 boneName(),
+                boneNames(),
                 scale,
                 ItemStack(Material.AIR),
                 this,

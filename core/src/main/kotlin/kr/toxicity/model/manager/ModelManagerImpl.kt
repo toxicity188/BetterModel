@@ -263,6 +263,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
             val limb = boneName().toLimb()
             return RendererGroup(
                 boneName(),
+                boneNames(),
                 scale,
                 if (limb != null) null else consumer(this)?.let { i ->
                     ItemStack(ConfigManagerImpl.item()).apply {
