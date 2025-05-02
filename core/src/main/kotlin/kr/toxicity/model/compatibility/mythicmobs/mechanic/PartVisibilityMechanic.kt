@@ -14,7 +14,7 @@ import kr.toxicity.model.compatibility.mythicmobs.toTracker
 class PartVisibilityMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), INoTargetSkill {
 
     private val predicate = mlc.bonePredicateNullable
-    private val v = mlc.toPlaceholderBoolean(arrayOf("value", "v"), true)
+    private val v = mlc.toPlaceholderBoolean(arrayOf("visibility", "visible", "v"), true)
 
     override fun cast(p0: SkillMetadata): SkillResult {
         val args = p0.toPlaceholderArgs()
