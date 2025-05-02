@@ -172,16 +172,18 @@ void main() {
             }
 
             vec4 subuv = vec4(subuvs[subuvIndex]);
-            if (isBody) {
-                float t = (subuv.w - subuv.y) / 3.0;
-                int partIdKey = (partId - 5) % 3;
-                subuv.y += t * (2 - partIdKey);
-                subuv.w -= t * partIdKey;
-            } else {
-                if (((partId + (isLeg ? 1 : 0)) % 2) == 0) {
-                    subuv.y = (subuv.w + subuv.y) / 2;
+            if (faceId > 1) {
+                if (isBody) {
+                    float t = (subuv.w - subuv.y) / 3.0;
+                    int partIdKey = (partId - 5) % 3;
+                    subuv.y += t * (2 - partIdKey);
+                    subuv.w -= t * partIdKey;
                 } else {
-                    subuv.w = (subuv.w + subuv.y) / 2;
+                    if (((partId + (isLeg ? 1 : 0)) % 2) == 0) {
+                        subuv.y = (subuv.w + subuv.y) / 2;
+                    } else {
+                        subuv.w = (subuv.w + subuv.y) / 2;
+                    }
                 }
             }
 

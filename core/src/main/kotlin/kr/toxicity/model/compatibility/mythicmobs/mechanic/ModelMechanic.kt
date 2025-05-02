@@ -7,6 +7,7 @@ import io.lumine.mythic.api.skills.SkillResult
 import io.lumine.mythic.bukkit.MythicBukkit
 import io.lumine.mythic.core.skills.SkillMechanic
 import kr.toxicity.model.api.BetterModel
+import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.api.tracker.TrackerModifier
 import kr.toxicity.model.api.util.EntityUtil
 import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderArgs
@@ -26,6 +27,7 @@ class ModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().s
     private val de = mlc.toPlaceholderBoolean(arrayOf("damage-effect", "de"), true)
     private val vr = mlc.toPlaceholderFloat(arrayOf("view-range", "vr"), EntityUtil.ENTITY_MODEL_VIEW_RADIUS)
     private val shadow = mlc.toPlaceholderBoolean(arrayOf("shadow"), false)
+    private val r = mlc.toPlaceholderBoolean(arrayOf("remove", "r"), false)
 
     init {
         isAsyncSafe = false
@@ -33,13 +35,20 @@ class ModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().s
 
     override fun cast(p0: SkillMetadata): SkillResult {
         val args = p0.toPlaceholderArgs()
-        return ModelManagerImpl.renderer(mid(args) ?: return SkillResult.CONDITION_FAILED)?.let {
-            val e = p0.caster.entity.bukkitEntity
-            val created = it.create(e, TrackerModifier({ s(args) }, st(args), de(args), vr(args), shadow(args)))
-            BetterModel.inst().scheduler().taskLater(1, e) {
-                created.spawnNearby()
-            }
-            SkillResult.SUCCESS
-        } ?: SkillResult.CONDITION_FAILED
+        val e = p0.caster.entity.bukkitEntity
+        return if (r(args)) {
+            EntityTracker.tracker(e.uniqueId)?.run {
+                close()
+                SkillResult.SUCCESS
+            } ?: SkillResult.CONDITION_FAILED
+        } else {
+            ModelManagerImpl.renderer(mid(args) ?: return SkillResult.CONDITION_FAILED)?.let {
+                val created = it.create(e, TrackerModifier({ s(args) }, st(args), de(args), vr(args), shadow(args)))
+                BetterModel.inst().scheduler().taskLater(1, e) {
+                    created.spawnNearby()
+                }
+                SkillResult.SUCCESS
+            } ?: SkillResult.CONDITION_FAILED
+        }
     }
 }
