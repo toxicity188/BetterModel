@@ -129,8 +129,8 @@ public final class RendererGroup {
 
     @NotNull
     private TransformedItemStack getItem(@Nullable Player player) {
-        if (player != null) {
-            return limb != null ? limb.createItem(player) : itemStack.asAir();
+        if (player != null && limb != null) {
+            return limb.createItem(player);
         }
         return itemStack;
     }

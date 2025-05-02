@@ -25,51 +25,51 @@ public enum PlayerLimb {
     /**
      * Head
      */
-    HEAD(new Vector3f(0, 0F, 0), new Vector3f(0.9375F,0.9375F,0.9375F),  new Vector3f(0.9375F,0.9375F,0.9375F), head(0, 0.9375F, 0), ItemDisplay.ItemDisplayTransform.FIXED),
+    HEAD(position(0), scale(7.4688F, 0.5F), scale(7.4688F, 0.5F), offset(0, 7.5F, 0, 0.5F), ItemDisplay.ItemDisplayTransform.FIXED),
     /**
      * Right arm
      */
-    RIGHT_ARM(new Vector3f(0, -512F, 0), new Vector3f(0.46875F,0.703125F,0.46875F), new Vector3f(0.3515625F,0.703125F,0.46875F), head(0F, -0.703125F, 0), ItemDisplay.ItemDisplayTransform.FIXED),
+    RIGHT_ARM(position(1), scale(3.7188F,5.5938F,3.7188F, 0.25F), scale(2.7891F,5.5938F,3.7188F, 0.25F), offset(-0.625F, 1.5F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
     /**
      * Right forearm
      */
-    RIGHT_FOREARM(new Vector3f(0, -1024F, 0), new Vector3f(0.46875F,0.703125F,0.46875F), new Vector3f(0.3515625F,0.703125F,0.46875F), head(0F, -0.703125F, 0F), ItemDisplay.ItemDisplayTransform.FIXED),
+    RIGHT_FOREARM(position(2), scale(3.7188F,5.5938F,3.7188F, 0.25F), scale(2.7891F,5.5938F,3.7188F, 0.25F), offset(-0.625F, 1.5F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
     /**
      * Left arm
      */
-    LEFT_ARM(new Vector3f(0, -1536F, 0), new Vector3f(0.46875F,0.703125F,0.46875F), new Vector3f(0.3515625F,0.703125F,0.46875F), head(0F, -0.703125F, 0F), ItemDisplay.ItemDisplayTransform.FIXED),
+    LEFT_ARM(position(3), scale(3.7188F,5.5938F,3.7188F, 0.25F), scale(2.7891F,5.5938F,3.7188F, 0.25F), offset(0.625F, 1.5F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
     /**
      * Left forearm
      */
-    LEFT_FOREARM(new Vector3f(0, -2048F, 0), new Vector3f(0.46875F,0.703125F,0.46875F), new Vector3f(0.3515625F,0.703125F,0.46875F), head(0F, -0.703125F, 0F), ItemDisplay.ItemDisplayTransform.FIXED),
+    LEFT_FOREARM(position(4), scale(3.7188F,5.5938F,3.7188F, 0.25F), scale(2.7891F,5.5938F,3.7188F, 0.25F), offset(0.625F, 1.5F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
     /**
      * Hip
      */
-    HIP(new Vector3f(0, -2560F, 0), new Vector3f(0.9375F,0.43945F,0.46875F), new Vector3f(0.9375F,0.52734F,0.46875F), head(0, 0.52734F, 0), ItemDisplay.ItemDisplayTransform.FIXED),
+    HIP(position(5), scale(7.4688F,3.7188F,3.7188F, 0.25F), scale(7.4688F,3.7188F,3.7188F, 0.25F), offset(0, 5.75F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
     /**
      * Waist
      */
-    WAIST(new Vector3f(0, -3072F, 0), new Vector3f(0.9375F,0.52734F,0.46875F), new Vector3f(0.9375F,0.52734F,0.46875F), head(0, 0.52734F, 0), ItemDisplay.ItemDisplayTransform.FIXED),
+    WAIST(position(6), scale(7.4688F,3.7188F,3.7188F, 0.25F), scale(7.4688F,3.7188F,3.7188F, 0.25F), offset(0, 5.75F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
     /**
      * Chest
      */
-    CHEST(new Vector3f(0, -3584F, 0), new Vector3f(0.9375F,0.43945F,0.46875F), new Vector3f(0.9375F,0.52734F,0.46875F), head(0, 0.52734F, 0), ItemDisplay.ItemDisplayTransform.FIXED),
+    CHEST(position(7), scale(7.4688F,3.7188F,3.7188F, 0.25F), scale(7.4688F,3.7188F,3.7188F, 0.25F), offset(0, 5.75F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
     /**
      * Right leg
      */
-    RIGHT_LEG(new Vector3f(0, -4096F, 0), new Vector3f(0.46875F,0.703125F,0.46875F), new Vector3f(0.46875F,0.703125F,0.46875F), head(0, -0.703125F, 0), ItemDisplay.ItemDisplayTransform.FIXED),
+    RIGHT_LEG(position(8), scale(3.7188F,5.5938F,3.7188F, 0.25F), scale(3.7188F,5.5938F,3.7188F, 0.25F), offset(0, 1.12F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
     /**
      * Right foreleg
      */
-    RIGHT_FORELEG(new Vector3f(0, -4608F, 0), new Vector3f(0.46875F,0.703125F,0.46875F), new Vector3f(0.46875F,0.703125F,0.46875F), head(0, -0.703125F, 0), ItemDisplay.ItemDisplayTransform.FIXED),
+    RIGHT_FORELEG(position(9), scale(3.7188F,5.5938F,3.7188F, 0.25F), scale(3.7188F,5.5938F,3.7188F, 0.25F), offset(0, 1.12F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
     /**
      * LEft leg
      */
-    LEFT_LEG(new Vector3f(0, -5120F, 0), new Vector3f(0.46875F,0.703125F,0.46875F), new Vector3f(0.46875F,0.703125F,0.46875F), head(0, -0.703125F, 0), ItemDisplay.ItemDisplayTransform.FIXED),
+    LEFT_LEG(position(10), scale(3.7188F,5.5938F,3.7188F, 0.25F), scale(3.7188F,5.5938F,3.7188F, 0.25F), offset(0, 1.12F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
     /**
      * Left foreleg
      */
-    LEFT_FORELEG(new Vector3f(0, -5632F, 0), new Vector3f(0.46875F,0.703125F,0.46875F), new Vector3f(0.46875F,0.703125F,0.46875F), head(0, -0.703125F, 0), ItemDisplay.ItemDisplayTransform.FIXED),
+    LEFT_FORELEG(position(11), scale(3.7188F,5.5938F,3.7188F, 0.25F), scale(3.7188F,5.5938F,3.7188F, 0.25F), offset(0, 1.12F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
     /**
      * Left item
      */
@@ -107,8 +107,20 @@ public enum PlayerLimb {
         return PLAYER_LIMBS.get(key);
     }
 
-    private static Vector3f head(float x, float y, float z) {
-        return new Vector3f(x, y, z).mul(0.25F);
+    private static Vector3f position(int mul) {
+        return new Vector3f(0, -512, 0).mul(mul);
+    }
+
+    private static Vector3f scale(float scale, float inflate) {
+        return scale(scale, scale, scale, inflate);
+    }
+
+    private static Vector3f scale(float x, float y, float z, float inflate) {
+        return new Vector3f(x, y, z).div(8).add(new Vector3f(inflate).div(8));
+    }
+
+    private static Vector3f offset(float x, float y, float z, float inflate) {
+        return new Vector3f(0, -0.25F, 0).add(new Vector3f(x, y, z).div(16)).add(new Vector3f(0, inflate, 0).div(32));
     }
 
     private final @NotNull Vector3f position;
@@ -123,16 +135,23 @@ public enum PlayerLimb {
      * @return item
      */
     public @NotNull TransformedItemStack createItem(@NotNull Player player) {
-        var channel = BetterModel.inst().playerManager().player(player.getUniqueId());
         var item = new ItemStack(Material.PLAYER_HEAD);
         var meta = (SkullMeta) item.getItemMeta();
         meta.setOwningPlayer(player);
         item.setItemMeta(meta);
-        return TransformedItemStack.of(offset, channel == null || channel.isSlim() ? slimScale : scale, item);
+        return TransformedItemStack.of(offset, skinScale(player), item);
     }
 
     public @NotNull TransformedItemStack createItem() {
         var item = new ItemStack(Material.PLAYER_HEAD);
-        return TransformedItemStack.of(offset, scale, item);
+        return TransformedItemStack.of(offset, skinScale(null), item);
+    }
+
+    public @NotNull Vector3f skinScale(@Nullable Player player) {
+        if (player != null) {
+            var channel = BetterModel.inst().playerManager().player(player.getUniqueId());
+            return channel == null || channel.isSlim() ? slimScale : scale;
+        }
+        return scale;
     }
 }
