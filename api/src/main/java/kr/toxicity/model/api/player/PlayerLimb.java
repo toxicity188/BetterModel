@@ -25,55 +25,55 @@ public enum PlayerLimb {
     /**
      * Head
      */
-    HEAD(position(0), scale(7.4688F, 0.5F), scale(7.4688F, 0.5F), offset(0, 7.5F, 0, 0.5F), ItemDisplay.ItemDisplayTransform.FIXED),
+    HEAD(position(0), scale(7.4688F, 0.5F), scale(7.4688F, 0.5F), offset(0, 7.5F, 0, 0.5F), offset(0, 7.5F, 0, 0.5F), ItemDisplay.ItemDisplayTransform.FIXED),
     /**
      * Right arm
      */
-    RIGHT_ARM(position(1), scale(3.7188F,5.5938F,3.7188F, 0.25F), scale(2.7891F,5.5938F,3.7188F, 0.25F), offset(-0.625F, 1.5F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
+    RIGHT_ARM(position(1), scale(3.7188F,5.5938F,3.7188F, 0.25F), scale(2.7891F,5.5938F,3.7188F, 0.25F), offset(-0.625F, 1.5F, 0, 0.25F), offset(-0.043F, 1.5F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
     /**
      * Right forearm
      */
-    RIGHT_FOREARM(position(2), scale(3.7188F,5.5938F,3.7188F, 0.25F), scale(2.7891F,5.5938F,3.7188F, 0.25F), offset(-0.625F, 1.5F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
+    RIGHT_FOREARM(position(2), scale(3.7188F,5.5938F,3.7188F, 0.25F), scale(2.7891F,5.5938F,3.7188F, 0.25F), offset(-0.625F, 1.5F, 0, 0.25F), offset(-0.043F, 1.5F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
     /**
      * Left arm
      */
-    LEFT_ARM(position(3), scale(3.7188F,5.5938F,3.7188F, 0.25F), scale(2.7891F,5.5938F,3.7188F, 0.25F), offset(0.625F, 1.5F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
+    LEFT_ARM(position(3), scale(3.7188F,5.5938F,3.7188F, 0.25F), scale(2.7891F,5.5938F,3.7188F, 0.25F), offset(0.625F, 1.5F, 0, 0.25F), offset(0.043F, 1.5F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
     /**
      * Left forearm
      */
-    LEFT_FOREARM(position(4), scale(3.7188F,5.5938F,3.7188F, 0.25F), scale(2.7891F,5.5938F,3.7188F, 0.25F), offset(0.625F, 1.5F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
+    LEFT_FOREARM(position(4), scale(3.7188F,5.5938F,3.7188F, 0.25F), scale(2.7891F,5.5938F,3.7188F, 0.25F), offset(0.625F, 1.5F, 0, 0.25F), offset(0.043F, 1.5F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
     /**
      * Hip
      */
-    HIP(position(5), scale(7.4688F,3.7188F,3.7188F, 0.25F), scale(7.4688F,3.7188F,3.7188F, 0.25F), offset(0, 5.75F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
+    HIP(position(5), scale(7.4688F,3.7188F,3.7188F, 0.25F), scale(7.4688F,3.7188F,3.7188F, 0.25F), offset(0, 5.75F, 0, 0.25F), offset(0, 5.75F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
     /**
      * Waist
      */
-    WAIST(position(6), scale(7.4688F,3.7188F,3.7188F, 0.25F), scale(7.4688F,3.7188F,3.7188F, 0.25F), offset(0, 5.75F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
+    WAIST(position(6), scale(7.4688F,3.7188F,3.7188F, 0.25F), scale(7.4688F,3.7188F,3.7188F, 0.25F), offset(0, 5.75F, 0, 0.25F), offset(0, 5.75F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
     /**
      * Chest
      */
-    CHEST(position(7), scale(7.4688F,3.7188F,3.7188F, 0.25F), scale(7.4688F,3.7188F,3.7188F, 0.25F), offset(0, 5.75F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
+    CHEST(position(7), scale(7.4688F,3.7188F,3.7188F, 0.25F), scale(7.4688F,3.7188F,3.7188F, 0.25F), offset(0, 5.75F, 0, 0.25F), offset(0, 5.75F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
     /**
      * Right leg
      */
-    RIGHT_LEG(position(8), scale(3.7188F,5.5938F,3.7188F, 0.25F), scale(3.7188F,5.5938F,3.7188F, 0.25F), offset(0, 1.12F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
+    RIGHT_LEG(position(8), scale(3.7188F,5.5938F,3.7188F, 0.25F), scale(3.7188F,5.5938F,3.7188F, 0.25F), offset(0, 1.12F, 0, 0.25F), offset(0, 1.12F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
     /**
      * Right foreleg
      */
-    RIGHT_FORELEG(position(9), scale(3.7188F,5.5938F,3.7188F, 0.25F), scale(3.7188F,5.5938F,3.7188F, 0.25F), offset(0, 1.12F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
+    RIGHT_FORELEG(position(9), scale(3.7188F,5.5938F,3.7188F, 0.25F), scale(3.7188F,5.5938F,3.7188F, 0.25F), offset(0, 1.12F, 0, 0.25F), offset(0, 1.12F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
     /**
      * LEft leg
      */
-    LEFT_LEG(position(10), scale(3.7188F,5.5938F,3.7188F, 0.25F), scale(3.7188F,5.5938F,3.7188F, 0.25F), offset(0, 1.12F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
+    LEFT_LEG(position(10), scale(3.7188F,5.5938F,3.7188F, 0.25F), scale(3.7188F,5.5938F,3.7188F, 0.25F), offset(0, 1.12F, 0, 0.25F), offset(0, 1.12F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
     /**
      * Left foreleg
      */
-    LEFT_FORELEG(position(11), scale(3.7188F,5.5938F,3.7188F, 0.25F), scale(3.7188F,5.5938F,3.7188F, 0.25F), offset(0, 1.12F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
+    LEFT_FORELEG(position(11), scale(3.7188F,5.5938F,3.7188F, 0.25F), scale(3.7188F,5.5938F,3.7188F, 0.25F), offset(0, 1.12F, 0, 0.25F), offset(0, 1.12F, 0, 0.25F), ItemDisplay.ItemDisplayTransform.FIXED),
     /**
      * Left item
      */
-    LEFT_ITEM(new Vector3f(), new Vector3f(1), new Vector3f(1), new Vector3f(), ItemDisplay.ItemDisplayTransform.THIRDPERSON_LEFTHAND) {
+    LEFT_ITEM(new Vector3f(), new Vector3f(1), new Vector3f(1), new Vector3f(), new Vector3f(), ItemDisplay.ItemDisplayTransform.THIRDPERSON_LEFTHAND) {
         @NotNull
         @Override
         public TransformedItemStack createItem(@NotNull Player player) {
@@ -83,7 +83,7 @@ public enum PlayerLimb {
     /**
      * Right item
      */
-    RIGHT_ITEM(new Vector3f(), new Vector3f(1), new Vector3f(1), new Vector3f(), ItemDisplay.ItemDisplayTransform.THIRDPERSON_RIGHTHAND) {
+    RIGHT_ITEM(new Vector3f(), new Vector3f(1), new Vector3f(1), new Vector3f(), new Vector3f(), ItemDisplay.ItemDisplayTransform.THIRDPERSON_RIGHTHAND) {
         @NotNull
         @Override
         public TransformedItemStack createItem(@NotNull Player player) {
@@ -127,6 +127,7 @@ public enum PlayerLimb {
     private final @NotNull Vector3f scale;
     private final @NotNull Vector3f slimScale;
     private final @NotNull Vector3f offset;
+    private final @NotNull Vector3f slimOffset;
     private final @NotNull ItemDisplay.ItemDisplayTransform transform;
 
     /**
@@ -135,23 +136,24 @@ public enum PlayerLimb {
      * @return item
      */
     public @NotNull TransformedItemStack createItem(@NotNull Player player) {
+        var isSlim = isSlim(player);
         var item = new ItemStack(Material.PLAYER_HEAD);
         var meta = (SkullMeta) item.getItemMeta();
         meta.setOwningPlayer(player);
         item.setItemMeta(meta);
-        return TransformedItemStack.of(offset, skinScale(player), item);
+        return TransformedItemStack.of(isSlim ? slimOffset : offset, isSlim ? slimScale : scale, item);
     }
 
     public @NotNull TransformedItemStack createItem() {
         var item = new ItemStack(Material.PLAYER_HEAD);
-        return TransformedItemStack.of(offset, skinScale(null), item);
+        return TransformedItemStack.of(offset, scale, item);
     }
 
-    public @NotNull Vector3f skinScale(@Nullable Player player) {
+    public @NotNull Boolean isSlim(@Nullable Player player) {
         if (player != null) {
             var channel = BetterModel.inst().playerManager().player(player.getUniqueId());
-            return channel == null || channel.isSlim() ? slimScale : scale;
+            return channel == null || channel.isSlim();
         }
-        return scale;
+        return false;
     }
 }
