@@ -37,6 +37,8 @@ public final class RendererGroup {
     @Getter
     private final BoneName name;
     @Getter
+    private final BoneName[] names;
+    @Getter
     private final BlueprintChildren.BlueprintGroup parent;
     @Getter
     private final Vector3f position;
@@ -68,6 +70,7 @@ public final class RendererGroup {
      */
     public RendererGroup(
             @NotNull BoneName name,
+            @NotNull BoneName[] names,
             float scale,
             @Nullable ItemStack itemStack,
             @NotNull BlueprintChildren.BlueprintGroup group,
@@ -76,10 +79,11 @@ public final class RendererGroup {
             @Nullable PlayerLimb limb
     ) {
         this.name = name;
+        this.names = names;
         this.limb = limb;
         this.parent = group;
         this.children = children;
-        this.itemStack = new TransformedItemStack(
+        this.itemStack = (itemStack == null && limb != null) ? limb.createItem() : new TransformedItemStack(
                 new Vector3f(),
                 new Vector3f(scale),
                 itemStack != null ? itemStack : new ItemStack(Material.AIR)
@@ -125,8 +129,8 @@ public final class RendererGroup {
 
     @NotNull
     private TransformedItemStack getItem(@Nullable Player player) {
-        if (player != null) {
-            return limb != null ? limb.createItem(player) : itemStack.asAir();
+        if (player != null && limb != null) {
+            return limb.createItem(player);
         }
         return itemStack;
     }

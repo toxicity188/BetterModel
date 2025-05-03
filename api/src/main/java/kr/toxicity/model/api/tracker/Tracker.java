@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.tracker;
 
+import com.destroystokyo.paper.profile.PlayerProfile;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationModifier;
@@ -17,6 +18,7 @@ import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
+import org.bukkit.profile.PlayerTextures;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -374,6 +376,22 @@ public abstract class Tracker implements AutoCloseable {
      */
     public boolean itemStack(@NotNull BonePredicate predicate, @NotNull TransformedItemStack itemStack) {
         return instance.itemStack(predicate, itemStack);
+    }
+
+    public boolean profile(@NotNull BonePredicate predicate, @NotNull Player player) {
+        return instance.profile(predicate, player);
+    }
+
+    public boolean profile(@NotNull BonePredicate predicate, @NotNull Player player, @NotNull PlayerTextures.SkinModel skinModel) {
+        return instance.profile(predicate, player, skinModel);
+    }
+
+    public boolean profile(@NotNull BonePredicate predicate, @NotNull PlayerProfile profile) {
+        return instance.profile(predicate, profile);
+    }
+
+    public boolean profile(@NotNull BonePredicate predicate, @NotNull PlayerProfile profile, @NotNull PlayerTextures.SkinModel skinModel) {
+        return instance.profile(predicate, profile, skinModel);
     }
 
     /**

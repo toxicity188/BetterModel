@@ -84,7 +84,7 @@ public final class BlueprintRenderer {
         if (tracker != null) return tracker;
         return new EntityTracker(
                 entity,
-                instance(null, entity.getLocation().add(0, -1024, 0), modifier),
+                instance(entity instanceof Player ? (Player) entity : null, entity.getLocation().add(0, -1024, 0), modifier),
                 modifier
         );
     }

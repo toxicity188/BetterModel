@@ -260,10 +260,12 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
 
     private fun ModelBlueprint.toRenderer(scale: Float, consumer: (BlueprintGroup) -> Int?): BlueprintRenderer {
         fun BlueprintGroup.parse(): RendererGroup {
+            val limb = boneName().toLimb()
             return RendererGroup(
                 boneName(),
+                boneNames(),
                 scale,
-                consumer(this)?.let { i ->
+                if (limb != null) null else consumer(this)?.let { i ->
                     ItemStack(ConfigManagerImpl.item()).apply {
                         itemMeta = itemMeta.apply {
                             @Suppress("DEPRECATION") //To support legacy server :(
@@ -278,7 +280,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                     } else null
                 }.toMap(),
                 hitBox(),
-                null
+                limb
             )
         }
         return BlueprintRenderer(this, group.mapNotNull {
