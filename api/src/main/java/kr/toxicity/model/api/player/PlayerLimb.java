@@ -231,7 +231,7 @@ public enum PlayerLimb {
         return TransformedItemStack.of(position, isSlim ? slimOffset : offset, isSlim ? slimScale : scale, createSkull(meta -> meta.setOwningPlayer(player)));
     }
 
-    private @NotNull TransformedItemStack createItem(@NotNull PlayerProfile profile, boolean isSlim) { //TODO Currently supported in Spigot
+    private @NotNull TransformedItemStack createItem(@NotNull PlayerProfile profile, boolean isSlim) { //TODO Currently not supported in Spigot
         return TransformedItemStack.of(position, isSlim ? slimOffset : offset, isSlim ? slimScale : scale, createSkull(meta -> meta.setPlayerProfile(profile)));
     }
 
