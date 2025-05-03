@@ -1,6 +1,7 @@
 package kr.toxicity.model.api.player;
 
 import com.destroystokyo.paper.profile.PlayerProfile;
+import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.bone.BoneItemMapper;
 import kr.toxicity.model.api.data.renderer.RenderSource;
 import kr.toxicity.model.api.util.TransformedItemStack;
@@ -16,6 +17,7 @@ import org.bukkit.profile.PlayerTextures;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -224,35 +226,25 @@ public enum PlayerLimb {
      * @return item
      */
     public @NotNull TransformedItemStack createItem(@NotNull Player player) {
-        return createItem(player.getPlayerProfile());
+        var channel = BetterModel.inst().playerManager().player(player.getUniqueId());
+        var isSlim = channel != null && channel.isSlim();
+        return TransformedItemStack.of(position, isSlim ? slimOffset : offset, isSlim ? slimScale : scale, createSkull(meta -> meta.setOwningPlayer(player)));
     }
 
-    public @NotNull TransformedItemStack createItem(@NotNull Player player, @NotNull PlayerTextures.SkinModel skinModel) {
-        return createItem(player.getPlayerProfile(), skinModel);
-    }
-
-    public @NotNull TransformedItemStack createItem(@NotNull PlayerProfile profile) {
-        return createItem(profile, isSlim(profile));
-    }
-
-    public @NotNull TransformedItemStack createItem(@NotNull PlayerProfile profile, @NotNull PlayerTextures.SkinModel skinModel) {
-        return createItem(profile, isSlim(skinModel));
-    }
-
-    private @NotNull TransformedItemStack createItem(@NotNull PlayerProfile profile, boolean isSlim) {
-        var item = new ItemStack(Material.PLAYER_HEAD);
-        var meta = (SkullMeta) item.getItemMeta();
-        meta.setPlayerProfile(profile);
-        item.setItemMeta(meta);
-        return TransformedItemStack.of(position, isSlim ? slimOffset : offset, isSlim ? slimScale : scale, item);
-    }
-
-    public boolean isSlim(@NotNull PlayerProfile profile) {
-        return isSlim(profile.getTextures().getSkinModel());
+    private @NotNull TransformedItemStack createItem(@NotNull PlayerProfile profile, boolean isSlim) { //TODO Currently supported in Spigot
+        return TransformedItemStack.of(position, isSlim ? slimOffset : offset, isSlim ? slimScale : scale, createSkull(meta -> meta.setPlayerProfile(profile)));
     }
 
     private boolean isSlim(@NotNull PlayerTextures.SkinModel skinModel) {
         return skinModel == PlayerTextures.SkinModel.SLIM;
+    }
+
+    private static @NotNull ItemStack createSkull(@NotNull Consumer<SkullMeta> consumer) {
+        var item = new ItemStack(Material.PLAYER_HEAD);
+        var meta = item.getItemMeta();
+        consumer.accept((SkullMeta) meta);
+        item.setItemMeta(meta);
+        return item;
     }
 
     @RequiredArgsConstructor
