@@ -1,15 +1,11 @@
 package kr.toxicity.model.api.data.renderer;
 
 import kr.toxicity.model.api.BetterModel;
-import kr.toxicity.model.api.bone.BoneName;
-import kr.toxicity.model.api.bone.BoneTag;
+import kr.toxicity.model.api.bone.*;
 import kr.toxicity.model.api.data.blueprint.BlueprintChildren;
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox;
-import kr.toxicity.model.api.bone.BoneMovement;
-import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.mount.MountController;
 import kr.toxicity.model.api.mount.MountControllers;
-import kr.toxicity.model.api.player.PlayerLimb;
 import kr.toxicity.model.api.tracker.TrackerModifier;
 import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.TransformedItemStack;
@@ -17,8 +13,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.entity.ItemDisplay;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,8 +31,6 @@ public final class RendererGroup {
     @Getter
     private final BoneName name;
     @Getter
-    private final BoneName[] names;
-    @Getter
     private final BlueprintChildren.BlueprintGroup parent;
     @Getter
     private final Vector3f position;
@@ -53,7 +45,7 @@ public final class RendererGroup {
     @Getter
     private final Vector3f center;
     @Getter
-    private final @Nullable PlayerLimb limb;
+    private final @NotNull BoneItemMapper mapper;
 
     @Getter
     private final @NotNull MountController mountController;
@@ -66,24 +58,21 @@ public final class RendererGroup {
      * @param group parent
      * @param children children
      * @param box hit-box
-     * @param limb player limb
      */
     public RendererGroup(
             @NotNull BoneName name,
-            @NotNull BoneName[] names,
             float scale,
             @Nullable ItemStack itemStack,
             @NotNull BlueprintChildren.BlueprintGroup group,
             @NotNull Map<BoneName, RendererGroup> children,
-            @Nullable NamedBoundingBox box,
-            @Nullable PlayerLimb limb
+            @Nullable NamedBoundingBox box
     ) {
         this.name = name;
-        this.names = names;
-        this.limb = limb;
+        this.mapper = name.toMapper();
         this.parent = group;
         this.children = children;
-        this.itemStack = (itemStack == null && limb != null) ? limb.createItem() : new TransformedItemStack(
+        this.itemStack = new TransformedItemStack(
+                new Vector3f(),
                 new Vector3f(),
                 new Vector3f(scale),
                 itemStack != null ? itemStack : new ItemStack(Material.AIR)
@@ -102,19 +91,19 @@ public final class RendererGroup {
 
     /**
      * Creates entity.
-     * @param player player
+     * @param source source
      * @param location location
      * @return entity
      */
-    public @NotNull RenderedBone create(@Nullable Player player, @NotNull TrackerModifier modifier, @NotNull Location location) {
-        return create(player, modifier, null, location);
+    public @NotNull RenderedBone create(@NotNull RenderSource source, @NotNull TrackerModifier modifier, @NotNull Location location) {
+        return create(source, modifier, null, location);
     }
-    private @NotNull RenderedBone create(@Nullable Player player, @NotNull TrackerModifier modifier, @Nullable RenderedBone entityParent, @NotNull Location location) {
+    private @NotNull RenderedBone create(@NotNull RenderSource source, @NotNull TrackerModifier modifier, @Nullable RenderedBone entityParent, @NotNull Location location) {
         return new RenderedBone(
                 this,
                 entityParent,
-                getItem(player),
-                limb != null ? limb.getTransform() : ItemDisplay.ItemDisplayTransform.FIXED,
+                mapper.apply(source, itemStack),
+                mapper.transform(),
                 location,
                 new BoneMovement(
                         entityParent != null ? new Vector3f(position).sub(entityParent.getGroup().position) : new Vector3f(),
@@ -123,16 +112,8 @@ public final class RendererGroup {
                         rotation
                 ),
                 modifier,
-                parent1 -> children.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().create(player, modifier, parent1, location)))
+                parent1 -> children.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().create(source, modifier, parent1, location)))
         );
-    }
-
-    @NotNull
-    private TransformedItemStack getItem(@Nullable Player player) {
-        if (player != null && limb != null) {
-            return limb.createItem(player);
-        }
-        return itemStack;
     }
 
     /**

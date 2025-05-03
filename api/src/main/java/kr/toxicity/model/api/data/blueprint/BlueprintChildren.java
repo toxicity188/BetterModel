@@ -66,10 +66,6 @@ public sealed interface BlueprintChildren {
             return BoneTag.parse(name);
         }
 
-        public @NotNull BoneName[] boneNames() {
-            return BoneTag.parseAll(name);
-        }
-
         /**
          * Gets JSON name of blueprint.
          * @param parent parent

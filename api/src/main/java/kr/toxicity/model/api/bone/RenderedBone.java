@@ -100,7 +100,7 @@ public final class RenderedBone implements HitBoxSource {
         var r = this;
         while (r.getParent() != null) r = r.getParent();
         root = r;
-        var visible = group.getLimb() != null || group.getParent().visibility();
+        var visible = group.getMapper() != BoneItemMapper.EMPTY || group.getParent().visibility();
         this.cachedItem = itemStack;
         this.itemStack = visible ? itemStack : itemStack.asAir();
         this.dummyBone = ItemUtil.isEmpty(itemStack);
@@ -117,6 +117,10 @@ public final class RenderedBone implements HitBoxSource {
     public @Nullable RunningAnimation runningAnimation() {
         var iterator = currentIterator;
         return iterator != null ? iterator.animation : null;
+    }
+
+    public @NotNull TransformedItemStack currentItemStack() {
+        return itemStack.copy();
     }
 
     /**
@@ -363,7 +367,7 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     public void defaultPosition(@NotNull Supplier<Vector3f> movement) {
-        defaultPosition = group.getLimb() != null ? () -> new Vector3f(movement.get()).add(group.getLimb().getPosition()) : movement;
+        defaultPosition = () -> new Vector3f(movement.get()).add(itemStack.position());
     }
 
     private int frame() {
@@ -419,9 +423,6 @@ public final class RenderedBone implements HitBoxSource {
         return getGroup().getName();
     }
 
-    public @NotNull BoneName[] getNames() {
-        return getGroup().getNames();
-    }
 
     public void teleport(@NotNull Location location, @NotNull PacketBundler bundler) {
         if (display != null) display.teleport(location, bundler);

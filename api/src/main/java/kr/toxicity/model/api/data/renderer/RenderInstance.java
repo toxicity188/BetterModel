@@ -13,6 +13,7 @@ import kr.toxicity.model.api.nms.EntityAdapter;
 import kr.toxicity.model.api.nms.HitBoxListener;
 import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
+import kr.toxicity.model.api.player.PlayerLimb;
 import kr.toxicity.model.api.script.ScriptProcessor;
 import kr.toxicity.model.api.tracker.ModelRotation;
 import kr.toxicity.model.api.util.BonePredicate;
@@ -46,6 +47,8 @@ import java.util.stream.Stream;
 public final class RenderInstance {
     @Getter
     private final BlueprintRenderer parent;
+    @Getter
+    private final RenderSource source;
 
     private final Map<BoneName, RenderedBone> entityMap;
     private final Map<String, BlueprintAnimation> animationMap;
@@ -62,8 +65,14 @@ public final class RenderInstance {
     @Getter
     private final ScriptProcessor scriptProcessor = new ScriptProcessor();
 
-    public RenderInstance(@NotNull BlueprintRenderer parent, @NotNull Map<BoneName, RenderedBone> entityMap, @NotNull Map<String, BlueprintAnimation> animationMap) {
+    public RenderInstance(
+            @NotNull BlueprintRenderer parent,
+            @NotNull RenderSource source,
+            @NotNull Map<BoneName, RenderedBone> entityMap,
+            @NotNull Map<String, BlueprintAnimation> animationMap
+    ) {
         this.parent = parent;
+        this.source = source;
         this.entityMap = entityMap;
         this.animationMap = animationMap;
 
@@ -174,10 +183,9 @@ public final class RenderInstance {
 
     public boolean profile(@NotNull BonePredicate predicate, @NotNull PlayerProfile profile, @NotNull PlayerTextures.SkinModel skinModel) {
         return anyMatch(predicate, (b, p) -> {
-            var limb = b.getName().toLimb();
-            if (limb != null) {
-                var itemStack = limb.createItem(profile, skinModel);
-                return b.itemStack(p, itemStack);
+            var mapper = b.getGroup().getMapper();
+            if (mapper instanceof PlayerLimb.LimbItemMapper limbItemMapper) {
+                return b.itemStack(p, limbItemMapper.profile(profile, skinModel).apply(source, b.currentItemStack()));
             }
             return false;
         });

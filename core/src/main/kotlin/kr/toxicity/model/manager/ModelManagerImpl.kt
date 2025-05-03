@@ -2,6 +2,7 @@ package kr.toxicity.model.manager
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import kr.toxicity.model.api.bone.BoneItemMapper
 import kr.toxicity.model.api.data.blueprint.BlueprintChildren.BlueprintGroup
 import kr.toxicity.model.api.data.blueprint.BlueprintJson
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint
@@ -253,19 +254,17 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                 })
                 ZIP -> zipper.zip(File(DATA_FOLDER.parent, "${ConfigManagerImpl.buildFolderLocation()}.zip"))
             }
-        }.onFailure {
-            it.handleException("Unable to pack resource pack.")
+        }.handleFailure {
+            "Unable to pack resource pack."
         }
     }
 
     private fun ModelBlueprint.toRenderer(scale: Float, consumer: (BlueprintGroup) -> Int?): BlueprintRenderer {
         fun BlueprintGroup.parse(): RendererGroup {
-            val limb = boneName().toLimb()
             return RendererGroup(
                 boneName(),
-                boneNames(),
                 scale,
-                if (limb != null) null else consumer(this)?.let { i ->
+                if (boneName().toMapper() !== BoneItemMapper.EMPTY) null else consumer(this)?.let { i ->
                     ItemStack(ConfigManagerImpl.item()).apply {
                         itemMeta = itemMeta.apply {
                             @Suppress("DEPRECATION") //To support legacy server :(
@@ -280,7 +279,6 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                     } else null
                 }.toMap(),
                 hitBox(),
-                limb
             )
         }
         return BlueprintRenderer(this, group.mapNotNull {

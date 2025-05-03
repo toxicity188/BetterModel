@@ -83,7 +83,7 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
     override fun animate(player: Player, model: String, animation: String) {
         renderMap[model]?.let {
             EntityTracker.tracker(player.uniqueId)?.close()
-            val create = it.createPlayerLimb(player)
+            val create = it.create(player)
             create.spawnNearby()
             if (!create.animate(animation, AnimationModifier.DEFAULT) {
                 create.close()
@@ -95,7 +95,6 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
         fun BlueprintGroup.parse(): RendererGroup {
             return RendererGroup(
                 boneName(),
-                boneNames(),
                 scale,
                 ItemStack(Material.AIR),
                 this,
@@ -104,8 +103,7 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
                         it.boneName() to it.parse()
                     } else null
                 }.toMap(),
-                hitBox(),
-                boneName().name.toLimb()
+                hitBox()
             )
         }
         return BlueprintRenderer(this, group.mapNotNull {

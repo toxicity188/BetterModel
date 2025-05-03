@@ -10,11 +10,12 @@ import java.util.function.Function;
 /**
  * ItemStack with offset and scale
  * @see ItemStack
+ * @param position global position (x, y, z)
  * @param offset offset (x, y, z)
  * @param scale scale (x, y, z)
  * @param itemStack item
  */
-public record TransformedItemStack(@NotNull Vector3f offset, @NotNull Vector3f scale, @NotNull ItemStack itemStack) {
+public record TransformedItemStack(@NotNull Vector3f position, @NotNull Vector3f offset, @NotNull Vector3f scale, @NotNull ItemStack itemStack) {
 
     /**
      * Creates transformed item
@@ -22,19 +23,20 @@ public record TransformedItemStack(@NotNull Vector3f offset, @NotNull Vector3f s
      * @return transformed item
      */
     public static @NotNull TransformedItemStack of(@NotNull ItemStack itemStack) {
-        return of(new Vector3f(), new Vector3f(1), itemStack);
+        return of(new Vector3f(), new Vector3f(), new Vector3f(1), itemStack);
     }
 
 
     /**
      * Creates transformed item
+     * @param position position
      * @param offset offset
      * @param scale scale
      * @param itemStack item
      * @return transformed item
      */
-    public static @NotNull TransformedItemStack of(@NotNull Vector3f offset, @NotNull Vector3f scale, @NotNull ItemStack itemStack) {
-        return new TransformedItemStack(offset, scale, itemStack);
+    public static @NotNull TransformedItemStack of(@NotNull Vector3f position, @NotNull Vector3f offset, @NotNull Vector3f scale, @NotNull ItemStack itemStack) {
+        return new TransformedItemStack(position, offset, scale, itemStack);
     }
 
     /**
@@ -42,7 +44,7 @@ public record TransformedItemStack(@NotNull Vector3f offset, @NotNull Vector3f s
      * @return air item
      */
     public @NotNull TransformedItemStack asAir() {
-        return of(offset, scale, new ItemStack(Material.AIR));
+        return of(position, offset, scale, new ItemStack(Material.AIR));
     }
 
     /**
@@ -51,7 +53,7 @@ public record TransformedItemStack(@NotNull Vector3f offset, @NotNull Vector3f s
      * @return modified item
      */
     public @NotNull TransformedItemStack modify(@NotNull Function<ItemStack, ItemStack> mapper) {
-        return of(offset, scale, mapper.apply(itemStack.clone()));
+        return of(position, offset, scale, mapper.apply(itemStack.clone()));
     }
 
     /**
@@ -68,6 +70,7 @@ public record TransformedItemStack(@NotNull Vector3f offset, @NotNull Vector3f s
      */
     public @NotNull TransformedItemStack copy() {
         return new TransformedItemStack(
+                new Vector3f(position),
                 new Vector3f(offset),
                 new Vector3f(scale),
                 itemStack.clone()

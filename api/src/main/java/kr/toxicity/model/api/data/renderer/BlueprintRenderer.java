@@ -8,7 +8,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
@@ -65,79 +64,57 @@ public final class BlueprintRenderer {
         return parent.name();
     }
 
+
+
     /**
-     * Gets or creates tracker by entity.
-     * @param entity target
-     * @return entity tracker
+     * Gets or creates tracker by location
+     * @param location location
+     * @return player limb tracker
+     */
+    public @NotNull VoidTracker create(@NotNull Location location) {
+        return create(location, TrackerModifier.DEFAULT);
+    }
+    /**
+     * Gets or creates tracker by entity
+     * @param entity entity
+     * @return player limb tracker
      */
     public @NotNull EntityTracker create(@NotNull Entity entity) {
         return create(entity, TrackerModifier.DEFAULT);
     }
+
     /**
-     * Gets or creates tracker by entity.
-     * @param entity target
+     * Gets or creates tracker by location
+     * @param location location
      * @param modifier modifier
-     * @return entity tracker
+     * @return player limb tracker
+     */
+    public @NotNull VoidTracker create(@NotNull Location location, @NotNull TrackerModifier modifier) {
+        var source = RenderSource.of(location);
+        return source.create(
+                instance(source, location, modifier),
+                modifier
+        );
+    }
+    /**
+     * Gets or creates tracker by entity
+     * @param entity entity
+     * @param modifier modifier
+     * @return player limb tracker
      */
     public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull TrackerModifier modifier) {
-        var tracker = EntityTracker.tracker(entity.getUniqueId());
-        if (tracker != null) return tracker;
-        return new EntityTracker(
-                entity,
-                instance(entity instanceof Player ? (Player) entity : null, entity.getLocation().add(0, -1024, 0), modifier),
+        var source = RenderSource.of(entity);
+        return source.create(
+                instance(source, entity.getLocation().add(0, -1024, 0), modifier),
                 modifier
         );
     }
 
-    /**
-     * Gets or creates tracker by player
-     * @param player player
-     * @return player limb tracker
-     */
-    public @NotNull EntityTracker createPlayerLimb(@NotNull Player player) {
-        return createPlayerLimb(player, TrackerModifier.DEFAULT);
-    }
-    /**
-     * Gets or creates tracker by player
-     * @param player player
-     * @param modifier modifier
-     * @return player limb tracker
-     */
-    public @NotNull EntityTracker createPlayerLimb(@NotNull Player player, @NotNull TrackerModifier modifier) {
-        var tracker = EntityTracker.tracker(player.getUniqueId());
-        if (tracker != null) return tracker;
-        return new PlayerTracker(
-                player,
-                instance(player, player.getLocation().add(0, -1024, 0), modifier),
-                modifier
-        );
-    }
 
-    /**
-     * Creates tracker by location.
-     * @param uuid uuid
-     * @param location location
-     * @return void tracker
-     */
-    public @NotNull VoidTracker create(@NotNull UUID uuid, @NotNull Location location) {
-        return create(uuid, TrackerModifier.DEFAULT, location);
-    }
-
-    /**
-     * Creates tracker by location.
-     * @param uuid uuid
-     * @param modifier modifier
-     * @param location location
-     * @return void tracker
-     */
-    public @NotNull VoidTracker create(@NotNull UUID uuid, @NotNull TrackerModifier modifier, @NotNull Location location) {
-        return new VoidTracker(uuid, instance(null, location, modifier), modifier, location);
-    }
-
-    private @NotNull RenderInstance instance(@Nullable Player player, @NotNull Location location, @NotNull TrackerModifier modifier) {
-        return new RenderInstance(this, rendererGroupMap
+    private @NotNull RenderInstance instance(@NotNull RenderSource source, @NotNull Location location, @NotNull TrackerModifier modifier) {
+        return new RenderInstance(this, source, rendererGroupMap
                 .entrySet()
                 .stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().create(player, modifier, location))), animationMap);
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().create(source, modifier, location))), animationMap);
     }
 }

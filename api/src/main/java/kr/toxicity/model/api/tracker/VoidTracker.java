@@ -2,6 +2,8 @@ package kr.toxicity.model.api.tracker;
 
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
+import kr.toxicity.model.api.data.renderer.RenderSource;
+import lombok.Setter;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -14,19 +16,18 @@ import java.util.UUID;
  */
 public final class VoidTracker extends Tracker {
     private Location location;
-    private final UUID uuid;
+    @Setter
+    private UUID uuid = UUID.randomUUID();
 
     /**
      * Void tracker.
-     * @param uuid uuid
+     * @param source source
      * @param instance render instance.
      * @param modifier modifier
-     * @param location initial location.
      */
-    public VoidTracker(@NotNull UUID uuid, @NotNull RenderInstance instance, @NotNull TrackerModifier modifier, @NotNull Location location) {
-        super(instance, modifier);
-        this.uuid = uuid;
-        this.location = location;
+    public VoidTracker(@NotNull RenderSource.Dummy source, @NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
+        super(source, instance, modifier);
+        this.location = source.location();
         instance.animate("spawn");
         instance.scale(modifier.scale());
         rotation(() -> new ModelRotation(0, this.location.getYaw()));
@@ -44,6 +45,12 @@ public final class VoidTracker extends Tracker {
         if (!bundler.isEmpty()) viewedPlayer().forEach(bundler::send);
     }
 
+    @NotNull
+    @Override
+    public UUID uuid() {
+        return uuid;
+    }
+
     /**
      * Gets location.
      * @return location
@@ -51,15 +58,6 @@ public final class VoidTracker extends Tracker {
     @Override
     public @NotNull Location location() {
         return location;
-    }
-
-    /**
-     * Gets uuid.
-     * @return uuid
-     */
-    @Override
-    public @NotNull UUID uuid() {
-        return uuid;
     }
 
     /**

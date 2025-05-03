@@ -1,18 +1,19 @@
 package kr.toxicity.model.api.bone;
 
-import kr.toxicity.model.api.player.PlayerLimb;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public record BoneName(@NotNull BoneTag tag, @NotNull String name) {
+import java.util.Objects;
+import java.util.Set;
+
+public record BoneName(@NotNull Set<BoneTag> tags, @NotNull String name) {
     public boolean tagged(@NotNull BoneTag... tags) {
         for (BoneTag boneTag : tags) {
-            if (boneTag == tag) return true;
+            if (this.tags.contains(boneTag)) return true;
         }
         return false;
     }
 
-    public @Nullable PlayerLimb toLimb() {
-        return PlayerLimb.getLimb(tag.name());
+    public @NotNull BoneItemMapper toMapper() {
+        return tags.isEmpty() ? BoneItemMapper.EMPTY : tags.stream().map(BoneTag::getMapper).filter(Objects::nonNull).findFirst().orElse(BoneItemMapper.EMPTY);
     }
 }

@@ -187,14 +187,14 @@ class NMSImpl : NMS {
         private fun send(packet: Packet<*>) = connection.send(packet)
 
         override fun startTrack(tracker: EntityTracker) {
-            val entity = (tracker.source() as CraftEntity).vanillaEntity
+            val entity = (tracker.sourceEntity() as CraftEntity).vanillaEntity
             entityUUIDMap.computeIfAbsent(entity.uuid) {
                 tracker
             }
         }
 
         override fun endTrack(tracker: EntityTracker) {
-            val e = tracker.source()
+            val e = tracker.sourceEntity()
             val handle = (e as CraftEntity).vanillaEntity
             entityUUIDMap.remove(handle.uuid)
             val list = arrayListOf<Packet<ClientGamePacketListener>>()

@@ -6,6 +6,7 @@ import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.bone.BoneTag;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.bone.RenderedBone;
+import kr.toxicity.model.api.data.renderer.RenderSource;
 import kr.toxicity.model.api.nms.EntityAdapter;
 import kr.toxicity.model.api.nms.HitBoxListener;
 import kr.toxicity.model.api.util.BonePredicate;
@@ -105,14 +106,14 @@ public class EntityTracker extends Tracker {
 
     /**
      * Creates entity tracker
-     * @param entity source entity
+     * @param source source entity
      * @param instance render instance
      * @param modifier modifier
      */
     @ApiStatus.Internal
-    public EntityTracker(@NotNull Entity entity, @NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
-        super(instance, modifier);
-        this.entity = entity;
+    public EntityTracker(@NotNull RenderSource.BaseEntity source, @NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
+        super(source, instance, modifier);
+        this.entity = source.entity();
         adapter = BetterModel.inst().nms().adapt(entity);
         var scale = FunctionUtil.throttleTick(() -> modifier.scale().get() * (float) adapter.scale());
         //Shadow
@@ -140,7 +141,7 @@ public class EntityTracker extends Tracker {
         instance.defaultPosition(FunctionUtil.throttleTick(() -> adapter.passengerPosition().mul(-1)));
         instance.scale(scale);
         instance.addAnimationMovementModifier(
-                BonePredicate.of(r -> r.getName().tagged(BoneTag.HEAD) || Arrays.stream(r.getNames()).anyMatch(it -> it.tagged(BoneTag.HEAD))),
+                BonePredicate.of(r -> r.getName().tagged(BoneTag.HEAD)),
                 a -> {
                     if (a.rotation() != null) {
                         a.rotation().add(-adapter.pitch(), Math.clamp(
@@ -301,7 +302,7 @@ public class EntityTracker extends Tracker {
      * Gets source entity
      * @return source
      */
-    public @NotNull Entity source() {
+    public @NotNull Entity sourceEntity() {
         return entity;
     }
 

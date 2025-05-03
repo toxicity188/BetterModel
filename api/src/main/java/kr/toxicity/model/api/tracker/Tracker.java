@@ -7,6 +7,7 @@ import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.bone.RenderedBone;
+import kr.toxicity.model.api.data.renderer.RenderSource;
 import kr.toxicity.model.api.event.CloseTrackerEvent;
 import kr.toxicity.model.api.event.CreateTrackerEvent;
 import kr.toxicity.model.api.event.ModelDespawnAtPlayerEvent;
@@ -49,6 +50,8 @@ public abstract class Tracker implements AutoCloseable {
     @Getter
     protected final RenderInstance instance;
     private final ScheduledFuture<?> task;
+    @Getter
+    private final RenderSource source;
     private final AtomicBoolean isClosed = new AtomicBoolean();
     private final AtomicBoolean readyForForceUpdate = new AtomicBoolean();
     private final TrackerModifier modifier;
@@ -65,8 +68,9 @@ public abstract class Tracker implements AutoCloseable {
      * @param instance target instance
      * @param modifier modifier
      */
-    public Tracker(@NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
+    public Tracker(@NotNull RenderSource source, @NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
         this.instance = instance;
+        this.source = source;
         this.modifier = modifier;
         var config = BetterModel.inst().configManager();
         updater = () -> {
