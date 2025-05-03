@@ -1,6 +1,6 @@
 package kr.toxicity.model.api.player;
 
-import kr.toxicity.model.api.BetterModel;
+import com.destroystokyo.paper.profile.PlayerProfile;
 import kr.toxicity.model.api.util.TransformedItemStack;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +9,7 @@ import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.profile.PlayerTextures;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
@@ -136,10 +137,25 @@ public enum PlayerLimb {
      * @return item
      */
     public @NotNull TransformedItemStack createItem(@NotNull Player player) {
-        var isSlim = isSlim(player);
+        return createItem(player.getPlayerProfile());
+    }
+
+    public @NotNull TransformedItemStack createItem(@NotNull Player player, @NotNull PlayerTextures.SkinModel skinModel) {
+        return createItem(player.getPlayerProfile(), skinModel);
+    }
+
+    public @NotNull TransformedItemStack createItem(@NotNull PlayerProfile profile) {
+        return createItem(profile, isSlim(profile));
+    }
+
+    public @NotNull TransformedItemStack createItem(@NotNull PlayerProfile profile, @NotNull PlayerTextures.SkinModel skinModel) {
+        return createItem(profile, isSlim(skinModel));
+    }
+
+    private @NotNull TransformedItemStack createItem(@NotNull PlayerProfile profile, boolean isSlim) {
         var item = new ItemStack(Material.PLAYER_HEAD);
         var meta = (SkullMeta) item.getItemMeta();
-        meta.setOwningPlayer(player);
+        meta.setPlayerProfile(profile);
         item.setItemMeta(meta);
         return TransformedItemStack.of(isSlim ? slimOffset : offset, isSlim ? slimScale : scale, item);
     }
@@ -149,11 +165,11 @@ public enum PlayerLimb {
         return TransformedItemStack.of(offset, scale, item);
     }
 
-    public @NotNull Boolean isSlim(@Nullable Player player) {
-        if (player != null) {
-            var channel = BetterModel.inst().playerManager().player(player.getUniqueId());
-            return channel == null || channel.isSlim();
-        }
-        return false;
+    public @NotNull Boolean isSlim(@NotNull PlayerProfile profile) {
+        return isSlim(profile.getTextures().getSkinModel());
+    }
+
+    private @NotNull Boolean isSlim(@NotNull PlayerTextures.SkinModel skinModel) {
+        return skinModel == PlayerTextures.SkinModel.SLIM;
     }
 }
