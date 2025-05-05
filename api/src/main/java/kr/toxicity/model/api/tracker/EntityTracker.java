@@ -130,7 +130,7 @@ public class EntityTracker extends Tracker {
             tick(((t, b) -> {
                 shadow.shadowRadius(scale.get() * baseScale);
                 shadow.sync(adapter);
-                if (!b.isEmpty()) shadow.send(b);
+                shadow.sendEntityData(b);
                 shadow.syncPosition(adapter, b);
             }));
             instance.spawnPacketHandler(shadow::spawn);

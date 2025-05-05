@@ -74,10 +74,16 @@ public interface ModelDisplay {
     void transform(@NotNull Transformation transformation);
 
     /**
-     * Sends all entity data
+     * Sends transformation
      * @param bundler packet bundler
      */
-    void send(@NotNull PacketBundler bundler);
+    void sendTransformation(@NotNull PacketBundler bundler);
+
+    /**
+     * Sends entity data
+     * @param bundler packet bundler
+     */
+    void sendEntityData(@NotNull PacketBundler bundler);
 
     /**
      * Sets brightness overrides

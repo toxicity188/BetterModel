@@ -100,9 +100,11 @@ class NMSImpl : NMS {
         private val itemId = ItemDisplay::class.java.serializers().map {
             it.toSerializerId()
         }
-        private val transformSet = Display::class.java.serializers().map { e ->
+        private val displaySet = Display::class.java.serializers().map { e ->
             e.toSerializerId()
-        }.toSet() + itemId + sharedFlag
+        }
+        private val transformSet = displaySet.subList(0, 6).toIntSet()
+        private val entityDataSet = (listOf(sharedFlag) + itemId + displaySet.subList(transformSet.size, displaySet.size)).toIntSet()
     }
 
     private class PacketBundlerImpl(
@@ -441,21 +443,26 @@ class NMSImpl : NMS {
             ))
         }
 
-        override fun send(bundler: PacketBundler) {
+        override fun sendTransformation(bundler: PacketBundler) {
+            bundler.unwrap() += ClientboundSetEntityDataPacket(display.id, display.entityData.pack().filter {
+                transformSet.contains(it.id)
+            })
+        }
+
+        override fun sendEntityData(bundler: PacketBundler) {
             if (display.isInvisible) {
                 val item = display.itemStack
                 display.itemStack = Items.AIR.defaultInstance
-                bundler.unwrap() += dataPacket
+                bundler.unwrap() += ClientboundSetEntityDataPacket(display.id, display.entityData.pack().filter {
+                    entityDataSet.contains(it.id)
+                })
                 display.itemStack = item
             } else {
-                bundler.unwrap() += dataPacket
+                bundler.unwrap() += ClientboundSetEntityDataPacket(display.id, display.entityData.pack().filter {
+                    entityDataSet.contains(it.id)
+                })
             }
         }
-
-        private val dataPacket
-            get(): ClientboundSetEntityDataPacket = ClientboundSetEntityDataPacket(display.id, display.entityData.pack().filter {
-                transformSet.contains(it.id)
-            })
 
         private val removePacket
             get() = ClientboundRemoveEntitiesPacket(display.id)

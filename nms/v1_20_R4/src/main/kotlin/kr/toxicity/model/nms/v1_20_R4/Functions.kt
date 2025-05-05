@@ -2,6 +2,7 @@ package kr.toxicity.model.nms.v1_20_R4
 
 import io.netty.buffer.Unpooled
 import io.papermc.paper.util.TickThread
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.util.EventUtil
 import kr.toxicity.model.api.util.ItemUtil
@@ -40,6 +41,8 @@ inline fun <reified T, reified R> createAdaptedFieldGetter(noinline paperGetter:
 val CONFIG by lazy {
     BetterModel.inst().configManager()
 }
+
+fun List<Int>.toIntSet(): IntOpenHashSet = IntOpenHashSet(this)
 
 fun Entity.passengerPosition(): Vector3f {
     return attachments.get(EntityAttachment.PASSENGER, 0, yRot).let { v ->

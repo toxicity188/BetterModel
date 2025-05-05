@@ -14,6 +14,7 @@ import kr.toxicity.model.api.event.ModelDespawnAtPlayerEvent;
 import kr.toxicity.model.api.event.ModelSpawnAtPlayerEvent;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
+import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.util.*;
 import lombok.Getter;
 import org.bukkit.Location;
@@ -74,12 +75,18 @@ public abstract class Tracker implements AutoCloseable {
         this.modifier = modifier;
         var config = BetterModel.inst().configManager();
         updater = () -> {
-            var moveAccepted = instance.move(
+            instance.move(
                     frame % 5 == 0 ? (isRunningSingleAnimation() && config.lockOnPlayAnimation()) ? instance.getRotation() : rotation() : null,
                     bundler
             );
-            if (readyForForceUpdate.compareAndSet(true, false) && !moveAccepted) instance.forceUpdate(bundler);
             consumer.accept(this, bundler);
+            if (readyForForceUpdate.compareAndSet(true, false)) {
+                var forceBundler = BetterModel.inst().nms().createBundler(false);
+                instance.forceUpdate(forceBundler);
+                if (!forceBundler.isEmpty()) instance.allPlayer()
+                        .map(PlayerChannelHandler::player)
+                        .forEach(forceBundler::send);
+            }
             if (!bundler.isEmpty()) {
                 instance.viewedPlayer().forEach(bundler::send);
                 bundler = BetterModel.inst().nms().createBundler(false);

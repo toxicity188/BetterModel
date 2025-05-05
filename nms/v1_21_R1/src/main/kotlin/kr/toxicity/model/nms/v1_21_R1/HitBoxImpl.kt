@@ -303,7 +303,7 @@ class HitBoxImpl(
             OFF_HAND -> ModelInteractionHand.LEFT
         })
         if (!interact.call()) return InteractionResult.FAIL
-        (player as ServerPlayer).connection.handleInteract(ServerboundInteractPacket.createInteractionPacket(delegate, false, hand))
+        (player as ServerPlayer).connection.handleInteract(ServerboundInteractPacket.createInteractionPacket(delegate, player.isShiftKeyDown, hand))
         return InteractionResult.SUCCESS
     }
 
@@ -314,7 +314,7 @@ class HitBoxImpl(
             OFF_HAND -> ModelInteractionHand.LEFT
         }, CraftVector.toBukkit(vec))
         if (!interact.call()) return InteractionResult.FAIL
-        (player as ServerPlayer).connection.handleInteract(ServerboundInteractPacket.createInteractionPacket(delegate, false, hand, vec))
+        (player as ServerPlayer).connection.handleInteract(ServerboundInteractPacket.createInteractionPacket(delegate, player.isShiftKeyDown, hand, vec))
         return InteractionResult.SUCCESS
     }
 

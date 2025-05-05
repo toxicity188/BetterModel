@@ -311,7 +311,7 @@ public final class RenderedBone implements HitBoxSource {
             if (d != null) {
                 d.frame(toInterpolationDuration(f));
                 setup(entityMovement);
-                d.send(bundler);
+                d.sendTransformation(bundler);
                 return true;
             }
         }
@@ -320,12 +320,7 @@ public final class RenderedBone implements HitBoxSource {
 
     public void forceUpdate(@NotNull PacketBundler bundler) {
         var d = display;
-        if (d != null && delay > 0) {
-            var speed = currentIterator != null ? currentIterator.deltaSpeed() : 1F;
-            delay = Math.round((float) delay / speed);
-            d.frame(toInterpolationDuration(delay));
-            d.send(bundler);
-        }
+        if (d != null) d.sendEntityData(bundler);
     }
 
     private static int toInterpolationDuration(long delay) {
