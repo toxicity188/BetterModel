@@ -39,7 +39,6 @@ import org.bukkit.craftbukkit.CraftWorld
 import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.craftbukkit.inventory.CraftItemStack
-import org.bukkit.entity.ItemDisplay.ItemDisplayTransform.*
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.LeatherArmorMeta
@@ -105,16 +104,20 @@ class NMSImpl : NMS {
     }
 
     private class PacketBundlerImpl(
-        private val list: MutableList<Packet<in ClientGamePacketListener>>
-    ) : PacketBundler, MutableList<Packet<in ClientGamePacketListener>> by list {
+        private val list: MutableList<Packet<ClientGamePacketListener>>
+    ) : PacketBundler {
         override fun copy(): PacketBundler = PacketBundlerImpl(ArrayList(list))
         override fun send(player: Player) {
             val connection = (player as CraftPlayer).handle.connection
-            when (size) {
+            when (list.size) {
                 0 -> {}
-                1 -> connection.send(get(0))
-                else -> connection.send(ClientboundBundlePacket(this))
+                1 -> connection.send(list[0])
+                else -> connection.send(ClientboundBundlePacket(list))
             }
+        }
+        override fun isEmpty(): Boolean = list.isEmpty()
+        operator fun plusAssign(other: Packet<ClientGamePacketListener>) {
+            list += other
         }
     }
 
@@ -287,7 +290,7 @@ class NMSImpl : NMS {
     }
 
     override fun mount(tracker: EntityTracker, bundler: PacketBundler) {
-        (bundler as PacketBundlerImpl).add(tracker.mountPacket())
+        bundler.unwrap() += tracker.mountPacket()
     }
 
     private fun EntityTracker.mountPacket(entity: Entity = adapter.handle() as Entity, array: IntArray = entity.passengers.map { 
@@ -330,12 +333,12 @@ class NMSImpl : NMS {
             if (!display.valid) return
             display.xRot = rotation.x
             display.yRot = rotation.y
-            bundler.unwrap().add(ClientboundMoveEntityPacket.Rot(
+            bundler.unwrap() += ClientboundMoveEntityPacket.Rot(
                 display.id,
                 rotation.packedY(),
                 rotation.packedX(),
                 display.onGround
-            ))
+            )
         }
 
         override fun sync(entity: EntityAdapter) {
@@ -346,24 +349,14 @@ class NMSImpl : NMS {
         }
 
         override fun display(transform: org.bukkit.entity.ItemDisplay.ItemDisplayTransform) {
-            display.itemTransform = when (transform) {
-                NONE -> ItemDisplayContext.NONE
-                THIRDPERSON_LEFTHAND -> ItemDisplayContext.THIRD_PERSON_LEFT_HAND
-                THIRDPERSON_RIGHTHAND -> ItemDisplayContext.THIRD_PERSON_RIGHT_HAND
-                FIRSTPERSON_LEFTHAND -> ItemDisplayContext.FIRST_PERSON_LEFT_HAND
-                FIRSTPERSON_RIGHTHAND -> ItemDisplayContext.FIRST_PERSON_RIGHT_HAND
-                HEAD -> ItemDisplayContext.HEAD
-                GUI -> ItemDisplayContext.GUI
-                GROUND -> ItemDisplayContext.GROUND
-                FIXED -> ItemDisplayContext.FIXED
-            }
+            display.itemTransform = ItemDisplayContext.BY_ID.apply(transform.ordinal)
         }
 
         override fun spawn(bundler: PacketBundler) {
-            bundler.unwrap().add(addPacket)
+            bundler.unwrap() += addPacket
             val f = display.transformationInterpolationDuration
             frame(0)
-            bundler.unwrap().add(ClientboundSetEntityDataPacket(display.id, display.entityData.pack()))
+            bundler.unwrap() += ClientboundSetEntityDataPacket(display.id, display.entityData.nonDefaultValues!!)
             frame(f)
         }
 
@@ -376,7 +369,7 @@ class NMSImpl : NMS {
         }
 
         override fun remove(bundler: PacketBundler) {
-            bundler.unwrap().add(removePacket)
+            bundler.unwrap() += removePacket
         }
 
         override fun teleport(location: Location, bundler: PacketBundler) {
@@ -387,7 +380,7 @@ class NMSImpl : NMS {
                 location.yaw,
                 0F
             )
-            bundler.unwrap().add(ClientboundTeleportEntityPacket.teleport(display.id, PositionMoveRotation.of(display), emptySet(), display.onGround))
+            bundler.unwrap() += ClientboundTeleportEntityPacket.teleport(display.id, PositionMoveRotation.of(display), emptySet(), display.onGround)
         }
         override fun item(itemStack: ItemStack) {
             display.itemStack = CraftItemStack.asNMSCopy(itemStack)
@@ -421,11 +414,11 @@ class NMSImpl : NMS {
             val handle = adapter.handle() as Entity
             display.setPos(handle.position())
             display.onGround = handle.onGround
-            bundler.unwrap().add(ClientboundEntityPositionSyncPacket(
+            bundler.unwrap() += ClientboundEntityPositionSyncPacket(
                 display.id,
                 PositionMoveRotation.of(handle),
                 handle.onGround
-            ))
+            )
         }
 
         override fun transform(transformation: Transformation) {
@@ -441,10 +434,10 @@ class NMSImpl : NMS {
             if (display.isInvisible) {
                 val item = display.itemStack
                 display.itemStack = Items.AIR.defaultInstance
-                bundler.unwrap().add(dataPacket)
+                bundler.unwrap() += dataPacket
                 display.itemStack = item
             } else {
-                bundler.unwrap().add(dataPacket)
+                bundler.unwrap() += dataPacket
             }
         }
 

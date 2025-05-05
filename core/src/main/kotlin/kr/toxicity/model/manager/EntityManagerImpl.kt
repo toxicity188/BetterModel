@@ -28,7 +28,7 @@ import org.bukkit.inventory.EquipmentSlot.OFF_HAND
 object EntityManagerImpl : EntityManager, GlobalManagerImpl {
 
     override fun start() {
-        if (BetterModel.IS_PAPER) registerListener(object : Listener {
+        if (BetterModel.IS_PAPER) registerListener(object : Listener { //More accurate world change event for Paper
             @EventHandler(priority = EventPriority.MONITOR)
             fun EntityRemoveFromWorldEvent.remove() {
                 EntityTracker.tracker(entity)?.let {
@@ -44,7 +44,7 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
                 EntityTracker.tracker(entity)?.animate("jump")
             }
         })
-        else registerListener(object : Listener {
+        else registerListener(object : Listener { //Portal event for Spigot
             @EventHandler(priority = EventPriority.MONITOR)
             fun EntityRemoveEvent.remove() {
                 EntityTracker.tracker(entity)?.let {
@@ -68,16 +68,16 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
         })
         registerListener(object : Listener {
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-            fun EntityPotionEffectEvent.potion() {
+            fun EntityPotionEffectEvent.potion() { //Apply potion effect
                 EntityTracker.tracker(entity)?.forceUpdate(true)
             }
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-            fun EntityDismountEvent.dismount() {
+            fun EntityDismountEvent.dismount() { //Dismount
                 val e = dismounted
                 isCancelled = e is HitBox && (e.mountController().canFly() || !e.mountController().canDismountBySelf()) && !e.forceDismount()
             }
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-            fun ModelInteractEvent.interact() {
+            fun ModelInteractEvent.interact() { //Mount
                 if (hand == ModelInteractionHand.RIGHT) {
                     val previous = player.vehicle
                     if (previous is HitBox && previous.source().uniqueId == hitBox.source().uniqueId && previous.mountController().canDismountBySelf()) {
@@ -86,23 +86,23 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
                 }
             }
             @EventHandler(priority = EventPriority.MONITOR)
-            fun PlayerQuitEvent.quit() {
+            fun PlayerQuitEvent.quit() { //Quit
                 EntityTracker.tracker(player)?.close()
             }
             @EventHandler(priority = EventPriority.MONITOR)
-            fun ChunkLoadEvent.load() {
+            fun ChunkLoadEvent.load() { //Chunk load
                 chunk.entities.forEach {
                     EntityTracker.tracker(it)?.refresh()
                 }
             }
             @EventHandler(priority = EventPriority.MONITOR)
-            fun ChunkUnloadEvent.unload() {
+            fun ChunkUnloadEvent.unload() { //Chunk unload
                 chunk.entities.forEach {
                     EntityTracker.tracker(it)?.despawn()
                 }
             }
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-            fun EntityDeathEvent.death() {
+            fun EntityDeathEvent.death() { //Death
                 EntityTracker.tracker(entity)?.let {
                     if (!it.animate("death", AnimationModifier.DEFAULT_WITH_PLAY_ONCE) {
                             it.close()
@@ -111,7 +111,7 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
                 }
             }
             @EventHandler(priority = EventPriority.MONITOR)
-            fun PlayerInteractEntityEvent.interact() {
+            fun PlayerInteractEntityEvent.interact() { //Interact base entity based on interaction entity
                 (rightClicked as? HitBox.Interaction)?.sourceHitBox()?.let {
                     val modelHand = when (hand) {
                         HAND -> ModelInteractionHand.RIGHT
@@ -129,7 +129,7 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
                 }
             }
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = false)
-            fun EntityDamageEvent.damage() {
+            fun EntityDamageEvent.damage() { //Damage
                 if (this is EntityDamageByEntityEvent) {
                     val victim = entity.run {
                         if (this is HitBox) source().uniqueId else uniqueId
