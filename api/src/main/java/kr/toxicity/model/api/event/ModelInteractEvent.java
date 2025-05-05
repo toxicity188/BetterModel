@@ -1,6 +1,7 @@
 package kr.toxicity.model.api.event;
 
 import kr.toxicity.model.api.nms.HitBox;
+import kr.toxicity.model.api.nms.ModelInteractionHand;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.entity.Player;
@@ -23,7 +24,7 @@ public class ModelInteractEvent extends PlayerEvent implements Cancellable {
     @Setter
     private boolean cancelled;
     private final @NotNull HitBox hitBox;
-    private final @NotNull Hand hand;
+    private final @NotNull ModelInteractionHand hand;
 
     /**
      * Creates interact event
@@ -31,24 +32,10 @@ public class ModelInteractEvent extends PlayerEvent implements Cancellable {
      * @param hitBox hit-box
      * @param hand interacted hand
      */
-    public ModelInteractEvent(@NotNull Player who, @NotNull HitBox hitBox, @NotNull Hand hand) {
+    public ModelInteractEvent(@NotNull Player who, @NotNull HitBox hitBox, @NotNull ModelInteractionHand hand) {
         super(who);
         this.hitBox = hitBox;
         this.hand = hand;
-    }
-
-    /**
-     * Hand
-     */
-    public enum Hand {
-        /**
-         * Off-hand
-         */
-        LEFT,
-        /**
-         * Main-hand
-         */
-        RIGHT
     }
 
     @Override

@@ -1,5 +1,6 @@
 package kr.toxicity.model.nms.v1_20_R4
 
+import kr.toxicity.model.api.nms.HitBox
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.Entity
@@ -8,14 +9,26 @@ import net.minecraft.world.entity.Interaction
 import net.minecraft.world.entity.Pose
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.Vec3
+import org.bukkit.Bukkit
+import org.bukkit.craftbukkit.CraftServer
+import org.bukkit.craftbukkit.entity.CraftEntity
+import org.bukkit.craftbukkit.entity.CraftInteraction
 
 class HitBoxInteraction(
     val delegate: HitBoxImpl
-) : Interaction(EntityType.INTERACTION, delegate.level()) {
+) : Interaction(EntityType.INTERACTION, delegate.level()), HitBox.Interaction {
 
     init {
         persist = false
     }
+
+    private val craftEntity: CraftInteraction by lazy {
+        object : CraftInteraction(Bukkit.getServer() as CraftServer, this), HitBox.Interaction by this {}
+    }
+
+    override fun getBukkitEntity(): CraftEntity = craftEntity
+    override fun getBukkitEntityRaw(): CraftEntity = craftEntity
+    override fun sourceHitBox(): HitBox = delegate.craftEntity
 
     override fun tick() {
         val dimension = delegate.getDimensions(Pose.STANDING)
@@ -36,10 +49,10 @@ class HitBoxInteraction(
     }
 
     override fun interact(player: Player, hand: InteractionHand): InteractionResult {
-        return delegate.interact(player, hand)
+        return InteractionResult.FAIL
     }
 
     override fun interactAt(player: Player, vec: Vec3, hand: InteractionHand): InteractionResult {
-        return delegate.interactAt(player, vec, hand)
+        return InteractionResult.FAIL
     }
 }

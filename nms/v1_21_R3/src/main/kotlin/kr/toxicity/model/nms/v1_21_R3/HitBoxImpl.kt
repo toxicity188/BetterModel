@@ -7,11 +7,11 @@ import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import kr.toxicity.model.api.event.ModelDamagedEvent
 import kr.toxicity.model.api.event.ModelInteractAtEvent
 import kr.toxicity.model.api.event.ModelInteractEvent
-import kr.toxicity.model.api.event.ModelInteractEvent.Hand
 import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.HitBoxListener
 import kr.toxicity.model.api.nms.HitBoxSource
+import kr.toxicity.model.api.nms.ModelInteractionHand
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ServerboundInteractPacket
 import net.minecraft.server.level.ServerLevel
@@ -35,9 +35,11 @@ import net.minecraft.world.phys.Vec3
 import org.bukkit.Bukkit
 import org.bukkit.craftbukkit.CraftServer
 import org.bukkit.craftbukkit.entity.CraftLivingEntity
+import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.craftbukkit.util.CraftVector
 import org.bukkit.entity.Entity
 import org.bukkit.event.entity.EntityPotionEffectEvent
+import org.bukkit.util.Vector
 import org.joml.Vector3f
 
 class HitBoxImpl(
@@ -278,6 +280,7 @@ class HitBoxImpl(
 
     override fun getBukkitLivingEntity(): CraftLivingEntity = bukkitEntity
     override fun getBukkitEntity(): CraftLivingEntity = craftEntity as CraftLivingEntity
+    override fun getBukkitEntityRaw(): CraftLivingEntity = bukkitEntity
     
     override fun isDeadOrDying(): Boolean {
         return delegate.isDeadOrDying
@@ -287,10 +290,31 @@ class HitBoxImpl(
         return delegate.getDismountLocationForPassenger(passenger)
     }
 
+    override fun triggerInteract(player: org.bukkit.entity.Player, hand: ModelInteractionHand) {
+        interact(
+            (player as CraftPlayer).handle,
+            when (hand) {
+                ModelInteractionHand.LEFT -> OFF_HAND
+                ModelInteractionHand.RIGHT -> MAIN_HAND
+            }
+        )
+    }
+
+    override fun triggerInteractAt(player: org.bukkit.entity.Player, hand: ModelInteractionHand, vector: Vector) {
+        interactAt(
+            (player as CraftPlayer).handle,
+            CraftVector.toNMS(vector),
+            when (hand) {
+                ModelInteractionHand.LEFT -> OFF_HAND
+                ModelInteractionHand.RIGHT -> MAIN_HAND
+            }
+        )
+    }
+
     override fun interact(player: Player, hand: InteractionHand): InteractionResult {
         val interact = ModelInteractEvent(player.bukkitEntity as org.bukkit.entity.Player, craftEntity, when (hand) {
-            MAIN_HAND -> Hand.RIGHT
-            OFF_HAND -> Hand.LEFT
+            MAIN_HAND -> ModelInteractionHand.RIGHT
+            OFF_HAND -> ModelInteractionHand.LEFT
         })
         if (!interact.call()) return InteractionResult.FAIL
         (player as ServerPlayer).connection.handleInteract(ServerboundInteractPacket.createInteractionPacket(delegate, false, hand))
@@ -299,8 +323,8 @@ class HitBoxImpl(
 
     override fun interactAt(player: Player, vec: Vec3, hand: InteractionHand): InteractionResult {
         val interact = ModelInteractAtEvent(player.bukkitEntity as org.bukkit.entity.Player, craftEntity, when (hand) {
-            MAIN_HAND -> Hand.RIGHT
-            OFF_HAND -> Hand.LEFT
+            MAIN_HAND -> ModelInteractionHand.RIGHT
+            OFF_HAND -> ModelInteractionHand.LEFT
         }, CraftVector.toBukkit(vec))
         if (!interact.call()) return InteractionResult.FAIL
         (player as ServerPlayer).connection.handleInteract(ServerboundInteractPacket.createInteractionPacket(delegate, false, hand, vec))

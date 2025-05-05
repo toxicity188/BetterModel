@@ -1,13 +1,10 @@
 package kr.toxicity.model.api.event;
 
 import kr.toxicity.model.api.nms.HitBox;
+import kr.toxicity.model.api.nms.ModelInteractionHand;
 import lombok.Getter;
-import lombok.Setter;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
-import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,7 +27,7 @@ public final class ModelInteractAtEvent extends ModelInteractEvent {
      * @param hitBox hit-box
      * @param hand interacted hand
      */
-    public ModelInteractAtEvent(@NotNull Player who, @NotNull HitBox hitBox, @NotNull Hand hand, @NotNull Vector position) {
+    public ModelInteractAtEvent(@NotNull Player who, @NotNull HitBox hitBox, @NotNull ModelInteractionHand hand, @NotNull Vector position) {
         super(who, hitBox, hand);
         this.position = position;
     }

@@ -198,7 +198,7 @@ public enum PlayerLimb {
         return new Vector3f(0, -512, 0).mul(mul);
     }
 
-    private static  @NotNull Vector3f scale(float scale, float inflate) {
+    private static @NotNull Vector3f scale(float scale, float inflate) {
         return scale(scale, scale, scale, inflate);
     }
 

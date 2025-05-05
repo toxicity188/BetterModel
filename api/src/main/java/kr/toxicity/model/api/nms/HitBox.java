@@ -3,6 +3,8 @@ package kr.toxicity.model.api.nms;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.mount.MountController;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
@@ -11,6 +13,10 @@ import org.joml.Vector3f;
  * @see org.bukkit.entity.LivingEntity
  */
 public interface HitBox {
+
+    void triggerInteract(@NotNull Player player, @NotNull ModelInteractionHand hand);
+    void triggerInteractAt(@NotNull Player player, @NotNull ModelInteractionHand hand, @NotNull Vector vector);
+
     /**
      * Gets bone name
      * @return name
@@ -87,4 +93,8 @@ public interface HitBox {
      * @return listener
      */
     @NotNull HitBoxListener listener();
+
+    interface Interaction {
+        @NotNull HitBox sourceHitBox();
+    }
 }

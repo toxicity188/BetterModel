@@ -9,16 +9,21 @@ import kr.toxicity.model.api.event.ModelInteractEvent
 import kr.toxicity.model.api.manager.EntityManager
 import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.api.nms.HitBox
+import kr.toxicity.model.api.nms.ModelInteractionHand
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.util.registerListener
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.*
+import org.bukkit.event.player.PlayerInteractAtEntityEvent
+import org.bukkit.event.player.PlayerInteractEntityEvent
 import org.bukkit.event.player.PlayerPortalEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.world.ChunkLoadEvent
 import org.bukkit.event.world.ChunkUnloadEvent
+import org.bukkit.inventory.EquipmentSlot.HAND
+import org.bukkit.inventory.EquipmentSlot.OFF_HAND
 
 object EntityManagerImpl : EntityManager, GlobalManagerImpl {
 
@@ -73,7 +78,7 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
             }
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun ModelInteractEvent.interact() {
-                if (hand == ModelInteractEvent.Hand.RIGHT) {
+                if (hand == ModelInteractionHand.RIGHT) {
                     val previous = player.vehicle
                     if (previous is HitBox && previous.source().uniqueId == hitBox.source().uniqueId && previous.mountController().canDismountBySelf()) {
                         hitBox.dismount(player)
@@ -103,6 +108,24 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
                             it.close()
                         }) it.close()
                     else it.forRemoval(true)
+                }
+            }
+            @EventHandler(priority = EventPriority.MONITOR)
+            fun PlayerInteractEntityEvent.interact() {
+                (rightClicked as? HitBox.Interaction)?.sourceHitBox()?.let {
+                    val modelHand = when (hand) {
+                        HAND -> ModelInteractionHand.RIGHT
+                        OFF_HAND -> ModelInteractionHand.LEFT
+                        else -> return
+                    }
+                    if (this is PlayerInteractAtEntityEvent) it.triggerInteractAt(
+                        player,
+                        modelHand,
+                        clickedPosition
+                    ) else it.triggerInteract(
+                        player,
+                        modelHand
+                    )
                 }
             }
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = false)
