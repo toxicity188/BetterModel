@@ -13,7 +13,7 @@ public record BoneName(@NotNull Set<BoneTag> tags, @NotNull String name) {
         return false;
     }
 
-    public @NotNull BoneItemMapper toMapper() {
+    public @NotNull BoneItemMapper toItemMapper() {
         return tags.isEmpty() ? BoneItemMapper.EMPTY : tags.stream().map(BoneTag::getMapper).filter(Objects::nonNull).findFirst().orElse(BoneItemMapper.EMPTY);
     }
 }

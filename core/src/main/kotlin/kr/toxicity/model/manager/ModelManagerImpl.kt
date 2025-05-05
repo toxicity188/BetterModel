@@ -264,7 +264,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
             return RendererGroup(
                 boneName(),
                 scale,
-                if (boneName().toMapper() !== BoneItemMapper.EMPTY) null else consumer(this)?.let { i ->
+                if (boneName().toItemMapper() !== BoneItemMapper.EMPTY) null else consumer(this)?.let { i ->
                     ItemStack(ConfigManagerImpl.item()).apply {
                         itemMeta = itemMeta.apply {
                             @Suppress("DEPRECATION") //To support legacy server :(

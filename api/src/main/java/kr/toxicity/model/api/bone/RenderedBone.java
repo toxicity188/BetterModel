@@ -102,7 +102,7 @@ public final class RenderedBone implements HitBoxSource {
     ) {
         this.group = group;
         this.parent = parent;
-        itemMapper = group.getMapper();
+        itemMapper = group.getItemMapper();
         var r = this;
         while (r.getParent() != null) r = r.getParent();
         root = r;

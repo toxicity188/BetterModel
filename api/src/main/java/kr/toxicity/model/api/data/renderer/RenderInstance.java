@@ -183,7 +183,7 @@ public final class RenderInstance {
 
     public boolean profile(@NotNull BonePredicate predicate, @NotNull PlayerProfile profile, @NotNull PlayerTextures.SkinModel skinModel) {
         return anyMatch(predicate, (b, p) -> {
-            var mapper = b.getGroup().getMapper();
+            var mapper = b.getItemMapper();
             if (mapper instanceof PlayerLimb.LimbItemMapper limbItemMapper) {
                 b.setItemMapper(limbItemMapper.profile(profile, skinModel));
                 return b.updateItem(BonePredicate.TRUE, source);

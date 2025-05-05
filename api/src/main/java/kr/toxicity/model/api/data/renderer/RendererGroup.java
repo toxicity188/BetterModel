@@ -45,7 +45,7 @@ public final class RendererGroup {
     @Getter
     private final Vector3f center;
     @Getter
-    private final @NotNull BoneItemMapper mapper;
+    private final @NotNull BoneItemMapper itemMapper;
 
     @Getter
     private final @NotNull MountController mountController;
@@ -68,7 +68,7 @@ public final class RendererGroup {
             @Nullable NamedBoundingBox box
     ) {
         this.name = name;
-        this.mapper = name.toMapper();
+        this.itemMapper = name.toItemMapper();
         this.parent = group;
         this.children = children;
         this.itemStack = new TransformedItemStack(
@@ -102,8 +102,8 @@ public final class RendererGroup {
         return new RenderedBone(
                 this,
                 entityParent,
-                mapper.apply(source, itemStack),
-                mapper.transform(),
+                itemMapper.apply(source, itemStack),
+                itemMapper.transform(),
                 location,
                 new BoneMovement(
                         entityParent != null ? new Vector3f(position).sub(entityParent.getGroup().position) : new Vector3f(),
