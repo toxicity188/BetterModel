@@ -297,6 +297,7 @@ class HitBoxImpl(
     }
 
     override fun interact(player: Player, hand: InteractionHand): InteractionResult {
+        if (player === delegate) return InteractionResult.FAIL
         val interact = ModelInteractEvent(player.bukkitEntity as org.bukkit.entity.Player, craftEntity, when (hand) {
             MAIN_HAND -> ModelInteractionHand.RIGHT
             OFF_HAND -> ModelInteractionHand.LEFT
@@ -307,6 +308,7 @@ class HitBoxImpl(
     }
 
     override fun interactAt(player: Player, vec: Vec3, hand: InteractionHand): InteractionResult {
+        if (player === delegate) return InteractionResult.FAIL
         val interact = ModelInteractAtEvent(player.bukkitEntity as org.bukkit.entity.Player, craftEntity, when (hand) {
             MAIN_HAND -> ModelInteractionHand.RIGHT
             OFF_HAND -> ModelInteractionHand.LEFT
