@@ -127,6 +127,12 @@ public interface ConfigManager {
     int lerpFrameTime();
 
     /**
+     * Whether any swap inventory packet should be canceled if the player has some model
+     * @return cancel
+     */
+    boolean cancelPlayerModelInventory();
+
+    /**
      * Pack type
      */
     enum PackType {

@@ -32,7 +32,16 @@ public interface NMS {
      * Creates packet bundler
      * @return packet bundler
      */
-    @NotNull PacketBundler createBundler();
+    default @NotNull PacketBundler createBundler() {
+        return createBundler(true);
+    }
+
+    /**
+     * Creates packet bundler
+     * @param useEntityTrack use entity track
+     * @return packet bundler
+     */
+    @NotNull PacketBundler createBundler(boolean useEntityTrack);
 
     /**
      * Applies tint to some item

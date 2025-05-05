@@ -56,7 +56,7 @@ public abstract class Tracker implements AutoCloseable {
     private final AtomicBoolean readyForForceUpdate = new AtomicBoolean();
     private final TrackerModifier modifier;
     private final Runnable updater;
-    private PacketBundler bundler = BetterModel.inst().nms().createBundler();
+    private PacketBundler bundler = BetterModel.inst().nms().createBundler(false);
     private long frame = 0;
     @Getter
     private ModelRotator rotator = ModelRotator.EMPTY;
@@ -82,7 +82,7 @@ public abstract class Tracker implements AutoCloseable {
             consumer.accept(this, bundler);
             if (!bundler.isEmpty()) {
                 instance.viewedPlayer().forEach(bundler::send);
-                bundler = BetterModel.inst().nms().createBundler();
+                bundler = BetterModel.inst().nms().createBundler(false);
             }
         };
         task = EXECUTOR.scheduleAtFixedRate(() -> {
@@ -427,6 +427,14 @@ public abstract class Tracker implements AutoCloseable {
      */
     public boolean brightness(@NotNull BonePredicate predicate, int block, int sky) {
         return instance.brightness(predicate, block, sky);
+    }
+    /**
+     * Updates item
+     * @param predicate predicate
+     * @return success
+     */
+    public boolean updateItem(@NotNull BonePredicate predicate) {
+        return instance.updateItem(predicate);
     }
 
     /**

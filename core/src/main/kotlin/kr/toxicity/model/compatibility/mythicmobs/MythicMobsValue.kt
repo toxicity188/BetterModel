@@ -97,7 +97,7 @@ fun MythicLineConfig.toBonePredicate(defaultPredicate: BonePredicate): (Placehol
     return { meta ->
         val part = partSupplier(meta)
         if (part == null) defaultPredicate else {
-            BonePredicate.of(children(meta), if (match(meta)) {
+            BonePredicate.of(if (children(meta)) BonePredicate.State.TRUE else BonePredicate.State.FALSE, if (match(meta)) {
                 { b ->
                     b.name.name == part
                 }

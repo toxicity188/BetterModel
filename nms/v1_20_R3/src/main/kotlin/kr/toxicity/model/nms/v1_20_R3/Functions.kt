@@ -41,6 +41,10 @@ inline fun <reified T, reified R> createAdaptedFieldGetter(noinline paperGetter:
     }
 }
 
+val CONFIG by lazy {
+    BetterModel.inst().configManager()
+}
+
 fun Entity.passengerPosition(): Vector3f {
     return Vector3f(0F, getDimensions(pose).height, 0F)
 }

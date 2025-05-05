@@ -11,9 +11,11 @@ import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox
 import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.nms.*
+import kr.toxicity.model.api.player.PlayerLimb
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.api.tracker.ModelRotation
 import kr.toxicity.model.api.tracker.Tracker
+import kr.toxicity.model.api.util.BonePredicate
 import net.minecraft.network.Connection
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.*
@@ -104,17 +106,19 @@ class NMSImpl : NMS {
     }
 
     private class PacketBundlerImpl(
+        private val useEntityTrack: Boolean,
         private val list: MutableList<Packet<ClientGamePacketListener>>
-    ) : PacketBundler {
-        override fun copy(): PacketBundler = PacketBundlerImpl(ArrayList(list))
+    ) : PacketBundler, Iterable<Packet<ClientGamePacketListener>> by list {
+        override fun copy(): PacketBundler = PacketBundlerImpl(useEntityTrack, ArrayList(list))
         override fun send(player: Player) {
             val connection = (player as CraftPlayer).handle.connection
             when (list.size) {
                 0 -> {}
                 1 -> connection.send(list[0])
-                else -> connection.send(ClientboundBundlePacket(list))
+                else -> connection.send(ClientboundBundlePacket(this))
             }
         }
+        override fun useEntityTrack(): Boolean = useEntityTrack
         override fun isEmpty(): Boolean = list.isEmpty()
         operator fun plusAssign(other: Packet<ClientGamePacketListener>) {
             list += other
@@ -261,23 +265,35 @@ class NMSImpl : NMS {
         }
 
         override fun write(ctx: ChannelHandlerContext, msg: Any, promise: ChannelPromise) {
-            if (msg is Packet<*>) {
-                super.write(ctx, msg.handle(), promise)
-                return
-            }
-            super.write(ctx, msg, promise)
+            super.write(ctx, if (msg is Packet<*>) msg.handle() else msg, promise)
         }
 
         override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
+            fun Tracker.updatePlayerLimb() {
+                player.updateInventory()
+                connection.send(ClientboundSetEquipmentPacket(connection.player.id, emptyList()))
+                BetterModel.inst().scheduler().asyncTaskLater(1) {
+                    if (updateItem(BonePredicate.of(BonePredicate.State.NOT_SET) {
+                            it.itemMapper is PlayerLimb.LimbItemMapper
+                        })) forceUpdate(true)
+                }
+            }
             when (msg) {
                 is ServerboundSetCarriedItemPacket -> {
-                    if (connection.player.id.toTracker() != null) {
-                        connection.send(ClientboundSetCarriedItemPacket(player.inventory.heldItemSlot))
-                        return
+                    connection.player.id.toTracker()?.let { tracker ->
+                        if (CONFIG.cancelPlayerModelInventory()) {
+                            connection.send(ClientboundSetCarriedItemPacket(player.inventory.heldItemSlot))
+                            return
+                        } else {
+                            tracker.updatePlayerLimb()
+                        }
                     }
                 }
                 is ServerboundPlayerActionPacket -> {
-                    if (connection.player.id.toTracker() != null) return
+                    connection.player.id.toTracker()?.let { tracker ->
+                        if (CONFIG.cancelPlayerModelInventory()) return
+                        else tracker.updatePlayerLimb()
+                    }
                 }
             }
             super.channelRead(ctx, msg)
@@ -306,7 +322,7 @@ class NMSImpl : NMS {
 
     override fun inject(player: Player): PlayerChannelHandlerImpl = PlayerChannelHandlerImpl(player)
 
-    override fun createBundler(): PacketBundler = PacketBundlerImpl(mutableListOf())
+    override fun createBundler(useEntityTrack: Boolean): PacketBundler = PacketBundlerImpl(useEntityTrack, mutableListOf())
     private fun PacketBundler.unwrap(): PacketBundlerImpl = this as PacketBundlerImpl
 
     override fun create(location: Location): ModelDisplay = ModelDisplayImpl(ItemDisplay(EntityType.ITEM_DISPLAY, (location.world as CraftWorld).handle).apply {
@@ -344,7 +360,7 @@ class NMSImpl : NMS {
             display.valid = !entity.dead()
             display.onGround = entity.ground()
             display.setGlowingTag(entity.glow() || forceGlow)
-            if (BetterModel.inst().configManager().followMobInvisibility()) display.isInvisible = entity.invisible()
+            if (CONFIG.followMobInvisibility()) display.isInvisible = entity.invisible()
         }
 
         override fun display(transform: org.bukkit.entity.ItemDisplay.ItemDisplayTransform) {

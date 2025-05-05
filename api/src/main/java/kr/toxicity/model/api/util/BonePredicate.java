@@ -5,6 +5,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
@@ -15,18 +16,18 @@ public interface BonePredicate extends Predicate<RenderedBone> {
     /**
      * True
      */
-    BonePredicate TRUE = of(true, b -> true);
+    BonePredicate TRUE = of(State.TRUE, b -> true);
 
     /**
      * False
      */
-    BonePredicate FALSE = of(false, b -> false);
+    BonePredicate FALSE = of(State.FALSE, b -> false);
 
     /**
      * Should apply at children bone too
      * @return apply at children
      */
-    boolean applyAtChildren();
+    @NotNull State applyAtChildren();
 
     /**
      * Gets bone predicate
@@ -34,7 +35,7 @@ public interface BonePredicate extends Predicate<RenderedBone> {
      * @return bone predicate
      */
     static @NotNull BonePredicate of(@NotNull Predicate<RenderedBone> predicate) {
-        return of(false, predicate);
+        return of(State.FALSE, predicate);
     }
 
     /**
@@ -43,11 +44,11 @@ public interface BonePredicate extends Predicate<RenderedBone> {
      * @param predicate predicate
      * @return bone predicate
      */
-    static @NotNull BonePredicate of(boolean applyAtChildren, @NotNull Predicate<RenderedBone> predicate) {
+    static @NotNull BonePredicate of(@NotNull State applyAtChildren, @NotNull Predicate<RenderedBone> predicate) {
         Objects.requireNonNull(predicate, "predicate cannot be null.");
         return new BonePredicate() {
             @Override
-            public boolean applyAtChildren() {
+            public @NotNull State applyAtChildren() {
                 return applyAtChildren;
             }
 
@@ -58,6 +59,12 @@ public interface BonePredicate extends Predicate<RenderedBone> {
         };
     }
 
+    enum State {
+        TRUE,
+        FALSE,
+        NOT_SET
+    }
+
     /**
      * Gets children predicate
      * @param parentSuccess result at parent bone
@@ -65,6 +72,10 @@ public interface BonePredicate extends Predicate<RenderedBone> {
      */
     @ApiStatus.Internal
     default @NotNull BonePredicate children(boolean parentSuccess) {
-        return parentSuccess ? applyAtChildren() ? TRUE : FALSE : this;
+        return parentSuccess ? switch (applyAtChildren()) {
+            case TRUE -> BonePredicate.TRUE;
+            case FALSE -> BonePredicate.FALSE;
+            case NOT_SET -> this;
+        } : this;
     }
 }

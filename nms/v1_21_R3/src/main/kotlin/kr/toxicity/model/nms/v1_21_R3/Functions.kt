@@ -32,6 +32,10 @@ inline fun <reified T, reified R> createAdaptedFieldGetter(noinline paperGetter:
     }
 }
 
+val CONFIG by lazy {
+    BetterModel.inst().configManager()
+}
+
 fun Entity.passengerPosition(): Vector3f {
     return attachments.get(EntityAttachment.PASSENGER, 0, yRot).let { v ->
         Vector3f(v.x.toFloat(), v.y.toFloat(), v.z.toFloat())

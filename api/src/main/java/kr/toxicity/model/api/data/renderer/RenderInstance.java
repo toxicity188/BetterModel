@@ -185,10 +185,15 @@ public final class RenderInstance {
         return anyMatch(predicate, (b, p) -> {
             var mapper = b.getGroup().getMapper();
             if (mapper instanceof PlayerLimb.LimbItemMapper limbItemMapper) {
-                return b.itemStack(p, limbItemMapper.profile(profile, skinModel).apply(source, b.currentItemStack()));
+                b.setItemMapper(limbItemMapper.profile(profile, skinModel));
+                return b.updateItem(BonePredicate.TRUE, source);
             }
             return false;
         });
+    }
+
+    public boolean updateItem(@NotNull BonePredicate predicate) {
+        return anyMatch(predicate, (b, p) -> b.updateItem(p, source));
     }
 
     public boolean glow(@NotNull BonePredicate predicate, boolean glow, int glowColor) {

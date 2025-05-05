@@ -36,6 +36,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     private var versionCheck = true
     private var defaultMountController = MountControllers.WALK
     private var lerpFrameTime = 5
+    private var cancelPlayerModelInventory = false
 
     override fun debug(): DebugConfig = debug
     override fun module(): ModuleConfig = module
@@ -56,6 +57,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     override fun versionCheck(): Boolean = versionCheck
     override fun defaultMountController(): MountController = defaultMountController
     override fun lerpFrameTime(): Int = lerpFrameTime
+    override fun cancelPlayerModelInventory(): Boolean = cancelPlayerModelInventory
 
     override fun reload(info: ReloadInfo) {
         val yaml = PluginConfiguration.CONFIG.create()
@@ -101,5 +103,6 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
             else -> MountControllers.WALK
         }
         lerpFrameTime = yaml.getInt("lerp-frame-time", 5)
+        cancelPlayerModelInventory = yaml.getBoolean("cancel-player-model-inventory")
     }
 }

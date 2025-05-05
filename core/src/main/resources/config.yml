@@ -21,3 +21,4 @@ use-purpur-afk: true
 version-check: true
 default-mount-controller: walk
 lerp-frame-time: 5
+cancel-player-model-inventory: false

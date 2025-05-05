@@ -7,12 +7,14 @@ import kr.toxicity.model.api.animation.AnimationPredicate;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox;
+import kr.toxicity.model.api.data.renderer.RenderSource;
 import kr.toxicity.model.api.data.renderer.RendererGroup;
 import kr.toxicity.model.api.nms.*;
 import kr.toxicity.model.api.tracker.ModelRotation;
 import kr.toxicity.model.api.tracker.TrackerModifier;
 import kr.toxicity.model.api.util.*;
 import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.Location;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.ItemDisplay;
@@ -67,6 +69,9 @@ public final class RenderedBone implements HitBoxSource {
 
     @Getter
     private final boolean dummyBone;
+    @Getter
+    @Setter
+    private BoneItemMapper itemMapper;
     private int tint;
     private TreeIterator currentIterator = null;
     private BoneMovement beforeTransform, afterTransform, relativeOffsetCache;
@@ -97,10 +102,11 @@ public final class RenderedBone implements HitBoxSource {
     ) {
         this.group = group;
         this.parent = parent;
+        itemMapper = group.getMapper();
         var r = this;
         while (r.getParent() != null) r = r.getParent();
         root = r;
-        var visible = group.getMapper() != BoneItemMapper.EMPTY || group.getParent().visibility();
+        var visible = itemMapper != BoneItemMapper.EMPTY || group.getParent().visibility();
         this.cachedItem = itemStack;
         this.itemStack = visible ? itemStack : itemStack.asAir();
         this.dummyBone = ItemUtil.isEmpty(itemStack);
@@ -121,6 +127,10 @@ public final class RenderedBone implements HitBoxSource {
 
     public @NotNull TransformedItemStack currentItemStack() {
         return itemStack.copy();
+    }
+
+    public boolean updateItem(@NotNull BonePredicate predicate, @NotNull RenderSource source) {
+        return itemStack(predicate, itemMapper.apply(source, cachedItem));
     }
 
     /**
