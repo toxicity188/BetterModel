@@ -23,22 +23,23 @@ public enum VectorInterpolation {
         }
     },
     CATMULLROM {
+
+        private @NotNull VectorPoint indexOf(@NotNull List<VectorPoint> list, int index, int relative) {
+            var i = index + relative;
+            if (i < 0) i += list.size();
+            return list.get(i % list.size());
+        }
+
         @NotNull
         @Override
         public VectorPoint interpolate(@NotNull List<VectorPoint> points, int p2Index, float time) {
-            if (p2Index >= points.size() - 1 || p2Index < 2) {
-                var p1 = p2Index > 0 ? points.get(p2Index - 1) : VectorPoint.EMPTY;
-                var p2 = points.get(p2Index);
-                return new VectorPoint(
-                        VectorUtil.linear(p1.vector(), p2.vector(), VectorUtil.alpha(p1.time(), p2.time(), time)),
-                        time,
-                        this
-                );
+            if (points.size() < 4) {
+                return LINEAR.interpolate(points, p2Index, time);
             }
-            var p0 = points.get(p2Index - 2);
-            var p1 = points.get(p2Index - 1);
+            var p0 = indexOf(points, p2Index, -2);
+            var p1 = indexOf(points, p2Index, -1);
             var p2 = points.get(p2Index);
-            var p3 = points.get(p2Index + 1);
+            var p3 = indexOf(points, p2Index, 1);
             return new VectorPoint(
                     VectorUtil.catmull_rom(
                             p0.vector(),

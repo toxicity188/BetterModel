@@ -14,10 +14,6 @@ public record VectorPoint(@NotNull Vector3f vector, float time, @NotNull VectorI
             VectorInterpolation.LINEAR
     );
 
-    public static @NotNull VectorPoint emptyOf(float time) {
-        return new VectorPoint(new Vector3f(), time, VectorInterpolation.LINEAR);
-    }
-
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof VectorPoint that)) return false;

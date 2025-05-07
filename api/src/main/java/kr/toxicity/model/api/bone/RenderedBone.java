@@ -125,10 +125,6 @@ public final class RenderedBone implements HitBoxSource {
         return iterator != null ? iterator.animation : null;
     }
 
-    public @NotNull TransformedItemStack currentItemStack() {
-        return itemStack.copy();
-    }
-
     public boolean updateItem(@NotNull BonePredicate predicate, @NotNull RenderSource source) {
         return itemStack(predicate, itemMapper.apply(source, cachedItem));
     }
@@ -324,7 +320,7 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     private static int toInterpolationDuration(long delay) {
-        return (int) Math.ceil((float) delay / 5F);
+        return delay <= 0.01 ? 0 : (int) Math.floor((float) delay / 5F) + 1;
     }
 
     public @NotNull Vector3f worldPosition() {
@@ -571,8 +567,6 @@ public final class RenderedBone implements HitBoxSource {
         private boolean started = false;
         private boolean ended = false;
 
-        private float cachedSpeed = 1F;
-
         public TreeIterator(String name, AnimationIterator iterator, AnimationModifier modifier, Runnable removeTask) {
             animation = new RunningAnimation(name, iterator.type());
             this.iterator = iterator;
@@ -613,11 +607,6 @@ public final class RenderedBone implements HitBoxSource {
             return iterator.hasNext() || (modifier.end() > 0 && !ended);
         }
 
-        public float deltaSpeed() {
-            var previous = cachedSpeed;
-            return (cachedSpeed = modifier.speedValue()) / previous;
-        }
-
         @Override
         public AnimationMovement next() {
             if (!started) {
@@ -629,7 +618,7 @@ public final class RenderedBone implements HitBoxSource {
                 return previous;
             }
             var nxt = iterator.next();
-            nxt = nxt.time(Math.max(nxt.time() / (cachedSpeed = modifier.speedValue()), 0.01F));
+            nxt = nxt.time(Math.max(nxt.time() / modifier.speedValue(), 0.01F));
             return nxt;
         }
 

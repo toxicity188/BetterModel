@@ -14,7 +14,7 @@ class VectorTest {
                 VectorPoint(Vector3f(3F, 4F, 5F), 3F, VectorInterpolation.CATMULLROM),
                 VectorPoint(Vector3f(4F, 5F, 6F), 4F, VectorInterpolation.CATMULLROM),
             ),
-            setOf(
+            sortedSetOf(
                 0F,
                 0.5F,
                 1F,
@@ -22,7 +22,9 @@ class VectorTest {
                 2F,
                 2.5F,
                 3F,
-                3.5F
+                3.5F,
+                4F,
+                4.5F
             )
         ).forEach {
             println(it)

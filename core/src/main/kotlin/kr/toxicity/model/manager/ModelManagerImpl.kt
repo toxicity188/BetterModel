@@ -8,10 +8,12 @@ import kr.toxicity.model.api.data.blueprint.BlueprintJson
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint
 import kr.toxicity.model.api.data.renderer.BlueprintRenderer
 import kr.toxicity.model.api.data.renderer.RendererGroup
+import kr.toxicity.model.api.event.ModelImportedEvent
 import kr.toxicity.model.api.manager.ConfigManager.PackType.FOLDER
 import kr.toxicity.model.api.manager.ConfigManager.PackType.ZIP
 import kr.toxicity.model.api.manager.ModelManager
 import kr.toxicity.model.api.manager.ReloadInfo
+import kr.toxicity.model.nms.v1_20_R2.call
 import kr.toxicity.model.util.*
 import org.bukkit.inventory.ItemStack
 import java.io.File
@@ -194,6 +196,8 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                         jsonList += blueprint
                     }
                     index++
+                }.apply {
+                    ModelImportedEvent(this).call()
                 }
                 jsonList.forEach { json ->
                     legacyModel.add(modelsPath, "${json.name}.json") {

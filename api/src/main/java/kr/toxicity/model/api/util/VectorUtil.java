@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.util;
 
+import it.unimi.dsi.fastutil.floats.FloatAVLTreeSet;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationPoint;
 import kr.toxicity.model.api.animation.VectorPoint;
@@ -8,7 +9,6 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 import java.util.*;
-import java.util.stream.Stream;
 
 @ApiStatus.Internal
 public final class VectorUtil {
@@ -32,8 +32,9 @@ public final class VectorUtil {
         );
     }
 
-    public static @NotNull List<AnimationPoint> sum(@NotNull List<VectorPoint> position, @NotNull List<VectorPoint> rotation, @NotNull List<VectorPoint> scale) {
-        var set = new TreeSet<Float>();
+    public static @NotNull List<AnimationPoint> sum(float length, @NotNull List<VectorPoint> position, @NotNull List<VectorPoint> rotation, @NotNull List<VectorPoint> scale) {
+        var set = new FloatAVLTreeSet();
+        set.add(length);
         point(set, position);
         point(set, scale);
         point(set, rotation);
@@ -64,21 +65,21 @@ public final class VectorUtil {
         var i = 0;
         var p2 = vectors.getFirst();
         var t = p2.time();
-        var newVectors = new ArrayList<>(vectors);
+        var newVectors = new ArrayList<VectorPoint>();
         for (float point : points) {
-            while (i < newVectors.size() - 1 && t < point) {
-                t = (p2 = newVectors.get(++i)).time();
+            while (i < vectors.size() - 1 && t < point) {
+                t = (p2 = vectors.get(++i)).time();
             }
-            if (t == point) continue;
             if (point > length) newVectors.add(new VectorPoint(
                     last.vector(),
                     point,
                     last.interpolation()
             ));
             else {
-                newVectors.add(i, p2.interpolation().interpolate(newVectors, i, t = point));
+                newVectors.add(point == t ? vectors.get(i) : p2.interpolation().interpolate(vectors, i, point));
             }
         }
+        if (t < length) newVectors.addAll(vectors.subList(i, vectors.size()));
         return newVectors;
     }
 
@@ -86,13 +87,9 @@ public final class VectorUtil {
         for (int i = 0; i < vectorPoints.size() - 1; i++) {
             var before = vectorPoints.get(i);
             var after = vectorPoints.get(i + 1);
-            var degree = new Vector3f(after.vector())
-                    .sub(before.vector());
-            var angle = (float) Math.floor(Stream.of(
-                    degree.x,
-                    degree.y,
-                    degree.z
-            ).mapToDouble(Math::abs).max().orElse(0) / 45) + 1;
+            var angle = (float) Math.ceil(Math.toDegrees(MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(after.vector()))
+                    .mul(MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(before.vector())).invert())
+                    .angle()) / 45F);
             if (angle > 1) {
                 for (float t = 1; t < angle; t++) {
                     frames.add(linear(before.time(), after.time(), t / angle));
@@ -105,19 +102,20 @@ public final class VectorUtil {
         insertLerpFrame(frames, (float) BetterModel.inst().configManager().lerpFrameTime() / 20F);
     }
 
+    private static final float COLLISION_VALUE = 0.05F;
+
     public static void insertLerpFrame(@NotNull Set<Float> frames, float frame) {
-        if (frame <= 0.031F) return;
-        frame -= 0.031F;
+        if (frame <= 0F) return;
         var list = new ArrayList<>(frames);
         var init = 0F;
         var initAfter = list.getFirst();
-        while ((init += frame) < initAfter) {
+        while ((init += frame) < initAfter - COLLISION_VALUE) {
             frames.add(init);
         }
         for (int i = 0; i < list.size() - 1; i++) {
             var before = list.get(i);
             var after = list.get(i + 1);
-            while ((before += frame) < after) {
+            while ((before += frame) < after - COLLISION_VALUE) {
                 frames.add(before);
             }
         }
@@ -128,14 +126,15 @@ public final class VectorUtil {
     }
 
     public static @NotNull Vector3f linear(@NotNull Vector3f p0, @NotNull Vector3f p1, float alpha) {
-        return new Vector3f(p1)
-                .sub(p0)
-                .mul(alpha)
-                .add(p0);
+        return new Vector3f(
+                linear(p0.x, p1.x, alpha),
+                linear(p0.y, p1.y, alpha),
+                linear(p0.z, p1.z, alpha)
+        );
     }
 
     public static float linear(float p0, float p1, float alpha) {
-        return (p1 - p0) * alpha + p0;
+        return Math.fma(p1 - p0, alpha, p0);
     }
 
     public static @NotNull Vector3f catmull_rom(@NotNull Vector3f p0, @NotNull Vector3f p1, @NotNull Vector3f p2, @NotNull Vector3f p3, float t) {

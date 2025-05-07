@@ -10,7 +10,6 @@ import kr.toxicity.model.api.util.*;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
-import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,12 +17,10 @@ import java.util.List;
 /**
  * A movement of each group.
  * @param name group name
- * @param length frame length
  * @param keyFrame keyframes
  */
 public record BlueprintAnimator(
         @NotNull String name,
-        float length,
         @NotNull @Unmodifiable List<AnimationMovement> keyFrame
 ) {
 
@@ -31,10 +28,9 @@ public record BlueprintAnimator(
     /**
      * Animation data
      * @param name name
-     * @param length length
      * @param points points
      */
-    public record AnimatorData(@NotNull String name, float length, @NotNull List<AnimationPoint> points) {}
+    public record AnimatorData(@NotNull String name, @NotNull List<AnimationPoint> points) {}
 
     /**
      * Builder
@@ -79,36 +75,14 @@ public record BlueprintAnimator(
             return this;
         }
 
-        private void addLastFrame(@NotNull List<VectorPoint> points) {
-            VectorPoint lastPoint;
-            if (points.isEmpty()) {
-                lastPoint = new VectorPoint(
-                        new Vector3f(),
-                        length,
-                        VectorInterpolation.LINEAR
-                );
-            } else {
-                var last = points.getLast();
-                if (last.time() == length) return;
-                lastPoint = new VectorPoint(
-                        last.vector(),
-                        length,
-                        last.interpolation()
-                );
-            }
-            points.add(lastPoint);
-        }
-
         /**
          * Builds animation data
          * @param name animation's name
          * @return data
          */
         public @NotNull AnimatorData build(@NotNull String name) {
-            addLastFrame(transform);
-            addLastFrame(rotation);
-            addLastFrame(scale);
-            return new AnimatorData(name, length, VectorUtil.sum(
+            return new AnimatorData(name, VectorUtil.sum(
+                    length,
                     transform.stream().distinct().toList(),
                     rotation.stream().distinct().toList(),
                     scale.stream().distinct().toList()

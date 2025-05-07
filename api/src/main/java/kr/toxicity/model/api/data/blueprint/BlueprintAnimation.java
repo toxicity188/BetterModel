@@ -84,7 +84,6 @@ public record BlueprintAnimation(
             var list = getAnimationMovements(floatSet, entry);
             newMap.put(entry.getKey(), new BlueprintAnimator(
                     entry.getValue().name(),
-                    entry.getValue().length(),
                     list
             ));
         }
@@ -109,13 +108,6 @@ public record BlueprintAnimation(
         return list;
     }
 
-    /**
-     * Gets iterator.
-     * @return iterator
-     */
-    public @NotNull AnimationIterator emptyIterator() {
-        return emptyIterator(loop);
-    }
     /**
      * Gets iterator.
      * @param type type
