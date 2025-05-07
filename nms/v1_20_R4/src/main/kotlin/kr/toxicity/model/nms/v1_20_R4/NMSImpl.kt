@@ -111,13 +111,16 @@ class NMSImpl : NMS {
         private val useEntityTrack: Boolean,
         private val list: MutableList<Packet<ClientGamePacketListener>>
     ) : PacketBundler, Iterable<Packet<ClientGamePacketListener>> by list {
+        private val bundlePacket by lazy {
+            ClientboundBundlePacket(this)
+        }
         override fun copy(): PacketBundler = PacketBundlerImpl(useEntityTrack, ArrayList(list))
         override fun send(player: Player) {
             val connection = (player as CraftPlayer).handle.connection
             when (list.size) {
                 0 -> {}
                 1 -> connection.send(list[0])
-                else -> connection.send(ClientboundBundlePacket(this))
+                else -> connection.send(bundlePacket)
             }
         }
         override fun useEntityTrack(): Boolean = useEntityTrack
@@ -516,7 +519,7 @@ class NMSImpl : NMS {
 
             override fun entity(): org.bukkit.entity.Entity = entity
             override fun handle(): Entity = entity.vanillaEntity
-            override fun dead(): Boolean = (handle() as? LivingEntity)?.isDeadOrDying == true || !handle().valid
+            override fun dead(): Boolean = (handle() as? LivingEntity)?.isDeadOrDying == true || handle().removalReason?.shouldSave() == false
             override fun invisible(): Boolean = handle().isInvisible
             override fun glow(): Boolean = handle().isCurrentlyGlowing
 
