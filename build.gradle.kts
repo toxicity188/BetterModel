@@ -18,7 +18,7 @@ val minecraft = property("minecraft_version").toString()
 val targetJavaVersion = 21
 val buildNumber: String? = System.getenv("BUILD_NUMBER")
 
-val commandApi = "10.0.0"
+val commandApi = "10.0.1"
 
 allprojects {
     apply(plugin = "java")
