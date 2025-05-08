@@ -15,6 +15,7 @@ uniform sampler2D Sampler2;
 
 uniform mat4 ModelViewMat;
 uniform mat4 ProjMat;
+uniform mat3 IViewRotMat;
 
 uniform vec3 Light0_Direction;
 uniform vec3 Light1_Direction;
@@ -110,14 +111,14 @@ void main() {
     overlayColor = texelFetch(Sampler1, UV1, 0);
     normal = ProjMat * ModelViewMat * vec4(Normal, 0.0);
 
-    vec3 wpos = Position;
+    vec3 wpos = IViewRotMat * Position;
     ivec2 dim = textureSize(Sampler0, 0);
 
     if (ProjMat[2][3] == 0.0 || dim.x != 64 || dim.y != 64) { // short circuit if cannot be player
         part = 0.0;
         texCoord0 = UV0;
         texCoord1 = vec2(0.0);
-        vertexDistance = fog_distance(Position, FogShape);
+        vertexDistance = fog_distance(IViewRotMat * Position, FogShape);
         gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
     }
     else if (length(inverse(ModelViewMat)[3].xyz - wpos) < 0.75) {
@@ -158,7 +159,7 @@ void main() {
             int subuvIndex = faceId;
 
             wpos.y += SPACING * partId;
-            gl_Position = ProjMat * ModelViewMat * vec4(wpos, 1.0);
+            gl_Position = ProjMat * ModelViewMat * vec4(inverse(IViewRotMat) * wpos, 1.0);
 
             UVout = origins[2 * (partId - 1) + outerLayer];
             UVout2 = origins[2 * (partId - 1)];
