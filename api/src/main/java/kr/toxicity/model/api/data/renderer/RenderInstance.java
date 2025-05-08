@@ -80,7 +80,7 @@ public final class RenderInstance {
     }
 
     public void viewFilter(@NotNull Predicate<Player> filter) {
-        this.viewFilter = this.viewFilter.and(FunctionUtil.throttleTick(filter));
+        this.viewFilter = this.viewFilter.and(filter);
     }
 
     public void spawnPacketHandler(@NotNull Consumer<PacketBundler> spawnPacketHandler) {
