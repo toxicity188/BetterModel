@@ -27,7 +27,10 @@ public enum VectorInterpolation {
         private @NotNull VectorPoint indexOf(@NotNull List<VectorPoint> list, int index, int relative) {
             var i = index + relative;
             if (i < 0) i += list.size();
-            return list.get(i % list.size());
+            else if (i >= list.size()) {
+                i = list.getFirst().time() <= 0F ? i % (list.size() - 1) + 1 : i % list.size();
+            }
+            return list.get(i);
         }
 
         @NotNull

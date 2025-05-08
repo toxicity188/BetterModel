@@ -102,27 +102,29 @@ public final class VectorUtil {
         insertLerpFrame(frames, (float) BetterModel.inst().configManager().lerpFrameTime() / 20F);
     }
 
-    private static final float COLLISION_VALUE = 0.05F;
+    private static final float FRAME_HASH = 0.031F;
 
     public static void insertLerpFrame(@NotNull Set<Float> frames, float frame) {
-        if (frame <= 0F) return;
+        if (frame <= FRAME_HASH) return;
+        frame -= FRAME_HASH;
         var list = new ArrayList<>(frames);
         var init = 0F;
         var initAfter = list.getFirst();
-        while ((init += frame) < initAfter - COLLISION_VALUE) {
+        while ((init += frame) < initAfter) {
             frames.add(init);
         }
         for (int i = 0; i < list.size() - 1; i++) {
             var before = list.get(i);
             var after = list.get(i + 1);
-            while ((before += frame) < after - COLLISION_VALUE) {
+            while ((before += frame) < after) {
                 frames.add(before);
             }
         }
     }
 
     public static float alpha(float p0, float p1, float alpha) {
-        return alpha / (p0 + p1);
+        var div = p1 - p0;
+        return div == 0 ? p0 : (alpha - p0) / div;
     }
 
     public static @NotNull Vector3f linear(@NotNull Vector3f p0, @NotNull Vector3f p1, float alpha) {

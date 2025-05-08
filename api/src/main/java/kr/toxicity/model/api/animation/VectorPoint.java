@@ -6,7 +6,7 @@ import org.joml.Vector3f;
 
 import java.util.Objects;
 
-public record VectorPoint(@NotNull Vector3f vector, float time, @NotNull VectorInterpolation interpolation) {
+public record VectorPoint(@NotNull Vector3f vector, float time, @NotNull VectorInterpolation interpolation) implements Comparable<VectorPoint> {
 
     public static final VectorPoint EMPTY = new VectorPoint(
             new Vector3f(),
@@ -18,6 +18,11 @@ public record VectorPoint(@NotNull Vector3f vector, float time, @NotNull VectorI
     public boolean equals(Object o) {
         if (!(o instanceof VectorPoint that)) return false;
         return Float.compare(time, that.time) == 0;
+    }
+
+    @Override
+    public int compareTo(@NotNull VectorPoint o) {
+        return Float.compare(time, o.time);
     }
 
     @Override
