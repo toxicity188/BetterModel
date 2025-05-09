@@ -133,6 +133,12 @@ public interface ConfigManager {
     boolean cancelPlayerModelInventory();
 
     /**
+     * Gets entity hide delay of player
+     * @return player hide
+     */
+    long playerHideDelay();
+
+    /**
      * Pack type
      */
     enum PackType {

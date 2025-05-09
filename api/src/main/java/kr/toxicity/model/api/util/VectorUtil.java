@@ -124,7 +124,7 @@ public final class VectorUtil {
 
     public static float alpha(float p0, float p1, float alpha) {
         var div = p1 - p0;
-        return div == 0 ? p0 : (alpha - p0) / div;
+        return div == 0 ? 0 : (alpha - p0) / div;
     }
 
     public static @NotNull Vector3f linear(@NotNull Vector3f p0, @NotNull Vector3f p1, float alpha) {

@@ -22,3 +22,4 @@ version-check: true
 default-mount-controller: walk
 lerp-frame-time: 4
 cancel-player-model-inventory: false
+player-hide-delay: 3

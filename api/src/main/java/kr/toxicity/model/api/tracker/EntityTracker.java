@@ -351,12 +351,11 @@ public class EntityTracker extends Tracker {
         var bundler = BetterModel.inst().nms().createBundler();
         if (!spawn(player, bundler)) return false;
         BetterModel.inst().nms().mount(this, bundler);
-        bundler.send(player);
+        bundler.send(player, () -> BetterModel.inst().nms().hide(player, entity));
         var handler = BetterModel.inst()
                 .playerManager()
                 .player(player.getUniqueId());
         if (handler != null) handler.startTrack(this);
-        BetterModel.inst().nms().hide(player, entity);
         return true;
     }
 

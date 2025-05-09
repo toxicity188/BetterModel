@@ -28,5 +28,13 @@ public interface PacketBundler {
      * Sends all packets to player
      * @param player target player
      */
-    void send(@NotNull Player player);
+    default void send(@NotNull Player player) {
+        send(player, () -> {});
+    }
+    /**
+     * Sends all packets to player
+     * @param player target player
+     * @param onSuccess listener on success
+     */
+    void send(@NotNull Player player, @NotNull Runnable onSuccess);
 }

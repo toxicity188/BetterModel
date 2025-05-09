@@ -271,10 +271,6 @@ class HitBoxImpl(
         return delegate.isDeadOrDying
     }
 
-    override fun getDismountLocationForPassenger(passenger: LivingEntity): Vec3 {
-        return delegate.getDismountLocationForPassenger(passenger)
-    }
-
     override fun triggerInteract(player: org.bukkit.entity.Player, hand: ModelInteractionHand) {
         interact(
             (player as CraftPlayer).handle,

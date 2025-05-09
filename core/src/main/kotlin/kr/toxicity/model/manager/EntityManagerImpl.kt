@@ -5,7 +5,7 @@ import com.destroystokyo.paper.event.entity.EntityJumpEvent
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.animation.AnimationModifier
-import kr.toxicity.model.api.event.ModelInteractEvent
+import kr.toxicity.model.api.event.ModelInteractAtEvent
 import kr.toxicity.model.api.manager.EntityManager
 import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.api.nms.HitBox
@@ -67,9 +67,16 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
             }
         })
         registerListener(object : Listener {
+
+            private val EntityEvent.entityTracker get() = EntityTracker.tracker(when (val e = entity) {
+                is HitBox.Interaction -> e.sourceHitBox().source()
+                is HitBox -> e.source()
+                else -> e
+            })
+
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun EntityPotionEffectEvent.potion() { //Apply potion effect
-                EntityTracker.tracker(entity)?.forceUpdate(true)
+                entityTracker?.forceUpdate(true)
             }
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun EntityDismountEvent.dismount() { //Dismount
@@ -77,7 +84,7 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
                 isCancelled = e is HitBox && (e.mountController().canFly() || !e.mountController().canDismountBySelf()) && !e.forceDismount()
             }
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-            fun ModelInteractEvent.interact() { //Mount
+            fun ModelInteractAtEvent.interact() { //Mount
                 if (hand == ModelInteractionHand.RIGHT) {
                     val previous = player.vehicle
                     if (previous is HitBox && previous.source().uniqueId == hitBox.source().uniqueId && previous.mountController().canDismountBySelf()) {
@@ -111,6 +118,21 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
                 }
             }
             @EventHandler(priority = EventPriority.MONITOR)
+            fun PlayerInteractAtEntityEvent.interact() {
+                (rightClicked as? HitBox.Interaction)?.sourceHitBox()?.let {
+                    val modelHand = when (hand) {
+                        HAND -> ModelInteractionHand.RIGHT
+                        OFF_HAND -> ModelInteractionHand.LEFT
+                        else -> return
+                    }
+                    it.triggerInteractAt(
+                        player,
+                        modelHand,
+                        clickedPosition
+                    )
+                }
+            }
+            @EventHandler(priority = EventPriority.MONITOR)
             fun PlayerInteractEntityEvent.interact() { //Interact base entity based on interaction entity
                 (rightClicked as? HitBox.Interaction)?.sourceHitBox()?.let {
                     val modelHand = when (hand) {
@@ -118,28 +140,24 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
                         OFF_HAND -> ModelInteractionHand.LEFT
                         else -> return
                     }
-                    if (this is PlayerInteractAtEntityEvent) it.triggerInteractAt(
-                        player,
-                        modelHand,
-                        clickedPosition
-                    ) else it.triggerInteract(
+                    it.triggerInteract(
                         player,
                         modelHand
                     )
                 }
             }
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = false)
-            fun EntityDamageEvent.damage() { //Damage
-                if (this is EntityDamageByEntityEvent) {
-                    val victim = entity.run {
-                        if (this is HitBox) source().uniqueId else uniqueId
-                    }
-                    val v = damager.vehicle
-                    if (v is HitBox && !v.mountController().canBeDamagedByRider() && v.source().uniqueId == victim) {
-                        isCancelled = true
-                        return
-                    }
+            fun EntityDamageByEntityEvent.damageByEntity() { //Damage
+                val victim = entity.run {
+                    if (this is HitBox) source().uniqueId else uniqueId
                 }
+                val v = damager.vehicle
+                if (v is HitBox && !v.mountController().canBeDamagedByRider() && v.source().uniqueId == victim) {
+                    isCancelled = true
+                }
+            }
+            @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = false)
+            fun EntityDamageEvent.damage() { //Damage
                 EntityTracker.tracker(entity)?.let {
                     if (it.animate("damage", AnimationModifier.DEFAULT_WITH_PLAY_ONCE) {
                             it.tint(0xFFFFFF)

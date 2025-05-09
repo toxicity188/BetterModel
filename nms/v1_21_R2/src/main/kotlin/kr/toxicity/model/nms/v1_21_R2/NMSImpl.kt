@@ -17,6 +17,7 @@ import kr.toxicity.model.api.tracker.ModelRotation
 import kr.toxicity.model.api.tracker.Tracker
 import kr.toxicity.model.api.util.BonePredicate
 import net.minecraft.network.Connection
+import net.minecraft.network.PacketSendListener
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.*
 import net.minecraft.network.syncher.EntityDataAccessor
@@ -115,12 +116,12 @@ class NMSImpl : NMS {
             ClientboundBundlePacket(this)
         }
         override fun copy(): PacketBundler = PacketBundlerImpl(useEntityTrack, ArrayList(list))
-        override fun send(player: Player) {
+        override fun send(player: Player, onSuccess: Runnable) {
             val connection = (player as CraftPlayer).handle.connection
             when (list.size) {
                 0 -> {}
-                1 -> connection.send(list[0])
-                else -> connection.send(bundlePacket)
+                1 -> connection.send(list[0], PacketSendListener.thenRun(onSuccess))
+                else -> connection.send(bundlePacket, PacketSendListener.thenRun(onSuccess))
             }
         }
         override fun useEntityTrack(): Boolean = useEntityTrack
@@ -132,16 +133,16 @@ class NMSImpl : NMS {
 
     override fun hide(player: Player, entity: org.bukkit.entity.Entity) {
         val connection = (player as CraftPlayer).handle
-        val entity = (entity as CraftEntity).vanillaEntity
+        val target = (entity as CraftEntity).vanillaEntity
         val task = {
             connection.connection.send(ClientboundBundlePacket(listOf(
-                ClientboundSetEntityDataPacket(entity.id, entity.entityData.pack()),
-                ClientboundSetEquipmentPacket(entity.id, EquipmentSlot.entries.map { e ->
+                ClientboundSetEntityDataPacket(target.id, target.entityData.pack()),
+                ClientboundSetEquipmentPacket(target.id, EquipmentSlot.entries.map { e ->
                     Pair.of(e, Items.AIR.defaultInstance)
                 })
             )))
         }
-        if (entity === connection) BetterModel.inst().scheduler().asyncTaskLater(1, task) else task()
+        if (player === entity) BetterModel.inst().scheduler().asyncTaskLater(CONFIG.playerHideDelay(), task) else task()
     }
 
     inner class PlayerChannelHandlerImpl(
