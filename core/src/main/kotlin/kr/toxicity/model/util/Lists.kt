@@ -2,6 +2,7 @@ package kr.toxicity.model.util
 
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicInteger
 
 fun <T> List<T>.forEachAsync(block: (T) -> Unit) {
     if (isNotEmpty()) {
@@ -28,7 +29,16 @@ fun <T> List<T>.forEachAsync(block: (T) -> Unit) {
             queue
         }
         try {
-            Executors.newFixedThreadPool(tasks.size).use { pool ->
+            val integer = AtomicInteger()
+            Executors.newFixedThreadPool(tasks.size, {
+                Thread(it).apply {
+                    isDaemon = true
+                    name = "BetterModel-Worker-${integer.andIncrement}"
+                    uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { thread, exception ->
+                        exception.handleException("A error has been occurred in ${thread.name}")
+                    }
+                }
+            }).use { pool ->
                 CompletableFuture.allOf(
                     *tasks.map {
                         CompletableFuture.runAsync({

@@ -7,10 +7,15 @@ fun File.subFolder(name: String) = File(this, name).apply {
 }
 
 fun File.forEach(block: (File) -> Unit) {
-    listFiles()?.sortedBy {
-        it.name
-    }?.forEach(block)
+    listFiles()?.forEach(block)
 }
+
+fun File.fileTreeList() = mutableListOf<File>().apply {
+    forEachAllFolder {
+        add(it)
+    }
+}
+
 fun File.forEachAllFolder(block: (File) -> Unit) {
     if (isDirectory) forEach {
         it.forEachAllFolder(block)

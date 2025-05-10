@@ -1,6 +1,7 @@
 debug:
   hitbox: false
   exception: false
+  pack: false
 module:
   model: true
   player-animation: true
@@ -20,6 +21,6 @@ create-pack-mcmeta: true
 use-purpur-afk: true
 version-check: true
 default-mount-controller: walk
-lerp-frame-time: 4
+lerp-frame-time: 5
 cancel-player-model-inventory: false
 player-hide-delay: 3

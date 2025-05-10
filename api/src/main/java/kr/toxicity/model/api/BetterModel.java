@@ -7,7 +7,9 @@ import kr.toxicity.model.api.tracker.EntityTracker;
 import kr.toxicity.model.api.util.EventUtil;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -45,6 +47,9 @@ public final class BetterModel {
 
     public static @NotNull Optional<ModelRenderer> model(@NotNull String name) {
         return Optional.ofNullable(inst().modelManager().renderer(name));
+    }
+    public static @NotNull @Unmodifiable List<ModelRenderer> models() {
+        return inst().modelManager().renderers();
     }
 
     /**

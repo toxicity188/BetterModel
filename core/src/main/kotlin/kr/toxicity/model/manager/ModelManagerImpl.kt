@@ -31,10 +31,8 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
     private const val MINECRAFT_ITEM_PATH = "assets/minecraft/models/item"
     private const val MODERN_MODEL_ITEM_NAME = "bm_models"
 
-    private var index = 1
     private lateinit var itemModelNamespace: NamespacedKey
     private val renderMap = hashMapOf<String, ModelRenderer>()
-
 
     private class PackData(
         val path: String,
@@ -77,6 +75,9 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                 it.path.toFile().outputStream().buffered().use { output ->
                     output.write(it.byteArray())
                 }
+                debugPack {
+                    "This file was successfully zipped: ${it.path}"
+                }
             }
             fileTree.values.forEach(File::delete)
             map.clear()
@@ -95,6 +96,9 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                         zip.write(result)
                         zip.closeEntry()
                     }
+                    debugPack {
+                        "This file was successfully zipped: ${it.path}"
+                    }
                 }
             }
         }
@@ -102,7 +106,6 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
 
     override fun reload(info: ReloadInfo) {
         renderMap.clear()
-        index = 1
 
         val zipper = PackDataZipper()
         val modernModel = PackDataZipper()
@@ -133,36 +136,49 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
         val modernModelsPath = "assets/$namespace/models/modern_item"
 
         renderMap.clear()
-        val model = arrayListOf<ModelBlueprint>()
-        val modelNames = hashMapOf<String, String>() // Map of model name -> source file name
-
         if (ConfigManagerImpl.module().model()) {
-            DATA_FOLDER.subFolder("models").forEachAllFolder {
-                if (it.extension == "bbmodel") {
+            val modelFileMap = ConcurrentHashMap<String, Pair<File, ModelBlueprint>>()
+            DATA_FOLDER.subFolder("models")
+                .fileTreeList()
+                .filter { it.extension == "bbmodel" }
+                .forEachAsync {
                     val load = it.toModel()
-                    val existingFile = modelNames[load.name]
-                    if (existingFile != null) {
-                        // A model with the same name already exists from a different file
-                        warn("Duplicate model name '${load.name}'. Files '${existingFile}' and '${it.name}' result in the same name. '${it.name}' will not be loaded.")
-                        return@forEachAllFolder
-                    }
-                    modelNames[load.name] = it.name
-                    load.buildImage().forEach { image ->
-                        zipper.add(texturesPath, "${image.name}.png") {
-                            image.image.toByteArray()
+                    modelFileMap.compute(load.name) compute@ { _, v ->
+                        if (v != null) {
+                            // A model with the same name already exists from a different file
+                            warn(
+                                "Duplicate model name '${load.name}'.",
+                                "Duplicated file: ${it.path}",
+                                "And: ${v.first.path}"
+                            )
+                            return@compute v
                         }
-                        image.mcmeta()?.let { meta ->
-                            zipper.add(texturesPath, "${image.name}.png.mcmeta") {
-                                meta.toByteArray()
+                        debugPack {
+                            "Model file successfully loaded: ${it.path}"
+                        }
+                        it to load.apply {
+                            buildImage().forEach { image ->
+                                zipper.add(texturesPath, "${image.name}.png") {
+                                    image.image.toByteArray()
+                                }
+                                image.mcmeta()?.let { meta ->
+                                    zipper.add(texturesPath, "${image.name}.png.mcmeta") {
+                                        meta.toByteArray()
+                                    }
+                                }
                             }
                         }
                     }
-                    model += load
                 }
-            }
+            val model = modelFileMap.values
+                .asSequence()
+                .sortedBy { it.first }
+                .map { it.second }
+                .toList()
             val maxScale = model.maxOfOrNull {
                 it.scale()
             } ?: 1F
+            var index = 1
             model.forEach { load ->
                 val jsonList = arrayListOf<BlueprintJson>()
                 val modernJsonList = arrayListOf<BlueprintJson>()
@@ -186,6 +202,9 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                     }
                     index++
                 }.apply {
+                    debugPack {
+                        "This model was successfully imported: ${load.name}"
+                    }
                     EventUtil.call(ModelImportedEvent(this))
                 }
                 jsonList.forEach { json ->

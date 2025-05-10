@@ -6,17 +6,14 @@ import com.google.gson.JsonObject
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint
 import kr.toxicity.model.api.data.raw.ModelData
 import kr.toxicity.model.api.nms.NMSVersion
-import kr.toxicity.model.api.player.PlayerLimb
 import kr.toxicity.model.manager.ConfigManagerImpl
 import java.io.File
+import kotlin.io.bufferedReader
+import kotlin.io.nameWithoutExtension
 
 fun File.toModel(): ModelBlueprint = bufferedReader().use {
     ModelBlueprint.from(nameWithoutExtension.toPackName(), ModelData.GSON.fromJson(it, ModelData::class.java))
 }
-
-fun String.toLimb() = runCatching {
-    PlayerLimb.valueOf(uppercase())
-}.getOrNull()
 
 fun JsonElement.toByteArray(): ByteArray {
     return ModelData.GSON.toJson(this).toByteArray(Charsets.UTF_8)
