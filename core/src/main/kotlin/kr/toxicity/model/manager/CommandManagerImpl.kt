@@ -44,7 +44,6 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                     })
                 )
                 executesPlayer(PlayerCommandExecutor { player, args ->
-                    EntityTracker.tracker(player)?.close()
                     val name = args.get("name") as String
                     ModelManagerImpl.renderer(name)
                         ?.create(player)
@@ -92,9 +91,7 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                             if (PLUGIN.version() >= MinecraftVersion.V1_21 && this is LivingEntity) getAttribute(ATTRIBUTE_SCALE)?.baseValue = s
                         })
                         ?.spawnNearby()
-                        ?: run {
-                            player.audience().warn("Unable to find this renderer: $n")
-                        }
+                        ?: player.audience().warn("Unable to find this renderer: $n")
                 })
             }
             command("reload") {

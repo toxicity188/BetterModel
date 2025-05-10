@@ -44,6 +44,22 @@ class CommandModule(
 
     private val rootName: String = parent?.let { "${it.rootName} ${delegate.name}" } ?: delegate.name
     private val rootPermission: String = parent?.let { "${it.rootPermission}.${delegate.name}" } ?: delegate.name
+    private val helpComponents by lazy {
+        mutableListOf(
+            lineMessage,
+            Component.empty(),
+            requiredMessage,
+            optionalMessage,
+            Component.empty(),
+        ).apply {
+            sub.sortedBy {
+                it.name
+            }.forEach {
+                add(it.toComponent())
+            }
+            add(lineMessage)
+        }
+    }
 
     init {
         delegate.withPermission(rootPermission)
@@ -75,17 +91,9 @@ class CommandModule(
 
     override fun run(info: ExecutionInfo<CommandSender, BukkitCommandSender<out CommandSender>>) {
         val audience = info.sender().audience()
-        audience.info(lineMessage)
-        audience.info(Component.empty())
-        audience.info(requiredMessage)
-        audience.info(optionalMessage)
-        audience.info(Component.empty())
-        sub.sortedBy {
-            it.name
-        }.forEach {
-            audience.info(it.toComponent())
+        helpComponents.forEach {
+            audience.info(it)
         }
-        audience.info(lineMessage)
     }
 
     private fun CommandAPICommand.toComponent() = Component.text()
@@ -115,7 +123,7 @@ class CommandModule(
         .build()
 
     private fun Argument<*>.toComponent() = Component.text()
-        .content(if (isOptional) "[$nodeName]" else "[$nodeName]")
+        .content(if (isOptional) "[$nodeName]" else "<$nodeName>")
         .color(if (isOptional) NamedTextColor.DARK_AQUA else NamedTextColor.RED)
         .hoverEvent(HoverEvent.showText(Component.text(argumentType.name)))
 }

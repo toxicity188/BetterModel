@@ -196,7 +196,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                             add("predicate", JsonObject().apply {
                                 addProperty("custom_model_data", index)
                             })
-                            addProperty("model", "${ConfigManagerImpl.namespace()}:item/${blueprint.name}")
+                            addProperty("model", "$namespace:item/${blueprint.name}")
                         })
                         jsonList += blueprint
                     }
@@ -247,8 +247,8 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                     }
                 }
             }
-            zipper.add("${ConfigManagerImpl.namespace()}_modern", modernModel)
-            if (!ConfigManagerImpl.disableGeneratingLegacyModels()) zipper.add("${ConfigManagerImpl.namespace()}_legacy", legacyModel)
+            zipper.add("${namespace}_modern", modernModel)
+            if (!ConfigManagerImpl.disableGeneratingLegacyModels()) zipper.add("${namespace}_legacy", legacyModel)
             if (ConfigManagerImpl.createPackMcmeta()) {
                 PLUGIN.getResource("icon.png")?.buffered()?.let {
                     val read = it.readAllBytes()
