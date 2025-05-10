@@ -6,7 +6,7 @@ import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.animation.AnimationMovement;
 import kr.toxicity.model.api.animation.AnimationPredicate;
 import kr.toxicity.model.api.bone.BoneName;
-import kr.toxicity.model.api.bone.BoneTag;
+import kr.toxicity.model.api.bone.BoneTags;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.nms.EntityAdapter;
@@ -228,7 +228,7 @@ public final class RenderInstance {
         var h = 0D;
         for (RenderedBone renderer : bones()) {
             var lt = renderer.worldPosition().y;
-            if (renderer.getName().tagged(BoneTag.HEAD)) return lt;
+            if (renderer.getName().tagged(BoneTags.HEAD)) return lt;
             if (h < lt) h = lt;
         }
         return h;

@@ -31,6 +31,7 @@ allprojects {
         maven("https://repo.papermc.io/repository/maven-public/")
         maven("https://maven.citizensnpcs.co/repo/")
         maven("https://mvn.lumine.io/repository/maven-public/")
+        maven("https://repo.hibiscusmc.com/releases")
     }
     dependencies {
         testImplementation(kotlin("test"))
@@ -41,6 +42,7 @@ allprojects {
         compileOnly("net.kyori:adventure-platform-bukkit:4.3.4")
         compileOnly("net.citizensnpcs:citizens-main:2.0.38-SNAPSHOT")
         compileOnly("io.lumine:Mythic-Dist:5.8.2")
+        compileOnly("com.hibiscusmc:HMCCosmetics:2.7.7")
     }
     tasks {
         test {
@@ -197,7 +199,8 @@ bukkitPluginYaml {
     description = "Modern lightweight Minecraft model implementation for Paper, Folia"
     softDepend = listOf(
         "MythicMobs",
-        "Citizens"
+        "Citizens",
+        "HMCCosmetics"
     )
     libraries = listOf(
         "com.vdurmont:semver4j:3.1.0",

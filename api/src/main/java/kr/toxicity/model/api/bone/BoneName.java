@@ -14,6 +14,6 @@ public record BoneName(@NotNull Set<BoneTag> tags, @NotNull String name) {
     }
 
     public @NotNull BoneItemMapper toItemMapper() {
-        return tags.isEmpty() ? BoneItemMapper.EMPTY : tags.stream().map(BoneTag::getMapper).filter(Objects::nonNull).findFirst().orElse(BoneItemMapper.EMPTY);
+        return tags.isEmpty() ? BoneItemMapper.EMPTY : tags.stream().map(BoneTag::itemMapper).filter(Objects::nonNull).findFirst().orElse(BoneItemMapper.EMPTY);
     }
 }

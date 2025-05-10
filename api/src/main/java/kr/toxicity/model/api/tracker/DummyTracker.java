@@ -3,6 +3,8 @@ package kr.toxicity.model.api.tracker;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.data.renderer.RenderSource;
+import kr.toxicity.model.api.event.CreateDummyTrackerEvent;
+import kr.toxicity.model.api.util.EventUtil;
 import lombok.Setter;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -32,6 +34,7 @@ public final class DummyTracker extends Tracker {
         instance.scale(modifier.scale());
         rotation(() -> new ModelRotation(0, this.location.getYaw()));
         update();
+        EventUtil.call(new CreateDummyTrackerEvent(this));
     }
 
     /**

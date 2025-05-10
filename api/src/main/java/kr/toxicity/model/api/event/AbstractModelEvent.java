@@ -5,6 +5,9 @@ import org.bukkit.event.Event;
 
 public abstract class AbstractModelEvent extends Event {
     public AbstractModelEvent() {
-        super(!BetterModel.inst().nms().isSync());
+        this(!BetterModel.inst().nms().isSync());
+    }
+    public AbstractModelEvent(boolean async) {
+        super(async);
     }
 }

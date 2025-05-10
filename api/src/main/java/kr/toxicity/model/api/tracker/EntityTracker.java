@@ -3,14 +3,16 @@ package kr.toxicity.model.api.tracker;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationModifier;
-import kr.toxicity.model.api.bone.BoneTag;
+import kr.toxicity.model.api.bone.BoneTags;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.data.renderer.RenderSource;
+import kr.toxicity.model.api.event.CreateEntityTrackerEvent;
 import kr.toxicity.model.api.nms.EntityAdapter;
 import kr.toxicity.model.api.nms.HitBoxListener;
 import kr.toxicity.model.api.util.BonePredicate;
 import kr.toxicity.model.api.util.EntityUtil;
+import kr.toxicity.model.api.util.EventUtil;
 import kr.toxicity.model.api.util.FunctionUtil;
 import lombok.Getter;
 import org.bukkit.Location;
@@ -141,7 +143,7 @@ public class EntityTracker extends Tracker {
         instance.defaultPosition(FunctionUtil.throttleTick(() -> adapter.passengerPosition().mul(-1)));
         instance.scale(scale);
         instance.addAnimationMovementModifier(
-                BonePredicate.of(r -> r.getName().tagged(BoneTag.HEAD)),
+                BonePredicate.of(r -> r.getName().tagged(BoneTags.HEAD)),
                 a -> {
                     if (a.rotation() != null) {
                         a.rotation().add(-adapter.pitch(), Math.clamp(
@@ -184,12 +186,13 @@ public class EntityTracker extends Tracker {
         });
         rotation(() -> adapter.dead() ? instance.getRotation() : new ModelRotation(0, entity instanceof LivingEntity ? adapter.bodyYaw() : entity.getYaw()));
         update();
+        EventUtil.call(new CreateEntityTrackerEvent(this));
     }
 
     private void createHitBox() {
         createHitBox(e ->
                 e.getName().name().equals("hitbox")
-                        || e.getName().tagged(BoneTag.HITBOX)
+                        || e.getName().tagged(BoneTags.HITBOX)
                         || e.getGroup().getMountController().canMount()
         );
     }

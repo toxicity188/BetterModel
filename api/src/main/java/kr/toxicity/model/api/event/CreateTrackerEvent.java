@@ -2,35 +2,24 @@ package kr.toxicity.model.api.event;
 
 import kr.toxicity.model.api.tracker.Tracker;
 import lombok.Getter;
-import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
 @Getter
-public final class CreateTrackerEvent extends AbstractModelEvent {
-
-    /**
-     * Handler list
-     */
-    public static final HandlerList HANDLER_LIST = new HandlerList();
+public abstract class CreateTrackerEvent extends AbstractModelEvent {
 
     private final Tracker tracker;
 
     public CreateTrackerEvent(@NotNull Tracker tracker) {
+        super();
         this.tracker = tracker;
     }
 
-    @NotNull
-    @Override
-    public HandlerList getHandlers() {
-        return HANDLER_LIST;
+    public CreateTrackerEvent(@NotNull Tracker tracker, boolean async) {
+        super(async);
+        this.tracker = tracker;
     }
 
-    /**
-     * Gets a handler list
-     * @return handler list
-     */
-    @SuppressWarnings("unused") //This method is necessary for event API.
-    public static @NotNull HandlerList getHandlerList() {
-        return HANDLER_LIST;
+    public @NotNull Tracker tracker() {
+        return tracker;
     }
 }
