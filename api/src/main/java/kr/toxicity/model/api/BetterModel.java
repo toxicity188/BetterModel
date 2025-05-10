@@ -1,5 +1,6 @@
 package kr.toxicity.model.api;
 
+import kr.toxicity.model.api.data.renderer.ModelRenderer;
 import kr.toxicity.model.api.event.PluginEndReloadEvent;
 import kr.toxicity.model.api.event.PluginStartReloadEvent;
 import kr.toxicity.model.api.tracker.EntityTracker;
@@ -8,6 +9,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import static kr.toxicity.model.api.util.ReflectionUtil.*;
 
@@ -40,6 +42,10 @@ public final class BetterModel {
      * Plugin instance.
      */
     private static BetterModelPlugin instance;
+
+    public static @NotNull Optional<ModelRenderer> model(@NotNull String name) {
+        return Optional.ofNullable(inst().modelManager().renderer(name));
+    }
 
     /**
      * Gets plugin instance of BetterModel.

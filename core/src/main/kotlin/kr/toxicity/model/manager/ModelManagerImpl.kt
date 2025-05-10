@@ -6,7 +6,7 @@ import kr.toxicity.model.api.bone.BoneItemMapper
 import kr.toxicity.model.api.data.blueprint.BlueprintChildren.BlueprintGroup
 import kr.toxicity.model.api.data.blueprint.BlueprintJson
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint
-import kr.toxicity.model.api.data.renderer.BlueprintRenderer
+import kr.toxicity.model.api.data.renderer.ModelRenderer
 import kr.toxicity.model.api.data.renderer.RendererGroup
 import kr.toxicity.model.api.event.ModelImportedEvent
 import kr.toxicity.model.api.manager.ConfigManager.PackType.FOLDER
@@ -14,7 +14,9 @@ import kr.toxicity.model.api.manager.ConfigManager.PackType.ZIP
 import kr.toxicity.model.api.manager.ModelManager
 import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.api.util.EventUtil
+import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.util.*
+import org.bukkit.NamespacedKey
 import org.bukkit.inventory.ItemStack
 import java.io.File
 import java.security.DigestOutputStream
@@ -26,12 +28,13 @@ import java.util.zip.ZipOutputStream
 
 object ModelManagerImpl : ModelManager, GlobalManagerImpl {
 
-    private var index = 1
-
-    private val renderMap = hashMapOf<String, BlueprintRenderer>()
-
     private const val MINECRAFT_ITEM_PATH = "assets/minecraft/models/item"
-    private const val MODERN_MINECRAFT_ITEM_PATH = "assets/minecraft/items"
+    private const val MODERN_MODEL_ITEM_NAME = "bm_models"
+
+    private var index = 1
+    private lateinit var itemModelNamespace: NamespacedKey
+    private val renderMap = hashMapOf<String, ModelRenderer>()
+
 
     private class PackData(
         val path: String,
@@ -123,9 +126,11 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
         val override = JsonArray()
         val modernEntries = JsonArray()
 
-        val texturesPath = "assets/${ConfigManagerImpl.namespace()}/textures/item"
-        val modelsPath = "assets/${ConfigManagerImpl.namespace()}/models/item"
-        val modernModelsPath = "assets/${ConfigManagerImpl.namespace()}/models/modern_item"
+        val namespace = ConfigManagerImpl.namespace()
+        itemModelNamespace = NamespacedKey(namespace, MODERN_MODEL_ITEM_NAME)
+        val texturesPath = "assets/$namespace/textures/item"
+        val modelsPath = "assets/$namespace/models/item"
+        val modernModelsPath = "assets/$namespace/models/modern_item"
 
         renderMap.clear()
         val model = arrayListOf<ModelBlueprint>()
@@ -166,23 +171,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                     val modernBlueprint = blueprintGroup.buildModernJson(maxScale, load) ?: return@render null
                     modernEntries.add(JsonObject().apply {
                         addProperty("threshold", index)
-                        add("model", JsonObject().apply {
-                            addProperty("type", "minecraft:composite")
-                            add("models", JsonArray().apply {
-                                modernBlueprint.forEach { mb ->
-                                    add(JsonObject().apply {
-                                        addProperty("type", "minecraft:model")
-                                        addProperty("model", "${ConfigManagerImpl.namespace()}:modern_item/${mb.name}")
-                                        add("tints", JsonArray().apply {
-                                            add(JsonObject().apply {
-                                                addProperty("type", "minecraft:custom_model_data")
-                                                addProperty("default", 0xFFFFFF)
-                                            })
-                                        })
-                                    })
-                                }
-                            })
-                        })
+                        add("model", modernBlueprint.toModernJson())
                     })
                     modernJsonList += modernBlueprint
                     //Legacy
@@ -215,7 +204,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                     add("overrides", override)
                 }.toByteArray()
             }
-            modernModel.add(MODERN_MINECRAFT_ITEM_PATH, "$itemName.json") {
+            modernModel.add("assets/$namespace/items", "$MODERN_MODEL_ITEM_NAME.json") {
                 JsonObject().apply {
                     add("model", modernModelJson.apply {
                         add("entries", modernEntries)
@@ -263,7 +252,23 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
         }
     }
 
-    private fun ModelBlueprint.toRenderer(scale: Float, consumer: (BlueprintGroup) -> Int?): BlueprintRenderer {
+    private fun List<BlueprintJson>.toModernJson() = if (size == 1) get(0).toModernJson() else JsonObject().apply {
+        addProperty("type", "minecraft:composite")
+        add("models", map { it.toModernJson() }.fold(JsonArray()) { array, element -> array.apply { add(element) } })
+    }
+
+    private fun BlueprintJson.toModernJson() = JsonObject().apply {
+        addProperty("type", "minecraft:model")
+        addProperty("model", "${ConfigManagerImpl.namespace()}:modern_item/${name}")
+        add("tints", JsonArray().apply {
+            add(JsonObject().apply {
+                addProperty("type", "minecraft:custom_model_data")
+                addProperty("default", 0xFFFFFF)
+            })
+        })
+    }
+
+    private fun ModelBlueprint.toRenderer(scale: Float, consumer: (BlueprintGroup) -> Int?): ModelRenderer {
         fun BlueprintGroup.parse(): RendererGroup {
             return RendererGroup(
                 boneName(),
@@ -273,6 +278,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                         itemMeta = itemMeta.apply {
                             @Suppress("DEPRECATION") //To support legacy server :(
                             setCustomModelData(i)
+                            if (PLUGIN.version() >= MinecraftVersion.V1_21_4) itemModel = itemModelNamespace
                         }
                     }
                 },
@@ -285,14 +291,14 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                 hitBox(),
             )
         }
-        return BlueprintRenderer(this, group.mapNotNull {
+        return ModelRenderer(this, group.mapNotNull {
             if (it is BlueprintGroup) {
                 it.boneName() to it.parse()
             } else null
         }.toMap(), animations)
     }
 
-    override fun renderer(name: String): BlueprintRenderer? = renderMap[name]
-    override fun renderers(): List<BlueprintRenderer> = renderMap.values.toList()
+    override fun renderer(name: String): ModelRenderer? = renderMap[name]
+    override fun renderers(): List<ModelRenderer> = renderMap.values.toList()
     override fun keys(): Set<String> = Collections.unmodifiableSet(renderMap.keys)
 }

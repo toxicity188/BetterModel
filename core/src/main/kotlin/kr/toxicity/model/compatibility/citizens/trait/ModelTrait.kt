@@ -1,6 +1,6 @@
 package kr.toxicity.model.compatibility.citizens.trait
 
-import kr.toxicity.model.api.data.renderer.BlueprintRenderer
+import kr.toxicity.model.api.data.renderer.ModelRenderer
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.manager.ModelManagerImpl
 import net.citizensnpcs.api.event.DespawnReason
@@ -11,12 +11,11 @@ import net.citizensnpcs.api.util.RemoveReason
 
 @TraitName("model")
 class ModelTrait : Trait("model") {
-    private var _renderer: BlueprintRenderer? = null
+    private var _renderer: ModelRenderer? = null
     var renderer
         get() = _renderer
         set(value) {
             npc.entity?.let {
-                EntityTracker.tracker(it.uniqueId)?.close()
                 value?.create(it)?.apply {
                     spawnNearby()
                 }

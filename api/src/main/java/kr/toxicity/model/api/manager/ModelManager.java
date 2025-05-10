@@ -1,15 +1,12 @@
 package kr.toxicity.model.api.manager;
 
-import kr.toxicity.model.api.data.renderer.BlueprintRenderer;
-import kr.toxicity.model.api.tracker.EntityTracker;
-import org.bukkit.entity.Entity;
+import kr.toxicity.model.api.data.renderer.ModelRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * Model Manager
@@ -21,14 +18,14 @@ public interface ModelManager extends GlobalManager {
      * @param name name
      * @return renderer or null
      */
-    @Nullable BlueprintRenderer renderer(@NotNull String name);
+    @Nullable ModelRenderer renderer(@NotNull String name);
 
     /**
      * Gets all renderers
      * @return all renderers
      */
     @NotNull @Unmodifiable
-    List<BlueprintRenderer> renderers();
+    List<ModelRenderer> renderers();
 
     /**
      * Gets all key of renderer
@@ -36,22 +33,4 @@ public interface ModelManager extends GlobalManager {
      */
     @NotNull @Unmodifiable
     Set<String> keys();
-
-    /**
-     * Get or creates tracker of source entity
-     * @param entity entity
-     * @return tracker or null
-     */
-    default @Nullable EntityTracker tracker(@NotNull Entity entity) {
-        return EntityTracker.tracker(entity);
-    }
-
-    /**
-     * Gets tracker of source entity
-     * @param uuid entity's uuid
-     * @return tracker or null
-     */
-    default @Nullable EntityTracker tracker(@NotNull UUID uuid) {
-        return EntityTracker.tracker(uuid);
-    }
 }

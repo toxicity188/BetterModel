@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  * A blueprint renderer.
  */
 @RequiredArgsConstructor
-public final class BlueprintRenderer {
+public final class ModelRenderer {
     @Getter
     private final ModelBlueprint parent;
     @Getter
@@ -67,29 +67,38 @@ public final class BlueprintRenderer {
 
 
     /**
-     * Gets or creates tracker by location
+     * Creates tracker by location
      * @param location location
-     * @return player limb tracker
+     * @return empty tracker
      */
-    public @NotNull VoidTracker create(@NotNull Location location) {
+    public @NotNull DummyTracker create(@NotNull Location location) {
         return create(location, TrackerModifier.DEFAULT);
     }
     /**
-     * Gets or creates tracker by entity
+     * Creates tracker by entity
      * @param entity entity
-     * @return player limb tracker
+     * @return entity tracker
      */
     public @NotNull EntityTracker create(@NotNull Entity entity) {
         return create(entity, TrackerModifier.DEFAULT);
     }
 
     /**
-     * Gets or creates tracker by location
+     * Gets or creates tracker by entity
+     * @param entity entity
+     * @return entity tracker
+     */
+    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity) {
+        return getOrCreate(entity, TrackerModifier.DEFAULT);
+    }
+
+    /**
+     * Creates tracker by location
      * @param location location
      * @param modifier modifier
-     * @return player limb tracker
+     * @return empty tracker
      */
-    public @NotNull VoidTracker create(@NotNull Location location, @NotNull TrackerModifier modifier) {
+    public @NotNull DummyTracker create(@NotNull Location location, @NotNull TrackerModifier modifier) {
         var source = RenderSource.of(location);
         return source.create(
                 instance(source, location, modifier),
@@ -97,10 +106,10 @@ public final class BlueprintRenderer {
         );
     }
     /**
-     * Gets or creates tracker by entity
+     * Creates tracker by entity
      * @param entity entity
      * @param modifier modifier
-     * @return player limb tracker
+     * @return entity tracker
      */
     public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull TrackerModifier modifier) {
         var source = RenderSource.of(entity);
@@ -110,6 +119,17 @@ public final class BlueprintRenderer {
         );
     }
 
+    /**
+     * Gets or creates tracker by entity
+     * @param entity entity
+     * @param modifier modifier
+     * @return entity tracker
+     */
+    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull TrackerModifier modifier) {
+        var tracker = EntityTracker.tracker(entity.getUniqueId());
+        if (tracker != null) return tracker;
+        return create(entity, modifier);
+    }
 
     private @NotNull RenderInstance instance(@NotNull RenderSource source, @NotNull Location location, @NotNull TrackerModifier modifier) {
         return new RenderInstance(this, source, rendererGroupMap

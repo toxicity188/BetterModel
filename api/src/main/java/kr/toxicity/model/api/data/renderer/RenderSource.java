@@ -22,8 +22,8 @@ public sealed interface RenderSource {
     record Dummy(@NotNull Location location) implements RenderSource {
         @NotNull
         @Override
-        public VoidTracker create(@NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
-            return new VoidTracker(this, instance, modifier);
+        public DummyTracker create(@NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
+            return new DummyTracker(this, instance, modifier);
         }
     }
 
@@ -45,7 +45,7 @@ public sealed interface RenderSource {
         @Override
         public EntityTracker create(@NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
             var tracker = EntityTracker.tracker(entity.getUniqueId());
-            if (tracker != null) return tracker;
+            if (tracker != null) tracker.close();
             return entity instanceof Player ? new PlayerTracker(this, instance, modifier) : new EntityTracker(this, instance, modifier);
         }
     }

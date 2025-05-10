@@ -1,6 +1,6 @@
 package kr.toxicity.model.api.manager;
 
-import kr.toxicity.model.api.data.renderer.BlueprintRenderer;
+import kr.toxicity.model.api.data.renderer.ModelRenderer;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -42,12 +42,12 @@ public interface PlayerManager extends GlobalManager {
      * @return renderers
      */
     @NotNull @Unmodifiable
-    List<BlueprintRenderer> limbs();
+    List<ModelRenderer> limbs();
 
     /**
      * Gets renderer for player animation by name.
      * @param name renderer's name
      * @return renderer or null
      */
-    @Nullable BlueprintRenderer limb(@NotNull String name);
+    @Nullable ModelRenderer limb(@NotNull String name);
 }

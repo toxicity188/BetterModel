@@ -46,7 +46,7 @@ import java.util.stream.Stream;
 @ApiStatus.Internal
 public final class RenderInstance {
     @Getter
-    private final BlueprintRenderer parent;
+    private final ModelRenderer parent;
     @Getter
     private final RenderSource source;
 
@@ -66,7 +66,7 @@ public final class RenderInstance {
     private final ScriptProcessor scriptProcessor = new ScriptProcessor();
 
     public RenderInstance(
-            @NotNull BlueprintRenderer parent,
+            @NotNull ModelRenderer parent,
             @NotNull RenderSource source,
             @NotNull Map<BoneName, RenderedBone> entityMap,
             @NotNull Map<String, BlueprintAnimation> animationMap

@@ -64,8 +64,9 @@ public class EntityTracker extends Tracker {
         if (t == null) {
             var tag = entity.getPersistentDataContainer().get(TRACKING_ID, PersistentDataType.STRING);
             if (tag == null) return null;
-            var render = BetterModel.inst().modelManager().renderer(tag);
-            if (render != null) return render.create(entity);
+            return BetterModel.model(tag)
+                    .map(renderer -> renderer.create(entity))
+                    .orElse(null);
         }
         return t;
     }
@@ -98,8 +99,7 @@ public class EntityTracker extends Tracker {
                 } catch (Exception e) {
                     return;
                 }
-                var renderer = BetterModel.inst().modelManager().renderer(name);
-                if (renderer != null) renderer.create(target, value.modifier()).spawnNearby();
+                BetterModel.model(name).ifPresent(renderer -> renderer.create(target, value.modifier()).spawnNearby());
             });
         }
     }

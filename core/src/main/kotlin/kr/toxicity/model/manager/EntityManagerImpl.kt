@@ -119,32 +119,26 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
             }
             @EventHandler(priority = EventPriority.MONITOR)
             fun PlayerInteractAtEntityEvent.interact() {
-                (rightClicked as? HitBox.Interaction)?.sourceHitBox()?.let {
-                    val modelHand = when (hand) {
+                (rightClicked as? HitBox.Interaction)?.sourceHitBox()?.triggerInteractAt(
+                    player,
+                    when (this.hand) {
                         HAND -> ModelInteractionHand.RIGHT
                         OFF_HAND -> ModelInteractionHand.LEFT
                         else -> return
-                    }
-                    it.triggerInteractAt(
-                        player,
-                        modelHand,
-                        clickedPosition
-                    )
-                }
+                    },
+                    clickedPosition
+                )
             }
             @EventHandler(priority = EventPriority.MONITOR)
             fun PlayerInteractEntityEvent.interact() { //Interact base entity based on interaction entity
-                (rightClicked as? HitBox.Interaction)?.sourceHitBox()?.let {
-                    val modelHand = when (hand) {
+                (rightClicked as? HitBox.Interaction)?.sourceHitBox()?.triggerInteract(
+                    player,
+                    when (this.hand) {
                         HAND -> ModelInteractionHand.RIGHT
                         OFF_HAND -> ModelInteractionHand.LEFT
                         else -> return
                     }
-                    it.triggerInteract(
-                        player,
-                        modelHand
-                    )
-                }
+                )
             }
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = false)
             fun EntityDamageByEntityEvent.damageByEntity() { //Damage

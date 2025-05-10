@@ -62,6 +62,14 @@ public sealed interface BlueprintChildren {
             boolean visibility
     ) implements BlueprintChildren {
 
+        private static final JsonArray MAX_SCALE_ARRAY = new JsonArray(3);
+
+        static {
+            MAX_SCALE_ARRAY.add(4);
+            MAX_SCALE_ARRAY.add(4);
+            MAX_SCALE_ARRAY.add(4);
+        }
+
         public @NotNull BoneName boneName() {
             return BoneTag.parse(name);
         }
@@ -142,13 +150,12 @@ public sealed interface BlueprintChildren {
             }
             if (elements.isEmpty()) return null;
             object.add("elements", elements);
-            if (!identifier.equals(Float3.ZERO)) {
-                var display = new JsonObject();
-                var fixed = new JsonObject();
-                fixed.add("rotation", identifier.convertToMinecraftDegree().toJson());
-                display.add("fixed", fixed);
-                object.add("display", display);
-            }
+            var display = new JsonObject();
+            var fixed = new JsonObject();
+            fixed.add("scale", MAX_SCALE_ARRAY);
+            if (!identifier.equals(Float3.ZERO)) fixed.add("rotation", identifier.convertToMinecraftDegree().toJson());
+            display.add("fixed", fixed);
+            object.add("display", display);
             return new BlueprintJson(jsonName(parent) + "_" + number, object);
         }
 

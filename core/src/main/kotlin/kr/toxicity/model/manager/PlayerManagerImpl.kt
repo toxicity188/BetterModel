@@ -3,7 +3,7 @@ package kr.toxicity.model.manager
 import kr.toxicity.model.api.data.blueprint.BlueprintChildren.BlueprintGroup
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint
 import kr.toxicity.model.api.animation.AnimationModifier
-import kr.toxicity.model.api.data.renderer.BlueprintRenderer
+import kr.toxicity.model.api.data.renderer.ModelRenderer
 import kr.toxicity.model.api.data.renderer.RendererGroup
 import kr.toxicity.model.api.manager.PlayerManager
 import kr.toxicity.model.api.manager.ReloadInfo
@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap
 object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
 
     private val playerMap = ConcurrentHashMap<UUID, PlayerChannelHandler>()
-    private val renderMap = HashMap<String, BlueprintRenderer>()
+    private val renderMap = HashMap<String, ModelRenderer>()
 
     override fun start() {
         registerListener(object : Listener {
@@ -77,8 +77,8 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
         }
     }
 
-    override fun limbs(): List<BlueprintRenderer> = renderMap.values.toList()
-    override fun limb(name: String): BlueprintRenderer? = renderMap[name]
+    override fun limbs(): List<ModelRenderer> = renderMap.values.toList()
+    override fun limb(name: String): ModelRenderer? = renderMap[name]
 
     override fun animate(player: Player, model: String, animation: String) {
         renderMap[model]?.let {
@@ -91,7 +91,7 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
         }
     }
 
-    private fun ModelBlueprint.toRenderer(): BlueprintRenderer {
+    private fun ModelBlueprint.toRenderer(): ModelRenderer {
         fun BlueprintGroup.parse(): RendererGroup {
             return RendererGroup(
                 boneName(),
@@ -106,7 +106,7 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
                 hitBox()
             )
         }
-        return BlueprintRenderer(this, group.mapNotNull {
+        return ModelRenderer(this, group.mapNotNull {
             if (it is BlueprintGroup) {
                 it.boneName() to it.parse()
             } else null

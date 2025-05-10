@@ -14,7 +14,7 @@ import java.util.UUID;
 /**
  * No tracking tracker.
  */
-public final class VoidTracker extends Tracker {
+public final class DummyTracker extends Tracker {
     private Location location;
     @Setter
     private UUID uuid = UUID.randomUUID();
@@ -25,7 +25,7 @@ public final class VoidTracker extends Tracker {
      * @param instance render instance.
      * @param modifier modifier
      */
-    public VoidTracker(@NotNull RenderSource.Dummy source, @NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
+    public DummyTracker(@NotNull RenderSource.Dummy source, @NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
         super(source, instance, modifier);
         this.location = source.location();
         instance.animate("spawn");

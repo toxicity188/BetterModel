@@ -1,6 +1,7 @@
 package kr.toxicity.model.api.util;
 
 import it.unimi.dsi.fastutil.floats.FloatAVLTreeSet;
+import it.unimi.dsi.fastutil.floats.FloatComparators;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationPoint;
 import kr.toxicity.model.api.animation.VectorPoint;
@@ -33,7 +34,7 @@ public final class VectorUtil {
     }
 
     public static @NotNull List<AnimationPoint> sum(float length, @NotNull List<VectorPoint> position, @NotNull List<VectorPoint> rotation, @NotNull List<VectorPoint> scale) {
-        var set = new FloatAVLTreeSet();
+        var set = new FloatAVLTreeSet(FloatComparators.NATURAL_COMPARATOR);
         set.add(length);
         point(set, position);
         point(set, scale);
