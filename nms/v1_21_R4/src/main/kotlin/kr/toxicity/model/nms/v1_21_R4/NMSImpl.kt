@@ -251,7 +251,7 @@ class NMSImpl : NMS {
                     }
                 }
                 is ClientboundSetEntityDataPacket -> if (id.toTracker() != null) return ClientboundSetEntityDataPacket(id, packedItems().map {
-                    if (it.id == sharedFlag) SynchedEntityData.DataValue<Byte>(
+                    if (it.id == sharedFlag) SynchedEntityData.DataValue(
                         it.id,
                         EntityDataSerializers.BYTE,
                         ((it.value() as Byte).toInt() and 1.inv() or (1 shl 5) and (1 shl 6).inv()).toByte()

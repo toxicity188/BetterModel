@@ -96,6 +96,18 @@ public final class ModelRenderer {
     }
 
     /**
+     * Gets or creates tracker by entity
+     * @param entity entity
+     * @param modifier modifier
+     * @return entity tracker
+     */
+    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull TrackerModifier modifier) {
+        var tracker = EntityTracker.tracker(entity.getUniqueId());
+        if (tracker != null) return tracker;
+        return create(entity, modifier);
+    }
+
+    /**
      * Creates tracker by location
      * @param location location
      * @param modifier modifier
@@ -107,6 +119,36 @@ public final class ModelRenderer {
                 instance(source, location, modifier),
                 modifier
         );
+    }
+    /**
+     * Creates tracker by location and player
+     * @param location location
+     * @param player player
+     * @return empty tracker
+     */
+    public @NotNull DummyTracker create(@NotNull Location location, @NotNull Player player) {
+        return create(location, player, TrackerModifier.DEFAULT);
+    }
+
+    /**
+     * Creates tracker by location and profile
+     * @param location location
+     * @param profile profile
+     * @return empty tracker
+     */
+    public @NotNull DummyTracker create(@NotNull Location location, @NotNull GameProfile profile) {
+        return create(location, profile, TrackerModifier.DEFAULT);
+    }
+
+    /**
+     * Creates tracker by location and profile
+     * @param location location
+     * @param profile profile
+     * @param slim slim
+     * @return empty tracker
+     */
+    public @NotNull DummyTracker create(@NotNull Location location, @NotNull GameProfile profile, boolean slim) {
+        return create(location, profile, slim, TrackerModifier.DEFAULT);
     }
 
     /**
@@ -141,7 +183,7 @@ public final class ModelRenderer {
      * @return empty tracker
      */
     public @NotNull DummyTracker create(@NotNull Location location, @NotNull GameProfile profile, boolean slim, @NotNull TrackerModifier modifier) {
-        var source = RenderSource.of(location ,profile, slim);
+        var source = RenderSource.of(location, profile, slim);
         return source.create(
                 instance(source, location, modifier),
                 modifier
@@ -160,18 +202,6 @@ public final class ModelRenderer {
                 instance(source, entity.getLocation().add(0, -1024, 0), modifier),
                 modifier
         );
-    }
-
-    /**
-     * Gets or creates tracker by entity
-     * @param entity entity
-     * @param modifier modifier
-     * @return entity tracker
-     */
-    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull TrackerModifier modifier) {
-        var tracker = EntityTracker.tracker(entity.getUniqueId());
-        if (tracker != null) return tracker;
-        return create(entity, modifier);
     }
 
     private @NotNull RenderInstance instance(@NotNull RenderSource source, @NotNull Location location, @NotNull TrackerModifier modifier) {

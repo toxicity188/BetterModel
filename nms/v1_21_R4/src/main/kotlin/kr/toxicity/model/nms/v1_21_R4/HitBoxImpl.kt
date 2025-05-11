@@ -39,6 +39,7 @@ import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.craftbukkit.util.CraftVector
 import org.bukkit.entity.Entity
 import org.bukkit.event.entity.EntityPotionEffectEvent
+import org.bukkit.event.entity.EntityRemoveEvent
 import org.bukkit.util.Vector
 import org.joml.Vector3f
 
@@ -239,8 +240,8 @@ class HitBoxImpl(
     }
     
     override fun tick() {
-        if (!delegate.valid) {
-            if (valid) remove(delegate.removalReason ?: RemovalReason.KILLED)
+        delegate.removalReason?.let {
+            if (!isRemoved) remove(it)
             return
         }
         val controller = controllingPassenger
@@ -269,16 +270,17 @@ class HitBoxImpl(
         listener.sync(craftEntity)
     }
 
-    override fun remove(reason: RemovalReason) {
+    override fun remove(reason: RemovalReason, cause: EntityRemoveEvent.Cause?) {
         initialSetup()
         listener.remove(craftEntity)
         interaction.remove(reason)
-        super.remove(reason)
+        super.remove(reason, cause)
     }
 
     override fun getBukkitLivingEntity(): CraftLivingEntity = bukkitEntity
     override fun getBukkitEntity(): CraftLivingEntity = craftEntity as CraftLivingEntity
     override fun getBukkitEntityRaw(): CraftLivingEntity = bukkitEntity
+    override fun hasExactlyOnePlayerPassenger(): Boolean = false
 
     override fun isDeadOrDying(): Boolean {
         return delegate.isDeadOrDying
@@ -360,7 +362,7 @@ class HitBoxImpl(
     }
 
     override fun hurtServer(world: ServerLevel, source: DamageSource, amount: Float): Boolean {
-        if (source.entity === delegate || delegate.invulnerableTime > 0 || delegate.isInvulnerable) return false
+        if (source.entity === delegate || delegate.invulnerableTime.toFloat() > delegate.invulnerableDuration.toFloat() / 2F || delegate.isInvulnerable) return false
         if (source.entity === controllingPassenger && !mountController.canBeDamagedByRider()) return false
         val ds = ModelDamageSourceImpl(source)
         val event = ModelDamagedEvent(craftEntity, ds, amount)

@@ -238,8 +238,8 @@ class HitBoxImpl(
     }
     
     override fun tick() {
-        if (!delegate.valid) {
-            if (valid) remove(delegate.removalReason ?: RemovalReason.KILLED)
+        delegate.removalReason?.let {
+            if (!isRemoved) remove(it)
             return
         }
         val controller = controllingPassenger
@@ -268,16 +268,18 @@ class HitBoxImpl(
         listener.sync(craftEntity)
     }
 
-    override fun remove(reason: RemovalReason) {
+    @Suppress("removal")
+    override fun remove(reason: RemovalReason, cause: org.bukkit.event.entity.EntityRemoveEvent.Cause) {
         initialSetup()
         listener.remove(craftEntity)
         interaction.remove(reason)
-        super.remove(reason)
+        super.remove(reason, cause)
     }
 
     override fun getBukkitLivingEntity(): CraftLivingEntity = bukkitEntity
     override fun getBukkitEntity(): CraftLivingEntity = craftEntity as CraftLivingEntity
     override fun getBukkitEntityRaw(): CraftLivingEntity = bukkitEntity
+    override fun hasExactlyOnePlayerPassenger(): Boolean = false
 
     override fun isDeadOrDying(): Boolean {
         return delegate.isDeadOrDying
@@ -345,7 +347,7 @@ class HitBoxImpl(
     }
 
     override fun hurt(source: DamageSource, amount: Float): Boolean {
-        if (source.entity === delegate || delegate.invulnerableTime > 0 || delegate.isInvulnerable) return false
+        if (source.entity === delegate || delegate.invulnerableTime.toFloat() > delegate.invulnerableDuration.toFloat() / 2F || delegate.isInvulnerable) return false
         if (source.entity === controllingPassenger && !mountController.canBeDamagedByRider()) return false
         val ds = ModelDamageSourceImpl(source)
         val event = ModelDamagedEvent(craftEntity, ds, amount)
@@ -377,10 +379,10 @@ class HitBoxImpl(
             val scale = supplier.hitBoxScale()
             AABB(
                 pos.x - source.minX * scale,
-                pos.y + source.minY * scale,
+                pos.y + (source.minY - source.maxY) * scale + type.height,
                 pos.z - source.minZ * scale,
                 pos.x - source.maxX * scale,
-                pos.y + source.maxY * scale,
+                pos.y + type.height.toDouble(),
                 pos.z - source.maxZ * scale
             )
         }
