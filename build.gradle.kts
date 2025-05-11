@@ -39,7 +39,7 @@ allprojects {
         implementation("org.bstats:bstats-bukkit:3.1.0")
         compileOnly("com.vdurmont:semver4j:3.1.0")
         testImplementation("com.vdurmont:semver4j:3.1.0")
-        compileOnly("net.kyori:adventure-platform-bukkit:4.3.4")
+        compileOnly("net.kyori:adventure-platform-bukkit:4.4.0")
         compileOnly("net.citizensnpcs:citizens-main:2.0.38-SNAPSHOT")
         compileOnly("io.lumine:Mythic-Dist:5.8.2")
         compileOnly("com.hibiscusmc:HMCCosmetics:2.7.7")
@@ -205,7 +205,7 @@ bukkitPluginYaml {
     libraries = listOf(
         "com.vdurmont:semver4j:3.1.0",
         "net.kyori:adventure-api:4.21.0",
-        "net.kyori:adventure-platform-bukkit:4.3.4"
+        "net.kyori:adventure-platform-bukkit:4.4.0"
     )
     permissions.create("bettermodel") {
         default = Permission.Default.OP
