@@ -36,6 +36,7 @@ import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.Items
 import net.minecraft.world.item.component.CustomModelData
 import net.minecraft.world.item.component.DyedItemColor
+import net.minecraft.world.item.component.ResolvableProfile
 import net.minecraft.world.level.entity.LevelEntityGetter
 import net.minecraft.world.level.entity.LevelEntityGetterAdapter
 import net.minecraft.world.level.entity.PersistentEntitySectionManager
@@ -152,16 +153,7 @@ class NMSImpl : NMS {
         private val connection = (player as CraftPlayer).handle.connection
         private val entityUUIDMap = ConcurrentHashMap<UUID, EntityTracker>()
         private val uuidValuesView = Collections.unmodifiableCollection(entityUUIDMap.values)
-        private val slim = run {
-            val encodedValue = getGameProfile((player as CraftPlayer).handle)
-                .properties["textures"]
-            encodedValue.isNotEmpty() && JsonParser.parseString(String(Base64.getDecoder().decode(encodedValue.first().value)))
-                .asJsonObject
-                .getAsJsonObject("textures")
-                .getAsJsonObject("SKIN")
-                .get("metadata")?.asJsonObject
-                ?.get("model")?.asString == "slim"
-        }
+        private val slim = isSlim(profile(player))
 
         init {
             val pipeLine = getConnection(connection).channel.pipeline()
@@ -586,4 +578,23 @@ class NMSImpl : NMS {
     }
 
     override fun isSync(): Boolean = isTickThread
+
+    override fun profile(player: Player): GameProfile = getGameProfile((player as CraftPlayer).handle)
+
+    override fun isSlim(profile: GameProfile): Boolean {
+        val encodedValue = profile.properties["textures"]
+        return runCatching {
+            encodedValue.isNotEmpty() && JsonParser.parseString(String(Base64.getDecoder().decode(encodedValue.first().value)))
+                .asJsonObject
+                .getAsJsonObject("textures")
+                .getAsJsonObject("SKIN")
+                .get("metadata")?.asJsonObject
+                ?.get("model")?.asString == "slim"
+        }.getOrDefault(false)
+    }
+
+    override fun createPlayerHead(profile: GameProfile): ItemStack = net.minecraft.world.item.ItemStack(Items.PLAYER_HEAD).run {
+        set(DataComponents.PROFILE, ResolvableProfile(profile))
+        CraftItemStack.asBukkitCopy(this)
+    }
 }

@@ -19,7 +19,7 @@ public final class PlayerTracker extends EntityTracker {
      * @param modifier modifier
      */
     @ApiStatus.Internal
-    public PlayerTracker(@NotNull RenderSource.BaseEntity entity, @NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
+    public PlayerTracker(@NotNull RenderSource.Based entity, @NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
         super(entity, instance, modifier);
         instance.spawnFilter(p -> {
             var handler = BetterModel.inst().playerManager().player(p.getUniqueId());

@@ -16,6 +16,8 @@ import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.api.tracker.ModelRotation
 import kr.toxicity.model.api.tracker.Tracker
 import kr.toxicity.model.api.util.BonePredicate
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.nbt.NbtUtils
 import net.minecraft.network.Connection
 import net.minecraft.network.PacketSendListener
 import net.minecraft.network.protocol.Packet
@@ -151,16 +153,7 @@ class NMSImpl : NMS {
         private val connection = (player as CraftPlayer).handle.connection
         private val entityUUIDMap = ConcurrentHashMap<UUID, EntityTracker>()
         private val uuidValuesView = Collections.unmodifiableCollection(entityUUIDMap.values)
-        private val slim = run {
-            val encodedValue = getGameProfile((player as CraftPlayer).handle)
-                .properties["textures"]
-            encodedValue.isNotEmpty() && JsonParser.parseString(String(Base64.getDecoder().decode(encodedValue.first().value)))
-                .asJsonObject
-                .getAsJsonObject("textures")
-                .getAsJsonObject("SKIN")
-                .get("metadata")?.asJsonObject
-                ?.get("model")?.asString == "slim"
-        }
+        private val slim = isSlim(profile(player))
 
         init {
             val pipeLine = connection.connection.channel.pipeline()
@@ -580,4 +573,23 @@ class NMSImpl : NMS {
     }
 
     override fun isSync(): Boolean = isTickThread
+    
+    override fun profile(player: Player): GameProfile = getGameProfile((player as CraftPlayer).handle)
+
+    override fun isSlim(profile: GameProfile): Boolean {
+        val encodedValue = profile.properties["textures"]
+        return runCatching {
+            encodedValue.isNotEmpty() && JsonParser.parseString(String(Base64.getDecoder().decode(encodedValue.first().value)))
+                .asJsonObject
+                .getAsJsonObject("textures")
+                .getAsJsonObject("SKIN")
+                .get("metadata")?.asJsonObject
+                ?.get("model")?.asString == "slim"
+        }.getOrDefault(false)
+    }
+
+    override fun createPlayerHead(profile: GameProfile): ItemStack = net.minecraft.world.item.ItemStack(Items.PLAYER_HEAD).run {
+        orCreateTag.put("SkullOwner", NbtUtils.writeGameProfile(CompoundTag(), profile))
+        CraftItemStack.asBukkitCopy(this)
+    }
 }

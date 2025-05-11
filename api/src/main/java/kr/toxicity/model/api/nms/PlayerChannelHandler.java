@@ -1,5 +1,7 @@
 package kr.toxicity.model.api.nms;
 
+import com.mojang.authlib.GameProfile;
+import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.tracker.EntityTracker;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -16,6 +18,14 @@ public interface PlayerChannelHandler extends AutoCloseable {
      * @return player
      */
     @NotNull Player player();
+
+    /**
+     * Gets player game profile
+     * @return game profile
+     */
+    default @NotNull GameProfile profile() {
+        return BetterModel.inst().nms().profile(player());
+    }
 
     /**
      * Checks this player's skin is slim

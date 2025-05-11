@@ -18,7 +18,7 @@ class ModelTrait : Trait("model") {
             npc.entity?.let {
                 value?.create(it)?.apply {
                     spawnNearby()
-                }
+                } ?: EntityTracker.tracker(it.uniqueId)?.close()
             }
             _renderer = value
         }

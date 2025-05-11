@@ -1,9 +1,7 @@
 package kr.toxicity.model.api.event;
 
 import kr.toxicity.model.api.tracker.DummyTracker;
-import kr.toxicity.model.api.tracker.EntityTracker;
 import lombok.Getter;
-import org.bukkit.entity.Entity;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
@@ -14,7 +12,6 @@ public final class CreateDummyTrackerEvent extends CreateTrackerEvent {
      * Handler list
      */
     public static final HandlerList HANDLER_LIST = new HandlerList();
-
 
     public CreateDummyTrackerEvent(@NotNull DummyTracker tracker) {
         super(tracker);

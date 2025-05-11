@@ -32,6 +32,7 @@ allprojects {
         maven("https://maven.citizensnpcs.co/repo/")
         maven("https://mvn.lumine.io/repository/maven-public/")
         maven("https://repo.hibiscusmc.com/releases")
+        maven("https://libraries.minecraft.net/")
     }
     dependencies {
         testImplementation(kotlin("test"))
@@ -85,6 +86,7 @@ fun Project.dependency(any: Any) = also { project ->
 }
 
 fun Project.paper() = dependency("io.papermc.paper:paper-api:$minecraft-R0.1-SNAPSHOT")
+    .dependency("com.mojang:authlib:6.0.58")
 
 val api = project("api").paper()
 val purpur = project("purpur").dependency(api)

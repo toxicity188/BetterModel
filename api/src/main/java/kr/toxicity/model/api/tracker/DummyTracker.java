@@ -5,10 +5,12 @@ import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.data.renderer.RenderSource;
 import kr.toxicity.model.api.event.CreateDummyTrackerEvent;
 import kr.toxicity.model.api.util.EventUtil;
+import kr.toxicity.model.api.util.FunctionUtil;
 import lombok.Setter;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Vector3f;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -27,12 +29,13 @@ public final class DummyTracker extends Tracker {
      * @param instance render instance.
      * @param modifier modifier
      */
-    public DummyTracker(@NotNull RenderSource.Dummy source, @NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
+    public DummyTracker(@NotNull RenderSource.Located source, @NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
         super(source, instance, modifier);
         this.location = source.location();
         instance.animate("spawn");
         instance.scale(modifier.scale());
         rotation(() -> new ModelRotation(0, this.location.getYaw()));
+        instance.defaultPosition(FunctionUtil.asSupplier(new Vector3f()));
         update();
         EventUtil.call(new CreateDummyTrackerEvent(this));
     }

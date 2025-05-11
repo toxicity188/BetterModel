@@ -1,25 +1,53 @@
 package kr.toxicity.model.api.data.renderer;
 
+import com.mojang.authlib.GameProfile;
+import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.tracker.*;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Objects;
 
 public sealed interface RenderSource {
 
-    static @NotNull Dummy of(@NotNull Location location) {
+    @ApiStatus.Internal
+    static @NotNull Located of(@NotNull Location location) {
         return new Dummy(location);
     }
-    static @NotNull BaseEntity of(@NotNull Entity entity) {
-        return new BaseEntity(entity);
+    @ApiStatus.Internal
+    static @NotNull Located of(@NotNull Location location, @NotNull GameProfile profile, boolean slim) {
+        return new ProfiledDummy(location, profile, slim);
+    }
+    @ApiStatus.Internal
+    static @NotNull Based of(@NotNull Entity entity) {
+        return entity instanceof Player player ? new BasePlayer(player) : new BaseEntity(entity);
     }
 
     @NotNull Tracker create(@NotNull RenderInstance instance, @NotNull TrackerModifier modifier);
 
-    record Dummy(@NotNull Location location) implements RenderSource {
+    sealed interface Based extends RenderSource {
+        @NotNull Entity entity();
+
+        @NotNull
+        @Override
+        EntityTracker create(@NotNull RenderInstance instance, @NotNull TrackerModifier modifier);
+    }
+
+    sealed interface Located extends RenderSource {
+        @NotNull Location location();
+
+        @NotNull
+        @Override
+        DummyTracker create(@NotNull RenderInstance instance, @NotNull TrackerModifier modifier);
+    }
+
+    sealed interface Profiled extends RenderSource {
+        @NotNull GameProfile profile();
+        boolean slim();
+    }
+
+    record Dummy(@NotNull Location location) implements Located {
         @NotNull
         @Override
         public DummyTracker create(@NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
@@ -27,26 +55,45 @@ public sealed interface RenderSource {
         }
     }
 
-    record BaseEntity(@NotNull Entity entity) implements RenderSource {
+    record ProfiledDummy(@NotNull Location location, @NotNull GameProfile profile, boolean slim) implements Profiled, Located {
+        @NotNull
         @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof BaseEntity(Entity other))) return false;
-            if (entity == other) return true;
-            return Objects.equals(entity.getUniqueId(), other.getUniqueId());
+        public DummyTracker create(@NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
+            return new DummyTracker(this, instance, modifier);
         }
+    }
 
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(entity.getUniqueId());
-        }
+    record BaseEntity(@NotNull Entity entity) implements Based {
 
         @NotNull
         @Override
         public EntityTracker create(@NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
             var tracker = EntityTracker.tracker(entity.getUniqueId());
             if (tracker != null) tracker.close();
-            return entity instanceof Player ? new PlayerTracker(this, instance, modifier) : new EntityTracker(this, instance, modifier);
+            return new EntityTracker(this, instance, modifier);
+        }
+    }
+
+    record BasePlayer(@NotNull Player entity) implements Based, Profiled {
+
+        @NotNull
+        @Override
+        public EntityTracker create(@NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
+            var tracker = EntityTracker.tracker(entity.getUniqueId());
+            if (tracker != null) tracker.close();
+            return new PlayerTracker(this, instance, modifier);
+        }
+
+        @NotNull
+        @Override
+        public GameProfile profile() {
+            return BetterModel.inst().nms().profile(entity);
+        }
+
+        @Override
+        public boolean slim() {
+            var channel = BetterModel.inst().playerManager().player(entity.getUniqueId());
+            return channel != null && channel.isSlim();
         }
     }
 }

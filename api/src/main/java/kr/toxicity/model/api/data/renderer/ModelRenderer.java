@@ -1,5 +1,7 @@
 package kr.toxicity.model.api.data.renderer;
 
+import com.mojang.authlib.GameProfile;
+import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint;
@@ -8,6 +10,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
@@ -105,6 +108,46 @@ public final class ModelRenderer {
                 modifier
         );
     }
+
+    /**
+     * Creates tracker by location and player
+     * @param location location
+     * @param player player
+     * @param modifier modifier
+     * @return empty tracker
+     */
+    public @NotNull DummyTracker create(@NotNull Location location, @NotNull Player player, @NotNull TrackerModifier modifier) {
+        var channel = BetterModel.inst().playerManager().player(player.getUniqueId());
+        return channel == null ? create(location, BetterModel.inst().nms().profile(player), modifier) : create(location, channel.profile(), channel.isSlim(), modifier);
+    }
+
+    /**
+     * Creates tracker by location and profile
+     * @param location location
+     * @param profile profile
+     * @param modifier modifier
+     * @return empty tracker
+     */
+    public @NotNull DummyTracker create(@NotNull Location location, @NotNull GameProfile profile, @NotNull TrackerModifier modifier) {
+        return create(location, profile, BetterModel.inst().nms().isSlim(profile), modifier);
+    }
+
+    /**
+     * Creates tracker by location and profile
+     * @param location location
+     * @param profile profile
+     * @param slim slim
+     * @param modifier modifier
+     * @return empty tracker
+     */
+    public @NotNull DummyTracker create(@NotNull Location location, @NotNull GameProfile profile, boolean slim, @NotNull TrackerModifier modifier) {
+        var source = RenderSource.of(location ,profile, slim);
+        return source.create(
+                instance(source, location, modifier),
+                modifier
+        );
+    }
+
     /**
      * Creates tracker by entity
      * @param entity entity

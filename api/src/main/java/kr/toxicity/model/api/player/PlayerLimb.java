@@ -8,7 +8,6 @@ import kr.toxicity.model.api.util.TransformedItemStack;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Material;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -171,8 +170,8 @@ public enum PlayerLimb {
     ) {
         @NotNull
         @Override
-        public TransformedItemStack createItem(@NotNull Player player) {
-            return TransformedItemStack.of(player.getInventory().getItemInOffHand());
+        public TransformedItemStack createItem(@NotNull RenderSource.Profiled profiled) {
+            return profiled instanceof RenderSource.BasePlayer(Player entity) ? TransformedItemStack.of(entity.getInventory().getItemInOffHand()) : TransformedItemStack.empty();
         }
     },
     /**
@@ -188,8 +187,8 @@ public enum PlayerLimb {
     ) {
         @NotNull
         @Override
-        public TransformedItemStack createItem(@NotNull Player player) {
-            return TransformedItemStack.of(player.getInventory().getItemInMainHand());
+        public TransformedItemStack createItem(@NotNull RenderSource.Profiled profiled) {
+            return profiled instanceof RenderSource.BasePlayer(Player entity) ? TransformedItemStack.of(entity.getInventory().getItemInMainHand()) : TransformedItemStack.empty();
         }
     },
     ;
@@ -222,13 +221,12 @@ public enum PlayerLimb {
 
     /**
      * Generates transformed item from player
-     * @param player target player
+     * @param profiled target player
      * @return item
      */
-    public @NotNull TransformedItemStack createItem(@NotNull Player player) {
-        var channel = BetterModel.inst().playerManager().player(player.getUniqueId());
-        var isSlim = channel != null && channel.isSlim();
-        return TransformedItemStack.of(position, isSlim ? slimOffset : offset, isSlim ? slimScale : scale, createSkull(meta -> meta.setOwningPlayer(player)));
+    public @NotNull TransformedItemStack createItem(@NotNull RenderSource.Profiled profiled) {
+        var isSlim = profiled.slim();
+        return TransformedItemStack.of(position, isSlim ? slimOffset : offset, isSlim ? slimScale : scale, BetterModel.inst().nms().createPlayerHead(profiled.profile()));
     }
 
     private @NotNull TransformedItemStack createItem(@NotNull PlayerProfile profile, boolean isSlim) { //TODO Currently not supported in Spigot
@@ -250,7 +248,7 @@ public enum PlayerLimb {
     @RequiredArgsConstructor
     public class LimbItemMapper implements BoneItemMapper {
 
-        private final Function<Player, TransformedItemStack> playerMapper;
+        private final Function<RenderSource.Profiled, TransformedItemStack> playerMapper;
 
         @NotNull
         @Override
@@ -261,8 +259,8 @@ public enum PlayerLimb {
         @Override
         @NotNull
         public TransformedItemStack apply(RenderSource source, TransformedItemStack transformedItemStack) {
-            if (source instanceof RenderSource.BaseEntity(Entity base) && base instanceof Player player) {
-                return playerMapper.apply(player);
+            if (source instanceof RenderSource.Profiled profiled) {
+                return playerMapper.apply(profiled);
             }
             return transformedItemStack;
         }

@@ -113,7 +113,7 @@ public class EntityTracker extends Tracker {
      * @param modifier modifier
      */
     @ApiStatus.Internal
-    public EntityTracker(@NotNull RenderSource.BaseEntity source, @NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
+    public EntityTracker(@NotNull RenderSource.Based source, @NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
         super(source, instance, modifier);
         this.entity = source.entity();
         adapter = BetterModel.inst().nms().adapt(entity);

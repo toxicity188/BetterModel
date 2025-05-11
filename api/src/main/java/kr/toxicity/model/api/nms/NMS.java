@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.nms;
 
+import com.mojang.authlib.GameProfile;
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox;
 import kr.toxicity.model.api.mount.MountController;
 import kr.toxicity.model.api.tracker.EntityTracker;
@@ -94,4 +95,25 @@ public interface NMS {
      * @return sync or not
      */
     boolean isSync();
+
+    /**
+     * Gets game profile from player
+     * @param player player
+     * @return game profile
+     */
+    @NotNull GameProfile profile(@NotNull Player player);
+
+    /**
+     * Checks this profile skin is slim
+     * @param profile profile
+     * @return slime or not
+     */
+    boolean isSlim(@NotNull GameProfile profile);
+
+    /**
+     * Creates player head from game profile
+     * @param profile profile
+     * @return player head item
+     */
+    @NotNull ItemStack createPlayerHead(@NotNull GameProfile profile);
 }

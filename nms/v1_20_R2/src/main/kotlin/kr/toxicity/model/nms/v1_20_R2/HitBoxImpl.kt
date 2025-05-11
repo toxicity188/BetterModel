@@ -334,7 +334,7 @@ class HitBoxImpl(
     }
 
     override fun hurt(source: DamageSource, amount: Float): Boolean {
-        if (source.entity === delegate) return false
+        if (source.entity === delegate || delegate.invulnerableTime > 0 || delegate.isInvulnerable) return false
         if (source.entity === controllingPassenger && !mountController.canBeDamagedByRider()) return false
         val ds = ModelDamageSourceImpl(source)
         val event = ModelDamagedEvent(craftEntity, ds, amount)

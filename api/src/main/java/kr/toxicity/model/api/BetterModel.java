@@ -48,8 +48,14 @@ public final class BetterModel {
     public static @NotNull Optional<ModelRenderer> model(@NotNull String name) {
         return Optional.ofNullable(inst().modelManager().renderer(name));
     }
+    public static @NotNull Optional<ModelRenderer> limb(@NotNull String name) {
+        return Optional.ofNullable(inst().playerManager().limb(name));
+    }
     public static @NotNull @Unmodifiable List<ModelRenderer> models() {
         return inst().modelManager().renderers();
+    }
+    public static @NotNull @Unmodifiable List<ModelRenderer> limbs() {
+        return inst().playerManager().limbs();
     }
 
     /**
