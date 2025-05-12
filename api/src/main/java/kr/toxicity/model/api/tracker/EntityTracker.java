@@ -349,7 +349,7 @@ public class EntityTracker extends Tracker {
      * @return success
      */
     public boolean spawn(@NotNull Player player) {
-        var bundler = BetterModel.inst().nms().createBundler();
+        var bundler = instance.createBundler();
         if (!spawn(player, bundler)) return false;
         BetterModel.inst().nms().mount(this, bundler);
         bundler.send(player, () -> BetterModel.inst().nms().hide(player, entity));

@@ -33,16 +33,17 @@ public interface NMS {
      * Creates packet bundler
      * @return packet bundler
      */
-    default @NotNull PacketBundler createBundler() {
-        return createBundler(true);
+    default @NotNull PacketBundler createBundler(int initialCapacity) {
+        return createBundler(initialCapacity, false);
     }
 
     /**
      * Creates packet bundler
+     * @param initialCapacity initial capacity
      * @param useEntityTrack use entity track
      * @return packet bundler
      */
-    @NotNull PacketBundler createBundler(boolean useEntityTrack);
+    @NotNull PacketBundler createBundler(int initialCapacity, boolean useEntityTrack);
 
     /**
      * Applies tint to some item

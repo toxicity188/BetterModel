@@ -27,12 +27,10 @@ import org.bukkit.profile.PlayerTextures;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 import org.joml.Vector3f;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
@@ -51,6 +49,10 @@ public final class RenderInstance {
     private final RenderSource source;
 
     private final Map<BoneName, RenderedBone> entityMap;
+    private final List<RenderedBone> bones;
+    @Getter
+    private final int displayAmount;
+    private final int initialBundlerSize;
     private final Map<String, BlueprintAnimation> animationMap;
     private final Map<UUID, PlayerChannelHandler> playerMap = new ConcurrentHashMap<>();
     private Predicate<Player> viewFilter = p -> true;
@@ -76,7 +78,21 @@ public final class RenderInstance {
         this.entityMap = entityMap;
         this.animationMap = animationMap;
 
+        var b = new ArrayList<RenderedBone>();
+        for (RenderedBone value : entityMap.values()) {
+            value.iterateTree(b::add);
+        }
+        bones = Collections.unmodifiableList(b);
+        displayAmount = (int) bones.stream()
+                .filter(rb -> rb.getDisplay() != null)
+                .count();
+        initialBundlerSize = displayAmount * 2;
+
         animate("idle", new AnimationModifier(6, 0, 1));
+    }
+
+    public @NotNull PacketBundler createBundler() {
+        return BetterModel.inst().nms().createBundler(initialBundlerSize);
     }
 
     public void viewFilter(@NotNull Predicate<Player> filter) {
@@ -120,7 +136,7 @@ public final class RenderInstance {
                 if (hb != null) hb.removeHitBox();
             });
         }
-        var bundler = BetterModel.inst().nms().createBundler();
+        var bundler = BetterModel.inst().nms().createBundler(displayAmount);
         remove0(bundler);
         if (!bundler.isEmpty()) for (PlayerChannelHandler value : playerMap.values()) {
             bundler.send(value.player());
@@ -208,12 +224,8 @@ public final class RenderInstance {
         return anyMatch(predicate, (b, p) -> b.addAnimationMovementModifier(p, consumer));
     }
 
-    public @NotNull List<RenderedBone> bones() {
-        var list = new ArrayList<RenderedBone>();
-        for (RenderedBone value : entityMap.values()) {
-            value.iterateTree(list::add);
-        }
-        return list;
+    public @NotNull @Unmodifiable List<RenderedBone> bones() {
+        return bones;
     }
 
     public @Nullable RenderedBone boneOf(@NotNull Predicate<RenderedBone> predicate) {
@@ -297,7 +309,7 @@ public final class RenderInstance {
 
     public void remove(@NotNull Player player) {
         if (playerMap.remove(player.getUniqueId()) == null) return;
-        var bundler = BetterModel.inst().nms().createBundler();
+        var bundler = BetterModel.inst().nms().createBundler(displayAmount);
         remove0(bundler);
         bundler.send(player);
     }

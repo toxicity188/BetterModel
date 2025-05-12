@@ -4,6 +4,7 @@ import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.data.renderer.RenderSource;
 import kr.toxicity.model.api.event.CreateDummyTrackerEvent;
+import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.util.EventUtil;
 import kr.toxicity.model.api.util.FunctionUtil;
 import lombok.Setter;
@@ -46,9 +47,11 @@ public final class DummyTracker extends Tracker {
      */
     public void location(@NotNull Location location) {
         this.location = Objects.requireNonNull(location, "location");
-        var bundler = BetterModel.inst().nms().createBundler();
+        var bundler = BetterModel.inst().nms().createBundler(instance.getDisplayAmount(), false);
         instance.teleport(location, bundler);
-        if (!bundler.isEmpty()) viewedPlayer().forEach(bundler::send);
+        if (!bundler.isEmpty()) instance.allPlayer()
+                .map(PlayerChannelHandler::player)
+                .forEach(bundler::send);
     }
 
     @NotNull
@@ -71,7 +74,7 @@ public final class DummyTracker extends Tracker {
      * @param player player
      */
     public void spawn(@NotNull Player player) {
-        var bundler = BetterModel.inst().nms().createBundler();
+        var bundler = instance.createBundler();
         spawn(player, bundler);
         bundler.send(player);
     }

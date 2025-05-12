@@ -23,6 +23,7 @@ import net.minecraft.world.entity.ai.goal.RangedAttackGoal
 import net.minecraft.world.entity.ai.goal.RangedBowAttackGoal
 import net.minecraft.world.entity.ai.goal.RangedCrossbowAttackGoal
 import net.minecraft.world.entity.animal.FlyingAnimal
+import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.Vec3
 import org.bukkit.craftbukkit.v1_20_R3.entity.CraftEntity
 import org.bukkit.event.Event
@@ -123,6 +124,7 @@ val Entity.isFlying: Boolean
         is FlyingAnimal -> isFlying
         is FlyingMob -> true
         is Mob -> isNoAi
+        is Player -> abilities.flying
         is LivingEntity -> isFallFlying
         else -> false
     }

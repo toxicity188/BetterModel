@@ -310,7 +310,9 @@ class NMSImpl : NMS {
         bundler.unwrap() += tracker.mountPacket()
     }
 
-    private fun EntityTracker.mountPacket(entity: Entity = adapter.handle() as Entity, array: IntArray = entity.passengers.map { 
+    private fun EntityTracker.mountPacket(entity: Entity = adapter.handle() as Entity, array: IntArray = entity.passengers.filter {
+        EntityTracker.tracker(it.uuid) == null
+    }.map {
         it.id
     }.toIntArray()): ClientboundSetPassengersPacket {
         return useByteBuf { buffer ->
@@ -324,7 +326,7 @@ class NMSImpl : NMS {
 
     override fun inject(player: Player): PlayerChannelHandlerImpl = PlayerChannelHandlerImpl(player)
 
-    override fun createBundler(useEntityTrack: Boolean): PacketBundler = PacketBundlerImpl(useEntityTrack, mutableListOf())
+    override fun createBundler(initialCapacity: Int, useEntityTrack: Boolean): PacketBundler = PacketBundlerImpl(useEntityTrack, ArrayList(initialCapacity))
     private fun PacketBundler.unwrap(): PacketBundlerImpl = this as PacketBundlerImpl
 
     override fun create(location: Location): ModelDisplay = ModelDisplayImpl(ItemDisplay(EntityType.ITEM_DISPLAY, (location.world as CraftWorld).handle).apply {

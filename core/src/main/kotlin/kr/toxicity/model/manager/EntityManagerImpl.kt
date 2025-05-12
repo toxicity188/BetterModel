@@ -141,7 +141,7 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
                     }
                 )
             }
-            @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = false)
+            @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun EntityDamageEvent.damage() { //Damage
                 if (this is EntityDamageByEntityEvent) {
                     val victim = entity.run {

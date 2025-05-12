@@ -56,7 +56,7 @@ public abstract class Tracker implements AutoCloseable {
     private final AtomicBoolean readyForForceUpdate = new AtomicBoolean();
     private final TrackerModifier modifier;
     private final Runnable updater;
-    private PacketBundler bundler = BetterModel.inst().nms().createBundler(false);
+    private PacketBundler bundler, forceUpdateBundler;
     private long frame = 0;
     @Getter
     private ModelRotator rotator = ModelRotator.EMPTY;
@@ -72,23 +72,25 @@ public abstract class Tracker implements AutoCloseable {
         this.instance = instance;
         this.source = source;
         this.modifier = modifier;
+        bundler = instance.createBundler();
+        forceUpdateBundler = BetterModel.inst().nms().createBundler(instance.getDisplayAmount() + 10);
         var config = BetterModel.inst().configManager();
         updater = () -> {
             instance.move(
                     frame % 5 == 0 ? (isRunningSingleAnimation() && config.lockOnPlayAnimation()) ? instance.getRotation() : rotation() : null,
                     bundler
             );
-            consumer.accept(this, bundler);
-            if (readyForForceUpdate.compareAndSet(true, false)) {
-                var forceBundler = BetterModel.inst().nms().createBundler(false);
-                instance.forceUpdate(forceBundler);
-                if (!forceBundler.isEmpty()) instance.allPlayer()
+            consumer.accept(this, forceUpdateBundler);
+            if (readyForForceUpdate.compareAndSet(true, false)) instance.forceUpdate(forceUpdateBundler);
+            if (!forceUpdateBundler.isEmpty()) {
+                instance.allPlayer()
                         .map(PlayerChannelHandler::player)
-                        .forEach(forceBundler::send);
+                        .forEach(forceUpdateBundler::send);
+                forceUpdateBundler = BetterModel.inst().nms().createBundler(instance.getDisplayAmount() + 10);
             }
             if (!bundler.isEmpty()) {
                 instance.viewedPlayer().forEach(bundler::send);
-                bundler = BetterModel.inst().nms().createBundler(false);
+                bundler = instance.createBundler();
             }
         };
         task = EXECUTOR.scheduleAtFixedRate(() -> {

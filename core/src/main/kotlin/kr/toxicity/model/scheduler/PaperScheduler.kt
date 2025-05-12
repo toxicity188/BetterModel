@@ -17,13 +17,21 @@ class PaperScheduler : ModelScheduler {
         }
     }
 
-    override fun task(entity: Entity, runnable: Runnable): ModelTask? = entity.scheduler.run(PLUGIN, {
-        runnable.run()
-    }, null)?.wrap()
+    private fun ifEnabled(block: () -> ModelTask?): ModelTask? {
+        return if (PLUGIN.isEnabled) block() else null
+    }
 
-    override fun taskLater(delay: Long, entity: Entity, runnable: Runnable) = entity.scheduler.runDelayed(PLUGIN, {
-        runnable.run()
-    }, null, delay)?.wrap()
+    override fun task(entity: Entity, runnable: Runnable): ModelTask? = ifEnabled {
+        entity.scheduler.run(PLUGIN, {
+            runnable.run()
+        }, null)?.wrap()
+    }
+
+    override fun taskLater(delay: Long, entity: Entity, runnable: Runnable) = ifEnabled {
+        entity.scheduler.runDelayed(PLUGIN, {
+            runnable.run()
+        }, null, delay)?.wrap()
+    }
 
     override fun asyncTask(runnable: Runnable) = Bukkit.getAsyncScheduler().runNow(PLUGIN) {
         runnable.run()
