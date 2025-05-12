@@ -1,8 +1,8 @@
 package kr.toxicity.model.manager
 
+import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.data.blueprint.BlueprintChildren.BlueprintGroup
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint
-import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.data.renderer.ModelRenderer
 import kr.toxicity.model.api.data.renderer.RendererGroup
 import kr.toxicity.model.api.manager.PlayerManager
@@ -18,7 +18,6 @@ import org.bukkit.event.player.PlayerChangedWorldEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.inventory.ItemStack
-import java.io.File
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
@@ -59,16 +58,9 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
     override fun reload(info: ReloadInfo) {
         renderMap.clear()
         if (ConfigManagerImpl.module().playerAnimation()) {
-            val folder = File(DATA_FOLDER, "players")
-            if (!folder.exists()) {
-                folder.mkdirs()
-                PLUGIN.getResource("steve.bbmodel")?.buffered()?.use { input ->
-                    File(folder, "steve.bbmodel").outputStream().buffered().use { output ->
-                        input.copyTo(output)
-                    }
-                }
-            }
-            folder.forEachAllFolder {
+            DATA_FOLDER.getOrCreateDirectory("players") { folder ->
+                folder.addResourceAs("steve.bbmodel")
+            }.forEachAllFolder {
                 if (it.extension == "bbmodel") {
                     val load = it.toModel()
                     renderMap[load.name] = load.toRenderer()

@@ -1,9 +1,13 @@
 package kr.toxicity.model.util
 
 import java.io.File
+import java.io.OutputStream
 
-fun File.subFolder(name: String) = File(this, name).apply {
-    if (!exists()) mkdirs()
+fun File.getOrCreateDirectory(name: String, initialConsumer: (File) -> Unit) = File(this, name).also { target ->
+    if (!target.exists()) {
+        target.mkdirs()
+        initialConsumer(target)
+    }
 }
 
 fun File.forEach(block: (File) -> Unit) {
@@ -30,5 +34,19 @@ fun File.forEachAll(block: (File) -> Unit) {
         it.forEachAll(block)
     } else {
         block(this)
+    }
+}
+
+fun File.addResourceAs(name: String) {
+    copyResourceAs(name) {
+        File(this, name).outputStream().buffered()
+    }
+}
+
+fun copyResourceAs(name: String, outputCreator: () -> OutputStream) {
+    PLUGIN.getResource(name)?.buffered()?.use { input ->
+        outputCreator().use {
+            input.copyTo(it)
+        }
     }
 }

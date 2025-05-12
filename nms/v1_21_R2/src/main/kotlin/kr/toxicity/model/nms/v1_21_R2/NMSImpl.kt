@@ -338,7 +338,7 @@ class NMSImpl : NMS {
             0F
         )
         itemTransform = ItemDisplayContext.FIXED
-        entityData.set(Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID, 3)
+        entityData[Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID] = 3
     })
 
     private inner class ModelDisplayImpl(

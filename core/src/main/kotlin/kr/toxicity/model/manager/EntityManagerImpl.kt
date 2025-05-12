@@ -141,17 +141,17 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
                 )
             }
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = false)
-            fun EntityDamageByEntityEvent.damageByEntity() { //Damage
-                val victim = entity.run {
-                    if (this is HitBox) source().uniqueId else uniqueId
-                }
-                val v = damager.vehicle
-                if (v is HitBox && !v.mountController().canBeDamagedByRider() && v.source().uniqueId == victim) {
-                    isCancelled = true
-                }
-            }
-            @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = false)
             fun EntityDamageEvent.damage() { //Damage
+                if (this is EntityDamageByEntityEvent) {
+                    val victim = entity.run {
+                        if (this is HitBox) source().uniqueId else uniqueId
+                    }
+                    val v = damager.vehicle
+                    if (v is HitBox && !v.mountController().canBeDamagedByRider() && v.source().uniqueId == victim) {
+                        isCancelled = true
+                        return
+                    }
+                }
                 EntityTracker.tracker(entity)?.let {
                     if (it.animate("damage", AnimationModifier.DEFAULT_WITH_PLAY_ONCE) {
                             it.tint(0xFFFFFF)

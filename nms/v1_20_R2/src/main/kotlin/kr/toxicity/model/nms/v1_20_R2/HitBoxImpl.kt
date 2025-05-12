@@ -238,8 +238,7 @@ class HitBoxImpl(
             if (delegate is Mob) delegate.navigation.stop()
             mountControl(controller, Vec3(delegate.xxa.toDouble(), delegate.yya.toDouble(), delegate.zza.toDouble()))
         } else initialSetup()
-        val rotation = supplier.hitBoxRotation()
-        yRot = rotation.y
+        yRot = supplier.hitBoxRotation().y
         yHeadRot = yRot
         yBodyRot = yRot
         val pos = relativePosition()
@@ -268,6 +267,14 @@ class HitBoxImpl(
     override fun getBukkitEntity(): CraftLivingEntity = craftEntity as CraftLivingEntity
     override fun getBukkitEntityRaw(): CraftLivingEntity = bukkitEntity
     override fun hasExactlyOnePlayerPassenger(): Boolean = false
+
+    override fun setDeltaMovement(deltaMovement: Vec3) {
+        delegate.deltaMovement = deltaMovement
+    }
+
+    override fun getDeltaMovement(): Vec3 {
+        return delegate.deltaMovement
+    }
 
     override fun isDeadOrDying(): Boolean {
         return delegate.isDeadOrDying
