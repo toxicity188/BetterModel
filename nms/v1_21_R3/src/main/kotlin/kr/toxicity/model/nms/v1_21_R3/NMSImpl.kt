@@ -260,6 +260,9 @@ class NMSImpl : NMS {
                 is ClientboundSetEquipmentPacket -> if (entity.toTracker() != null) return ClientboundSetEquipmentPacket(entity, EquipmentSlot.entries.map { e ->
                     Pair.of(e, Items.AIR.defaultInstance)
                 })
+                is ClientboundRespawnPacket -> EntityTracker.tracker(player)?.let {
+                    createBundler().apply { mount(it, this) }.send(player)
+                }
             }
             return this
         }

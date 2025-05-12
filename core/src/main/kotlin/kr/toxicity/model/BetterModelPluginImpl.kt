@@ -9,6 +9,7 @@ import kr.toxicity.model.api.BetterModelPlugin.ReloadResult.*
 import kr.toxicity.model.api.manager.*
 import kr.toxicity.model.api.nms.NMS
 import kr.toxicity.model.api.scheduler.ModelScheduler
+import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.api.util.HttpUtil
 import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.api.version.MinecraftVersion.*
@@ -159,6 +160,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
     }
 
     override fun onDisable() {
+        Bukkit.getOnlinePlayers().forEach { EntityTracker.tracker(it)?.close() }
         audiences.close()
         managers.forEach(GlobalManagerImpl::end)
     }

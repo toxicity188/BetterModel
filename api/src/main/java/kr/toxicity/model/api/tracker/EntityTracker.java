@@ -258,8 +258,8 @@ public class EntityTracker extends Tracker {
         instance.allPlayer().forEach(p -> p.endTrack(this));
         super.close();
         TRACKER_MAP.remove(entity.getUniqueId());
+        entity.getPersistentDataContainer().remove(TRACKING_ID);
         BetterModel.inst().scheduler().task(entity, () -> {
-            entity.getPersistentDataContainer().remove(TRACKING_ID);
             if (entity instanceof Player player) player.updateInventory();
         });
     }
