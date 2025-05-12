@@ -224,7 +224,6 @@ bukkitPluginYaml {
 }
 
 val supportedVersion = listOf(
-    "1.20.2",
     "1.20.3",
     "1.20.4",
     "1.20.5",

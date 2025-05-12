@@ -105,7 +105,7 @@ val LivingEntity.gravity: Double
     get() = if (deltaMovement.y <= 0.0 && this.hasEffect(MobEffects.SLOW_FALLING)) 0.01 else 0.08
 
 fun LivingEntity.jumpFromGround() {
-    val jumpPower = getAttributeValue(Attributes.JUMP_STRENGTH).toFloat() * jumpFactor() + jumpBoostPower
+    val jumpPower = (getAttribute(Attributes.JUMP_STRENGTH)?.value?.toFloat() ?: 0.4F) * jumpFactor() + jumpBoostPower
     if (!(jumpPower <= 1.0E-5f)) {
         val deltaMovement = deltaMovement
         setDeltaMovement(deltaMovement.x, max(jumpPower.toDouble(), deltaMovement.y), deltaMovement.z)
