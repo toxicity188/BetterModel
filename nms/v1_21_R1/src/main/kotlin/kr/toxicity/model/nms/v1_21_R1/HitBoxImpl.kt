@@ -374,10 +374,10 @@ class HitBoxImpl(
             val scale = supplier.hitBoxScale()
             AABB(
                 pos.x - source.minX * scale,
-                pos.y + (source.minY - source.maxY) * scale + type.height,
+                pos.y + source.minY * scale,
                 pos.z - source.minZ * scale,
                 pos.x - source.maxX * scale,
-                pos.y + type.height.toDouble(),
+                pos.y + source.maxY * scale,
                 pos.z - source.maxZ * scale
             )
         }
