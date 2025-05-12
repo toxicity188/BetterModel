@@ -95,6 +95,7 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
             @EventHandler(priority = EventPriority.MONITOR)
             fun PlayerQuitEvent.quit() { //Quit
                 EntityTracker.tracker(player)?.close()
+                (player.vehicle as? HitBox)?.dismount(player)
             }
             @EventHandler(priority = EventPriority.MONITOR)
             fun ChunkLoadEvent.load() { //Chunk load

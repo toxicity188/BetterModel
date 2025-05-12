@@ -281,14 +281,6 @@ class HitBoxImpl(
     override fun getBukkitEntityRaw(): CraftLivingEntity = bukkitEntity
     override fun hasExactlyOnePlayerPassenger(): Boolean = false
 
-    override fun setDeltaMovement(deltaMovement: Vec3) {
-        delegate.deltaMovement = deltaMovement
-    }
-
-    override fun getDeltaMovement(): Vec3 {
-        return delegate.deltaMovement
-    }
-
     override fun isDeadOrDying(): Boolean {
         return delegate.isDeadOrDying
     }
