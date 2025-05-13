@@ -318,6 +318,10 @@ public final class RenderedBone implements HitBoxSource {
         var d = display;
         if (d != null) d.sendEntityData(bundler);
     }
+    public void forceUpdate(boolean showItem, @NotNull PacketBundler bundler) {
+        var d = display;
+        if (d != null) d.sendEntityData(showItem, bundler);
+    }
 
     private static int toInterpolationDuration(long delay) {
         return (int) Math.floor((float) delay / 5F) + 1;
@@ -429,8 +433,8 @@ public final class RenderedBone implements HitBoxSource {
         if (display != null) display.teleport(location, bundler);
     }
 
-    public void spawn(@NotNull PacketBundler bundler) {
-        if (display != null) display.spawn(bundler);
+    public void spawn(boolean hide, @NotNull PacketBundler bundler) {
+        if (display != null) display.spawn(!hide && !display.invisible(), bundler);
     }
 
     public boolean addAnimation(@NotNull AnimationPredicate filter, @NotNull String parent, @NotNull BlueprintAnimation animator, @NotNull AnimationModifier modifier, Runnable removeTask) {

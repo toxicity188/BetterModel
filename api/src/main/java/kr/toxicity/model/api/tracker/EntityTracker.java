@@ -170,7 +170,7 @@ public class EntityTracker extends Tracker {
             entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, instance.getParent().getParent().name());
             createHitBox();
         });
-        tick((t, b) -> t.displays().forEach(d -> d.sync(adapter)));
+        tick((t, b) -> updateBaseEntity0());
         tick((t, b) -> {
             var reader = t.instance.getScriptProcessor().getCurrentReader();
             if (reader == null) return;
@@ -199,6 +199,20 @@ public class EntityTracker extends Tracker {
 
     private void createHitBox(@NotNull Predicate<RenderedBone> predicate) {
         createHitBox(predicate, HitBoxListener.EMPTY);
+    }
+
+    public void updateBaseEntity() {
+        BetterModel.inst().scheduler().taskLater(1, entity, () -> {
+            updateBaseEntity0();
+            forceUpdate(true);
+        });
+    }
+
+    /**
+     * Updates base entity's data to parent entity
+     */
+    private void updateBaseEntity0() {
+        displays().forEach(d -> d.sync(adapter));
     }
 
     /**

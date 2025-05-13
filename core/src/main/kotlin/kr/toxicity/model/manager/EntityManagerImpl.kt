@@ -68,15 +68,9 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
         })
         registerListener(object : Listener {
 
-            private val EntityEvent.entityTracker get() = EntityTracker.tracker(when (val e = entity) {
-                is HitBox.Interaction -> e.sourceHitBox().source()
-                is HitBox -> e.source()
-                else -> e
-            })
-
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun EntityPotionEffectEvent.potion() { //Apply potion effect
-                entityTracker?.forceUpdate(true)
+                EntityTracker.tracker(entity)?.updateBaseEntity()
             }
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun EntityDismountEvent.dismount() { //Dismount
@@ -140,6 +134,15 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
                         else -> return
                     }
                 )
+                EntityTracker.tracker(rightClicked.uniqueId)?.let {
+                    if (it.isHide(player)) {
+                        player.sendMessage("투명화 풀렸다!")
+                        it.show(player)
+                    } else {
+                        player.sendMessage("투명화 되었다!")
+                        it.hide(player)
+                    }
+                }
             }
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun EntityDamageEvent.damage() { //Damage

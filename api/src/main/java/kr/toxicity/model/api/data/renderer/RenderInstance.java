@@ -55,6 +55,7 @@ public final class RenderInstance {
     private final int initialBundlerSize;
     private final Map<String, BlueprintAnimation> animationMap;
     private final Map<UUID, PlayerChannelHandler> playerMap = new ConcurrentHashMap<>();
+    private final Set<UUID> hidePlayerSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private Predicate<Player> viewFilter = p -> true;
     private Predicate<Player> spawnFilter = OfflinePlayer::isOnline;
 
@@ -168,6 +169,11 @@ public final class RenderInstance {
     public void forceUpdate(@NotNull PacketBundler bundler) {
         for (RenderedBone value : entityMap.values()) {
             value.iterateTree(b -> b.forceUpdate(bundler));
+        }
+    }
+    public void forceUpdate(boolean showItem, @NotNull PacketBundler bundler) {
+        for (RenderedBone value : entityMap.values()) {
+            value.iterateTree(b -> b.forceUpdate(showItem, bundler));
         }
     }
 
@@ -300,8 +306,9 @@ public final class RenderInstance {
         if (get == null) return;
         if (playerMap.get(player.getUniqueId()) != null || spawnFilter.test(player)) {
             spawnPacketHandler.accept(bundler);
+            var hided = isHide(player);
             for (RenderedBone value : entityMap.values()) {
-                value.iterateTree(b -> b.spawn(bundler));
+                value.iterateTree(b -> b.spawn(hided, bundler));
             }
             playerMap.put(player.getUniqueId(), get);
         }
@@ -340,11 +347,37 @@ public final class RenderInstance {
     public @NotNull Stream<PlayerChannelHandler> allPlayer() {
         return playerMap.values().stream();
     }
+    public @NotNull Stream<Player> nonHidePlayer() {
+        return allPlayer()
+                .map(PlayerChannelHandler::player)
+                .filter(p -> !hidePlayerSet.contains(p.getUniqueId()));
+    }
     public @NotNull Stream<Player> viewedPlayer() {
         return viewedPlayer(viewFilter);
     }
     public @NotNull Stream<Player> viewedPlayer(@NotNull Predicate<Player> predicate) {
-        return allPlayer().map(PlayerChannelHandler::player).filter(predicate);
+        return nonHidePlayer().filter(predicate);
     }
 
+    public boolean hide(@NotNull Player player) {
+        if (hidePlayerSet.add(player.getUniqueId())) {
+            var bundler = createBundler();
+            forceUpdate(false, bundler);
+            if (!bundler.isEmpty()) bundler.send(player);
+            return true;
+        } else return false;
+    }
+
+    public boolean isHide(@NotNull Player player) {
+        return hidePlayerSet.contains(player.getUniqueId());
+    }
+
+    public boolean show(@NotNull Player player) {
+        if (hidePlayerSet.remove(player.getUniqueId())) {
+            var bundler = createBundler();
+            forceUpdate(bundler);
+            if (!bundler.isEmpty()) bundler.send(player);
+            return true;
+        } else return false;
+    }
 }

@@ -246,6 +246,7 @@ class HitBoxImpl(
         val controller = controllingPassenger
         if (jumpDelay > 0) jumpDelay--
         health = delegate.health
+        interaction.isInvisible = delegate.isInvisible
         if (controller is ServerPlayer && !isDeadOrDying && mountController.canControl()) {
             if (delegate is Mob) delegate.navigation.stop()
             mountControl(controller, Vec3(delegate.xxa.toDouble(), delegate.yya.toDouble(), delegate.zza.toDouble()))

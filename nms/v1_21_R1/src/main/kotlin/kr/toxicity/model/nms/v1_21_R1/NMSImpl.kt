@@ -103,6 +103,7 @@ class NMSImpl : NMS {
         private val itemId = ItemDisplay::class.java.serializers().map {
             it.toSerializerId()
         }
+        private val itemSerializer = itemId.first()
         private val displaySet = Display::class.java.serializers().map { e ->
             e.toSerializerId()
         }
@@ -371,11 +372,17 @@ class NMSImpl : NMS {
             display.itemTransform = ItemDisplayContext.BY_ID.apply(transform.ordinal)
         }
 
-        override fun spawn(bundler: PacketBundler) {
+        override fun spawn(showItem: Boolean, bundler: PacketBundler) {
             bundler.unwrap() += addPacket
             val f = display.transformationInterpolationDuration
             frame(0)
-            bundler.unwrap() += ClientboundSetEntityDataPacket(display.id, display.entityData.nonDefaultValues!!)
+            bundler.unwrap() += ClientboundSetEntityDataPacket(display.id, display.entityData.nonDefaultValues!!.map {
+                if (it.id == itemSerializer) SynchedEntityData.DataValue(
+                    it.id,
+                    EntityDataSerializers.ITEM_STACK,
+                    if (showItem) display.itemStack else Items.AIR.defaultInstance
+                ) else it
+            })
             frame(f)
         }
 
@@ -451,19 +458,20 @@ class NMSImpl : NMS {
             })
         }
 
-        override fun sendEntityData(bundler: PacketBundler) {
-            if (display.isInvisible) {
-                val item = display.itemStack
-                display.itemStack = Items.AIR.defaultInstance
-                bundler.unwrap() += ClientboundSetEntityDataPacket(display.id, display.entityData.pack().filter {
+        override fun invisible(): Boolean = display.isInvisible || display.itemStack.`is`(Items.AIR)
+        override fun sendEntityData(showItem: Boolean, bundler: PacketBundler) {
+            bundler.unwrap() += ClientboundSetEntityDataPacket(display.id, display.entityData.pack()
+                .asSequence()
+                .filter {
                     entityDataSet.contains(it.id)
-                })
-                display.itemStack = item
-            } else {
-                bundler.unwrap() += ClientboundSetEntityDataPacket(display.id, display.entityData.pack().filter {
-                    entityDataSet.contains(it.id)
-                })
-            }
+                }
+                .map {
+                    if (it.id == itemSerializer) SynchedEntityData.DataValue(
+                        it.id,
+                        EntityDataSerializers.ITEM_STACK,
+                        if (showItem) display.itemStack else Items.AIR.defaultInstance
+                    ) else it
+                }.toList())
         }
 
         private val removePacket
@@ -518,7 +526,7 @@ class NMSImpl : NMS {
             override fun entity(): org.bukkit.entity.Entity = entity
             override fun handle(): Entity = entity.vanillaEntity
             override fun dead(): Boolean = (handle() as? LivingEntity)?.isDeadOrDying == true || handle().removalReason?.shouldSave() == false
-            override fun invisible(): Boolean = handle().isInvisible
+            override fun invisible(): Boolean = handle().isInvisible || (handle() as? LivingEntity)?.hasEffect(MobEffects.INVISIBILITY) == true
             override fun glow(): Boolean = handle().isCurrentlyGlowing
 
             override fun onWalk(): Boolean {

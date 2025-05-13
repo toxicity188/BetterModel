@@ -1,6 +1,7 @@
 package kr.toxicity.model.nms.v1_21_R4
 
 import kr.toxicity.model.api.nms.HitBox
+import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.Entity

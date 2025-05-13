@@ -8,12 +8,9 @@ import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.data.renderer.RenderSource;
-import kr.toxicity.model.api.event.CloseTrackerEvent;
-import kr.toxicity.model.api.event.ModelDespawnAtPlayerEvent;
-import kr.toxicity.model.api.event.ModelSpawnAtPlayerEvent;
+import kr.toxicity.model.api.event.*;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
-import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.util.*;
 import lombok.Getter;
 import org.bukkit.Location;
@@ -56,7 +53,7 @@ public abstract class Tracker implements AutoCloseable {
     private final AtomicBoolean readyForForceUpdate = new AtomicBoolean();
     private final TrackerModifier modifier;
     private final Runnable updater;
-    private PacketBundler bundler, forceUpdateBundler;
+    private PacketBundler viewBundler, dataBundler;
     private long frame = 0;
     private ModelRotator rotator = ModelRotator.EMPTY;
 
@@ -71,25 +68,23 @@ public abstract class Tracker implements AutoCloseable {
         this.instance = instance;
         this.source = source;
         this.modifier = modifier;
-        bundler = instance.createBundler();
-        forceUpdateBundler = instance.createBundler();
+        viewBundler = instance.createBundler();
+        dataBundler = instance.createBundler();
         var config = BetterModel.inst().configManager();
         updater = () -> {
             instance.move(
                     frame % 5 == 0 ? (isRunningSingleAnimation() && config.lockOnPlayAnimation()) ? instance.getRotation() : rotation() : null,
-                    bundler
+                    viewBundler
             );
-            consumer.accept(this, forceUpdateBundler);
-            if (readyForForceUpdate.compareAndSet(true, false)) instance.forceUpdate(forceUpdateBundler);
-            if (!forceUpdateBundler.isEmpty()) {
-                instance.allPlayer()
-                        .map(PlayerChannelHandler::player)
-                        .forEach(forceUpdateBundler::send);
-                forceUpdateBundler = instance.createBundler();
+            consumer.accept(this, dataBundler);
+            if (readyForForceUpdate.compareAndSet(true, false)) instance.forceUpdate(dataBundler);
+            if (!dataBundler.isEmpty()) {
+                instance.nonHidePlayer().forEach(dataBundler::send);
+                dataBundler = instance.createBundler();
             }
-            if (!bundler.isEmpty()) {
-                instance.viewedPlayer().forEach(bundler::send);
-                bundler = instance.createBundler();
+            if (!viewBundler.isEmpty()) {
+                instance.viewedPlayer().forEach(viewBundler::send);
+                viewBundler = instance.createBundler();
             }
         };
         task = EXECUTOR.scheduleAtFixedRate(() -> {
@@ -200,9 +195,11 @@ public abstract class Tracker implements AutoCloseable {
     /**
      * Forces packet update.
      * @param force force
+     * @return success
      */
-    public void forceUpdate(boolean force) {
-        readyForForceUpdate.set(force);
+    public boolean forceUpdate(boolean force) {
+        var get = readyForForceUpdate.get();
+        return readyForForceUpdate.compareAndSet(get, force);
     }
 
     /**
@@ -487,5 +484,31 @@ public abstract class Tracker implements AutoCloseable {
                 .map(RenderedBone::getDisplay)
                 .filter(Objects::nonNull)
                 .toList();
+    }
+
+    /**
+     * Hides this tracker to some player
+     * @param player target player
+     * @return success
+     */
+    public boolean hide(@NotNull Player player) {
+        return EventUtil.call(new PlayerHideTrackerEvent(this, player)) && instance.hide(player);
+    }
+
+    /**
+     * Checks this player is marked as hide
+     * @return hide
+     */
+    public boolean isHide(@NotNull Player player) {
+        return instance.isHide(player);
+    }
+
+    /**
+     * Shows this tracker to some player
+     * @param player target player
+     * @return success
+     */
+    public boolean show(@NotNull Player player) {
+        return EventUtil.call(new PlayerShowTrackerEvent(this, player)) && instance.show(player);
     }
 }

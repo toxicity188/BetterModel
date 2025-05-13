@@ -11,6 +11,13 @@ import org.jetbrains.annotations.NotNull;
  * An item-display packet adapter
  */
 public interface ModelDisplay {
+
+    /**
+     * Checks this display is invisible
+     * @return invisible
+     */
+    boolean invisible();
+
     /**
      * Rotates this display
      * @param rotation rotation
@@ -46,7 +53,16 @@ public interface ModelDisplay {
      * Spawns this display
      * @param bundler packet bundler
      */
-    void spawn(@NotNull PacketBundler bundler);
+    default void spawn(@NotNull PacketBundler bundler) {
+        spawn(!invisible(), bundler);
+    }
+
+    /**
+     * Spawns this display
+     * @param showItem show item
+     * @param bundler packet bundler
+     */
+    void spawn(boolean showItem, @NotNull PacketBundler bundler);
 
     /**
      * Removes this display
@@ -83,7 +99,16 @@ public interface ModelDisplay {
      * Sends entity data
      * @param bundler packet bundler
      */
-    void sendEntityData(@NotNull PacketBundler bundler);
+    default void sendEntityData(@NotNull PacketBundler bundler) {
+        sendEntityData(!invisible(), bundler);
+    }
+
+    /**
+     * Sends entity data
+     * @param showItem show item
+     * @param bundler packet bundler
+     */
+    void sendEntityData(boolean showItem, @NotNull PacketBundler bundler);
 
     /**
      * Sets brightness overrides
