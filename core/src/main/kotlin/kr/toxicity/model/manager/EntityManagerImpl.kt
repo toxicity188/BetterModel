@@ -114,7 +114,7 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
             }
             @EventHandler(priority = EventPriority.MONITOR)
             fun PlayerInteractAtEntityEvent.interact() {
-                (rightClicked as? HitBox.Interaction)?.sourceHitBox()?.triggerInteractAt(
+                (rightClicked as? HitBox)?.triggerInteractAt(
                     player,
                     when (this.hand) {
                         HAND -> ModelInteractionHand.RIGHT
@@ -126,7 +126,7 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
             }
             @EventHandler(priority = EventPriority.MONITOR)
             fun PlayerInteractEntityEvent.interact() { //Interact base entity based on interaction entity
-                (rightClicked as? HitBox.Interaction)?.sourceHitBox()?.triggerInteract(
+                (rightClicked as? HitBox)?.triggerInteract(
                     player,
                     when (this.hand) {
                         HAND -> ModelInteractionHand.RIGHT

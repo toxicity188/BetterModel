@@ -1,7 +1,6 @@
 package kr.toxicity.model.nms.v1_21_R4
 
 import kr.toxicity.model.api.nms.HitBox
-import net.minecraft.network.syncher.EntityDataAccessor
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.Entity
@@ -17,28 +16,19 @@ import org.bukkit.craftbukkit.entity.CraftInteraction
 
 class HitBoxInteraction(
     val delegate: HitBoxImpl
-) : Interaction(EntityType.INTERACTION, delegate.level()), HitBox.Interaction {
-
-    companion object {
-        val serializers = Interaction::class.java.declaredFields.filter { f ->
-            EntityDataAccessor::class.java.isAssignableFrom(f.type)
-        }.map {
-            it.isAccessible = true
-            it.get(null) as EntityDataAccessor<*>
-        }
-    }
+) : Interaction(EntityType.INTERACTION, delegate.level()), HitBox by delegate {
 
     init {
         persist = false
     }
 
     private val craftEntity: CraftInteraction by lazy {
-        object : CraftInteraction(Bukkit.getServer() as CraftServer, this), HitBox.Interaction by this {}
+        object : CraftInteraction(Bukkit.getServer() as CraftServer, this), HitBox by this {}
     }
 
     override fun getBukkitEntity(): CraftEntity = craftEntity
     override fun getBukkitEntityRaw(): CraftEntity = craftEntity
-    override fun sourceHitBox(): HitBox = delegate.craftEntity
+    override fun hasExactlyOnePlayerPassenger(): Boolean = false
 
     override fun tick() {
         val dimension = delegate.getDimensions(Pose.STANDING)
@@ -46,12 +36,7 @@ class HitBoxInteraction(
         height = dimension.height
         yRot = delegate.yRot
         xRot = delegate.xRot
-        val pos = delegate.relativePosition()
-        setPos(pos.x.toDouble(), pos.y.toDouble() - height / 2, pos.z.toDouble())
         setSharedFlagOnFire(delegate.remainingFireTicks > 0)
-        serializers.forEach {
-            entityData.markDirty(it)
-        }
     }
 
     override fun skipAttackInteraction(entity: Entity): Boolean {

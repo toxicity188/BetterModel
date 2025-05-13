@@ -93,8 +93,4 @@ public interface HitBox {
      * @return listener
      */
     @NotNull HitBoxListener listener();
-
-    interface Interaction {
-        @NotNull HitBox sourceHitBox();
-    }
 }

@@ -86,6 +86,7 @@ class HitBoxImpl(
         level().addFreshEntity(interaction.apply {
             moveTo(delegate.position())
         })
+        interaction.startRiding(this)
     }
 
     private fun initialSetup() {
@@ -115,8 +116,8 @@ class HitBoxImpl(
     override fun getMainArm(): HumanoidArm = HumanoidArm.RIGHT
 
     override fun mount(entity: Entity) {
-        if (firstPassenger != null) return
-        if (bukkitEntity.addPassenger(entity)) {
+        if (controllingPassenger != null) return
+        if (interaction.bukkitEntity.addPassenger(entity)) {
             if (mountController.canControl()) {
                 mounted = true
                 collision = delegate.collides
@@ -129,13 +130,13 @@ class HitBoxImpl(
     
     override fun dismount(entity: Entity) {
         forceDismount = true
-        if (bukkitEntity.removePassenger(entity)) listener.dismount(craftEntity, entity)
+        if (interaction.bukkitEntity.removePassenger(entity)) listener.dismount(craftEntity, entity)
         forceDismount = false
     }
 
     override fun dismountAll() {
         forceDismount = true
-        passengers.forEach {
+        interaction.passengers.forEach {
             it.stopRiding(true)
             listener.dismount(craftEntity, it.bukkitEntity)
         }
@@ -190,7 +191,7 @@ class HitBoxImpl(
     }
 
     override fun getControllingPassenger(): LivingEntity? {
-        return if (mounted) firstPassenger as? LivingEntity ?: super.getControllingPassenger() else null
+        return if (mounted) interaction.firstPassenger as? LivingEntity ?: super.getControllingPassenger() else null
     }
 
     override fun onWalk(): Boolean {
@@ -246,7 +247,6 @@ class HitBoxImpl(
         }
         val controller = controllingPassenger
         if (jumpDelay > 0) jumpDelay--
-        health = delegate.health
         interaction.isInvisible = delegate.isInvisible
         if (controller is ServerPlayer && !isDeadOrDying && mountController.canControl()) {
             if (delegate is Mob) delegate.navigation.stop()
@@ -258,7 +258,7 @@ class HitBoxImpl(
         val pos = relativePosition()
         setPos(
             pos.x.toDouble(),
-            pos.y.toDouble() + source.maxY * supplier.hitBoxScale() - type.height,
+            pos.y.toDouble() + source.minY * supplier.hitBoxScale() - type.height,
             pos.z.toDouble()
         )
         BlockPos.betweenClosedStream(boundingBox).forEach {
@@ -393,10 +393,10 @@ class HitBoxImpl(
             val scale = supplier.hitBoxScale()
             AABB(
                 vec3.x - source.minX * scale,
-                vec3.y + (source.minY - source.maxY) * scale + type.height,
+                vec3.y + type.height,
                 vec3.z - source.minZ * scale,
                 vec3.x - source.maxX * scale,
-                vec3.y + type.height,
+                vec3.y + (source.maxY - source.minY) * scale + type.height,
                 vec3.z - source.maxZ * scale
             )
         }

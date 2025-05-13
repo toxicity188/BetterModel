@@ -73,6 +73,14 @@ public record ModelBoundingBox(
     }
 
     /**
+     * Gets center y
+     * @return center y
+     */
+    public double centerY() {
+        return (maxY + minY) / 2;
+    }
+
+    /**
      * Gets z
      * @return z
      */
