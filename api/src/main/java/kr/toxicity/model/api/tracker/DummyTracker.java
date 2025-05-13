@@ -47,7 +47,7 @@ public final class DummyTracker extends Tracker {
      */
     public void location(@NotNull Location location) {
         this.location = Objects.requireNonNull(location, "location");
-        var bundler = BetterModel.inst().nms().createBundler(instance.getDisplayAmount(), false);
+        var bundler = instance.createBundler();
         instance.teleport(location, bundler);
         if (!bundler.isEmpty()) instance.allPlayer()
                 .map(PlayerChannelHandler::player)

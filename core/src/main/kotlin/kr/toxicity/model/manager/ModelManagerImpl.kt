@@ -105,7 +105,6 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
     }
 
     override fun reload(info: ReloadInfo) {
-        renderMap.clear()
 
         val zipper = PackDataZipper()
         val modernModel = PackDataZipper()

@@ -58,7 +58,6 @@ public abstract class Tracker implements AutoCloseable {
     private final Runnable updater;
     private PacketBundler bundler, forceUpdateBundler;
     private long frame = 0;
-    @Getter
     private ModelRotator rotator = ModelRotator.EMPTY;
 
     private BiConsumer<Tracker, PacketBundler> consumer = (t, b) -> {};
@@ -73,7 +72,7 @@ public abstract class Tracker implements AutoCloseable {
         this.source = source;
         this.modifier = modifier;
         bundler = instance.createBundler();
-        forceUpdateBundler = BetterModel.inst().nms().createBundler(instance.getDisplayAmount() + 10);
+        forceUpdateBundler = instance.createBundler();
         var config = BetterModel.inst().configManager();
         updater = () -> {
             instance.move(
@@ -86,7 +85,7 @@ public abstract class Tracker implements AutoCloseable {
                 instance.allPlayer()
                         .map(PlayerChannelHandler::player)
                         .forEach(forceUpdateBundler::send);
-                forceUpdateBundler = BetterModel.inst().nms().createBundler(instance.getDisplayAmount() + 10);
+                forceUpdateBundler = instance.createBundler();
             }
             if (!bundler.isEmpty()) {
                 instance.viewedPlayer().forEach(bundler::send);

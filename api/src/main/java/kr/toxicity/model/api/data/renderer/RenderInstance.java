@@ -86,7 +86,7 @@ public final class RenderInstance {
         displayAmount = (int) bones.stream()
                 .filter(rb -> rb.getDisplay() != null)
                 .count();
-        initialBundlerSize = displayAmount * 2;
+        initialBundlerSize = displayAmount + 10;
 
         animate("idle", new AnimationModifier(6, 0, 1));
     }
@@ -136,7 +136,7 @@ public final class RenderInstance {
                 if (hb != null) hb.removeHitBox();
             });
         }
-        var bundler = BetterModel.inst().nms().createBundler(displayAmount);
+        var bundler = createBundler();
         remove0(bundler);
         if (!bundler.isEmpty()) for (PlayerChannelHandler value : playerMap.values()) {
             bundler.send(value.player());
@@ -309,7 +309,7 @@ public final class RenderInstance {
 
     public void remove(@NotNull Player player) {
         if (playerMap.remove(player.getUniqueId()) == null) return;
-        var bundler = BetterModel.inst().nms().createBundler(displayAmount);
+        var bundler = createBundler();
         remove0(bundler);
         bundler.send(player);
     }
