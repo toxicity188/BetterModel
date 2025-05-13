@@ -4,6 +4,7 @@ import ca.spottedleaf.moonrise.common.util.TickThread
 import io.netty.buffer.Unpooled
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet
 import kr.toxicity.model.api.BetterModel
+import kr.toxicity.model.api.nms.PacketBundler
 import kr.toxicity.model.api.util.EventUtil
 import kr.toxicity.model.api.util.ItemUtil
 import net.minecraft.network.FriendlyByteBuf
@@ -121,3 +122,4 @@ fun <T> useByteBuf(block: (FriendlyByteBuf) -> T): T {
 }
 
 val ItemStack.isAirOrEmpty get() = ItemUtil.isEmpty(this)
+fun PacketBundler.unwrap(): PacketBundlerImpl = this as PacketBundlerImpl

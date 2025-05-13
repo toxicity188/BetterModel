@@ -134,15 +134,6 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
                         else -> return
                     }
                 )
-                EntityTracker.tracker(rightClicked.uniqueId)?.let {
-                    if (it.isHide(player)) {
-                        player.sendMessage("투명화 풀렸다!")
-                        it.show(player)
-                    } else {
-                        player.sendMessage("투명화 되었다!")
-                        it.hide(player)
-                    }
-                }
             }
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun EntityDamageEvent.damage() { //Damage

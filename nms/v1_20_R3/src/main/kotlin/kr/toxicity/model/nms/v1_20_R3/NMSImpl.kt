@@ -19,7 +19,6 @@ import kr.toxicity.model.api.util.BonePredicate
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtUtils
 import net.minecraft.network.Connection
-import net.minecraft.network.PacketSendListener
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.*
 import net.minecraft.network.syncher.EntityDataAccessor
@@ -109,29 +108,6 @@ class NMSImpl : NMS {
         }
         private val transformSet = displaySet.subList(0, 6).toIntSet()
         private val entityDataSet = (listOf(sharedFlag) + itemId + displaySet.subList(transformSet.size, displaySet.size)).toIntSet()
-    }
-
-    private class PacketBundlerImpl(
-        private val useEntityTrack: Boolean,
-        private val list: MutableList<Packet<ClientGamePacketListener>>
-    ) : PacketBundler, Iterable<Packet<ClientGamePacketListener>> by list {
-        private val bundlePacket by lazy {
-            ClientboundBundlePacket(this)
-        }
-        override fun copy(): PacketBundler = PacketBundlerImpl(useEntityTrack, ArrayList(list))
-        override fun send(player: Player, onSuccess: Runnable) {
-            val connection = (player as CraftPlayer).handle.connection
-            when (list.size) {
-                0 -> {}
-                1 -> connection.send(list[0], PacketSendListener.thenRun(onSuccess))
-                else -> connection.send(bundlePacket, PacketSendListener.thenRun(onSuccess))
-            }
-        }
-        override fun useEntityTrack(): Boolean = useEntityTrack
-        override fun isEmpty(): Boolean = list.isEmpty()
-        operator fun plusAssign(other: Packet<ClientGamePacketListener>) {
-            list += other
-        }
     }
 
     override fun hide(player: Player, entity: org.bukkit.entity.Entity) {
@@ -328,7 +304,6 @@ class NMSImpl : NMS {
     override fun inject(player: Player): PlayerChannelHandlerImpl = PlayerChannelHandlerImpl(player)
 
     override fun createBundler(initialCapacity: Int, useEntityTrack: Boolean): PacketBundler = PacketBundlerImpl(useEntityTrack, ArrayList(initialCapacity))
-    private fun PacketBundler.unwrap(): PacketBundlerImpl = this as PacketBundlerImpl
 
     override fun create(location: Location): ModelDisplay = ModelDisplayImpl(ItemDisplay(EntityType.ITEM_DISPLAY, (location.world as CraftWorld).handle).apply {
         billboardConstraints = Display.BillboardConstraints.FIXED
