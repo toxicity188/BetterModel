@@ -3,6 +3,8 @@ package kr.toxicity.model.manager
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import kr.toxicity.model.api.bone.BoneItemMapper
+import kr.toxicity.model.api.bone.BoneTagRegistry
+import kr.toxicity.model.api.bone.BoneTags
 import kr.toxicity.model.api.data.blueprint.BlueprintChildren.BlueprintGroup
 import kr.toxicity.model.api.data.blueprint.BlueprintJson
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint
@@ -101,6 +103,12 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                     }
                 }
             }
+        }
+    }
+
+    override fun start() {
+        BoneTags.entries.forEach {
+            BoneTagRegistry.addTag(it)
         }
     }
 

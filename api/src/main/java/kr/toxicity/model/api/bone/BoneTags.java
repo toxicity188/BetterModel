@@ -33,8 +33,6 @@ public enum BoneTags implements BoneTag {
     BoneTags(@Nullable BoneItemMapper itemMapper, @NotNull String[] tags) {
         this.itemMapper = itemMapper;
         this.tags = tags;
-
-        BoneTagRegistry.addTag(this);
     }
 
     @Nullable
