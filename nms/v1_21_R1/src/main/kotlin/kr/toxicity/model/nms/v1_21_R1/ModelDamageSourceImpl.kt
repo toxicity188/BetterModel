@@ -6,7 +6,7 @@ import org.bukkit.Location
 import org.bukkit.craftbukkit.util.CraftLocation
 import org.bukkit.entity.Entity
 
-class ModelDamageSourceImpl(
+internal class ModelDamageSourceImpl(
     private val source: DamageSource
 ) : ModelDamageSource {
     override fun getCausingEntity(): Entity? = source.entity?.bukkitEntity

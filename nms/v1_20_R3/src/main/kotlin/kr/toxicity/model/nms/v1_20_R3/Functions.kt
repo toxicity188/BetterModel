@@ -32,7 +32,7 @@ import org.bukkit.inventory.ItemStack
 import org.joml.Vector3f
 import kotlin.math.max
 
-inline fun <reified T, reified R> createAdaptedFieldGetter(noinline paperGetter: (T) -> R): (T) -> R {
+internal inline fun <reified T, reified R> createAdaptedFieldGetter(noinline paperGetter: (T) -> R): (T) -> R {
     return if (BetterModel.IS_PAPER) paperGetter else T::class.java.declaredFields.first {
         R::class.java.isAssignableFrom(it.type)
     }.apply {
@@ -44,17 +44,17 @@ inline fun <reified T, reified R> createAdaptedFieldGetter(noinline paperGetter:
     }
 }
 
-val CONFIG by lazy {
+internal val CONFIG by lazy {
     BetterModel.inst().configManager()
 }
 
-fun List<Int>.toIntSet(): IntOpenHashSet = IntOpenHashSet(this)
+internal fun List<Int>.toIntSet(): IntOpenHashSet = IntOpenHashSet(this)
 
-fun Entity.passengerPosition(): Vector3f {
+internal fun Entity.passengerPosition(): Vector3f {
     return Vector3f(0F, getDimensions(pose).height, 0F)
 }
 
-fun Event.call(): Boolean = EventUtil.call(this)
+internal fun Event.call(): Boolean = EventUtil.call(this)
 
 private val DATA_ITEMS by lazy {
     SynchedEntityData::class.java.declaredFields.first {
@@ -65,7 +65,7 @@ private val DATA_ITEMS by lazy {
 }
 
 @Suppress("UNCHECKED_CAST")
-fun SynchedEntityData.pack(): List<SynchedEntityData.DataValue<*>> {
+internal fun SynchedEntityData.pack(): List<SynchedEntityData.DataValue<*>> {
     val list = arrayListOf<SynchedEntityData.DataValue<*>>()
     (DATA_ITEMS[this] as Array<DataItem<*>?>).forEach {
         list += (it ?: return@forEach).value()
@@ -73,7 +73,7 @@ fun SynchedEntityData.pack(): List<SynchedEntityData.DataValue<*>> {
     return list
 }
 
-fun Entity.isWalking(): Boolean {
+internal fun Entity.isWalking(): Boolean {
     return controllingPassenger?.isWalking() ?: when (this) {
         is Mob -> (navigation.isInProgress || goalSelector.availableGoals.any {
             it.isRunning && when (it.goal) {
@@ -86,26 +86,26 @@ fun Entity.isWalking(): Boolean {
     }
 }
 
-fun ServerPlayer.xMovement(): Float {
+internal fun ServerPlayer.xMovement(): Float {
     return xxa
 }
 
-fun ServerPlayer.yMovement(): Float = if (isJump()) 1F else if (isShiftKeyDown) -1F else 0F
+internal fun ServerPlayer.yMovement(): Float = if (isJump()) 1F else if (isShiftKeyDown) -1F else 0F
 
-fun ServerPlayer.zMovement(): Float {
+internal fun ServerPlayer.zMovement(): Float {
     return zza
 }
 
-fun LivingEntity.jumpFactor(): Float {
+internal fun LivingEntity.jumpFactor(): Float {
     val f: Float = level().getBlockState(blockPosition()).block.getJumpFactor()
     val f1: Float = level().getBlockState(BlockPos.containing(x, boundingBox.minY - 0.5000001, z)).block.getJumpFactor()
     return if (f.toDouble() == 1.0) f1 else f
 }
 
-val LivingEntity.gravity: Double
+internal val LivingEntity.gravity: Double
     get() = if (deltaMovement.y <= 0.0 && this.hasEffect(MobEffects.SLOW_FALLING)) 0.01 else 0.08
 
-fun LivingEntity.jumpFromGround() {
+internal fun LivingEntity.jumpFromGround() {
     val jumpPower = (getAttribute(Attributes.JUMP_STRENGTH)?.value?.toFloat() ?: 0.4F) * jumpFactor() + jumpBoostPower
     if (!(jumpPower <= 1.0E-5f)) {
         val deltaMovement = deltaMovement
@@ -118,9 +118,9 @@ fun LivingEntity.jumpFromGround() {
     }
 }
 
-fun ServerPlayer.isJump() = jumping
+internal fun ServerPlayer.isJump() = jumping
 
-val Entity.isFlying: Boolean
+internal val Entity.isFlying: Boolean
     get() = when (this) {
         is FlyingAnimal -> isFlying
         is FlyingMob -> true
@@ -130,13 +130,13 @@ val Entity.isFlying: Boolean
         else -> false
     }
 
-val CraftEntity.vanillaEntity: Entity
+internal val CraftEntity.vanillaEntity: Entity
     get() = if (BetterModel.IS_PAPER) handleRaw else handle
 
-val isTickThread
+internal val isTickThread
     get() = if (BetterModel.IS_PAPER) TickThread.isTickThread() else Thread.currentThread() === MinecraftServer.getServer().serverThread
 
-fun <T> useByteBuf(block: (FriendlyByteBuf) -> T): T {
+internal fun <T> useByteBuf(block: (FriendlyByteBuf) -> T): T {
     val buffer = FriendlyByteBuf(Unpooled.buffer())
     return try {
         block(buffer)
@@ -145,5 +145,5 @@ fun <T> useByteBuf(block: (FriendlyByteBuf) -> T): T {
     }
 }
 
-val ItemStack.isAirOrEmpty get() = ItemUtil.isEmpty(this)
-fun PacketBundler.unwrap(): PacketBundlerImpl = this as PacketBundlerImpl
+internal val ItemStack.isAirOrEmpty get() = ItemUtil.isEmpty(this)
+internal fun PacketBundler.unwrap(): PacketBundlerImpl = this as PacketBundlerImpl

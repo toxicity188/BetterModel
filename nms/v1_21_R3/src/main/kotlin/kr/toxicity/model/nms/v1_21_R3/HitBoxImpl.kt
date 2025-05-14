@@ -45,7 +45,7 @@ import org.bukkit.event.entity.EntityRemoveEvent
 import org.bukkit.util.Vector
 import org.joml.Vector3f
 
-class HitBoxImpl(
+internal class HitBoxImpl(
     private val name: BoneName,
     private val source: ModelBoundingBox,
     private val supplier: HitBoxSource,

@@ -8,7 +8,7 @@ import net.minecraft.network.protocol.game.ClientboundBundlePacket
 import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer
 import org.bukkit.entity.Player
 
-class PacketBundlerImpl(
+internal class PacketBundlerImpl(
     private val useEntityTrack: Boolean,
     private val list: MutableList<Packet<ClientGamePacketListener>>
 ) : PacketBundler, Iterable<Packet<ClientGamePacketListener>> by list {

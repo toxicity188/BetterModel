@@ -14,7 +14,7 @@ import org.bukkit.craftbukkit.CraftServer
 import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.craftbukkit.entity.CraftInteraction
 
-class HitBoxInteraction(
+internal class HitBoxInteraction(
     val delegate: HitBoxImpl
 ) : Interaction(EntityType.INTERACTION, delegate.level()), HitBox by delegate {
 
