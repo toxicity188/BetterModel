@@ -16,7 +16,7 @@ Tell me your feature you want to add.
 **Disclaimer**  
 I do NOT accept any request about that.
 
-- Closed-source mod/plugin support such as Optifine and ItemsAdder
+- Closed-source mod/plugin support such as Optifine, ItemsAdder or Nexo
 - Modified client such as Feather
 - Hybrid bukkit such as ArcLight
 - Legacy version such as 1.20.1 or lower
@@ -25,4 +25,4 @@ I do NOT accept any request about that.
 - A function can cause some significant performance issue
 - Your personal issue (ex. How can I apply some resource pack?)
 - A function that is impossible to implement in server-side
-- Inaccurate explanation.
+- Inaccurate explanation

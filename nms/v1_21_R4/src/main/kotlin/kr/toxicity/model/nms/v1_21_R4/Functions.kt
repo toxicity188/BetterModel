@@ -5,6 +5,7 @@ import io.netty.buffer.Unpooled
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.nms.PacketBundler
+import kr.toxicity.model.api.tracker.Tracker
 import kr.toxicity.model.api.util.EventUtil
 import kr.toxicity.model.api.util.ItemUtil
 import net.minecraft.network.FriendlyByteBuf
@@ -22,6 +23,7 @@ import net.minecraft.world.phys.Vec3
 import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.event.Event
 import org.bukkit.inventory.ItemStack
+import org.checkerframework.checker.units.qual.h
 import org.joml.Vector3f
 
 internal inline fun <reified T, reified R> createAdaptedFieldGetter(noinline paperGetter: (T) -> R): (T) -> R {
@@ -137,3 +139,12 @@ internal fun <T> useByteBuf(block: (FriendlyByteBuf) -> T): T {
 
 internal val ItemStack.isAirOrEmpty get() = ItemUtil.isEmpty(this)
 internal fun PacketBundler.unwrap(): PacketBundlerImpl = this as PacketBundlerImpl
+
+internal fun Tracker.entityFlag(byte: Byte): Byte {
+    var b = byte.toInt()
+    val hideOption = modifier().hideOption()
+    if (hideOption.fire()) b = b and 1.inv()
+    if (hideOption.visibility()) b = b or (1 shl 5)
+    if (hideOption.glowing()) b = b and (1 shl 6).inv()
+    return b.toByte()
+}

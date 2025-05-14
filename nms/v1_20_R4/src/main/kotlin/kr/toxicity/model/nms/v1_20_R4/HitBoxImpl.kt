@@ -12,6 +12,7 @@ import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.HitBoxListener
 import kr.toxicity.model.api.nms.HitBoxSource
 import kr.toxicity.model.api.nms.ModelInteractionHand
+import kr.toxicity.model.api.util.FunctionUtil
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ServerboundInteractPacket
 import net.minecraft.server.level.ServerPlayer
@@ -44,6 +45,7 @@ import org.bukkit.plugin.Plugin
 import org.bukkit.util.Vector
 import org.joml.Quaterniond
 import org.joml.Vector3f
+import java.util.function.Supplier
 
 internal class HitBoxImpl(
     private val name: BoneName,
@@ -64,7 +66,10 @@ internal class HitBoxImpl(
     val craftEntity: HitBox by lazy {
         object : CraftLivingEntity(Bukkit.getServer() as CraftServer, this), HitBox by this {}
     }
-    private val rotatedSource get() = source.rotate(Quaterniond(supplier.hitBoxViewRotation()))
+    private val _rotatedSource = FunctionUtil.throttleTick(Supplier {
+        source.rotate(Quaterniond(supplier.hitBoxViewRotation()))
+    })
+    private val rotatedSource get() = _rotatedSource.get()
     private val dimensions: EntityDimensions get() = rotatedSource.run {
         EntityDimensions(
             (x() + z()).toFloat() / 2,
@@ -265,9 +270,10 @@ internal class HitBoxImpl(
         yHeadRot = yRot
         yBodyRot = yRot
         val pos = relativePosition()
+        val minusHeight = rotatedSource.minY * supplier.hitBoxScale() - type.height
         setPos(
             pos.x.toDouble(),
-            pos.y.toDouble() + source.minY * supplier.hitBoxScale() - type.height,
+            pos.y.toDouble() + minusHeight,
             pos.z.toDouble()
         )
         BlockPos.betweenClosedStream(boundingBox).forEach {

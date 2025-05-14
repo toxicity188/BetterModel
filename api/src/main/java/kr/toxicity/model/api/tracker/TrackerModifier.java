@@ -2,6 +2,7 @@ package kr.toxicity.model.api.tracker;
 
 import kr.toxicity.model.api.util.EntityUtil;
 import kr.toxicity.model.api.util.FunctionUtil;
+import lombok.Builder;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -18,8 +19,23 @@ public record TrackerModifier(
         boolean sightTrace,
         boolean damageEffect,
         float viewRange,
-        boolean shadow
+        boolean shadow,
+        @NotNull HideOption hideOption
 ) {
+    @lombok.Builder
+    public record HideOption(
+            boolean equipment,
+            boolean fire,
+            boolean visibility,
+            boolean glowing
+    ) {
+        public static final HideOption DEFAULT = new HideOption(
+                true,
+                true,
+                true,
+                true
+        );
+    }
 
     /**
      * Default modifier
@@ -29,7 +45,8 @@ public record TrackerModifier(
             true,
             true,
             EntityUtil.ENTITY_MODEL_VIEW_RADIUS,
-            true
+            true,
+            HideOption.DEFAULT
     );
 
     /**
@@ -49,6 +66,7 @@ public record TrackerModifier(
         private boolean damageEffect = DEFAULT.damageEffect;
         private float viewRange = DEFAULT.viewRange;
         private boolean shadow = DEFAULT.shadow;
+        private HideOption hideOption = DEFAULT.hideOption;
 
         /**
          * Private initializer
@@ -107,6 +125,16 @@ public record TrackerModifier(
         }
 
         /**
+         * Set hide option
+         * @param option hide option
+         * @return self
+         */
+        public @NotNull Builder hideOption(@NotNull HideOption option) {
+            this.hideOption = Objects.requireNonNull(option);
+            return this;
+        }
+
+        /**
          * Builds modifier
          * @return modifier
          */
@@ -116,7 +144,8 @@ public record TrackerModifier(
                     sightTrace,
                     damageEffect,
                     viewRange,
-                    shadow
+                    shadow,
+                    hideOption
             );
         }
     }

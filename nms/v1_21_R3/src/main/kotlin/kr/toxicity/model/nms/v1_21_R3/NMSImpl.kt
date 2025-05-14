@@ -227,14 +227,16 @@ class NMSImpl : NMS {
                         })
                     }
                 }
-                is ClientboundSetEntityDataPacket -> if (id.toTracker() != null) return ClientboundSetEntityDataPacket(id, packedItems().map {
-                    if (it.id == sharedFlag) SynchedEntityData.DataValue(
-                        it.id,
-                        EntityDataSerializers.BYTE,
-                        ((it.value() as Byte).toInt() and 1.inv() or (1 shl 5) and (1 shl 6).inv()).toByte()
-                    ) else it
-                })
-                is ClientboundSetEquipmentPacket -> if (entity.toTracker() != null) return ClientboundSetEquipmentPacket(entity, EquipmentSlot.entries.map { e ->
+                is ClientboundSetEntityDataPacket -> id.toTracker()?.let { tracker ->
+                    return ClientboundSetEntityDataPacket(id, packedItems().map {
+                        if (it.id == sharedFlag) SynchedEntityData.DataValue(
+                            it.id,
+                            EntityDataSerializers.BYTE,
+                            tracker.entityFlag(it.value() as Byte)
+                        ) else it
+                    })
+                }
+                is ClientboundSetEquipmentPacket -> if (entity.toTracker()?.modifier()?.hideOption()?.equipment() == true) return ClientboundSetEquipmentPacket(entity, EquipmentSlot.entries.map { e ->
                     Pair.of(e, Items.AIR.defaultInstance)
                 })
                 is ClientboundRespawnPacket -> EntityTracker.tracker(player.uniqueId)?.let {
@@ -261,6 +263,7 @@ class NMSImpl : NMS {
             when (msg) {
                 is ServerboundSetCarriedItemPacket -> {
                     connection.player.id.toTracker()?.let { tracker ->
+                        if (!tracker.modifier().hideOption().equipment()) return super.channelRead(ctx, msg)
                         if (CONFIG.cancelPlayerModelInventory()) {
                             connection.send(ClientboundSetHeldSlotPacket(player.inventory.heldItemSlot))
                             return
@@ -271,6 +274,7 @@ class NMSImpl : NMS {
                 }
                 is ServerboundPlayerActionPacket -> {
                     connection.player.id.toTracker()?.let { tracker ->
+                        if (!tracker.modifier().hideOption().equipment()) return super.channelRead(ctx, msg)
                         if (CONFIG.cancelPlayerModelInventory()) return
                         else tracker.updatePlayerLimb()
                     }

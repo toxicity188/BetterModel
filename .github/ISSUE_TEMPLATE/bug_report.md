@@ -25,5 +25,5 @@ I required some help to provide you a correct solution.
 I do NOT provide any solution about that.
 
 - Using informal launcher such as Feather client
-- Closed-source plugin/mod such as Optifine and ItemsAdder
+- Closed-source plugin/mod such as Optifine, ItemsAdder or Nexo
 - Usage in hybrid bukkit such as ArcLight

@@ -43,7 +43,14 @@ class ModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().s
             } ?: SkillResult.CONDITION_FAILED
         } else {
             ModelManagerImpl.renderer(mid(args) ?: return SkillResult.CONDITION_FAILED)?.let {
-                val created = it.create(e, TrackerModifier({ s(args) }, st(args), de(args), vr(args), shadow(args)))
+                val created = it.create(e, TrackerModifier(
+                    { s(args) },
+                    st(args),
+                    de(args),
+                    vr(args),
+                    shadow(args),
+                    TrackerModifier.HideOption.DEFAULT)
+                )
                 BetterModel.inst().scheduler().taskLater(1, e) {
                     created.spawnNearby()
                 }
