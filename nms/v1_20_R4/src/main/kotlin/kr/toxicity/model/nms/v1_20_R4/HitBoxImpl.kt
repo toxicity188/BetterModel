@@ -32,6 +32,8 @@ import net.minecraft.world.item.Items
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import org.bukkit.Bukkit
+import org.bukkit.Color
+import org.bukkit.Particle
 import org.bukkit.craftbukkit.CraftServer
 import org.bukkit.craftbukkit.entity.CraftLivingEntity
 import org.bukkit.craftbukkit.entity.CraftPlayer
@@ -48,7 +50,7 @@ class HitBoxImpl(
     private val listener: HitBoxListener,
     private val delegate: LivingEntity,
     private var mountController: MountController
-) : LivingEntity(EntityType.ARMOR_STAND, delegate.level()), HitBox {
+) : LivingEntity(EntityType.SILVERFISH, delegate.level()), HitBox {
     private var initialized = false
     private var jumpDelay = 0
     private var mounted = false
@@ -74,7 +76,7 @@ class HitBoxImpl(
 
     init {
         moveTo(delegate.position())
-        if (!CONFIG.debug().hitBox()) isInvisible = true
+        isInvisible = true
         persist = false
         isSilent = true
         initialized = true
@@ -361,14 +363,12 @@ class HitBoxImpl(
         return delegate.deflection(projectile)
     }
 
+    override fun getHealth(): Float {
+        return delegate.health
+    }
+
     override fun getAttributes(): AttributeMap {
-        val attr = super.getAttributes()
-        if (initialized) {
-            delegate.getAttribute(Attributes.MAX_HEALTH)?.let {
-                attr.getInstance(Attributes.MAX_HEALTH)?.baseValue = it.baseValue
-            }
-        }
-        return attr
+        return if (initialized) delegate.attributes else super.getAttributes()
     }
 
     override fun makeBoundingBox(): AABB {
@@ -383,8 +383,13 @@ class HitBoxImpl(
                 vec3.z - source.minZ * scale,
                 vec3.x - source.maxX * scale,
                 vec3.y + (source.maxY - source.minY) * scale + type.height,
-                vec3.z - source.maxZ * scale
-            )
+                vec3.z + source.maxZ * scale
+            ).apply {
+                if (CONFIG.debug().hitBox) {
+                    bukkitEntity.world.spawnParticle(Particle.DUST, minX, minY, minZ, 1, 0.0, 0.0, 0.0, 0.0, Particle.DustOptions(Color.RED, 1F))
+                    bukkitEntity.world.spawnParticle(Particle.DUST, maxX, maxY, maxZ, 1, 0.0, 0.0, 0.0, 0.0, Particle.DustOptions(Color.RED, 1F))
+                }
+            }
         }
     }
 
