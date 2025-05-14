@@ -1,6 +1,5 @@
 package kr.toxicity.model.api.tracker;
 
-import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.data.renderer.RenderSource;
 import kr.toxicity.model.api.event.CreateDummyTrackerEvent;
@@ -46,6 +45,7 @@ public final class DummyTracker extends Tracker {
      * @param location location
      */
     public void location(@NotNull Location location) {
+        if (this.location.equals(location)) return;
         this.location = Objects.requireNonNull(location, "location");
         var bundler = instance.createBundler();
         instance.teleport(location, bundler);

@@ -2,7 +2,6 @@ package kr.toxicity.model.api.tracker;
 
 import kr.toxicity.model.api.util.EntityUtil;
 import kr.toxicity.model.api.util.FunctionUtil;
-import lombok.Builder;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -50,28 +49,43 @@ public record TrackerModifier(
     );
 
     /**
-     * Creates builder
+     * Creates default builder
      * @return builder
      */
     public static @NotNull Builder builder() {
-        return new Builder();
+        return DEFAULT.toBuilder();
+    }
+
+    /**
+     * Creates builder from original modifier.
+     * @return builder
+     */
+    public @NotNull Builder toBuilder() {
+        return new Builder(this);
     }
 
     /**
      * Builder class
      */
     public static final class Builder {
-        private Supplier<Float> scale = DEFAULT.scale;
-        private boolean sightTrace = DEFAULT.sightTrace;
-        private boolean damageEffect = DEFAULT.damageEffect;
-        private float viewRange = DEFAULT.viewRange;
-        private boolean shadow = DEFAULT.shadow;
-        private HideOption hideOption = DEFAULT.hideOption;
+        private Supplier<Float> scale;
+        private boolean sightTrace;
+        private boolean damageEffect;
+        private float viewRange;
+        private boolean shadow;
+        private HideOption hideOption;
 
         /**
          * Private initializer
+         * @param modifier modifier
          */
-        private Builder() {
+        private Builder(@NotNull TrackerModifier modifier) {
+            this.scale = modifier.scale;
+            this.sightTrace = modifier.sightTrace;
+            this.damageEffect = modifier.damageEffect;
+            this.viewRange = modifier.viewRange;
+            this.shadow = modifier.shadow;
+            this.hideOption = modifier.hideOption;
         }
 
         /**
