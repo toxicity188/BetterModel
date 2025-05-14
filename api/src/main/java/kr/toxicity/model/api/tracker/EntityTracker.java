@@ -20,6 +20,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -390,5 +391,19 @@ public class EntityTracker extends Tracker {
     @ApiStatus.Internal
     public void refresh() {
         BetterModel.inst().scheduler().task(entity, () -> instance.createHitBox(adapter, r -> r.getHitBox() != null, null));
+    }
+
+    @Override
+    public boolean hide(@NotNull Player player) {
+        var success = super.hide(player);
+        if (success) BetterModel.inst().scheduler().task(player, () -> player.hideEntity((Plugin) BetterModel.inst(), entity));
+        return success;
+    }
+
+    @Override
+    public boolean show(@NotNull Player player) {
+        var success = super.show(player);
+        if (success) BetterModel.inst().scheduler().task(player, () -> player.showEntity((Plugin) BetterModel.inst(), entity));
+        return success;
     }
 }

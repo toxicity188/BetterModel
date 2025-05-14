@@ -16,6 +16,8 @@ public interface HitBox {
 
     void triggerInteract(@NotNull Player player, @NotNull ModelInteractionHand hand);
     void triggerInteractAt(@NotNull Player player, @NotNull ModelInteractionHand hand, @NotNull Vector vector);
+    void hide(@NotNull Player player);
+    void show(@NotNull Player player);
 
     /**
      * Gets bone name

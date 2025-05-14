@@ -61,6 +61,8 @@ public final class RenderInstance {
 
     private Consumer<PacketBundler> spawnPacketHandler = b -> {};
     private Consumer<PacketBundler> despawnPacketHandler = b -> {};
+    private Consumer<PacketBundler> hidePacketHandler = b -> {};
+    private Consumer<PacketBundler> showPacketHandler = b -> {};
 
     @Getter
     private ModelRotation rotation = ModelRotation.EMPTY;
@@ -106,6 +108,12 @@ public final class RenderInstance {
 
     public void despawnPacketHandler(@NotNull Consumer<PacketBundler> despawnPacketHandler) {
         this.despawnPacketHandler = this.despawnPacketHandler.andThen(despawnPacketHandler);
+    }
+    public void hidePacketHandler(@NotNull Consumer<PacketBundler> despawnPacketHandler) {
+        this.hidePacketHandler = this.hidePacketHandler.andThen(despawnPacketHandler);
+    }
+    public void showPacketHandler(@NotNull Consumer<PacketBundler> despawnPacketHandler) {
+        this.showPacketHandler = this.showPacketHandler.andThen(despawnPacketHandler);
     }
 
     public @NotNull Predicate<Player> spawnFilter() {
@@ -348,22 +356,31 @@ public final class RenderInstance {
         return playerMap.values().stream();
     }
     public @NotNull Stream<Player> nonHidePlayer() {
-        return allPlayer()
-                .map(PlayerChannelHandler::player)
-                .filter(p -> !hidePlayerSet.contains(p.getUniqueId()));
+        return filteredPlayer(p -> !hidePlayerSet.contains(p.getUniqueId()));
     }
     public @NotNull Stream<Player> viewedPlayer() {
-        return viewedPlayer(viewFilter);
+        return filteredPlayer(viewFilter);
     }
-    public @NotNull Stream<Player> viewedPlayer(@NotNull Predicate<Player> predicate) {
-        return nonHidePlayer().filter(predicate);
+    public @NotNull Stream<Player> filteredPlayer(@NotNull Predicate<Player> predicate) {
+        return allPlayer()
+                .map(PlayerChannelHandler::player)
+                .filter(predicate);
     }
 
     public boolean hide(@NotNull Player player) {
         if (hidePlayerSet.add(player.getUniqueId())) {
-            var bundler = createBundler();
-            forceUpdate(false, bundler);
-            if (!bundler.isEmpty()) bundler.send(player);
+            if (playerMap.containsKey(player.getUniqueId())) {
+                var bundler = createBundler();
+                forceUpdate(false, bundler);
+                hidePacketHandler.accept(bundler);
+                if (!bundler.isEmpty()) bundler.send(player);
+            }
+            BetterModel.inst().scheduler().task(player, () -> {
+                for (RenderedBone bone : bones) {
+                    var hb = bone.getHitBox();
+                    if (hb != null) hb.hide(player);
+                }
+            });
             return true;
         } else return false;
     }
@@ -374,9 +391,18 @@ public final class RenderInstance {
 
     public boolean show(@NotNull Player player) {
         if (hidePlayerSet.remove(player.getUniqueId())) {
-            var bundler = createBundler();
-            forceUpdate(bundler);
-            if (!bundler.isEmpty()) bundler.send(player);
+            if (playerMap.containsKey(player.getUniqueId())) {
+                var bundler = createBundler();
+                forceUpdate(bundler);
+                showPacketHandler.accept(bundler);
+                if (!bundler.isEmpty()) bundler.send(player);
+            }
+            BetterModel.inst().scheduler().task(player, () -> {
+                for (RenderedBone bone : bones) {
+                    var hb = bone.getHitBox();
+                    if (hb != null) hb.show(player);
+                }
+            });
             return true;
         } else return false;
     }
