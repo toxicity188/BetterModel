@@ -5,13 +5,16 @@ import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.bone.BoneName;
-import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.bone.RenderedBone;
+import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.data.renderer.RenderSource;
 import kr.toxicity.model.api.event.*;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
-import kr.toxicity.model.api.util.*;
+import kr.toxicity.model.api.util.BonePredicate;
+import kr.toxicity.model.api.util.EntityUtil;
+import kr.toxicity.model.api.util.EventUtil;
+import kr.toxicity.model.api.util.TransformedItemStack;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -120,7 +123,7 @@ public abstract class Tracker implements AutoCloseable {
      * @param consumer consumer
      */
     public void tick(@NotNull BiConsumer<Tracker, PacketBundler> consumer) {
-        schedule(5, consumer);
+        tick(1, consumer);
     }
     /**
      * Runs consumer on tick.

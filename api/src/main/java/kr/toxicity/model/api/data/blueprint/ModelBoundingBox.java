@@ -3,9 +3,7 @@ package kr.toxicity.model.api.data.blueprint;
 import kr.toxicity.model.api.bone.BoneName;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaterniond;
-import org.joml.Quaternionf;
 import org.joml.Vector3d;
-import org.joml.Vector3f;
 
 /**
  * Model bounding box

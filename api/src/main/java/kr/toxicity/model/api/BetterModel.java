@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import static kr.toxicity.model.api.util.ReflectionUtil.*;
+import static kr.toxicity.model.api.util.ReflectionUtil.classExists;
 
 /**
  * A dummy class for BetterModel plugin instance.

@@ -6,7 +6,9 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.SequencedMap;
 import java.util.function.Supplier;
 
 public final class ScriptProcessor {

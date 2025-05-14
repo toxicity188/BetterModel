@@ -3,7 +3,6 @@ package kr.toxicity.model.api.bone;
 import kr.toxicity.model.api.data.renderer.RenderSource;
 import kr.toxicity.model.api.util.TransformedItemStack;
 import org.bukkit.Material;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
