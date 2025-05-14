@@ -106,8 +106,8 @@ public final class VectorUtil {
     private static final float FRAME_HASH = 0.031F;
 
     public static void insertLerpFrame(@NotNull Set<Float> frames, float frame) {
-        if (frame <= FRAME_HASH) return;
-        frame -= FRAME_HASH;
+        if (frame <= 0F) return;
+        frame += FRAME_HASH;
         var list = new ArrayList<>(frames);
         var init = 0F;
         var initAfter = list.getFirst();

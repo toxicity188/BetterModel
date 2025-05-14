@@ -12,7 +12,6 @@ import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.HitBoxListener
 import kr.toxicity.model.api.nms.HitBoxSource
 import kr.toxicity.model.api.nms.ModelInteractionHand
-import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ServerboundInteractPacket
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
@@ -30,6 +29,7 @@ import net.minecraft.world.entity.projectile.Projectile
 import net.minecraft.world.entity.projectile.ProjectileDeflection
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
+import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import org.bukkit.Bukkit
@@ -44,6 +44,7 @@ import org.bukkit.event.entity.EntityPotionEffectEvent
 import org.bukkit.event.entity.EntityRemoveEvent
 import org.bukkit.plugin.Plugin
 import org.bukkit.util.Vector
+import org.joml.Quaterniond
 import org.joml.Vector3f
 
 internal class HitBoxImpl(
@@ -65,17 +66,20 @@ internal class HitBoxImpl(
     val craftEntity: HitBox by lazy {
         object : CraftLivingEntity(Bukkit.getServer() as CraftServer, this), HitBox by this {}
     }
-    private val _dimensions = EntityDimensions(
-        (source.x() + source.z()).toFloat() / 2,
-        source.y().toFloat(),
-        delegate.eyeHeight,
-        EntityAttachments.createDefault(0F, 0F),
-        false
-    )
-    private val dimensions: EntityDimensions get() = _dimensions.scale(supplier.hitBoxScale())
+    private val rotatedSource get() = source.rotate(Quaterniond(supplier.hitBoxViewRotation()))
+    private val dimensions: EntityDimensions get() = rotatedSource.run {
+        EntityDimensions(
+            (x() + z()).toFloat() / 2,
+            y().toFloat(),
+            delegate.eyeHeight,
+            EntityAttachments.createDefault(0F, 0F),
+            false
+        ).scale(supplier.hitBoxScale())
+    }
     private val interaction by lazy {
         HitBoxInteraction(this)
     }
+    private val applier = InsideBlockEffectApplier.StepBasedCollector()
 
     init {
         moveTo(delegate.position())
@@ -163,6 +167,11 @@ internal class HitBoxImpl(
     ) {
         if (attacker === delegate) return
         delegate.knockback(d0, d1, d2, attacker, cause)
+    }
+
+    override fun push(pushingEntity: net.minecraft.world.entity.Entity) {
+        if (pushingEntity === delegate) return
+        delegate.push(pushingEntity)
     }
 
     override fun push(x: Double, y: Double, z: Double, pushingEntity: net.minecraft.world.entity.Entity?) {
@@ -259,14 +268,21 @@ internal class HitBoxImpl(
         yHeadRot = yRot
         yBodyRot = yRot
         val pos = relativePosition()
+        val minusHeight = source.minY * supplier.hitBoxScale() - type.height
         setPos(
             pos.x.toDouble(),
-            pos.y.toDouble() + source.minY * supplier.hitBoxScale() - type.height,
+            pos.y.toDouble() + minusHeight,
             pos.z.toDouble()
         )
-        BlockPos.betweenClosedStream(boundingBox).forEach {
-            level().getBlockState(it).entityInside(level(), it, delegate, InsideBlockEffectApplier.NOOP)
+        BlockGetter.forEachBlockIntersectedBetween(
+            oldPosition().subtract(0.0, minusHeight, 0.0),
+            position().subtract(0.0, minusHeight, 0.0),
+            boundingBox
+        ) { pos, step ->
+            applier.advanceStep(step, pos)
+            level().getBlockState(pos).entityInside(level(), pos, delegate, applier)
         }
+        applier.applyAndClear(delegate)
         updateInWaterStateAndDoFluidPushing()
         if (isInLava) delegate.lavaHurt()
         firstTick = false
@@ -377,7 +393,7 @@ internal class HitBoxImpl(
     }
 
     override fun hurtServer(world: ServerLevel, source: DamageSource, amount: Float): Boolean {
-        if (source.entity === delegate || delegate.invulnerableTime.toFloat() > delegate.invulnerableDuration.toFloat() / 2F || delegate.isInvulnerable) return false
+        if (source.entity === delegate || delegate.isInvulnerable) return false
         if (source.entity === controllingPassenger && !mountController.canBeDamagedByRider()) return false
         val ds = ModelDamageSourceImpl(source)
         val event = ModelDamagedEvent(craftEntity, ds, amount)
@@ -404,13 +420,14 @@ internal class HitBoxImpl(
             super.makeBoundingBox(vec3)
         } else {
             val scale = supplier.hitBoxScale()
+            val source = rotatedSource
             AABB(
-                vec3.x - source.minX * scale,
+                vec3.x + source.minX * scale,
                 vec3.y + type.height,
-                vec3.z - source.minZ * scale,
-                vec3.x - source.maxX * scale,
+                vec3.z + source.minZ * scale,
+                vec3.x + source.maxX * scale,
                 vec3.y + source.y() * scale + type.height,
-                vec3.z - source.maxZ * scale
+                vec3.z + source.maxZ * scale
             ).apply {
                 if (CONFIG.debug().hitBox) {
                     bukkitEntity.world.spawnParticle(Particle.DUST, minX, minY, minZ, 1, 0.0, 0.0, 0.0, 0.0, Particle.DustOptions(Color.RED, 1F))

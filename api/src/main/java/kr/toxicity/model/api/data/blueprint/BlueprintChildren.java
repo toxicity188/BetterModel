@@ -175,14 +175,14 @@ public sealed interface BlueprintChildren {
                             .minus(origin)
                             .toVector()
                             .div(16);
-                    elements.add(new ModelBoundingBox(
+                    elements.add(ModelBoundingBox.of(
                             from.x,
                             from.y,
                             from.z,
                             to.x,
                             to.y,
                             to.z
-                    ));
+                    ).invert());
                 }
             }
             var max = EntityUtil.max(elements);

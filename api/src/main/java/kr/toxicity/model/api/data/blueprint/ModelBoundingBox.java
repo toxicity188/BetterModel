@@ -2,6 +2,8 @@ package kr.toxicity.model.api.data.blueprint;
 
 import kr.toxicity.model.api.bone.BoneName;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Quaterniond;
+import org.joml.Quaternionf;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 
@@ -26,7 +28,7 @@ public record ModelBoundingBox(
     public static final ModelBoundingBox MIN = of(0.1, 0.1, 0.1);
 
     public static @NotNull ModelBoundingBox of(@NotNull Vector3d min, @NotNull Vector3d max) {
-        return new ModelBoundingBox(
+        return of(
                 min.x,
                 min.y,
                 min.z,
@@ -37,13 +39,31 @@ public record ModelBoundingBox(
     }
 
     public static @NotNull ModelBoundingBox of(double x, double y, double z) {
-        return new ModelBoundingBox(
+        return of(
                 -x / 2,
                 -y / 2,
                 -z / 2,
                 x / 2,
                 y / 2,
                 z / 2
+        );
+    }
+
+    public static @NotNull ModelBoundingBox of(
+            double minX,
+            double minY,
+            double minZ,
+            double maxX,
+            double maxY,
+            double maxZ
+    ) {
+        return new ModelBoundingBox(
+                Math.min(minX, maxX),
+                Math.min(minY, maxY),
+                Math.min(minZ, maxZ),
+                Math.max(minX, maxX),
+                Math.max(minY, maxY),
+                Math.max(minZ, maxZ)
         );
     }
 
@@ -92,12 +112,12 @@ public record ModelBoundingBox(
      * Gets center vector point
      * @return center
      */
-    public @NotNull Vector3f centerPoint() {
-        return new Vector3f(
-                (float) (minX + maxX),
-                (float) (minY + maxY),
-                (float) (minZ + maxZ)
-        ).div(2);
+    public @NotNull Vector3d centerPoint() {
+        return new Vector3d(
+                minX + maxX,
+                minY + maxY,
+                minZ + maxZ
+        ).div(2D);
     }
 
     /**
@@ -106,7 +126,7 @@ public record ModelBoundingBox(
      * @return scaled bounding box
      */
     public @NotNull ModelBoundingBox times(double scale) {
-        return new ModelBoundingBox(
+        return of(
                 minX * scale,
                 minY * scale,
                 minZ * scale,
@@ -122,13 +142,32 @@ public record ModelBoundingBox(
      */
     public @NotNull ModelBoundingBox center() {
         var center = centerPoint();
-        return new ModelBoundingBox(
+        return of(
                 minX - center.x,
                 minY - center.y,
                 minZ - center.z,
                 maxX - center.x,
                 maxY - center.y,
                 maxZ - center.z
+        );
+    }
+
+    public @NotNull ModelBoundingBox invert() {
+        return of(
+                -minX,
+                minY,
+                -minZ,
+                -maxX,
+                maxY,
+                -maxZ
+        );
+    }
+
+    public @NotNull ModelBoundingBox rotate(@NotNull Quaterniond quaterniond) {
+        var centerVec = centerPoint();
+        return of(
+                min().sub(centerVec).rotate(quaterniond).add(centerVec),
+                max().sub(centerVec).rotate(quaterniond).add(centerVec)
         );
     }
 

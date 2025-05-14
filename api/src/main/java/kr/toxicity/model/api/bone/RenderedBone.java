@@ -353,6 +353,18 @@ public final class RenderedBone implements HitBoxSource {
                 .rotateY(-rotation.radianY());
     }
 
+    public @NotNull Quaternionf worldRotation() {
+        var progress = 1F - progress();
+        var after = afterTransform != null ? afterTransform : relativeOffset();
+        var before = beforeTransform != null ? beforeTransform : BoneMovement.EMPTY;
+        return new Quaternionf()
+                .rotateZYX(
+                        0,
+                        -rotation.radianY(),
+                        -rotation.radianX()
+                ).mul(MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(VectorUtil.linear(before.rawRotation(), after.rawRotation(), progress))));
+    }
+
     private void setup(@NotNull BoneMovement boneMovement) {
         if (display != null) {
             var mul = scale.get();
@@ -643,8 +655,14 @@ public final class RenderedBone implements HitBoxSource {
     @Override
     public Vector3f hitBoxPosition() {
         var box = getGroup().getHitBox();
-        if (box != null) return worldPosition(box.centerPoint().mul(-1F, 1F, -1F));
+        if (box != null) return worldPosition(box.centerPoint());
         return worldPosition();
+    }
+
+    @NotNull
+    @Override
+    public Quaternionf hitBoxViewRotation() {
+        return worldRotation();
     }
 
     @Override

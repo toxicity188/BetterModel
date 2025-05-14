@@ -2,6 +2,7 @@ package kr.toxicity.model.api.nms;
 
 import kr.toxicity.model.api.tracker.ModelRotation;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 /**
@@ -13,6 +14,11 @@ public interface HitBoxSource {
      * @return position
      */
     @NotNull Vector3f hitBoxPosition();
+    /**
+     * Gets hit-box view rotation
+     * @return view rotation
+     */
+    @NotNull Quaternionf hitBoxViewRotation();
 
     /**
      * Gets hit-box rotation

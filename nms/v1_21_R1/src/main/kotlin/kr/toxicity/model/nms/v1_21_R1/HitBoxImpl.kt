@@ -41,6 +41,7 @@ import org.bukkit.entity.Entity
 import org.bukkit.event.entity.EntityPotionEffectEvent
 import org.bukkit.plugin.Plugin
 import org.bukkit.util.Vector
+import org.joml.Quaterniond
 import org.joml.Vector3f
 
 internal class HitBoxImpl(
@@ -62,14 +63,16 @@ internal class HitBoxImpl(
     val craftEntity: HitBox by lazy {
         object : CraftLivingEntity(Bukkit.getServer() as CraftServer, this), HitBox by this {}
     }
-    private val _dimensions = EntityDimensions(
-        (source.x() + source.z()).toFloat() / 2,
-        source.y().toFloat(),
-        delegate.eyeHeight,
-        EntityAttachments.createDefault(0F, 0F),
-        false
-    )
-    private val dimensions: EntityDimensions get() = _dimensions.scale(supplier.hitBoxScale())
+    private val rotatedSource get() = source.rotate(Quaterniond(supplier.hitBoxViewRotation()))
+    private val dimensions: EntityDimensions get() = rotatedSource.run {
+        EntityDimensions(
+            (x() + z()).toFloat() / 2,
+            y().toFloat(),
+            delegate.eyeHeight,
+            EntityAttachments.createDefault(0F, 0F),
+            false
+        ).scale(supplier.hitBoxScale())
+    }
     private val interaction by lazy {
         HitBoxInteraction(this)
     }
@@ -149,6 +152,11 @@ internal class HitBoxImpl(
 
     override fun getRemainingFireTicks(): Int {
         return delegate.remainingFireTicks
+    }
+
+    override fun push(pushingEntity: net.minecraft.world.entity.Entity) {
+        if (pushingEntity === delegate) return
+        delegate.push(pushingEntity)
     }
 
     override fun push(x: Double, y: Double, z: Double, pushingEntity: net.minecraft.world.entity.Entity?) {
@@ -350,7 +358,7 @@ internal class HitBoxImpl(
     }
 
     override fun hurt(source: DamageSource, amount: Float): Boolean {
-        if (source.entity === delegate || delegate.invulnerableTime.toFloat() > delegate.invulnerableDuration.toFloat() / 2F || delegate.isInvulnerable) return false
+        if (source.entity === delegate || delegate.isInvulnerable) return false
         if (source.entity === controllingPassenger && !mountController.canBeDamagedByRider()) return false
         val ds = ModelDamageSourceImpl(source)
         val event = ModelDamagedEvent(craftEntity, ds, amount)
@@ -378,6 +386,7 @@ internal class HitBoxImpl(
         } else {
             val vec3 = position()
             val scale = supplier.hitBoxScale()
+            val source = rotatedSource
             AABB(
                 vec3.x - source.minX * scale,
                 vec3.y + type.height,
