@@ -618,12 +618,42 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
                 it.body().use { stream ->
                     profileMap[id] = SkinDataImpl(
                         PLUGIN.nms().isSlim(profile),
-                        ImageIO.read(stream)
+                        ImageIO.read(stream).convertLegacy()
                     )
                 }
+            }.exceptionally {
+                it.handleException("unable to read this skin: ${profile.name}")
+                null
             }
             fallback
         }
+    }
+
+    private fun BufferedImage.convertLegacy() = if (height == 64) this else BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB).also { newImage ->
+        fun drawTo(from: UVPos, to: UVPos, xr: IntRange, zr: IntRange) {
+            val maxX = xr.last + xr.first
+            for (x in xr) {
+                for (z in zr) {
+                    newImage.setRGB(
+                        to.x + maxX - x,
+                        to.z + z,
+                        getRGB(from.x + x, from.z + z)
+                    )
+                }
+            }
+        }
+        fun drawTo(from: UVPos, to: UVPos) {
+            drawTo(from, to, (0..<4), (4..<16))
+            drawTo(from, to, (4..<8), (0..<16))
+            drawTo(from, to, (8..<12), (0..<16))
+            drawTo(from, to, (12..<16), (4..<16))
+        }
+        newImage.createGraphics().let {
+            it.drawImage(this, 0, 0, null)
+            it.dispose()
+        }
+        drawTo(UVPos(0, 16), UVPos(16, 48))
+        drawTo(UVPos(40, 16), UVPos(32, 48))
     }
 
     private class SkinDataImpl(
