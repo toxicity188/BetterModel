@@ -406,10 +406,10 @@ internal class HitBoxImpl(
             val scale = supplier.hitBoxScale()
             val source = rotatedSource
             AABB(
-                vec3.x - source.minX * scale,
+                vec3.x + source.minX * scale,
                 vec3.y + type.height,
-                vec3.z - source.minZ * scale,
-                vec3.x - source.maxX * scale,
+                vec3.z + source.minZ * scale,
+                vec3.x + source.maxX * scale,
                 vec3.y + (source.maxY - source.minY) * scale + type.height,
                 vec3.z + source.maxZ * scale
             ).apply {

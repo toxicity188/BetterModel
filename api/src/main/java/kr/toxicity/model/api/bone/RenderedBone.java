@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.bone;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationModifier;
@@ -16,8 +17,10 @@ import kr.toxicity.model.api.util.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.ItemDisplay;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Transformation;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +38,7 @@ public final class RenderedBone implements HitBoxSource {
 
     private static final Vector3f EMPTY_VECTOR = new Vector3f();
     private static final Quaternionf EMPTY_QUATERNION = new Quaternionf();
+    private static final ItemStack AIR = new ItemStack(Material.AIR);
 
     @Getter
     @NotNull
@@ -57,6 +61,7 @@ public final class RenderedBone implements HitBoxSource {
 
     private final SequencedMap<String, TreeIterator> animators = new LinkedHashMap<>();
     private final Collection<TreeIterator> reversedView = animators.sequencedValues().reversed();
+    private final Int2ObjectOpenHashMap<ItemStack> tintCacheMap = new Int2ObjectOpenHashMap<>();
     private AnimationMovement keyFrame = null;
     private long delay = 0;
     private boolean forceUpdateAnimation = true;
@@ -210,6 +215,7 @@ public final class RenderedBone implements HitBoxSource {
     public boolean itemStack(@NotNull BonePredicate predicate, @NotNull TransformedItemStack itemStack) {
         if (predicate.test(this)) {
             this.itemStack = cachedItem = itemStack;
+            tintCacheMap.clear();
             return applyItem();
         }
         return false;
@@ -431,7 +437,8 @@ public final class RenderedBone implements HitBoxSource {
 
     private boolean applyItem() {
         if (display != null) {
-            display.item(BetterModel.inst().nms().tint(itemStack.itemStack().clone(), tint));
+            var item = itemStack.itemStack();
+            display.item(ItemUtil.isEmpty(item) ? AIR : tintCacheMap.computeIfAbsent(tint, i -> BetterModel.inst().nms().tint(item, tint)));
             return true;
         } else return false;
     }

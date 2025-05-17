@@ -137,7 +137,6 @@ internal fun <T> useByteBuf(block: (FriendlyByteBuf) -> T): T {
     }
 }
 
-internal val ItemStack.isAirOrEmpty get() = ItemUtil.isEmpty(this)
 internal fun PacketBundler.unwrap(): PacketBundlerImpl = this as PacketBundlerImpl
 
 internal fun Tracker.entityFlag(byte: Byte): Byte {
