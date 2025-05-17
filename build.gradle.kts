@@ -33,17 +33,20 @@ allprojects {
         maven("https://mvn.lumine.io/repository/maven-public/")
         maven("https://repo.hibiscusmc.com/releases")
         maven("https://libraries.minecraft.net/")
+        maven("https://jitpack.io")
     }
     dependencies {
         testImplementation(kotlin("test"))
         implementation("dev.jorel:commandapi-bukkit-shade:$commandApi")
         implementation("org.bstats:bstats-bukkit:3.1.0")
+        implementation("com.github.toxicity188:DynamicUV:1.0")
         compileOnly("com.vdurmont:semver4j:3.1.0")
         testImplementation("com.vdurmont:semver4j:3.1.0")
         compileOnly("net.kyori:adventure-platform-bukkit:4.4.0")
         compileOnly("net.citizensnpcs:citizens-main:2.0.38-SNAPSHOT")
         compileOnly("io.lumine:Mythic-Dist:5.8.2")
         compileOnly("com.hibiscusmc:HMCCosmetics:2.7.7")
+        compileOnly("net.jodah:expiringmap:0.5.11")
     }
     tasks {
         test {
@@ -176,6 +179,7 @@ tasks {
         }
         exclude("LICENSE")
         prefix("kotlin")
+        prefix("kr.toxicity.library")
         prefix("dev.jorel.commandapi")
         prefix("org.bstats")
     }
@@ -206,6 +210,7 @@ bukkitPluginYaml {
     )
     libraries = listOf(
         "com.vdurmont:semver4j:3.1.0",
+        "net.jodah:expiringmap:0.5.11",
         "net.kyori:adventure-api:4.21.0",
         "net.kyori:adventure-platform-bukkit:4.4.0"
     )

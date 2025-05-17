@@ -1,6 +1,5 @@
 package kr.toxicity.model.api.data.renderer;
 
-import com.destroystokyo.paper.profile.PlayerProfile;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.animation.AnimationMovement;
@@ -13,7 +12,6 @@ import kr.toxicity.model.api.nms.EntityAdapter;
 import kr.toxicity.model.api.nms.HitBoxListener;
 import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
-import kr.toxicity.model.api.player.PlayerLimb;
 import kr.toxicity.model.api.script.ScriptProcessor;
 import kr.toxicity.model.api.tracker.ModelRotation;
 import kr.toxicity.model.api.util.BonePredicate;
@@ -23,7 +21,6 @@ import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
-import org.bukkit.profile.PlayerTextures;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -193,33 +190,6 @@ public final class RenderInstance {
 
     public boolean itemStack(@NotNull BonePredicate predicate, @NotNull TransformedItemStack itemStack) {
         return anyMatch(predicate, (b, p) -> b.itemStack(p, itemStack));
-    }
-
-    public boolean profile(@NotNull BonePredicate predicate, @NotNull Player player) {
-        var profile = player.getPlayerProfile();
-        var skinModel = profile.getTextures().getSkinModel();
-        return profile(predicate, profile, skinModel);
-    }
-
-    public boolean profile(@NotNull BonePredicate predicate, @NotNull Player player, @NotNull PlayerTextures.SkinModel skinModel) {
-        var profile = player.getPlayerProfile();
-        return profile(predicate, profile, skinModel);
-    }
-
-    public boolean profile(@NotNull BonePredicate predicate, @NotNull PlayerProfile profile) {
-        var skinModel = profile.getTextures().getSkinModel();
-        return profile(predicate, profile, skinModel);
-    }
-
-    public boolean profile(@NotNull BonePredicate predicate, @NotNull PlayerProfile profile, @NotNull PlayerTextures.SkinModel skinModel) {
-        return anyMatch(predicate, (b, p) -> {
-            var mapper = b.getItemMapper();
-            if (mapper instanceof PlayerLimb.LimbItemMapper limbItemMapper) {
-                b.setItemMapper(limbItemMapper.profile(profile, skinModel));
-                return b.updateItem(BonePredicate.TRUE, source);
-            }
-            return false;
-        });
     }
 
     public boolean updateItem(@NotNull BonePredicate predicate) {

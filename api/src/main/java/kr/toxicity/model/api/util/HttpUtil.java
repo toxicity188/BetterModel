@@ -25,12 +25,14 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.Executors;
 import java.util.function.Function;
 
 public final class HttpUtil {
 
     private static final HttpClient CLIENT = HttpClient.newBuilder()
             .connectTimeout(Duration.of(5, ChronoUnit.SECONDS))
+            .executor(Executors.newVirtualThreadPerTaskExecutor())
             .build();
     private static final Gson GSON = new GsonBuilder()
             .registerTypeAdapter(MinecraftVersion.class, (JsonDeserializer<MinecraftVersion>) (json, typeOfT, context) -> new MinecraftVersion(json.getAsString()))

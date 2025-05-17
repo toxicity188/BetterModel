@@ -94,6 +94,11 @@ public interface BetterModelPlugin {
      */
     @NotNull ConfigManager configManager();
     /**
+     * Gets skin manager.
+     * @return skin manager
+     */
+    @NotNull SkinManager skinManager();
+    /**
      * Gets plugin scheduler.
      * @return scheduler
      */

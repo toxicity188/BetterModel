@@ -16,6 +16,7 @@ import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.api.tracker.ModelRotation
 import kr.toxicity.model.api.tracker.Tracker
 import kr.toxicity.model.api.util.BonePredicate
+import kr.toxicity.model.api.util.TransformedItemStack
 import net.minecraft.core.component.DataComponents
 import net.minecraft.network.Connection
 import net.minecraft.network.protocol.Packet
@@ -23,6 +24,7 @@ import net.minecraft.network.protocol.game.*
 import net.minecraft.network.syncher.EntityDataAccessor
 import net.minecraft.network.syncher.EntityDataSerializers
 import net.minecraft.network.syncher.SynchedEntityData
+import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.server.network.ServerCommonPacketListenerImpl
@@ -484,7 +486,7 @@ class NMSImpl : NMS {
         return CraftItemStack.asBukkitCopy(CraftItemStack.asNMSCopy(itemStack).apply {
             set(DataComponents.DYED_COLOR, DyedItemColor(rgb, false))
             set(DataComponents.CUSTOM_MODEL_DATA, get(DataComponents.CUSTOM_MODEL_DATA)?.let {
-                CustomModelData(it.floats, it.flags, it.strings, listOf(rgb))
+                CustomModelData(it.floats, it.flags, it.strings, it.colors.ifEmpty { listOf(rgb) })
             })
         })
     }
@@ -588,5 +590,13 @@ class NMSImpl : NMS {
     override fun createPlayerHead(profile: GameProfile): ItemStack = net.minecraft.world.item.ItemStack(Items.PLAYER_HEAD).run {
         set(DataComponents.PROFILE, ResolvableProfile(profile))
         CraftItemStack.asBukkitCopy(this)
+    }
+
+    override fun createSkinItem(model: String, flags: List<Boolean>, colors: List<Int>): TransformedItemStack {
+        return net.minecraft.world.item.ItemStack(Items.PLAYER_HEAD).run {
+            set(DataComponents.CUSTOM_MODEL_DATA, CustomModelData(emptyList(), flags, emptyList(), colors))
+            set(DataComponents.ITEM_MODEL, ResourceLocation.parse(model))
+            TransformedItemStack.of(CraftItemStack.asBukkitCopy(this))
+        }
     }
 }

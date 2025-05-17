@@ -48,6 +48,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
         listOf(
             CompatibilityManagerImpl,
             ConfigManagerImpl,
+            SkinManagerImpl,
             ModelManagerImpl,
             PlayerManagerImpl,
             EntityManagerImpl,
@@ -207,6 +208,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
     override fun compatibilityManager(): CompatibilityManager = CompatibilityManagerImpl
     override fun configManager(): ConfigManager = ConfigManagerImpl
     override fun scriptManager(): ScriptManager = ScriptManagerImpl
+    override fun skinManager(): SkinManager = SkinManagerImpl
 
     override fun version(): MinecraftVersion = version
     override fun semver(): Semver = semver

@@ -1,22 +1,18 @@
 package kr.toxicity.model.api.player;
 
-import com.destroystokyo.paper.profile.PlayerProfile;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.bone.BoneItemMapper;
 import kr.toxicity.model.api.data.renderer.RenderSource;
+import kr.toxicity.model.api.skin.SkinData;
 import kr.toxicity.model.api.util.TransformedItemStack;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.bukkit.Material;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.profile.PlayerTextures;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -34,6 +30,7 @@ public enum PlayerLimb {
             scale(7.4688F, 0.5F),
             offset(0, 7.5F, 0, 0.5F),
             offset(0, 7.5F, 0, 0.5F),
+            SkinData::head,
             ItemDisplay.ItemDisplayTransform.FIXED
     ),
     /**
@@ -45,6 +42,7 @@ public enum PlayerLimb {
             scale(2.7891F,5.5938F,3.7188F, 0.25F),
             offset(-0.625F, 1.5F, 0, 0.25F),
             offset(-0.043F, 1.5F, 0, 0.25F),
+            SkinData::rightArm,
             ItemDisplay.ItemDisplayTransform.FIXED
     ),
     /**
@@ -56,6 +54,7 @@ public enum PlayerLimb {
             scale(2.7891F,5.5938F,3.7188F, 0.25F),
             offset(-0.625F, 1.5F, 0, 0.25F),
             offset(-0.043F, 1.5F, 0, 0.25F),
+            SkinData::rightForeArm,
             ItemDisplay.ItemDisplayTransform.FIXED
     ),
     /**
@@ -67,6 +66,7 @@ public enum PlayerLimb {
             scale(2.7891F,5.5938F,3.7188F, 0.25F),
             offset(0.625F, 1.5F, 0, 0.25F),
             offset(0.043F, 1.5F, 0, 0.25F),
+            SkinData::leftArm,
             ItemDisplay.ItemDisplayTransform.FIXED
     ),
     /**
@@ -77,7 +77,8 @@ public enum PlayerLimb {
             scale(3.7188F,5.5938F,3.7188F, 0.25F),
             scale(2.7891F,5.5938F,3.7188F, 0.25F),
             offset(0.625F, 1.5F, 0, 0.25F), 
-            offset(0.043F, 1.5F, 0, 0.25F), 
+            offset(0.043F, 1.5F, 0, 0.25F),
+            SkinData::leftForeArm,
             ItemDisplay.ItemDisplayTransform.FIXED
     ),
     /**
@@ -89,6 +90,7 @@ public enum PlayerLimb {
             scale(7.4688F,3.7188F,3.7188F, 0.25F),
             offset(0, 5.75F, 0, 0.25F),
             offset(0, 5.75F, 0, 0.25F),
+            SkinData::hip,
             ItemDisplay.ItemDisplayTransform.FIXED
     ),
     /**
@@ -100,6 +102,7 @@ public enum PlayerLimb {
             scale(7.4688F,3.7188F,3.7188F, 0.25F),
             offset(0, 5.75F, 0, 0.25F),
             offset(0, 5.75F, 0, 0.25F),
+            SkinData::waist,
             ItemDisplay.ItemDisplayTransform.FIXED
     ),
     /**
@@ -111,6 +114,7 @@ public enum PlayerLimb {
             scale(7.4688F,3.7188F,3.7188F, 0.25F),
             offset(0, 5.75F, 0, 0.25F),
             offset(0, 5.75F, 0, 0.25F),
+            SkinData::chest,
             ItemDisplay.ItemDisplayTransform.FIXED
     ),
     /**
@@ -122,6 +126,7 @@ public enum PlayerLimb {
             scale(3.7188F,5.5938F,3.7188F, 0.25F),
             offset(0, 1.12F, 0, 0.25F),
             offset(0, 1.12F, 0, 0.25F),
+            SkinData::rightLeg,
             ItemDisplay.ItemDisplayTransform.FIXED
     ),
     /**
@@ -133,6 +138,7 @@ public enum PlayerLimb {
             scale(3.7188F,5.5938F,3.7188F, 0.25F),
             offset(0, 1.12F, 0, 0.25F),
             offset(0, 1.12F, 0, 0.25F),
+            SkinData::rightForeLeg,
             ItemDisplay.ItemDisplayTransform.FIXED
     ),
     /**
@@ -144,6 +150,7 @@ public enum PlayerLimb {
             scale(3.7188F,5.5938F,3.7188F, 0.25F),
             offset(0, 1.12F, 0, 0.25F),
             offset(0, 1.12F, 0, 0.25F),
+            SkinData::leftLeg,
             ItemDisplay.ItemDisplayTransform.FIXED
     ),
     /**
@@ -155,6 +162,7 @@ public enum PlayerLimb {
             scale(3.7188F,5.5938F,3.7188F, 0.25F),
             offset(0, 1.12F, 0, 0.25F),
             offset(0, 1.12F, 0, 0.25F),
+            SkinData::leftForeLeg,
             ItemDisplay.ItemDisplayTransform.FIXED
     ),
     /**
@@ -166,6 +174,7 @@ public enum PlayerLimb {
             new Vector3f(1),
             new Vector3f(),
             new Vector3f(),
+            null,
             ItemDisplay.ItemDisplayTransform.THIRDPERSON_LEFTHAND
     ) {
         @NotNull
@@ -183,6 +192,7 @@ public enum PlayerLimb {
             new Vector3f(1),
             new Vector3f(),
             new Vector3f(),
+            null,
             ItemDisplay.ItemDisplayTransform.THIRDPERSON_RIGHTHAND
     ) {
         @NotNull
@@ -214,6 +224,7 @@ public enum PlayerLimb {
     private final @NotNull Vector3f slimScale;
     private final @NotNull Vector3f offset;
     private final @NotNull Vector3f slimOffset;
+    private final @Nullable Function<SkinData, TransformedItemStack> skinMapper;
     private final @NotNull ItemDisplay.ItemDisplayTransform transform;
 
     @Getter
@@ -225,24 +236,13 @@ public enum PlayerLimb {
      * @return item
      */
     public @NotNull TransformedItemStack createItem(@NotNull RenderSource.Profiled profiled) {
+        var profile = profiled.profile();
+        var manager = BetterModel.inst().skinManager();
+        if (skinMapper != null && manager.supported()) {
+            return skinMapper.apply(manager.getOrCreate(profile));
+        }
         var isSlim = profiled.slim();
         return TransformedItemStack.of(position, isSlim ? slimOffset : offset, isSlim ? slimScale : scale, BetterModel.inst().nms().createPlayerHead(profiled.profile()));
-    }
-
-    private @NotNull TransformedItemStack createItem(@NotNull PlayerProfile profile, boolean isSlim) { //TODO Currently not supported in Spigot
-        return TransformedItemStack.of(position, isSlim ? slimOffset : offset, isSlim ? slimScale : scale, createSkull(meta -> meta.setPlayerProfile(profile)));
-    }
-
-    private boolean isSlim(@NotNull PlayerTextures.SkinModel skinModel) {
-        return skinModel == PlayerTextures.SkinModel.SLIM;
-    }
-
-    private static @NotNull ItemStack createSkull(@NotNull Consumer<SkullMeta> consumer) {
-        var item = new ItemStack(Material.PLAYER_HEAD);
-        var meta = item.getItemMeta();
-        consumer.accept((SkullMeta) meta);
-        item.setItemMeta(meta);
-        return item;
     }
 
     @RequiredArgsConstructor
@@ -263,10 +263,6 @@ public enum PlayerLimb {
                 return playerMapper.apply(profiled);
             }
             return transformedItemStack;
-        }
-
-        public @NotNull LimbItemMapper profile(@NotNull PlayerProfile profile, @NotNull PlayerTextures.SkinModel model) {
-            return transform == ItemDisplay.ItemDisplayTransform.FIXED ? new LimbItemMapper(p -> createItem(profile, isSlim(model))) : this;
         }
     }
 }

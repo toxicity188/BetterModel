@@ -4,12 +4,16 @@ import com.mojang.authlib.GameProfile;
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox;
 import kr.toxicity.model.api.mount.MountController;
 import kr.toxicity.model.api.tracker.EntityTracker;
+import kr.toxicity.model.api.util.TransformedItemStack;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 /**
  * A vanilla code handler of Minecraft (NMS)
@@ -117,4 +121,12 @@ public interface NMS {
      * @return player head item
      */
     @NotNull ItemStack createPlayerHead(@NotNull GameProfile profile);
+
+    /**
+     * Creates skin item
+     * @return item
+     */
+    default @NotNull TransformedItemStack createSkinItem(@NotNull String model, @NotNull List<Boolean> flags, @NotNull List<Integer> colors) {
+        return TransformedItemStack.empty();
+    }
 }

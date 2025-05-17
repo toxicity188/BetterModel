@@ -47,9 +47,11 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
         private val map = ConcurrentHashMap<String, PackData>()
 
         fun add(parent: String, name: String, byteArray: () -> ByteArray) {
-            val n = if (parent.isEmpty()) name else "$parent/$name"
-            if (map.put(n, PackData(n, byteArray)) != null) warn(
-                "Name collision found: $n"
+            add(if (parent.isEmpty()) name else "$parent/$name", byteArray)
+        }
+        fun add(path: String, byteArray: () -> ByteArray) {
+            if (map.put(path, PackData(path, byteArray)) != null) warn(
+                "Name collision found: $path"
             )
         }
 
@@ -248,11 +250,8 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                         read
                     }
                 }
-                PLUGIN.loadAssets("modern_pack") { s, i ->
-                    val read = i.readAllBytes()
-                    modernModel.add("", s) {
-                        read
-                    }
+                SkinManagerImpl.write { path, supplier ->
+                    modernModel.add(path, supplier)
                 }
             }
             zipper.add("${namespace}_modern", modernModel)
