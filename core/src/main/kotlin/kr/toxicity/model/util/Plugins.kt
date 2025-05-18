@@ -2,9 +2,11 @@ package kr.toxicity.model.util
 
 import kr.toxicity.model.BetterModelPluginImpl
 import kr.toxicity.model.api.BetterModel
+import kr.toxicity.model.api.util.HttpUtil
 import kr.toxicity.model.api.util.LogUtil
 import kr.toxicity.model.api.util.PackUtil
 import kr.toxicity.model.manager.ConfigManagerImpl
+import java.net.http.HttpClient
 
 val PLUGIN
     get() = BetterModel.inst() as BetterModelPluginImpl
@@ -24,3 +26,7 @@ fun <T> Result<T>.handleFailure(lazyMessage: () -> String) = onFailure {
 }
 
 fun String.toPackName() = PackUtil.toPackName(this)
+
+fun <T : Any> httpClient(block: HttpClient.() -> T): HttpUtil.Result<T> = HttpUtil.client {
+    it.block()
+}

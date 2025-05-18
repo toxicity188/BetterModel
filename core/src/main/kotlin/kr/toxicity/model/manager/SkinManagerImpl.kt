@@ -5,12 +5,15 @@ import com.mojang.authlib.GameProfile
 import kr.toxicity.library.dynamicuv.*
 import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.api.manager.SkinManager
+import kr.toxicity.model.api.player.PlayerLimb
 import kr.toxicity.model.api.skin.SkinData
-import kr.toxicity.model.api.util.HttpUtil
+import kr.toxicity.model.api.tracker.EntityTracker
+import kr.toxicity.model.api.util.BonePredicate
 import kr.toxicity.model.api.util.TransformedItemStack
 import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.util.PLUGIN
 import kr.toxicity.model.util.handleException
+import kr.toxicity.model.util.httpClient
 import net.jodah.expiringmap.ExpirationPolicy
 import net.jodah.expiringmap.ExpiringMap
 import java.awt.image.BufferedImage
@@ -585,7 +588,7 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
 
     private val profileMap = ExpiringMap.builder()
         .expirationPolicy(ExpirationPolicy.ACCESSED)
-        .expiration(5, TimeUnit.MINUTES)
+        .expiration(1, TimeUnit.MINUTES)
         .build<UUID, SkinData>()
     private val fallback = PLUGIN.getResource("fallback_skin.png")!!.buffered().use {
         SkinDataImpl(false, ImageIO.read(it))
@@ -593,11 +596,10 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
 
     override fun supported(): Boolean = PLUGIN.version() >= MinecraftVersion.V1_21_4
 
-    override fun getOrCreate(profile: GameProfile): SkinData {
-        val id = profile.id
-        return profileMap.computeIfAbsent(id) {
-            HttpUtil.client { client ->
-                client.sendAsync(HttpRequest.newBuilder()
+    override fun getOrRequest(profile: GameProfile): SkinData {
+        return profileMap.computeIfAbsent(profile.id) { id ->
+            httpClient {
+                sendAsync(HttpRequest.newBuilder()
                     .uri(
                         URI.create(
                             JsonParser.parseString(String(Base64.getDecoder().decode(profile.properties["textures"].first().value)))
@@ -620,14 +622,22 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
                         PLUGIN.nms().isSlim(profile),
                         ImageIO.read(stream).convertLegacy()
                     )
+                    EntityTracker.tracker(id)?.let { tracker ->
+                        if (tracker.updateItem(BonePredicate.of(BonePredicate.State.NOT_SET) { bone ->
+                            bone.itemMapper is PlayerLimb.LimbItemMapper
+                        })) tracker.forceUpdate(true)
+                    }
                 }
             }.exceptionally {
                 it.handleException("unable to read this skin: ${profile.name}")
+                profileMap.remove(id)
                 null
             }
             fallback
         }
     }
+
+    override fun removeCache(profile: GameProfile): Boolean = profileMap.remove(profile.id) != null
 
     private fun BufferedImage.convertLegacy() = if (height == 64) this else BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB).also { newImage ->
         fun drawTo(from: UVPos, to: UVPos, xr: IntRange, zr: IntRange) {

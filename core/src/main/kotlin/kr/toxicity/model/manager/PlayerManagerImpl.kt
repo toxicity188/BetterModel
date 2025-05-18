@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap
 object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
 
     private val playerMap = ConcurrentHashMap<UUID, PlayerChannelHandler>()
-    private val renderMap = HashMap<String, ModelRenderer>()
+    private val renderMap = hashMapOf<String, ModelRenderer>()
 
     override fun start() {
         registerListener(object : Listener {
@@ -46,7 +46,9 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
             }
             @EventHandler
             fun PlayerQuitEvent.quit() {
-                playerMap.remove(player.uniqueId)?.close()
+                playerMap.remove(player.uniqueId)?.use {
+                    SkinManagerImpl.removeCache(it.profile())
+                }
             }
         })
     }
@@ -54,7 +56,7 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
     private fun Player.register() = playerMap.computeIfAbsent(uniqueId) {
         PLUGIN.nms().inject(this)
     }.apply {
-        if (SkinManagerImpl.supported()) SkinManagerImpl.getOrCreate(profile())
+        if (SkinManagerImpl.supported()) SkinManagerImpl.getOrRequest(profile())
     }
 
     override fun reload(info: ReloadInfo) {

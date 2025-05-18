@@ -239,7 +239,7 @@ public enum PlayerLimb {
         var profile = profiled.profile();
         var manager = BetterModel.inst().skinManager();
         if (skinMapper != null && manager.supported()) {
-            return skinMapper.apply(manager.getOrCreate(profile));
+            return skinMapper.apply(manager.getOrRequest(profile));
         }
         var isSlim = profiled.slim();
         return TransformedItemStack.of(position, isSlim ? slimOffset : offset, isSlim ? slimScale : scale, BetterModel.inst().nms().createPlayerHead(profiled.profile()));
