@@ -301,10 +301,10 @@ internal class HitBoxImpl(
         )
     }
 
-    override fun triggerInteractAt(player: org.bukkit.entity.Player, hand: ModelInteractionHand, vector: Vector) {
+    override fun triggerInteractAt(player: org.bukkit.entity.Player, hand: ModelInteractionHand, position: Vector) {
         interactAt(
             (player as CraftPlayer).handle,
-            CraftVector.toNMS(vector),
+            CraftVector.toNMS(position),
             when (hand) {
                 ModelInteractionHand.LEFT -> OFF_HAND
                 ModelInteractionHand.RIGHT -> MAIN_HAND

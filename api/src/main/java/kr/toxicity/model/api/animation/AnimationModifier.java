@@ -11,6 +11,7 @@ import java.util.function.Supplier;
  * @param predicate predicate
  * @param start start lerp
  * @param end end lerp
+ * @param type animation type
  * @param speed speed modifier
  */
 public record AnimationModifier(@NotNull Supplier<Boolean> predicate, int start, int end, @Nullable AnimationIterator.Type type, @NotNull SpeedModifier speed) {
@@ -155,6 +156,11 @@ public record AnimationModifier(@NotNull Supplier<Boolean> predicate, int start,
     public static final AnimationModifier DEFAULT = new AnimationModifier(1, 0, 1F);
     public static final AnimationModifier DEFAULT_WITH_PLAY_ONCE = new AnimationModifier(() -> true, 1, 0, AnimationIterator.Type.PLAY_ONCE, 1F);
 
+    /**
+     * Gets modifier's type or default value
+     * @param defaultType default value
+     * @return modifier's type or default value
+     */
     public @NotNull AnimationIterator.Type type(@NotNull AnimationIterator.Type defaultType) {
         return type != null ? type : defaultType;
     }

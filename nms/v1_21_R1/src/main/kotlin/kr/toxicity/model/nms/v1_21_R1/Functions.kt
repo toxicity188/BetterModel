@@ -7,7 +7,6 @@ import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.nms.PacketBundler
 import kr.toxicity.model.api.tracker.Tracker
 import kr.toxicity.model.api.util.EventUtil
-import kr.toxicity.model.api.util.ItemUtil
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.network.syncher.SynchedEntityData.DataItem
@@ -19,9 +18,9 @@ import net.minecraft.world.entity.ai.goal.RangedBowAttackGoal
 import net.minecraft.world.entity.ai.goal.RangedCrossbowAttackGoal
 import net.minecraft.world.entity.animal.FlyingAnimal
 import net.minecraft.world.entity.player.Player
+import net.minecraft.world.phys.Vec3
 import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.event.Event
-import org.bukkit.inventory.ItemStack
 import org.joml.Vector3f
 
 internal inline fun <reified T, reified R> createAdaptedFieldGetter(noinline paperGetter: (T) -> R): (T) -> R {
@@ -128,3 +127,5 @@ internal fun Tracker.entityFlag(byte: Byte): Byte {
     if (hideOption.glowing()) b = b and (1 shl 6).inv()
     return b.toByte()
 }
+
+internal fun org.bukkit.util.Vector.toVanilla() = Vec3(x, y, z)

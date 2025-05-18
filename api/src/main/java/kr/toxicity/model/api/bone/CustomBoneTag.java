@@ -10,12 +10,25 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 import java.util.function.Function;
 
+/**
+ * Custom bone tag
+ * @param name name
+ * @param tags tags
+ * @param itemMapper item mapper
+ */
 public record CustomBoneTag(
         @NotNull String name,
         @Getter @NotNull String[] tags,
         @Getter @Nullable BoneItemMapper itemMapper
 ) implements BoneTag {
 
+    /**
+     * Creates bone tag for player
+     * @param name name
+     * @param transform item transformation
+     * @param tags tags
+     * @param mapper item mapper
+     */
     public CustomBoneTag(
             @NotNull String name,
             @NotNull ItemDisplay.ItemDisplayTransform transform,

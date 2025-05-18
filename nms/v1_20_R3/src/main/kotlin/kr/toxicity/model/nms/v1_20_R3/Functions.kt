@@ -7,7 +7,6 @@ import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.nms.PacketBundler
 import kr.toxicity.model.api.tracker.Tracker
 import kr.toxicity.model.api.util.EventUtil
-import kr.toxicity.model.api.util.ItemUtil
 import net.minecraft.core.BlockPos
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.network.syncher.SynchedEntityData
@@ -29,7 +28,6 @@ import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.Vec3
 import org.bukkit.craftbukkit.v1_20_R3.entity.CraftEntity
 import org.bukkit.event.Event
-import org.bukkit.inventory.ItemStack
 import org.joml.Vector3f
 import kotlin.math.max
 

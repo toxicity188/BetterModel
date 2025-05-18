@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 public interface GlobalManager {
     /**
      * Executes reload
+     * @param info reload info
      */
     void reload(@NotNull ReloadInfo info);
 }

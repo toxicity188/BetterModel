@@ -38,7 +38,6 @@ import org.bukkit.Particle
 import org.bukkit.craftbukkit.CraftServer
 import org.bukkit.craftbukkit.entity.CraftLivingEntity
 import org.bukkit.craftbukkit.entity.CraftPlayer
-import org.bukkit.craftbukkit.util.CraftVector
 import org.bukkit.entity.Entity
 import org.bukkit.event.entity.EntityPotionEffectEvent
 import org.bukkit.plugin.Plugin
@@ -312,10 +311,10 @@ internal class HitBoxImpl(
         )
     }
 
-    override fun triggerInteractAt(player: org.bukkit.entity.Player, hand: ModelInteractionHand, vector: Vector) {
+    override fun triggerInteractAt(player: org.bukkit.entity.Player, hand: ModelInteractionHand, position: Vector) {
         interactAt(
             (player as CraftPlayer).handle,
-            CraftVector.toNMS(vector),
+            position.toVanilla(),
             when (hand) {
                 ModelInteractionHand.LEFT -> OFF_HAND
                 ModelInteractionHand.RIGHT -> MAIN_HAND
@@ -351,7 +350,7 @@ internal class HitBoxImpl(
         val interact = ModelInteractAtEvent(player.bukkitEntity as org.bukkit.entity.Player, craftEntity, when (hand) {
             MAIN_HAND -> ModelInteractionHand.RIGHT
             OFF_HAND -> ModelInteractionHand.LEFT
-        }, CraftVector.toBukkit(vec))
+        }, vec.toBukkit())
         if (!interact.call()) return InteractionResult.FAIL
         (player as ServerPlayer).connection.handleInteract(ServerboundInteractPacket.createInteractionPacket(delegate, player.isShiftKeyDown, hand, vec))
         return InteractionResult.SUCCESS

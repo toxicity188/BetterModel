@@ -40,15 +40,34 @@ public interface AnimationIterator extends Iterator<AnimationMovement> {
      */
     int lastIndex();
 
+    /**
+     * Gets an animation type
+     * @return type
+     */
     @NotNull Type type();
 
+    /**
+     * Animation type
+     */
     @RequiredArgsConstructor
     enum Type {
+        /**
+         * Play once
+         */
         PLAY_ONCE(PlayOnce::new),
+        /**
+         * Loop
+         */
         LOOP(Loop::new),
+        /**
+         * Hold on last
+         */
         HOLD_ON_LAST(HoldOnLast::new)
         ;
 
+        /**
+         * Deserializer
+         */
         public static final JsonDeserializer<Type> DESERIALIZER = new JsonDeserializer<>() {
             @Override
             public Type deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
@@ -65,11 +84,19 @@ public interface AnimationIterator extends Iterator<AnimationMovement> {
 
         private final Function<List<AnimationMovement>, AnimationIterator> mapper;
 
+        /**
+         * Creates iterator by given keyframes
+         * @param keyFrames keyframes
+         * @return iterator
+         */
         public @NotNull AnimationIterator create(@NotNull List<AnimationMovement> keyFrames) {
             return mapper.apply(keyFrames);
         }
     }
 
+    /**
+     * Play once
+     */
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     final class PlayOnce implements AnimationIterator {
         private final List<AnimationMovement> keyFrame;
@@ -114,6 +141,9 @@ public interface AnimationIterator extends Iterator<AnimationMovement> {
         }
     }
 
+    /**
+     * Hold on last
+     */
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     final class HoldOnLast implements AnimationIterator {
         private final List<AnimationMovement> keyFrame;
@@ -158,6 +188,9 @@ public interface AnimationIterator extends Iterator<AnimationMovement> {
         }
     }
 
+    /**
+     * Loop
+     */
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     final class Loop implements AnimationIterator {
         private final List<AnimationMovement> keyFrame;
@@ -203,10 +236,20 @@ public interface AnimationIterator extends Iterator<AnimationMovement> {
         }
     }
 
+    /**
+     * Creates iterator per play once
+     * @param keyFrame key frames
+     * @return iterator
+     */
     static @NotNull PlayOnce playOnce(@NotNull List<AnimationMovement> keyFrame) {
         return new PlayOnce(keyFrame);
     }
 
+    /**
+     * Creates iterator per loop
+     * @param keyFrame key frames
+     * @return iterator
+     */
     static @NotNull Loop loop(@NotNull List<AnimationMovement> keyFrame) {
         return new Loop(keyFrame);
     }

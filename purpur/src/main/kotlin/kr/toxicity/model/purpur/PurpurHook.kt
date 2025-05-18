@@ -1,8 +1,7 @@
 package kr.toxicity.model.purpur
 
 import kr.toxicity.model.api.BetterModel
-import kr.toxicity.model.api.event.CreateDummyTrackerEvent
-import kr.toxicity.model.api.event.CreateEntityTrackerEvent
+import kr.toxicity.model.api.event.CreateTrackerEvent
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -18,13 +17,7 @@ object PurpurHook {
         )
         Bukkit.getPluginManager().registerEvents(object : Listener {
             @EventHandler
-            fun CreateEntityTrackerEvent.create() {
-                tracker().instance.viewFilter {
-                    !config.usePurpurAfk() || !it.isAfk
-                }
-            }
-            @EventHandler
-            fun CreateDummyTrackerEvent.create() {
+            fun CreateTrackerEvent.create() {
                 tracker().instance.viewFilter {
                     !config.usePurpurAfk() || !it.isAfk
                 }

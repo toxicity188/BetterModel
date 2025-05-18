@@ -12,6 +12,9 @@ import java.util.function.Supplier;
  * @param scale model scale
  * @param sightTrace use sight-trace
  * @param damageEffect enables damage effect
+ * @param viewRange view range
+ * @param shadow create shadow
+ * @param hideOption hide option
  */
 public record TrackerModifier(
         @NotNull Supplier<Float> scale,

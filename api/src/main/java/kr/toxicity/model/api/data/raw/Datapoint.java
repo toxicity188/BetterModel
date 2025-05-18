@@ -24,10 +24,13 @@ public record Datapoint(
         @Nullable String script
 ) {
     /**
-     * Parser
+     * Parser instance
      */
     public static final Parser PARSER = new Parser();
 
+    /**
+     * Parser
+     */
     public static final class Parser implements Function<JsonElement, Datapoint>, JsonDeserializer<Datapoint> {
 
         private Parser() {

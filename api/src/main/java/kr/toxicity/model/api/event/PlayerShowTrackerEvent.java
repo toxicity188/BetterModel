@@ -6,8 +6,12 @@ import lombok.Setter;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Shows this tracker to some player
+ */
 @Getter
 @Setter
 public class PlayerShowTrackerEvent extends AbstractPlayerModelEvent implements Cancellable {
@@ -19,6 +23,12 @@ public class PlayerShowTrackerEvent extends AbstractPlayerModelEvent implements 
     private final Tracker tracker;
     private boolean cancelled;
 
+    /**
+     * Creates event
+     * @param tracker tracker
+     * @param player player
+     */
+    @ApiStatus.Internal
     public PlayerShowTrackerEvent(@NotNull Tracker tracker, @NotNull Player player) {
         super(player);
         this.tracker = tracker;

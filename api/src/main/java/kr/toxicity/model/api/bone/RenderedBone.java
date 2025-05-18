@@ -187,6 +187,10 @@ public final class RenderedBone implements HitBoxSource {
         if (display != null) display.moveDuration(duration);
     }
 
+    /**
+     * Sets the scale of this bone
+     * @param scale scale
+     */
     public void scale(@NotNull Supplier<Float> scale) {
         this.scale = scale;
     }

@@ -5,6 +5,7 @@ import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.RenderedBone;
+import kr.toxicity.model.api.data.renderer.ModelRenderer;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.data.renderer.RenderSource;
 import kr.toxicity.model.api.event.*;
@@ -62,6 +63,7 @@ public abstract class Tracker implements AutoCloseable {
 
     /**
      * Creates tracker
+     * @param source render source
      * @param instance target instance
      * @param modifier modifier
      */
@@ -77,7 +79,7 @@ public abstract class Tracker implements AutoCloseable {
                     frame % 5 == 0 ? (isRunningSingleAnimation() && config.lockOnPlayAnimation()) ? instance.getRotation() : rotation() : null,
                     viewBundler
             );
-            consumer.accept(this, dataBundler);
+            consumer.accept(this, viewBundler);
             if (readyForForceUpdate.compareAndSet(true, false)) instance.forceUpdate(dataBundler);
             if (!dataBundler.isEmpty()) {
                 instance.nonHidePlayer().forEach(dataBundler::send);
@@ -482,6 +484,7 @@ public abstract class Tracker implements AutoCloseable {
 
     /**
      * Checks this player is marked as hide
+     * @param player target player
      * @return hide
      */
     public boolean isHide(@NotNull Player player) {
@@ -495,5 +498,13 @@ public abstract class Tracker implements AutoCloseable {
      */
     public boolean show(@NotNull Player player) {
         return EventUtil.call(new PlayerShowTrackerEvent(this, player)) && instance.show(player);
+    }
+
+    /**
+     * Gets the renderer of this tracker
+     * @return renderer
+     */
+    public @NotNull ModelRenderer renderer() {
+        return instance.getParent();
     }
 }

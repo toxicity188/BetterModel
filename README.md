@@ -83,6 +83,8 @@ This plugin supports player animation.
 - [CommandAPI](https://github.com/CommandAPI/CommandAPI): command
 - [adventure](https://github.com/KyoriPowered/adventure): component
 - [stable player display](https://github.com/bradleyq/stable_player_display): player animation
+- [expiringmap](https://github.com/jhalterman/expiringmap): concurrent map cache
+- [DynamicUV](https://github.com/toxicity188/DynamicUV): player model-uv
 
 ### Version
 - Spigot, Paper or a fork (e.g., Folia)

@@ -4,8 +4,12 @@ import kr.toxicity.model.api.tracker.Tracker;
 import lombok.Getter;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Despawn tracker to some player
+ */
 @Getter
 public final class ModelDespawnAtPlayerEvent extends AbstractPlayerModelEvent {
     /**
@@ -15,6 +19,12 @@ public final class ModelDespawnAtPlayerEvent extends AbstractPlayerModelEvent {
 
     private final Tracker tracker;
 
+    /**
+     * Creates event
+     * @param player player
+     * @param tracker tracker
+     */
+    @ApiStatus.Internal
     public ModelDespawnAtPlayerEvent(@NotNull Player player, @NotNull Tracker tracker) {
         super(player);
         this.tracker = tracker;

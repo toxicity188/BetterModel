@@ -3,18 +3,20 @@ package kr.toxicity.model.api.event;
 import kr.toxicity.model.api.tracker.EntityTracker;
 import lombok.Getter;
 import org.bukkit.entity.Entity;
-import org.bukkit.event.HandlerList;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Create event of entity tracker
+ */
 @Getter
 public final class CreateEntityTrackerEvent extends CreateTrackerEvent {
 
     /**
-     * Handler list
+     * Creates event
+     * @param tracker tracker
      */
-    public static final HandlerList HANDLER_LIST = new HandlerList();
-
-
+    @ApiStatus.Internal
     public CreateEntityTrackerEvent(@NotNull EntityTracker tracker) {
         super(tracker, false);
     }
@@ -24,23 +26,12 @@ public final class CreateEntityTrackerEvent extends CreateTrackerEvent {
         return (EntityTracker) super.tracker();
     }
 
+    /**
+     * Gets source entity
+     * @return source entity
+     */
     @NotNull
     public Entity sourceEntity() {
         return tracker().sourceEntity();
-    }
-
-    @NotNull
-    @Override
-    public HandlerList getHandlers() {
-        return HANDLER_LIST;
-    }
-
-    /**
-     * Gets a handler list
-     * @return handler list
-     */
-    @SuppressWarnings("unused") //This method is necessary for event API.
-    public static @NotNull HandlerList getHandlerList() {
-        return HANDLER_LIST;
     }
 }

@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -32,6 +33,7 @@ public class ModelInteractEvent extends PlayerEvent implements Cancellable {
      * @param hitBox hit-box
      * @param hand interacted hand
      */
+    @ApiStatus.Internal
     public ModelInteractEvent(@NotNull Player who, @NotNull HitBox hitBox, @NotNull ModelInteractionHand hand) {
         super(who);
         this.hitBox = hitBox;

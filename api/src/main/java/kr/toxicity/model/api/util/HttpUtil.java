@@ -13,6 +13,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,6 +29,10 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
 
+/**
+ * Http util
+ */
+@ApiStatus.Internal
 public final class HttpUtil {
 
     private static final HttpClient CLIENT = HttpClient.newBuilder()

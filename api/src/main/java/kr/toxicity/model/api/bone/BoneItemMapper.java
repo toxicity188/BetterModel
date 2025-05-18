@@ -11,8 +11,14 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+/**
+ * Item-mapper of bone
+ */
 public interface BoneItemMapper extends BiFunction<RenderSource, TransformedItemStack, TransformedItemStack> {
 
+    /**
+     * Empty
+     */
     BoneItemMapper EMPTY = new BoneItemMapper() {
         @NotNull
         @Override
@@ -27,6 +33,12 @@ public interface BoneItemMapper extends BiFunction<RenderSource, TransformedItem
         }
     };
 
+    /**
+     * Mapped if a render source is player
+     * @param transform transformation
+     * @param mapper mapper
+     * @return bone item mapper
+     */
     static @NotNull BoneItemMapper player(@NotNull ItemDisplay.ItemDisplayTransform transform, @NotNull Function<Player, TransformedItemStack> mapper) {
         return new BoneItemMapper() {
 
@@ -49,5 +61,9 @@ public interface BoneItemMapper extends BiFunction<RenderSource, TransformedItem
         };
     }
 
+    /**
+     * Gets item display transformation
+     * @return transformation
+     */
     @NotNull ItemDisplay.ItemDisplayTransform transform();
 }

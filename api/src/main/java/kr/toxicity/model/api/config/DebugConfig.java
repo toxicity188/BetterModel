@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
  * Debug config
  * @param exception debug stack trace of exception
  * @param hitBox debug hit-box entity
+ * @param pack debug packing resource pack
  */
 public record DebugConfig(
         boolean exception,

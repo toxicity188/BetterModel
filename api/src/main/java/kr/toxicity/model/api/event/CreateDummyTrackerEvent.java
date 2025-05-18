@@ -2,17 +2,20 @@ package kr.toxicity.model.api.event;
 
 import kr.toxicity.model.api.tracker.DummyTracker;
 import lombok.Getter;
-import org.bukkit.event.HandlerList;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Create event of fake tracker
+ */
 @Getter
 public final class CreateDummyTrackerEvent extends CreateTrackerEvent {
 
     /**
-     * Handler list
+     * Creates event
+     * @param tracker tracker
      */
-    public static final HandlerList HANDLER_LIST = new HandlerList();
-
+    @ApiStatus.Internal
     public CreateDummyTrackerEvent(@NotNull DummyTracker tracker) {
         super(tracker);
     }
@@ -20,20 +23,5 @@ public final class CreateDummyTrackerEvent extends CreateTrackerEvent {
     @NotNull
     public DummyTracker tracker() {
         return (DummyTracker) super.tracker();
-    }
-
-    @NotNull
-    @Override
-    public HandlerList getHandlers() {
-        return HANDLER_LIST;
-    }
-
-    /**
-     * Gets a handler list
-     * @return handler list
-     */
-    @SuppressWarnings("unused") //This method is necessary for event API.
-    public static @NotNull HandlerList getHandlerList() {
-        return HANDLER_LIST;
     }
 }

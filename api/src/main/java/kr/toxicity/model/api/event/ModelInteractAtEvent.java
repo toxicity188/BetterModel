@@ -6,6 +6,7 @@ import lombok.Getter;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -26,7 +27,9 @@ public final class ModelInteractAtEvent extends ModelInteractEvent {
      * @param who player
      * @param hitBox hit-box
      * @param hand interacted hand
+     * @param position position
      */
+    @ApiStatus.Internal
     public ModelInteractAtEvent(@NotNull Player who, @NotNull HitBox hitBox, @NotNull ModelInteractionHand hand, @NotNull Vector position) {
         super(who, hitBox, hand);
         this.position = position;

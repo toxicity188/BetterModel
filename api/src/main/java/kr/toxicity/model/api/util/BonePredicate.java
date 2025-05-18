@@ -58,9 +58,21 @@ public interface BonePredicate extends Predicate<RenderedBone> {
         };
     }
 
+    /**
+     * children bone state
+     */
     enum State {
+        /**
+         * Apply with children too
+         */
         TRUE,
+        /**
+         * Doesn't apply children
+         */
         FALSE,
+        /**
+         * Ignore parent's result
+         */
         NOT_SET
     }
 

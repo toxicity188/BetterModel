@@ -42,6 +42,7 @@ public final class FunctionUtil {
 
     /**
      * Throttles this function by tick
+     * @param <T> type
      * @param supplier target
      * @return throttled function
      */
@@ -51,6 +52,7 @@ public final class FunctionUtil {
 
     /**
      * Throttles this function by tick
+     * @param <T> type
      * @param predicate target
      * @return throttled function
      */
@@ -60,6 +62,8 @@ public final class FunctionUtil {
 
     /**
      * Throttles this function by tick
+     * @param <T> from
+     * @param <R> return
      * @param function target
      * @return throttled function
      */

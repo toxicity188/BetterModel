@@ -138,6 +138,8 @@ public class EntityTracker extends Tracker {
             }));
             instance.spawnPacketHandler(shadow::spawn);
             instance.despawnPacketHandler(shadow::remove);
+            instance.hidePacketHandler(b -> shadow.sendEntityData(false, b));
+            instance.showPacketHandler(shadow::sendEntityData);
         }
 
         //Animation
@@ -202,6 +204,9 @@ public class EntityTracker extends Tracker {
         createHitBox(predicate, HitBoxListener.EMPTY);
     }
 
+    /**
+     * Syncs this tracker to base entity's data.
+     */
     public void updateBaseEntity() {
         BetterModel.inst().scheduler().taskLater(1, entity, () -> {
             updateBaseEntity0();

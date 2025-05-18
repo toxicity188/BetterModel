@@ -3,8 +3,12 @@ package kr.toxicity.model.api.event;
 import kr.toxicity.model.api.tracker.Tracker;
 import lombok.Getter;
 import org.bukkit.event.HandlerList;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Closing tracker event
+ */
 @Getter
 public final class CloseTrackerEvent extends AbstractModelEvent {
 
@@ -15,6 +19,11 @@ public final class CloseTrackerEvent extends AbstractModelEvent {
 
     private final Tracker tracker;
 
+    /**
+     * Creates event
+     * @param tracker tracker
+     */
+    @ApiStatus.Internal
     public CloseTrackerEvent(@NotNull Tracker tracker) {
         this.tracker = tracker;
     }

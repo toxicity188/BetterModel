@@ -70,6 +70,10 @@ public sealed interface BlueprintChildren {
             MAX_SCALE_ARRAY.add(4);
         }
 
+        /**
+         * Creates bone name
+         * @return bone name
+         */
         public @NotNull BoneName boneName() {
             return BoneTagRegistry.parse(name);
         }

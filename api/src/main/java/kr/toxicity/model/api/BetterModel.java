@@ -45,15 +45,34 @@ public final class BetterModel {
      */
     private static BetterModelPlugin instance;
 
+    /**
+     * Gets model render by name
+     * @param name name
+     * @return optional renderer
+     */
     public static @NotNull Optional<ModelRenderer> model(@NotNull String name) {
         return Optional.ofNullable(inst().modelManager().renderer(name));
     }
+    /**
+     * Gets player animation render by name
+     * @param name name
+     * @return optional renderer
+     */
     public static @NotNull Optional<ModelRenderer> limb(@NotNull String name) {
         return Optional.ofNullable(inst().playerManager().limb(name));
     }
+
+    /**
+     * Gets all models
+     * @return all models
+     */
     public static @NotNull @Unmodifiable List<ModelRenderer> models() {
         return inst().modelManager().renderers();
     }
+    /**
+     * Gets all limbs
+     * @return all limbs
+     */
     public static @NotNull @Unmodifiable List<ModelRenderer> limbs() {
         return inst().playerManager().limbs();
     }

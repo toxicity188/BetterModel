@@ -146,14 +146,13 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
                         isCancelled = true
                         return
                     }
+//                    if (cause == EntityDamageEvent.DamageCause.ENTITY_ATTACK) {
+//                        EntityTracker.tracker(damager)?.animate("attack", AnimationModifier.DEFAULT_WITH_PLAY_ONCE)
+//                    }
                 }
                 EntityTracker.tracker(entity)?.let {
-                    if (it.animate("damage", AnimationModifier.DEFAULT_WITH_PLAY_ONCE) {
-                            it.tint(0xFFFFFF)
-                        }) it.tint(it.damageTintValue())
-                    else {
-                        it.damageTint()
-                    }
+                    it.animate("damage", AnimationModifier.DEFAULT_WITH_PLAY_ONCE)
+                    it.damageTint()
                 }
             }
         })
