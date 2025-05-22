@@ -64,8 +64,8 @@ public record TransformedItemStack(@NotNull Vector3f position, @NotNull Vector3f
      * Checks this item is air
      * @return is air
      */
-    public boolean isEmpty() {
-        return itemStack.isEmpty();
+    public boolean isAir() {
+        return ItemUtil.isEmpty(itemStack);
     }
 
     /**

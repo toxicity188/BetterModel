@@ -72,13 +72,6 @@ public final class MathUtil {
         return rotation;
     }
 
-    private static float createIdentifier(float value) {
-        var abs = Math.abs(value);
-        if (abs >= ROTATION_DEGREE) abs -= ROTATION_DEGREE;
-        if (abs >= ROTATION_DEGREE) abs -= ROTATION_DEGREE;
-        return (value > 0 ? 1 : -1) * abs;
-    }
-
     /**
      * Converts animation rotation to display rotation
      * @param vector original

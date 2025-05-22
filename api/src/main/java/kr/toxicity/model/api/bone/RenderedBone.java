@@ -43,9 +43,6 @@ public final class RenderedBone implements HitBoxSource {
     @Getter
     @NotNull
     private final RendererGroup group;
-    @Getter
-    @Nullable
-    private ModelDisplay display;
     private final BoneMovement defaultFrame;
 
     @NotNull
@@ -62,25 +59,32 @@ public final class RenderedBone implements HitBoxSource {
     private final SequencedMap<String, TreeIterator> animators = new LinkedHashMap<>();
     private final Collection<TreeIterator> reversedView = animators.sequencedValues().reversed();
     private final Int2ObjectOpenHashMap<ItemStack> tintCacheMap = new Int2ObjectOpenHashMap<>();
-    private AnimationMovement keyFrame = null;
-    private long delay = 0;
-    private boolean forceUpdateAnimation = true;
-    private TransformedItemStack cachedItem, itemStack;
+    @Getter
+    private final boolean dummyBone;
 
-    private final List<Consumer<AnimationMovement>> movementModifier = new ArrayList<>();
+    //Resource
+    @Getter
+    @Nullable
+    private ModelDisplay display;
     @Getter
     @Nullable
     private HitBox hitBox;
 
-    @Getter
-    private final boolean dummyBone;
+    //Item
     @Getter
     @Setter
     private BoneItemMapper itemMapper;
     private int tint;
+    private TransformedItemStack cachedItem, itemStack;
+
+    //Animation
+    private AnimationMovement keyFrame = null;
+    private long delay = 0;
+    private boolean forceUpdateAnimation = true;
     private TreeIterator currentIterator = null;
     private BoneMovement beforeTransform, afterTransform, relativeOffsetCache;
     private Supplier<Vector3f> defaultPosition = FunctionUtil.asSupplier(new Vector3f());
+    private Consumer<AnimationMovement> movementModifier = m -> {};
     private ModelRotation rotation = ModelRotation.EMPTY;
     private Supplier<Float> scale = FunctionUtil.asSupplier(1F);
 
@@ -241,9 +245,7 @@ public final class RenderedBone implements HitBoxSource {
      */
     public boolean addAnimationMovementModifier(@NotNull BonePredicate predicate, @NotNull Consumer<AnimationMovement> consumer) {
         if (predicate.test(this)) {
-            synchronized (movementModifier) {
-                movementModifier.add(consumer);
-            }
+            movementModifier = movementModifier.andThen(consumer);
             return true;
         }
         return false;
@@ -403,11 +405,7 @@ public final class RenderedBone implements HitBoxSource {
 
     private @NotNull BoneMovement defaultFrame() {
         var k = keyFrame != null ? keyFrame.copyNotNull() : new AnimationMovement(0, new Vector3f(), new Vector3f(), new Vector3f());
-        synchronized (movementModifier) {
-            for (Consumer<AnimationMovement> consumer : movementModifier) {
-                consumer.accept(k);
-            }
-        }
+        movementModifier.accept(k);
         return defaultFrame.plus(k);
     }
 
@@ -422,7 +420,10 @@ public final class RenderedBone implements HitBoxSource {
         if (parent != null) {
             var p = parent.relativeOffset();
             return relativeOffsetCache = new BoneMovement(
-                    new Vector3f(p.transform()).add(new Vector3f(def.transform()).mul(p.scale()).rotate(p.rotation())),
+                    new Vector3f(def.transform())
+                            .mul(p.scale())
+                            .rotate(p.rotation())
+                            .add(p.transform()),
                     new Vector3f(def.scale()).mul(p.scale()),
                     new Quaternionf(p.rotation()).mul(def.rotation()),
                     def.rawRotation()

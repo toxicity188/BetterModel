@@ -28,6 +28,6 @@ public record AnimationPoint(
     }
 
     private static boolean checkNull(@NotNull Vector3f vector3f) {
-        return vector3f.x() == 0F && vector3f.y() == 0F && vector3f.z() == 0F;
+        return vector3f.x == 0F && vector3f.y == 0F && vector3f.z == 0F;
     }
 }
