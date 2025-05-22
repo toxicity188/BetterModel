@@ -48,7 +48,7 @@ import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.craftbukkit.inventory.CraftItemStack
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
-import org.bukkit.util.Transformation
+import org.joml.Quaternionf
 import org.joml.Vector3f
 import java.lang.reflect.Field
 import java.util.*
@@ -109,7 +109,7 @@ class NMSImpl : NMS {
             e.toSerializerId()
         }
         private val transformSet = displaySet.subList(0, 6).toIntSet()
-        private val entityDataSet = (listOf(sharedFlag) + itemId + displaySet.subList(transformSet.size, displaySet.size)).toIntSet()
+        private val entityDataSet = (mutableListOf(sharedFlag) + itemId + displaySet.subList(transformSet.size, displaySet.size)).toIntSet()
     }
 
     override fun hide(player: Player, entity: org.bukkit.entity.Entity) {
@@ -430,12 +430,12 @@ class NMSImpl : NMS {
             )
         }
 
-        override fun transform(transformation: Transformation) {
+        override fun transform(position: Vector3f, scale: Vector3f, rotation: Quaternionf) {
             display.setTransformation(com.mojang.math.Transformation(
-                transformation.translation,
-                transformation.leftRotation,
-                transformation.scale,
-                transformation.rightRotation
+                position,
+                rotation,
+                scale,
+                EMPTY_QUATERNION
             ))
         }
 

@@ -21,7 +21,6 @@ import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.Transformation;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,6 +28,7 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.*;
 
 /**
@@ -37,7 +37,6 @@ import java.util.function.*;
 public final class RenderedBone implements HitBoxSource {
 
     private static final Vector3f EMPTY_VECTOR = new Vector3f();
-    private static final Quaternionf EMPTY_QUATERNION = new Quaternionf();
     private static final ItemStack AIR = new ItemStack(Material.AIR);
 
     @Getter
@@ -59,8 +58,10 @@ public final class RenderedBone implements HitBoxSource {
     private final SequencedMap<String, TreeIterator> animators = new LinkedHashMap<>();
     private final Collection<TreeIterator> reversedView = animators.sequencedValues().reversed();
     private final Int2ObjectOpenHashMap<ItemStack> tintCacheMap = new Int2ObjectOpenHashMap<>();
+    private final AtomicBoolean forceUpdateAnimation = new AtomicBoolean(true);
     @Getter
     private final boolean dummyBone;
+    private final Object itemLock = new Object();
 
     //Resource
     @Getter
@@ -79,13 +80,13 @@ public final class RenderedBone implements HitBoxSource {
 
     //Animation
     private AnimationMovement keyFrame = null;
-    private long delay = 0;
-    private boolean forceUpdateAnimation = true;
+    private volatile long delay = 0;
     private TreeIterator currentIterator = null;
     private BoneMovement beforeTransform, afterTransform, relativeOffsetCache;
-    private Supplier<Vector3f> defaultPosition = FunctionUtil.asSupplier(new Vector3f());
     private Consumer<AnimationMovement> movementModifier = m -> {};
     private ModelRotation rotation = ModelRotation.EMPTY;
+
+    private Supplier<Vector3f> defaultPosition = FunctionUtil.asSupplier(new Vector3f());
     private Supplier<Float> scale = FunctionUtil.asSupplier(1F);
 
     /**
@@ -167,18 +168,20 @@ public final class RenderedBone implements HitBoxSource {
      */
     public boolean enchant(@NotNull BonePredicate predicate, boolean enchant) {
         if (predicate.test(this)) {
-            itemStack = itemStack.modify(i -> {
-                if (ItemUtil.isEmpty(i)) return i;
-                var meta = i.getItemMeta();
-                if (enchant) {
-                    meta.addEnchant(Enchantment.UNBREAKING, 0, true);
-                } else {
-                    meta.removeEnchant(Enchantment.UNBREAKING);
-                }
-                i.setItemMeta(meta);
-                return i;
-            });
-            return applyItem();
+            synchronized (itemLock) {
+                itemStack = itemStack.modify(i -> {
+                    if (ItemUtil.isEmpty(i)) return i;
+                    var meta = i.getItemMeta();
+                    if (enchant) {
+                        meta.addEnchant(Enchantment.UNBREAKING, 0, true);
+                    } else {
+                        meta.removeEnchant(Enchantment.UNBREAKING);
+                    }
+                    i.setItemMeta(meta);
+                    return i;
+                });
+                return applyItem();
+            }
         }
         return false;
     }
@@ -222,9 +225,11 @@ public final class RenderedBone implements HitBoxSource {
      */
     public boolean itemStack(@NotNull BonePredicate predicate, @NotNull TransformedItemStack itemStack) {
         if (predicate.test(this)) {
-            this.itemStack = cachedItem = itemStack;
-            tintCacheMap.clear();
-            return applyItem();
+            synchronized (itemLock) {
+                this.itemStack = cachedItem = itemStack;
+                tintCacheMap.clear();
+                return applyItem();
+            }
         }
         return false;
     }
@@ -251,13 +256,12 @@ public final class RenderedBone implements HitBoxSource {
         return false;
     }
 
+    private boolean keyframeFinished() {
+        return delay <= 0;
+    }
+
     private boolean shouldUpdateAnimation() {
-        var success = false;
-        if (forceUpdateAnimation) {
-            forceUpdateAnimation = false;
-            success = true;
-        }
-        return success || delay <= 0 || delay % 5 == 0;
+        return forceUpdateAnimation.compareAndSet(true, false) || keyframeFinished() || delay % 5 == 0;
     }
 
     private boolean updateAnimation() {
@@ -278,7 +282,7 @@ public final class RenderedBone implements HitBoxSource {
                         delay = 0;
                         return true;
                     }
-                } else if (delay <= 0) {
+                } else if (keyframeFinished()) {
                     if (updateKeyframe(iterator, next)) {
                         return true;
                     }
@@ -304,7 +308,7 @@ public final class RenderedBone implements HitBoxSource {
         }
     }
 
-    public boolean move(@Nullable ModelRotation rotation, @NotNull PacketBundler bundler) {
+    public synchronized boolean move(@Nullable ModelRotation rotation, @NotNull PacketBundler bundler) {
         var d = display;
         if (rotation != null) {
             this.rotation = rotation;
@@ -330,6 +334,7 @@ public final class RenderedBone implements HitBoxSource {
         var d = display;
         if (d != null) d.sendEntityData(bundler);
     }
+
     public void forceUpdate(boolean showItem, @NotNull PacketBundler bundler) {
         var d = display;
         if (d != null) d.sendEntityData(showItem, bundler);
@@ -380,18 +385,17 @@ public final class RenderedBone implements HitBoxSource {
     private void setup(@NotNull BoneMovement boneMovement) {
         if (display != null) {
             var mul = scale.get();
-            display.transform(new Transformation(
+            display.transform(
                     new Vector3f(boneMovement.transform())
                             .add(root.group.getPosition())
                             .add(new Vector3f(itemStack.offset()).rotate(boneMovement.rotation()))
                             .mul(mul)
                             .add(defaultPosition.get()),
-                    boneMovement.rotation(),
                     new Vector3f(boneMovement.scale())
                             .mul(itemStack.scale())
                             .mul(mul),
-                    EMPTY_QUATERNION
-            ));
+                    boneMovement.rotation()
+            );
         }
     }
 
@@ -434,8 +438,10 @@ public final class RenderedBone implements HitBoxSource {
 
     public boolean tint(@NotNull BonePredicate predicate, int tint) {
         if (predicate.test(this)) {
-            this.tint = tint;
-            return applyItem();
+            synchronized (itemLock) {
+                this.tint = tint;
+                return applyItem();
+            }
         }
         return false;
     }
@@ -470,7 +476,7 @@ public final class RenderedBone implements HitBoxSource {
             synchronized (animators) {
                 animators.putLast(parent, iterator);
             }
-            forceUpdateAnimation = true;
+            forceUpdateAnimation.set(true);
             return true;
         }
         return false;
@@ -488,7 +494,7 @@ public final class RenderedBone implements HitBoxSource {
                 }) : new TreeIterator(parent, animator.emptyIterator(type), modifier, () -> {
                 }));
             }
-            forceUpdateAnimation = true;
+            forceUpdateAnimation.set(true);
             return true;
         }
         return false;
@@ -523,8 +529,10 @@ public final class RenderedBone implements HitBoxSource {
      */
     public boolean togglePart(@NotNull BonePredicate predicate, boolean toggle) {
         if (predicate.test(this)) {
-            itemStack = toggle ? cachedItem : cachedItem.asAir();
-            return applyItem();
+            synchronized (itemLock) {
+                itemStack = toggle ? cachedItem : cachedItem.asAir();
+                return applyItem();
+            }
         }
         return false;
     }

@@ -6,7 +6,6 @@ import kr.toxicity.model.api.mount.MountController;
 import kr.toxicity.model.api.tracker.EntityTracker;
 import kr.toxicity.model.api.util.TransformedItemStack;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;

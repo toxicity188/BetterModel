@@ -6,6 +6,8 @@ import org.bukkit.entity.ItemDisplay;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Transformation;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 /**
  * An item-display packet adapter
@@ -85,9 +87,11 @@ public interface ModelDisplay {
 
     /**
      * Transforms this display
-     * @param transformation transformation
+     * @param position position
+     * @param scale scale
+     * @param rotation rotation
      */
-    void transform(@NotNull Transformation transformation);
+    void transform(@NotNull Vector3f position, @NotNull Vector3f scale, @NotNull Quaternionf rotation);
 
     /**
      * Sends transformation

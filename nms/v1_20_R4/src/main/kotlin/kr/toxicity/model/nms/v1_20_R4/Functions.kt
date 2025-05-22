@@ -24,6 +24,7 @@ import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.Vec3
 import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.event.Event
+import org.joml.Quaternionf
 import org.joml.Vector3f
 import kotlin.math.max
 
@@ -38,6 +39,8 @@ internal inline fun <reified T, reified R> createAdaptedFieldGetter(noinline pap
         }
     }
 }
+
+internal val EMPTY_QUATERNION = Quaternionf()
 
 internal val CONFIG by lazy {
     BetterModel.inst().configManager()

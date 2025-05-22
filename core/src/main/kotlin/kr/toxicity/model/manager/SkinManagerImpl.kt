@@ -555,7 +555,6 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
     }
 
     fun write(block: (String, () -> ByteArray) -> Unit) {
-        if (!supported()) return
         fun UVModel.write(block: (String, () -> ByteArray) -> Unit) {
             asJson("one_pixel").forEach {
                 block(it.path()) {

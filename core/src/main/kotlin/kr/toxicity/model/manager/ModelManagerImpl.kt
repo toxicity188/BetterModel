@@ -244,14 +244,13 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
 
         if (!info.firstReload) runCatching {
             if (ConfigManagerImpl.module().playerAnimation()) {
-                PLUGIN.loadAssets("pack") { s, i ->
+                if (SkinManagerImpl.supported()) SkinManagerImpl.write { path, supplier ->
+                    modernModel.add(path, supplier)
+                } else PLUGIN.loadAssets("pack") { s, i ->
                     val read = i.readAllBytes()
                     legacyModel.add("", s) {
                         read
                     }
-                }
-                SkinManagerImpl.write { path, supplier ->
-                    modernModel.add(path, supplier)
                 }
             }
             zipper.add("${namespace}_modern", modernModel)
