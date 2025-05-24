@@ -27,6 +27,8 @@ import javax.imageio.ImageIO
 
 object SkinManagerImpl : SkinManager, GlobalManagerImpl {
 
+    private const val DIV_FACTOR = 16F / 0.9375F
+    
     private var uvNamespace = UVNamespace(
         ConfigManagerImpl.namespace(),
         "player_limb"
@@ -37,8 +39,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         "head"
     ).addElement(
         UVElement(
-            ElementVector(0.5f, 0.5f, 0.5f),
-            ElementVector(0f, 0.25f, 0f),
+            ElementVector(8F, 8F, 8F).div(DIV_FACTOR),
+            ElementVector(0f, 4F, 0f).div(DIV_FACTOR),
             UVSpace(8, 8, 8),
             UVElement.ColorType.RGB,
             mapOf(
@@ -52,8 +54,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         )
     ).addElement(
         UVElement(
-            ElementVector(0.5f, 0.5f, 0.5f).inflate(0.5f),
-            ElementVector(0f, 0.25f, 0f),
+            ElementVector(8F, 8F, 8F).div(DIV_FACTOR).inflate(0.5f),
+            ElementVector(0f, 4F, 0f).div(DIV_FACTOR),
             UVSpace(8, 8, 8),
             UVElement.ColorType.ARGB,
             mapOf(
@@ -71,8 +73,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         "chest"
     ).addElement(
         UVElement(
-            ElementVector(8f, 4f, 4f).div(16f),
-            ElementVector(0f, 2f, 0f).div(16f),
+            ElementVector(8f, 4f, 4f).div(DIV_FACTOR),
+            ElementVector(0f, 2f, 0f).div(DIV_FACTOR),
             UVSpace(8, 4, 4),
             UVElement.ColorType.RGB,
             mapOf(
@@ -85,8 +87,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         )
     ).addElement(
         UVElement(
-            ElementVector(8f, 4f, 4f).div(16f).inflate(0.25f),
-            ElementVector(0f, 2f, 0f).div(16f),
+            ElementVector(8f, 4f, 4f).div(DIV_FACTOR).inflate(0.25f),
+            ElementVector(0f, 2f, 0f).div(DIV_FACTOR),
             UVSpace(8, 4, 4),
             UVElement.ColorType.ARGB,
             mapOf(
@@ -103,8 +105,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         "waist"
     ).addElement(
         UVElement(
-            ElementVector(8f, 4f, 4f).div(16f),
-            ElementVector(0f, 2f, 0f).div(16f),
+            ElementVector(8f, 4f, 4f).div(DIV_FACTOR),
+            ElementVector(0f, 2f, 0f).div(DIV_FACTOR),
             UVSpace(8, 4, 4),
             UVElement.ColorType.RGB,
             mapOf(
@@ -116,8 +118,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         )
     ).addElement(
         UVElement(
-            ElementVector(8f, 4f, 4f).div(16f).inflate(0.25f),
-            ElementVector(0f, 2f, 0f).div(16f),
+            ElementVector(8f, 4f, 4f).div(DIV_FACTOR).inflate(0.25f),
+            ElementVector(0f, 2f, 0f).div(DIV_FACTOR),
             UVSpace(8, 4, 4),
             UVElement.ColorType.ARGB,
             mapOf(
@@ -133,8 +135,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         "hip"
     ).addElement(
         UVElement(
-            ElementVector(8f, 4f, 4f).div(16f),
-            ElementVector(0f, 2f, 0f).div(16f),
+            ElementVector(8f, 4f, 4f).div(DIV_FACTOR),
+            ElementVector(0f, 2f, 0f).div(DIV_FACTOR),
             UVSpace(8, 4, 4),
             UVElement.ColorType.RGB,
             mapOf(
@@ -147,8 +149,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         )
     ).addElement(
         UVElement(
-            ElementVector(8f, 4f, 4f).div(16f).inflate(0.25f),
-            ElementVector(0f, 2f, 0f).div(16f),
+            ElementVector(8f, 4f, 4f).div(DIV_FACTOR).inflate(0.25f),
+            ElementVector(0f, 2f, 0f).div(DIV_FACTOR),
             UVSpace(8, 4, 4),
             UVElement.ColorType.ARGB,
             mapOf(
@@ -165,8 +167,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         "left_leg"
     ).addElement(
         UVElement(
-            ElementVector(4f, 6f, 4f).div(16f),
-            ElementVector(0f, -3f, 0f).div(16f),
+            ElementVector(4f, 6f, 4f).div(DIV_FACTOR),
+            ElementVector(0f, -3f, 0f).div(DIV_FACTOR),
             UVSpace(4, 6, 4),
             UVElement.ColorType.RGB,
             mapOf(
@@ -179,8 +181,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         )
     ).addElement(
         UVElement(
-            ElementVector(4f, 6f, 4f).div(16f).inflate(0.25f),
-            ElementVector(0f, -3f, 0f).div(16f),
+            ElementVector(4f, 6f, 4f).div(DIV_FACTOR).inflate(0.25f),
+            ElementVector(0f, -3f, 0f).div(DIV_FACTOR),
             UVSpace(4, 6, 4),
             UVElement.ColorType.ARGB,
             mapOf(
@@ -197,8 +199,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         "left_foreleg"
     ).addElement(
         UVElement(
-            ElementVector(4f, 6f, 4f).div(16f),
-            ElementVector(0f, -3f, 0f).div(16f),
+            ElementVector(4f, 6f, 4f).div(DIV_FACTOR),
+            ElementVector(0f, -3f, 0f).div(DIV_FACTOR),
             UVSpace(4, 6, 4),
             UVElement.ColorType.RGB,
             mapOf(
@@ -211,8 +213,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         )
     ).addElement(
         UVElement(
-            ElementVector(4f, 6f, 4f).div(16f).inflate(0.25f),
-            ElementVector(0f, -3f, 0f).div(16f),
+            ElementVector(4f, 6f, 4f).div(DIV_FACTOR).inflate(0.25f),
+            ElementVector(0f, -3f, 0f).div(DIV_FACTOR),
             UVSpace(4, 6, 4),
             UVElement.ColorType.ARGB,
             mapOf(
@@ -229,8 +231,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         "right_leg"
     ).addElement(
         UVElement(
-            ElementVector(4f, 6f, 4f).div(16f),
-            ElementVector(0f, -3f, 0f).div(16f),
+            ElementVector(4f, 6f, 4f).div(DIV_FACTOR),
+            ElementVector(0f, -3f, 0f).div(DIV_FACTOR),
             UVSpace(4, 6, 4),
             UVElement.ColorType.RGB,
             mapOf(
@@ -243,8 +245,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         )
     ).addElement(
         UVElement(
-            ElementVector(4f, 6f, 4f).div(16f).inflate(0.25f),
-            ElementVector(0f, -3f, 0f).div(16f),
+            ElementVector(4f, 6f, 4f).div(DIV_FACTOR).inflate(0.25f),
+            ElementVector(0f, -3f, 0f).div(DIV_FACTOR),
             UVSpace(4, 6, 4),
             UVElement.ColorType.ARGB,
             mapOf(
@@ -261,8 +263,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         "right_foreleg"
     ).addElement(
         UVElement(
-            ElementVector(4f, 6f, 4f).div(16f),
-            ElementVector(0f, -3f, 0f).div(16f),
+            ElementVector(4f, 6f, 4f).div(DIV_FACTOR),
+            ElementVector(0f, -3f, 0f).div(DIV_FACTOR),
             UVSpace(4, 6, 4),
             UVElement.ColorType.RGB,
             mapOf(
@@ -275,8 +277,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         )
     ).addElement(
         UVElement(
-            ElementVector(4f, 6f, 4f).div(16f).inflate(0.25f),
-            ElementVector(0f, -3f, 0f).div(16f),
+            ElementVector(4f, 6f, 4f).div(DIV_FACTOR).inflate(0.25f),
+            ElementVector(0f, -3f, 0f).div(DIV_FACTOR),
             UVSpace(4, 6, 4),
             UVElement.ColorType.ARGB,
             mapOf(
@@ -293,8 +295,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         "left_arm"
     ).addElement(
         UVElement(
-            ElementVector(4f, 6f, 4f).div(16f),
-            ElementVector(0f, -3f, 0f).div(16f),
+            ElementVector(4f, 6f, 4f).div(DIV_FACTOR),
+            ElementVector(0f, -3f, 0f).div(DIV_FACTOR),
             UVSpace(4, 6, 4),
             UVElement.ColorType.RGB,
             mapOf(
@@ -307,8 +309,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         )
     ).addElement(
         UVElement(
-            ElementVector(4f, 6f, 4f).div(16f).inflate(0.25f),
-            ElementVector(0f, -3f, 0f).div(16f),
+            ElementVector(4f, 6f, 4f).div(DIV_FACTOR).inflate(0.25f),
+            ElementVector(0f, -3f, 0f).div(DIV_FACTOR),
             UVSpace(4, 6, 4),
             UVElement.ColorType.ARGB,
             mapOf(
@@ -325,8 +327,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         "left_forearm"
     ).addElement(
         UVElement(
-            ElementVector(4f, 6f, 4f).div(16f),
-            ElementVector(0f, -3f, 0f).div(16f),
+            ElementVector(4f, 6f, 4f).div(DIV_FACTOR),
+            ElementVector(0f, -3f, 0f).div(DIV_FACTOR),
             UVSpace(4, 6, 4),
             UVElement.ColorType.RGB,
             mapOf(
@@ -339,8 +341,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         )
     ).addElement(
         UVElement(
-            ElementVector(4f, 6f, 4f).div(16f).inflate(0.25f),
-            ElementVector(0f, -3f, 0f).div(16f),
+            ElementVector(4f, 6f, 4f).div(DIV_FACTOR).inflate(0.25f),
+            ElementVector(0f, -3f, 0f).div(DIV_FACTOR),
             UVSpace(4, 6, 4),
             UVElement.ColorType.ARGB,
             mapOf(
@@ -357,8 +359,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         "right_arm"
     ).addElement(
         UVElement(
-            ElementVector(4f, 6f, 4f).div(16f),
-            ElementVector(0f, -3f, 0f).div(16f),
+            ElementVector(4f, 6f, 4f).div(DIV_FACTOR),
+            ElementVector(0f, -3f, 0f).div(DIV_FACTOR),
             UVSpace(4, 6, 4),
             UVElement.ColorType.RGB,
             mapOf(
@@ -371,8 +373,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         )
     ).addElement(
         UVElement(
-            ElementVector(4f, 6f, 4f).div(16f).inflate(0.25f),
-            ElementVector(0f, -3f, 0f).div(16f),
+            ElementVector(4f, 6f, 4f).div(DIV_FACTOR).inflate(0.25f),
+            ElementVector(0f, -3f, 0f).div(DIV_FACTOR),
             UVSpace(4, 6, 4),
             UVElement.ColorType.ARGB,
             mapOf(
@@ -389,8 +391,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         "right_forearm"
     ).addElement(
         UVElement(
-            ElementVector(4f, 6f, 4f).div(16f),
-            ElementVector(0f, -3f, 0f).div(16f),
+            ElementVector(4f, 6f, 4f).div(DIV_FACTOR),
+            ElementVector(0f, -3f, 0f).div(DIV_FACTOR),
             UVSpace(4, 6, 4),
             UVElement.ColorType.RGB,
             mapOf(
@@ -403,8 +405,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         )
     ).addElement(
         UVElement(
-            ElementVector(4f, 6f, 4f).div(16f).inflate(0.25f),
-            ElementVector(0f, -3f, 0f).div(16f),
+            ElementVector(4f, 6f, 4f).div(DIV_FACTOR).inflate(0.25f),
+            ElementVector(0f, -3f, 0f).div(DIV_FACTOR),
             UVSpace(4, 6, 4),
             UVElement.ColorType.ARGB,
             mapOf(
@@ -421,8 +423,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         "left_slim_arm"
     ).addElement(
         UVElement(
-            ElementVector(3f, 6f, 4f).div(16f),
-            ElementVector(0f, -3f, 0f).div(16f),
+            ElementVector(3f, 6f, 4f).div(DIV_FACTOR),
+            ElementVector(0f, -3f, 0f).div(DIV_FACTOR),
             UVSpace(3, 6, 4),
             UVElement.ColorType.RGB,
             mapOf(
@@ -435,8 +437,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         )
     ).addElement(
         UVElement(
-            ElementVector(3f, 6f, 4f).div(16f).inflate(0.25f),
-            ElementVector(0f, -3f, 0f).div(16f),
+            ElementVector(3f, 6f, 4f).div(DIV_FACTOR).inflate(0.25f),
+            ElementVector(0f, -3f, 0f).div(DIV_FACTOR),
             UVSpace(3, 6, 4),
             UVElement.ColorType.ARGB,
             mapOf(
@@ -453,8 +455,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         "left_slim_forearm"
     ).addElement(
         UVElement(
-            ElementVector(3f, 6f, 4f).div(16f),
-            ElementVector(0f, -3f, 0f).div(16f),
+            ElementVector(3f, 6f, 4f).div(DIV_FACTOR),
+            ElementVector(0f, -3f, 0f).div(DIV_FACTOR),
             UVSpace(3, 6, 4),
             UVElement.ColorType.RGB,
             mapOf(
@@ -467,8 +469,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         )
     ).addElement(
         UVElement(
-            ElementVector(3f, 6f, 4f).div(16f).inflate(0.25f),
-            ElementVector(0f, -3f, 0f).div(16f),
+            ElementVector(3f, 6f, 4f).div(DIV_FACTOR).inflate(0.25f),
+            ElementVector(0f, -3f, 0f).div(DIV_FACTOR),
             UVSpace(3, 6, 4),
             UVElement.ColorType.ARGB,
             mapOf(
@@ -485,8 +487,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         "right_slim_arm"
     ).addElement(
         UVElement(
-            ElementVector(3f, 6f, 4f).div(16f),
-            ElementVector(0f, -3f, 0f).div(16f),
+            ElementVector(3f, 6f, 4f).div(DIV_FACTOR),
+            ElementVector(0f, -3f, 0f).div(DIV_FACTOR),
             UVSpace(3, 6, 4),
             UVElement.ColorType.RGB,
             mapOf(
@@ -499,8 +501,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         )
     ).addElement(
         UVElement(
-            ElementVector(3f, 6f, 4f).div(16f).inflate(0.25f),
-            ElementVector(0f, -3f, 0f).div(16f),
+            ElementVector(3f, 6f, 4f).div(DIV_FACTOR).inflate(0.25f),
+            ElementVector(0f, -3f, 0f).div(DIV_FACTOR),
             UVSpace(3, 6, 4),
             UVElement.ColorType.ARGB,
             mapOf(
@@ -517,8 +519,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         "right_slim_forearm"
     ).addElement(
         UVElement(
-            ElementVector(3f, 6f, 4f).div(16f),
-            ElementVector(0f, -3f, 0f).div(16f),
+            ElementVector(3f, 6f, 4f).div(DIV_FACTOR),
+            ElementVector(0f, -3f, 0f).div(DIV_FACTOR),
             UVSpace(3, 6, 4),
             UVElement.ColorType.RGB,
             mapOf(
@@ -531,8 +533,8 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         )
     ).addElement(
         UVElement(
-            ElementVector(3f, 6f, 4f).div(16f).inflate(0.25f),
-            ElementVector(0f, -3f, 0f).div(16f),
+            ElementVector(3f, 6f, 4f).div(DIV_FACTOR).inflate(0.25f),
+            ElementVector(0f, -3f, 0f).div(DIV_FACTOR),
             UVSpace(3, 6, 4),
             UVElement.ColorType.ARGB,
             mapOf(
