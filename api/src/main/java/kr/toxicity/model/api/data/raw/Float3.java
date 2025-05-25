@@ -137,6 +137,18 @@ public record Float3(
     }
 
     /**
+     * Inverts XZ
+     * @return new floats
+     */
+    public @NotNull Float3 invertXZ() {
+        return new Float3(
+                -x,
+                y,
+                -z
+        );
+    }
+
+    /**
      * Converts floats to JSON array.
      * @return json array
      */

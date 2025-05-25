@@ -40,7 +40,7 @@ public record BoneMovement(
         return new BoneMovement(
                 mov == null ? new Vector3f(transform) : new Vector3f(transform).add(mov),
                 scl == null ? new Vector3f(scale) : new Vector3f(scale).mul(new Vector3f(scl).add(1, 1, 1)),
-                rot == null ? new Quaternionf(rotation) : MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(rawRot)),
+                rot == null ? new Quaternionf(rotation) : MathUtil.toQuaternion(rawRot),
                 rawRot
         );
     }

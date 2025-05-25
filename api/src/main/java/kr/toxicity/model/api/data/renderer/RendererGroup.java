@@ -77,8 +77,7 @@ public final class RendererGroup {
                 new Vector3f(scale).div(4),
                 itemStack != null ? itemStack : new ItemStack(Material.AIR)
         );
-        position = MathUtil.blockBenchToDisplay(group.origin().toVector()
-                .div(16));
+        position = group.origin().toVector().div(16);
         this.hitBox = box;
         rotation = group.rotation().toVector();
         center = hitBox != null ? hitBox.centerPoint() : new Vector3f();
@@ -108,7 +107,7 @@ public final class RendererGroup {
                 new BoneMovement(
                         entityParent != null ? new Vector3f(position).sub(entityParent.getGroup().position) : new Vector3f(),
                         new Vector3f(1),
-                        MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(rotation)),
+                        MathUtil.toQuaternion(rotation),
                         rotation
                 ),
                 modifier,

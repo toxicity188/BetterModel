@@ -91,8 +91,8 @@ public final class VectorUtil {
         for (int i = 0; i < vectorPoints.size() - 1; i++) {
             var before = vectorPoints.get(i);
             var after = vectorPoints.get(i + 1);
-            var angle = (float) Math.ceil(Math.toDegrees(MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(after.vector()))
-                    .mul(MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(before.vector())).invert())
+            var angle = (float) Math.ceil(Math.toDegrees(MathUtil.toQuaternion(after.vector())
+                    .mul(MathUtil.toQuaternion(before.vector()).invert())
                     .angle()) / 45F);
             if (angle > 1) {
                 for (float t = 1; t < angle; t++) {

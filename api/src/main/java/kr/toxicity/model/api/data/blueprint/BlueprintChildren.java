@@ -33,8 +33,8 @@ public sealed interface BlueprintChildren {
                 var child = modelGroup.children().stream().map(c -> from(c, elementMap)).toList();
                 yield new BlueprintGroup(
                         modelGroup.name(),
-                        modelGroup.origin(),
-                        modelGroup.rotation(),
+                        modelGroup.origin().invertXZ(),
+                        modelGroup.rotation().invertXZ(),
                         child,
                         child.stream()
                                 .map(c -> c instanceof BlueprintElement element ? element : null)

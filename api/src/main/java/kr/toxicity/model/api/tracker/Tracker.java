@@ -21,6 +21,7 @@ import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,6 +56,7 @@ public abstract class Tracker implements AutoCloseable {
     private final RenderSource source;
     private final AtomicBoolean isClosed = new AtomicBoolean();
     private final AtomicBoolean readyForForceUpdate = new AtomicBoolean();
+    private final AtomicBoolean forRemoval = new AtomicBoolean();
     private final TrackerModifier modifier;
     private final Runnable updater;
     private PacketBundler viewBundler, dataBundler;
@@ -93,7 +95,7 @@ public abstract class Tracker implements AutoCloseable {
             }
         };
         task = EXECUTOR.scheduleAtFixedRate(() -> {
-            if (playerCount() > 0 || isRunningSingleAnimation()) updater.run();
+            if (playerCount() > 0 || forRemoval.get()) updater.run();
             frame++;
         }, 10, 10, TimeUnit.MILLISECONDS);
         tint(0xFFFFFF);
@@ -508,5 +510,23 @@ public abstract class Tracker implements AutoCloseable {
      */
     public @NotNull ModelRenderer renderer() {
         return instance.getParent();
+    }
+
+    /**
+     * Marks future will remove this tracker
+     * @param removal removal
+     */
+    @ApiStatus.Internal
+    public void forRemoval(boolean removal) {
+        forRemoval.set(removal);
+    }
+
+    /**
+     * Checks this tracker is for removal
+     * @return for removal
+     */
+    @ApiStatus.Internal
+    public boolean forRemoval() {
+        return forRemoval.get();
     }
 }

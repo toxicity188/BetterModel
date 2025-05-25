@@ -43,7 +43,6 @@ public class EntityTracker extends Tracker {
     private final @NotNull Entity entity;
     @Getter
     private final @NotNull EntityAdapter adapter;
-    private final AtomicBoolean forRemoval = new AtomicBoolean();
     private final AtomicBoolean autoSpawn = new AtomicBoolean(true);
 
     private final AtomicInteger damageTintValue = new AtomicInteger(0xFF7979);
@@ -149,7 +148,7 @@ public class EntityTracker extends Tracker {
                 BonePredicate.of(r -> r.getName().tagged(BoneTags.HEAD)),
                 a -> {
                     if (a.rotation() != null) {
-                        a.rotation().add(-adapter.pitch(), Math.clamp(
+                        a.rotation().add(adapter.pitch(), Math.clamp(
                                 -adapter.yaw() + adapter.bodyYaw(),
                                 -45,
                                 45
@@ -253,24 +252,6 @@ public class EntityTracker extends Tracker {
         if (!modifier().damageEffect()) return;
         var get = damageTint.get();
         if (get <= 0 && damageTint.compareAndSet(get, 50)) tint(damageTintValue.get());
-    }
-
-    /**
-     * Marks future will remove this tracker
-     * @param removal removal
-     */
-    @ApiStatus.Internal
-    public void forRemoval(boolean removal) {
-        forRemoval.set(removal);
-    }
-
-    /**
-     * Checks this tracker is for removal
-     * @return for removal
-     */
-    @ApiStatus.Internal
-    public boolean forRemoval() {
-        return forRemoval.get();
     }
 
     @Override

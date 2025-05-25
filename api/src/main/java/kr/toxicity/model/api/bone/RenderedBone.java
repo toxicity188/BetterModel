@@ -361,7 +361,7 @@ public final class RenderedBone implements HitBoxSource {
                 .add(localOffset)
                 .mul(VectorUtil.linear(before.scale(), after.scale(), progress))
                 .rotate(
-                        MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(VectorUtil.linear(before.rawRotation(), after.rawRotation(), progress)))
+                        MathUtil.toQuaternion(VectorUtil.linear(before.rawRotation(), after.rawRotation(), progress))
                 )
                 .add(globalOffset)
                 .add(root.getGroup().getPosition())
@@ -379,7 +379,7 @@ public final class RenderedBone implements HitBoxSource {
                         0,
                         -rotation.radianY(),
                         -rotation.radianX()
-                ).mul(MathUtil.toQuaternion(MathUtil.blockBenchToDisplay(VectorUtil.linear(before.rawRotation(), after.rawRotation(), progress))));
+                ).mul(MathUtil.toQuaternion(VectorUtil.linear(before.rawRotation(), after.rawRotation(), progress)));
     }
 
     private void setup(@NotNull BoneMovement boneMovement) {
