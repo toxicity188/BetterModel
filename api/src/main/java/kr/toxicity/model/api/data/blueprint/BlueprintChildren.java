@@ -33,7 +33,7 @@ public sealed interface BlueprintChildren {
                 var child = modelGroup.children().stream().map(c -> from(c, elementMap)).toList();
                 yield new BlueprintGroup(
                         modelGroup.name(),
-                        modelGroup.origin().invertXZ(),
+                        modelGroup.origin(),
                         modelGroup.rotation().invertXZ(),
                         child,
                         child.stream()
@@ -68,6 +68,12 @@ public sealed interface BlueprintChildren {
             MAX_SCALE_ARRAY.add(4);
             MAX_SCALE_ARRAY.add(4);
             MAX_SCALE_ARRAY.add(4);
+        }
+
+        @Override
+        @NotNull
+        public Float3 origin() {
+            return origin.invertXZ();
         }
 
         /**

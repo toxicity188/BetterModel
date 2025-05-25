@@ -68,7 +68,7 @@ internal class HitBoxImpl(
         source.rotate(Quaterniond(supplier.hitBoxViewRotation()))
     })
     private val rotatedSource get() = _rotatedSource.get()
-    private val dimensions: EntityDimensions get() = rotatedSource.run {
+    val dimensions: EntityDimensions get() = rotatedSource.run {
         EntityDimensions(
             (x() + z()).toFloat() / 2,
             y().toFloat(),

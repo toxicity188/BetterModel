@@ -6,7 +6,6 @@ import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.Interaction
-import net.minecraft.world.entity.Pose
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.Vec3
 import org.bukkit.Bukkit
@@ -31,7 +30,7 @@ internal class HitBoxInteraction(
     override fun hasExactlyOnePlayerPassenger(): Boolean = false
 
     override fun tick() {
-        val dimension = delegate.getDimensions(Pose.STANDING)
+        val dimension = delegate.dimensions
         width = dimension.width
         height = dimension.height
         yRot = delegate.yRot
