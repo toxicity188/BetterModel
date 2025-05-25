@@ -9,6 +9,8 @@ import kr.toxicity.model.api.data.renderer.ModelRenderer;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
 import kr.toxicity.model.api.data.renderer.RenderSource;
 import kr.toxicity.model.api.event.*;
+import kr.toxicity.model.api.event.PlayerHideTrackerEvent;
+import kr.toxicity.model.api.event.PlayerShowTrackerEvent;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.util.BonePredicate;

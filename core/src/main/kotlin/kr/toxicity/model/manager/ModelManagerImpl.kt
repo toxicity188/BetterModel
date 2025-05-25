@@ -15,8 +15,6 @@ import kr.toxicity.model.api.manager.ConfigManager.PackType.FOLDER
 import kr.toxicity.model.api.manager.ConfigManager.PackType.ZIP
 import kr.toxicity.model.api.manager.ModelManager
 import kr.toxicity.model.api.manager.ReloadInfo
-import kr.toxicity.model.api.util.EventUtil
-import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.util.*
 import org.bukkit.NamespacedKey
 import org.bukkit.inventory.ItemStack
@@ -215,7 +213,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                     debugPack {
                         "This model was successfully imported: ${load.name}"
                     }
-                    EventUtil.call(ModelImportedEvent(this))
+                    ModelImportedEvent(this).call()
                 }
                 jsonList.forEach { json ->
                     legacyModel.add(modelsPath, "${json.name}.json") {
@@ -303,7 +301,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                         itemMeta = itemMeta.apply {
                             @Suppress("DEPRECATION") //To support legacy server :(
                             setCustomModelData(i)
-                            if (PLUGIN.version() >= MinecraftVersion.V1_21_4) itemModel = itemModelNamespace
+                            if (PLUGIN.version().useModernResource()) itemModel = itemModelNamespace
                         }
                     }
                 },

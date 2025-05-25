@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
  */
 @Getter
 @Setter
-public class PlayerShowTrackerEvent extends AbstractPlayerModelEvent implements Cancellable {
+public final class PlayerShowTrackerEvent extends AbstractPlayerModelEvent implements Cancellable {
     /**
      * Handler list
      */

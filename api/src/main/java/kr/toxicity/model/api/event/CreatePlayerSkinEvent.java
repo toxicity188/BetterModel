@@ -1,22 +1,24 @@
 package kr.toxicity.model.api.event;
 
-
-import kr.toxicity.model.api.data.renderer.ModelRenderer;
+import com.mojang.authlib.GameProfile;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
-@RequiredArgsConstructor
 @Getter
-public final class ModelImportedEvent extends AbstractModelEvent {
-
+@Setter
+public final class CreatePlayerSkinEvent extends AbstractModelEvent {
     /**
      * Handler list
      */
     public static final HandlerList HANDLER_LIST = new HandlerList();
 
-    private final ModelRenderer renderer;
+    private GameProfile gameProfile;
+
+    public CreatePlayerSkinEvent(@NotNull GameProfile gameProfile) {
+        this.gameProfile = gameProfile;
+    }
 
     @Override
     public @NotNull HandlerList getHandlers() {

@@ -78,6 +78,23 @@ public record MinecraftVersion(int first, int second, int third) implements Comp
         );
     }
 
+    /**
+     * Checks this version is greater than another.
+     * @param other other
+     * @return greater or not
+     */
+    public boolean isGreaterThan(@NotNull MinecraftVersion other) {
+        return compareTo(other) > 0;
+    }
+
+    /**
+     * Checks this version should be use modern resource.
+     * @return use modern resource
+     */
+    public boolean useModernResource() {
+        return isGreaterThan(V1_21_4);
+    }
+
     @Override
     public int compareTo(@NotNull MinecraftVersion o) {
         return COMPARATOR.compare(this, o);

@@ -121,7 +121,7 @@ class NMSImpl : NMS {
                 })
             )))
         }
-        if (player === entity) BetterModel.inst().scheduler().asyncTaskLater(CONFIG.playerHideDelay(), task) else task()
+        if (entity is Player) BetterModel.inst().scheduler().asyncTaskLater(CONFIG.playerHideDelay(), task) else task()
     }
 
     inner class PlayerChannelHandlerImpl(
