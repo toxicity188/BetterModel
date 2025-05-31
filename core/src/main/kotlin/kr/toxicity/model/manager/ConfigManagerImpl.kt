@@ -28,7 +28,6 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     private var namespace = "bettermodel"
     private var packType = PackType.FOLDER
     private var buildFolderLocation = "BetterModel/build".replace('/', File.separatorChar)
-    private var disableGeneratingLegacyModels = false
     private var followMobInvisibility = true
     private var animatedTextureFrameTime = 10
     private var createPackMcmeta = true
@@ -50,7 +49,6 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     override fun namespace(): String = namespace
     override fun packType(): PackType = packType
     override fun buildFolderLocation(): String = buildFolderLocation
-    override fun disableGeneratingLegacyModels(): Boolean = disableGeneratingLegacyModels
     override fun followMobInvisibility(): Boolean = followMobInvisibility
     override fun animatedTextureFrameTime(): Int = animatedTextureFrameTime
     override fun createPackMcmeta(): Boolean = createPackMcmeta
@@ -94,7 +92,6 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
             }.getOrNull()
         } ?: PackType.FOLDER
         buildFolderLocation = (yaml.getString("build-folder-location") ?: "BetterModel/build").replace('/', File.separatorChar)
-        disableGeneratingLegacyModels = yaml.getBoolean("disable-generating-legacy-models")
         followMobInvisibility = yaml.getBoolean("follow-mob-invisibility", true)
         usePurpurAfk = yaml.getBoolean("use-purpur-afk", true)
         versionCheck = yaml.getBoolean("version-check", true)

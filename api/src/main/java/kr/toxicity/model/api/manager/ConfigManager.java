@@ -78,12 +78,6 @@ public interface ConfigManager {
     @NotNull String buildFolderLocation();
 
     /**
-     * Checks generating legacy model data is disabled
-     * @return generating legacy model
-     */
-    boolean disableGeneratingLegacyModels();
-
-    /**
      * Check model tracker will follow source entity's invisibility
      * @return follow invisibility
      */

@@ -3,6 +3,8 @@ package kr.toxicity.model.api.data.blueprint;
 import com.google.gson.JsonElement;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Supplier;
+
 /**
  * Blueprint json.
  * @param name json name
@@ -10,6 +12,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public record BlueprintJson(
         @NotNull String name,
-        @NotNull JsonElement element
+        @NotNull Supplier<JsonElement> element
 ) {
 }

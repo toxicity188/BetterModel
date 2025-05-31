@@ -137,7 +137,7 @@ public sealed interface BlueprintChildren {
             return list.isEmpty() ? null : list;
         }
 
-        private BlueprintJson buildJson(
+        private @Nullable BlueprintJson buildJson(
                 int tint,
                 int number,
                 float scale,
@@ -146,27 +146,33 @@ public sealed interface BlueprintChildren {
                 @NotNull List<BlueprintElement> cubes
         ) {
             if (parent.textures().isEmpty()) return null;
-            var object = new JsonObject();
-            var textureObject = new JsonObject();
-            var index = 0;
-            for (BlueprintTexture texture : parent.textures()) {
-                textureObject.addProperty(Integer.toString(index++), texture.packName(parent.name()));
-            }
-            textureObject.addProperty("particle", parent.textures().getFirst().packName(parent.name()));
-            object.add("textures", textureObject);
-            var elements = new JsonArray();
-            for (BlueprintElement cube : cubes) {
-                cube.buildJson(tint, scale, parent, this, identifier, elements);
-            }
-            if (elements.isEmpty()) return null;
-            object.add("elements", elements);
-            var display = new JsonObject();
-            var fixed = new JsonObject();
-            fixed.add("scale", MAX_SCALE_ARRAY);
-            if (!identifier.equals(Float3.ZERO)) fixed.add("rotation", identifier.convertToMinecraftDegree().toJson());
-            display.add("fixed", fixed);
-            object.add("display", display);
-            return new BlueprintJson(jsonName(parent) + "_" + number, object);
+            var texturedCube = cubes.stream()
+                    .filter(c -> c.element.hasTexture())
+                    .toList();
+            if (texturedCube.isEmpty()) return null;
+            return new BlueprintJson(jsonName(parent) + "_" + number, () -> {
+                var object = new JsonObject();
+                var textureObject = new JsonObject();
+                var index = 0;
+                for (BlueprintTexture texture : parent.textures()) {
+                    textureObject.addProperty(Integer.toString(index++), texture.packName(parent.name()));
+                }
+                textureObject.addProperty("particle", parent.textures().getFirst().packName(parent.name()));
+                object.add("textures", textureObject);
+                var elements = new JsonArray();
+                for (BlueprintElement cube : texturedCube) {
+                    cube.buildJson(tint, scale, parent, this, identifier, elements);
+                }
+                if (elements.isEmpty()) return null;
+                object.add("elements", elements);
+                var display = new JsonObject();
+                var fixed = new JsonObject();
+                fixed.add("scale", MAX_SCALE_ARRAY);
+                if (!identifier.equals(Float3.ZERO)) fixed.add("rotation", identifier.convertToMinecraftDegree().toJson());
+                display.add("fixed", fixed);
+                object.add("display", display);
+                return object;
+            });
         }
 
         /**
@@ -224,7 +230,6 @@ public sealed interface BlueprintChildren {
                 @NotNull Float3 identifier,
                 @NotNull JsonArray targetArray
         ) {
-            if (!element.hasTexture()) return;
             var centerOrigin = centralize(element.origin(), group.origin, scale);
             var qua = MathUtil.toQuaternion(identifier.toVector()).invert();
             var rotOrigin = centerOrigin

@@ -85,7 +85,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
             map.clear()
         }
 
-        fun zip(file: File) {
+        fun toZip(file: File) {
             ZipOutputStream(runCatching {
                 MessageDigest.getInstance("SHA-1")
             }.getOrNull()?.let {
@@ -113,34 +113,13 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
     }
 
     override fun reload(info: ReloadInfo) {
-
-        val zipper = PackDataZipper()
-        val modernModel = PackDataZipper()
-        val legacyModel = PackDataZipper()
-
         val itemName = ConfigManagerImpl.item().name.lowercase()
-        val modelJson = JsonObject().apply {
-            addProperty("parent", "minecraft:item/generated")
-            add("textures", JsonObject().apply {
-                addProperty("layer0", "minecraft:item/$itemName")
-            })
-        }
-        val modernModelJson = JsonObject().apply {
-            addProperty("type", "range_dispatch")
-            addProperty("property", "custom_model_data")
-            add("fallback", JsonObject().apply {
-                addProperty("type", "minecraft:model")
-                addProperty("model", "minecraft:item/$itemName")
-            })
-        }
-        val override = JsonArray()
-        val modernEntries = JsonArray()
-
         val namespace = ConfigManagerImpl.namespace()
         itemModelNamespace = NamespacedKey(namespace, MODERN_MODEL_ITEM_NAME)
         val texturesPath = "assets/$namespace/textures/item"
         val modelsPath = "assets/$namespace/models/item"
         val modernModelsPath = "assets/$namespace/models/modern_item"
+        val zipper = PackDataZipper()
 
         renderMap.clear()
         if (ConfigManagerImpl.module().model()) {
@@ -183,30 +162,37 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                 .sortedBy { it.first }
                 .map { it.second }
                 .toList()
+            val entries = JsonArray()
             val maxScale = model.maxOfOrNull {
                 it.scale()
             } ?: 1F
             var index = 1
             model.forEach { load ->
-                val jsonList = arrayListOf<BlueprintJson>()
-                val modernJsonList = arrayListOf<BlueprintJson>()
                 renderMap[load.name] = load.toRenderer(maxScale) render@ { blueprintGroup ->
-                    //Modern
-                    val modernBlueprint = blueprintGroup.buildModernJson(maxScale, load) ?: return@render null
-                    modernEntries.add(JsonObject().apply {
-                        addProperty("threshold", index)
-                        add("model", modernBlueprint.toModernJson())
-                    })
-                    modernJsonList += modernBlueprint
-                    //Legacy
-                    blueprintGroup.buildJson(maxScale, load)?.let { blueprint ->
-                        override.add(JsonObject().apply {
+                    if (PLUGIN.version().useModernResource()) {
+                        //Modern
+                        val modernBlueprint = blueprintGroup.buildModernJson(maxScale, load) ?: return@render null
+                        entries.add(JsonObject().apply {
+                            addProperty("threshold", index)
+                            add("model", modernBlueprint.toModernJson())
+                        })
+                        modernBlueprint.forEach { json ->
+                            zipper.add(modernModelsPath, "${json.name}.json") {
+                                json.element.get().toByteArray()
+                            }
+                        }
+                    } else {
+                        //Legacy
+                        val blueprint = blueprintGroup.buildJson(maxScale, load) ?: return@render null
+                        entries.add(JsonObject().apply {
                             add("predicate", JsonObject().apply {
                                 addProperty("custom_model_data", index)
                             })
                             addProperty("model", "$namespace:item/${blueprint.name}")
                         })
-                        jsonList += blueprint
+                        zipper.add(modelsPath, "${blueprint.name}.json") {
+                            blueprint.element.get().toByteArray()
+                        }
                     }
                     index++
                 }.apply {
@@ -215,44 +201,45 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                     }
                     ModelImportedEvent(this).call()
                 }
-                jsonList.forEach { json ->
-                    legacyModel.add(modelsPath, "${json.name}.json") {
-                        json.element.toByteArray()
-                    }
-                }
-                modernJsonList.forEach { json ->
-                    modernModel.add(modernModelsPath, "${json.name}.json") {
-                        json.element.toByteArray()
-                    }
-                }
             }
-            legacyModel.add(MINECRAFT_ITEM_PATH, "$itemName.json") {
-                modelJson.apply {
-                    add("overrides", override)
-                }.toByteArray()
-            }
-            modernModel.add("assets/$namespace/items", "$MODERN_MODEL_ITEM_NAME.json") {
-                JsonObject().apply {
-                    add("model", modernModelJson.apply {
-                        add("entries", modernEntries)
-                    })
-                }.toByteArray()
+            if (PLUGIN.version().useModernResource()) {
+                zipper.add("assets/$namespace/items", "$MODERN_MODEL_ITEM_NAME.json") {
+                    JsonObject().apply {
+                        add("model", JsonObject().apply {
+                            addProperty("type", "range_dispatch")
+                            addProperty("property", "custom_model_data")
+                            add("fallback", JsonObject().apply {
+                                addProperty("type", "minecraft:model")
+                                addProperty("model", "minecraft:item/$itemName")
+                            })
+                            add("entries", entries)
+                        })
+                    }.toByteArray()
+                }
+            } else {
+                zipper.add(MINECRAFT_ITEM_PATH, "$itemName.json") {
+                    JsonObject().apply {
+                        addProperty("parent", "minecraft:item/generated")
+                        add("textures", JsonObject().apply {
+                            addProperty("layer0", "minecraft:item/$itemName")
+                        })
+                        add("overrides", entries)
+                    }.toByteArray()
+                }
             }
         }
 
         if (!info.firstReload) runCatching {
             if (ConfigManagerImpl.module().playerAnimation()) {
                 if (SkinManagerImpl.supported()) SkinManagerImpl.write { path, supplier ->
-                    modernModel.add(path, supplier)
+                    zipper.add(path, supplier)
                 } else PLUGIN.loadAssets("pack") { s, i ->
                     val read = i.readAllBytes()
-                    legacyModel.add("", s) {
+                    zipper.add("", s) {
                         read
                     }
                 }
             }
-            zipper.add("${namespace}_modern", modernModel)
-            if (!ConfigManagerImpl.disableGeneratingLegacyModels()) zipper.add("${namespace}_legacy", legacyModel)
             if (ConfigManagerImpl.createPackMcmeta()) {
                 PLUGIN.getResource("icon.png")?.buffered()?.let {
                     val read = it.readAllBytes()
@@ -268,7 +255,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                 FOLDER -> zipper.toFileTree(File(DATA_FOLDER.parent, ConfigManagerImpl.buildFolderLocation()).apply {
                     mkdirs()
                 })
-                ZIP -> zipper.zip(File(DATA_FOLDER.parent, "${ConfigManagerImpl.buildFolderLocation()}.zip"))
+                ZIP -> zipper.toZip(File(DATA_FOLDER.parent, "${ConfigManagerImpl.buildFolderLocation()}.zip"))
             }
         }.handleFailure {
             "Unable to pack resource pack."
