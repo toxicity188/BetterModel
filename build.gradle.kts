@@ -45,7 +45,7 @@ allprojects {
         compileOnly("net.kyori:adventure-platform-bukkit:4.4.0")
         compileOnly("net.citizensnpcs:citizens-main:2.0.38-SNAPSHOT")
         compileOnly("io.lumine:Mythic-Dist:5.8.2")
-        compileOnly("com.hibiscusmc:HMCCosmetics:2.7.7")
+        compileOnly("com.hibiscusmc:HMCCosmetics:2.7.8")
         compileOnly("net.jodah:expiringmap:0.5.11")
     }
     tasks {
