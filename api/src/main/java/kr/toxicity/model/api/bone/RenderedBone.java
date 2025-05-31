@@ -440,21 +440,34 @@ public final class RenderedBone implements HitBoxSource {
         if (parent != null) {
             var p = parent.relativeOffset();
             return relativeOffsetCache = new BoneMovement(
-                    new Vector3f(def.transform())
+                    def.transform()
                             .mul(p.scale())
                             .rotate(p.rotation())
                             .add(p.transform())
                             .sub(parent.lastModifiedPosition)
-                            .add(lastModifiedPosition = positionModifier.apply(new Vector3f())),
-                    new Vector3f(def.scale()).mul(p.scale()),
+                            .add(modifiedPosition()),
+                    def.scale().mul(p.scale()),
                     new Quaternionf(p.rotation())
                             .div(parent.lastModifiedRotation)
                             .mul(def.rotation())
-                            .mul(lastModifiedRotation = rotationModifier.apply(new Quaternionf())),
+                            .mul(modifiedRotation()),
                     def.rawRotation()
             );
         }
-        return relativeOffsetCache = def;
+        return relativeOffsetCache = new BoneMovement(
+                def.transform().add(modifiedPosition()),
+                def.scale(),
+                def.rotation().mul(modifiedRotation()),
+                def.rawRotation()
+        );
+    }
+
+    private @NotNull Vector3f modifiedPosition() {
+        return lastModifiedPosition = positionModifier.apply(new Vector3f());
+    }
+
+    private @NotNull Quaternionf modifiedRotation() {
+        return lastModifiedRotation = rotationModifier.apply(new Quaternionf());
     }
 
     public boolean tint(@NotNull BonePredicate predicate, int tint) {
