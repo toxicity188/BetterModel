@@ -1,7 +1,6 @@
 package kr.toxicity.model.nms.v1_21_R2
 
 import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.EntityLookup
-import com.google.gson.JsonParser
 import com.mojang.authlib.GameProfile
 import com.mojang.datafixers.util.Pair
 import io.netty.channel.ChannelDuplexHandler
@@ -130,7 +129,7 @@ class NMSImpl : NMS {
         private val connection = (player as CraftPlayer).handle.connection
         private val entityUUIDMap = ConcurrentHashMap<UUID, EntityTracker>()
         private val uuidValuesView = Collections.unmodifiableCollection(entityUUIDMap.values)
-        private val slim = isSlim(profile(player))
+        private val slim = BetterModel.plugin().skinManager().isSlim(profile(player))
 
         init {
             val pipeLine = getConnection(connection).channel.pipeline()
@@ -574,18 +573,6 @@ class NMSImpl : NMS {
     override fun isSync(): Boolean = isTickThread
     
     override fun profile(player: Player): GameProfile = getGameProfile((player as CraftPlayer).handle)
-
-    override fun isSlim(profile: GameProfile): Boolean {
-        val encodedValue = profile.properties["textures"]
-        return runCatching {
-            encodedValue.isNotEmpty() && JsonParser.parseString(String(Base64.getDecoder().decode(encodedValue.first().value)))
-                .asJsonObject
-                .getAsJsonObject("textures")
-                .getAsJsonObject("SKIN")
-                .get("metadata")?.asJsonObject
-                ?.get("model")?.asString == "slim"
-        }.getOrDefault(false)
-    }
 
     override fun createPlayerHead(profile: GameProfile): ItemStack = net.minecraft.world.item.ItemStack(Items.PLAYER_HEAD).run {
         set(DataComponents.PROFILE, ResolvableProfile(profile))

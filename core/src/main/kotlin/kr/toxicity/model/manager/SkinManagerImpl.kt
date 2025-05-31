@@ -612,6 +612,18 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         PLUGIN.nms().profile(player)
     } === this
 
+    override fun isSlim(profile: GameProfile): Boolean {
+        val encodedValue = profile.properties["textures"]
+        return runCatching {
+            encodedValue.isNotEmpty() && JsonParser.parseString(String(Base64.getDecoder().decode(encodedValue.first().value)))
+                .asJsonObject
+                .getAsJsonObject("textures")
+                .getAsJsonObject("SKIN")
+                .get("metadata")?.asJsonObject
+                ?.get("model")?.asString == "slim"
+        }.getOrDefault(false)
+    }
+
     override fun getOrRequest(profile: GameProfile): SkinData {
         return profileMap.computeIfAbsent(profile.id) { id ->
             val selected = CreatePlayerSkinEvent(profile).run {
@@ -639,7 +651,7 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
             }.thenAccept {
                 it.body().use { stream ->
                     profileMap[id] = SkinDataImpl(
-                        PLUGIN.nms().isSlim(selected),
+                        isSlim(selected),
                         ImageIO.read(stream).convertLegacy(),
                         selected
                     )

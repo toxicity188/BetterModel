@@ -176,7 +176,7 @@ public final class ModelRenderer {
      * @return empty tracker
      */
     public @NotNull DummyTracker create(@NotNull Location location, @NotNull GameProfile profile, @NotNull TrackerModifier modifier) {
-        return create(location, profile, BetterModel.plugin().nms().isSlim(profile), modifier);
+        return create(location, profile, BetterModel.plugin().skinManager().isSlim(profile), modifier);
     }
 
     /**

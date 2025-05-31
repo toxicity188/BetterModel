@@ -108,13 +108,6 @@ public interface NMS {
     @NotNull GameProfile profile(@NotNull Player player);
 
     /**
-     * Checks this profile skin is slim
-     * @param profile profile
-     * @return slime or not
-     */
-    boolean isSlim(@NotNull GameProfile profile);
-
-    /**
      * Creates player head from game profile
      * @param profile profile
      * @return player head item
