@@ -39,7 +39,7 @@ allprojects {
         testImplementation(kotlin("test"))
         implementation("dev.jorel:commandapi-bukkit-shade:$commandApi")
         implementation("org.bstats:bstats-bukkit:3.1.0")
-        implementation("com.github.toxicity188:DynamicUV:be972b1747")
+        implementation("com.github.toxicity188:DynamicUV:1.0.1")
         compileOnly("com.vdurmont:semver4j:3.1.0")
         testImplementation("com.vdurmont:semver4j:3.1.0")
         compileOnly("net.kyori:adventure-platform-bukkit:4.4.0")
