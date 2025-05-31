@@ -82,7 +82,7 @@ public final class RendererGroup {
         rotation = group.rotation().toVector();
         center = hitBox != null ? hitBox.centerPoint() : new Vector3f();
         if (name.tagged(BoneTags.SEAT)) {
-            mountController = BetterModel.inst().configManager().defaultMountController();
+            mountController = BetterModel.plugin().configManager().defaultMountController();
         } else if (name.tagged(BoneTags.SUB_SEAT)) {
             mountController = MountControllers.NONE;
         } else mountController = MountControllers.INVALID;

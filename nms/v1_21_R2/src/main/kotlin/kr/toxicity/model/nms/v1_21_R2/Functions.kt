@@ -39,7 +39,7 @@ internal inline fun <reified T, reified R> createAdaptedFieldGetter(noinline pap
 internal val EMPTY_QUATERNION = Quaternionf()
 
 internal val CONFIG by lazy {
-    BetterModel.inst().configManager()
+    BetterModel.plugin().configManager()
 }
 
 internal fun List<Int>.toIntSet(): IntOpenHashSet = IntOpenHashSet(this)

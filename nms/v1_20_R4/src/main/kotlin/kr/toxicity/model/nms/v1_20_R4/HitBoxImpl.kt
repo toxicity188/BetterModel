@@ -323,13 +323,13 @@ internal class HitBoxImpl(
     }
 
     override fun hide(player: org.bukkit.entity.Player) {
-        val plugin = BetterModel.inst() as Plugin
+        val plugin = BetterModel.plugin() as Plugin
         player.hideEntity(plugin, bukkitEntity)
         player.hideEntity(plugin, interaction.bukkitEntity)
     }
 
     override fun show(player: org.bukkit.entity.Player) {
-        val plugin = BetterModel.inst() as Plugin
+        val plugin = BetterModel.plugin() as Plugin
         player.showEntity(plugin, bukkitEntity)
         player.showEntity(plugin, interaction.bukkitEntity)
     }
@@ -423,7 +423,7 @@ internal class HitBoxImpl(
     override fun getDefaultDimensions(pose: Pose): EntityDimensions = dimensions
 
     override fun removeHitBox() {
-        BetterModel.inst().scheduler().task(bukkitEntity) {
+        BetterModel.plugin().scheduler().task(bukkitEntity) {
             remove(delegate.removalReason ?: RemovalReason.KILLED)
         }
     }

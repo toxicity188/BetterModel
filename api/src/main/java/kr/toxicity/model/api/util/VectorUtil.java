@@ -103,7 +103,7 @@ public final class VectorUtil {
     }
 
     public static void insertLerpFrame(@NotNull Set<Float> frames) {
-        insertLerpFrame(frames, (float) BetterModel.inst().configManager().lerpFrameTime() / 20F);
+        insertLerpFrame(frames, (float) BetterModel.plugin().configManager().lerpFrameTime() / 20F);
     }
 
     private static final float FRAME_HASH = 0.031F;

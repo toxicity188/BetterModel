@@ -9,7 +9,7 @@ import kr.toxicity.model.manager.ConfigManagerImpl
 import java.net.http.HttpClient
 
 val PLUGIN
-    get() = BetterModel.inst() as BetterModelPluginImpl
+    get() = BetterModel.plugin() as BetterModelPluginImpl
 val DATA_FOLDER
     get() = PLUGIN.dataFolder
 

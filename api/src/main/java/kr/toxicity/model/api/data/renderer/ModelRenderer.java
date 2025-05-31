@@ -164,8 +164,8 @@ public final class ModelRenderer {
      * @return empty tracker
      */
     public @NotNull DummyTracker create(@NotNull Location location, @NotNull Player player, @NotNull TrackerModifier modifier) {
-        var channel = BetterModel.inst().playerManager().player(player.getUniqueId());
-        return channel == null ? create(location, BetterModel.inst().nms().profile(player), modifier) : create(location, channel.profile(), channel.isSlim(), modifier);
+        var channel = BetterModel.plugin().playerManager().player(player.getUniqueId());
+        return channel == null ? create(location, BetterModel.plugin().nms().profile(player), modifier) : create(location, channel.profile(), channel.isSlim(), modifier);
     }
 
     /**
@@ -176,7 +176,7 @@ public final class ModelRenderer {
      * @return empty tracker
      */
     public @NotNull DummyTracker create(@NotNull Location location, @NotNull GameProfile profile, @NotNull TrackerModifier modifier) {
-        return create(location, profile, BetterModel.inst().nms().isSlim(profile), modifier);
+        return create(location, profile, BetterModel.plugin().nms().isSlim(profile), modifier);
     }
 
     /**

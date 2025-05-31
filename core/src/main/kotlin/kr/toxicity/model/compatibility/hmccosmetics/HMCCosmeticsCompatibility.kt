@@ -28,7 +28,7 @@ class HMCCosmeticsCompatibility : Compatibility {
             fun CloseTrackerEvent.remove() {
                 (tracker as? EntityTracker)?.sourceEntity()?.let {
                     val user = HMCCosmeticsAPI.getUser(it.uniqueId) ?: return
-                    BetterModel.inst().scheduler().task(it) {
+                    BetterModel.plugin().scheduler().task(it) {
                         if (user.isBackpackSpawned) user.userBackpackManager.setItem(user.getUserCosmeticItem(CosmeticSlot.BACKPACK))
                     }
                 }

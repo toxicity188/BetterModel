@@ -121,7 +121,7 @@ public final class RenderedBone implements HitBoxSource {
         this.itemStack = visible ? itemStack : itemStack.asAir();
         this.dummyBone = ItemUtil.isEmpty(itemStack);
         if (!dummyBone) {
-            display = BetterModel.inst().nms().create(firstLocation);
+            display = BetterModel.plugin().nms().create(firstLocation);
             display.display(transform);
             display.viewRange(modifier.viewRange());
             display.item(this.itemStack.itemStack());
@@ -154,7 +154,7 @@ public final class RenderedBone implements HitBoxSource {
                 hitBox.removeHitBox();
                 if (l == null) l = hitBox.listener();
             }
-            hitBox = BetterModel.inst().nms().createHitBox(entity, this, h, group.getMountController(), l != null ? l : HitBoxListener.EMPTY);
+            hitBox = BetterModel.plugin().nms().createHitBox(entity, this, h, group.getMountController(), l != null ? l : HitBoxListener.EMPTY);
             return hitBox != null;
         }
         return false;
@@ -449,7 +449,7 @@ public final class RenderedBone implements HitBoxSource {
     private boolean applyItem() {
         if (display != null) {
             var item = itemStack.itemStack();
-            display.item(ItemUtil.isEmpty(item) ? AIR : tintCacheMap.computeIfAbsent(tint, i -> BetterModel.inst().nms().tint(item, tint)));
+            display.item(ItemUtil.isEmpty(item) ? AIR : tintCacheMap.computeIfAbsent(tint, i -> BetterModel.plugin().nms().tint(item, tint)));
             return true;
         } else return false;
     }

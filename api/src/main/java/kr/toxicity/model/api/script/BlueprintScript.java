@@ -48,7 +48,7 @@ public record BlueprintScript(@NotNull String name, int length, @NotNull List<Ti
                                 .map(p -> {
                                     var raw = p.script();
                                     if (raw == null) return null;
-                                    return BetterModel.inst().scriptManager().build(raw);
+                                    return BetterModel.plugin().scriptManager().build(raw);
                                 })
                                 .filter(Objects::nonNull)
                                 .toList()).time(Math.round(d.time() * 20)))

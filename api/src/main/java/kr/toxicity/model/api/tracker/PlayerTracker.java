@@ -22,7 +22,7 @@ public final class PlayerTracker extends EntityTracker {
     public PlayerTracker(@NotNull RenderSource.Based entity, @NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
         super(entity, instance, modifier);
         instance.spawnFilter(p -> {
-            var handler = BetterModel.inst().playerManager().player(p.getUniqueId());
+            var handler = BetterModel.plugin().playerManager().player(p.getUniqueId());
             return handler != null && handler.showPlayerLimb();
         });
     }

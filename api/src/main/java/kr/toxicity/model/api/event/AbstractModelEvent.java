@@ -13,7 +13,7 @@ public abstract class AbstractModelEvent extends Event {
      */
     @ApiStatus.Internal
     public AbstractModelEvent() {
-        this(!BetterModel.inst().nms().isSync());
+        this(!BetterModel.plugin().nms().isSync());
     }
 
     /**

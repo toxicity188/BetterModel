@@ -31,7 +31,7 @@ public final class LogUtil {
         var list = new ArrayList<String>();
         list.add(message);
         list.add("Reason: " + throwable.getMessage());
-        if (BetterModel.inst().configManager().debug().exception()) {
+        if (BetterModel.plugin().configManager().debug().exception()) {
             list.add("Stack trace:");
             try (
                     var byteArray = new ByteArrayOutputStream();
@@ -43,6 +43,6 @@ public final class LogUtil {
                 list.add("Unknown");
             }
         } else list.add("If you want to see the stack trace, set debug.exception to true in config.yml");
-        BetterModel.inst().logger().warn(list.toArray(String[]::new));
+        BetterModel.plugin().logger().warn(list.toArray(String[]::new));
     }
 }

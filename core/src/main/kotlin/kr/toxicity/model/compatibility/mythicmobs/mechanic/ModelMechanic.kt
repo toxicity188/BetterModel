@@ -51,7 +51,7 @@ class ModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().s
                     shadow(args),
                     TrackerModifier.HideOption.DEFAULT)
                 )
-                BetterModel.inst().scheduler().taskLater(1, e) {
+                BetterModel.plugin().scheduler().taskLater(1, e) {
                     created.spawnNearby()
                 }
                 SkillResult.SUCCESS

@@ -123,7 +123,7 @@ class NMSImpl : NMS {
                 })
             )))
         }
-        if (entity is Player) BetterModel.inst().scheduler().asyncTaskLater(CONFIG.playerHideDelay(), task) else task()
+        if (entity is Player) BetterModel.plugin().scheduler().asyncTaskLater(CONFIG.playerHideDelay(), task) else task()
     }
 
     inner class PlayerChannelHandlerImpl(
@@ -203,7 +203,7 @@ class NMSImpl : NMS {
                 is ClientboundAddEntityPacket -> {
                     id.toPlayerEntity()?.let { e ->
                         if (!e.bukkitEntity.persistentDataContainer.has(Tracker.TRACKING_ID)) return this
-                        BetterModel.inst().scheduler().taskLater(1, e.bukkitEntity) {
+                        BetterModel.plugin().scheduler().taskLater(1, e.bukkitEntity) {
                             EntityTracker.tracker(e.bukkitEntity)?.let {
                                 if (it.canBeSpawnedAt(player)) it.spawn(player)
                             }
@@ -256,7 +256,7 @@ class NMSImpl : NMS {
             fun Tracker.updatePlayerLimb() {
                 player.updateInventory()
                 connection.send(ClientboundSetEquipmentPacket(connection.player.id, emptyList()))
-                BetterModel.inst().scheduler().asyncTaskLater(1) {
+                BetterModel.plugin().scheduler().asyncTaskLater(1) {
                     if (updateItem(BonePredicate.of(BonePredicate.State.NOT_SET) {
                             it.itemMapper is PlayerLimb.LimbItemMapper
                         })) forceUpdate(true)

@@ -24,7 +24,7 @@ public interface PlayerChannelHandler extends AutoCloseable {
      * @return game profile
      */
     default @NotNull GameProfile profile() {
-        return BetterModel.inst().nms().profile(player());
+        return BetterModel.plugin().nms().profile(player());
     }
 
     /**

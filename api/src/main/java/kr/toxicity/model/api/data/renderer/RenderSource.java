@@ -87,12 +87,12 @@ public sealed interface RenderSource {
         @NotNull
         @Override
         public GameProfile profile() {
-            return BetterModel.inst().nms().profile(entity);
+            return BetterModel.plugin().nms().profile(entity);
         }
 
         @Override
         public boolean slim() {
-            var channel = BetterModel.inst().playerManager().player(entity.getUniqueId());
+            var channel = BetterModel.plugin().playerManager().player(entity.getUniqueId());
             return channel != null && channel.isSlim();
         }
     }

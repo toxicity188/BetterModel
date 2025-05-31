@@ -52,7 +52,7 @@ public final class EntityUtil {
      * @return whether target is in user's screen
      */
     public static boolean canSee(@NotNull Location player, @NotNull Location target) {
-        var manager = BetterModel.inst().configManager();
+        var manager = BetterModel.plugin().configManager();
         if (!manager.sightTrace()) return true;
         else if (player.getWorld() != target.getWorld()) return false;
 

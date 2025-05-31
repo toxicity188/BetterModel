@@ -92,7 +92,7 @@ public final class RenderInstance {
     }
 
     public @NotNull PacketBundler createBundler() {
-        return BetterModel.inst().nms().createBundler(initialBundlerSize);
+        return BetterModel.plugin().nms().createBundler(initialBundlerSize);
     }
 
     public void viewFilter(@NotNull Predicate<Player> filter) {
@@ -280,7 +280,7 @@ public final class RenderInstance {
     }
 
     public void spawn(@NotNull Player player, @NotNull PacketBundler bundler) {
-        var get = BetterModel.inst().playerManager().player(player.getUniqueId());
+        var get = BetterModel.plugin().playerManager().player(player.getUniqueId());
         if (get == null) return;
         if (playerMap.get(player.getUniqueId()) != null || spawnFilter.test(player)) {
             spawnPacketHandler.accept(bundler);
@@ -345,7 +345,7 @@ public final class RenderInstance {
                 hidePacketHandler.accept(bundler);
                 if (!bundler.isEmpty()) bundler.send(player);
             }
-            BetterModel.inst().scheduler().task(player, () -> {
+            BetterModel.plugin().scheduler().task(player, () -> {
                 for (RenderedBone bone : bones) {
                     var hb = bone.getHitBox();
                     if (hb != null) hb.hide(player);
@@ -367,7 +367,7 @@ public final class RenderInstance {
                 showPacketHandler.accept(bundler);
                 if (!bundler.isEmpty()) bundler.send(player);
             }
-            BetterModel.inst().scheduler().task(player, () -> {
+            BetterModel.plugin().scheduler().task(player, () -> {
                 for (RenderedBone bone : bones) {
                     var hb = bone.getHitBox();
                     if (hb != null) hb.show(player);

@@ -37,7 +37,7 @@ internal inline fun <reified T, reified R> createAdaptedFieldGetter(noinline pap
 }
 
 internal val CONFIG by lazy {
-    BetterModel.inst().configManager()
+    BetterModel.plugin().configManager()
 }
 
 internal val EMPTY_QUATERNION = Quaternionf()

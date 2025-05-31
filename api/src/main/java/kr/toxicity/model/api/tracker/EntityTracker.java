@@ -93,7 +93,7 @@ public class EntityTracker extends Tracker {
     public static void reload() {
         for (EntityTracker value : new ArrayList<>(TRACKER_MAP.values())) {
             Entity target = value.entity;
-            BetterModel.inst().scheduler().task(target, () -> {
+            BetterModel.plugin().scheduler().task(target, () -> {
                 String name;
                 try (value) {
                     if (value.forRemoval()) return;
@@ -116,11 +116,11 @@ public class EntityTracker extends Tracker {
     public EntityTracker(@NotNull RenderSource.Based source, @NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
         super(source, instance, modifier);
         this.entity = source.entity();
-        adapter = BetterModel.inst().nms().adapt(entity);
+        adapter = BetterModel.plugin().nms().adapt(entity);
         var scale = FunctionUtil.throttleTick(() -> modifier.scale().get() * (float) adapter.scale());
         //Shadow
         if (modifier.shadow()) {
-            var shadow = BetterModel.inst().nms().create(entity.getLocation());
+            var shadow = BetterModel.plugin().nms().create(entity.getLocation());
             var baseScale = (float) instance.bones()
                     .stream()
                     .filter(b -> b.getGroup().getParent().visibility())
@@ -167,7 +167,7 @@ public class EntityTracker extends Tracker {
         instance.animate("walk_fly", new AnimationModifier(() -> adapter.fly() && walkSupplier.get(), 6, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
         instance.animate("spawn", AnimationModifier.DEFAULT_WITH_PLAY_ONCE);
         TRACKER_MAP.put(entity.getUniqueId(), this);
-        BetterModel.inst().scheduler().task(entity, () -> {
+        BetterModel.plugin().scheduler().task(entity, () -> {
             if (isClosed()) return;
             entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, instance.getParent().getParent().name());
             createHitBox();
@@ -178,7 +178,7 @@ public class EntityTracker extends Tracker {
             if (reader == null) return;
             var script = reader.script();
             if (script == null) return;
-            BetterModel.inst().scheduler().task(entity, () -> script.accept(entity));
+            BetterModel.plugin().scheduler().task(entity, () -> script.accept(entity));
         });
         tick(2, (t, b) -> {
             if (adapter.dead() && !forRemoval()) close();
@@ -207,7 +207,7 @@ public class EntityTracker extends Tracker {
      * Syncs this tracker to base entity's data.
      */
     public void updateBaseEntity() {
-        BetterModel.inst().scheduler().taskLater(1, entity, () -> {
+        BetterModel.plugin().scheduler().taskLater(1, entity, () -> {
             updateBaseEntity0();
             forceUpdate(true);
         });
@@ -352,9 +352,9 @@ public class EntityTracker extends Tracker {
     public boolean spawn(@NotNull Player player) {
         var bundler = instance.createBundler();
         if (!spawn(player, bundler)) return false;
-        BetterModel.inst().nms().mount(this, bundler);
-        bundler.send(player, () -> BetterModel.inst().nms().hide(player, entity));
-        var handler = BetterModel.inst()
+        BetterModel.plugin().nms().mount(this, bundler);
+        bundler.send(player, () -> BetterModel.plugin().nms().hide(player, entity));
+        var handler = BetterModel.plugin()
                 .playerManager()
                 .player(player.getUniqueId());
         if (handler != null) handler.startTrack(this);
@@ -364,7 +364,7 @@ public class EntityTracker extends Tracker {
     @Override
     public boolean remove(@NotNull Player player) {
         if (!super.remove(player)) return false;
-        var handler = BetterModel.inst()
+        var handler = BetterModel.plugin()
                 .playerManager()
                 .player(player.getUniqueId());
         if (handler != null) handler.endTrack(this);
@@ -376,20 +376,20 @@ public class EntityTracker extends Tracker {
      */
     @ApiStatus.Internal
     public void refresh() {
-        BetterModel.inst().scheduler().task(entity, () -> instance.createHitBox(adapter, r -> r.getHitBox() != null, null));
+        BetterModel.plugin().scheduler().task(entity, () -> instance.createHitBox(adapter, r -> r.getHitBox() != null, null));
     }
 
     @Override
     public boolean hide(@NotNull Player player) {
         var success = super.hide(player);
-        if (success) BetterModel.inst().scheduler().task(player, () -> player.hideEntity((Plugin) BetterModel.inst(), entity));
+        if (success) BetterModel.plugin().scheduler().task(player, () -> player.hideEntity((Plugin) BetterModel.plugin(), entity));
         return success;
     }
 
     @Override
     public boolean show(@NotNull Player player) {
         var success = super.show(player);
-        if (success) BetterModel.inst().scheduler().task(player, () -> player.showEntity((Plugin) BetterModel.inst(), entity));
+        if (success) BetterModel.plugin().scheduler().task(player, () -> player.showEntity((Plugin) BetterModel.plugin(), entity));
         return success;
     }
 }

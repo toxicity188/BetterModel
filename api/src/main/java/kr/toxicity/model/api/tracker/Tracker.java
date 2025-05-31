@@ -77,7 +77,7 @@ public abstract class Tracker implements AutoCloseable {
         this.modifier = modifier;
         viewBundler = instance.createBundler();
         dataBundler = instance.createBundler();
-        var config = BetterModel.inst().configManager();
+        var config = BetterModel.plugin().configManager();
         updater = () -> {
             instance.move(
                     frame % 5 == 0 ? (isRunningSingleAnimation() && config.lockOnPlayAnimation()) ? instance.getRotation() : rotation() : null,

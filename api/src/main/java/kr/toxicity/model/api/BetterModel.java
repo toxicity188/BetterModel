@@ -3,6 +3,7 @@ package kr.toxicity.model.api;
 import kr.toxicity.model.api.data.renderer.ModelRenderer;
 import kr.toxicity.model.api.event.PluginEndReloadEvent;
 import kr.toxicity.model.api.event.PluginStartReloadEvent;
+import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.tracker.EntityTracker;
 import kr.toxicity.model.api.util.EventUtil;
 import org.jetbrains.annotations.ApiStatus;
@@ -12,11 +13,12 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 import static kr.toxicity.model.api.util.ReflectionUtil.classExists;
 
 /**
- * A dummy class for BetterModel plugin instance.
+ * A provider class for BetterModel plugin instance.
  */
 public final class BetterModel {
 
@@ -51,7 +53,7 @@ public final class BetterModel {
      * @return optional renderer
      */
     public static @NotNull Optional<ModelRenderer> model(@NotNull String name) {
-        return Optional.ofNullable(inst().modelManager().renderer(name));
+        return Optional.ofNullable(plugin().modelManager().renderer(name));
     }
     /**
      * Gets player animation render by name
@@ -59,7 +61,15 @@ public final class BetterModel {
      * @return optional renderer
      */
     public static @NotNull Optional<ModelRenderer> limb(@NotNull String name) {
-        return Optional.ofNullable(inst().playerManager().limb(name));
+        return Optional.ofNullable(plugin().playerManager().limb(name));
+    }
+    /**
+     * Gets player channel by uuid.
+     * @param uuid uuid
+     * @return optional channel
+     */
+    public static @NotNull Optional<PlayerChannelHandler> player(@NotNull UUID uuid) {
+        return Optional.ofNullable(plugin().playerManager().player(uuid));
     }
 
     /**
@@ -67,14 +77,14 @@ public final class BetterModel {
      * @return all models
      */
     public static @NotNull @Unmodifiable List<ModelRenderer> models() {
-        return inst().modelManager().renderers();
+        return plugin().modelManager().renderers();
     }
     /**
      * Gets all limbs
      * @return all limbs
      */
     public static @NotNull @Unmodifiable List<ModelRenderer> limbs() {
-        return inst().playerManager().limbs();
+        return plugin().playerManager().limbs();
     }
 
     /**
@@ -82,8 +92,13 @@ public final class BetterModel {
      * @see org.bukkit.plugin.java.JavaPlugin
      * @return instance
      */
-    public static @NotNull BetterModelPlugin inst() {
+    public static @NotNull BetterModelPlugin plugin() {
         return Objects.requireNonNull(instance, "BetterModel hasn't been initialized yet!");
+    }
+
+    @Deprecated
+    public static @NotNull BetterModelPlugin inst() {
+        return plugin();
     }
 
     /**
@@ -91,8 +106,7 @@ public final class BetterModel {
      * @param instance instance
      */
     @ApiStatus.Internal
-    public static void inst(@NotNull BetterModelPlugin instance) {
-        if (BetterModel.instance != null) throw new RuntimeException();
+    public static void register(@NotNull BetterModelPlugin instance) {
         instance.addReloadStartHandler(() -> EventUtil.call(new PluginStartReloadEvent()));
         instance.addReloadEndHandler(t -> EntityTracker.reload());
         instance.addReloadEndHandler(t -> EventUtil.call(new PluginEndReloadEvent(t)));

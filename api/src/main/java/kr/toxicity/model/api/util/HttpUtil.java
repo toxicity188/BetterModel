@@ -49,7 +49,7 @@ public final class HttpUtil {
     }
 
     public static @NotNull LatestVersion versionList() {
-        return versionList(BetterModel.inst().version());
+        return versionList(BetterModel.plugin().version());
     }
 
     public static @NotNull LatestVersion versionList(@NotNull MinecraftVersion version) {

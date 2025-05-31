@@ -98,7 +98,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
     private val reloadEndTask = arrayListOf<(ReloadResult) -> Unit>()
 
     override fun onLoad() {
-        BetterModel.inst(this)
+        BetterModel.register(this)
     }
 
     override fun onEnable() {
