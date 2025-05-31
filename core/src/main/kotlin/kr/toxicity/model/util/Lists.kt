@@ -30,7 +30,7 @@ fun <T> List<T>.forEachAsync(block: (T) -> Unit) {
         }
         try {
             val integer = AtomicInteger()
-            Executors.newFixedThreadPool(tasks.size, {
+            Executors.newFixedThreadPool(tasks.size) {
                 Thread(it).apply {
                     isDaemon = true
                     name = "BetterModel-Worker-${integer.andIncrement}"
@@ -38,7 +38,7 @@ fun <T> List<T>.forEachAsync(block: (T) -> Unit) {
                         exception.handleException("A error has been occurred in ${thread.name}")
                     }
                 }
-            }).use { pool ->
+            }.use { pool ->
                 CompletableFuture.allOf(
                     *tasks.map {
                         CompletableFuture.runAsync({

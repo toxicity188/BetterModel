@@ -18,7 +18,7 @@ class ModelPartTargeter(mlc: MythicLineConfig) : ILocationTargeter {
 
     override fun getLocations(p0: SkillMetadata): Collection<AbstractLocation> {
         val args = p0.toPlaceholderArgs()
-        return p0.toTracker()?.bone(part(args) ?: return emptyList())?.worldPosition()?.let {
+        return p0.toTracker()?.bone(part(args) ?: return emptyList())?.hitBoxPosition()?.let {
             listOf(p0.caster.entity.location.add(
                 it.x.toDouble(),
                 it.y.toDouble(),
