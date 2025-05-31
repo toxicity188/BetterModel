@@ -11,7 +11,11 @@ public enum BoneTags implements BoneTag {
     /**
      * Follows entity's head rotation
      */
-    HEAD(new String[] { "h", "hi" }),
+    HEAD(new String[] { "h" }),
+    /**
+     * Follows entity's head rotation
+     */
+    HEAD_WITH_CHILDREN(new String[] { "hi" }),
     /**
      * Creates a hitbox following this bone
      */

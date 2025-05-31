@@ -225,7 +225,7 @@ public final class RenderInstance {
         var h = 0D;
         for (RenderedBone renderer : bones()) {
             var lt = renderer.worldPosition().y;
-            if (renderer.getName().tagged(BoneTags.HEAD)) return lt;
+            if (renderer.getName().tagged(BoneTags.HEAD, BoneTags.HEAD_WITH_CHILDREN)) return lt;
             if (h < lt) h = lt;
         }
         return h;

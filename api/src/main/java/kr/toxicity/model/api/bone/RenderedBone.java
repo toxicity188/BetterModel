@@ -89,7 +89,9 @@ public final class RenderedBone implements HitBoxSource {
     private Supplier<Float> scale = FunctionUtil.asSupplier(1F);
 
     private Function<Vector3f, Vector3f> positionModifier = p -> p;
+    private Vector3f lastModifiedPosition = new Vector3f();
     private Function<Quaternionf, Quaternionf> rotationModifier = r -> r;
+    private Quaternionf lastModifiedRotation = new Quaternionf();
 
     /**
      * Creates entity.
@@ -438,12 +440,17 @@ public final class RenderedBone implements HitBoxSource {
         if (parent != null) {
             var p = parent.relativeOffset();
             return relativeOffsetCache = new BoneMovement(
-                    positionModifier.apply(new Vector3f(def.transform())
+                    new Vector3f(def.transform())
                             .mul(p.scale())
                             .rotate(p.rotation())
-                            .add(p.transform())),
+                            .add(p.transform())
+                            .sub(parent.lastModifiedPosition)
+                            .add(lastModifiedPosition = positionModifier.apply(new Vector3f())),
                     new Vector3f(def.scale()).mul(p.scale()),
-                    rotationModifier.apply(new Quaternionf(p.rotation()).mul(def.rotation())),
+                    new Quaternionf(p.rotation())
+                            .div(parent.lastModifiedRotation)
+                            .mul(def.rotation())
+                            .mul(lastModifiedRotation = rotationModifier.apply(new Quaternionf())),
                     def.rawRotation()
             );
         }

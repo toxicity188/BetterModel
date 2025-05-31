@@ -150,7 +150,11 @@ public class EntityTracker extends Tracker {
                 0
         )));
         instance.addRotationModifier(
-                BonePredicate.of(r -> r.getName().tagged(BoneTags.HEAD)),
+                BonePredicate.of(BonePredicate.State.NOT_SET, r -> r.getName().tagged(BoneTags.HEAD)),
+                headRotator
+        );
+        instance.addRotationModifier(
+                BonePredicate.of(BonePredicate.State.TRUE, r -> r.getName().tagged(BoneTags.HEAD_WITH_CHILDREN)),
                 headRotator
         );
 
