@@ -2,7 +2,6 @@ package kr.toxicity.model.api.data.renderer;
 
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationModifier;
-import kr.toxicity.model.api.animation.AnimationMovement;
 import kr.toxicity.model.api.animation.AnimationPredicate;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.BoneTags;
@@ -25,14 +24,12 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiPredicate;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.function.*;
 import java.util.stream.Stream;
 
 /**
@@ -204,8 +201,12 @@ public final class RenderInstance {
         return anyMatch(predicate, (b, p) -> b.brightness(p, block, sky));
     }
 
-    public boolean addAnimationMovementModifier(@NotNull BonePredicate predicate, @NotNull Consumer<AnimationMovement> consumer) {
-        return anyMatch(predicate, (b, p) -> b.addAnimationMovementModifier(p, consumer));
+    public boolean addRotationModifier(@NotNull BonePredicate predicate, @NotNull Function<Quaternionf, Quaternionf> mapper) {
+        return anyMatch(predicate, (b, p) -> b.addRotationModifier(p, mapper));
+    }
+
+    public boolean addPositionModifier(@NotNull BonePredicate predicate, @NotNull Function<Vector3f, Vector3f> mapper) {
+        return anyMatch(predicate, (b, p) -> b.addPositionModifier(p, mapper));
     }
 
     public @NotNull @Unmodifiable List<RenderedBone> bones() {

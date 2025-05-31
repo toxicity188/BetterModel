@@ -10,10 +10,7 @@ import kr.toxicity.model.api.data.renderer.RenderSource;
 import kr.toxicity.model.api.event.CreateEntityTrackerEvent;
 import kr.toxicity.model.api.nms.EntityAdapter;
 import kr.toxicity.model.api.nms.HitBoxListener;
-import kr.toxicity.model.api.util.BonePredicate;
-import kr.toxicity.model.api.util.EntityUtil;
-import kr.toxicity.model.api.util.EventUtil;
-import kr.toxicity.model.api.util.FunctionUtil;
+import kr.toxicity.model.api.util.*;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -25,12 +22,15 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
@@ -126,7 +126,7 @@ public class EntityTracker extends Tracker {
                     .filter(b -> b.getGroup().getParent().visibility())
                     .map(b -> b.getGroup().getHitBox())
                     .filter(Objects::nonNull)
-                    .mapToDouble(b -> b.box().lengthZX() / 2)
+                    .mapToDouble(b -> Math.max(b.box().x(), b.box().z()))
                     .max()
                     .orElse(0D);
             tick(((t, b) -> {
@@ -144,17 +144,15 @@ public class EntityTracker extends Tracker {
         //Animation
         instance.defaultPosition(FunctionUtil.throttleTick(() -> adapter.passengerPosition().mul(-1)));
         instance.scale(scale);
-        instance.addAnimationMovementModifier(
+        Function<Quaternionf, Quaternionf> headRotator = r -> r.mul(MathUtil.toQuaternion(new Vector3f(
+                adapter.pitch(),
+                -adapter.yaw() + adapter.bodyYaw(),
+                0
+        )));
+        instance.addRotationModifier(
                 BonePredicate.of(r -> r.getName().tagged(BoneTags.HEAD)),
-                a -> {
-                    if (a.rotation() != null) {
-                        a.rotation().add(adapter.pitch(), Math.clamp(
-                                -adapter.yaw() + adapter.bodyYaw(),
-                                -45,
-                                45
-                        ), 0);
-                    }
-                });
+                headRotator
+        );
 
         var damageTickProvider = FunctionUtil.throttleTick(adapter::damageTick);
         var walkSupplier = FunctionUtil.throttleTick(() -> adapter.onWalk() || damageTickProvider.get() > 0.25 || instance.bones().stream().anyMatch(e -> {

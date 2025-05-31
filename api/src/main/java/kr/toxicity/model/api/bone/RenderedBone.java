@@ -83,11 +83,13 @@ public final class RenderedBone implements HitBoxSource {
     private volatile long delay = 0;
     private TreeIterator currentIterator = null;
     private BoneMovement beforeTransform, afterTransform, relativeOffsetCache;
-    private Consumer<AnimationMovement> movementModifier = m -> {};
     private ModelRotation rotation = ModelRotation.EMPTY;
 
     private Supplier<Vector3f> defaultPosition = FunctionUtil.asSupplier(new Vector3f());
     private Supplier<Float> scale = FunctionUtil.asSupplier(1F);
+
+    private Function<Vector3f, Vector3f> positionModifier = p -> p;
+    private Function<Quaternionf, Quaternionf> rotationModifier = r -> r;
 
     /**
      * Creates entity.
@@ -243,14 +245,28 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     /**
-     * Adds animation modifier.
+     * Adds rotation modifier.
      * @param predicate predicate
-     * @param consumer animation consumer
+     * @param function animation consumer
      * @return whether to success
      */
-    public boolean addAnimationMovementModifier(@NotNull BonePredicate predicate, @NotNull Consumer<AnimationMovement> consumer) {
+    public synchronized boolean addRotationModifier(@NotNull BonePredicate predicate, @NotNull Function<Quaternionf, Quaternionf> function) {
         if (predicate.test(this)) {
-            movementModifier = movementModifier.andThen(consumer);
+            rotationModifier = rotationModifier.andThen(function);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Adds position modifier.
+     * @param predicate predicate
+     * @param function animation consumer
+     * @return whether to success
+     */
+    public synchronized boolean addPositionModifier(@NotNull BonePredicate predicate, @NotNull Function<Vector3f, Vector3f> function) {
+        if (predicate.test(this)) {
+            positionModifier = positionModifier.andThen(function);
             return true;
         }
         return false;
@@ -341,7 +357,7 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     private static int toInterpolationDuration(long delay) {
-        return (int) Math.floor((float) delay / 5F) + 1;
+        return (int) Math.ceil((float) delay / 5F);
     }
 
     public @NotNull Vector3f worldPosition() {
@@ -404,13 +420,11 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     private int frame() {
-        return keyFrame != null ? Math.round(keyFrame.time() * 100) : parent != null ? parent.frame() : 5;
+        return keyFrame != null ? Math.round(keyFrame.time() * 100) : parent != null ? parent.frame() : 0;
     }
 
     private @NotNull BoneMovement defaultFrame() {
-        var k = keyFrame != null ? keyFrame.copyNotNull() : new AnimationMovement(0, new Vector3f(), new Vector3f(), new Vector3f());
-        movementModifier.accept(k);
-        return defaultFrame.plus(k);
+        return defaultFrame.plus(keyFrame != null ? keyFrame : new AnimationMovement(0, null, null, null));
     }
 
     private float progress() {
@@ -424,12 +438,12 @@ public final class RenderedBone implements HitBoxSource {
         if (parent != null) {
             var p = parent.relativeOffset();
             return relativeOffsetCache = new BoneMovement(
-                    new Vector3f(def.transform())
+                    positionModifier.apply(new Vector3f(def.transform())
                             .mul(p.scale())
                             .rotate(p.rotation())
-                            .add(p.transform()),
+                            .add(p.transform())),
                     new Vector3f(def.scale()).mul(p.scale()),
-                    new Quaternionf(p.rotation()).mul(def.rotation()),
+                    rotationModifier.apply(new Quaternionf(p.rotation()).mul(def.rotation())),
                     def.rawRotation()
             );
         }
@@ -654,7 +668,7 @@ public final class RenderedBone implements HitBoxSource {
                 return previous;
             }
             var nxt = iterator.next();
-            nxt = nxt.time(Math.max(nxt.time() / modifier.speedValue(), 0.01F));
+            nxt = nxt.time(nxt.time() / modifier.speedValue());
             return nxt;
         }
 
