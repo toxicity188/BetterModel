@@ -16,7 +16,7 @@ public record NamedBoundingBox(@NotNull BoneName name, @NotNull ModelBoundingBox
      * @return vector
      */
     public @NotNull Vector3f centerPoint() {
-        return new Vector3f(box.centerPoint());
+        return new Vector3f().set(box.centerPoint());
     }
 
     /**
