@@ -31,7 +31,7 @@ class BindHitBoxMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.ins
             val e = type(args) ?: return SkillResult.CONDITION_FAILED
             val spawned = e.spawn(p0.caster.location, p0.caster.level).apply {
                 setParent(p0.caster)
-                setOwner(p0.caster.entity.uniqueId)
+                setOwnerUUID(p0.caster.entity.uniqueId)
             }.entity.bukkitEntity
             it.createHitBox(predicate(args), HitBoxListener.builder()
                 .sync { hitBox ->

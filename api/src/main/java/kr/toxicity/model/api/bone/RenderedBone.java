@@ -482,8 +482,7 @@ public final class RenderedBone implements HitBoxSource {
 
     private boolean applyItem() {
         if (display != null) {
-            var item = itemStack.itemStack();
-            display.item(ItemUtil.isEmpty(item) ? AIR : tintCacheMap.computeIfAbsent(tint, i -> BetterModel.plugin().nms().tint(item, tint)));
+            display.item(itemStack.isAir() ? AIR : tintCacheMap.computeIfAbsent(tint, i -> BetterModel.plugin().nms().tint(itemStack.itemStack(), tint)));
             return true;
         } else return false;
     }
@@ -542,7 +541,7 @@ public final class RenderedBone implements HitBoxSource {
     public void stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String parent) {
         if (filter.test(this)) {
             synchronized (animators) {
-                animators.remove(parent);
+                if (animators.remove(parent) != null) forceUpdateAnimation.set(true);
             }
         }
     }
