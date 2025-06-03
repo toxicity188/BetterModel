@@ -1,3 +1,4 @@
+import it.unimi.dsi.fastutil.floats.FloatSet
 import kr.toxicity.model.api.animation.VectorPoint
 import kr.toxicity.model.api.util.VectorInterpolation
 import kr.toxicity.model.api.util.VectorUtil
@@ -14,7 +15,7 @@ class VectorTest {
                 VectorPoint(Vector3f(3F, 4F, 5F), 3F, VectorInterpolation.CATMULLROM),
                 VectorPoint(Vector3f(4F, 5F, 6F), 4F, VectorInterpolation.CATMULLROM),
             ),
-            sortedSetOf(
+            FloatSet.of(
                 0F,
                 0.5F,
                 1F,
@@ -29,7 +30,7 @@ class VectorTest {
         ).forEach {
             println(it)
         }
-        val set = sortedSetOf(0.5F, 1F, 1.5F, 2F, 2.5F)
+        val set = FloatSet.of(0.5F, 1F, 1.5F, 2F, 2.5F)
         VectorUtil.insertLerpFrame(
             set,
             0.25F
