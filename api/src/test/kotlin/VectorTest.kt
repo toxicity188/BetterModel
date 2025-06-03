@@ -1,3 +1,4 @@
+import it.unimi.dsi.fastutil.floats.FloatAVLTreeSet
 import it.unimi.dsi.fastutil.floats.FloatSet
 import kr.toxicity.model.api.animation.VectorPoint
 import kr.toxicity.model.api.util.VectorInterpolation
@@ -30,7 +31,7 @@ class VectorTest {
         ).forEach {
             println(it)
         }
-        val set = FloatSet.of(0.5F, 1F, 1.5F, 2F, 2.5F)
+        val set = FloatAVLTreeSet(floatArrayOf(0.5F, 1F, 1.5F, 2F, 2.5F))
         VectorUtil.insertLerpFrame(
             set,
             0.25F
