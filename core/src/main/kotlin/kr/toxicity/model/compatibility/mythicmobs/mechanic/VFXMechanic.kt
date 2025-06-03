@@ -36,6 +36,7 @@ class VFXMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().ski
                 { scl(args) },
                 st(args),
                 false,
+                false,
                 0F,
                 false,
                 TrackerModifier.HideOption.DEFAULT

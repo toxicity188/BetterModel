@@ -1,5 +1,8 @@
 package kr.toxicity.model.api.data.blueprint;
 
+import it.unimi.dsi.fastutil.floats.FloatAVLTreeSet;
+import it.unimi.dsi.fastutil.floats.FloatComparators;
+import it.unimi.dsi.fastutil.floats.FloatSet;
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationMovement;
 import kr.toxicity.model.api.animation.AnimationPoint;
@@ -78,8 +81,8 @@ public record BlueprintAnimation(
 
     private static @NotNull Map<BoneName, BlueprintAnimator> newMap(@NotNull Map<BoneName, BlueprintAnimator.AnimatorData> oldMap) {
         var newMap = new HashMap<BoneName, BlueprintAnimator>();
-        Set<Float> floatSet = new TreeSet<>(Comparator.naturalOrder());
-        oldMap.values().forEach(a -> a.points().stream().map(t -> t.position().time()).forEach(floatSet::add));
+        FloatSet floatSet = new FloatAVLTreeSet(FloatComparators.NATURAL_COMPARATOR);
+        oldMap.values().forEach(a -> a.points().stream().mapToDouble(t -> t.position().time()).forEach(d -> floatSet.add(((float) d))));
         for (Map.Entry<BoneName, BlueprintAnimator.AnimatorData> entry : oldMap.entrySet()) {
             var list = getAnimationMovements(floatSet, entry);
             newMap.put(entry.getKey(), new BlueprintAnimator(
@@ -90,7 +93,7 @@ public record BlueprintAnimation(
         return newMap;
     }
 
-    private static @NotNull List<AnimationMovement> getAnimationMovements(@NotNull Set<Float> floatSet, @NotNull Map.Entry<BoneName, BlueprintAnimator.AnimatorData> entry) {
+    private static @NotNull List<AnimationMovement> getAnimationMovements(@NotNull FloatSet floatSet, @NotNull Map.Entry<BoneName, BlueprintAnimator.AnimatorData> entry) {
         var frame = entry.getValue().points();
         if (frame.isEmpty()) return Collections.emptyList();
         var list = VectorUtil.putAnimationPoint(frame, floatSet).stream().map(AnimationPoint::toMovement).collect(Collectors.toList());

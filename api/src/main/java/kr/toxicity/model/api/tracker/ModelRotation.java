@@ -1,5 +1,7 @@
 package kr.toxicity.model.api.tracker;
 
+import kr.toxicity.model.api.util.MathUtil;
+
 import java.util.Objects;
 
 /**
@@ -13,8 +15,7 @@ public record ModelRotation(float x, float y) {
      */
     public static final ModelRotation EMPTY = new ModelRotation(0, 0);
 
-    private static final float DEGREE_TO_PACK = 256F / 360F;
-    private static final float DEGREE_TO_RADIAN = (float) Math.PI / 180F;
+    private static final float DEGREES_TO_PACKS = 256F / 360F;
 
     @Override
     public boolean equals(Object o) {
@@ -28,18 +29,18 @@ public record ModelRotation(float x, float y) {
     }
 
     public float radianX() {
-        return x * DEGREE_TO_RADIAN;
+        return x * MathUtil.DEGREES_TO_RADIANS;
     }
 
     public float radianY() {
-        return y * DEGREE_TO_RADIAN;
+        return y * MathUtil.DEGREES_TO_RADIANS;
     }
 
     public byte packedX() {
-        return (byte) (x * DEGREE_TO_PACK);
+        return (byte) (x * DEGREES_TO_PACKS);
     }
 
     public byte packedY() {
-        return (byte) (y * DEGREE_TO_PACK);
+        return (byte) (y * DEGREES_TO_PACKS);
     }
 }

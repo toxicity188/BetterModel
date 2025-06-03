@@ -24,7 +24,8 @@ class ModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().s
     }
     private val s = mlc.toPlaceholderFloat(arrayOf("scale", "s"), 1F)
     private val st = mlc.toPlaceholderBoolean(arrayOf("sight-trace", "st"), true)
-    private val de = mlc.toPlaceholderBoolean(arrayOf("damage-effect", "de"), true)
+    private val da = mlc.toPlaceholderBoolean(arrayOf("damageanimation", "da", "animation"), true)
+    private val dt = mlc.toPlaceholderBoolean(arrayOf("damagetint", "tint", "dt"), true)
     private val vr = mlc.toPlaceholderFloat(arrayOf("view-range", "vr"), EntityUtil.ENTITY_MODEL_VIEW_RADIUS)
     private val shadow = mlc.toPlaceholderBoolean(arrayOf("shadow"), false)
     private val r = mlc.toPlaceholderBoolean(arrayOf("remove", "r"), false)
@@ -46,7 +47,8 @@ class ModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().s
                 val created = it.create(e, TrackerModifier(
                     { s(args) },
                     st(args),
-                    de(args),
+                    da(args),
+                    dt(args),
                     vr(args),
                     shadow(args),
                     TrackerModifier.HideOption.DEFAULT)

@@ -107,9 +107,11 @@ public final class BetterModel {
      */
     @ApiStatus.Internal
     public static void register(@NotNull BetterModelPlugin instance) {
+        Objects.requireNonNull(instance, "instance cannot be null.");
+        if (BetterModel.instance == instance) throw new RuntimeException("Duplicated instance.");
         instance.addReloadStartHandler(() -> EventUtil.call(new PluginStartReloadEvent()));
         instance.addReloadEndHandler(t -> EntityTracker.reload());
         instance.addReloadEndHandler(t -> EventUtil.call(new PluginEndReloadEvent(t)));
-        BetterModel.instance = Objects.requireNonNull(instance);
+        BetterModel.instance = instance;
     }
 }

@@ -11,7 +11,8 @@ import java.util.function.Supplier;
  * Tracker's modifier
  * @param scale model scale
  * @param sightTrace use sight-trace
- * @param damageEffect enables damage effect
+ * @param damageAnimation enables damage animation
+ * @param damageTint enables damage tint
  * @param viewRange view range
  * @param shadow create shadow
  * @param hideOption hide option
@@ -19,7 +20,8 @@ import java.util.function.Supplier;
 public record TrackerModifier(
         @NotNull Supplier<Float> scale,
         boolean sightTrace,
-        boolean damageEffect,
+        boolean damageAnimation,
+        boolean damageTint,
         float viewRange,
         boolean shadow,
         @NotNull HideOption hideOption
@@ -44,6 +46,7 @@ public record TrackerModifier(
      */
     public static final TrackerModifier DEFAULT = new TrackerModifier(
             FunctionUtil.asSupplier(1F),
+            true,
             true,
             true,
             EntityUtil.ENTITY_MODEL_VIEW_RADIUS,
@@ -73,7 +76,8 @@ public record TrackerModifier(
     public static final class Builder {
         private Supplier<Float> scale;
         private boolean sightTrace;
-        private boolean damageEffect;
+        private boolean damageAnimation;
+        private boolean damageTint;
         private float viewRange;
         private boolean shadow;
         private HideOption hideOption;
@@ -85,7 +89,8 @@ public record TrackerModifier(
         private Builder(@NotNull TrackerModifier modifier) {
             this.scale = modifier.scale;
             this.sightTrace = modifier.sightTrace;
-            this.damageEffect = modifier.damageEffect;
+            this.damageAnimation = modifier.damageAnimation;
+            this.damageTint = modifier.damageTint;
             this.viewRange = modifier.viewRange;
             this.shadow = modifier.shadow;
             this.hideOption = modifier.hideOption;
@@ -112,12 +117,22 @@ public record TrackerModifier(
         }
 
         /**
-         * Sets damage effect
-         * @param damageEffect damage effect
+         * Sets damage animation
+         * @param damageAnimation damage animation
          * @return self
          */
-        public @NotNull Builder damageEffect(boolean damageEffect) {
-            this.damageEffect = damageEffect;
+        public @NotNull Builder damageAnimation(boolean damageAnimation) {
+            this.damageAnimation = damageAnimation;
+            return this;
+        }
+
+        /**
+         * Sets damage tint
+         * @param damageTint damage tint
+         * @return self
+         */
+        public @NotNull Builder damageTint(boolean damageTint) {
+            this.damageTint = damageTint;
             return this;
         }
 
@@ -159,7 +174,8 @@ public record TrackerModifier(
             return new TrackerModifier(
                     scale,
                     sightTrace,
-                    damageEffect,
+                    damageAnimation,
+                    damageTint,
                     viewRange,
                     shadow,
                     hideOption

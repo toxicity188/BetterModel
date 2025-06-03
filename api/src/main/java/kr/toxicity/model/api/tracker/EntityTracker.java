@@ -163,7 +163,7 @@ public class EntityTracker extends Tracker {
             var hitBox = e.getHitBox();
             return hitBox != null && hitBox.onWalk();
         }));
-        var walkSpeedSupplier = FunctionUtil.throttleTick(modifier.damageEffect() ? () -> adapter.walkSpeed() + 4F * (float) Math.sqrt(damageTickProvider.get()) : () -> 1F);
+        var walkSpeedSupplier = FunctionUtil.throttleTick(modifier.damageAnimation() ? () -> adapter.walkSpeed() + 4F * (float) Math.sqrt(damageTickProvider.get()) : () -> 1F);
         instance.animate("walk", new AnimationModifier(walkSupplier, 6, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
         instance.animate("idle_fly", new AnimationModifier(adapter::fly, 6, 0, AnimationIterator.Type.LOOP, 1F));
         instance.animate("walk_fly", new AnimationModifier(() -> adapter.fly() && walkSupplier.get(), 6, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
@@ -251,7 +251,7 @@ public class EntityTracker extends Tracker {
      * Applies damage tint
      */
     public void damageTint() {
-        if (!modifier().damageEffect()) return;
+        if (!modifier().damageTint()) return;
         var get = damageTint.get();
         if (get <= 0 && damageTint.compareAndSet(get, 50)) tint(damageTintValue.get());
     }

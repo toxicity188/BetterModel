@@ -1,7 +1,6 @@
 package kr.toxicity.model.api.util;
 
-import it.unimi.dsi.fastutil.floats.FloatAVLTreeSet;
-import it.unimi.dsi.fastutil.floats.FloatComparators;
+import it.unimi.dsi.fastutil.floats.*;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationPoint;
 import kr.toxicity.model.api.animation.VectorPoint;
@@ -12,7 +11,6 @@ import org.joml.Vector3f;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 @ApiStatus.Internal
 public final class VectorUtil {
@@ -27,7 +25,7 @@ public final class VectorUtil {
         }
     }
 
-    public static @NotNull List<AnimationPoint> putAnimationPoint(@NotNull List<AnimationPoint> animations, @NotNull Collection<Float> points) {
+    public static @NotNull List<AnimationPoint> putAnimationPoint(@NotNull List<AnimationPoint> animations, @NotNull FloatCollection points) {
         return sum(
                 animations.stream().map(AnimationPoint::position).distinct().toList(),
                 animations.stream().map(AnimationPoint::rotation).distinct().toList(),
@@ -47,7 +45,7 @@ public final class VectorUtil {
         return sum(position, rotation, scale, set);
     }
 
-    public static @NotNull List<AnimationPoint> sum(@NotNull List<VectorPoint> position, @NotNull List<VectorPoint> rotation, @NotNull List<VectorPoint> scale, Collection<Float> points) {
+    public static @NotNull List<AnimationPoint> sum(@NotNull List<VectorPoint> position, @NotNull List<VectorPoint> rotation, @NotNull List<VectorPoint> scale, FloatCollection points) {
         var list = new ArrayList<AnimationPoint>();
         var pp = putPoint(position, points);
         var rp = putPoint(rotation, points);
@@ -62,14 +60,17 @@ public final class VectorUtil {
         return list;
     }
 
-    public static @NotNull List<VectorPoint> putPoint(@NotNull List<VectorPoint> vectors, @NotNull Collection<Float> points) {
-        if (vectors.isEmpty()) return points.stream().map(t -> new VectorPoint(new Vector3f(), t, VectorInterpolation.LINEAR)).toList();
+    public static @NotNull List<VectorPoint> putPoint(@NotNull List<VectorPoint> vectors, @NotNull FloatCollection points) {
+        var newVectors = new ArrayList<VectorPoint>();
+        if (vectors.isEmpty()) {
+            points.iterator().forEachRemaining(f -> newVectors.add(new VectorPoint(new Vector3f(), f, VectorInterpolation.LINEAR)));
+            return newVectors;
+        }
         var last = vectors.getLast();
         var length = last.time();
         var i = 0;
         var p2 = vectors.getFirst();
         var t = p2.time();
-        var newVectors = new ArrayList<VectorPoint>();
         for (float point : points) {
             while (i < vectors.size() - 1 && t < point) {
                 t = (p2 = vectors.get(++i)).time();
@@ -87,7 +88,7 @@ public final class VectorUtil {
         return newVectors;
     }
 
-    public static void insertRotationFrame(@NotNull Set<Float> frames, @NotNull List<VectorPoint> vectorPoints) {
+    public static void insertRotationFrame(@NotNull FloatSet frames, @NotNull List<VectorPoint> vectorPoints) {
         for (int i = 0; i < vectorPoints.size() - 1; i++) {
             var before = vectorPoints.get(i);
             var after = vectorPoints.get(i + 1);
@@ -102,24 +103,24 @@ public final class VectorUtil {
         }
     }
 
-    public static void insertLerpFrame(@NotNull Set<Float> frames) {
+    public static void insertLerpFrame(@NotNull FloatCollection frames) {
         insertLerpFrame(frames, (float) BetterModel.plugin().configManager().lerpFrameTime() / 20F);
     }
 
     private static final float FRAME_HASH = 0.031F;
 
-    public static void insertLerpFrame(@NotNull Set<Float> frames, float frame) {
+    public static void insertLerpFrame(@NotNull FloatCollection frames, float frame) {
         if (frame <= 0F) return;
         frame += FRAME_HASH;
-        var list = new ArrayList<>(frames);
+        var list = new FloatArrayList(frames);
         var init = 0F;
         var initAfter = list.getFirst();
         while ((init += frame) < initAfter) {
             frames.add(init);
         }
         for (int i = 0; i < list.size() - 1; i++) {
-            var before = list.get(i);
-            var after = list.get(i + 1);
+            var before = list.getFloat(i);
+            var after = list.getFloat(i + 1);
             while ((before += frame) < after) {
                 frames.add(before);
             }
@@ -147,9 +148,9 @@ public final class VectorUtil {
         var t2 = t * t;
         var t3 = t2 * t;
         return new Vector3f(
-                0.5F * (2 * p1.x + (-p0.x + p2.x) * t + (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 + (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3),
-                0.5F * (2 * p1.y + (-p0.y + p2.y) * t + (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 + (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3),
-                0.5F * (2 * p1.z + (-p0.z + p2.z) * t + (2 * p0.z - 5 * p1.z + 4 * p2.z - p3.z) * t2 + (-p0.z + 3 * p1.z - 3 * p2.z + p3.z) * t3)
-        );
+                Math.fma(t3, Math.fma(-1f, p0.x, Math.fma(3f, p1.x, Math.fma(-3f, p2.x, p3.x))), Math.fma(t2, Math.fma(2f, p0.x, Math.fma(-5f, p1.x, Math.fma(4f, p2.x, -p3.x))), Math.fma(t, -p0.x + p2.x, 2f * p1.x))),
+                Math.fma(t3,Math.fma(-1f, p0.y, Math.fma(3f, p1.y, Math.fma(-3f, p2.y, p3.y))), Math.fma(t2, Math.fma(2f, p0.y, Math.fma(-5f, p1.y, Math.fma(4f, p2.y, -p3.y))), Math.fma(t, -p0.y + p2.y, 2f * p1.y))),
+                Math.fma(t3, Math.fma(-1f, p0.z, Math.fma(3f, p1.z, Math.fma(-3f, p2.z, p3.z))), Math.fma(t2, Math.fma(2f, p0.z, Math.fma(-5f, p1.z, Math.fma(4f, p2.z, -p3.z))), Math.fma(t, -p0.z + p2.z, 2f * p1.z)))
+        ).mul(0.5F);
     }
 }

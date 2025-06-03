@@ -59,19 +59,18 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
 
     private val scheduler = if (BetterModel.IS_FOLIA) PaperScheduler() else StandardScheduler()
     private val log = object : BetterModelLogger {
+        private val internalLogger = logger
         override fun info(vararg message: String) {
-            val logger = logger
-            synchronized(logger) {
+            synchronized(internalLogger) {
                 for (s in message) {
-                    logger.info(s)
+                    internalLogger.info(s)
                 }
             }
         }
         override fun warn(vararg message: String) {
-            val logger = logger
-            synchronized(logger) {
+            synchronized(internalLogger) {
                 for (s in message) {
-                    logger.warning(s)
+                    internalLogger.warning(s)
                 }
             }
         }

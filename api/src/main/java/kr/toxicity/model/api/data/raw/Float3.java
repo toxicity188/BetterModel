@@ -83,7 +83,7 @@ public record Float3(
      * @return new float
      */
     public @NotNull Float3 convertToMinecraftDegree() {
-        var vec = MathUtil.toMinecraftVector(toVector());
+        var vec = MathUtil.toXYZEuler(toVector());
         return new Float3(vec.x, vec.y, vec.z);
     }
 

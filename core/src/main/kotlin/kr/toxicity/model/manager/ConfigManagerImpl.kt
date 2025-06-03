@@ -22,7 +22,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     private var metrics: Metrics? = null
     private var sightTrace = true
     private var item = Material.LEATHER_HORSE_ARMOR
-    private var maxSight = 45.0
+    private var maxSight = -1.0
     private var minSight = 5.0
     private var lockOnPlayAnimation = true
     private var namespace = "bettermodel"

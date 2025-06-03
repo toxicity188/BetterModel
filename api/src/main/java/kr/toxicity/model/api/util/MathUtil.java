@@ -1,13 +1,12 @@
 package kr.toxicity.model.api.util;
 
+import it.unimi.dsi.fastutil.floats.FloatSet;
 import kr.toxicity.model.api.data.raw.Float3;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
-
-import java.util.Set;
 
 import static java.lang.Math.*;
 
@@ -30,9 +29,19 @@ public final class MathUtil {
     public static final float ROTATION_DEGREE = 22.5F;
 
     /**
+     * Degrees to radians
+     */
+    public static final float DEGREES_TO_RADIANS = (float) PI / 180F;
+
+    /**
+     * Radians to degrees
+     */
+    public static final float RADIANS_TO_DEGREES = 1F / DEGREES_TO_RADIANS;
+
+    /**
      * Valid rotation degrees
      */
-    public static final Set<Float> VALID_ROTATION_DEGREES = Set.of(
+    public static final FloatSet VALID_ROTATION_DEGREES = FloatSet.of(
             0F,
             ROTATION_DEGREE,
             ROTATION_DEGREE * 2,
@@ -104,39 +113,20 @@ public final class MathUtil {
      * @return rotation
      */
     public static @NotNull Quaternionf toQuaternion(@NotNull Vector3f vector) {
-        var rotate = toRadians(vector);
         return new Quaternionf()
                 .rotateZYX(
-                        rotate.z,
-                        rotate.y,
-                        rotate.x
+                        vector.z * DEGREES_TO_RADIANS,
+                        vector.y * DEGREES_TO_RADIANS,
+                        vector.x * DEGREES_TO_RADIANS
                 );
     }
 
     /**
-     * Converts degrees to radians
-     * @param vector degrees
-     * @return radians
-     */
-    public static @NotNull Vector3f toRadians(@NotNull Vector3f vector) {
-        return new Vector3f(vector).div(180).mul((float) PI);
-    }
-
-    /**
-     * Converts radians to degrees
-     * @param vector radians
-     * @return degrees
-     */
-    public static @NotNull Vector3f toDegrees(@NotNull Vector3f vector) {
-        return new Vector3f(vector).mul(180).div((float) PI);
-    }
-
-    /**
-     * Converts zxy euler to xyz euler
-     * @param vec zxy euler
+     * Converts zyx euler to xyz euler
+     * @param vec zyx euler
      * @return xyz euler
      */
-    public static @NotNull Vector3f toMinecraftVector(@NotNull Vector3f vec) {
+    public static @NotNull Vector3f toXYZEuler(@NotNull Vector3f vec) {
         return toXYZEuler(toQuaternion(vec));
     }
 
@@ -174,6 +164,6 @@ public final class MathUtil {
             ret.z = 0F;
         }
         ret.y = (float) asin(clamp(mat.m20, -1F, 1F));
-        return toDegrees(ret);
+        return ret.mul(RADIANS_TO_DEGREES);
     }
 }

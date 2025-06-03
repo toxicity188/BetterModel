@@ -235,22 +235,4 @@ public interface AnimationIterator extends Iterator<AnimationMovement> {
             return Type.LOOP;
         }
     }
-
-    /**
-     * Creates iterator per play once
-     * @param keyFrame key frames
-     * @return iterator
-     */
-    static @NotNull PlayOnce playOnce(@NotNull List<AnimationMovement> keyFrame) {
-        return new PlayOnce(keyFrame);
-    }
-
-    /**
-     * Creates iterator per loop
-     * @param keyFrame key frames
-     * @return iterator
-     */
-    static @NotNull Loop loop(@NotNull List<AnimationMovement> keyFrame) {
-        return new Loop(keyFrame);
-    }
 }
