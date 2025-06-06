@@ -33,7 +33,7 @@ public final class DummyTracker extends Tracker {
         super(source, instance, modifier);
         this.location = source.location();
         instance.animate("spawn");
-        instance.scale(modifier.scale());
+        instance.scale(() -> modifier.scale().scale(this));
         rotation(() -> new ModelRotation(0, this.location.getYaw()));
         instance.defaultPosition(FunctionUtil.asSupplier(new Vector3f()));
         update();

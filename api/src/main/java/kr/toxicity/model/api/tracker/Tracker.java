@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.tracker;
 
+import com.google.gson.*;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationModifier;
@@ -49,6 +50,11 @@ public abstract class Tracker implements AutoCloseable {
      */
     public static final NamespacedKey TRACKING_ID = Objects.requireNonNull(NamespacedKey.fromString("bettermodel_tracker"));
 
+    public static final Gson PARSER = new GsonBuilder()
+            .registerTypeAdapter(ModelScaler.class, (JsonDeserializer<ModelScaler>) (json, typeOfT, context) -> json.isJsonObject() ? ModelScaler.deserialize(json.getAsJsonObject()) : ModelScaler.defaultScaler())
+            .registerTypeAdapter(ModelScaler.class, (JsonSerializer<ModelScaler>) (src, typeOfSrc, context) -> src.serialize())
+            .create();
+
     @Getter
     protected final RenderInstance instance;
     private final ScheduledFuture<?> task;
@@ -59,6 +65,8 @@ public abstract class Tracker implements AutoCloseable {
     private final AtomicBoolean forRemoval = new AtomicBoolean();
     private final TrackerModifier modifier;
     private final Runnable updater;
+    @Getter
+    private final TrackerData trackerData;
     private PacketBundler viewBundler, dataBundler;
     private long frame = 0;
     private ModelRotator rotator = ModelRotator.EMPTY;
@@ -75,6 +83,7 @@ public abstract class Tracker implements AutoCloseable {
         this.instance = instance;
         this.source = source;
         this.modifier = modifier;
+        this.trackerData = new TrackerData(instance.name(), modifier);
         viewBundler = instance.createBundler();
         dataBundler = instance.createBundler();
         var config = BetterModel.plugin().configManager();

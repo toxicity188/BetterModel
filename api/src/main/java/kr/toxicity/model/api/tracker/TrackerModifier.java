@@ -1,11 +1,10 @@
 package kr.toxicity.model.api.tracker;
 
+import com.google.gson.annotations.SerializedName;
 import kr.toxicity.model.api.util.EntityUtil;
-import kr.toxicity.model.api.util.FunctionUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
-import java.util.function.Supplier;
 
 /**
  * Tracker's modifier
@@ -18,13 +17,13 @@ import java.util.function.Supplier;
  * @param hideOption hide option
  */
 public record TrackerModifier(
-        @NotNull Supplier<Float> scale,
-        boolean sightTrace,
-        boolean damageAnimation,
-        boolean damageTint,
-        float viewRange,
+        @NotNull ModelScaler scale,
+        @SerializedName("sight-trace") boolean sightTrace,
+        @SerializedName("damage-animation") boolean damageAnimation,
+        @SerializedName("damage-tint") boolean damageTint,
+        @SerializedName("view-range") float viewRange,
         boolean shadow,
-        @NotNull HideOption hideOption
+        @SerializedName("hide-option") @NotNull HideOption hideOption
 ) {
     @lombok.Builder
     public record HideOption(
@@ -45,7 +44,7 @@ public record TrackerModifier(
      * Default modifier
      */
     public static final TrackerModifier DEFAULT = new TrackerModifier(
-            FunctionUtil.asSupplier(1F),
+            ModelScaler.entity(),
             true,
             true,
             true,
@@ -74,7 +73,7 @@ public record TrackerModifier(
      * Builder class
      */
     public static final class Builder {
-        private Supplier<Float> scale;
+        private ModelScaler scale;
         private boolean sightTrace;
         private boolean damageAnimation;
         private boolean damageTint;
@@ -101,7 +100,7 @@ public record TrackerModifier(
          * @param scale scale
          * @return self
          */
-        public @NotNull Builder scale(@NotNull Supplier<Float> scale) {
+        public @NotNull Builder scale(@NotNull ModelScaler scale) {
             this.scale = Objects.requireNonNull(scale, "scale cannot be null.");
             return this;
         }

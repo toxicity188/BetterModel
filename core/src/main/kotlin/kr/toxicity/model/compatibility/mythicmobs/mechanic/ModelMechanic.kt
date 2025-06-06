@@ -8,6 +8,7 @@ import io.lumine.mythic.bukkit.MythicBukkit
 import io.lumine.mythic.core.skills.SkillMechanic
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.tracker.EntityTracker
+import kr.toxicity.model.api.tracker.ModelScaler
 import kr.toxicity.model.api.tracker.TrackerModifier
 import kr.toxicity.model.api.util.EntityUtil
 import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderArgs
@@ -43,9 +44,10 @@ class ModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().s
                 SkillResult.SUCCESS
             } ?: SkillResult.CONDITION_FAILED
         } else {
+            val scale = s(args)
             ModelManagerImpl.renderer(mid(args) ?: return SkillResult.CONDITION_FAILED)?.let {
                 val created = it.create(e, TrackerModifier(
-                    { s(args) },
+                    ModelScaler.value(scale).composite(ModelScaler.entity()),
                     st(args),
                     da(args),
                     dt(args),

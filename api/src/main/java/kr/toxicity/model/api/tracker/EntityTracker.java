@@ -66,8 +66,9 @@ public class EntityTracker extends Tracker {
         if (t == null) {
             var tag = entity.getPersistentDataContainer().get(TRACKING_ID, PersistentDataType.STRING);
             if (tag == null) return null;
-            return BetterModel.model(tag)
-                    .map(renderer -> renderer.create(entity))
+            var parsed = TrackerData.deserialize(tag);
+            return BetterModel.model(parsed.id())
+                    .map(renderer -> renderer.create(entity, parsed.modifier()))
                     .orElse(null);
         }
         return t;
@@ -117,7 +118,7 @@ public class EntityTracker extends Tracker {
         super(source, instance, modifier);
         this.entity = source.entity();
         adapter = BetterModel.plugin().nms().adapt(entity);
-        var scale = FunctionUtil.throttleTick(() -> modifier.scale().get() * (float) adapter.scale());
+        var scale = FunctionUtil.throttleTick(() -> modifier.scale().scale(this));
         //Shadow
         if (modifier.shadow()) {
             var shadow = BetterModel.plugin().nms().create(entity.getLocation());
@@ -171,7 +172,7 @@ public class EntityTracker extends Tracker {
         TRACKER_MAP.put(entity.getUniqueId(), this);
         BetterModel.plugin().scheduler().task(entity, () -> {
             if (isClosed()) return;
-            entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, instance.getParent().getParent().name());
+            entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, getTrackerData().toString());
             createHitBox();
         });
         tick((t, b) -> updateBaseEntity0());

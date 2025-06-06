@@ -132,6 +132,10 @@ public final class RenderInstance {
         return null;
     }
 
+    public @NotNull String name() {
+        return parent.name();
+    }
+
     public void despawn() {
         for (RenderedBone value : entityMap.values()) {
             value.iterateTree(b -> {
