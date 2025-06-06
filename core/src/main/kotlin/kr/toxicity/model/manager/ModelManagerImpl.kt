@@ -23,6 +23,7 @@ import java.security.DigestOutputStream
 import java.security.MessageDigest
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import java.util.zip.Deflater
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
@@ -88,9 +89,13 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
         fun toZip(file: File) {
             ZipOutputStream(runCatching {
                 MessageDigest.getInstance("SHA-1")
-            }.getOrNull()?.let {
+            }.map {
                 DigestOutputStream(file.outputStream().buffered(), it)
-            } ?: file.outputStream().buffered()).use { zip ->
+            }.getOrElse {
+                file.outputStream().buffered()
+            }).use { zip ->
+                zip.setLevel(Deflater.BEST_COMPRESSION)
+                zip.setComment("BetterModel's generated resource pack.")
                 map.values.toList().forEachAsync {
                     val result = it.byteArray()
                     synchronized(zip) {
@@ -264,7 +269,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
 
     private fun List<BlueprintJson>.toModernJson() = if (size == 1) get(0).toModernJson() else JsonObject().apply {
         addProperty("type", "minecraft:composite")
-        add("models", map { it.toModernJson() }.fold(JsonArray()) { array, element -> array.apply { add(element) } })
+        add("models", map { it.toModernJson() }.fold(JsonArray(size)) { array, element -> array.apply { add(element) } })
     }
 
     private fun BlueprintJson.toModernJson() = JsonObject().apply {

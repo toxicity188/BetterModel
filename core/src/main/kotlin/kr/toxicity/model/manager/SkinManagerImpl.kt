@@ -596,8 +596,10 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         .expiration(1, TimeUnit.MINUTES)
         .expirationListener(::handleExpiration)
         .build<UUID, SkinDataImpl>()
-    private val fallback = PLUGIN.getResource("fallback_skin.png")!!.buffered().use {
-        SkinDataImpl(false, ImageIO.read(it))
+    private val fallback by lazy {
+        PLUGIN.getResource("fallback_skin.png")!!.buffered().use {
+            SkinDataImpl(false, ImageIO.read(it))
+        }
     }
 
     override fun supported(): Boolean = PLUGIN.version() >= MinecraftVersion.V1_21_4

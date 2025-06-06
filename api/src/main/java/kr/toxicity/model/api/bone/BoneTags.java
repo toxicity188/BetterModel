@@ -31,59 +31,59 @@ public enum BoneTags implements BoneTag {
     /**
      * Player head
      */
-    PLAYER_HEAD(PlayerLimb.HEAD.getMapper(), new String[] { "ph" }),
+    PLAYER_HEAD(PlayerLimb.HEAD.getItemMapper(), new String[] { "ph" }),
     /**
      * Player right arm
      */
-    PLAYER_RIGHT_ARM(PlayerLimb.RIGHT_ARM.getMapper(), new String[] { "pra" }),
+    PLAYER_RIGHT_ARM(PlayerLimb.RIGHT_ARM.getItemMapper(), new String[] { "pra" }),
     /**
      * Player right forearm
      */
-    PLAYER_RIGHT_FOREARM(PlayerLimb.RIGHT_FOREARM.getMapper(), new String[] { "prfa" }),
+    PLAYER_RIGHT_FOREARM(PlayerLimb.RIGHT_FOREARM.getItemMapper(), new String[] { "prfa" }),
     /**
      * Player left arm
      */
-    PLAYER_LEFT_ARM(PlayerLimb.LEFT_ARM.getMapper(), new String[] { "pla" }),
+    PLAYER_LEFT_ARM(PlayerLimb.LEFT_ARM.getItemMapper(), new String[] { "pla" }),
     /**
      * Player left forearm
      */
-    PLAYER_LEFT_FOREARM(PlayerLimb.LEFT_FOREARM.getMapper(), new String[] { "plfa" }),
+    PLAYER_LEFT_FOREARM(PlayerLimb.LEFT_FOREARM.getItemMapper(), new String[] { "plfa" }),
     /**
      * Player left hip
      */
-    PLAYER_HIP(PlayerLimb.HIP.getMapper(), new String[] { "phip" }),
+    PLAYER_HIP(PlayerLimb.HIP.getItemMapper(), new String[] { "phip" }),
     /**
      * Player left waist
      */
-    PLAYER_WAIST(PlayerLimb.WAIST.getMapper(), new String[] { "pw" }),
+    PLAYER_WAIST(PlayerLimb.WAIST.getItemMapper(), new String[] { "pw" }),
     /**
      * Player left chest
      */
-    PLAYER_CHEST(PlayerLimb.CHEST.getMapper(), new String[] { "pc" }),
+    PLAYER_CHEST(PlayerLimb.CHEST.getItemMapper(), new String[] { "pc" }),
     /**
      * Player right leg
      */
-    PLAYER_RIGHT_LEG(PlayerLimb.RIGHT_LEG.getMapper(), new String[] { "prl" }),
+    PLAYER_RIGHT_LEG(PlayerLimb.RIGHT_LEG.getItemMapper(), new String[] { "prl" }),
     /**
      * Player right foreleg
      */
-    PLAYER_RIGHT_FORELEG(PlayerLimb.RIGHT_FORELEG.getMapper(), new String[] { "prfl" }),
+    PLAYER_RIGHT_FORELEG(PlayerLimb.RIGHT_FORELEG.getItemMapper(), new String[] { "prfl" }),
     /**
      * Player left leg
      */
-    PLAYER_LEFT_LEG(PlayerLimb.LEFT_LEG.getMapper(), new String[] { "pll" }),
+    PLAYER_LEFT_LEG(PlayerLimb.LEFT_LEG.getItemMapper(), new String[] { "pll" }),
     /**
      * Player left foreleg
      */
-    PLAYER_LEFT_FORELEG(PlayerLimb.LEFT_FORELEG.getMapper(), new String[] { "plfl" }),
+    PLAYER_LEFT_FORELEG(PlayerLimb.LEFT_FORELEG.getItemMapper(), new String[] { "plfl" }),
     /**
      * Player's item in left hand
      */
-    PLAYER_LEFT_ITEM(PlayerLimb.LEFT_ITEM.getMapper(), new String[] { "pli" }),
+    PLAYER_LEFT_ITEM(PlayerLimb.LEFT_ITEM.getItemMapper(), new String[] { "pli" }),
     /**
      * Player's item in right hand
      */
-    PLAYER_RIGHT_ITEM(PlayerLimb.RIGHT_ITEM.getMapper(), new String[] { "pri" })
+    PLAYER_RIGHT_ITEM(PlayerLimb.RIGHT_ITEM.getItemMapper(), new String[] { "pri" })
     ;
 
     BoneTags(@NotNull String[] tags) {

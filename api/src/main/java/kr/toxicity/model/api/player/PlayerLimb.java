@@ -228,7 +228,7 @@ public enum PlayerLimb {
     private final @NotNull ItemDisplay.ItemDisplayTransform transform;
 
     @Getter
-    private final @NotNull LimbItemMapper mapper = new LimbItemMapper(this::createItem);
+    private final @NotNull LimbItemMapper itemMapper = new LimbItemMapper(this::createItem);
 
     /**
      * Generates transformed item from player

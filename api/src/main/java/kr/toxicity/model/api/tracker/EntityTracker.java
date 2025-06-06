@@ -145,8 +145,8 @@ public class EntityTracker extends Tracker {
         instance.defaultPosition(FunctionUtil.throttleTick(() -> adapter.passengerPosition().mul(-1)));
         instance.scale(scale);
         Function<Quaternionf, Quaternionf> headRotator = r -> r.mul(MathUtil.toQuaternion(new Vector3f(
-                adapter.pitch(),
-                -adapter.yaw() + adapter.bodyYaw(),
+                Math.clamp(adapter.pitch(), -90, 90),
+                Math.clamp(-adapter.yaw() + adapter.bodyYaw(), -90, 90),
                 0
         )));
         instance.addRotationModifier(

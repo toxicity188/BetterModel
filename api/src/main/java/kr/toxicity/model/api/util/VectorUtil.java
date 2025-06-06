@@ -9,7 +9,6 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 @ApiStatus.Internal
@@ -19,7 +18,7 @@ public final class VectorUtil {
         throw new RuntimeException();
     }
 
-    private static void point(@NotNull Collection<Float> target, List<VectorPoint> points) {
+    private static void point(@NotNull FloatCollection target, List<VectorPoint> points) {
         for (VectorPoint point : points) {
             target.add(point.time());
         }
@@ -115,13 +114,13 @@ public final class VectorUtil {
         var list = new FloatArrayList(frames);
         var init = 0F;
         var initAfter = list.getFirst();
-        while ((init += frame) < initAfter) {
+        while ((init += frame) < initAfter - frame) {
             frames.add(init);
         }
         for (int i = 0; i < list.size() - 1; i++) {
             var before = list.getFloat(i);
             var after = list.getFloat(i + 1);
-            while ((before += frame) < after) {
+            while ((before += frame) < after - frame) {
                 frames.add(before);
             }
         }

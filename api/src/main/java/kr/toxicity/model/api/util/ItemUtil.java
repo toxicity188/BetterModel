@@ -8,10 +8,6 @@ public final class ItemUtil {
         throw new RuntimeException();
     }
 
-    public static boolean isEmpty(@NotNull TransformedItemStack itemStack) {
-        return isEmpty(itemStack.itemStack());
-    }
-
     public static boolean isEmpty(@NotNull ItemStack itemStack) {
         return itemStack.getType().isAir() || itemStack.getAmount() <= 0;
     }
