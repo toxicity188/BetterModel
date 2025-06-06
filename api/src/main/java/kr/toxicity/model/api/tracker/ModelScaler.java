@@ -27,10 +27,10 @@ public sealed interface ModelScaler {
     }
 
     static @NotNull ModelScaler entity() {
-        return DESERIALIZER.entity.serialize();
+        return DESERIALIZER.entity.deserialize();
     }
     static @NotNull ModelScaler value(float value) {
-        return DESERIALIZER.value.serialize(value);
+        return DESERIALIZER.value.deserialize(value);
     }
 
     static @NotNull ModelScaler composite(@NotNull ModelScaler... scalers) {
@@ -120,10 +120,10 @@ public sealed interface ModelScaler {
     }
 
     interface BuiltInDeserializer extends Function<JsonElement, ModelScaler> {
-        default @NotNull ModelScaler serialize(float value) {
+        default @NotNull ModelScaler deserialize(float value) {
             return apply(new JsonPrimitive(value));
         }
-        default @NotNull ModelScaler serialize() {
+        default @NotNull ModelScaler deserialize() {
             return apply(JsonNull.INSTANCE);
         }
     }
@@ -142,7 +142,7 @@ public sealed interface ModelScaler {
                     var list = new ArrayList<ModelScaler>();
                     for (JsonElement jsonElement : d.getAsJsonArray()) {
                         if (jsonElement.isJsonObject()) {
-                            var child = DESERIALIZER.buildScaler(jsonElement.getAsJsonObject());
+                            var child = buildScaler(jsonElement.getAsJsonObject());
                             if (child != null) list.add(child);
                         }
                     }
@@ -152,7 +152,7 @@ public sealed interface ModelScaler {
         }
 
         public @NotNull ModelScaler defaultScaler() {
-            return def.serialize();
+            return def.deserialize();
         }
 
         public @NotNull BuiltInDeserializer addScaler(@NotNull String name, @NotNull Builder builder) {

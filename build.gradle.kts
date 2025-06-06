@@ -172,7 +172,7 @@ tasks {
         }
         archiveClassifier = ""
         dependencies {
-            exclude(dependency("org.jetbrains:annotations:13.0"))
+            exclude(dependency("org.jetbrains:annotations:26.0.2"))
         }
         fun prefix(pattern: String) {
             relocate(pattern, "$groupString.shaded.$pattern")
