@@ -14,7 +14,7 @@ import kr.toxicity.model.api.event.PlayerHideTrackerEvent;
 import kr.toxicity.model.api.event.PlayerShowTrackerEvent;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
-import kr.toxicity.model.api.util.BonePredicate;
+import kr.toxicity.model.api.util.function.BonePredicate;
 import kr.toxicity.model.api.util.EntityUtil;
 import kr.toxicity.model.api.util.EventUtil;
 import kr.toxicity.model.api.util.TransformedItemStack;

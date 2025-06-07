@@ -14,6 +14,7 @@ import kr.toxicity.model.api.nms.*;
 import kr.toxicity.model.api.tracker.ModelRotation;
 import kr.toxicity.model.api.tracker.TrackerModifier;
 import kr.toxicity.model.api.util.*;
+import kr.toxicity.model.api.util.function.BonePredicate;
 import kr.toxicity.model.api.util.function.FloatSupplier;
 import lombok.Getter;
 import lombok.Setter;
@@ -392,7 +393,7 @@ public final class RenderedBone implements HitBoxSource {
                 )
                 .add(globalOffset)
                 .add(root.getGroup().getPosition())
-                .mul(scale.get())
+                .mul(scale.getAsFloat())
                 .rotateX(-rotation.radianX())
                 .rotateY(-rotation.radianY());
     }
@@ -411,7 +412,7 @@ public final class RenderedBone implements HitBoxSource {
 
     private void setup(@NotNull BoneMovement boneMovement) {
         if (display != null) {
-            var mul = scale.get();
+            var mul = scale.getAsFloat();
             display.transform(
                     new Vector3f(boneMovement.transform())
                             .add(root.group.getPosition())
@@ -732,7 +733,7 @@ public final class RenderedBone implements HitBoxSource {
 
     @Override
     public float hitBoxScale() {
-        return scale.get();
+        return scale.getAsFloat();
     }
 
     @NotNull

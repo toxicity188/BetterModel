@@ -125,10 +125,10 @@ public final class FunctionUtil {
         private volatile float cache;
 
         @Override
-        public float get() {
+        public float getAsFloat() {
             var old = time.get();
             var current = System.currentTimeMillis();
-            if (current - old >= 50 && time.compareAndSet(old, current)) cache = delegate.get();
+            if (current - old >= 50 && time.compareAndSet(old, current)) cache = delegate.getAsFloat();
             return cache;
         }
     }

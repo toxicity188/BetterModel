@@ -75,7 +75,7 @@ public sealed interface ModelScaler {
 
         private final CompositeGetter getter;
 
-        private record CompositeGetter(List<ModelScaler> list) implements Getter {
+        private record CompositeGetter(@NotNull List<ModelScaler> list) implements Getter {
             @Override
             public float get(@NotNull Tracker tracker) {
                 var f = 1F;

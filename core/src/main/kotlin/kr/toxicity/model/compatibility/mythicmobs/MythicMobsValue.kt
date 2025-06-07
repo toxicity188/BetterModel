@@ -4,7 +4,7 @@ import io.lumine.mythic.api.adapters.AbstractEntity
 import io.lumine.mythic.api.config.MythicLineConfig
 import io.lumine.mythic.api.skills.SkillMetadata
 import kr.toxicity.model.api.tracker.EntityTracker
-import kr.toxicity.model.api.util.BonePredicate
+import kr.toxicity.model.api.util.function.BonePredicate
 import kr.toxicity.model.util.boneName
 
 val MM_PART_ID = arrayOf("partid", "p", "pid", "part")

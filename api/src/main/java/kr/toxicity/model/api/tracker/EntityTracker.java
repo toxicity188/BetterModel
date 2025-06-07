@@ -11,6 +11,7 @@ import kr.toxicity.model.api.event.CreateEntityTrackerEvent;
 import kr.toxicity.model.api.nms.EntityAdapter;
 import kr.toxicity.model.api.nms.HitBoxListener;
 import kr.toxicity.model.api.util.*;
+import kr.toxicity.model.api.util.function.BonePredicate;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -131,7 +132,7 @@ public class EntityTracker extends Tracker {
                     .max()
                     .orElse(0D);
             tick(((t, b) -> {
-                shadow.shadowRadius(scale.get() * baseScale);
+                shadow.shadowRadius(scale.getAsFloat() * baseScale);
                 shadow.sync(adapter);
                 shadow.sendEntityData(b);
                 shadow.syncPosition(adapter, b);
@@ -160,11 +161,11 @@ public class EntityTracker extends Tracker {
         );
 
         var damageTickProvider = FunctionUtil.throttleTickFloat(adapter::damageTick);
-        var walkSupplier = FunctionUtil.throttleTickBoolean(() -> adapter.onWalk() || damageTickProvider.get() > 0.25 || instance.bones().stream().anyMatch(e -> {
+        var walkSupplier = FunctionUtil.throttleTickBoolean(() -> adapter.onWalk() || damageTickProvider.getAsFloat() > 0.25 || instance.bones().stream().anyMatch(e -> {
             var hitBox = e.getHitBox();
             return hitBox != null && hitBox.onWalk();
         }));
-        var walkSpeedSupplier = FunctionUtil.throttleTickFloat(modifier.damageAnimation() ? () -> adapter.walkSpeed() + 4F * (float) Math.sqrt(damageTickProvider.get()) : () -> 1F);
+        var walkSpeedSupplier = FunctionUtil.throttleTickFloat(modifier.damageAnimation() ? () -> adapter.walkSpeed() + 4F * (float) Math.sqrt(damageTickProvider.getAsFloat()) : () -> 1F);
         instance.animate("walk", new AnimationModifier(walkSupplier, 6, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
         instance.animate("idle_fly", new AnimationModifier(adapter::fly, 6, 0, AnimationIterator.Type.LOOP, 1F));
         instance.animate("walk_fly", new AnimationModifier(() -> adapter.fly() && walkSupplier.getAsBoolean(), 6, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));

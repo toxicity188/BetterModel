@@ -1,4 +1,4 @@
-package kr.toxicity.model.api.util;
+package kr.toxicity.model.api.util.function;
 
 import kr.toxicity.model.api.bone.RenderedBone;
 import org.jetbrains.annotations.ApiStatus;

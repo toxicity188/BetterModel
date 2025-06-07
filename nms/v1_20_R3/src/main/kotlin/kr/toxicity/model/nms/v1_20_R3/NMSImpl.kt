@@ -14,7 +14,7 @@ import kr.toxicity.model.api.player.PlayerLimb
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.api.tracker.ModelRotation
 import kr.toxicity.model.api.tracker.Tracker
-import kr.toxicity.model.api.util.BonePredicate
+import kr.toxicity.model.api.util.function.BonePredicate
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtUtils
 import net.minecraft.network.Connection

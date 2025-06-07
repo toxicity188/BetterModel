@@ -14,7 +14,7 @@ import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.script.ScriptProcessor;
 import kr.toxicity.model.api.tracker.ModelRotation;
-import kr.toxicity.model.api.util.BonePredicate;
+import kr.toxicity.model.api.util.function.BonePredicate;
 import kr.toxicity.model.api.util.FunctionUtil;
 import kr.toxicity.model.api.util.TransformedItemStack;
 import lombok.Getter;

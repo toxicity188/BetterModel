@@ -10,7 +10,7 @@ import kr.toxicity.model.api.manager.SkinManager
 import kr.toxicity.model.api.player.PlayerLimb
 import kr.toxicity.model.api.skin.SkinData
 import kr.toxicity.model.api.tracker.EntityTracker
-import kr.toxicity.model.api.util.BonePredicate
+import kr.toxicity.model.api.util.function.BonePredicate
 import kr.toxicity.model.api.util.TransformedItemStack
 import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.util.PLUGIN

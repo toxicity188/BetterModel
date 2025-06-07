@@ -71,7 +71,7 @@ public record AnimationModifier(@NotNull BooleanSupplier predicate, int start, i
          * @return speed value
          */
         public float speed() {
-            return supplier.get();
+            return supplier.getAsFloat();
         }
     }
 
