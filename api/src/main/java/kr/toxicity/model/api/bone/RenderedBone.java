@@ -14,6 +14,7 @@ import kr.toxicity.model.api.nms.*;
 import kr.toxicity.model.api.tracker.ModelRotation;
 import kr.toxicity.model.api.tracker.TrackerModifier;
 import kr.toxicity.model.api.util.*;
+import kr.toxicity.model.api.util.function.FloatSupplier;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Location;
@@ -86,7 +87,7 @@ public final class RenderedBone implements HitBoxSource {
     private ModelRotation rotation = ModelRotation.EMPTY;
 
     private Supplier<Vector3f> defaultPosition = FunctionUtil.asSupplier(new Vector3f());
-    private Supplier<Float> scale = FunctionUtil.asSupplier(1F);
+    private FloatSupplier scale = () -> 1F;
 
     private Function<Vector3f, Vector3f> positionModifier = p -> p;
     private Vector3f lastModifiedPosition = new Vector3f();
@@ -206,7 +207,7 @@ public final class RenderedBone implements HitBoxSource {
      * Sets the scale of this bone
      * @param scale scale
      */
-    public void scale(@NotNull Supplier<Float> scale) {
+    public void scale(@NotNull FloatSupplier scale) {
         this.scale = scale;
     }
 
@@ -292,7 +293,7 @@ public final class RenderedBone implements HitBoxSource {
             var iterator = reversedView.iterator();
             while (iterator.hasNext()) {
                 var next = iterator.next();
-                if (!next.get()) continue;
+                if (!next.getAsBoolean()) continue;
                 if (currentIterator == null) {
                     if (updateKeyframe(iterator, next)) {
                         currentIterator = next;
@@ -636,7 +637,7 @@ public final class RenderedBone implements HitBoxSource {
 
     public record RunningAnimation(@NotNull String name, @NotNull AnimationIterator.Type type) {}
 
-    private class TreeIterator implements AnimationIterator, Supplier<Boolean>, Runnable {
+    private class TreeIterator implements AnimationIterator, BooleanSupplier, Runnable {
         private final RunningAnimation animation;
         private final AnimationIterator iterator;
         private final AnimationModifier modifier;
@@ -678,8 +679,8 @@ public final class RenderedBone implements HitBoxSource {
         }
 
         @Override
-        public Boolean get() {
-            return modifier.predicate().get();
+        public boolean getAsBoolean() {
+            return modifier.predicate().getAsBoolean();
         }
 
         @Override

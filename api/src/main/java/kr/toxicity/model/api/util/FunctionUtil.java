@@ -1,10 +1,12 @@
 package kr.toxicity.model.api.util;
 
+import kr.toxicity.model.api.util.function.FloatSupplier;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -52,6 +54,23 @@ public final class FunctionUtil {
 
     /**
      * Throttles this function by tick
+     * @param supplier target
+     * @return throttled function
+     */
+    public static @NotNull FloatSupplier throttleTickFloat(@NotNull FloatSupplier supplier) {
+        return supplier instanceof TickThrottledFloatSupplier throttledSupplier ? throttledSupplier : new TickThrottledFloatSupplier(supplier);
+    }
+    /**
+     * Throttles this function by tick
+     * @param supplier target
+     * @return throttled function
+     */
+    public static @NotNull BooleanSupplier throttleTickBoolean(@NotNull BooleanSupplier supplier) {
+        return supplier instanceof TickThrottledBooleanSupplier throttledSupplier ? throttledSupplier : new TickThrottledBooleanSupplier(supplier);
+    }
+
+    /**
+     * Throttles this function by tick
      * @param <T> type
      * @param predicate target
      * @return throttled function
@@ -95,6 +114,36 @@ public final class FunctionUtil {
             var old = time.get();
             var current = System.currentTimeMillis();
             if (current - old >= 50 && time.compareAndSet(old, current)) cache = delegate.get();
+            return cache;
+        }
+    }
+
+    @RequiredArgsConstructor
+    private static class TickThrottledFloatSupplier implements FloatSupplier {
+        private final @NotNull FloatSupplier delegate;
+        private final AtomicLong time = new AtomicLong(-51);
+        private volatile float cache;
+
+        @Override
+        public float get() {
+            var old = time.get();
+            var current = System.currentTimeMillis();
+            if (current - old >= 50 && time.compareAndSet(old, current)) cache = delegate.get();
+            return cache;
+        }
+    }
+
+    @RequiredArgsConstructor
+    private static class TickThrottledBooleanSupplier implements BooleanSupplier {
+        private final @NotNull BooleanSupplier delegate;
+        private final AtomicLong time = new AtomicLong(-51);
+        private volatile boolean cache;
+
+        @Override
+        public boolean getAsBoolean() {
+            var old = time.get();
+            var current = System.currentTimeMillis();
+            if (current - old >= 50 && time.compareAndSet(old, current)) cache = delegate.getAsBoolean();
             return cache;
         }
     }

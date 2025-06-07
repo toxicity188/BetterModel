@@ -94,11 +94,7 @@ public sealed interface ModelScaler {
 
         @Override
         public float scale(@NotNull Tracker tracker) {
-            var f = 1F;
-            for (ModelScaler modelScaler : getter.list) {
-                f *= modelScaler.scale(tracker);
-            }
-            return f;
+            return getter.get(tracker);
         }
 
         private void add(@NotNull JsonArray array, @NotNull ModelScaler scaler) {

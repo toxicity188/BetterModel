@@ -118,7 +118,7 @@ public class EntityTracker extends Tracker {
         super(source, instance, modifier);
         this.entity = source.entity();
         adapter = BetterModel.plugin().nms().adapt(entity);
-        var scale = FunctionUtil.throttleTick(() -> modifier.scale().scale(this));
+        var scale = FunctionUtil.throttleTickFloat(() -> modifier.scale().scale(this));
         //Shadow
         if (modifier.shadow()) {
             var shadow = BetterModel.plugin().nms().create(entity.getLocation());
@@ -159,15 +159,15 @@ public class EntityTracker extends Tracker {
                 headRotator
         );
 
-        var damageTickProvider = FunctionUtil.throttleTick(adapter::damageTick);
-        var walkSupplier = FunctionUtil.throttleTick(() -> adapter.onWalk() || damageTickProvider.get() > 0.25 || instance.bones().stream().anyMatch(e -> {
+        var damageTickProvider = FunctionUtil.throttleTickFloat(adapter::damageTick);
+        var walkSupplier = FunctionUtil.throttleTickBoolean(() -> adapter.onWalk() || damageTickProvider.get() > 0.25 || instance.bones().stream().anyMatch(e -> {
             var hitBox = e.getHitBox();
             return hitBox != null && hitBox.onWalk();
         }));
-        var walkSpeedSupplier = FunctionUtil.throttleTick(modifier.damageAnimation() ? () -> adapter.walkSpeed() + 4F * (float) Math.sqrt(damageTickProvider.get()) : () -> 1F);
+        var walkSpeedSupplier = FunctionUtil.throttleTickFloat(modifier.damageAnimation() ? () -> adapter.walkSpeed() + 4F * (float) Math.sqrt(damageTickProvider.get()) : () -> 1F);
         instance.animate("walk", new AnimationModifier(walkSupplier, 6, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
         instance.animate("idle_fly", new AnimationModifier(adapter::fly, 6, 0, AnimationIterator.Type.LOOP, 1F));
-        instance.animate("walk_fly", new AnimationModifier(() -> adapter.fly() && walkSupplier.get(), 6, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
+        instance.animate("walk_fly", new AnimationModifier(() -> adapter.fly() && walkSupplier.getAsBoolean(), 6, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
         instance.animate("spawn", AnimationModifier.DEFAULT_WITH_PLAY_ONCE);
         TRACKER_MAP.put(entity.getUniqueId(), this);
         BetterModel.plugin().scheduler().task(entity, () -> {

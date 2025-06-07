@@ -24,25 +24,6 @@ public record AnimationMovement(
     }
 
     /**
-     * Converts keyframe time.
-     * @param newTime new time
-     * @return new movement
-     */
-    public @NotNull AnimationMovement set(float newTime) {
-        if (newTime == time || time == 0) return this;
-        var mul = newTime / time;
-        return new AnimationMovement(
-                newTime,
-                transform != null ? new Vector3f(transform)
-                        .mul(mul) : null,
-                scale != null ? new Vector3f(scale)
-                        .mul(mul) : null,
-                rotation != null ? new Vector3f(rotation)
-                        .mul(mul) : null
-        );
-    }
-
-    /**
      * Sets keyframe time.
      * @param newTime new time
      * @return new movement
@@ -81,19 +62,6 @@ public record AnimationMovement(
                 minus(transform, other.transform),
                 minus(scale, other.scale),
                 minus(rotation, other.rotation)
-        );
-    }
-
-    /**
-     * Copy this movement to not null.
-     * @return copied movement
-     */
-    public @NotNull AnimationMovement copyNotNull() {
-        return new AnimationMovement(
-                time,
-                transform != null ? new Vector3f(transform) : new Vector3f(),
-                scale != null ? new Vector3f(scale) : new Vector3f(),
-                rotation != null ? new Vector3f(rotation) : new Vector3f()
         );
     }
 

@@ -6,6 +6,7 @@ import kr.toxicity.model.api.animation.AnimationPredicate;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.BoneTags;
 import kr.toxicity.model.api.bone.RenderedBone;
+import kr.toxicity.model.api.util.function.FloatSupplier;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.nms.EntityAdapter;
 import kr.toxicity.model.api.nms.HitBoxListener;
@@ -183,7 +184,7 @@ public final class RenderInstance {
         }
     }
 
-    public void scale(@NotNull Supplier<Float> scale) {
+    public void scale(@NotNull FloatSupplier scale) {
         for (RenderedBone value : entityMap.values()) {
             value.iterateTree(b -> b.scale(scale));
         }

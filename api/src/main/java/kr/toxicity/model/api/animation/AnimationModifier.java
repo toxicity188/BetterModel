@@ -1,10 +1,11 @@
 package kr.toxicity.model.api.animation;
 
+import kr.toxicity.model.api.util.function.FloatSupplier;
 import kr.toxicity.model.api.util.FunctionUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.Supplier;
+import java.util.function.BooleanSupplier;
 
 /**
  * A modifier of animation.
@@ -14,7 +15,7 @@ import java.util.function.Supplier;
  * @param type animation type
  * @param speed speed modifier
  */
-public record AnimationModifier(@NotNull Supplier<Boolean> predicate, int start, int end, @Nullable AnimationIterator.Type type, @NotNull SpeedModifier speed) {
+public record AnimationModifier(@NotNull BooleanSupplier predicate, int start, int end, @Nullable AnimationIterator.Type type, @NotNull SpeedModifier speed) {
 
 
     /**
@@ -31,7 +32,7 @@ public record AnimationModifier(@NotNull Supplier<Boolean> predicate, int start,
      * @param supplier speed supplier
      * @return speed modifier
      */
-    public static @NotNull SpeedModifier speed(@NotNull Supplier<Float> supplier) {
+    public static @NotNull SpeedModifier speed(@NotNull FloatSupplier supplier) {
         return new SpeedModifier(supplier);
     }
 
@@ -47,14 +48,14 @@ public record AnimationModifier(@NotNull Supplier<Boolean> predicate, int start,
      * A modifier of speed
      * @param supplier speed modifier
      */
-    public record SpeedModifier(@NotNull Supplier<Float> supplier) {
+    public record SpeedModifier(@NotNull FloatSupplier supplier) {
 
         /**
          * Creates modifier
          * @param supplier speed modifier
          */
-        public SpeedModifier(@NotNull Supplier<Float> supplier) {
-            this.supplier = FunctionUtil.throttleTick(supplier);
+        public SpeedModifier(@NotNull FloatSupplier supplier) {
+            this.supplier = FunctionUtil.throttleTickFloat(supplier);
         }
 
         /**
@@ -62,7 +63,7 @@ public record AnimationModifier(@NotNull Supplier<Boolean> predicate, int start,
          * @param speed speed
          */
         public SpeedModifier(float speed) {
-            this(FunctionUtil.asSupplier(speed));
+            this(() -> speed);
         }
 
         /**
@@ -93,7 +94,7 @@ public record AnimationModifier(@NotNull Supplier<Boolean> predicate, int start,
      * @param end       end time
      * @param speed     speed
      */
-    public AnimationModifier(@NotNull Supplier<Boolean> predicate, int start, int end, float speed) {
+    public AnimationModifier(@NotNull BooleanSupplier predicate, int start, int end, float speed) {
         this(predicate, start, end, null, speed(speed));
     }
 
@@ -105,7 +106,7 @@ public record AnimationModifier(@NotNull Supplier<Boolean> predicate, int start,
      * @param end       end time
      * @param supplier     speed supplier
      */
-    public AnimationModifier(@NotNull Supplier<Boolean> predicate, int start, int end, @NotNull Supplier<Float> supplier) {
+    public AnimationModifier(@NotNull BooleanSupplier predicate, int start, int end, @NotNull FloatSupplier supplier) {
         this(predicate, start, end, null, new SpeedModifier(supplier));
     }
 
@@ -118,7 +119,7 @@ public record AnimationModifier(@NotNull Supplier<Boolean> predicate, int start,
      * @param type type
      * @param speed     speed
      */
-    public AnimationModifier(@NotNull Supplier<Boolean> predicate, int start, int end, @Nullable AnimationIterator.Type type, float speed) {
+    public AnimationModifier(@NotNull BooleanSupplier predicate, int start, int end, @Nullable AnimationIterator.Type type, float speed) {
         this(predicate, start, end, type, speed(speed));
     }
 
@@ -132,7 +133,7 @@ public record AnimationModifier(@NotNull Supplier<Boolean> predicate, int start,
      * @param type type
      * @param speed     speed
      */
-    public AnimationModifier(@NotNull Supplier<Boolean> predicate, int start, int end, @Nullable AnimationIterator.Type type, @NotNull Supplier<Float> speed) {
+    public AnimationModifier(@NotNull BooleanSupplier predicate, int start, int end, @Nullable AnimationIterator.Type type, @NotNull FloatSupplier speed) {
         this(predicate, start, end, type, new SpeedModifier(speed));
     }
 
@@ -145,8 +146,8 @@ public record AnimationModifier(@NotNull Supplier<Boolean> predicate, int start,
      * @param type type
      * @param speed     speed
      */
-    public AnimationModifier(@NotNull Supplier<Boolean> predicate, int start, int end, @Nullable AnimationIterator.Type type, @NotNull SpeedModifier speed) {
-        this.predicate = FunctionUtil.throttleTick(predicate);
+    public AnimationModifier(@NotNull BooleanSupplier predicate, int start, int end, @Nullable AnimationIterator.Type type, @NotNull SpeedModifier speed) {
+        this.predicate = FunctionUtil.throttleTickBoolean(predicate);
         this.start = start;
         this.end = end;
         this.type = type;

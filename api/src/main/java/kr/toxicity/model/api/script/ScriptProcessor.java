@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.SequencedMap;
-import java.util.function.Supplier;
+import java.util.function.BooleanSupplier;
 
 public final class ScriptProcessor {
     private final SequencedMap<String, PredicatedScript> scriptMap = new LinkedHashMap<>();
@@ -51,7 +51,7 @@ public final class ScriptProcessor {
             var iterator = scriptView.iterator();
             while (iterator.hasNext()) {
                 var predicatedScript = iterator.next();
-                if (predicatedScript.supplier.get() && check) {
+                if (predicatedScript.supplier.getAsBoolean() && check) {
                     check = false;
                     if (predicatedScript.reader.tick()) iterator.remove();
                     else currentReader = predicatedScript.reader;
@@ -63,5 +63,5 @@ public final class ScriptProcessor {
         }
     }
 
-    private record PredicatedScript(@NotNull String name, @NotNull Supplier<Boolean> supplier, @NotNull BlueprintScript.ScriptReader reader) {}
+    private record PredicatedScript(@NotNull String name, @NotNull BooleanSupplier supplier, @NotNull BlueprintScript.ScriptReader reader) {}
 }
