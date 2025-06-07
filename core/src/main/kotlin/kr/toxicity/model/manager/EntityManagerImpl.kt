@@ -5,13 +5,14 @@ import com.destroystokyo.paper.event.entity.EntityJumpEvent
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.animation.AnimationModifier
-import kr.toxicity.model.api.event.ModelInteractAtEvent
 import kr.toxicity.model.api.manager.EntityManager
 import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.ModelInteractionHand
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.util.registerListener
+import org.bukkit.entity.Entity
+import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
@@ -22,8 +23,7 @@ import org.bukkit.event.player.PlayerPortalEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.world.ChunkLoadEvent
 import org.bukkit.event.world.ChunkUnloadEvent
-import org.bukkit.inventory.EquipmentSlot.HAND
-import org.bukkit.inventory.EquipmentSlot.OFF_HAND
+import org.bukkit.inventory.EquipmentSlot
 
 object EntityManagerImpl : EntityManager, GlobalManagerImpl {
 
@@ -77,15 +77,6 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
                 val e = dismounted
                 isCancelled = e is HitBox && (e.mountController().canFly() || !e.mountController().canDismountBySelf()) && !e.forceDismount()
             }
-            @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-            fun ModelInteractAtEvent.interact() { //Mount
-                if (hand == ModelInteractionHand.RIGHT) {
-                    val previous = player.vehicle
-                    if (previous is HitBox && previous.source().uniqueId == hitBox.source().uniqueId && previous.mountController().canDismountBySelf()) {
-                        hitBox.dismount(player)
-                    } else if (hitBox.mountController().canMount()) hitBox.mount(player)
-                }
-            }
             @EventHandler(priority = EventPriority.MONITOR)
             fun PlayerQuitEvent.quit() { //Quit
                 EntityTracker.tracker(player)?.close()
@@ -117,23 +108,29 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
                 (rightClicked as? HitBox)?.triggerInteractAt(
                     player,
                     when (this.hand) {
-                        HAND -> ModelInteractionHand.RIGHT
-                        OFF_HAND -> ModelInteractionHand.LEFT
+                        EquipmentSlot.HAND -> ModelInteractionHand.RIGHT
+                        EquipmentSlot.OFF_HAND -> ModelInteractionHand.LEFT
                         else -> return
                     },
                     clickedPosition
                 )
             }
+
             @EventHandler(priority = EventPriority.MONITOR)
             fun PlayerInteractEntityEvent.interact() { //Interact base entity based on interaction entity
-                (rightClicked as? HitBox)?.triggerInteract(
-                    player,
-                    when (this.hand) {
-                        HAND -> ModelInteractionHand.RIGHT
-                        OFF_HAND -> ModelInteractionHand.LEFT
-                        else -> return
-                    }
-                )
+                val isRight = hand == EquipmentSlot.HAND
+                val dismount = isRight && player.triggerDismount(rightClicked)
+                (rightClicked as? HitBox)?.let {
+                    it.triggerInteract(
+                        player,
+                        when (this.hand) {
+                            EquipmentSlot.HAND -> ModelInteractionHand.RIGHT
+                            EquipmentSlot.OFF_HAND -> ModelInteractionHand.LEFT
+                            else -> return
+                        }
+                    )
+                    if (isRight && !dismount) player.triggerMount(it)
+                }
             }
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun EntityDamageEvent.damage() { //Damage
@@ -156,6 +153,21 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
                 }
             }
         })
+    }
+
+    private fun Player.triggerDismount(e: Entity): Boolean {
+        val previous = vehicle
+        if (previous !is HitBox) return false
+        val uuid = if (e is HitBox) e.source().uniqueId else e.uniqueId
+        if (previous.source().uniqueId == uuid && previous.mountController().canDismountBySelf()) {
+            previous.dismount(this)
+            return true
+        }
+        return false
+    }
+
+    private fun Player.triggerMount(hitBox: HitBox) {
+        if (hitBox.mountController().canMount()) hitBox.mount(this)
     }
 
     override fun reload(info: ReloadInfo) {

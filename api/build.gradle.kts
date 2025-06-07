@@ -34,7 +34,7 @@ mavenPublishing  {
     ))
     pom {
         name = rootProject.name
-        description = "Modern lightweight Minecraft model implementation for Bukkit, Folia"
+        description = "Lightweight BlockBench model engine & entity animation"
         inceptionYear = "2024"
         url = "https://github.com/toxicity188/BetterModel/"
         licenses {

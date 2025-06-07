@@ -202,7 +202,7 @@ bukkitPluginYaml {
     foliaSupported = true
     apiVersion = "1.20"
     author = "toxicity"
-    description = "Modern lightweight Minecraft model implementation for Paper, Folia"
+    description = "Lightweight BlockBench model engine & entity animation"
     softDepend = listOf(
         "MythicMobs",
         "Citizens",
