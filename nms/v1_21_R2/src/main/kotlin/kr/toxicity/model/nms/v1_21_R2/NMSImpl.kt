@@ -479,14 +479,13 @@ class NMSImpl : NMS {
             yHeadRot.toDouble()
         )
 
-    override fun tint(itemStack: ItemStack, rgb: Int): ItemStack {
-        val meta = itemStack.itemMeta.clone()
+    override fun tint(itemStack: ItemStack, rgb: Int): ItemStack = itemStack.clone().apply {
+        val meta = itemMeta
         if (meta is LeatherArmorMeta) {
-            itemStack.itemMeta = meta.apply {
+            itemMeta = meta.apply {
                 setColor(Color.fromRGB(rgb))
             }
         }
-        return itemStack
     }
 
     override fun createHitBox(entity: EntityAdapter, supplier: HitBoxSource, namedBoundingBox: NamedBoundingBox, mountController: MountController, listener: HitBoxListener): HitBox? {
