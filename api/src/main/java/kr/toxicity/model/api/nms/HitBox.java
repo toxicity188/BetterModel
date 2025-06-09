@@ -2,12 +2,15 @@ package kr.toxicity.model.api.nms;
 
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.mount.MountController;
+import kr.toxicity.model.api.tracker.EntityTracker;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
+
+import java.util.Optional;
 
 /**
  * Gets hit-box
@@ -122,4 +125,12 @@ public interface HitBox {
      * @return listener
      */
     @NotNull HitBoxListener listener();
+
+    /**
+     * Gets this hitbox's tracker.
+     * @return tracker
+     */
+    default @NotNull Optional<EntityTracker> tracker() {
+        return Optional.ofNullable(EntityTracker.tracker(source().getUniqueId()));
+    }
 }

@@ -1,8 +1,8 @@
 import it.unimi.dsi.fastutil.floats.FloatAVLTreeSet
 import it.unimi.dsi.fastutil.floats.FloatSet
 import kr.toxicity.model.api.animation.VectorPoint
-import kr.toxicity.model.api.util.VectorInterpolation
 import kr.toxicity.model.api.util.VectorUtil
+import kr.toxicity.model.api.util.interpolation.CatmullRomInterpolation
 import org.joml.Vector3f
 import org.junit.jupiter.api.Test
 
@@ -11,10 +11,10 @@ class VectorTest {
     fun testVector() {
         VectorUtil.putPoint(
             listOf(
-                VectorPoint(Vector3f(1F, 2F, 3F), 1F, VectorInterpolation.CATMULLROM),
-                VectorPoint(Vector3f(2F, 3F, 4F), 2F, VectorInterpolation.CATMULLROM),
-                VectorPoint(Vector3f(3F, 4F, 5F), 3F, VectorInterpolation.CATMULLROM),
-                VectorPoint(Vector3f(4F, 5F, 6F), 4F, VectorInterpolation.CATMULLROM),
+                VectorPoint(Vector3f(1F, 2F, 3F), 1F, CatmullRomInterpolation.INSTANCE),
+                VectorPoint(Vector3f(2F, 3F, 4F), 2F, CatmullRomInterpolation.INSTANCE),
+                VectorPoint(Vector3f(3F, 4F, 5F), 3F, CatmullRomInterpolation.INSTANCE),
+                VectorPoint(Vector3f(4F, 5F, 6F), 4F, CatmullRomInterpolation.INSTANCE),
             ),
             FloatSet.of(
                 0F,

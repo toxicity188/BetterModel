@@ -1,6 +1,6 @@
 package kr.toxicity.model.api.animation;
 
-import kr.toxicity.model.api.util.VectorInterpolation;
+import kr.toxicity.model.api.util.interpolation.VectorInterpolation;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
@@ -11,7 +11,7 @@ public record VectorPoint(@NotNull Vector3f vector, float time, @NotNull VectorI
     public static final VectorPoint EMPTY = new VectorPoint(
             new Vector3f(),
             0F,
-            VectorInterpolation.LINEAR
+            VectorInterpolation.defaultInterpolation()
     );
 
     @Override

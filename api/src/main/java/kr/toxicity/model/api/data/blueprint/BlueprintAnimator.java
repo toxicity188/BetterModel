@@ -7,7 +7,6 @@ import kr.toxicity.model.api.animation.VectorPoint;
 import kr.toxicity.model.api.data.raw.Datapoint;
 import kr.toxicity.model.api.data.raw.ModelKeyframe;
 import kr.toxicity.model.api.util.MathUtil;
-import kr.toxicity.model.api.util.VectorInterpolation;
 import kr.toxicity.model.api.util.VectorUtil;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -53,7 +52,7 @@ public record BlueprintAnimator(
          */
         public @NotNull Builder addFrame(@NotNull ModelKeyframe keyframe) {
             if (keyframe.time() > length) return this;
-            var interpolation = VectorInterpolation.find(keyframe.interpolation());
+            var interpolation = keyframe.findInterpolation();
             for (Datapoint dataPoint : keyframe.dataPoints()) {
                 var vec = dataPoint.toVector();
                 switch (keyframe.channel()) {

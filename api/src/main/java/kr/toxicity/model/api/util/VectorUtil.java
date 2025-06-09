@@ -4,8 +4,10 @@ import it.unimi.dsi.fastutil.floats.*;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationPoint;
 import kr.toxicity.model.api.animation.VectorPoint;
+import kr.toxicity.model.api.util.interpolation.VectorInterpolation;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
@@ -62,7 +64,7 @@ public final class VectorUtil {
     public static @NotNull List<VectorPoint> putPoint(@NotNull List<VectorPoint> vectors, @NotNull FloatCollection points) {
         var newVectors = new ArrayList<VectorPoint>();
         if (vectors.isEmpty()) {
-            points.iterator().forEachRemaining(f -> newVectors.add(new VectorPoint(new Vector3f(), f, VectorInterpolation.LINEAR)));
+            points.iterator().forEachRemaining(f -> newVectors.add(new VectorPoint(new Vector3f(), f, VectorInterpolation.defaultInterpolation())));
             return newVectors;
         }
         var last = vectors.getLast();
@@ -141,6 +143,70 @@ public final class VectorUtil {
 
     public static float linear(float p0, float p1, float alpha) {
         return Math.fma(p1 - p0, alpha, p0);
+    }
+
+    public static float cubicBezier(float p0, float p1, float p2, float p3, float t) {
+        float u = 1.0f - t;
+        return u * u * u * p0
+                + 3 * u * u * t * p1
+                + 3 * u * t * t * p2
+                + t * t * t * p3;
+    }
+
+    public static float derivativeBezier(float p0, float p1, float p2, float p3, float t) {
+        float u = 1.0f - t;
+        return 3 * u * u * (p1 - p0)
+                + 6 * u * t * (p2 - p1)
+                + 3 * t * t * (p3 - p2);
+    }
+
+    public static float solveBezierTForTime(float time, float t0, float h1, float h2, float t1) {
+        float t = 0.5f;
+        int maxIterations = 20;
+        float epsilon = 1e-5f;
+        for (int i = 0; i < maxIterations; i++) {
+            float bezTime = cubicBezier(t0, h1, h2, t1, t);
+            float derivative = derivativeBezier(t0, h1, h2, t1, t);
+            float error = bezTime - time;
+            if (Math.abs(error) < epsilon) {
+                return t;
+            }
+            if (derivative != 0) {
+                t -= error / derivative;
+            }
+            t = Math.max(0.0f, Math.min(1.0f, t));
+        }
+
+        return t;
+    }
+
+    public static @NotNull Vector3f bezier(
+            float time,
+            float startTime,
+            float endTime,
+            @NotNull Vector3f startValue,
+            @NotNull Vector3f endValue,
+            @Nullable Vector3f bezierLeftTime,
+            @Nullable Vector3f bezierLeftValue,
+            @Nullable Vector3f bezierRightTime,
+            @Nullable Vector3f bezierRightValue
+    ) {
+        float tGuess = solveBezierTForTime(
+                time,
+                startTime,
+                bezierRightTime != null ? bezierRightTime.x : startTime,
+                bezierLeftTime != null ? bezierLeftTime.x : endTime,
+                endTime
+        );
+        Vector3f p0 = new Vector3f(startValue);
+        Vector3f p1 = bezierRightValue != null ? new Vector3f(bezierRightValue) : new Vector3f(startValue);
+        Vector3f p2 = bezierLeftValue != null ? new Vector3f(bezierLeftValue) : new Vector3f(endValue);
+        Vector3f p3 = new Vector3f(endValue);
+        return new Vector3f(
+                cubicBezier(p0.x, p1.x, p2.x, p3.x, tGuess),
+                cubicBezier(p0.y, p1.y, p2.y, p3.y, tGuess),
+                cubicBezier(p0.z, p1.z, p2.z, p3.z, tGuess)
+        );
     }
 
     public static @NotNull Vector3f catmull_rom(@NotNull Vector3f p0, @NotNull Vector3f p1, @NotNull Vector3f p2, @NotNull Vector3f p3, float t) {
