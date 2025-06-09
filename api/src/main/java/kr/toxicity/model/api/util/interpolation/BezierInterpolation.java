@@ -21,7 +21,7 @@ public final class BezierInterpolation implements VectorInterpolation {
         var p2 = points.get(p2Index);
         return new VectorPoint(
                 VectorUtil.bezier(
-                        VectorUtil.alpha(p1.time(), p2.time(), time),
+                        time,
                         p1.time(),
                         p2.time(),
                         p1.vector(),

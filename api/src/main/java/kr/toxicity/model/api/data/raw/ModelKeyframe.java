@@ -1,10 +1,7 @@
 package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.annotations.SerializedName;
-import kr.toxicity.model.api.util.interpolation.BezierInterpolation;
-import kr.toxicity.model.api.util.interpolation.CatmullRomInterpolation;
-import kr.toxicity.model.api.util.interpolation.LinearInterpolation;
-import kr.toxicity.model.api.util.interpolation.VectorInterpolation;
+import kr.toxicity.model.api.util.interpolation.*;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -16,6 +13,10 @@ import java.util.List;
  * A keyframe of model.
  * @param channel channel
  * @param dataPoints movement
+ * @param bezierLeftTime bezier left time
+ * @param bezierLeftValue bezier left value
+ * @param bezierRightTime bezier right time
+ * @param bezierRightValue bezier right value
  * @param interpolation interpolation type
  * @param time keyframe time
  */
@@ -36,6 +37,7 @@ public record ModelKeyframe(
         return switch (interpolation.toLowerCase()) {
             case "linear" -> LinearInterpolation.INSTANCE;
             case "catmullrom" -> CatmullRomInterpolation.INSTANCE;
+            case "step" -> StepInterpolation.INSTANCE;
             case "bezier" -> new BezierInterpolation(
                     toBezier(bezierLeftTime),
                     toBezier(bezierLeftValue),

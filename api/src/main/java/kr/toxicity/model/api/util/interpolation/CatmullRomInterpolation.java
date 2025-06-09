@@ -9,7 +9,8 @@ import java.util.List;
 public enum CatmullRomInterpolation implements VectorInterpolation {
     INSTANCE
     ;
-    private @NotNull VectorPoint indexOf(@NotNull List<VectorPoint> list, int index, int relative) {
+    
+    private static @NotNull VectorPoint indexOf(@NotNull List<VectorPoint> list, int index, int relative) {
         var i = index + relative;
         if (i < 0) i += list.size();
         else if (i >= list.size()) {
@@ -17,7 +18,7 @@ public enum CatmullRomInterpolation implements VectorInterpolation {
         }
         return list.get(i);
     }
-
+    
     @NotNull
     @Override
     public VectorPoint interpolate(@NotNull List<VectorPoint> points, int p2Index, float time) {

@@ -1,117 +1,18 @@
 import io.papermc.hangarpublishplugin.model.Platforms
-import xyz.jpenilla.resourcefactory.bukkit.Permission
 import java.time.LocalDateTime
 
 plugins {
-    `java-library`
-    kotlin("jvm") version "2.1.21"
-    id("org.jetbrains.dokka") version "2.0.0"
-    id("io.github.goooler.shadow") version "8.1.8"
-    id("io.papermc.paperweight.userdev") version "2.0.0-SNAPSHOT" apply false
+    alias(libs.plugins.standardConvention)
     id("xyz.jpenilla.run-paper") version "2.3.1"
-    id("xyz.jpenilla.resource-factory-bukkit-convention") version "1.3.0"
     id("com.modrinth.minotaur") version "2.+"
     id("io.papermc.hangar-publish-plugin") version "0.1.3"
+    id("io.github.goooler.shadow") version "8.1.8"
 }
 
 val minecraft = property("minecraft_version").toString()
-val targetJavaVersion = 21
-val buildNumber: String? = System.getenv("BUILD_NUMBER")
-
-val commandApi = "10.0.1"
-
-allprojects {
-    apply(plugin = "java")
-    apply(plugin = "kotlin")
-    apply(plugin = "org.jetbrains.dokka")
-    group = "kr.toxicity.model"
-    version = "1.6.2" + (buildNumber?.let { "-SNAPSHOT-$it" } ?: "")
-    repositories {
-        mavenCentral()
-        maven("https://repo.papermc.io/repository/maven-public/")
-        maven("https://maven.citizensnpcs.co/repo/")
-        maven("https://mvn.lumine.io/repository/maven-public/")
-        maven("https://repo.hibiscusmc.com/releases")
-        maven("https://libraries.minecraft.net/")
-        maven("https://jitpack.io")
-    }
-    dependencies {
-        testImplementation(kotlin("test"))
-        implementation("dev.jorel:commandapi-bukkit-shade:$commandApi")
-        implementation("org.bstats:bstats-bukkit:3.1.0")
-        implementation("com.github.toxicity188:DynamicUV:1.0.2")
-        compileOnly("com.vdurmont:semver4j:3.1.0")
-        testImplementation("com.vdurmont:semver4j:3.1.0")
-        compileOnly("net.kyori:adventure-platform-bukkit:4.4.0")
-        compileOnly("net.citizensnpcs:citizens-main:2.0.38-SNAPSHOT")
-        compileOnly("io.lumine:Mythic-Dist:5.9.0")
-        compileOnly("com.hibiscusmc:HMCCosmetics:2.7.8")
-        compileOnly("net.jodah:expiringmap:0.5.11")
-    }
-    tasks {
-        test {
-            useJUnitPlatform()
-        }
-        compileJava {
-            options.encoding = Charsets.UTF_8.name()
-        }
-    }
-    java {
-        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
-    }
-    kotlin {
-        jvmToolchain(targetJavaVersion)
-    }
-    dokka {
-        moduleName = project.name
-        dokkaSourceSets.configureEach {
-            displayName = project.name
-        }
-    }
-}
-
-
-fun Project.dependency(any: Any) = also { project ->
-    if (any is Collection<*>) {
-        any.forEach {
-            if (it == null) return@forEach
-            project.dependencies {
-                compileOnly(it)
-                testImplementation(it)
-            }
-        }
-    } else {
-        project.dependencies {
-            compileOnly(any)
-            testImplementation(any)
-        }
-    }
-}
-
-fun Project.paper() = dependency("io.papermc.paper:paper-api:$minecraft-R0.1-SNAPSHOT")
-    .dependency("com.mojang:authlib:6.0.58")
-
-val api = project("api").paper()
-val purpur = project("purpur").dependency(api)
-val nms = project("nms").subprojects.map {
-    it.dependency(api)
-        .also { project ->
-            project.apply(plugin = "io.papermc.paperweight.userdev")
-        }
-}
-val core = project("core")
-    .paper()
-    .dependency(api)
-    .dependency(purpur)
-    .dependency(nms)
 
 dependencies {
-    implementation(api)
-    implementation(purpur)
-    implementation(core)
-    nms.forEach {
-        implementation(project("nms:${it.name}", configuration = "reobf"))
-    }
+    implementation(project(":core"))
     fun searchAll(target: Project) {
         val sub = target.subprojects
         if (sub.isNotEmpty()) sub.forEach {
@@ -121,31 +22,21 @@ dependencies {
     searchAll(rootProject)
 }
 
-val sourcesJar by tasks.registering(Jar::class) {
-    dependsOn(tasks.classes)
-    fun getProjectSource(project: Project): Array<File> {
-        return if (project.subprojects.isEmpty()) project.sourceSets.main.get().allSource.srcDirs.toTypedArray() else ArrayList<File>().apply {
-            project.subprojects.forEach {
-                addAll(getProjectSource(it))
-            }
-        }.toTypedArray()
-    }
-    archiveClassifier = "sources"
-    from(*getProjectSource(project))
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
-}
 val javadocJar by tasks.registering(Jar::class) {
     dependsOn(tasks.dokkaGenerate)
     archiveClassifier = "javadoc"
     from(layout.buildDirectory.dir("dokka/html").orNull?.asFile)
 }
 
-val groupString = group.toString()
 val versionString = version.toString()
+val groupString = group.toString()
 
 tasks {
     runServer {
         pluginJars(fileTree("plugins"))
+        pluginJars(project("test-plugin").tasks.jar.flatMap {
+            it.archiveFile
+        })
         version(minecraft)
         downloadPlugins {
             hangar("ViaVersion", "5.3.2")
@@ -160,7 +51,7 @@ tasks {
         manifest {
             attributes(
                 "paperweight-mappings-namespace" to "spigot",
-                "Dev-Build" to (buildNumber ?: -1),
+                "Dev-Build" to (BUILD_NUMBER ?: -1),
                 "Version" to versionString,
                 "Author" to "toxicity188",
                 "Url" to "https://github.com/toxicity188/BetterModel",
@@ -185,7 +76,6 @@ tasks {
     }
     build {
         finalizedBy(
-            sourcesJar,
             javadocJar
         )
     }
@@ -193,39 +83,6 @@ tasks {
 
 tasks.modrinth {
     dependsOn(tasks.modrinthSyncBody)
-}
-
-bukkitPluginYaml {
-    main = "$groupString.BetterModelPluginImpl"
-    version = versionString
-    name = rootProject.name
-    foliaSupported = true
-    apiVersion = "1.20"
-    author = "toxicity"
-    description = "Lightweight BlockBench model engine & entity animation"
-    softDepend = listOf(
-        "MythicMobs",
-        "Citizens",
-        "HMCCosmetics"
-    )
-    libraries = listOf(
-        "com.vdurmont:semver4j:3.1.0",
-        "net.jodah:expiringmap:0.5.11",
-        "net.kyori:adventure-api:4.21.0",
-        "net.kyori:adventure-platform-bukkit:4.4.0"
-    )
-    permissions.create("bettermodel") {
-        default = Permission.Default.OP
-        description = "Accesses to command."
-        children = mapOf(
-            "reload" to true,
-            "spawn" to true,
-            "disguise" to true,
-            "undisguise" to true,
-            "play" to true,
-            "limb" to true
-        )
-    }
 }
 
 val supportedVersion = listOf(
@@ -277,7 +134,6 @@ modrinth {
     }
     uploadFile = tasks.shadowJar.get()
     additionalFiles = listOf(
-        sourcesJar.get(),
         javadocJar.get()
     )
     versionName = "BetterModel $versionString"
