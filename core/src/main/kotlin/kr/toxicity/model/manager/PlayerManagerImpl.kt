@@ -77,18 +77,11 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
     override fun limbs(): List<ModelRenderer> = renderMap.values.toList()
     override fun limb(name: String): ModelRenderer? = renderMap[name]
 
-    override fun animate(player: Player, model: String, animation: String, loopType: AnimationIterator.Type?) {
+    override fun animate(player: Player, model: String, animation: String, modifier: AnimationModifier) {
         renderMap[model]?.let {
             EntityTracker.tracker(player.uniqueId)?.close()
             val create = it.create(player)
             create.spawnNearby()
-            val modifier = AnimationModifier(
-                { true },
-                1,
-                0,
-                loopType,
-                1.0F
-            )
             if (!create.animate(animation, modifier) {
                     create.close()
                 }) create.close()

@@ -1,6 +1,6 @@
 package kr.toxicity.model.api.manager;
 
-import kr.toxicity.model.api.animation.AnimationIterator;
+import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.ModelRenderer;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import org.bukkit.entity.Player;
@@ -37,7 +37,7 @@ public interface PlayerManager extends GlobalManager {
      * @param animation animation name
      */
     default void animate(@NotNull Player player, @NotNull String model, @NotNull String animation) {
-        animate(player, model, animation, null);
+        animate(player, model, animation, AnimationModifier.DEFAULT_WITH_PLAY_ONCE);
     }
 
     /**
@@ -45,9 +45,9 @@ public interface PlayerManager extends GlobalManager {
      * @param player player
      * @param model model name
      * @param animation animation name
-     * @param loopType the loop type to use, or null to use the animation's default.
+     * @param modifier modifier
      */
-    void animate(@NotNull Player player, @NotNull String model, @NotNull String animation, @Nullable AnimationIterator.Type loopType);
+    void animate(@NotNull Player player, @NotNull String model, @NotNull String animation, @NotNull AnimationModifier modifier);
 
 
     /**

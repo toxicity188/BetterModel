@@ -11,6 +11,7 @@ import dev.jorel.commandapi.executors.PlayerCommandExecutor
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.BetterModelPlugin.ReloadResult.*
 import kr.toxicity.model.api.animation.AnimationIterator
+import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.manager.CommandManager
 import kr.toxicity.model.api.manager.PlayerManager
 import kr.toxicity.model.api.manager.ReloadInfo
@@ -172,7 +173,13 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                             player.audience().warn("Invalid loop type: '$loopTypeStr'. Using default.")
                         }.getOrNull()
                     }
-                    (PlayerManagerImpl as PlayerManager).animate(player, n, a, loopType)
+                    (PlayerManagerImpl as PlayerManager).animate(player, n, a, AnimationModifier(
+                        { true },
+                        1,
+                        0,
+                        loopType,
+                        1.0F
+                    ))
                 })
             }
         }.build().register(PLUGIN)
