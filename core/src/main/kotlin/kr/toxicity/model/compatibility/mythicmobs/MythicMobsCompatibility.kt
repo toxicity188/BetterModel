@@ -44,6 +44,7 @@ class MythicMobsCompatibility : Compatibility {
             @EventHandler
             fun MythicMechanicLoadEvent.load() {
                 when (mechanicName.lowercase()) {
+                    "playlimbanim" -> register(PlayLimbAnimMechanic(config))
                     "model" -> register(ModelMechanic(config))
                     "state", "animation" -> register(StateMechanic(config))
                     "defaultstate", "defaultanimation" -> register(DefaultStateMechanic(config))

@@ -10,7 +10,9 @@ import dev.jorel.commandapi.executors.CommandExecutionInfo
 import dev.jorel.commandapi.executors.PlayerCommandExecutor
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.BetterModelPlugin.ReloadResult.*
+import kr.toxicity.model.api.animation.AnimationIterator
 import kr.toxicity.model.api.manager.CommandManager
+import kr.toxicity.model.api.manager.PlayerManager
 import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.api.version.MinecraftVersion
@@ -152,10 +154,25 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                             }
                         }
                 )
+                withOptionalArguments(
+                    StringArgument("loop_type")
+                        .replaceSuggestions(ArgumentSuggestions.strings(
+                            *AnimationIterator.Type.entries.map { it.name.lowercase() }.toTypedArray()
+                        ))
+                )
                 executesPlayer(PlayerCommandExecutor { player, args ->
                     val n = args["name"] as String
                     val a = args["animation"] as String
-                    PlayerManagerImpl.animate(player, n, a)
+                    val loopTypeStr = args.get("loop_type") as? String
+
+                    val loopType = loopTypeStr?.let {
+                        runCatching {
+                            AnimationIterator.Type.valueOf(it.uppercase())
+                        }.onFailure {
+                            player.audience().warn("Invalid loop type: '$loopTypeStr'. Using default.")
+                        }.getOrNull()
+                    }
+                    (PlayerManagerImpl as PlayerManager).animate(player, n, a, loopType)
                 })
             }
         }.build().register(PLUGIN)

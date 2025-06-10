@@ -1,5 +1,6 @@
 package kr.toxicity.model.manager
 
+import kr.toxicity.model.api.animation.AnimationIterator
 import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.data.blueprint.BlueprintChildren.BlueprintGroup
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint
@@ -77,13 +78,24 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
     override fun limb(name: String): ModelRenderer? = renderMap[name]
 
     override fun animate(player: Player, model: String, animation: String) {
+        animate(player, model, animation, null)
+    }
+
+    override fun animate(player: Player, model: String, animation: String, loopType: AnimationIterator.Type?) {
         renderMap[model]?.let {
             EntityTracker.tracker(player.uniqueId)?.close()
             val create = it.create(player)
             create.spawnNearby()
-            if (!create.animate(animation, AnimationModifier.DEFAULT) {
-                create.close()
-            }) create.close()
+            val modifier = AnimationModifier(
+                { true },
+                1,
+                0,
+                loopType,
+                1.0f
+            )
+            if (!create.animate(animation, modifier) {
+                    create.close()
+                }) create.close()
         }
     }
 

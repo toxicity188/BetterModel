@@ -148,6 +148,7 @@ public interface AnimationIterator extends Iterator<AnimationMovement> {
     final class HoldOnLast implements AnimationIterator {
         private final List<AnimationMovement> keyFrame;
         private int index = 0;
+        private boolean finished = false;
 
         @NotNull
         @Override
@@ -168,17 +169,27 @@ public interface AnimationIterator extends Iterator<AnimationMovement> {
         @Override
         public void clear() {
             index = 0;
+            finished = false;
         }
 
         @Override
         public boolean hasNext() {
-            return index < keyFrame.size();
+            return true; // Fixed: Always returns true to keep the animation "alive".
         }
 
         @Override
         @NotNull
         public AnimationMovement next() {
-            return (index < keyFrame.size()) ? keyFrame.get(index++) : keyFrame.getLast();
+            if (finished) {
+                var last = keyFrame.getLast();
+                // Returns the last frame with time 0 to maintain the state without causing a long delay.
+                return new AnimationMovement(0, last.transform(), last.scale(), last.rotation());
+            }
+            var nextFrame = keyFrame.get(index++);
+            if (index >= keyFrame.size()) {
+                finished = true; // Mark as finished entering the "hold" mode.
+            }
+            return nextFrame;
         }
 
         @NotNull

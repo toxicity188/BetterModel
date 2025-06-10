@@ -21,6 +21,8 @@ import net.jodah.expiringmap.ExpirationPolicy
 import net.jodah.expiringmap.ExpiringMap
 import org.bukkit.Bukkit
 import java.awt.image.BufferedImage
+import java.io.ByteArrayOutputStream
+import kr.toxicity.library.dynamicuv.UVByteBuilder
 import java.net.URI
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
@@ -32,7 +34,7 @@ import javax.imageio.ImageIO
 object SkinManagerImpl : SkinManager, GlobalManagerImpl {
 
     private const val DIV_FACTOR = 16F / 0.9375F
-    
+
     private var uvNamespace = UVNamespace(
         ConfigManagerImpl.namespace(),
         "player_limb"
@@ -584,9 +586,14 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         SLIM_LEFT_FOREARM.write(block)
         SLIM_RIGHT_ARM.write(block)
         SLIM_RIGHT_FOREARM.write(block)
-        UVByteBuilder.emptyImage(uvNamespace, "one_pixel").run {
-            block(path()) {
-                build()
+
+        // If an image is 1x1 or 3x3 idk, break all the mimap level of the game, and everything is going to be blurred and bad quality, so you have to use 16x16 or 32x32
+        val builder = UVByteBuilder.emptyImage(uvNamespace, "one_pixel")
+        block(builder.path()) {
+            val image = BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB)
+            ByteArrayOutputStream().use { buffer ->
+                ImageIO.write(image, "png", buffer)
+                buffer.toByteArray()
             }
         }
     }
