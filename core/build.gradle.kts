@@ -16,7 +16,7 @@ dependencies {
 
     compileOnly("net.citizensnpcs:citizens-main:2.0.38-SNAPSHOT")
     compileOnly("io.lumine:Mythic-Dist:5.9.0")
-    compileOnly("com.hibiscusmc:HMCCosmetics:2.7.8")
+    compileOnly("com.hibiscusmc:HMCCosmetics:2.7.9-42802e41")
 }
 
 bukkitPluginYaml {
