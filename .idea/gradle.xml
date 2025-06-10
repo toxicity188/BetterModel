@@ -4,12 +4,24 @@
   <component name="GradleSettings">
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
+        <compositeConfiguration>
+          <compositeBuild compositeDefinitionSource="SCRIPT">
+            <builds>
+              <build path="$PROJECT_DIR$/buildSrc" name="buildSrc">
+                <projects>
+                  <project path="$PROJECT_DIR$/buildSrc" />
+                </projects>
+              </build>
+            </builds>
+          </compositeBuild>
+        </compositeConfiguration>
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="gradleHome" value="" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/api" />
+            <option value="$PROJECT_DIR$/buildSrc" />
             <option value="$PROJECT_DIR$/core" />
             <option value="$PROJECT_DIR$/nms" />
             <option value="$PROJECT_DIR$/nms/v1_20_R3" />
@@ -19,6 +31,7 @@
             <option value="$PROJECT_DIR$/nms/v1_21_R3" />
             <option value="$PROJECT_DIR$/nms/v1_21_R4" />
             <option value="$PROJECT_DIR$/purpur" />
+            <option value="$PROJECT_DIR$/test-plugin" />
           </set>
         </option>
         <option name="resolveExternalAnnotations" value="true" />
