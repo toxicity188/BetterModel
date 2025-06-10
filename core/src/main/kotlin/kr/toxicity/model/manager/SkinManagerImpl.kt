@@ -10,19 +10,14 @@ import kr.toxicity.model.api.manager.SkinManager
 import kr.toxicity.model.api.player.PlayerLimb
 import kr.toxicity.model.api.skin.SkinData
 import kr.toxicity.model.api.tracker.EntityTracker
-import kr.toxicity.model.api.util.function.BonePredicate
 import kr.toxicity.model.api.util.TransformedItemStack
+import kr.toxicity.model.api.util.function.BonePredicate
 import kr.toxicity.model.api.version.MinecraftVersion
-import kr.toxicity.model.util.PLUGIN
-import kr.toxicity.model.util.call
-import kr.toxicity.model.util.handleException
-import kr.toxicity.model.util.httpClient
+import kr.toxicity.model.util.*
 import net.jodah.expiringmap.ExpirationPolicy
 import net.jodah.expiringmap.ExpiringMap
 import org.bukkit.Bukkit
 import java.awt.image.BufferedImage
-import java.io.ByteArrayOutputStream
-import kr.toxicity.library.dynamicuv.UVByteBuilder
 import java.net.URI
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
@@ -587,14 +582,15 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         SLIM_RIGHT_ARM.write(block)
         SLIM_RIGHT_FOREARM.write(block)
 
-        // If an image is 1x1 or 3x3 idk, break all the mimap level of the game, and everything is going to be blurred and bad quality, so you have to use 16x16 or 32x32
         val builder = UVByteBuilder.emptyImage(uvNamespace, "one_pixel")
         block(builder.path()) {
-            val image = BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB)
-            ByteArrayOutputStream().use { buffer ->
-                ImageIO.write(image, "png", buffer)
-                buffer.toByteArray()
-            }
+            BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB).apply {
+                for (w in 0..15) {
+                    for (h in 0..15) {
+                        setRGB(w, h, 0xFFFFFF)
+                    }
+                }
+            }.toByteArray()
         }
     }
 

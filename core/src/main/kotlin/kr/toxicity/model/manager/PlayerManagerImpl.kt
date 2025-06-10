@@ -77,10 +77,6 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
     override fun limbs(): List<ModelRenderer> = renderMap.values.toList()
     override fun limb(name: String): ModelRenderer? = renderMap[name]
 
-    override fun animate(player: Player, model: String, animation: String) {
-        animate(player, model, animation, null)
-    }
-
     override fun animate(player: Player, model: String, animation: String, loopType: AnimationIterator.Type?) {
         renderMap[model]?.let {
             EntityTracker.tracker(player.uniqueId)?.close()
@@ -91,7 +87,7 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
                 1,
                 0,
                 loopType,
-                1.0f
+                1.0F
             )
             if (!create.animate(animation, modifier) {
                     create.close()

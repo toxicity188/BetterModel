@@ -36,7 +36,9 @@ public interface PlayerManager extends GlobalManager {
      * @param model model name
      * @param animation animation name
      */
-    void animate(@NotNull Player player, @NotNull String model, @NotNull String animation);
+    default void animate(@NotNull Player player, @NotNull String model, @NotNull String animation) {
+        animate(player, model, animation, null);
+    }
 
     /**
      * Play's animation to this player with a specific loop type.
