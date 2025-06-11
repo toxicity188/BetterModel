@@ -18,7 +18,7 @@ public final class CreateEntityTrackerEvent extends CreateTrackerEvent {
      */
     @ApiStatus.Internal
     public CreateEntityTrackerEvent(@NotNull EntityTracker tracker) {
-        super(tracker, false);
+        super(tracker);
     }
 
     @NotNull

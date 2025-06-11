@@ -151,15 +151,14 @@ public final class EntityTrackerRegistry {
 
     public void reload() {
         closed.set(true);
-        var data = trackerMap.values()
-                .stream()
-                .map(Tracker::getTrackerData);
+        var data = new ArrayList<TrackerData>(trackerMap.size());
         for (EntityTracker value : trackerMap.values()) {
+            data.add(value.getTrackerData());
             value.close();
         }
         trackerMap.clear();
         closed.set(false);
-        load(data);
+        load(data.stream());
     }
 
     public void refresh() {
