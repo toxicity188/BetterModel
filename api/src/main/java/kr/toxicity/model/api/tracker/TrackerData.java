@@ -1,7 +1,6 @@
 package kr.toxicity.model.api.tracker;
 
 import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 import org.jetbrains.annotations.NotNull;
 
 public record TrackerData(@NotNull String id, @NotNull TrackerModifier modifier) {

@@ -3,7 +3,6 @@ package kr.toxicity.model.compatibility.mythicmobs
 import io.lumine.mythic.api.adapters.AbstractEntity
 import io.lumine.mythic.api.config.MythicLineConfig
 import io.lumine.mythic.api.skills.SkillMetadata
-import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.util.function.BonePredicate
 import kr.toxicity.model.util.boneName
 import kr.toxicity.model.util.toPackName

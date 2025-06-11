@@ -2,7 +2,6 @@ package kr.toxicity.model.api.nms;
 
 import com.mojang.authlib.GameProfile;
 import kr.toxicity.model.api.BetterModel;
-import kr.toxicity.model.api.tracker.EntityTracker;
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;

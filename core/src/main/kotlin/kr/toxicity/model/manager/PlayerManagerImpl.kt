@@ -1,6 +1,5 @@
 package kr.toxicity.model.manager
 
-import kr.toxicity.model.api.animation.AnimationIterator
 import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.data.blueprint.BlueprintChildren.BlueprintGroup
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint
@@ -9,7 +8,6 @@ import kr.toxicity.model.api.data.renderer.RendererGroup
 import kr.toxicity.model.api.manager.PlayerManager
 import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.api.nms.PlayerChannelHandler
-import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.util.*
 import org.bukkit.Material
 import org.bukkit.entity.Player
