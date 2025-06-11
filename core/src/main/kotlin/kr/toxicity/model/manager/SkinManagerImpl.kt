@@ -654,7 +654,7 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
                 it.handleException("Unable to read this profile: ${selected.name}")
                 CompletableFuture.completedFuture(null)
             }.thenAccept {
-                it.body().use { stream ->
+                it?.body().use { stream ->
                     profileMap[id] = SkinDataImpl(
                         isSlim(selected),
                         ImageIO.read(stream).convertLegacy(),

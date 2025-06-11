@@ -5,7 +5,7 @@ import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.bone.BoneTags;
 import kr.toxicity.model.api.bone.RenderedBone;
-import kr.toxicity.model.api.data.renderer.RenderInstance;
+import kr.toxicity.model.api.data.renderer.RenderPipeline;
 import kr.toxicity.model.api.event.CreateEntityTrackerEvent;
 import kr.toxicity.model.api.nms.HitBoxListener;
 import kr.toxicity.model.api.util.*;
@@ -74,7 +74,7 @@ public class EntityTracker extends Tracker {
      * @param modifier modifier
      */
     @ApiStatus.Internal
-    public EntityTracker(@NotNull EntityTrackerRegistry registry, @NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
+    public EntityTracker(@NotNull EntityTrackerRegistry registry, @NotNull RenderPipeline instance, @NotNull TrackerModifier modifier) {
         super(instance, modifier);
         this.registry = registry;
 
@@ -137,7 +137,7 @@ public class EntityTracker extends Tracker {
         });
         tick((t, b) -> updateBaseEntity0());
         tick((t, b) -> {
-            var reader = t.instance.getScriptProcessor().getCurrentReader();
+            var reader = t.pipeline.getScriptProcessor().getCurrentReader();
             if (reader == null) return;
             var script = reader.script();
             if (script == null) return;
@@ -197,7 +197,7 @@ public class EntityTracker extends Tracker {
      * @param listener listener
      */
     public void createHitBox(@NotNull Predicate<RenderedBone> predicate, @NotNull HitBoxListener listener) {
-        instance.createHitBox(registry.adapter(), predicate, listener);
+        pipeline.createHitBox(registry.adapter(), predicate, listener);
     }
 
     /**
@@ -263,7 +263,7 @@ public class EntityTracker extends Tracker {
      * @param duration duration
      */
     public void moveDuration(int duration) {
-        instance.moveDuration(duration);
+        pipeline.moveDuration(duration);
         forceUpdate(true);
     }
 
@@ -272,7 +272,7 @@ public class EntityTracker extends Tracker {
      */
     @ApiStatus.Internal
     public void refresh() {
-        BetterModel.plugin().scheduler().task(registry.entity(), () -> instance.createHitBox(registry.adapter(), r -> r.getHitBox() != null, null));
+        BetterModel.plugin().scheduler().task(registry.entity(), () -> pipeline.createHitBox(registry.adapter(), r -> r.getHitBox() != null, null));
     }
 
     @Override

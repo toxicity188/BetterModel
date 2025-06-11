@@ -119,7 +119,7 @@ public final class ModelRenderer {
     public @NotNull DummyTracker create(@NotNull Location location, @NotNull TrackerModifier modifier) {
         var source = RenderSource.of(location);
         return source.create(
-                instance(source, location, modifier),
+                pipeline(source, location, modifier),
                 modifier
         );
     }
@@ -188,7 +188,7 @@ public final class ModelRenderer {
     public @NotNull DummyTracker create(@NotNull Location location, @NotNull GameProfile profile, boolean slim, @NotNull TrackerModifier modifier) {
         var source = RenderSource.of(location, profile, slim);
         return source.create(
-                instance(source, location, modifier),
+                pipeline(source, location, modifier),
                 modifier
         );
     }
@@ -202,13 +202,13 @@ public final class ModelRenderer {
     public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull TrackerModifier modifier) {
         var source = RenderSource.of(entity);
         return source.create(
-                instance(source, entity.getLocation().add(0, -1024, 0), modifier),
+                pipeline(source, entity.getLocation().add(0, -1024, 0), modifier),
                 modifier
         );
     }
 
-    private @NotNull RenderInstance instance(@NotNull RenderSource source, @NotNull Location location, @NotNull TrackerModifier modifier) {
-        return new RenderInstance(this, source, rendererGroupMap
+    private @NotNull RenderPipeline pipeline(@NotNull RenderSource source, @NotNull Location location, @NotNull TrackerModifier modifier) {
+        return new RenderPipeline(this, source, rendererGroupMap
                 .entrySet()
                 .stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().create(source, modifier, location))), animationMap);

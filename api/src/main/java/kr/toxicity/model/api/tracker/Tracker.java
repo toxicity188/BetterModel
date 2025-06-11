@@ -7,7 +7,7 @@ import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.data.renderer.ModelRenderer;
-import kr.toxicity.model.api.data.renderer.RenderInstance;
+import kr.toxicity.model.api.data.renderer.RenderPipeline;
 import kr.toxicity.model.api.event.*;
 import kr.toxicity.model.api.event.PlayerHideTrackerEvent;
 import kr.toxicity.model.api.event.PlayerShowTrackerEvent;
@@ -56,7 +56,7 @@ public abstract class Tracker implements AutoCloseable {
             .create();
 
     @Getter
-    protected final RenderInstance instance;
+    protected final RenderPipeline pipeline;
     private final ScheduledFuture<?> task;
     private final AtomicBoolean isClosed = new AtomicBoolean();
     private final AtomicBoolean readyForForceUpdate = new AtomicBoolean();
@@ -74,30 +74,30 @@ public abstract class Tracker implements AutoCloseable {
 
     /**
      * Creates tracker
-     * @param instance target instance
+     * @param pipeline target instance
      * @param modifier modifier
      */
-    public Tracker(@NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
-        this.instance = instance;
+    public Tracker(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier) {
+        this.pipeline = pipeline;
         this.modifier = modifier;
-        this.trackerData = new TrackerData(instance.name(), modifier);
-        viewBundler = instance.createBundler();
-        dataBundler = instance.createBundler();
+        this.trackerData = new TrackerData(pipeline.name(), modifier);
+        viewBundler = pipeline.createBundler();
+        dataBundler = pipeline.createBundler();
         var config = BetterModel.plugin().configManager();
         updater = () -> {
-            instance.move(
-                    frame % 5 == 0 ? (isRunningSingleAnimation() && config.lockOnPlayAnimation()) ? instance.getRotation() : rotation() : null,
+            pipeline.move(
+                    frame % 5 == 0 ? (isRunningSingleAnimation() && config.lockOnPlayAnimation()) ? pipeline.getRotation() : rotation() : null,
                     viewBundler
             );
             consumer.accept(this, viewBundler);
-            if (readyForForceUpdate.compareAndSet(true, false)) instance.forceUpdate(dataBundler);
+            if (readyForForceUpdate.compareAndSet(true, false)) pipeline.forceUpdate(dataBundler);
             if (!dataBundler.isEmpty()) {
-                instance.nonHidePlayer().forEach(dataBundler::send);
-                dataBundler = instance.createBundler();
+                pipeline.nonHidePlayer().forEach(dataBundler::send);
+                dataBundler = pipeline.createBundler();
             }
             if (!viewBundler.isEmpty()) {
-                instance.viewedPlayer().forEach(viewBundler::send);
-                viewBundler = instance.createBundler();
+                pipeline.viewedPlayer().forEach(viewBundler::send);
+                viewBundler = pipeline.createBundler();
             }
         };
         task = EXECUTOR.scheduleAtFixedRate(() -> {
@@ -105,8 +105,8 @@ public abstract class Tracker implements AutoCloseable {
             frame++;
         }, 10, 10, TimeUnit.MILLISECONDS);
         tint(0xFFFFFF);
-        if (modifier.sightTrace()) instance.viewFilter(p -> EntityUtil.canSee(p.getEyeLocation(), location()));
-        tick((t, b) -> t.instance.getScriptProcessor().tick());
+        if (modifier.sightTrace()) pipeline.viewFilter(p -> EntityUtil.canSee(p.getEyeLocation(), location()));
+        tick((t, b) -> t.pipeline.getScriptProcessor().tick());
     }
 
     /**
@@ -165,7 +165,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return name
      */
     public @NotNull String name() {
-        return instance.getParent().name();
+        return pipeline.getParent().name();
     }
 
     /**
@@ -173,7 +173,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return height
      */
     public double height() {
-        return instance.height();
+        return pipeline.height();
     }
 
     /**
@@ -189,7 +189,7 @@ public abstract class Tracker implements AutoCloseable {
         if (isClosed.compareAndSet(false, true)) {
             closeEventHandler.accept(this);
             task.cancel(true);
-            instance.despawn();
+            pipeline.despawn();
         }
     }
 
@@ -197,7 +197,7 @@ public abstract class Tracker implements AutoCloseable {
      * Despawns this tracker to all players
      */
     public void despawn() {
-        if (!isClosed()) instance.despawn();
+        if (!isClosed()) pipeline.despawn();
     }
 
     public @NotNull TrackerModifier modifier() {
@@ -220,7 +220,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return whether to playing single.
      */
     public boolean isRunningSingleAnimation() {
-        var runningAnimation = instance.runningAnimation();
+        var runningAnimation = pipeline.runningAnimation();
         return runningAnimation != null && runningAnimation.type() == AnimationIterator.Type.PLAY_ONCE;
     }
 
@@ -233,7 +233,7 @@ public abstract class Tracker implements AutoCloseable {
     protected boolean spawn(@NotNull Player player, @NotNull PacketBundler bundler) {
         if (isClosed()) return false;
         if (!EventUtil.call(new ModelSpawnAtPlayerEvent(player, this))) return false;
-        return instance.spawn(player, bundler);
+        return pipeline.spawn(player, bundler);
     }
 
     /**
@@ -244,7 +244,7 @@ public abstract class Tracker implements AutoCloseable {
     public boolean remove(@NotNull Player player) {
         if (isClosed()) return false;
         EventUtil.call(new ModelDespawnAtPlayerEvent(player, this));
-        return instance.remove(player);
+        return pipeline.remove(player);
     }
 
     /**
@@ -252,7 +252,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return viewed player amount
      */
     public int playerCount() {
-        return instance.playerCount();
+        return pipeline.playerCount();
     }
 
     /**
@@ -260,7 +260,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return viewed players list
      */
     public @NotNull Stream<Player> viewedPlayer() {
-        return instance.viewedPlayer();
+        return pipeline.viewedPlayer();
     }
 
     /**
@@ -277,7 +277,7 @@ public abstract class Tracker implements AutoCloseable {
      * @param rgb toggle
      */
     public void tint(@NotNull BonePredicate predicate, int rgb) {
-        if (instance.tint(predicate, rgb)) forceUpdate(true);
+        if (pipeline.tint(predicate, rgb)) forceUpdate(true);
     }
 
     /**
@@ -332,7 +332,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return success
      */
     public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
-        return instance.animate(filter, animation, modifier, removeTask);
+        return pipeline.animate(filter, animation, modifier, removeTask);
     }
 
     /**
@@ -349,7 +349,7 @@ public abstract class Tracker implements AutoCloseable {
      * @param animation animation's name
      */
     public void stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String animation) {
-        instance.stopAnimation(filter, animation);
+        pipeline.stopAnimation(filter, animation);
     }
 
     /**
@@ -372,7 +372,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return success
      */
     public boolean replace(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull String animation, @NotNull AnimationModifier modifier) {
-        return instance.replace(filter, target, animation, modifier);
+        return pipeline.replace(filter, target, animation, modifier);
     }
 
 
@@ -383,7 +383,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return success
      */
     public boolean togglePart(@NotNull BonePredicate predicate, boolean toggle) {
-        return instance.togglePart(predicate, toggle);
+        return pipeline.togglePart(predicate, toggle);
     }
 
     /**
@@ -393,7 +393,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return success
      */
     public boolean itemStack(@NotNull BonePredicate predicate, @NotNull TransformedItemStack itemStack) {
-        return instance.itemStack(predicate, itemStack);
+        return pipeline.itemStack(predicate, itemStack);
     }
 
     /**
@@ -403,7 +403,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return success
      */
     public boolean glow(@NotNull BonePredicate predicate, boolean glow, int glowColor) {
-        return instance.glow(predicate, glow, glowColor);
+        return pipeline.glow(predicate, glow, glowColor);
     }
 
     /**
@@ -413,7 +413,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return success
      */
     public boolean enchant(@NotNull BonePredicate predicate, boolean enchant) {
-        return instance.enchant(predicate, enchant);
+        return pipeline.enchant(predicate, enchant);
     }
 
     /**
@@ -424,7 +424,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return success
      */
     public boolean brightness(@NotNull BonePredicate predicate, int block, int sky) {
-        return instance.brightness(predicate, block, sky);
+        return pipeline.brightness(predicate, block, sky);
     }
     /**
      * Updates item
@@ -432,7 +432,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return success
      */
     public boolean updateItem(@NotNull BonePredicate predicate) {
-        return instance.updateItem(predicate);
+        return pipeline.updateItem(predicate);
     }
 
     /**
@@ -459,7 +459,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return bone or null
      */
     public @Nullable RenderedBone bone(@NotNull Predicate<RenderedBone> predicate) {
-        return instance.boneOf(predicate);
+        return pipeline.boneOf(predicate);
     }
 
     /**
@@ -467,7 +467,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return all bones
      */
     public @NotNull List<RenderedBone> bones() {
-        return instance.bones();
+        return pipeline.bones();
     }
 
     /**
@@ -486,7 +486,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return success
      */
     public boolean hide(@NotNull Player player) {
-        return EventUtil.call(new PlayerHideTrackerEvent(this, player)) && instance.hide(player);
+        return EventUtil.call(new PlayerHideTrackerEvent(this, player)) && pipeline.hide(player);
     }
 
     /**
@@ -495,7 +495,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return hide
      */
     public boolean isHide(@NotNull Player player) {
-        return instance.isHide(player);
+        return pipeline.isHide(player);
     }
 
     /**
@@ -504,7 +504,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return success
      */
     public boolean show(@NotNull Player player) {
-        return EventUtil.call(new PlayerShowTrackerEvent(this, player)) && instance.show(player);
+        return EventUtil.call(new PlayerShowTrackerEvent(this, player)) && pipeline.show(player);
     }
 
     public void handleCloseEvent(@NotNull Consumer<Tracker> consumer) {
@@ -516,7 +516,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return renderer
      */
     public @NotNull ModelRenderer renderer() {
-        return instance.getParent();
+        return pipeline.getParent();
     }
 
     /**

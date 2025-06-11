@@ -34,10 +34,10 @@ import java.util.function.*;
 import java.util.stream.Stream;
 
 /**
- * A manager of each tracker.
+ * A pipeline class of each tracker.
  */
 @ApiStatus.Internal
-public final class RenderInstance {
+public final class RenderPipeline {
     @Getter
     private final ModelRenderer parent;
     @Getter
@@ -65,7 +65,7 @@ public final class RenderInstance {
     @Getter
     private final ScriptProcessor scriptProcessor = new ScriptProcessor();
 
-    public RenderInstance(
+    public RenderPipeline(
             @NotNull ModelRenderer parent,
             @NotNull RenderSource source,
             @NotNull Map<BoneName, RenderedBone> entityMap,

@@ -24,14 +24,14 @@ public sealed interface RenderSource {
         return entity instanceof Player player ? new BasePlayer(player) : new BaseEntity(entity);
     }
 
-    @NotNull Tracker create(@NotNull RenderInstance instance, @NotNull TrackerModifier modifier);
+    @NotNull Tracker create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier);
 
     sealed interface Based extends RenderSource {
         @NotNull Entity entity();
 
         @NotNull
         @Override
-        EntityTracker create(@NotNull RenderInstance instance, @NotNull TrackerModifier modifier);
+        EntityTracker create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier);
     }
 
     sealed interface Located extends RenderSource {
@@ -39,7 +39,7 @@ public sealed interface RenderSource {
 
         @NotNull
         @Override
-        DummyTracker create(@NotNull RenderInstance instance, @NotNull TrackerModifier modifier);
+        DummyTracker create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier);
     }
 
     sealed interface Profiled extends RenderSource {
@@ -50,16 +50,16 @@ public sealed interface RenderSource {
     record Dummy(@NotNull Location location) implements Located {
         @NotNull
         @Override
-        public DummyTracker create(@NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
-            return new DummyTracker(location, instance, modifier);
+        public DummyTracker create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier) {
+            return new DummyTracker(location, pipeline, modifier);
         }
     }
 
     record ProfiledDummy(@NotNull Location location, @NotNull GameProfile profile, boolean slim) implements Profiled, Located {
         @NotNull
         @Override
-        public DummyTracker create(@NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
-            return new DummyTracker(location, instance, modifier);
+        public DummyTracker create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier) {
+            return new DummyTracker(location, pipeline, modifier);
         }
     }
 
@@ -67,8 +67,8 @@ public sealed interface RenderSource {
 
         @NotNull
         @Override
-        public EntityTracker create(@NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
-            return EntityTrackerRegistry.registry(entity).create(instance.name(), r -> new EntityTracker(r, instance, modifier));
+        public EntityTracker create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier) {
+            return EntityTrackerRegistry.registry(entity).create(pipeline.name(), r -> new EntityTracker(r, pipeline, modifier));
         }
     }
 
@@ -76,8 +76,8 @@ public sealed interface RenderSource {
 
         @NotNull
         @Override
-        public EntityTracker create(@NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
-            return EntityTrackerRegistry.registry(entity).create(instance.name(), r -> new PlayerTracker(r, instance, modifier));
+        public EntityTracker create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier) {
+            return EntityTrackerRegistry.registry(entity).create(pipeline.name(), r -> new PlayerTracker(r, pipeline, modifier));
         }
 
         @NotNull

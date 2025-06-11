@@ -18,7 +18,7 @@ object PurpurHook {
         Bukkit.getPluginManager().registerEvents(object : Listener {
             @EventHandler
             fun CreateTrackerEvent.create() {
-                tracker().instance.viewFilter {
+                tracker().pipeline.viewFilter {
                     !config.usePurpurAfk() || !it.isAfk
                 }
             }
