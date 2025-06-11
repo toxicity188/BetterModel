@@ -107,8 +107,6 @@ public final class ModelRenderer {
      * @return entity tracker
      */
     public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull TrackerModifier modifier) {
-        var tracker = EntityTracker.tracker(entity.getUniqueId());
-        if (tracker != null) return tracker;
         return create(entity, modifier);
     }
 

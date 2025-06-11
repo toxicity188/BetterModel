@@ -2,7 +2,7 @@ package kr.toxicity.model.api.nms;
 
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.mount.MountController;
-import kr.toxicity.model.api.tracker.EntityTracker;
+import kr.toxicity.model.api.tracker.EntityTrackerRegistry;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -130,7 +130,7 @@ public interface HitBox {
      * Gets this hitbox's tracker.
      * @return tracker
      */
-    default @NotNull Optional<EntityTracker> tracker() {
-        return Optional.ofNullable(EntityTracker.tracker(source().getUniqueId()));
+    default @NotNull Optional<EntityTrackerRegistry> registry() {
+        return Optional.ofNullable(EntityTrackerRegistry.registry(source().getUniqueId()));
     }
 }

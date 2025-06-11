@@ -51,7 +51,7 @@ public sealed interface RenderSource {
         @NotNull
         @Override
         public DummyTracker create(@NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
-            return new DummyTracker(this, instance, modifier);
+            return new DummyTracker(location, instance, modifier);
         }
     }
 
@@ -59,7 +59,7 @@ public sealed interface RenderSource {
         @NotNull
         @Override
         public DummyTracker create(@NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
-            return new DummyTracker(this, instance, modifier);
+            return new DummyTracker(location, instance, modifier);
         }
     }
 
@@ -68,9 +68,7 @@ public sealed interface RenderSource {
         @NotNull
         @Override
         public EntityTracker create(@NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
-            var tracker = EntityTracker.tracker(entity.getUniqueId());
-            if (tracker != null) tracker.close();
-            return new EntityTracker(this, instance, modifier);
+            return EntityTrackerRegistry.registry(entity).create(instance.name(), r -> new EntityTracker(r, instance, modifier));
         }
     }
 
@@ -79,9 +77,7 @@ public sealed interface RenderSource {
         @NotNull
         @Override
         public EntityTracker create(@NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
-            var tracker = EntityTracker.tracker(entity.getUniqueId());
-            if (tracker != null) tracker.close();
-            return new PlayerTracker(this, instance, modifier);
+            return EntityTrackerRegistry.registry(entity).create(instance.name(), r -> new PlayerTracker(r, instance, modifier));
         }
 
         @NotNull

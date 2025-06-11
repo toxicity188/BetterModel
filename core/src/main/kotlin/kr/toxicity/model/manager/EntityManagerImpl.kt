@@ -10,6 +10,7 @@ import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.ModelInteractionHand
 import kr.toxicity.model.api.tracker.EntityTracker
+import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.util.registerListener
 import org.bukkit.entity.Entity
 import org.bukkit.entity.Player
@@ -31,38 +32,36 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
         if (BetterModel.IS_PAPER) registerListener(object : Listener { //More accurate world change event for Paper
             @EventHandler(priority = EventPriority.MONITOR)
             fun EntityRemoveFromWorldEvent.remove() {
-                EntityTracker.tracker(entity)?.let {
-                    if (!it.forRemoval()) it.despawn()
-                }
+                EntityTrackerRegistry.registry(entity.uniqueId)?.despawn()
             }
             @EventHandler(priority = EventPriority.MONITOR)
             fun EntityAddToWorldEvent.add() {
-                EntityTracker.tracker(entity)?.refresh()
+                EntityTrackerRegistry.registry(entity.uniqueId)?.refresh()
             }
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun EntityJumpEvent.jump() {
-                EntityTracker.tracker(entity)?.animate("jump")
+                entity.forEachTracker { it.animate("jump") }
             }
         })
         else registerListener(object : Listener { //Portal event for Spigot
             @EventHandler(priority = EventPriority.MONITOR)
             fun EntityRemoveEvent.remove() {
-                EntityTracker.tracker(entity)?.let {
+                entity.forEachTracker {
                     if (!it.forRemoval()) it.despawn()
                 }
             }
             @EventHandler(priority = EventPriority.MONITOR)
             fun EntityPortalEvent.add() {
-                EntityTracker.tracker(entity)?.let {
-                    if (!it.forRemoval()) it.despawn()
-                    if (!it.adapter.dead()) it.refresh()
+                EntityTrackerRegistry.registry(entity.uniqueId)?.let {
+                    it.despawn()
+                    it.refresh()
                 }
             }
             @EventHandler(priority = EventPriority.MONITOR)
             fun PlayerPortalEvent.add() {
-                EntityTracker.tracker(player)?.let {
-                    if (!it.forRemoval()) it.despawn()
-                    if (!it.adapter.dead()) it.refresh()
+                EntityTrackerRegistry.registry(player.uniqueId)?.let {
+                    it.despawn()
+                    it.refresh()
                 }
             }
         })
@@ -70,7 +69,7 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
 
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun EntityPotionEffectEvent.potion() { //Apply potion effect
-                EntityTracker.tracker(entity)?.updateBaseEntity()
+                entity.forEachTracker { it.updateBaseEntity() }
             }
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun EntityDismountEvent.dismount() { //Dismount
@@ -79,24 +78,24 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
             }
             @EventHandler(priority = EventPriority.MONITOR)
             fun PlayerQuitEvent.quit() { //Quit
-                EntityTracker.tracker(player)?.close()
+                EntityTrackerRegistry.registry(player.uniqueId)?.close()
                 (player.vehicle as? HitBox)?.dismount(player)
             }
             @EventHandler(priority = EventPriority.MONITOR)
             fun ChunkLoadEvent.load() { //Chunk load
-                chunk.entities.forEach {
-                    EntityTracker.tracker(it)?.refresh()
+                chunk.entities.forEach { entity ->
+                    EntityTrackerRegistry.registry(entity.uniqueId)?.refresh()
                 }
             }
             @EventHandler(priority = EventPriority.MONITOR)
             fun ChunkUnloadEvent.unload() { //Chunk unload
-                chunk.entities.forEach {
-                    EntityTracker.tracker(it)?.despawn()
+                chunk.entities.forEach { entity ->
+                    EntityTrackerRegistry.registry(entity.uniqueId)?.despawn()
                 }
             }
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             fun EntityDeathEvent.death() { //Death
-                EntityTracker.tracker(entity)?.let {
+                entity.forEachTracker {
                     if (!it.animate("death", AnimationModifier.DEFAULT_WITH_PLAY_ONCE) {
                             it.close()
                         }) it.close()
@@ -147,12 +146,16 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
 //                        EntityTracker.tracker(damager)?.animate("attack", AnimationModifier.DEFAULT_WITH_PLAY_ONCE)
 //                    }
                 }
-                EntityTracker.tracker(entity)?.let {
+                entity.forEachTracker {
                     it.animate("damage", AnimationModifier.DEFAULT_WITH_PLAY_ONCE)
                     it.damageTint()
                 }
             }
         })
+    }
+
+    private fun Entity.forEachTracker(block: (EntityTracker) -> Unit) {
+        EntityTrackerRegistry.registry(uniqueId)?.trackers()?.forEach(block)
     }
 
     private fun Player.triggerDismount(e: Entity): Boolean {
@@ -171,5 +174,8 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
     }
 
     override fun reload(info: ReloadInfo) {
+        EntityTrackerRegistry.REGISTRIES.forEach {
+            it.reload()
+        }
     }
 }

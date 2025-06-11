@@ -5,17 +5,14 @@ import io.lumine.mythic.api.skills.INoTargetSkill
 import io.lumine.mythic.api.skills.SkillMetadata
 import io.lumine.mythic.api.skills.SkillResult
 import io.lumine.mythic.bukkit.MythicBukkit
-import io.lumine.mythic.core.skills.SkillMechanic
 import kr.toxicity.model.api.nms.HitBoxListener
-import kr.toxicity.model.compatibility.mythicmobs.bonePredicate
-import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderArgs
-import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderString
-import kr.toxicity.model.compatibility.mythicmobs.toTracker
+import kr.toxicity.model.compatibility.mythicmobs.*
 import org.bukkit.entity.Damageable
 import org.bukkit.entity.Entity
 
-class BindHitBoxMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), INoTargetSkill {
+class BindHitBoxMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
 
+    private val model = mlc.modelPlaceholder
     private val predicate = mlc.bonePredicate
     private val type = mlc.toPlaceholderString(arrayOf("type", "t", "mob", "m")) {
         if (it != null) MythicBukkit.inst().mobManager.getMythicMob(it).orElse(null) else null
@@ -27,7 +24,7 @@ class BindHitBoxMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.ins
 
     override fun cast(p0: SkillMetadata): SkillResult {
         val args = p0.toPlaceholderArgs()
-        return p0.toTracker()?.let {
+        return p0.toTracker(model(args))?.let {
             val e = type(args) ?: return SkillResult.CONDITION_FAILED
             val spawned = e.spawn(p0.caster.location, p0.caster.level).apply {
                 setParent(p0.caster)

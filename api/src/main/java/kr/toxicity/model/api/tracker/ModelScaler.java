@@ -58,7 +58,7 @@ public sealed interface ModelScaler {
 
     interface Getter {
         Getter DEFAULT = t -> 1F;
-        Getter ENTITY = t -> t instanceof EntityTracker entityTracker ? (float) entityTracker.getAdapter().scale() : 1F;
+        Getter ENTITY = t -> t instanceof EntityTracker entityTracker ? (float) entityTracker.registry().adapter().scale() : 1F;
         float get(@NotNull Tracker tracker);
 
         static Getter value(float value) {

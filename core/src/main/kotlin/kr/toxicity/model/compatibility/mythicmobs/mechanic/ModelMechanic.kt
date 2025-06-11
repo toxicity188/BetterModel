@@ -4,25 +4,19 @@ import io.lumine.mythic.api.config.MythicLineConfig
 import io.lumine.mythic.api.skills.INoTargetSkill
 import io.lumine.mythic.api.skills.SkillMetadata
 import io.lumine.mythic.api.skills.SkillResult
-import io.lumine.mythic.bukkit.MythicBukkit
-import io.lumine.mythic.core.skills.SkillMechanic
-import kr.toxicity.model.api.BetterModel
-import kr.toxicity.model.api.tracker.EntityTracker
+import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.tracker.ModelScaler
 import kr.toxicity.model.api.tracker.TrackerModifier
 import kr.toxicity.model.api.util.EntityUtil
+import kr.toxicity.model.compatibility.mythicmobs.modelPlaceholder
 import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderArgs
 import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderBoolean
 import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderFloat
-import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderString
 import kr.toxicity.model.manager.ModelManagerImpl
-import kr.toxicity.model.util.toPackName
 
-class ModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), INoTargetSkill {
+class ModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
 
-    private val mid = mlc.toPlaceholderString(arrayOf("mid", "m", "model")) {
-        it?.toPackName()
-    }
+    private val mid = mlc.modelPlaceholder
     private val s = mlc.toPlaceholderFloat(arrayOf("scale", "s"), 1F)
     private val st = mlc.toPlaceholderBoolean(arrayOf("sight-trace", "st"), true)
     private val da = mlc.toPlaceholderBoolean(arrayOf("damageanimation", "da", "animation"), true)
@@ -39,25 +33,20 @@ class ModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().s
         val args = p0.toPlaceholderArgs()
         val e = p0.caster.entity.bukkitEntity
         return if (r(args)) {
-            EntityTracker.tracker(e.uniqueId)?.run {
-                close()
-                SkillResult.SUCCESS
-            } ?: SkillResult.CONDITION_FAILED
+            if (mid(args)?.let {
+                EntityTrackerRegistry.registry(e.uniqueId)?.remove(it)
+            } == true) SkillResult.SUCCESS else SkillResult.CONDITION_FAILED
         } else {
             val scale = s(args)
             ModelManagerImpl.renderer(mid(args) ?: return SkillResult.CONDITION_FAILED)?.let {
-                val created = it.create(e, TrackerModifier(
+                it.create(e, TrackerModifier(
                     ModelScaler.value(scale).composite(ModelScaler.entity()),
                     st(args),
                     da(args),
                     dt(args),
                     vr(args),
-                    shadow(args),
-                    TrackerModifier.HideOption.DEFAULT)
-                )
-                BetterModel.plugin().scheduler().taskLater(1, e) {
-                    created.spawnNearby()
-                }
+                    shadow(args)
+                ))
                 SkillResult.SUCCESS
             } ?: SkillResult.CONDITION_FAILED
         }

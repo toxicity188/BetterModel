@@ -3,10 +3,13 @@ package kr.toxicity.model.compatibility.mythicmobs
 import io.lumine.mythic.api.adapters.AbstractEntity
 import io.lumine.mythic.api.config.MythicLineConfig
 import io.lumine.mythic.api.skills.SkillMetadata
-import kr.toxicity.model.api.tracker.EntityTracker
+import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.util.function.BonePredicate
 import kr.toxicity.model.util.boneName
+import kr.toxicity.model.util.toPackName
+import kr.toxicity.model.util.toTracker
 
+val MM_MODEL_ID = arrayOf("mid", "m", "model")
 val MM_PART_ID = arrayOf("partid", "p", "pid", "part")
 val MM_CHILDREN = arrayOf("children", "child")
 val MM_EXACT_MATCH = arrayOf("exactmatch", "em", "exact", "match")
@@ -14,8 +17,8 @@ val MM_SEAT = arrayOf("seat", "p", "pbone")
 
 const val WHITE = 0xFFFFFF
 
-fun SkillMetadata.toTracker() = caster.entity.toTracker()
-fun AbstractEntity.toTracker() = EntityTracker.tracker(bukkitEntity)
+fun SkillMetadata.toTracker(model: String?) = caster.entity.toTracker(model)
+fun AbstractEntity.toTracker(model: String?) = bukkitEntity.toTracker(model)
 
 fun MythicLineConfig.toPlaceholderString(array: Array<String>, defaultValue: String? = null) = toPlaceholderString(array, defaultValue) { it }
 fun <T> MythicLineConfig.toPlaceholderStringList(array: Array<String>, mapper: (List<String>) -> T) = toPlaceholderString(array) {
@@ -87,6 +90,11 @@ val MythicLineConfig.bonePredicateNullable
     get() = toBonePredicate(BonePredicate.TRUE)
 val MythicLineConfig.bonePredicate
     get() = toBonePredicate(BonePredicate.FALSE)
+
+val MythicLineConfig.modelPlaceholder
+    get() = toPlaceholderString(MM_MODEL_ID) {
+        it?.toPackName()
+    }
 
 fun MythicLineConfig.toBonePredicate(defaultPredicate: BonePredicate): (PlaceholderArgument) -> BonePredicate {
     val match = toPlaceholderBoolean(MM_EXACT_MATCH, true)

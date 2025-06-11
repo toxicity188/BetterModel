@@ -1,7 +1,7 @@
 package kr.toxicity.model.compatibility.citizens.trait
 
 import kr.toxicity.model.api.data.renderer.ModelRenderer
-import kr.toxicity.model.api.tracker.EntityTracker
+import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.manager.ModelManagerImpl
 import net.citizensnpcs.api.event.DespawnReason
 import net.citizensnpcs.api.trait.Trait
@@ -16,9 +16,7 @@ class ModelTrait : Trait("model") {
         get() = _renderer
         set(value) {
             npc.entity?.let {
-                value?.create(it)?.apply {
-                    spawnNearby()
-                } ?: EntityTracker.tracker(it.uniqueId)?.close()
+                value?.create(it) ?: EntityTrackerRegistry.registry(it.uniqueId)?.close()
             }
             _renderer = value
         }
@@ -33,7 +31,7 @@ class ModelTrait : Trait("model") {
 
     override fun save(key: DataKey) {
         npc.entity?.uniqueId?.let { uuid ->
-            EntityTracker.tracker(uuid)?.name()?.let {
+            EntityTrackerRegistry.registry(uuid)?.first()?.name()?.let {
                 key.setString("", it)
             }
         }
@@ -41,10 +39,8 @@ class ModelTrait : Trait("model") {
 
     override fun onSpawn() {
         npc.entity?.let {
-            if (EntityTracker.tracker(it.uniqueId) == null) {
-                renderer?.create(it)?.apply {
-                    spawnNearby()
-                }
+            if (EntityTrackerRegistry.registry(it.uniqueId) == null) {
+                renderer?.create(it)
             }
         }
     }
@@ -55,7 +51,7 @@ class ModelTrait : Trait("model") {
 
     override fun onDespawn() {
         npc?.entity?.uniqueId?.let {
-            EntityTracker.tracker(it)?.close()
+            EntityTrackerRegistry.registry(it)?.close()
         }
     }
 
@@ -65,7 +61,7 @@ class ModelTrait : Trait("model") {
 
     override fun onRemove() {
         npc?.entity?.uniqueId?.let {
-            EntityTracker.tracker(it)?.close()
+            EntityTrackerRegistry.registry(it)?.close()
         }
     }
 

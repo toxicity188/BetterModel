@@ -5,7 +5,7 @@ import io.netty.buffer.Unpooled
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.nms.PacketBundler
-import kr.toxicity.model.api.tracker.Tracker
+import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.util.EventUtil
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.network.syncher.SynchedEntityData
@@ -139,9 +139,9 @@ internal fun <T> useByteBuf(block: (FriendlyByteBuf) -> T): T {
 
 internal fun PacketBundler.unwrap(): PacketBundlerImpl = this as PacketBundlerImpl
 
-internal fun Tracker.entityFlag(byte: Byte): Byte {
+internal fun EntityTrackerRegistry.entityFlag(byte: Byte): Byte {
     var b = byte.toInt()
-    val hideOption = modifier().hideOption()
+    val hideOption = hideOption()
     if (hideOption.fire()) b = b and 1.inv()
     if (hideOption.visibility()) b = b or (1 shl 5)
     if (hideOption.glowing()) b = b and (1 shl 6).inv()

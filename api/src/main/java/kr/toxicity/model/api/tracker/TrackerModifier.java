@@ -14,7 +14,6 @@ import java.util.Objects;
  * @param damageTint enables damage tint
  * @param viewRange view range
  * @param shadow create shadow
- * @param hideOption hide option
  */
 public record TrackerModifier(
         @NotNull ModelScaler scale,
@@ -22,24 +21,8 @@ public record TrackerModifier(
         @SerializedName("damage-animation") boolean damageAnimation,
         @SerializedName("damage-tint") boolean damageTint,
         @SerializedName("view-range") float viewRange,
-        boolean shadow,
-        @SerializedName("hide-option") @NotNull HideOption hideOption
+        boolean shadow
 ) {
-    @lombok.Builder
-    public record HideOption(
-            boolean equipment,
-            boolean fire,
-            boolean visibility,
-            boolean glowing
-    ) {
-        public static final HideOption DEFAULT = new HideOption(
-                true,
-                true,
-                true,
-                true
-        );
-    }
-
     /**
      * Default modifier
      */
@@ -49,8 +32,7 @@ public record TrackerModifier(
             true,
             true,
             EntityUtil.ENTITY_MODEL_VIEW_RADIUS,
-            true,
-            HideOption.DEFAULT
+            true
     );
 
     /**
@@ -79,7 +61,6 @@ public record TrackerModifier(
         private boolean damageTint;
         private float viewRange;
         private boolean shadow;
-        private HideOption hideOption;
 
         /**
          * Private initializer
@@ -92,7 +73,6 @@ public record TrackerModifier(
             this.damageTint = modifier.damageTint;
             this.viewRange = modifier.viewRange;
             this.shadow = modifier.shadow;
-            this.hideOption = modifier.hideOption;
         }
 
         /**
@@ -156,16 +136,6 @@ public record TrackerModifier(
         }
 
         /**
-         * Set hide option
-         * @param option hide option
-         * @return self
-         */
-        public @NotNull Builder hideOption(@NotNull HideOption option) {
-            this.hideOption = Objects.requireNonNull(option);
-            return this;
-        }
-
-        /**
          * Builds modifier
          * @return modifier
          */
@@ -176,8 +146,7 @@ public record TrackerModifier(
                     damageAnimation,
                     damageTint,
                     viewRange,
-                    shadow,
-                    hideOption
+                    shadow
             );
         }
     }

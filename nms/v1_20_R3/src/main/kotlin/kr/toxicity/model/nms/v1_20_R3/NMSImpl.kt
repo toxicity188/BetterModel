@@ -11,7 +11,7 @@ import kr.toxicity.model.api.data.blueprint.NamedBoundingBox
 import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.nms.*
 import kr.toxicity.model.api.player.PlayerLimb
-import kr.toxicity.model.api.tracker.EntityTracker
+import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.tracker.ModelRotation
 import kr.toxicity.model.api.tracker.Tracker
 import kr.toxicity.model.api.util.function.BonePredicate
@@ -127,7 +127,7 @@ class NMSImpl : NMS {
         private val player: Player
     ) : PlayerChannelHandler, ChannelDuplexHandler() {
         private val connection = (player as CraftPlayer).handle.connection
-        private val entityUUIDMap = ConcurrentHashMap<UUID, EntityTracker>()
+        private val entityUUIDMap = ConcurrentHashMap<UUID, EntityTrackerRegistry>()
         private val uuidValuesView = Collections.unmodifiableCollection(entityUUIDMap.values)
         private val slim = BetterModel.plugin().skinManager().isSlim(profile(player))
 
@@ -144,7 +144,7 @@ class NMSImpl : NMS {
             showPlayerLimb = show
         }
         override fun isSlim(): Boolean = slim
-        override fun trackedTrackers(): Collection<EntityTracker> = uuidValuesView
+        override fun trackedRegistries(): Collection<EntityTrackerRegistry> = uuidValuesView
 
         override fun close() {
             val channel = getConnection(connection).channel
@@ -167,16 +167,14 @@ class NMSImpl : NMS {
             entityUUIDMap[it.uuid]
         }
 
-        override fun startTrack(tracker: EntityTracker) {
-            val entity = (tracker.sourceEntity() as CraftEntity).vanillaEntity
-            entityUUIDMap.computeIfAbsent(entity.uuid) {
-                tracker
+        override fun startTrack(registry: EntityTrackerRegistry) {
+            entityUUIDMap.computeIfAbsent(registry.entity().uniqueId) {
+                registry
             }
         }
 
-        override fun endTrack(tracker: EntityTracker) {
-            val e = tracker.sourceEntity()
-            val handle = (e as CraftEntity).vanillaEntity
+        override fun endTrack(registry: EntityTrackerRegistry) {
+            val handle = registry.adapter().handle() as Entity
             entityUUIDMap.remove(handle.uuid)
             val list = arrayListOf<Packet<ClientGamePacketListener>>()
             list += ClientboundSetEntityDataPacket(handle.id, handle.entityData.nonDefaultValues!!)
@@ -200,7 +198,7 @@ class NMSImpl : NMS {
                     id.toPlayerEntity()?.let { e ->
                         if (!e.bukkitEntity.persistentDataContainer.has(Tracker.TRACKING_ID)) return this
                         BetterModel.plugin().scheduler().taskLater(1, e.bukkitEntity) {
-                            EntityTracker.tracker(e.bukkitEntity)?.let {
+                            EntityTrackerRegistry.registry(e.bukkitEntity).let {
                                 if (it.canBeSpawnedAt(player)) it.spawn(player)
                             }
                         }
@@ -234,10 +232,10 @@ class NMSImpl : NMS {
                         ) else it
                     })
                 }
-                is ClientboundSetEquipmentPacket -> if (entity.toTracker()?.modifier()?.hideOption()?.equipment() == true) return ClientboundSetEquipmentPacket(entity, EquipmentSlot.entries.map { e ->
+                is ClientboundSetEquipmentPacket -> if (entity.toTracker()?.hideOption()?.equipment() == true) return ClientboundSetEquipmentPacket(entity, EquipmentSlot.entries.map { e ->
                     Pair.of(e, Items.AIR.defaultInstance)
                 })
-                is ClientboundRespawnPacket -> EntityTracker.tracker(player.uniqueId)?.let {
+                is ClientboundRespawnPacket -> EntityTrackerRegistry.registry(player.uniqueId)?.let {
                     send(it.mountPacket())
                 }
             }
@@ -249,19 +247,21 @@ class NMSImpl : NMS {
         }
 
         override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
-            fun Tracker.updatePlayerLimb() {
+            fun EntityTrackerRegistry.updatePlayerLimb() {
                 player.updateInventory()
                 connection.send(ClientboundSetEquipmentPacket(connection.player.id, emptyList()))
                 BetterModel.plugin().scheduler().asyncTaskLater(1) {
-                    if (updateItem(BonePredicate.of(BonePredicate.State.NOT_SET) {
-                            it.itemMapper is PlayerLimb.LimbItemMapper
-                        })) forceUpdate(true)
+                    trackers().forEach { tracker ->
+                        if (tracker.updateItem(BonePredicate.of(BonePredicate.State.NOT_SET) {
+                                it.itemMapper is PlayerLimb.LimbItemMapper
+                            })) tracker.forceUpdate(true)
+                    }
                 }
             }
             when (msg) {
                 is ServerboundSetCarriedItemPacket -> {
                     connection.player.id.toTracker()?.let { tracker ->
-                        if (!tracker.modifier().hideOption().equipment()) return super.channelRead(ctx, msg)
+                        if (!tracker.hideOption().equipment()) return super.channelRead(ctx, msg)
                         if (CONFIG.cancelPlayerModelInventory()) {
                             connection.send(ClientboundSetCarriedItemPacket(player.inventory.heldItemSlot))
                             return
@@ -272,7 +272,7 @@ class NMSImpl : NMS {
                 }
                 is ServerboundPlayerActionPacket -> {
                     connection.player.id.toTracker()?.let { tracker ->
-                        if (!tracker.modifier().hideOption().equipment()) return super.channelRead(ctx, msg)
+                        if (!tracker.hideOption().equipment()) return super.channelRead(ctx, msg)
                         if (CONFIG.cancelPlayerModelInventory()) return
                         else tracker.updatePlayerLimb()
                     }
@@ -281,25 +281,28 @@ class NMSImpl : NMS {
             super.channelRead(ctx, msg)
         }
 
-        private fun EntityTracker.remove() {
+        private fun EntityTrackerRegistry.remove() {
             remove(player)
         }
     }
 
-    override fun mount(tracker: EntityTracker, bundler: PacketBundler) {
-        bundler.unwrap() += tracker.mountPacket()
+    override fun mount(registry: EntityTrackerRegistry, bundler: PacketBundler) {
+        bundler.unwrap() += registry.mountPacket()
     }
 
-    private fun EntityTracker.mountPacket(entity: Entity = adapter.handle() as Entity, array: IntArray = entity.passengers.filter {
-        EntityTracker.tracker(it.uuid) == null
+    private fun EntityTrackerRegistry.mountPacket(entity: Entity = adapter().handle() as Entity, array: IntArray = entity.passengers.filter {
+        EntityTrackerRegistry.registry(it.uuid) == null
     }.map {
         it.id
     }.toIntArray()): ClientboundSetPassengersPacket {
         return useByteBuf { buffer ->
             buffer.writeVarInt(entity.id)
-            buffer.writeVarIntArray((displays().mapNotNull {
-                (it as? ModelDisplayImpl)?.display?.id
-            }.toIntArray() + array))
+            buffer.writeVarIntArray(
+                (displays()
+                .mapToInt {
+                    (it as ModelDisplayImpl).display.id
+                }.toArray() + array)
+            )
             ClientboundSetPassengersPacket(buffer)
         }
     }

@@ -11,9 +11,6 @@ public record TrackerData(@NotNull String id, @NotNull TrackerModifier modifier)
     public static @NotNull TrackerData deserialize(@NotNull JsonElement element) {
         return element.isJsonPrimitive() ? new TrackerData(element.getAsString(), TrackerModifier.DEFAULT) : Tracker.PARSER.fromJson(element, TrackerData.class);
     }
-    public static @NotNull TrackerData deserialize(@NotNull String raw) {
-        return deserialize(JsonParser.parseString(raw));
-    }
 
     @NotNull
     @Override

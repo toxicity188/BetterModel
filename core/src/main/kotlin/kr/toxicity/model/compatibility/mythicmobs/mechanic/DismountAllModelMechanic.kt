@@ -5,15 +5,11 @@ import io.lumine.mythic.api.config.MythicLineConfig
 import io.lumine.mythic.api.skills.ITargetedEntitySkill
 import io.lumine.mythic.api.skills.SkillMetadata
 import io.lumine.mythic.api.skills.SkillResult
-import io.lumine.mythic.bukkit.MythicBukkit
-import io.lumine.mythic.core.skills.SkillMechanic
-import kr.toxicity.model.compatibility.mythicmobs.MM_SEAT
-import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderArgs
-import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderStringList
-import kr.toxicity.model.compatibility.mythicmobs.toTracker
+import kr.toxicity.model.compatibility.mythicmobs.*
 
-class DismountAllModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), ITargetedEntitySkill {
+class DismountAllModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), ITargetedEntitySkill {
 
+    private val model = mlc.modelPlaceholder
     private val seat = mlc.toPlaceholderStringList(MM_SEAT) {
         it.toSet()
     }
@@ -24,7 +20,7 @@ class DismountAllModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukk
 
     override fun castAtEntity(p0: SkillMetadata, p1: AbstractEntity): SkillResult {
         val args = toPlaceholderArgs(p0, p1)
-        return p0.toTracker()?.let { tracker ->
+        return p0.toTracker(model(args))?.let { tracker ->
             val set = seat(args)
             tracker.bones().forEach {
                 if (set.isEmpty() || set.contains(it.name.name)) it.hitBox?.dismountAll()

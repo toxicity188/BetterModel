@@ -4,15 +4,11 @@ import io.lumine.mythic.api.config.MythicLineConfig
 import io.lumine.mythic.api.skills.INoTargetSkill
 import io.lumine.mythic.api.skills.SkillMetadata
 import io.lumine.mythic.api.skills.SkillResult
-import io.lumine.mythic.bukkit.MythicBukkit
-import io.lumine.mythic.core.skills.SkillMechanic
-import kr.toxicity.model.compatibility.mythicmobs.bonePredicateNullable
-import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderArgs
-import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderInteger
-import kr.toxicity.model.compatibility.mythicmobs.toTracker
+import kr.toxicity.model.compatibility.mythicmobs.*
 
-class BrightnessMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), INoTargetSkill {
+class BrightnessMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
 
+    private val model = mlc.modelPlaceholder
     private val predicate = mlc.bonePredicateNullable
     private val block = mlc.toPlaceholderInteger(arrayOf("block", "b")) {
         it.coerceAtLeast(-1).coerceAtMost(15)
@@ -23,7 +19,7 @@ class BrightnessMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.ins
 
     override fun cast(p0: SkillMetadata): SkillResult {
         val args = p0.toPlaceholderArgs()
-        return p0.toTracker()?.let {
+        return p0.toTracker(model(args))?.let {
             if (it.brightness(predicate(args), block(args), sky(args))) it.forceUpdate(true)
             SkillResult.SUCCESS
         } ?: SkillResult.CONDITION_FAILED

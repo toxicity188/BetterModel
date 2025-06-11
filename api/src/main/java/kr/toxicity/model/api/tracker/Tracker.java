@@ -8,7 +8,6 @@ import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.data.renderer.ModelRenderer;
 import kr.toxicity.model.api.data.renderer.RenderInstance;
-import kr.toxicity.model.api.data.renderer.RenderSource;
 import kr.toxicity.model.api.event.*;
 import kr.toxicity.model.api.event.PlayerHideTrackerEvent;
 import kr.toxicity.model.api.event.PlayerShowTrackerEvent;
@@ -35,6 +34,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -58,8 +58,6 @@ public abstract class Tracker implements AutoCloseable {
     @Getter
     protected final RenderInstance instance;
     private final ScheduledFuture<?> task;
-    @Getter
-    private final RenderSource source;
     private final AtomicBoolean isClosed = new AtomicBoolean();
     private final AtomicBoolean readyForForceUpdate = new AtomicBoolean();
     private final AtomicBoolean forRemoval = new AtomicBoolean();
@@ -70,18 +68,17 @@ public abstract class Tracker implements AutoCloseable {
     private PacketBundler viewBundler, dataBundler;
     private long frame = 0;
     private ModelRotator rotator = ModelRotator.EMPTY;
+    private Consumer<Tracker> closeEventHandler = t -> EventUtil.call(new CloseTrackerEvent(t));
 
     private BiConsumer<Tracker, PacketBundler> consumer = (t, b) -> {};
 
     /**
      * Creates tracker
-     * @param source render source
      * @param instance target instance
      * @param modifier modifier
      */
-    public Tracker(@NotNull RenderSource source, @NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
+    public Tracker(@NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
         this.instance = instance;
-        this.source = source;
         this.modifier = modifier;
         this.trackerData = new TrackerData(instance.name(), modifier);
         viewBundler = instance.createBundler();
@@ -190,7 +187,7 @@ public abstract class Tracker implements AutoCloseable {
     @Override
     public void close() {
         if (isClosed.compareAndSet(false, true)) {
-            EventUtil.call(new CloseTrackerEvent(this));
+            closeEventHandler.accept(this);
             task.cancel(true);
             instance.despawn();
         }
@@ -236,8 +233,7 @@ public abstract class Tracker implements AutoCloseable {
     protected boolean spawn(@NotNull Player player, @NotNull PacketBundler bundler) {
         if (isClosed()) return false;
         if (!EventUtil.call(new ModelSpawnAtPlayerEvent(player, this))) return false;
-        instance.spawn(player, bundler);
-        return true;
+        return instance.spawn(player, bundler);
     }
 
     /**
@@ -248,8 +244,7 @@ public abstract class Tracker implements AutoCloseable {
     public boolean remove(@NotNull Player player) {
         if (isClosed()) return false;
         EventUtil.call(new ModelDespawnAtPlayerEvent(player, this));
-        instance.remove(player);
-        return true;
+        return instance.remove(player);
     }
 
     /**
@@ -479,11 +474,10 @@ public abstract class Tracker implements AutoCloseable {
      * Gets all model displays
      * @return all model displays
      */
-    public @NotNull List<ModelDisplay> displays() {
+    public @NotNull Stream<ModelDisplay> displays() {
         return bones().stream()
                 .map(RenderedBone::getDisplay)
-                .filter(Objects::nonNull)
-                .toList();
+                .filter(Objects::nonNull);
     }
 
     /**
@@ -511,6 +505,10 @@ public abstract class Tracker implements AutoCloseable {
      */
     public boolean show(@NotNull Player player) {
         return EventUtil.call(new PlayerShowTrackerEvent(this, player)) && instance.show(player);
+    }
+
+    public void handleCloseEvent(@NotNull Consumer<Tracker> consumer) {
+        closeEventHandler = closeEventHandler.andThen(consumer);
     }
 
     /**

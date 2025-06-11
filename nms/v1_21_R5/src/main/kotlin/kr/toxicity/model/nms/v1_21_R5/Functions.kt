@@ -139,9 +139,9 @@ internal fun <T> useByteBuf(block: (FriendlyByteBuf) -> T): T {
 
 internal fun PacketBundler.unwrap(): PacketBundlerImpl = this as PacketBundlerImpl
 
-internal fun Tracker.entityFlag(byte: Byte): Byte {
+internal fun EntityTrackerRegistry.entityFlag(byte: Byte): Byte {
     var b = byte.toInt()
-    val hideOption = modifier().hideOption()
+    val hideOption = hideOption()
     if (hideOption.fire()) b = b and 1.inv()
     if (hideOption.visibility()) b = b or (1 shl 5)
     if (hideOption.glowing()) b = b and (1 shl 6).inv()

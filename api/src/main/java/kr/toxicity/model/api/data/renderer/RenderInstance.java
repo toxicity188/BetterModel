@@ -285,9 +285,9 @@ public final class RenderInstance {
         }
     }
 
-    public void spawn(@NotNull Player player, @NotNull PacketBundler bundler) {
+    public boolean spawn(@NotNull Player player, @NotNull PacketBundler bundler) {
         var get = BetterModel.plugin().playerManager().player(player.getUniqueId());
-        if (get == null) return;
+        if (get == null) return false;
         if (playerMap.get(player.getUniqueId()) != null || spawnFilter.test(player)) {
             spawnPacketHandler.accept(bundler);
             var hided = isHide(player);
@@ -295,14 +295,17 @@ public final class RenderInstance {
                 value.iterateTree(b -> b.spawn(hided, bundler));
             }
             playerMap.put(player.getUniqueId(), get);
+            return true;
         }
+        return false;
     }
 
-    public void remove(@NotNull Player player) {
-        if (playerMap.remove(player.getUniqueId()) == null) return;
+    public boolean remove(@NotNull Player player) {
+        if (playerMap.remove(player.getUniqueId()) == null) return false;
         var bundler = createBundler();
         remove0(bundler);
         bundler.send(player);
+        return true;
     }
 
     private void remove0(@NotNull PacketBundler bundler) {

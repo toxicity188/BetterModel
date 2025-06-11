@@ -9,7 +9,7 @@ import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.api.manager.SkinManager
 import kr.toxicity.model.api.player.PlayerLimb
 import kr.toxicity.model.api.skin.SkinData
-import kr.toxicity.model.api.tracker.EntityTracker
+import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.util.TransformedItemStack
 import kr.toxicity.model.api.util.function.BonePredicate
 import kr.toxicity.model.api.version.MinecraftVersion
@@ -660,7 +660,7 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
                         ImageIO.read(stream).convertLegacy(),
                         selected
                     )
-                    EntityTracker.tracker(id)?.let { tracker ->
+                    EntityTrackerRegistry.registry(id)?.trackers()?.forEach { tracker ->
                         if (tracker.updateItem(BonePredicate.of(BonePredicate.State.NOT_SET) { bone ->
                             bone.itemMapper is PlayerLimb.LimbItemMapper
                         })) tracker.forceUpdate(true)

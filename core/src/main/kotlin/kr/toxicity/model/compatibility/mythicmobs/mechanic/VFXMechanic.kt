@@ -4,20 +4,15 @@ import io.lumine.mythic.api.config.MythicLineConfig
 import io.lumine.mythic.api.skills.INoTargetSkill
 import io.lumine.mythic.api.skills.SkillMetadata
 import io.lumine.mythic.api.skills.SkillResult
-import io.lumine.mythic.bukkit.MythicBukkit
-import io.lumine.mythic.core.skills.SkillMechanic
 import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.tracker.ModelScaler
 import kr.toxicity.model.api.tracker.TrackerModifier
-import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderArgs
-import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderBoolean
-import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderFloat
-import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderString
+import kr.toxicity.model.compatibility.mythicmobs.*
 import kr.toxicity.model.manager.ModelManagerImpl
 
-class VFXMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), INoTargetSkill {
+class VFXMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
 
-    private val mid = mlc.toPlaceholderString(arrayOf("mid", "m", "model"))
+    private val mid = mlc.modelPlaceholder
     private val state = mlc.toPlaceholderString(arrayOf("state", "s"))
     private val st = mlc.toPlaceholderBoolean(arrayOf("sight-trace", "st"), true)
     private val scl = mlc.toPlaceholderFloat(arrayOf("scale"), 1F)
@@ -39,12 +34,11 @@ class VFXMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().ski
                 false,
                 false,
                 0F,
-                false,
-                TrackerModifier.HideOption.DEFAULT
+                false
             ))
-            if (created.animate(s1, AnimationModifier(0, 0, spd(args))) {
+            if (!created.animate(s1, AnimationModifier(0, 0, spd(args))) {
                 created.close()
-            }) created.spawnNearby() else created.close()
+            }) created.close()
             SkillResult.SUCCESS
         } ?: SkillResult.CONDITION_FAILED
     }

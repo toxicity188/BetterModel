@@ -14,13 +14,12 @@ public final class PlayerTracker extends EntityTracker {
 
     /**
      * Creates player tracker
-     * @param entity player
      * @param instance render instance
      * @param modifier modifier
      */
     @ApiStatus.Internal
-    public PlayerTracker(@NotNull RenderSource.Based entity, @NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
-        super(entity, instance, modifier);
+    public PlayerTracker(@NotNull EntityTrackerRegistry registry, @NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
+        super(registry, instance, modifier);
         instance.spawnFilter(p -> {
             var handler = BetterModel.plugin().playerManager().player(p.getUniqueId());
             return handler != null && handler.showPlayerLimb();

@@ -5,13 +5,11 @@ import io.lumine.mythic.api.config.MythicLineConfig
 import io.lumine.mythic.api.skills.ITargetedEntitySkill
 import io.lumine.mythic.api.skills.SkillMetadata
 import io.lumine.mythic.api.skills.SkillResult
-import io.lumine.mythic.bukkit.MythicBukkit
-import io.lumine.mythic.core.skills.SkillMechanic
 import kr.toxicity.model.api.mount.MountControllers
 import kr.toxicity.model.api.nms.HitBoxListener
 import kr.toxicity.model.compatibility.mythicmobs.*
 
-class MountModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, "", mlc), ITargetedEntitySkill {
+class MountModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), ITargetedEntitySkill {
 
     companion object {
         private val dismountListener = HitBoxListener.builder()
@@ -21,6 +19,7 @@ class MountModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.ins
             .build()
     }
 
+    private val model = mlc.modelPlaceholder
     private val driver = mlc.toPlaceholderBoolean(arrayOf("driver", "d", "drive"), true)
     private val damagemount = mlc.toPlaceholderBoolean(arrayOf("damagemount", "dmg"), false)
     private val interact = mlc.toPlaceholderString(arrayOf("mode", "m")) exec@ {
@@ -45,12 +44,12 @@ class MountModelMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.ins
 
     override fun castAtEntity(p0: SkillMetadata, p1: AbstractEntity): SkillResult {
         val args = toPlaceholderArgs(p0, p1)
-        return p0.toTracker()?.let { tracker ->
+        return p0.toTracker(model(args))?.let { tracker ->
             val set = seat(args)
             tracker.bone {
                 (set.isEmpty() || set.contains(it.name.name))
                         && (it.hitBox?.hasMountDriver() != true)
-                        && (it.hitBox != null || it.createHitBox(tracker.adapter, { true }, dismountListener))
+                        && (it.hitBox != null || it.createHitBox(tracker.registry().adapter(), { true }, dismountListener))
             }?.let {
                 it.hitBox?.let { hitBox ->
                     hitBox.mountController(interact(args)

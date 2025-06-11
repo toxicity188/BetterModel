@@ -15,16 +15,10 @@ import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.manager.CommandManager
 import kr.toxicity.model.api.manager.PlayerManager
 import kr.toxicity.model.api.manager.ReloadInfo
-import kr.toxicity.model.api.tracker.EntityTracker
+import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.command.commandModule
-import kr.toxicity.model.util.ATTRIBUTE_SCALE
-import kr.toxicity.model.util.PLUGIN
-import kr.toxicity.model.util.audience
-import kr.toxicity.model.util.handleException
-import kr.toxicity.model.util.info
-import kr.toxicity.model.util.warn
-import kr.toxicity.model.util.withComma
+import kr.toxicity.model.util.*
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
@@ -49,15 +43,26 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                 executesPlayer(PlayerCommandExecutor { player, args ->
                     val name = args.get("name") as String
                     ModelManagerImpl.renderer(name)
-                        ?.create(player)
-                        ?.spawnNearby() ?: player.audience().warn("This model doesn't exist: $name")
+                        ?.create(player) ?: player.audience().warn("This model doesn't exist: $name")
                 })
             }
             command("undisguise") {
                 withShortDescription("undisguises self.")
                 withAliases("ud")
+                withOptionalArguments(StringArgument("model")
+                    .replaceSuggestions(ArgumentSuggestions.strings {
+                        (it.sender as? Player)?.uniqueId?.let { u ->
+                            EntityTrackerRegistry.registry(u)?.trackers()?.map { t ->
+                                t.name()
+                            }
+                        }?.toTypedArray() ?: emptyArray()
+                    })
+                )
                 executesPlayer(PlayerCommandExecutor { player, args ->
-                    EntityTracker.tracker(player)?.close() ?: player.audience().warn("Cannot find any model to undisguise")
+                    val model = args.get("model") as? String
+                    if (model != null) {
+                        player.toTracker(model)?.close() ?: player.audience().warn("Cannot find this model to undisguise: $model")
+                    } else EntityTrackerRegistry.registry(player.uniqueId)?.close() ?: player.audience().warn("Cannot find any model to undisguise")
                 })
             }
             command("spawn") {
@@ -93,7 +98,6 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                         ?.create(player.world.spawnEntity(player.location, t).apply {
                             if (PLUGIN.version() >= MinecraftVersion.V1_21 && this is LivingEntity) getAttribute(ATTRIBUTE_SCALE)?.baseValue = s
                         })
-                        ?.spawnNearby()
                         ?: player.audience().warn("Unable to find this renderer: $n")
                 })
             }

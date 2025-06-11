@@ -1,7 +1,6 @@
 package kr.toxicity.model.api.tracker;
 
 import kr.toxicity.model.api.data.renderer.RenderInstance;
-import kr.toxicity.model.api.data.renderer.RenderSource;
 import kr.toxicity.model.api.event.CreateDummyTrackerEvent;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.util.EventUtil;
@@ -25,13 +24,13 @@ public final class DummyTracker extends Tracker {
 
     /**
      * Void tracker.
-     * @param source source
+     * @param location location
      * @param instance render instance.
      * @param modifier modifier
      */
-    public DummyTracker(@NotNull RenderSource.Located source, @NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
-        super(source, instance, modifier);
-        this.location = source.location();
+    public DummyTracker(@NotNull Location location, @NotNull RenderInstance instance, @NotNull TrackerModifier modifier) {
+        super(instance, modifier);
+        this.location = location;
         instance.animate("spawn");
         instance.scale(() -> modifier.scale().scale(this));
         rotation(() -> new ModelRotation(0, this.location.getYaw()));

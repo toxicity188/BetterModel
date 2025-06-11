@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox;
 import kr.toxicity.model.api.mount.MountController;
 import kr.toxicity.model.api.tracker.EntityTracker;
+import kr.toxicity.model.api.tracker.EntityTrackerRegistry;
 import kr.toxicity.model.api.util.TransformedItemStack;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -58,10 +59,10 @@ public interface NMS {
 
     /**
      * Adds a mount packet for this tracker to bundler
-     * @param tracker tracker
+     * @param registry registry
      * @param bundler bundler
      */
-    void mount(@NotNull EntityTracker tracker, @NotNull PacketBundler bundler);
+    void mount(@NotNull EntityTrackerRegistry registry, @NotNull PacketBundler bundler);
 
     /**
      * Sends a hide packet for some entity to some player
