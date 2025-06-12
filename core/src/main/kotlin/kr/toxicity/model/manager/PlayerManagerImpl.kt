@@ -77,7 +77,7 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
 
     override fun animate(player: Player, model: String, animation: String, modifier: AnimationModifier) {
         renderMap[model]?.let {
-            val create = it.create(player)
+            val create = it.getOrCreate(player)
             if (!create.animate(animation, modifier) {
                     create.close()
                 }) create.close()

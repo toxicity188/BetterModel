@@ -72,7 +72,7 @@ public final class ModelRenderer {
         return parent.name();
     }
 
-
+    //----- Dummy -----
 
     /**
      * Creates tracker by location
@@ -81,33 +81,6 @@ public final class ModelRenderer {
      */
     public @NotNull DummyTracker create(@NotNull Location location) {
         return create(location, TrackerModifier.DEFAULT);
-    }
-    /**
-     * Creates tracker by entity
-     * @param entity entity
-     * @return entity tracker
-     */
-    public @NotNull EntityTracker create(@NotNull Entity entity) {
-        return create(entity, TrackerModifier.DEFAULT);
-    }
-
-    /**
-     * Gets or creates tracker by entity
-     * @param entity entity
-     * @return entity tracker
-     */
-    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity) {
-        return getOrCreate(entity, TrackerModifier.DEFAULT);
-    }
-
-    /**
-     * Gets or creates tracker by entity
-     * @param entity entity
-     * @param modifier modifier
-     * @return entity tracker
-     */
-    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull TrackerModifier modifier) {
-        return create(entity, modifier);
     }
 
     /**
@@ -193,6 +166,26 @@ public final class ModelRenderer {
         );
     }
 
+    //----- Entity -----
+
+    /**
+     * Creates tracker by entity
+     * @param entity entity
+     * @return entity tracker
+     */
+    public @NotNull EntityTracker create(@NotNull Entity entity) {
+        return create(entity, TrackerModifier.DEFAULT);
+    }
+
+    /**
+     * Gets or creates tracker by entity
+     * @param entity entity
+     * @return entity tracker
+     */
+    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity) {
+        return getOrCreate(entity, TrackerModifier.DEFAULT);
+    }
+
     /**
      * Creates tracker by entity
      * @param entity entity
@@ -202,6 +195,20 @@ public final class ModelRenderer {
     public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull TrackerModifier modifier) {
         var source = RenderSource.of(entity);
         return source.create(
+                pipeline(source, entity.getLocation().add(0, -1024, 0), modifier),
+                modifier
+        );
+    }
+
+    /**
+     * Gets or creates tracker by entity
+     * @param entity entity
+     * @param modifier modifier
+     * @return entity tracker
+     */
+    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull TrackerModifier modifier) {
+        var source = RenderSource.of(entity);
+        return source.getOrCreate(
                 pipeline(source, entity.getLocation().add(0, -1024, 0), modifier),
                 modifier
         );

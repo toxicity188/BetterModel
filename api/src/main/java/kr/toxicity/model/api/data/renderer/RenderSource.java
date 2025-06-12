@@ -32,6 +32,8 @@ public sealed interface RenderSource {
         @NotNull
         @Override
         EntityTracker create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier);
+        @NotNull
+        EntityTracker getOrCreate(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier);
     }
 
     sealed interface Located extends RenderSource {
@@ -70,6 +72,11 @@ public sealed interface RenderSource {
         public EntityTracker create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier) {
             return EntityTrackerRegistry.registry(entity).create(pipeline.name(), r -> new EntityTracker(r, pipeline, modifier));
         }
+        @NotNull
+        @Override
+        public EntityTracker getOrCreate(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier) {
+            return EntityTrackerRegistry.registry(entity).getOrCreate(pipeline.name(), r -> new EntityTracker(r, pipeline, modifier));
+        }
     }
 
     record BasePlayer(@NotNull Player entity) implements Based, Profiled {
@@ -78,6 +85,11 @@ public sealed interface RenderSource {
         @Override
         public EntityTracker create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier) {
             return EntityTrackerRegistry.registry(entity).create(pipeline.name(), r -> new PlayerTracker(r, pipeline, modifier));
+        }
+        @NotNull
+        @Override
+        public EntityTracker getOrCreate(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier) {
+            return EntityTrackerRegistry.registry(entity).getOrCreate(pipeline.name(), r -> new PlayerTracker(r, pipeline, modifier));
         }
 
         @NotNull

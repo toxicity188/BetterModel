@@ -42,7 +42,7 @@ class PlayLimbAnimMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), 
             }
             val loopType = mode(args)
             val modifier = AnimationModifier({ true }, 0, 0, loopType, speed(args))
-            renderer.create(targetPlayer).apply {
+            renderer.getOrCreate(targetPlayer).apply {
                 if (!animate(
                         currentAnimationId,
                         modifier,

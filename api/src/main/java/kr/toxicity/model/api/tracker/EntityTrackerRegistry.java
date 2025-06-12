@@ -104,6 +104,11 @@ public final class EntityTrackerRegistry {
         return created;
     }
 
+    public @NotNull EntityTracker getOrCreate(@NotNull String key, @NotNull Function<EntityTrackerRegistry, EntityTracker> supplier) {
+        var get = trackerMap.get(key);
+        return get != null ? get : create(key, supplier);
+    }
+
     private void putTracker(@NotNull String key, @NotNull EntityTracker created) {
         created.handleCloseEvent(t -> {
             if (isClosed()) return;
