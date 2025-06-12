@@ -22,6 +22,7 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
@@ -33,7 +34,8 @@ import java.util.function.Predicate;
 public class EntityTracker extends Tracker {
     private final EntityTrackerRegistry registry;
 
-    private final AtomicInteger damageTintValue = new AtomicInteger(0xFF7979);
+    private final AtomicBoolean shouldApplyDamageTint = new AtomicBoolean();
+    private final AtomicInteger damageTintValue = new AtomicInteger(0xFF8080);
     private final AtomicLong damageTint = new AtomicLong(-1);
 
     /**
@@ -146,8 +148,9 @@ public class EntityTracker extends Tracker {
         tick(2, (t, b) -> {
             if (adapter.dead() && !forRemoval()) close();
         });
-        frame((t, b) -> {
-            if (damageTint.getAndDecrement() == 0) tint(0xFFFFFF);
+        tick((t, b) -> {
+            if (shouldApplyDamageTint.compareAndSet(true, false)) tint(damageTintValue.get());
+            else if (damageTint.getAndDecrement() == 0) tint(0xFFFFFF);
         });
         rotation(() -> adapter.dead() ? instance.getRotation() : new ModelRotation(0, entity instanceof LivingEntity ? adapter.bodyYaw() : entity.getYaw()));
         update();
@@ -222,7 +225,7 @@ public class EntityTracker extends Tracker {
     public void damageTint() {
         if (!modifier().damageTint()) return;
         var get = damageTint.get();
-        if (get <= 0 && damageTint.compareAndSet(get, 50)) tint(damageTintValue.get());
+        if (get <= 0 && damageTint.compareAndSet(get, 10)) shouldApplyDamageTint.set(true);
     }
 
     @Override

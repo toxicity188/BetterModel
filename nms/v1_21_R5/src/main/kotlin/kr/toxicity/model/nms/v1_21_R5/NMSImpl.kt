@@ -485,7 +485,13 @@ class NMSImpl : NMS {
         return CraftItemStack.asBukkitCopy(CraftItemStack.asNMSCopy(itemStack).apply {
             set(DataComponents.DYED_COLOR, DyedItemColor(rgb))
             set(DataComponents.CUSTOM_MODEL_DATA, get(DataComponents.CUSTOM_MODEL_DATA)?.let {
-                CustomModelData(it.floats, it.flags, it.strings, it.colors.ifEmpty { listOf(rgb) })
+                CustomModelData(it.floats, it.flags, it.strings, it.colors
+                    .run {
+                        if (rgb == 0xFFFFFF) this else map { color ->
+                            ARGB.multiply(color, rgb) and 0xFFFFFF
+                        }
+                    }
+                    .ifEmpty { listOf(rgb) })
             })
         })
     }

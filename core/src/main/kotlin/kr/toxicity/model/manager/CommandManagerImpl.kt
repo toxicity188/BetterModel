@@ -43,7 +43,7 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                 executesPlayer(PlayerCommandExecutor { player, args ->
                     val name = args.get("name") as String
                     ModelManagerImpl.renderer(name)
-                        ?.create(player) ?: player.audience().warn("This model doesn't exist: $name")
+                        ?.getOrCreate(player) ?: player.audience().warn("This model doesn't exist: $name")
                 })
             }
             command("undisguise") {

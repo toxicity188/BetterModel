@@ -14,7 +14,9 @@ dependencies {
     }
     implementation(libs.bundles.shadedLibrary)
 
-    compileOnly("net.citizensnpcs:citizens-main:2.0.38-SNAPSHOT")
+    compileOnly("net.citizensnpcs:citizens-main:2.0.38-SNAPSHOT") {
+        exclude("net.byteflux")
+    }
     compileOnly("io.lumine:Mythic-Dist:5.9.0")
     compileOnly("com.hibiscusmc:HMCCosmetics:2.7.8")
 }

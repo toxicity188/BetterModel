@@ -209,7 +209,8 @@ public final class ModelRenderer {
     public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull TrackerModifier modifier) {
         var source = RenderSource.of(entity);
         return source.getOrCreate(
-                pipeline(source, entity.getLocation().add(0, -1024, 0), modifier),
+                name(),
+                () -> pipeline(source, entity.getLocation().add(0, -1024, 0), modifier),
                 modifier
         );
     }
