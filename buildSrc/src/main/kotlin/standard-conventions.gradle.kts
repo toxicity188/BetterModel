@@ -10,9 +10,7 @@ version = "1.6.2" + (BUILD_NUMBER?.let { "-SNAPSHOT-$it" } ?: "")
 repositories {
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
-    maven("https://maven.citizensnpcs.co/repo/")
-    maven("https://mvn.lumine.io/repository/maven-public/")
-    maven("https://repo.hibiscusmc.com/releases")
+    maven("https://repo.codemc.org/repository/maven-public/")
     maven("https://libraries.minecraft.net/")
     maven("https://jitpack.io")
 }

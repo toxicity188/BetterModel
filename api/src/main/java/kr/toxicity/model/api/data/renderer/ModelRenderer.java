@@ -30,8 +30,6 @@ import java.util.stream.Collectors;
 public final class ModelRenderer {
     @Getter
     private final ModelBlueprint parent;
-    @Getter
-    @Unmodifiable
     private final Map<BoneName, RendererGroup> rendererGroupMap;
     private final Map<String, BlueprintAnimation> animationMap;
 

@@ -77,7 +77,7 @@ public final class RenderedBone implements HitBoxSource {
     @Getter
     @Setter
     private BoneItemMapper itemMapper;
-    private int tint;
+    private int previousTint, tint;
     private TransformedItemStack cachedItem, itemStack;
 
     //Animation
@@ -119,9 +119,7 @@ public final class RenderedBone implements HitBoxSource {
         this.group = group;
         this.parent = parent;
         itemMapper = group.getItemMapper();
-        var r = this;
-        while (r.getParent() != null) r = r.getParent();
-        root = r;
+        root = parent != null ? parent.root : this;
         var visible = itemMapper != BoneItemMapper.EMPTY || group.getParent().visibility();
         this.cachedItem = itemStack;
         this.itemStack = visible ? itemStack : itemStack.asAir();
@@ -347,10 +345,10 @@ public final class RenderedBone implements HitBoxSource {
             var f = frame();
             delay = f;
             beforeTransform = afterTransform;
-            var entityMovement = afterTransform = relativeOffset();
+            var boneMovement = afterTransform = relativeOffset();
             if (d != null) {
                 d.frame(toInterpolationDuration(f));
-                setup(entityMovement);
+                setup(boneMovement);
                 d.sendTransformation(bundler);
                 return true;
             }
@@ -482,9 +480,11 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     public boolean tint(@NotNull BonePredicate predicate, int tint) {
+        if (tint == -1) tint = previousTint;
         if (this.tint != tint && predicate.test(this)) {
             synchronized (itemLock) {
                 if (this.tint == tint) return false;
+                this.previousTint = this.tint;
                 this.tint = tint;
                 return applyItem();
             }

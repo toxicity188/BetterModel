@@ -72,12 +72,12 @@ public class EntityTracker extends Tracker {
 
     /**
      * Creates entity tracker
-     * @param instance render instance
+     * @param pipeline render instance
      * @param modifier modifier
      */
     @ApiStatus.Internal
-    public EntityTracker(@NotNull EntityTrackerRegistry registry, @NotNull RenderPipeline instance, @NotNull TrackerModifier modifier) {
-        super(instance, modifier);
+    public EntityTracker(@NotNull EntityTrackerRegistry registry, @NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier) {
+        super(pipeline, modifier);
         this.registry = registry;
 
         var entity = registry.entity();
@@ -86,7 +86,7 @@ public class EntityTracker extends Tracker {
         //Shadow
         if (modifier.shadow()) {
             var shadow = BetterModel.plugin().nms().create(entity.getLocation());
-            var baseScale = (float) instance.bones()
+            var baseScale = (float) pipeline.bones()
                     .stream()
                     .filter(b -> b.getGroup().getParent().visibility())
                     .map(b -> b.getGroup().getHitBox())
@@ -100,39 +100,39 @@ public class EntityTracker extends Tracker {
                 shadow.sendEntityData(b);
                 shadow.syncPosition(adapter, b);
             }));
-            instance.spawnPacketHandler(shadow::spawn);
-            instance.despawnPacketHandler(shadow::remove);
-            instance.hidePacketHandler(b -> shadow.sendEntityData(false, b));
-            instance.showPacketHandler(shadow::sendEntityData);
+            pipeline.spawnPacketHandler(shadow::spawn);
+            pipeline.despawnPacketHandler(shadow::remove);
+            pipeline.hidePacketHandler(b -> shadow.sendEntityData(false, b));
+            pipeline.showPacketHandler(shadow::sendEntityData);
         }
 
         //Animation
-        instance.defaultPosition(FunctionUtil.throttleTick(() -> adapter.passengerPosition().mul(-1)));
-        instance.scale(scale);
+        pipeline.defaultPosition(FunctionUtil.throttleTick(() -> adapter.passengerPosition().mul(-1)));
+        pipeline.scale(scale);
         Function<Quaternionf, Quaternionf> headRotator = r -> r.mul(MathUtil.toQuaternion(new Vector3f(
                 Math.clamp(adapter.pitch(), -90, 90),
                 Math.clamp(-adapter.yaw() + adapter.bodyYaw(), -90, 90),
                 0
         )));
-        instance.addRotationModifier(
+        pipeline.addRotationModifier(
                 BonePredicate.of(BonePredicate.State.NOT_SET, r -> r.getName().tagged(BoneTags.HEAD)),
                 headRotator
         );
-        instance.addRotationModifier(
+        pipeline.addRotationModifier(
                 BonePredicate.of(BonePredicate.State.TRUE, r -> r.getName().tagged(BoneTags.HEAD_WITH_CHILDREN)),
                 headRotator
         );
 
         var damageTickProvider = FunctionUtil.throttleTickFloat(adapter::damageTick);
-        var walkSupplier = FunctionUtil.throttleTickBoolean(() -> adapter.onWalk() || damageTickProvider.getAsFloat() > 0.25 || instance.bones().stream().anyMatch(e -> {
+        var walkSupplier = FunctionUtil.throttleTickBoolean(() -> adapter.onWalk() || damageTickProvider.getAsFloat() > 0.25 || pipeline.bones().stream().anyMatch(e -> {
             var hitBox = e.getHitBox();
             return hitBox != null && hitBox.onWalk();
         }));
         var walkSpeedSupplier = FunctionUtil.throttleTickFloat(modifier.damageAnimation() ? () -> adapter.walkSpeed() + 4F * (float) Math.sqrt(damageTickProvider.getAsFloat()) : () -> 1F);
-        instance.animate("walk", new AnimationModifier(walkSupplier, 6, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
-        instance.animate("idle_fly", new AnimationModifier(adapter::fly, 6, 0, AnimationIterator.Type.LOOP, 1F));
-        instance.animate("walk_fly", new AnimationModifier(() -> adapter.fly() && walkSupplier.getAsBoolean(), 6, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
-        instance.animate("spawn", AnimationModifier.DEFAULT_WITH_PLAY_ONCE);
+        pipeline.animate("walk", new AnimationModifier(walkSupplier, 6, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
+        pipeline.animate("idle_fly", new AnimationModifier(adapter::fly, 6, 0, AnimationIterator.Type.LOOP, 1F));
+        pipeline.animate("walk_fly", new AnimationModifier(() -> adapter.fly() && walkSupplier.getAsBoolean(), 6, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
+        pipeline.animate("spawn", AnimationModifier.DEFAULT_WITH_PLAY_ONCE);
         BetterModel.plugin().scheduler().task(entity, () -> {
             if (isClosed()) return;
             createHitBox();
@@ -150,9 +150,10 @@ public class EntityTracker extends Tracker {
         });
         tick((t, b) -> {
             if (shouldApplyDamageTint.compareAndSet(true, false)) tint(damageTintValue.get());
-            else if (damageTint.getAndDecrement() == 0) tint(0xFFFFFF);
+            else if (damageTint.getAndDecrement() == 0) tint(-1);
         });
-        rotation(() -> adapter.dead() ? instance.getRotation() : new ModelRotation(0, entity instanceof LivingEntity ? adapter.bodyYaw() : entity.getYaw()));
+        rotation(() -> adapter.dead() ? pipeline.getRotation() : new ModelRotation(0, entity instanceof LivingEntity ? adapter.bodyYaw() : entity.getYaw()));
+        tint(0xFFFFFF);
         update();
         EventUtil.call(new CreateEntityTrackerEvent(this));
     }
@@ -268,6 +269,10 @@ public class EntityTracker extends Tracker {
     public void moveDuration(int duration) {
         pipeline.moveDuration(duration);
         forceUpdate(true);
+    }
+
+    public void cancelDamageTint() {
+        damageTint.set(-1);
     }
 
     /**

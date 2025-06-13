@@ -94,21 +94,21 @@ public final class RendererGroup {
     public @NotNull RenderedBone create(@NotNull RenderSource source, @NotNull TrackerModifier modifier, @NotNull Location location) {
         return create(source, modifier, null, location);
     }
-    private @NotNull RenderedBone create(@NotNull RenderSource source, @NotNull TrackerModifier modifier, @Nullable RenderedBone entityParent, @NotNull Location location) {
+    private @NotNull RenderedBone create(@NotNull RenderSource source, @NotNull TrackerModifier modifier, @Nullable RenderedBone parentBone, @NotNull Location location) {
         return new RenderedBone(
                 this,
-                entityParent,
+                parentBone,
                 itemMapper.apply(source, itemStack),
                 itemMapper.transform(),
                 location,
                 new BoneMovement(
-                        entityParent != null ? new Vector3f(position).sub(entityParent.getGroup().position) : new Vector3f(),
+                        parentBone != null ? new Vector3f(position).sub(parentBone.getGroup().position) : new Vector3f(),
                         new Vector3f(1),
                         MathUtil.toQuaternion(rotation),
                         rotation
                 ),
                 modifier,
-                parent1 -> children.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().create(source, modifier, parent1, location)))
+                parent -> children.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().create(source, modifier, parent, location)))
         );
     }
 

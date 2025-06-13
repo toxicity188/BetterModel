@@ -6,6 +6,7 @@ import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.compatibility.citizens.CitizensCompatibility
 import kr.toxicity.model.compatibility.hmccosmetics.HMCCosmeticsCompatibility
 import kr.toxicity.model.compatibility.mythicmobs.MythicMobsCompatibility
+import kr.toxicity.model.compatibility.skinsrestorer.SkinsRestorerCompatibility
 import kr.toxicity.model.purpur.PurpurHook
 import kr.toxicity.model.util.info
 import org.bukkit.Bukkit
@@ -21,6 +22,9 @@ object CompatibilityManagerImpl : CompatibilityManager, GlobalManagerImpl {
         },
         "HMCCosmetics" to {
             HMCCosmeticsCompatibility()
+        },
+        "SkinsRestorer" to {
+            SkinsRestorerCompatibility()
         }
     )
 

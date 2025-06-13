@@ -104,7 +104,6 @@ public abstract class Tracker implements AutoCloseable {
             if (playerCount() > 0 || forRemoval.get()) updater.run();
             frame++;
         }, 10, 10, TimeUnit.MILLISECONDS);
-        tint(0xFFFFFF);
         if (modifier.sightTrace()) pipeline.viewFilter(p -> EntityUtil.canSee(p.getEyeLocation(), location()));
         tick((t, b) -> t.pipeline.getScriptProcessor().tick());
     }

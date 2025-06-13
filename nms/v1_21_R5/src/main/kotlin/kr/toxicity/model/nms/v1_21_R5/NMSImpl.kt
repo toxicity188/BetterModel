@@ -132,7 +132,7 @@ class NMSImpl : NMS {
         private val connection = (player as CraftPlayer).handle.connection
         private val entityUUIDMap = ConcurrentHashMap<UUID, EntityTrackerRegistry>()
         private val uuidValuesView = Collections.unmodifiableCollection(entityUUIDMap.values)
-        private val slim = BetterModel.plugin().skinManager().isSlim(profile(player))
+        private val slim = BetterModel.plugin().skinManager().isSlim(profile())
 
         init {
             val pipeLine = getConnection(connection).channel.pipeline()

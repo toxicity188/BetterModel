@@ -18,7 +18,10 @@ class TintMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTarge
         return p0.toTracker(model(args))?.let {
             if (damageTint(args)) {
                 it.damageTintValue(color(args))
-            } else it.tint(predicate(args), color(args))
+            } else {
+                it.cancelDamageTint()
+                it.tint(predicate(args), color(args))
+            }
             SkillResult.SUCCESS
         } ?: SkillResult.CONDITION_FAILED
     }

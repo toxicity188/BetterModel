@@ -129,7 +129,7 @@ class NMSImpl : NMS {
         private val connection = (player as CraftPlayer).handle.connection
         private val entityUUIDMap = ConcurrentHashMap<UUID, EntityTrackerRegistry>()
         private val uuidValuesView = Collections.unmodifiableCollection(entityUUIDMap.values)
-        private val slim = BetterModel.plugin().skinManager().isSlim(profile(player))
+        private val slim = BetterModel.plugin().skinManager().isSlim(profile())
 
         init {
             val pipeLine = connection.connection.channel.pipeline()
@@ -163,7 +163,7 @@ class NMSImpl : NMS {
         private fun send(packet: Packet<*>) = connection.send(packet)
 
         private fun Int.toPlayerEntity() = toEntity(connection.player.serverLevel())
-        private fun Int.toTracker() = toPlayerEntity()?.let {
+        private fun Int.toRegistry() = toPlayerEntity()?.let {
             entityUUIDMap[it.uuid]
         }
 
@@ -208,14 +208,14 @@ class NMSImpl : NMS {
                     entityIds
                         .asSequence()
                         .mapNotNull {
-                            it.toTracker()
+                            it.toRegistry()
                         }
                         .forEach {
                             it.remove()
                         }
                 }
                 is ClientboundSetPassengersPacket -> {
-                    vehicle.toTracker()?.let {
+                    vehicle.toRegistry()?.let {
                         return it.mountPacket(array = useByteBuf { buffer ->
                             write(buffer)
                             buffer.readVarInt()
@@ -223,16 +223,16 @@ class NMSImpl : NMS {
                         })
                     }
                 }
-                is ClientboundSetEntityDataPacket -> id.toTracker()?.let { tracker ->
+                is ClientboundSetEntityDataPacket -> id.toRegistry()?.let { registry ->
                     return ClientboundSetEntityDataPacket(id, packedItems().map {
                         if (it.id == sharedFlag) SynchedEntityData.DataValue(
                             it.id,
                             EntityDataSerializers.BYTE,
-                            tracker.entityFlag(it.value() as Byte)
+                            registry.entityFlag(it.value() as Byte)
                         ) else it
                     })
                 }
-                is ClientboundSetEquipmentPacket -> if (entity.toTracker()?.hideOption()?.equipment() == true) return ClientboundSetEquipmentPacket(entity, EquipmentSlot.entries.map { e ->
+                is ClientboundSetEquipmentPacket -> if (entity.toRegistry()?.hideOption()?.equipment() == true) return ClientboundSetEquipmentPacket(entity, EquipmentSlot.entries.map { e ->
                     Pair.of(e, Items.AIR.defaultInstance)
                 })
                 is ClientboundRespawnPacket -> EntityTrackerRegistry.registry(player.uniqueId)?.let {
@@ -260,21 +260,21 @@ class NMSImpl : NMS {
             }
             when (msg) {
                 is ServerboundSetCarriedItemPacket -> {
-                    connection.player.id.toTracker()?.let { tracker ->
-                        if (!tracker.hideOption().equipment()) return super.channelRead(ctx, msg)
+                    connection.player.id.toRegistry()?.let { registry ->
+                        if (!registry.hideOption().equipment()) return super.channelRead(ctx, msg)
                         if (CONFIG.cancelPlayerModelInventory()) {
                             connection.send(ClientboundSetCarriedItemPacket(player.inventory.heldItemSlot))
                             return
                         } else {
-                            tracker.updatePlayerLimb()
+                            registry.updatePlayerLimb()
                         }
                     }
                 }
                 is ServerboundPlayerActionPacket -> {
-                    connection.player.id.toTracker()?.let { tracker ->
-                        if (!tracker.hideOption().equipment()) return super.channelRead(ctx, msg)
+                    connection.player.id.toRegistry()?.let { registry ->
+                        if (!registry.hideOption().equipment()) return super.channelRead(ctx, msg)
                         if (CONFIG.cancelPlayerModelInventory()) return
-                        else tracker.updatePlayerLimb()
+                        else registry.updatePlayerLimb()
                     }
                 }
             }
@@ -297,12 +297,10 @@ class NMSImpl : NMS {
     }.toIntArray()): ClientboundSetPassengersPacket {
         return useByteBuf { buffer ->
             buffer.writeVarInt(entity.id)
-            buffer.writeVarIntArray(
-                (displays()
-                .mapToInt {
-                    (it as ModelDisplayImpl).display.id
-                }.toArray() + array)
-            )
+            buffer.writeVarIntArray((displays()
+                .mapToInt { 
+                    (it as ModelDisplayImpl).display.id 
+                }.toArray() + array))
             ClientboundSetPassengersPacket(buffer)
         }
     }

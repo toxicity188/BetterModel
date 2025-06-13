@@ -3,16 +3,19 @@ package kr.toxicity.model.manager
 import com.google.gson.JsonParser
 import com.mojang.authlib.GameProfile
 import kr.toxicity.library.dynamicuv.*
+import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.event.CreatePlayerSkinEvent
 import kr.toxicity.model.api.event.RemovePlayerSkinEvent
 import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.api.manager.SkinManager
 import kr.toxicity.model.api.player.PlayerLimb
+import kr.toxicity.model.api.player.PlayerSkinProvider
 import kr.toxicity.model.api.skin.SkinData
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.util.TransformedItemStack
 import kr.toxicity.model.api.util.function.BonePredicate
 import kr.toxicity.model.api.version.MinecraftVersion
+import kr.toxicity.model.player.HttpPlayerSkinProvider
 import kr.toxicity.model.util.*
 import net.jodah.expiringmap.ExpirationPolicy
 import net.jodah.expiringmap.ExpiringMap
@@ -599,11 +602,14 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         .expiration(1, TimeUnit.MINUTES)
         .expirationListener(::handleExpiration)
         .build<UUID, SkinDataImpl>()
+
     private val fallback by lazy {
         PLUGIN.getResource("fallback_skin.png")!!.buffered().use {
             SkinDataImpl(false, ImageIO.read(it))
         }
     }
+
+    private var skinProvider = if ((BetterModel.IS_PAPER && Bukkit.getServerConfig().isProxyOnlineMode) || Bukkit.getOnlineMode()) PlayerSkinProvider.DEFAULT else HttpPlayerSkinProvider()
 
     override fun supported(): Boolean = PLUGIN.version() >= MinecraftVersion.V1_21_4
 
@@ -631,43 +637,46 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
 
     override fun getOrRequest(profile: GameProfile): SkinData {
         return profileMap.computeIfAbsent(profile.id) { id ->
-            val selected = CreatePlayerSkinEvent(profile).run {
-                call()
-                gameProfile
-            }
-            httpClient {
-                sendAsync(HttpRequest.newBuilder()
-                    .uri(
-                        URI.create(
-                            JsonParser.parseString(String(Base64.getDecoder().decode(selected.properties["textures"].first().value)))
-                                .asJsonObject
-                                .getAsJsonObject("textures")
-                                .getAsJsonObject("SKIN")
-                                .getAsJsonPrimitive("url")
-                                .asString
-                    ))
-                    .GET()
-                    .build(),
-                    HttpResponse.BodyHandlers.ofInputStream()
-                )
-            }.orElse {
-                it.handleException("Unable to read this profile: ${selected.name}")
-                CompletableFuture.completedFuture(null)
-            }.thenAccept {
-                it?.body().use { stream ->
-                    profileMap[id] = SkinDataImpl(
-                        isSlim(selected),
-                        ImageIO.read(stream).convertLegacy(),
-                        selected
-                    )
-                    EntityTrackerRegistry.registry(id)?.trackers()?.forEach { tracker ->
-                        if (tracker.updateItem(BonePredicate.of(BonePredicate.State.NOT_SET) { bone ->
-                            bone.itemMapper is PlayerLimb.LimbItemMapper
-                        })) tracker.forceUpdate(true)
+            skinProvider.provide(profile).thenApply { provided ->
+                CreatePlayerSkinEvent(provided ?: profile).run {
+                    call()
+                    gameProfile
+                }
+            }.thenCompose { selected ->
+                httpClient {
+                    sendAsync(HttpRequest.newBuilder()
+                        .uri(
+                            URI.create(
+                                JsonParser.parseString(String(Base64.getDecoder().decode(selected.properties["textures"].first().value)))
+                                    .asJsonObject
+                                    .getAsJsonObject("textures")
+                                    .getAsJsonObject("SKIN")
+                                    .getAsJsonPrimitive("url")
+                                    .asString
+                            ))
+                        .GET()
+                        .build(),
+                        HttpResponse.BodyHandlers.ofInputStream()
+                    ).thenAccept {
+                        it.body().use { stream ->
+                            profileMap[id] = SkinDataImpl(
+                                isSlim(selected),
+                                ImageIO.read(stream).convertLegacy(),
+                                selected
+                            )
+                            EntityTrackerRegistry.registry(id)?.trackers()?.forEach { tracker ->
+                                if (tracker.updateItem(BonePredicate.of(BonePredicate.State.NOT_SET) { bone ->
+                                        bone.itemMapper is PlayerLimb.LimbItemMapper
+                                    })) tracker.forceUpdate(true)
+                            }
+                        }
                     }
+                }.orElse {
+                    it.handleException("Unable to read this profile: ${selected.name}")
+                    CompletableFuture.completedFuture(null)
                 }
             }.exceptionally {
-                it.handleException("unable to read this skin: ${selected.name}")
+                it.handleException("unable to read this skin: ${profile.name}")
                 profileMap.remove(id)
                 null
             }
@@ -676,6 +685,10 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
     }
 
     override fun removeCache(profile: GameProfile): Boolean = profileMap.remove(profile.id) != null
+
+    override fun setSkinProvider(provider: PlayerSkinProvider) {
+        skinProvider = provider
+    }
 
     private fun BufferedImage.convertLegacy() = if (height == 64) this else BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB).also { newImage ->
         fun drawTo(from: UVPos, to: UVPos, xr: IntRange, zr: IntRange) {

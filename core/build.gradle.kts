@@ -6,6 +6,12 @@ plugins {
     alias(libs.plugins.resourceFactoryBukkit)
 }
 
+repositories {
+    maven("https://maven.citizensnpcs.co/repo/")
+    maven("https://mvn.lumine.io/repository/maven-public/")
+    maven("https://repo.hibiscusmc.com/releases")
+}
+
 dependencies {
     implementation(project(":api"))
     implementation(project(":purpur"))
@@ -17,6 +23,7 @@ dependencies {
     compileOnly("net.citizensnpcs:citizens-main:2.0.38-SNAPSHOT") {
         exclude("net.byteflux")
     }
+    compileOnly("net.skinsrestorer:skinsrestorer-api:15.6.5")
     compileOnly("io.lumine:Mythic-Dist:5.9.0")
     compileOnly("com.hibiscusmc:HMCCosmetics:2.7.8")
 }
@@ -32,7 +39,8 @@ bukkitPluginYaml {
     softDepend = listOf(
         "MythicMobs",
         "Citizens",
-        "HMCCosmetics"
+        "HMCCosmetics",
+        "SkinsRestorer"
     )
     libraries = libs.bundles.library.map {
         it.map { lib ->
