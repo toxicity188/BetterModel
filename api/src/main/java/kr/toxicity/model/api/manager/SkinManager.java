@@ -3,9 +3,7 @@ package kr.toxicity.model.api.manager;
 import com.mojang.authlib.GameProfile;
 import kr.toxicity.model.api.player.PlayerSkinProvider;
 import kr.toxicity.model.api.skin.SkinData;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public interface SkinManager extends GlobalManager {
     boolean supported();
