@@ -306,8 +306,7 @@ public final class RenderedBone implements HitBoxSource {
                 }
             }
         }
-        setKeyframe(null);
-        return true;
+        return setKeyframe(null);
     }
 
     private boolean updateKeyframe(@NotNull Iterator<TreeIterator> iterator, @NotNull TreeIterator next) {
@@ -316,14 +315,15 @@ public final class RenderedBone implements HitBoxSource {
             iterator.remove();
             return false;
         } else {
-            setKeyframe(next.next());
-            return true;
+            return setKeyframe(next.next());
         }
     }
 
-    private void setKeyframe(@Nullable AnimationMovement next) {
+    private boolean setKeyframe(@Nullable AnimationMovement next) {
+        if (keyFrame == next) return false;
         relativeOffsetCache = null;
         keyFrame = next;
+        return true;
     }
 
     public synchronized boolean move(@Nullable ModelRotation rotation, @NotNull PacketBundler bundler) {
