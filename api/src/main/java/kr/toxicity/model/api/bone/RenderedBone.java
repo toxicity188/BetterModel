@@ -229,6 +229,7 @@ public final class RenderedBone implements HitBoxSource {
             synchronized (itemLock) {
                 if (this.itemStack == itemStack) return false;
                 this.itemStack = itemStack;
+                if (display != null) display.invisible(itemStack.isAir());
                 tintCacheMap.clear();
                 return applyItem();
             }
