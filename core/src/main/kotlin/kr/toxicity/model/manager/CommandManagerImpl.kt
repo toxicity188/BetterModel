@@ -3,7 +3,6 @@ package kr.toxicity.model.manager
 import dev.jorel.commandapi.CommandAPI
 import dev.jorel.commandapi.CommandAPIBukkitConfig
 import dev.jorel.commandapi.arguments.ArgumentSuggestions
-import dev.jorel.commandapi.arguments.BooleanArgument
 import dev.jorel.commandapi.arguments.DoubleArgument
 import dev.jorel.commandapi.arguments.StringArgument
 import dev.jorel.commandapi.executors.CommandExecutionInfo
@@ -121,24 +120,6 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                             }
                         }
                     }
-                })
-            }
-            command("limb") {
-                withShortDescription("toggles whether sender can see some player's animation.")
-                withAliases("l")
-                withArguments(BooleanArgument("toggle")
-                    .replaceSuggestions { sender, builder ->
-                        (sender.sender as? Player)?.let {
-                            builder.suggest((!PlayerManagerImpl.player(it).showPlayerLimb()).toString())
-                        }
-                        CompletableFuture.supplyAsync {
-                            builder.build()
-                        }
-                    })
-                executesPlayer(PlayerCommandExecutor { player, args ->
-                    val t = args["toggle"] as Boolean
-                    PlayerManagerImpl.player(player).showPlayerLimb(t)
-                    player.audience().info("Sets player limb to ${if (t) "enable" else "disable"}.")
                 })
             }
             command("play") {

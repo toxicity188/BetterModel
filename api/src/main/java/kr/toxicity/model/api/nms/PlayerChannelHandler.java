@@ -69,18 +69,6 @@ public interface PlayerChannelHandler extends AutoCloseable {
      */
     void unregisterAll();
 
-    /**
-     * Sets whether to show some player's animation
-     * @param show show or not
-     */
-    void showPlayerLimb(boolean show);
-
-    /**
-     * Gets whether to show some player's animation
-     * @return show or not
-     */
-    boolean showPlayerLimb();
-
     @Override
     void close();
 }

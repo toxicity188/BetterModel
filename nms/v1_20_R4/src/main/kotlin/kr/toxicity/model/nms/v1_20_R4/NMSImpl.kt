@@ -138,11 +138,6 @@ class NMSImpl : NMS {
             }
         }
 
-        private var showPlayerLimb = true
-        override fun showPlayerLimb(): Boolean = showPlayerLimb
-        override fun showPlayerLimb(show: Boolean) {
-            showPlayerLimb = show
-        }
         override fun isSlim(): Boolean = slim
         override fun trackedRegistries(): Collection<EntityTrackerRegistry> = uuidValuesView
 

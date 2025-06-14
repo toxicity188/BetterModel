@@ -19,7 +19,6 @@ import kr.toxicity.model.api.util.FunctionUtil;
 import kr.toxicity.model.api.util.TransformedItemStack;
 import lombok.Getter;
 import org.bukkit.Location;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -52,7 +51,6 @@ public final class RenderPipeline {
     private final Map<UUID, PlayerChannelHandler> playerMap = new ConcurrentHashMap<>();
     private final Set<UUID> hidePlayerSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private Predicate<Player> viewFilter = p -> true;
-    private Predicate<Player> spawnFilter = OfflinePlayer::isOnline;
 
     private Consumer<PacketBundler> spawnPacketHandler = b -> {};
     private Consumer<PacketBundler> despawnPacketHandler = b -> {};
@@ -109,14 +107,6 @@ public final class RenderPipeline {
     }
     public void showPacketHandler(@NotNull Consumer<PacketBundler> despawnPacketHandler) {
         this.showPacketHandler = this.showPacketHandler.andThen(despawnPacketHandler);
-    }
-
-    public @NotNull Predicate<Player> spawnFilter() {
-        return spawnFilter;
-    }
-
-    public void spawnFilter(@NotNull Predicate<Player> spawnFilter) {
-        this.spawnFilter = this.spawnFilter.and(spawnFilter);
     }
 
     public void createHitBox(@NotNull EntityAdapter entity, @NotNull Predicate<RenderedBone> predicate, @Nullable HitBoxListener listener) {
@@ -288,16 +278,13 @@ public final class RenderPipeline {
     public boolean spawn(@NotNull Player player, @NotNull PacketBundler bundler) {
         var get = BetterModel.plugin().playerManager().player(player.getUniqueId());
         if (get == null) return false;
-        if (playerMap.get(player.getUniqueId()) != null || spawnFilter.test(player)) {
-            spawnPacketHandler.accept(bundler);
-            var hided = isHide(player);
-            for (RenderedBone value : entityMap.values()) {
-                value.iterateTree(b -> b.spawn(hided, bundler));
-            }
-            playerMap.put(player.getUniqueId(), get);
-            return true;
+        spawnPacketHandler.accept(bundler);
+        var hided = isHide(player);
+        for (RenderedBone value : entityMap.values()) {
+            value.iterateTree(b -> b.spawn(hided, bundler));
         }
-        return false;
+        playerMap.put(player.getUniqueId(), get);
+        return true;
     }
 
     public boolean remove(@NotNull Player player) {

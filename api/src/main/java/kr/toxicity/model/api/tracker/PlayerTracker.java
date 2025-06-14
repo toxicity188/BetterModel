@@ -1,6 +1,5 @@
 package kr.toxicity.model.api.tracker;
 
-import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.renderer.RenderPipeline;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
@@ -19,10 +18,6 @@ public final class PlayerTracker extends EntityTracker {
     @ApiStatus.Internal
     public PlayerTracker(@NotNull EntityTrackerRegistry registry, @NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier) {
         super(registry, pipeline, modifier);
-        pipeline.spawnFilter(p -> {
-            var handler = BetterModel.plugin().playerManager().player(p.getUniqueId());
-            return handler != null && handler.showPlayerLimb();
-        });
     }
 
     @Override

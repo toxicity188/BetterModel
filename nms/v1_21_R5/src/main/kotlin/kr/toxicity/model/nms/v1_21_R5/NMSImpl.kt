@@ -140,12 +140,7 @@ class NMSImpl : NMS {
                 if (it.value is Connection) pipeLine.addBefore(it.key, INJECT_NAME, this)
             }
         }
-        
-        private var showPlayerLimb = true
-        override fun showPlayerLimb(): Boolean = showPlayerLimb
-        override fun showPlayerLimb(show: Boolean) {
-            showPlayerLimb = show
-        }
+
         override fun isSlim(): Boolean = slim
         override fun trackedTrackers(): Collection<EntityTracker> = uuidValuesView
 
