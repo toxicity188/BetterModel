@@ -78,7 +78,7 @@ public final class RenderedBone implements HitBoxSource {
     @Setter
     private BoneItemMapper itemMapper;
     private int previousTint, tint;
-    private TransformedItemStack cachedItem, itemStack;
+    private TransformedItemStack itemStack;
 
     //Animation
     private AnimationMovement keyFrame = null;
@@ -120,15 +120,14 @@ public final class RenderedBone implements HitBoxSource {
         this.parent = parent;
         itemMapper = group.getItemMapper();
         root = parent != null ? parent.root : this;
-        var visible = itemMapper != BoneItemMapper.EMPTY || group.getParent().visibility();
-        this.cachedItem = itemStack;
-        this.itemStack = visible ? itemStack : itemStack.asAir();
+        this.itemStack = itemStack;
         this.dummyBone = itemStack.isAir();
         if (!dummyBone) {
             display = BetterModel.plugin().nms().create(firstLocation);
             display.display(transform);
             display.viewRange(modifier.viewRange());
-            display.item(this.itemStack.itemStack());
+            display.item(itemStack.itemStack());
+            display.invisible(itemMapper == BoneItemMapper.EMPTY && !group.getParent().visibility());
         }
         defaultFrame = movement;
         children = Collections.unmodifiableMap(childrenMapper.apply(this));
@@ -139,8 +138,8 @@ public final class RenderedBone implements HitBoxSource {
         return iterator != null ? iterator.animation : null;
     }
 
-    public boolean updateItem(@NotNull BonePredicate predicate, @NotNull RenderSource source) {
-        return itemStack(predicate, itemMapper.apply(source, cachedItem));
+    public boolean updateItem(@NotNull Predicate<RenderedBone> predicate, @NotNull RenderSource source) {
+        return itemStack(predicate, itemMapper.apply(source, itemStack));
     }
 
     /**
@@ -174,24 +173,17 @@ public final class RenderedBone implements HitBoxSource {
      * @param enchant should enchant
      * @return success or not
      */
-    public boolean enchant(@NotNull BonePredicate predicate, boolean enchant) {
-        if (!itemStack.isAir() && predicate.test(this)) {
-            synchronized (itemLock) {
-                if (itemStack.isAir()) return false;
-                itemStack = itemStack.modify(i -> {
-                    var meta = i.getItemMeta();
-                    if (enchant) {
-                        meta.addEnchant(Enchantment.UNBREAKING, 0, true);
-                    } else {
-                        meta.removeEnchant(Enchantment.UNBREAKING);
-                    }
-                    i.setItemMeta(meta);
-                    return i;
-                });
-                return applyItem();
+    public boolean enchant(@NotNull Predicate<RenderedBone> predicate, boolean enchant) {
+        return itemStack(predicate, itemStack.modify(i -> {
+            var meta = i.getItemMeta();
+            if (enchant) {
+                meta.addEnchant(Enchantment.UNBREAKING, 0, true);
+            } else {
+                meta.removeEnchant(Enchantment.UNBREAKING);
             }
-        }
-        return false;
+            i.setItemMeta(meta);
+            return i;
+        }));
     }
 
     /**
@@ -216,7 +208,7 @@ public final class RenderedBone implements HitBoxSource {
      * @param glowColor hex glow color
      * @return success or not
      */
-    public boolean glow(@NotNull BonePredicate predicate, boolean glow, int glowColor) {
+    public boolean glow(@NotNull Predicate<RenderedBone> predicate, boolean glow, int glowColor) {
         if (display != null && predicate.test(this)) {
             display.glow(glow);
             display.glowColor(glowColor);
@@ -231,11 +223,11 @@ public final class RenderedBone implements HitBoxSource {
      * @param itemStack target item
      * @return success
      */
-    public boolean itemStack(@NotNull BonePredicate predicate, @NotNull TransformedItemStack itemStack) {
-        if (this.cachedItem != itemStack && predicate.test(this)) {
+    public boolean itemStack(@NotNull Predicate<RenderedBone> predicate, @NotNull TransformedItemStack itemStack) {
+        if (this.itemStack != itemStack && predicate.test(this)) {
             synchronized (itemLock) {
-                if (this.cachedItem == itemStack) return false;
-                this.itemStack = cachedItem = itemStack;
+                if (this.itemStack == itemStack) return false;
+                this.itemStack = itemStack;
                 tintCacheMap.clear();
                 return applyItem();
             }
@@ -243,7 +235,7 @@ public final class RenderedBone implements HitBoxSource {
         return false;
     }
 
-    public boolean brightness(@NotNull BonePredicate predicate, int block, int sky) {
+    public boolean brightness(@NotNull Predicate<RenderedBone> predicate, int block, int sky) {
         if (display != null && predicate.test(this)) {
             display.brightness(block, sky);
             return true;
@@ -257,7 +249,7 @@ public final class RenderedBone implements HitBoxSource {
      * @param function animation consumer
      * @return whether to success
      */
-    public synchronized boolean addRotationModifier(@NotNull BonePredicate predicate, @NotNull Function<Quaternionf, Quaternionf> function) {
+    public synchronized boolean addRotationModifier(@NotNull Predicate<RenderedBone> predicate, @NotNull Function<Quaternionf, Quaternionf> function) {
         if (predicate.test(this)) {
             rotationModifier = rotationModifier.andThen(function);
             return true;
@@ -271,7 +263,7 @@ public final class RenderedBone implements HitBoxSource {
      * @param function animation consumer
      * @return whether to success
      */
-    public synchronized boolean addPositionModifier(@NotNull BonePredicate predicate, @NotNull Function<Vector3f, Vector3f> function) {
+    public synchronized boolean addPositionModifier(@NotNull Predicate<RenderedBone> predicate, @NotNull Function<Vector3f, Vector3f> function) {
         if (predicate.test(this)) {
             positionModifier = positionModifier.andThen(function);
             return true;
@@ -314,6 +306,7 @@ public final class RenderedBone implements HitBoxSource {
                 }
             }
         }
+        if (keyFrame == null) return false;
         setKeyframe(null);
         return true;
     }
@@ -385,11 +378,10 @@ public final class RenderedBone implements HitBoxSource {
         return VectorUtil.linear(before.transform(), after.transform(), progress)
                 .add(itemStack.offset())
                 .add(localOffset)
-                .mul(VectorUtil.linear(before.scale(), after.scale(), progress))
                 .rotate(
                         MathUtil.toQuaternion(VectorUtil.linear(before.rawRotation(), after.rawRotation(), progress))
                 )
-                .add(globalOffset)
+                .fma(VectorUtil.linear(before.scale(), after.scale(), progress), globalOffset)
                 .add(root.getGroup().getPosition())
                 .mul(scale.getAsFloat())
                 .rotateX(-rotation.radianX())
@@ -415,8 +407,7 @@ public final class RenderedBone implements HitBoxSource {
                     new Vector3f(boneMovement.transform())
                             .add(root.group.getPosition())
                             .add(new Vector3f(itemStack.offset()).rotate(boneMovement.rotation()))
-                            .mul(mul)
-                            .add(defaultPosition.get()),
+                            .fma(mul, defaultPosition.get()),
                     new Vector3f(boneMovement.scale())
                             .mul(itemStack.scale())
                             .mul(mul),
@@ -450,9 +441,8 @@ public final class RenderedBone implements HitBoxSource {
             var p = parent.relativeOffset();
             return relativeOffsetCache = new BoneMovement(
                     def.transform()
-                            .mul(p.scale())
                             .rotate(p.rotation())
-                            .add(p.transform())
+                            .fma(p.scale(), p.transform())
                             .sub(parent.lastModifiedPosition)
                             .add(modifiedPosition(preventModifierUpdate)),
                     def.scale().mul(p.scale()),
@@ -479,7 +469,7 @@ public final class RenderedBone implements HitBoxSource {
         return preventModifierUpdate ? lastModifiedRotation : (lastModifiedRotation = rotationModifier.apply(new Quaternionf()));
     }
 
-    public boolean tint(@NotNull BonePredicate predicate, int tint) {
+    public boolean tint(@NotNull Predicate<RenderedBone> predicate, int tint) {
         if (tint == -1) tint = previousTint;
         if (this.tint != tint && predicate.test(this)) {
             synchronized (itemLock) {
@@ -572,13 +562,10 @@ public final class RenderedBone implements HitBoxSource {
      * @param toggle toggle
      * @return success
      */
-    public boolean togglePart(@NotNull BonePredicate predicate, boolean toggle) {
-        if (toggle == itemStack.isAir() && predicate.test(this)) {
-            synchronized (itemLock) {
-                if (toggle != itemStack.isAir()) return false;
-                itemStack = toggle ? cachedItem : cachedItem.asAir();
-                return applyItem();
-            }
+    public boolean togglePart(@NotNull Predicate<RenderedBone> predicate, boolean toggle) {
+        if (display != null && predicate.test(this)) {
+            display.invisible(!toggle);
+            return true;
         }
         return false;
     }

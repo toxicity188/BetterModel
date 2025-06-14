@@ -146,24 +146,28 @@ public final class VectorUtil {
     }
 
     public static float cubicBezier(float p0, float p1, float p2, float p3, float t) {
-        float u = 1.0f - t;
-        return u * u * u * p0
-                + 3 * u * u * t * p1
-                + 3 * u * t * t * p2
-                + t * t * t * p3;
+        float u = 1.0F - t;
+        float uu = u * u;
+        float tt = t * t;
+        float uuu = uu * u;
+        float utt = u * tt;
+        float uut = uu * t;
+        float ttt = tt * t;
+        return Math.fma(uuu, p0, Math.fma(3.0F * uut, p1, Math.fma(3.0F * utt, p2, ttt * p3)));
     }
 
     public static float derivativeBezier(float p0, float p1, float p2, float p3, float t) {
-        float u = 1.0f - t;
-        return 3 * u * u * (p1 - p0)
-                + 6 * u * t * (p2 - p1)
-                + 3 * t * t * (p3 - p2);
+        float u = 1.0F - t;
+        float uu = u * u;
+        float ut = u * t;
+        float tt = t * t;
+        return Math.fma(3.0F * uu, (p1 - p0), Math.fma(6.0F * ut, (p2 - p1), 3.0F * tt * (p3 - p2)));
     }
 
     public static float solveBezierTForTime(float time, float t0, float h1, float h2, float t1) {
-        float t = 0.5f;
+        float t = 0.5F;
         int maxIterations = 20;
-        float epsilon = 1e-5f;
+        float epsilon = 1e-5F;
         for (int i = 0; i < maxIterations; i++) {
             float bezTime = cubicBezier(t0, h1, h2, t1, t);
             float derivative = derivativeBezier(t0, h1, h2, t1, t);
@@ -174,7 +178,7 @@ public final class VectorUtil {
             if (derivative != 0) {
                 t -= error / derivative;
             }
-            t = Math.max(0.0f, Math.min(1.0f, t));
+            t = Math.max(0F, Math.min(1F, t));
         }
 
         return t;

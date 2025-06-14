@@ -331,6 +331,7 @@ class NMSImpl : NMS {
     ) : ModelDisplay {
 
         private var forceGlow = false
+        private var forceInvisibility = false
 
         override fun rotate(rotation: ModelRotation, bundler: PacketBundler) {
             if (!display.valid) return
@@ -342,6 +343,10 @@ class NMSImpl : NMS {
                 rotation.packedX(),
                 display.onGround
             )
+        }
+
+        override fun invisible(invisible: Boolean) {
+            forceInvisibility = invisible
         }
 
         override fun sync(entity: EntityAdapter) {
@@ -446,7 +451,7 @@ class NMSImpl : NMS {
             })
         }
 
-        override fun invisible(): Boolean = display.isInvisible || display.itemStack.`is`(Items.AIR)
+        override fun invisible(): Boolean = display.isInvisible || forceInvisibility || display.itemStack.`is`(Items.AIR)
         override fun sendEntityData(showItem: Boolean, bundler: PacketBundler) {
             bundler.unwrap() += ClientboundSetEntityDataPacket(display.id, display.entityData.pack()
                 .asSequence()

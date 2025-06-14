@@ -21,6 +21,12 @@ public interface ModelDisplay {
     boolean invisible();
 
     /**
+     * Sets the invisibility of this display
+     * @param invisible is invisible
+     */
+    void invisible(boolean invisible);
+
+    /**
      * Rotates this display
      * @param rotation rotation
      * @param bundler packet bundler
