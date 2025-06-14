@@ -35,7 +35,7 @@ class BindHitBoxMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), IN
                     if (!spawned.isValid) hitBox.removeHitBox()
                     else spawned.teleportAsync((hitBox as Entity).location)
                 }
-                .damage { source, damage ->
+                .damage { _, source, damage ->
                     if (spawned is Damageable) {
                         spawned.damage(damage, source.causingEntity)
                         true

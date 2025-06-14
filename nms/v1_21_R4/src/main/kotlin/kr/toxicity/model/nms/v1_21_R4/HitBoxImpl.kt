@@ -402,7 +402,7 @@ internal class HitBoxImpl(
         val ds = ModelDamageSourceImpl(source)
         val event = ModelDamagedEvent(craftEntity, ds, amount)
         if (!event.call()) return false
-        if (listener.damage(ds, amount.toDouble())) return false
+        if (listener.damage(this, ds, amount.toDouble())) return false
         return delegate.hurtServer(world, source, event.damage)
     }
 

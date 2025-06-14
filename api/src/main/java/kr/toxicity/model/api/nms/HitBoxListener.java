@@ -31,7 +31,7 @@ public interface HitBoxListener {
      */
     class Builder {
         private Consumer<HitBox> sync = h -> {};
-        private BiPredicate<ModelDamageSource, Double> damage = (s, d) -> false;
+        private OnDamage damage = (h, s, d) -> false;
         private Consumer<HitBox> remove = h -> {};
         private BiConsumer<HitBox, Entity> mount = (h, e) -> {};
         private BiConsumer<HitBox, Entity> dismount = (h, e) -> {};
@@ -47,7 +47,7 @@ public interface HitBoxListener {
          * @param damage listener
          * @return self
          */
-        public @NotNull Builder damage(@NotNull BiPredicate<ModelDamageSource, Double> damage) {
+        public @NotNull Builder damage(@NotNull OnDamage damage) {
             this.damage = damage;
             return this;
         }
@@ -104,8 +104,8 @@ public interface HitBoxListener {
                 }
 
                 @Override
-                public boolean damage(@NotNull ModelDamageSource source, double damage) {
-                    return Builder.this.damage.test(source, damage);
+                public boolean damage(@NotNull HitBox hitBox, @NotNull ModelDamageSource source, double damage) {
+                    return Builder.this.damage.event(hitBox, source, damage);
                 }
 
                 @Override
@@ -126,6 +126,10 @@ public interface HitBoxListener {
         }
     }
 
+    interface OnDamage {
+        boolean event(@NotNull HitBox hitBox, @NotNull ModelDamageSource source, double damage);
+    }
+
     /**
      * Listens to hit-box tick
      * @param hitBox target hit-box
@@ -134,11 +138,12 @@ public interface HitBoxListener {
 
     /**
      * Listens to hit-box damage
+     * @param hitBox target hit-box
      * @param source damage source
      * @param damage damage
      * @return cancel
      */
-    boolean damage(@NotNull ModelDamageSource source, double damage);
+    boolean damage(@NotNull HitBox hitBox, @NotNull ModelDamageSource source, double damage);
 
     /**
      * Listens to hit-box remove
