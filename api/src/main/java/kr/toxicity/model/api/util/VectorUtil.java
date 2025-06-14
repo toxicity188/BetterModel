@@ -191,21 +191,30 @@ public final class VectorUtil {
             @Nullable Vector3f bezierRightTime,
             @Nullable Vector3f bezierRightValue
     ) {
-        float tGuess = solveBezierTForTime(
-                time,
-                startTime,
-                bezierRightTime != null ? bezierRightTime.x : startTime,
-                bezierLeftTime != null ? bezierLeftTime.x : endTime,
-                endTime
-        );
-        Vector3f p0 = new Vector3f(startValue);
-        Vector3f p1 = bezierRightValue != null ? new Vector3f(bezierRightValue) : new Vector3f(startValue);
-        Vector3f p2 = bezierLeftValue != null ? new Vector3f(bezierLeftValue) : new Vector3f(endValue);
-        Vector3f p3 = new Vector3f(endValue);
+        Vector3f p1 = bezierRightValue != null ? new Vector3f(bezierRightValue).add(startValue) : startValue;
+        Vector3f p2 = bezierLeftValue != null ? new Vector3f(bezierLeftValue).add(endValue) : endValue;
         return new Vector3f(
-                cubicBezier(p0.x, p1.x, p2.x, p3.x, tGuess),
-                cubicBezier(p0.y, p1.y, p2.y, p3.y, tGuess),
-                cubicBezier(p0.z, p1.z, p2.z, p3.z, tGuess)
+                cubicBezier(startValue.x, p1.x, p2.x, endValue.x, solveBezierTForTime(
+                        time,
+                        startTime,
+                        bezierRightTime != null ? bezierRightTime.x + startTime : startTime,
+                        bezierLeftTime != null ? bezierLeftTime.x + endTime : endTime,
+                        endTime
+                )),
+                cubicBezier(startValue.y, p1.y, p2.y, endValue.y, solveBezierTForTime(
+                        time,
+                        startTime,
+                        bezierRightTime != null ? bezierRightTime.y + startTime : startTime,
+                        bezierLeftTime != null ? bezierLeftTime.y + endTime : endTime,
+                        endTime
+                )),
+                cubicBezier(startValue.z, p1.z, p2.z, endValue.z, solveBezierTForTime(
+                        time,
+                        startTime,
+                        bezierRightTime != null ? bezierRightTime.z + startTime : startTime,
+                        bezierLeftTime != null ? bezierLeftTime.z + endTime : endTime,
+                        endTime
+                ))
         );
     }
 
