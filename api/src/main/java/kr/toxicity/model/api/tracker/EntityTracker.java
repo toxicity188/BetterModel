@@ -153,7 +153,6 @@ public class EntityTracker extends Tracker {
             else if (damageTint.getAndDecrement() == 0) tint(-1);
         });
         rotation(() -> adapter.dead() ? pipeline.getRotation() : new ModelRotation(0, entity instanceof LivingEntity ? adapter.bodyYaw() : entity.getYaw()));
-        tint(0xFFFFFF);
         update();
         EventUtil.call(new CreateEntityTrackerEvent(this));
     }

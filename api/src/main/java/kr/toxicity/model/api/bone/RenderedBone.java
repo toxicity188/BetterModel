@@ -77,7 +77,7 @@ public final class RenderedBone implements HitBoxSource {
     @Getter
     @Setter
     private BoneItemMapper itemMapper;
-    private int previousTint, tint;
+    private int previousTint, tint = 0xFFFFFF;
     private TransformedItemStack itemStack;
 
     //Animation
@@ -126,11 +126,11 @@ public final class RenderedBone implements HitBoxSource {
             display = BetterModel.plugin().nms().create(firstLocation);
             display.display(transform);
             display.viewRange(modifier.viewRange());
-            display.item(itemStack.itemStack());
             display.invisible(itemMapper == BoneItemMapper.EMPTY && !group.getParent().visibility());
         }
         defaultFrame = movement;
         children = Collections.unmodifiableMap(childrenMapper.apply(this));
+        applyItem();
     }
 
     public @Nullable RunningAnimation runningAnimation() {
@@ -306,7 +306,6 @@ public final class RenderedBone implements HitBoxSource {
                 }
             }
         }
-        if (keyFrame == null) return false;
         setKeyframe(null);
         return true;
     }

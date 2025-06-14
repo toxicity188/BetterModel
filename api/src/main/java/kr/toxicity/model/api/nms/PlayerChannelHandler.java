@@ -2,12 +2,14 @@ package kr.toxicity.model.api.nms;
 
 import com.mojang.authlib.GameProfile;
 import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.tracker.EntityTracker;
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Collection;
+import java.util.stream.Stream;
 
 /**
  * A player channel
@@ -46,11 +48,21 @@ public interface PlayerChannelHandler extends AutoCloseable {
     void endTrack(@NotNull EntityTrackerRegistry registry);
 
     /**
-     * Gets tracked trackers.
-     * @return tracker collection
+     * Gets tracked registry.
+     * @return registry collection
      */
     @NotNull @Unmodifiable
     Collection<EntityTrackerRegistry> trackedRegistries();
+
+    /**
+     * Gets tracked trackers.
+     * @return tracker stream
+     */
+    default @NotNull Stream<EntityTracker> trackedTrackers() {
+        return trackedRegistries()
+                .stream()
+                .flatMap(r -> r.trackers().stream());
+    }
 
     /**
      * Stops tracking all entity trackers
