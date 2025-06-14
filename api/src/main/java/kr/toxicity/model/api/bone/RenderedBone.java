@@ -60,7 +60,7 @@ public final class RenderedBone implements HitBoxSource {
     private final SequencedMap<String, TreeIterator> animators = new LinkedHashMap<>();
     private final Collection<TreeIterator> reversedView = animators.sequencedValues().reversed();
     private final Int2ObjectOpenHashMap<ItemStack> tintCacheMap = new Int2ObjectOpenHashMap<>();
-    private final AtomicBoolean forceUpdateAnimation = new AtomicBoolean(true);
+    private final AtomicBoolean forceUpdateAnimation = new AtomicBoolean();
     @Getter
     private final boolean dummyBone;
     private final Object itemLock = new Object();
@@ -81,6 +81,7 @@ public final class RenderedBone implements HitBoxSource {
     private TransformedItemStack itemStack;
 
     //Animation
+    private boolean firstTick = true;
     private AnimationMovement keyFrame = null;
     private volatile long delay = 0;
     private TreeIterator currentIterator = null;
@@ -333,7 +334,8 @@ public final class RenderedBone implements HitBoxSource {
             if (d != null) d.rotate(rotation, bundler);
         }
         --delay;
-        if (shouldUpdateAnimation() && updateAnimation()) {
+        if (firstTick || (shouldUpdateAnimation() && updateAnimation())) {
+            firstTick = false;
             var f = frame();
             delay = f;
             beforeTransform = afterTransform;
