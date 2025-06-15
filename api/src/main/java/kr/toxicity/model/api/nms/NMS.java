@@ -121,4 +121,10 @@ public interface NMS {
     default @NotNull TransformedItemStack createSkinItem(@NotNull String model, @NotNull List<Boolean> flags, @NotNull List<Integer> colors) {
         return TransformedItemStack.empty();
     }
+
+    /**
+     * Gets this server is serviced as online-mode by proxy or native
+     * @return is online-mode
+     */
+    boolean isProxyOnlineMode();
 }

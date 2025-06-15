@@ -3,7 +3,6 @@ package kr.toxicity.model.manager
 import com.google.gson.JsonParser
 import com.mojang.authlib.GameProfile
 import kr.toxicity.library.dynamicuv.*
-import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.event.CreatePlayerSkinEvent
 import kr.toxicity.model.api.event.RemovePlayerSkinEvent
 import kr.toxicity.model.api.manager.ReloadInfo
@@ -609,7 +608,7 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         }
     }
 
-    private var skinProvider = if ((BetterModel.IS_PAPER && Bukkit.getServerConfig().isProxyOnlineMode) || Bukkit.getOnlineMode()) PlayerSkinProvider.DEFAULT else HttpPlayerSkinProvider()
+    private var skinProvider = if (PLUGIN.nms().isProxyOnlineMode) PlayerSkinProvider.DEFAULT else HttpPlayerSkinProvider()
 
     override fun supported(): Boolean = PLUGIN.version() >= MinecraftVersion.V1_21_4
 

@@ -571,4 +571,6 @@ class NMSImpl : NMS {
         set(DataComponents.PROFILE, ResolvableProfile(profile))
         CraftItemStack.asBukkitCopy(this)
     }
+
+    override fun isProxyOnlineMode(): Boolean = ONLINE_MODE
 }

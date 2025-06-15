@@ -1,6 +1,7 @@
 package kr.toxicity.model.nms.v1_20_R3
 
 import io.netty.buffer.Unpooled
+import io.papermc.paper.configuration.GlobalConfiguration
 import io.papermc.paper.util.TickThread
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet
 import kr.toxicity.model.api.BetterModel
@@ -26,6 +27,7 @@ import net.minecraft.world.entity.ai.goal.RangedCrossbowAttackGoal
 import net.minecraft.world.entity.animal.FlyingAnimal
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.Vec3
+import org.bukkit.Bukkit
 import org.bukkit.craftbukkit.v1_20_R3.entity.CraftEntity
 import org.bukkit.event.Event
 import org.joml.Quaternionf
@@ -48,6 +50,10 @@ internal val EMPTY_QUATERNION = Quaternionf()
 
 internal val CONFIG by lazy {
     BetterModel.plugin().configManager()
+}
+
+internal val ONLINE_MODE by lazy {
+    if (BetterModel.IS_PAPER) GlobalConfiguration.get().proxies.isProxyOnlineMode else Bukkit.getOnlineMode()
 }
 
 internal fun List<Int>.toIntSet(): IntOpenHashSet = IntOpenHashSet(this)

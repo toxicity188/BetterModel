@@ -570,4 +570,6 @@ class NMSImpl : NMS {
         orCreateTag.put("SkullOwner", NbtUtils.writeGameProfile(CompoundTag(), profile))
         CraftItemStack.asBukkitCopy(this)
     }
+
+    override fun isProxyOnlineMode(): Boolean = ONLINE_MODE
 }
