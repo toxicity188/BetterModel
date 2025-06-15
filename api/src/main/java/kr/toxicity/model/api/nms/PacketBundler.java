@@ -8,11 +8,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface PacketBundler {
     /**
-     * Checks this bundler uses entity track
-     * @return use entity track
-     */
-    boolean useEntityTrack();
-    /**
      * Checks this bundler is empty
      * @return empty or not
      */

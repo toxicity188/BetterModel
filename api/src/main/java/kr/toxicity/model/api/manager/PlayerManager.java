@@ -35,9 +35,10 @@ public interface PlayerManager extends GlobalManager {
      * @param player player
      * @param model model name
      * @param animation animation name
+     * @return whether to success
      */
-    default void animate(@NotNull Player player, @NotNull String model, @NotNull String animation) {
-        animate(player, model, animation, AnimationModifier.DEFAULT_WITH_PLAY_ONCE);
+    default boolean animate(@NotNull Player player, @NotNull String model, @NotNull String animation) {
+        return animate(player, model, animation, AnimationModifier.DEFAULT_WITH_PLAY_ONCE);
     }
 
     /**
@@ -46,8 +47,9 @@ public interface PlayerManager extends GlobalManager {
      * @param model model name
      * @param animation animation name
      * @param modifier modifier
+     * @return whether to success
      */
-    void animate(@NotNull Player player, @NotNull String model, @NotNull String animation, @NotNull AnimationModifier modifier);
+    boolean animate(@NotNull Player player, @NotNull String model, @NotNull String animation, @NotNull AnimationModifier modifier);
 
 
     /**

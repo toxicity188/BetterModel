@@ -50,6 +50,7 @@ import org.joml.Vector3f
 import java.lang.reflect.Field
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import java.util.function.BooleanSupplier
 
 class NMSImpl : NMS {
 
@@ -109,19 +110,29 @@ class NMSImpl : NMS {
         private val entityDataSet = (mutableListOf(sharedFlag) + itemId + displaySet.subList(transformSet.size, displaySet.size)).toIntSet()
     }
 
-    override fun hide(player: Player, entity: org.bukkit.entity.Entity) {
-        val connection = (player as CraftPlayer).handle
+    override fun hide(player: Player, registry: EntityTrackerRegistry, condition: BooleanSupplier) {
+        val entity = registry.entity()
         val target = (entity as CraftEntity).vanillaEntity
         val task = {
-            connection.connection.send(ClientboundBundlePacket(listOf(
-                ClientboundSetEntityDataPacket(target.id, target.entityData.pack()),
+            PacketBundlerImpl(mutableListOf(
+                ClientboundSetEntityDataPacket(target.id, target.entityData.pack()).toRegistryDataPacket(registry),
                 ClientboundSetEquipmentPacket(target.id, EquipmentSlot.entries.map { e ->
                     Pair.of(e, Items.AIR.defaultInstance)
                 })
-            )))
+            )).send(player)
         }
-        if (entity is Player) BetterModel.plugin().scheduler().asyncTaskLater(CONFIG.playerHideDelay(), task) else task()
+        if (entity is Player) BetterModel.plugin().scheduler().asyncTaskLater(CONFIG.playerHideDelay()) {
+            if (condition.asBoolean) task()
+        } else task()
     }
+    
+    private fun ClientboundSetEntityDataPacket.toRegistryDataPacket(registry: EntityTrackerRegistry) = ClientboundSetEntityDataPacket(id, packedItems().map {
+        if (it.id == sharedFlag) SynchedEntityData.DataValue(
+            it.id,
+            EntityDataSerializers.BYTE,
+            registry.entityFlag(it.value() as Byte)
+        ) else it
+    })
 
     inner class PlayerChannelHandlerImpl(
         private val player: Player
@@ -219,13 +230,7 @@ class NMSImpl : NMS {
                     }
                 }
                 is ClientboundSetEntityDataPacket -> id.toRegistry()?.let { registry ->
-                    return ClientboundSetEntityDataPacket(id, packedItems().map {
-                        if (it.id == sharedFlag) SynchedEntityData.DataValue(
-                            it.id,
-                            EntityDataSerializers.BYTE,
-                            registry.entityFlag(it.value() as Byte)
-                        ) else it
-                    })
+                    return toRegistryDataPacket(registry)
                 }
                 is ClientboundSetEquipmentPacket -> if (entity.toRegistry()?.hideOption()?.equipment() == true) return ClientboundSetEquipmentPacket(entity, EquipmentSlot.entries.map { e ->
                     Pair.of(e, Items.AIR.defaultInstance)
@@ -302,7 +307,7 @@ class NMSImpl : NMS {
 
     override fun inject(player: Player): PlayerChannelHandlerImpl = PlayerChannelHandlerImpl(player)
 
-    override fun createBundler(initialCapacity: Int, useEntityTrack: Boolean): PacketBundler = PacketBundlerImpl(useEntityTrack, ArrayList(initialCapacity))
+    override fun createBundler(initialCapacity: Int): PacketBundler = PacketBundlerImpl(ArrayList(initialCapacity))
 
     override fun create(location: Location): ModelDisplay = ModelDisplayImpl(ItemDisplay(EntityType.ITEM_DISPLAY, (location.world as CraftWorld).handle).apply {
         billboardConstraints = Display.BillboardConstraints.FIXED

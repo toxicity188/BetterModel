@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.function.BooleanSupplier;
 
 /**
  * A vanilla code handler of Minecraft (NMS)
@@ -34,19 +35,10 @@ public interface NMS {
 
     /**
      * Creates packet bundler
-     * @return packet bundler
-     */
-    default @NotNull PacketBundler createBundler(int initialCapacity) {
-        return createBundler(initialCapacity, false);
-    }
-
-    /**
-     * Creates packet bundler
      * @param initialCapacity initial capacity
-     * @param useEntityTrack use entity track
      * @return packet bundler
      */
-    @NotNull PacketBundler createBundler(int initialCapacity, boolean useEntityTrack);
+    @NotNull PacketBundler createBundler(int initialCapacity);
 
     /**
      * Applies tint to some item
@@ -66,9 +58,10 @@ public interface NMS {
     /**
      * Sends a hide packet for some entity to some player
      * @param player player
-     * @param entity entity
+     * @param registry registry
+     * @param condition condition
      */
-    void hide(@NotNull Player player, @NotNull Entity entity);
+    void hide(@NotNull Player player, @NotNull EntityTrackerRegistry registry, @NotNull BooleanSupplier condition);
 
     /**
      * Creates delegator hit-box of target entity

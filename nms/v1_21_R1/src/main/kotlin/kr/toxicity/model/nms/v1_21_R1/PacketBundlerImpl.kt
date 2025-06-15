@@ -9,13 +9,12 @@ import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.entity.Player
 
 internal class PacketBundlerImpl(
-    private val useEntityTrack: Boolean,
     private val list: MutableList<Packet<ClientGamePacketListener>>
 ) : PacketBundler, Iterable<Packet<ClientGamePacketListener>> by list {
     private val bundlePacket by lazy {
         ClientboundBundlePacket(this)
     }
-    override fun copy(): PacketBundler = PacketBundlerImpl(useEntityTrack, ArrayList(list))
+    override fun copy(): PacketBundler = PacketBundlerImpl(ArrayList(list))
     override fun send(player: Player, onSuccess: Runnable) {
         val connection = (player as CraftPlayer).handle.connection
         when (list.size) {
@@ -24,7 +23,6 @@ internal class PacketBundlerImpl(
             else -> connection.send(bundlePacket, PacketSendListener.thenRun(onSuccess))
         }
     }
-    override fun useEntityTrack(): Boolean = useEntityTrack
     override fun isEmpty(): Boolean = list.isEmpty()
     operator fun plusAssign(other: Packet<ClientGamePacketListener>) {
         list += other

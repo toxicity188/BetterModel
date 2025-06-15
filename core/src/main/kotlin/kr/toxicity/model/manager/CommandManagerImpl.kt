@@ -158,13 +158,13 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                             player.audience().warn("Invalid loop type: '$loopTypeStr'. Using default.")
                         }.getOrNull()
                     }
-                    (PlayerManagerImpl as PlayerManager).animate(player, n, a, AnimationModifier(
+                    if (!PlayerManagerImpl.animate(player, n, a, AnimationModifier(
                         { true },
                         1,
                         0,
                         loopType,
                         1.0F
-                    ))
+                    ))) player.audience().warn("Unable to find this animation($a) or model($n).")
                 })
             }
         }.build().register(PLUGIN)

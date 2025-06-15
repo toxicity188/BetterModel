@@ -75,13 +75,15 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
     override fun limbs(): List<ModelRenderer> = renderMap.values.toList()
     override fun limb(name: String): ModelRenderer? = renderMap[name]
 
-    override fun animate(player: Player, model: String, animation: String, modifier: AnimationModifier) {
-        renderMap[model]?.let {
+    override fun animate(player: Player, model: String, animation: String, modifier: AnimationModifier): Boolean {
+        return renderMap[model]?.let {
             val create = it.getOrCreate(player)
-            if (!create.animate(animation, modifier) {
-                    create.close()
-                }) create.close()
-        }
+            val success = create.animate(animation, modifier) {
+                create.close()
+            }
+            if (!success) create.close()
+            success
+        } == true
     }
 
     private fun ModelBlueprint.toRenderer(): ModelRenderer {

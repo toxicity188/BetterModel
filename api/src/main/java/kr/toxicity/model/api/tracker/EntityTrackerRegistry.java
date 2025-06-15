@@ -144,8 +144,10 @@ public final class EntityTrackerRegistry {
     }
 
     private void close0() {
-        for (PlayerChannelHandler value : viewedPlayerMap.values()) {
-            remove(value.player());
+        var playerIterator = viewedPlayerMap.values().iterator();
+        while (playerIterator.hasNext()) {
+            remove(playerIterator.next());
+            playerIterator.remove();
         }
         for (EntityTracker value : trackerMap.values()) {
             value.close();
@@ -254,7 +256,7 @@ public final class EntityTrackerRegistry {
             value.spawn(player, bundler);
         }
         BetterModel.plugin().nms().mount(this, bundler);
-        bundler.send(player, () -> BetterModel.plugin().nms().hide(player, entity));
+        bundler.send(player, () -> BetterModel.plugin().nms().hide(player, this, () -> viewedPlayerMap.containsKey(player.getUniqueId())));
         handler.startTrack(this);
         return true;
     }
@@ -262,11 +264,15 @@ public final class EntityTrackerRegistry {
     public boolean remove(@NotNull Player player) {
         var handler = viewedPlayerMap.remove(player.getUniqueId());
         if (handler == null) return false;
+        remove(handler);
+        return true;
+    }
+
+    private void remove(@NotNull PlayerChannelHandler handler) {
         for (EntityTracker value : trackerMap.values()) {
-            value.remove(player);
+            value.remove(handler.player());
         }
         handler.endTrack(this);
-        return true;
     }
 
     public @NotNull HideOption hideOption() {
