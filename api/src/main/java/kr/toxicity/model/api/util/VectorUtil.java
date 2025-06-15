@@ -70,10 +70,12 @@ public final class VectorUtil {
         var last = vectors.getLast();
         var length = last.time();
         var i = 0;
+        var p1 = VectorPoint.EMPTY;
         var p2 = vectors.getFirst();
         var t = p2.time();
         for (float point : points) {
             while (i < vectors.size() - 1 && t < point) {
+                p1 = p2;
                 t = (p2 = vectors.get(++i)).time();
             }
             if (point > length) newVectors.add(new VectorPoint(
@@ -82,7 +84,7 @@ public final class VectorUtil {
                     last.interpolation()
             ));
             else {
-                newVectors.add(point == t ? vectors.get(i) : p2.interpolation().interpolate(vectors, i, point));
+                newVectors.add(point == t ? vectors.get(i) : p1.interpolation().interpolate(vectors, i, point));
             }
         }
         if (t < length) newVectors.addAll(vectors.subList(i, vectors.size()));

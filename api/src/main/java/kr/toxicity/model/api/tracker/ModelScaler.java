@@ -9,34 +9,84 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.Function;
 
+/**
+ * Model scaler
+ */
 public sealed interface ModelScaler {
 
+    /**
+     * Deserializer
+     */
     Deserializer DESERIALIZER = new Deserializer();
 
+    /**
+     * Gets this scaler's name
+     * @return name
+     */
     @NotNull String name();
+
+    /**
+     * Gets the scale of this tracker
+     * @param tracker tracker
+     * @return scale
+     */
     float scale(@NotNull Tracker tracker);
+
+    /**
+     * Gets the data of this scaler
+     * @return data
+     */
     @Nullable JsonElement data();
 
+    /**
+     * Deserializes scaler from JSON
+     * @param element JSON element
+     * @return result
+     */
     static @NotNull ModelScaler deserialize(@NotNull JsonObject element) {
         var scaler = DESERIALIZER.buildScaler(element);
         return scaler != null ? scaler : defaultScaler();
     }
 
+    /**
+     * Gets the default scaler (1.0)
+     * @return default scaler
+     */
     static @NotNull ModelScaler defaultScaler() {
         return DESERIALIZER.defaultScaler();
     }
 
+    /**
+     * Gets the entity's attribute scaler
+     * @return entity scaler
+     */
     static @NotNull ModelScaler entity() {
         return DESERIALIZER.entity.deserialize();
     }
+
+    /**
+     * Gets the constant scaler (value)
+     * @param value value
+     * @return value scaler
+     */
     static @NotNull ModelScaler value(float value) {
         return DESERIALIZER.value.deserialize(value);
     }
 
+    /**
+     * Gets the composited scaler (a * b)
+     * @param scalers scalers
+     * @return composited scaler
+     */
     static @NotNull ModelScaler composite(@NotNull ModelScaler... scalers) {
         return new Composite(new Composite.CompositeGetter(Arrays.asList(scalers)));
     }
 
+    /**
+     * Composites this scaler to another one (a * b)
+     * @param scaler other
+     * @return composited scaler
+     */
     default @NotNull ModelScaler composite(@NotNull ModelScaler scaler) {
         var list = new ArrayList<ModelScaler>();
         if (this instanceof Composite composite) {
@@ -48,6 +98,10 @@ public sealed interface ModelScaler {
         return new Composite(new Composite.CompositeGetter(list));
     }
 
+    /**
+     * Serializes this scaler to JSON
+     * @return JSON
+     */
     default @NotNull JsonObject serialize() {
         var json = new JsonObject();
         json.addProperty("name", name());
@@ -56,20 +110,51 @@ public sealed interface ModelScaler {
         return json;
     }
 
+    /**
+     * Getter
+     */
     interface Getter {
+        /**
+         * Default
+         */
         Getter DEFAULT = t -> 1F;
+        /**
+         * Entity
+         */
         Getter ENTITY = t -> t instanceof EntityTracker entityTracker ? (float) entityTracker.registry().adapter().scale() : 1F;
+
+        /**
+         * Gets scale by tracker
+         * @param tracker tracker
+         * @return scale
+         */
         float get(@NotNull Tracker tracker);
 
-        static Getter value(float value) {
+        /**
+         * Gets constant getter from value
+         * @param value value
+         * @return getter
+         */
+        static @NotNull Getter value(float value) {
             return t -> value;
         }
     }
 
+    /**
+     * Builder
+     */
     interface Builder {
+        /**
+         * Builds getter from JSON
+         * @param data JSON
+         * @return getter or null if invalid
+         */
         @Nullable Getter build(@NotNull JsonElement data);
     }
 
+    /**
+     * Composited scaler
+     */
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     final class Composite implements ModelScaler {
 
@@ -115,15 +200,30 @@ public sealed interface ModelScaler {
         }
     }
 
+    /**
+     * Build-in deserializer
+     */
     interface BuiltInDeserializer extends Function<JsonElement, ModelScaler> {
+        /**
+         * Deserializes scaler from constant
+         * @param value value
+         * @return scaler
+         */
         default @NotNull ModelScaler deserialize(float value) {
             return apply(new JsonPrimitive(value));
         }
+        /**
+         * Deserializes scaler from empty value
+         * @return scaler
+         */
         default @NotNull ModelScaler deserialize() {
             return apply(JsonNull.INSTANCE);
         }
     }
 
+    /**
+     * Deserializer
+     */
     final class Deserializer {
 
         private final Map<String, Builder> getterMap = new HashMap<>();
@@ -147,16 +247,27 @@ public sealed interface ModelScaler {
             });
         }
 
-        public @NotNull ModelScaler defaultScaler() {
+        private @NotNull ModelScaler defaultScaler() {
             return def.deserialize();
         }
 
+        /**
+         * Adds scaler builder
+         * @param name name
+         * @param builder builder
+         * @return built-in deserializer
+         */
         public @NotNull BuiltInDeserializer addScaler(@NotNull String name, @NotNull Builder builder) {
             var put = getterMap.putIfAbsent(name, builder);
             var target = put != null ? put : builder;
             return element -> pack(name, target, element);
         }
 
+        /**
+         * Builds scaler from JSON
+         * @param rawData JSON
+         * @return scaler or null if invalid
+         */
         public @Nullable ModelScaler buildScaler(@NotNull JsonObject rawData) {
             var n = rawData.getAsJsonPrimitive("name");
             if (n == null) return null;
