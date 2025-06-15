@@ -24,7 +24,7 @@ dependencies {
         exclude("net.byteflux")
     }
     compileOnly("net.skinsrestorer:skinsrestorer-api:15.6.5")
-    compileOnly("io.lumine:Mythic-Dist:5.9.0")
+    compileOnly("io.lumine:Mythic-Dist:5.9.1")
     compileOnly("com.hibiscusmc:HMCCosmetics:2.7.8")
 }
 
