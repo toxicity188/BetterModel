@@ -6,6 +6,7 @@ import kr.toxicity.model.api.animation.AnimationPredicate;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.BoneTags;
 import kr.toxicity.model.api.bone.RenderedBone;
+import kr.toxicity.model.api.tracker.Tracker;
 import kr.toxicity.model.api.util.function.FloatSupplier;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.nms.EntityAdapter;
@@ -40,7 +41,7 @@ public final class RenderPipeline {
     @Getter
     private final ModelRenderer parent;
     @Getter
-    private final RenderSource source;
+    private final RenderSource<?> source;
 
     private final Map<BoneName, RenderedBone> entityMap;
     private final List<RenderedBone> bones;
@@ -65,7 +66,7 @@ public final class RenderPipeline {
 
     public RenderPipeline(
             @NotNull ModelRenderer parent,
-            @NotNull RenderSource source,
+            @NotNull RenderSource<?> source,
             @NotNull Map<BoneName, RenderedBone> entityMap,
             @NotNull Map<String, BlueprintAnimation> animationMap
     ) {

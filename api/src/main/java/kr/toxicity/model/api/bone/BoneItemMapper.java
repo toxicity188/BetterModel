@@ -14,7 +14,10 @@ import java.util.function.Function;
 /**
  * Item-mapper of bone
  */
-public interface BoneItemMapper extends BiFunction<RenderSource, TransformedItemStack, TransformedItemStack> {
+public interface BoneItemMapper extends BiFunction<RenderSource<?>, TransformedItemStack, TransformedItemStack> {
+
+    @Override
+    @NotNull TransformedItemStack apply(@NotNull RenderSource<?> renderSource, @NotNull TransformedItemStack transformedItemStack);
 
     /**
      * Empty
@@ -51,7 +54,7 @@ public interface BoneItemMapper extends BiFunction<RenderSource, TransformedItem
             }
 
             @Override
-            public TransformedItemStack apply(RenderSource renderSource, TransformedItemStack transformedItemStack) {
+            public @NotNull TransformedItemStack apply(@NotNull RenderSource renderSource, @NotNull TransformedItemStack transformedItemStack) {
                 if (renderSource instanceof RenderSource.BasePlayer(Player player)) {
                     var get = mapper.apply(player);
                     return get == null ? AIR : get;

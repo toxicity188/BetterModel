@@ -265,7 +265,7 @@ public final class ModelRenderer {
         );
     }
 
-    private @NotNull RenderPipeline pipeline(@NotNull RenderSource source, @NotNull Location location, @NotNull TrackerModifier modifier) {
+    private @NotNull RenderPipeline pipeline(@NotNull RenderSource<?> source, @NotNull Location location, @NotNull TrackerModifier modifier) {
         return new RenderPipeline(this, source, rendererGroupMap
                 .entrySet()
                 .stream()

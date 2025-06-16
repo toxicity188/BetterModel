@@ -258,7 +258,7 @@ public enum PlayerLimb {
 
         @Override
         @NotNull
-        public TransformedItemStack apply(RenderSource source, TransformedItemStack transformedItemStack) {
+        public TransformedItemStack apply(@NotNull RenderSource<?> source, @NotNull TransformedItemStack transformedItemStack) {
             if (source instanceof RenderSource.Profiled profiled) {
                 return playerMapper.apply(profiled);
             }
