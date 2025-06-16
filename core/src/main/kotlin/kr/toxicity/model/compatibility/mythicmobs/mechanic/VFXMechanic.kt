@@ -29,13 +29,14 @@ class VFXMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTarget
         return ModelManagerImpl.renderer(m1)?.let {
             val e = p0.caster.entity.bukkitEntity
             val created = it.create(e, TrackerModifier(
-                ModelScaler.value(scl(args)),
                 st(args),
                 false,
                 false,
                 0F,
                 false
-            ))
+            )) { t ->
+                t.scaler(ModelScaler.value(scl(args)))
+            }
             if (!created.animate(s1, AnimationModifier(0, 0, spd(args))) {
                 created.close()
             }) created.close()

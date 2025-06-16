@@ -37,16 +37,16 @@ class ModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTarg
                 EntityTrackerRegistry.registry(e.uniqueId)?.remove(it)
             } == true) SkillResult.SUCCESS else SkillResult.CONDITION_FAILED
         } else {
-            val scale = s(args)
             ModelManagerImpl.renderer(mid(args) ?: return SkillResult.CONDITION_FAILED)?.let {
                 it.create(e, TrackerModifier(
-                    ModelScaler.value(scale).composite(ModelScaler.entity()),
                     st(args),
                     da(args),
                     dt(args),
                     vr(args),
                     shadow(args)
-                ))
+                )) { t ->
+                    t.scaler(ModelScaler.entity().multiply(s(args)))
+                }
                 SkillResult.SUCCESS
             } ?: SkillResult.CONDITION_FAILED
         }

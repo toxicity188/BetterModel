@@ -9,9 +9,10 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public sealed interface RenderSource {
+public sealed interface RenderSource<T extends Tracker> {
 
     @ApiStatus.Internal
     static @NotNull Located of(@NotNull Location location) {
@@ -26,27 +27,19 @@ public sealed interface RenderSource {
         return entity instanceof Player player ? new BasePlayer(player) : new BaseEntity(entity);
     }
 
-    @NotNull Tracker create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier);
+    T create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<T> preUpdateConsumer);
 
-    sealed interface Based extends RenderSource {
+    sealed interface Based extends RenderSource<EntityTracker> {
         @NotNull Entity entity();
-
         @NotNull
-        @Override
-        EntityTracker create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier);
-        @NotNull
-        EntityTracker getOrCreate(@NotNull String name, @NotNull Supplier<RenderPipeline> supplier, @NotNull TrackerModifier modifier);
+        EntityTracker getOrCreate(@NotNull String name, @NotNull Supplier<RenderPipeline> supplier, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer);
     }
 
-    sealed interface Located extends RenderSource {
+    sealed interface Located extends RenderSource<DummyTracker> {
         @NotNull Location location();
-
-        @NotNull
-        @Override
-        DummyTracker create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier);
     }
 
-    sealed interface Profiled extends RenderSource {
+    sealed interface Profiled {
         @NotNull GameProfile profile();
         boolean slim();
     }
@@ -54,16 +47,16 @@ public sealed interface RenderSource {
     record Dummy(@NotNull Location location) implements Located {
         @NotNull
         @Override
-        public DummyTracker create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier) {
-            return new DummyTracker(location, pipeline, modifier);
+        public DummyTracker create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<DummyTracker> preUpdateConsumer) {
+            return new DummyTracker(location, pipeline, modifier, preUpdateConsumer);
         }
     }
 
     record ProfiledDummy(@NotNull Location location, @NotNull GameProfile profile, boolean slim) implements Profiled, Located {
         @NotNull
         @Override
-        public DummyTracker create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier) {
-            return new DummyTracker(location, pipeline, modifier);
+        public DummyTracker create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<DummyTracker> preUpdateConsumer) {
+            return new DummyTracker(location, pipeline, modifier, preUpdateConsumer);
         }
     }
 
@@ -71,13 +64,13 @@ public sealed interface RenderSource {
 
         @NotNull
         @Override
-        public EntityTracker create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier) {
-            return EntityTrackerRegistry.registry(entity).create(pipeline.name(), r -> new EntityTracker(r, pipeline, modifier));
+        public EntityTracker create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
+            return EntityTrackerRegistry.registry(entity).create(pipeline.name(), r -> new EntityTracker(r, pipeline, modifier, preUpdateConsumer));
         }
 
         @Override
-        public @NotNull EntityTracker getOrCreate(@NotNull String name, @NotNull Supplier<RenderPipeline> supplier, @NotNull TrackerModifier modifier) {
-            return EntityTrackerRegistry.registry(entity).getOrCreate(name, r -> new EntityTracker(r, supplier.get(), modifier));
+        public @NotNull EntityTracker getOrCreate(@NotNull String name, @NotNull Supplier<RenderPipeline> supplier, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
+            return EntityTrackerRegistry.registry(entity).getOrCreate(name, r -> new EntityTracker(r, supplier.get(), modifier, preUpdateConsumer));
         }
     }
 
@@ -85,13 +78,13 @@ public sealed interface RenderSource {
 
         @NotNull
         @Override
-        public EntityTracker create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier) {
-            return EntityTrackerRegistry.registry(entity).create(pipeline.name(), r -> new PlayerTracker(r, pipeline, modifier));
+        public EntityTracker create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
+            return EntityTrackerRegistry.registry(entity).create(pipeline.name(), r -> new PlayerTracker(r, pipeline, modifier, preUpdateConsumer));
         }
 
         @Override
-        public @NotNull EntityTracker getOrCreate(@NotNull String name, @NotNull Supplier<RenderPipeline> supplier, @NotNull TrackerModifier modifier) {
-            return EntityTrackerRegistry.registry(entity).getOrCreate(name, r -> new PlayerTracker(r, supplier.get(), modifier));
+        public @NotNull EntityTracker getOrCreate(@NotNull String name, @NotNull Supplier<RenderPipeline> supplier, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
+            return EntityTrackerRegistry.registry(entity).getOrCreate(name, r -> new PlayerTracker(r, supplier.get(), modifier, preUpdateConsumer));
         }
 
         @NotNull

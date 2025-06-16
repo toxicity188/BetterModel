@@ -586,13 +586,7 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
 
         val builder = UVByteBuilder.emptyImage(uvNamespace, "one_pixel")
         block(builder.path()) {
-            BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB).apply {
-                for (w in 0..15) {
-                    for (h in 0..15) {
-                        setRGB(w, h, 0xFFFFFF)
-                    }
-                }
-            }.toByteArray()
+            builder.build()
         }
     }
 

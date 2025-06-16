@@ -13,6 +13,7 @@ import org.joml.Vector3f;
 
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 /**
  * No tracking tracker.
@@ -27,14 +28,16 @@ public final class DummyTracker extends Tracker {
      * @param location location
      * @param instance render instance.
      * @param modifier modifier
+     * @param preUpdateConsumer task on pre-update
      */
-    public DummyTracker(@NotNull Location location, @NotNull RenderPipeline instance, @NotNull TrackerModifier modifier) {
+    public DummyTracker(@NotNull Location location, @NotNull RenderPipeline instance, @NotNull TrackerModifier modifier, @NotNull Consumer<DummyTracker> preUpdateConsumer) {
         super(instance, modifier);
         this.location = location;
         instance.animate("spawn");
-        instance.scale(() -> modifier.scale().scale(this));
-        rotation(() -> new ModelRotation(0, this.location.getYaw()));
+        instance.scale(() -> scaler().scale(this));
+        rotation(() -> new ModelRotation(this.location.getPitch(), this.location.getYaw()));
         instance.defaultPosition(FunctionUtil.asSupplier(new Vector3f()));
+        preUpdateConsumer.accept(this);
         update();
         EventUtil.call(new CreateDummyTrackerEvent(this));
     }

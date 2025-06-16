@@ -160,7 +160,7 @@ public final class EntityTrackerRegistry {
         closed.set(true);
         var data = new ArrayList<TrackerData>(trackerMap.size());
         for (EntityTracker value : trackerMap.values()) {
-            data.add(value.getTrackerData());
+            data.add(value.asTrackerData());
             value.close();
         }
         trackerMap.clear();
@@ -182,7 +182,10 @@ public final class EntityTrackerRegistry {
     }
 
     public void load(@NotNull Stream<TrackerData> stream) {
-        stream.forEach(parsed -> BetterModel.model(parsed.id()).ifPresent(model -> model.create(entity, parsed.modifier())));
+        stream.forEach(parsed -> BetterModel.model(parsed.id()).ifPresent(model -> model.create(entity, parsed.modifier(), t -> {
+            t.scaler(parsed.scaler());
+            t.rotator(parsed.rotator());
+        })));
         save();
     }
 
@@ -205,7 +208,7 @@ public final class EntityTrackerRegistry {
     public @NotNull JsonArray serialize() {
         var array = new JsonArray(trackerMap.size());
         for (EntityTracker value : trackerMap.values()) {
-            array.add(value.getTrackerData().serialize());
+            array.add(value.asTrackerData().serialize());
         }
         return array;
     }

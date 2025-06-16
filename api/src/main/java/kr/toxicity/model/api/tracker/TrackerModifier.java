@@ -8,7 +8,6 @@ import java.util.Objects;
 
 /**
  * Tracker's modifier
- * @param scale model scale
  * @param sightTrace use sight-trace
  * @param damageAnimation enables damage animation
  * @param damageTint enables damage tint
@@ -16,7 +15,6 @@ import java.util.Objects;
  * @param shadow create shadow
  */
 public record TrackerModifier(
-        @NotNull ModelScaler scale,
         @SerializedName("sight-trace") boolean sightTrace,
         @SerializedName("damage-animation") boolean damageAnimation,
         @SerializedName("damage-tint") boolean damageTint,
@@ -27,7 +25,6 @@ public record TrackerModifier(
      * Default modifier
      */
     public static final TrackerModifier DEFAULT = new TrackerModifier(
-            ModelScaler.entity(),
             true,
             true,
             true,
@@ -55,7 +52,6 @@ public record TrackerModifier(
      * Builder class
      */
     public static final class Builder {
-        private ModelScaler scale;
         private boolean sightTrace;
         private boolean damageAnimation;
         private boolean damageTint;
@@ -67,22 +63,11 @@ public record TrackerModifier(
          * @param modifier modifier
          */
         private Builder(@NotNull TrackerModifier modifier) {
-            this.scale = modifier.scale;
             this.sightTrace = modifier.sightTrace;
             this.damageAnimation = modifier.damageAnimation;
             this.damageTint = modifier.damageTint;
             this.viewRange = modifier.viewRange;
             this.shadow = modifier.shadow;
-        }
-
-        /**
-         * Sets scale
-         * @param scale scale
-         * @return self
-         */
-        public @NotNull Builder scale(@NotNull ModelScaler scale) {
-            this.scale = Objects.requireNonNull(scale, "scale cannot be null.");
-            return this;
         }
 
         /**
@@ -141,7 +126,6 @@ public record TrackerModifier(
          */
         public @NotNull TrackerModifier build() {
             return new TrackerModifier(
-                    scale,
                     sightTrace,
                     damageAnimation,
                     damageTint,

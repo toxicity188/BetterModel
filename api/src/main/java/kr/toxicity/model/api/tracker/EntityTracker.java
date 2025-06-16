@@ -25,6 +25,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -72,17 +73,19 @@ public class EntityTracker extends Tracker {
 
     /**
      * Creates entity tracker
+     * @param registry registry
      * @param pipeline render instance
      * @param modifier modifier
+     * @param preUpdateConsumer task on pre-update
      */
     @ApiStatus.Internal
-    public EntityTracker(@NotNull EntityTrackerRegistry registry, @NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier) {
+    public EntityTracker(@NotNull EntityTrackerRegistry registry, @NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
         super(pipeline, modifier);
         this.registry = registry;
 
         var entity = registry.entity();
         var adapter = registry.adapter();
-        var scale = FunctionUtil.throttleTickFloat(() -> modifier.scale().scale(this));
+        var scale = FunctionUtil.throttleTickFloat(() -> scaler().scale(this));
         //Shadow
         if (modifier.shadow()) {
             var shadow = BetterModel.plugin().nms().create(entity.getLocation());
@@ -152,7 +155,8 @@ public class EntityTracker extends Tracker {
             if (shouldApplyDamageTint.compareAndSet(true, false)) tint(damageTintValue.get());
             else if (damageTint.getAndDecrement() == 0) tint(-1);
         });
-        rotation(() -> adapter.dead() ? pipeline.getRotation() : new ModelRotation(0, entity instanceof LivingEntity ? adapter.bodyYaw() : entity.getYaw()));
+        rotation(() -> adapter.dead() ? pipeline.getRotation() : new ModelRotation(entity.getPitch(), entity instanceof LivingEntity ? adapter.bodyYaw() : entity.getYaw()));
+        preUpdateConsumer.accept(this);
         update();
         EventUtil.call(new CreateEntityTrackerEvent(this));
     }

@@ -1,6 +1,7 @@
 package kr.toxicity.model.api.tracker;
 
 import kr.toxicity.model.api.util.MathUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
@@ -26,6 +27,14 @@ public record ModelRotation(float x, float y) {
     @Override
     public int hashCode() {
         return Objects.hash(packedX(), packedY());
+    }
+
+    public @NotNull ModelRotation pitch() {
+        return new ModelRotation(x, 0);
+    }
+
+    public @NotNull ModelRotation yaw() {
+        return new ModelRotation(0, y);
     }
 
     public float radianX() {

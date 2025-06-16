@@ -24,6 +24,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 import java.util.Objects;
@@ -36,6 +37,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -53,6 +55,8 @@ public abstract class Tracker implements AutoCloseable {
     public static final Gson PARSER = new GsonBuilder()
             .registerTypeAdapter(ModelScaler.class, (JsonDeserializer<ModelScaler>) (json, typeOfT, context) -> json.isJsonObject() ? ModelScaler.deserialize(json.getAsJsonObject()) : ModelScaler.defaultScaler())
             .registerTypeAdapter(ModelScaler.class, (JsonSerializer<ModelScaler>) (src, typeOfSrc, context) -> src.serialize())
+            .registerTypeAdapter(ModelRotator.class, (JsonDeserializer<ModelRotator>) (json, typeOfT, context) -> json.isJsonObject() ? ModelRotator.deserialize(json.getAsJsonObject()) : ModelRotator.YAW)
+            .registerTypeAdapter(ModelRotator.class, (JsonSerializer<ModelRotator>) (src, typeOfSrc, context) -> src.serialize())
             .create();
 
     @Getter
@@ -63,11 +67,11 @@ public abstract class Tracker implements AutoCloseable {
     private final AtomicBoolean forRemoval = new AtomicBoolean();
     private final TrackerModifier modifier;
     private final Runnable updater;
-    @Getter
-    private final TrackerData trackerData;
     private PacketBundler viewBundler, dataBundler;
     private long frame = 0;
-    private ModelRotator rotator = ModelRotator.EMPTY;
+    private ModelRotator rotator = ModelRotator.YAW;
+    private ModelScaler scaler = ModelScaler.entity();
+    private Supplier<ModelRotation> rotationSupplier = () -> rotator.apply(this, ModelRotation.EMPTY);
     private Consumer<Tracker> closeEventHandler = t -> EventUtil.call(new CloseTrackerEvent(t));
 
     private BiConsumer<Tracker, PacketBundler> consumer = (t, b) -> {};
@@ -80,7 +84,6 @@ public abstract class Tracker implements AutoCloseable {
     public Tracker(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier) {
         this.pipeline = pipeline;
         this.modifier = modifier;
-        this.trackerData = new TrackerData(pipeline.name(), modifier);
         viewBundler = pipeline.createBundler();
         dataBundler = pipeline.createBundler();
         var config = BetterModel.plugin().configManager();
@@ -113,11 +116,32 @@ public abstract class Tracker implements AutoCloseable {
      * @return rotation
      */
     public final @NotNull ModelRotation rotation() {
-        return rotator.get();
+        return rotator.apply(this, rotationSupplier.get());
     }
 
-    public final void rotation(@NotNull ModelRotator newRotator) {
-        this.rotator = newRotator;
+    public final void rotation(@NotNull Supplier<ModelRotation> supplier) {
+        this.rotationSupplier = supplier;
+    }
+
+    public final void rotator(@NotNull ModelRotator rotator) {
+        this.rotator = rotator;
+    }
+
+    public @NotNull ModelScaler scaler() {
+        return scaler;
+    }
+
+    public void scaler(@NotNull ModelScaler scaler) {
+        this.scaler = Objects.requireNonNull(scaler);
+    }
+
+    public @NotNull TrackerData asTrackerData() {
+        return new TrackerData(
+                pipeline.name(),
+                scaler,
+                rotator,
+                modifier
+        );
     }
 
     /**
@@ -465,7 +489,7 @@ public abstract class Tracker implements AutoCloseable {
      * Gets all bones
      * @return all bones
      */
-    public @NotNull List<RenderedBone> bones() {
+    public @NotNull @Unmodifiable List<RenderedBone> bones() {
         return pipeline.bones();
     }
 

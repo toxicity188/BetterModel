@@ -83,6 +83,15 @@ public sealed interface ModelScaler {
     }
 
     /**
+     * Multiplies this scaler
+     * @param value value
+     * @return new scaler
+     */
+    default @NotNull ModelScaler multiply(float value) {
+        return composite(value(value));
+    }
+
+    /**
      * Composites this scaler to another one (a * b)
      * @param scaler other
      * @return composited scaler

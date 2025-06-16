@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -88,12 +89,25 @@ public final class ModelRenderer {
      * @return empty tracker
      */
     public @NotNull DummyTracker create(@NotNull Location location, @NotNull TrackerModifier modifier) {
+        return create(location, modifier, t -> {});
+    }
+
+    /**
+     * Creates tracker by location
+     * @param location location
+     * @param modifier modifier
+     * @param preUpdateConsumer task on pre-update
+     * @return empty tracker
+     */
+    public @NotNull DummyTracker create(@NotNull Location location, @NotNull TrackerModifier modifier, @NotNull Consumer<DummyTracker> preUpdateConsumer) {
         var source = RenderSource.of(location);
         return source.create(
                 pipeline(source, location, modifier),
-                modifier
+                modifier,
+                preUpdateConsumer
         );
     }
+
     /**
      * Creates tracker by location and player
      * @param location location
@@ -157,10 +171,24 @@ public final class ModelRenderer {
      * @return empty tracker
      */
     public @NotNull DummyTracker create(@NotNull Location location, @NotNull GameProfile profile, boolean slim, @NotNull TrackerModifier modifier) {
+        return create(location, profile, slim, modifier, t -> {});
+    }
+
+    /**
+     * Creates tracker by location and profile
+     * @param location location
+     * @param profile profile
+     * @param slim slim
+     * @param modifier modifier
+     * @param preUpdateConsumer task on pre-update
+     * @return empty tracker
+     */
+    public @NotNull DummyTracker create(@NotNull Location location, @NotNull GameProfile profile, boolean slim, @NotNull TrackerModifier modifier, @NotNull Consumer<DummyTracker> preUpdateConsumer) {
         var source = RenderSource.of(location, profile, slim);
         return source.create(
                 pipeline(source, location, modifier),
-                modifier
+                modifier,
+                preUpdateConsumer
         );
     }
 
@@ -191,11 +219,7 @@ public final class ModelRenderer {
      * @return entity tracker
      */
     public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull TrackerModifier modifier) {
-        var source = RenderSource.of(entity);
-        return source.create(
-                pipeline(source, entity.getLocation().add(0, -1024, 0), modifier),
-                modifier
-        );
+        return create(entity, modifier, t -> {});
     }
 
     /**
@@ -205,11 +229,39 @@ public final class ModelRenderer {
      * @return entity tracker
      */
     public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull TrackerModifier modifier) {
+        return getOrCreate(entity, modifier, t -> {});
+    }
+
+    /**
+     * Creates tracker by entity
+     * @param entity entity
+     * @param modifier modifier
+     * @param preUpdateConsumer task on pre-update
+     * @return entity tracker
+     */
+    public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
+        var source = RenderSource.of(entity);
+        return source.create(
+                pipeline(source, entity.getLocation().add(0, -1024, 0), modifier),
+                modifier,
+                preUpdateConsumer
+        );
+    }
+
+    /**
+     * Gets or creates tracker by entity
+     * @param entity entity
+     * @param modifier modifier
+     * @param preUpdateConsumer task on pre-update
+     * @return entity tracker
+     */
+    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
         var source = RenderSource.of(entity);
         return source.getOrCreate(
                 name(),
                 () -> pipeline(source, entity.getLocation().add(0, -1024, 0), modifier),
-                modifier
+                modifier,
+                preUpdateConsumer
         );
     }
 

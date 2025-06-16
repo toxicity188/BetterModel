@@ -154,6 +154,12 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
         })
     }
 
+    override fun end() {
+        EntityTrackerRegistry.REGISTRIES.forEach {
+            it.save()
+        }
+    }
+
     private fun Entity.forEachTracker(block: (EntityTracker) -> Unit) {
         EntityTrackerRegistry.registry(uniqueId)?.trackers()?.forEach(block)
     }
