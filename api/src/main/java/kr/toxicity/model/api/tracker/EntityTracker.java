@@ -230,7 +230,7 @@ public class EntityTracker extends Tracker {
     public void damageTint() {
         if (!modifier().damageTint()) return;
         var get = damageTint.get();
-        if (get <= 0 && damageTint.compareAndSet(get, 10)) task(() -> tint(damageTintValue()));
+        if (get <= 0 && damageTint.compareAndSet(get, 4)) task(() -> tint(damageTintValue()));
     }
 
     @Override

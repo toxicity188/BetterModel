@@ -71,7 +71,7 @@ public abstract class Tracker implements AutoCloseable {
         dataBundler = pipeline.createBundler();
         var config = BetterModel.plugin().configManager();
         updater = () -> {
-            var isMinecraftTickTime = frame % 5 == 0;
+            var isMinecraftTickTime = frame % 2 == 0;
             if (isMinecraftTickTime) {
                 Runnable task;
                 while ((task = queuedTask.poll()) != null) {
@@ -96,7 +96,7 @@ public abstract class Tracker implements AutoCloseable {
         task = EXECUTOR.scheduleAtFixedRate(() -> {
             if (playerCount() > 0 || forRemoval.get()) updater.run();
             frame++;
-        }, 10, 10, TimeUnit.MILLISECONDS);
+        }, 25, 25, TimeUnit.MILLISECONDS);
         if (modifier.sightTrace()) pipeline.viewFilter(p -> EntityUtil.canSee(p.getEyeLocation(), location()));
         tick((t, b) -> t.pipeline.getScriptProcessor().tick());
     }

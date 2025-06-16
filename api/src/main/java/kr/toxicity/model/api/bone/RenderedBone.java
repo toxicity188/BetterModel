@@ -281,7 +281,7 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     private boolean shouldUpdateAnimation() {
-        return forceUpdateAnimation.compareAndSet(true, false) || keyframeFinished() || delay % 5 == 0;
+        return forceUpdateAnimation.compareAndSet(true, false) || keyframeFinished() || delay % 2 == 0;
     }
 
     private boolean updateAnimation() {
@@ -365,7 +365,7 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     private static int toInterpolationDuration(long delay) {
-        return (int) Math.ceil((float) delay / 5F);
+        return (int) Math.ceil((float) delay / 2F);
     }
 
     public @NotNull Vector3f worldPosition() {
@@ -433,7 +433,7 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     private int frame() {
-        return keyFrame != null ? Math.round(keyFrame.time() * 100) : parent != null ? parent.frame() : 0;
+        return keyFrame != null ? Math.round(keyFrame.time() * 40) : parent != null ? parent.frame() : 0;
     }
 
     private @NotNull BoneMovement defaultFrame() {
@@ -448,7 +448,7 @@ public final class RenderedBone implements HitBoxSource {
     private @NotNull BoneMovement relativeOffset() {
         if (relativeOffsetCache != null) return relativeOffsetCache;
         var def = defaultFrame();
-        var preventModifierUpdate = frame() < 3;
+        var preventModifierUpdate = toInterpolationDuration(frame()) < 3;
         if (parent != null) {
             var p = parent.relativeOffset();
             return relativeOffsetCache = new BoneMovement(
