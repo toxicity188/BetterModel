@@ -1,7 +1,7 @@
 package kr.toxicity.model.api.animation;
 
-import kr.toxicity.model.api.util.function.FloatSupplier;
 import kr.toxicity.model.api.util.FunctionUtil;
+import kr.toxicity.model.api.util.function.FloatSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

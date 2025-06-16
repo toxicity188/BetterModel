@@ -1,6 +1,9 @@
 package kr.toxicity.model.api.tracker;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonSerializer;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationModifier;
@@ -9,14 +12,12 @@ import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.data.renderer.ModelRenderer;
 import kr.toxicity.model.api.data.renderer.RenderPipeline;
 import kr.toxicity.model.api.event.*;
-import kr.toxicity.model.api.event.PlayerHideTrackerEvent;
-import kr.toxicity.model.api.event.PlayerShowTrackerEvent;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
-import kr.toxicity.model.api.util.function.BonePredicate;
 import kr.toxicity.model.api.util.EntityUtil;
 import kr.toxicity.model.api.util.EventUtil;
 import kr.toxicity.model.api.util.TransformedItemStack;
+import kr.toxicity.model.api.util.function.BonePredicate;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;

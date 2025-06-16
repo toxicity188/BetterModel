@@ -1,7 +1,6 @@
 package kr.toxicity.model.api.util.interpolation;
 
 import kr.toxicity.model.api.animation.VectorPoint;
-import kr.toxicity.model.api.util.VectorUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

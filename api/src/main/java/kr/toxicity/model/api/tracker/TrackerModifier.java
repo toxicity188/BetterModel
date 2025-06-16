@@ -4,8 +4,6 @@ import com.google.gson.annotations.SerializedName;
 import kr.toxicity.model.api.util.EntityUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
-
 /**
  * Tracker's modifier
  * @param sightTrace use sight-trace
