@@ -26,7 +26,6 @@ import org.joml.Vector3f;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
@@ -39,7 +38,6 @@ import java.util.function.Predicate;
 public class EntityTracker extends Tracker {
     private final EntityTrackerRegistry registry;
 
-    private final AtomicBoolean shouldApplyDamageTint = new AtomicBoolean();
     private final AtomicInteger damageTintValue = new AtomicInteger(0xFF8080);
     private final AtomicLong damageTint = new AtomicLong(-1);
 
@@ -156,8 +154,7 @@ public class EntityTracker extends Tracker {
             if (adapter.dead() && !forRemoval()) close();
         });
         tick((t, b) -> {
-            if (shouldApplyDamageTint.compareAndSet(true, false)) tint(damageTintValue.get());
-            else if (damageTint.getAndDecrement() == 0) tint(-1);
+            if (damageTint.getAndDecrement() == 0) tint(-1);
         });
         rotation(() -> adapter.dead() ? pipeline.getRotation() : new ModelRotation(entity.getPitch(), entity instanceof LivingEntity ? adapter.bodyYaw() : entity.getYaw()));
         preUpdateConsumer.accept(this);
@@ -233,7 +230,7 @@ public class EntityTracker extends Tracker {
     public void damageTint() {
         if (!modifier().damageTint()) return;
         var get = damageTint.get();
-        if (get <= 0 && damageTint.compareAndSet(get, 10)) shouldApplyDamageTint.set(true);
+        if (get <= 0 && damageTint.compareAndSet(get, 10)) task(() -> tint(damageTintValue()));
     }
 
     @Override

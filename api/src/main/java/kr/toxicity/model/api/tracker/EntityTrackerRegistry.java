@@ -8,6 +8,7 @@ import kr.toxicity.model.api.nms.EntityAdapter;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.util.EntityUtil;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
@@ -28,6 +29,10 @@ import java.util.stream.Stream;
 public final class EntityTrackerRegistry {
 
     private static final Map<UUID, EntityTrackerRegistry> REGISTRY_MAP = new ConcurrentHashMap<>();
+    /**
+     * Tracker's namespace.
+     */
+    public static final NamespacedKey TRACKING_ID = Objects.requireNonNull(NamespacedKey.fromString("bettermodel_tracker"));
     /**
      * Registries
      */
@@ -67,6 +72,10 @@ public final class EntityTrackerRegistry {
         if (raw == null) return Collections.emptyList();
         var json = JsonParser.parseString(raw);
         return json.isJsonArray() ? json.getAsJsonArray().asList() : Collections.singletonList(json);
+    }
+
+    public static boolean hasModelData(@NotNull Entity entity) {
+        return entity.getPersistentDataContainer().has(TRACKING_ID);
     }
 
     private EntityTrackerRegistry(@NotNull Entity entity) {
@@ -155,7 +164,7 @@ public final class EntityTrackerRegistry {
         for (EntityTracker value : trackerMap.values()) {
             value.close();
         }
-        entity.getPersistentDataContainer().remove(Tracker.TRACKING_ID);
+        entity.getPersistentDataContainer().remove(TRACKING_ID);
         REGISTRY_MAP.remove(entity.getUniqueId());
     }
 
@@ -193,13 +202,13 @@ public final class EntityTrackerRegistry {
     }
 
     public void load() {
-        load(deserialize(entity.getPersistentDataContainer().get(Tracker.TRACKING_ID, PersistentDataType.STRING))
+        load(deserialize(entity.getPersistentDataContainer().get(TRACKING_ID, PersistentDataType.STRING))
                 .stream()
                 .map(TrackerData::deserialize));
     }
 
     public void save() {
-        entity.getPersistentDataContainer().set(Tracker.TRACKING_ID, PersistentDataType.STRING, serialize().toString());
+        entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, serialize().toString());
     }
 
     public @NotNull Stream<ModelDisplay> displays() {

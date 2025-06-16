@@ -13,7 +13,6 @@ import kr.toxicity.model.api.nms.*
 import kr.toxicity.model.api.player.PlayerLimb
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.tracker.ModelRotation
-import kr.toxicity.model.api.tracker.Tracker
 import kr.toxicity.model.api.util.function.BonePredicate
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtUtils
@@ -202,7 +201,7 @@ class NMSImpl : NMS {
                 })
                 is ClientboundAddEntityPacket -> {
                     id.toPlayerEntity()?.let { e ->
-                        if (!e.bukkitEntity.persistentDataContainer.has(Tracker.TRACKING_ID)) return this
+                        if (!EntityTrackerRegistry.hasModelData(e.bukkitEntity)) return this
                         BetterModel.plugin().scheduler().taskLater(1, e.bukkitEntity) {
                             EntityTrackerRegistry.registry(e.bukkitEntity).let {
                                 if (it.canBeSpawnedAt(player)) it.spawn(player)

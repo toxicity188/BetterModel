@@ -205,7 +205,7 @@ class NMSImpl : NMS {
                 })
                 is ClientboundAddEntityPacket -> {
                     id.toPlayerEntity()?.let { e ->
-                        if (!e.bukkitEntity.persistentDataContainer.has(Tracker.TRACKING_ID)) return this
+                        if (!EntityTrackerRegistry.hasModelData(e.bukkitEntity)) return this
                         BetterModel.plugin().scheduler().taskLater(1, e.bukkitEntity) {
                             EntityTrackerRegistry.registry(e.bukkitEntity).let {
                                 if (it.canBeSpawnedAt(player)) it.spawn(player)

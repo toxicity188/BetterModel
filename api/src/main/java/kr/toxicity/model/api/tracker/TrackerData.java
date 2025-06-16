@@ -1,6 +1,6 @@
 package kr.toxicity.model.api.tracker;
 
-import com.google.gson.JsonElement;
+import com.google.gson.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -10,16 +10,27 @@ public record TrackerData(
         @Nullable ModelRotator rotator,
         @NotNull TrackerModifier modifier
 ) {
+    /**
+     * Parser
+     */
+    public static final Gson PARSER = new GsonBuilder()
+            .registerTypeAdapter(ModelScaler.class, (JsonDeserializer<ModelScaler>) (json, typeOfT, context) -> json.isJsonObject() ? ModelScaler.deserialize(json.getAsJsonObject()) : ModelScaler.defaultScaler())
+            .registerTypeAdapter(ModelScaler.class, (JsonSerializer<ModelScaler>) (src, typeOfSrc, context) -> src.serialize())
+            .registerTypeAdapter(ModelRotator.class, (JsonDeserializer<ModelRotator>) (json, typeOfT, context) -> json.isJsonObject() ? ModelRotator.deserialize(json.getAsJsonObject()) : ModelRotator.YAW)
+            .registerTypeAdapter(ModelRotator.class, (JsonSerializer<ModelRotator>) (src, typeOfSrc, context) -> src.serialize())
+            .create();
+
     public @NotNull JsonElement serialize() {
-        return Tracker.PARSER.toJsonTree(this);
+        return PARSER.toJsonTree(this);
     }
+
     public static @NotNull TrackerData deserialize(@NotNull JsonElement element) {
         return element.isJsonPrimitive() ? new TrackerData(
                 element.getAsString(),
                 ModelScaler.entity(),
                 ModelRotator.YAW,
                 TrackerModifier.DEFAULT
-        ) : Tracker.PARSER.fromJson(element, TrackerData.class);
+        ) : PARSER.fromJson(element, TrackerData.class);
     }
 
     @Override

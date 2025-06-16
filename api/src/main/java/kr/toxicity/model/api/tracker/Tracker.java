@@ -1,9 +1,5 @@
 package kr.toxicity.model.api.tracker;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonSerializer;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationModifier;
@@ -20,7 +16,6 @@ import kr.toxicity.model.api.util.TransformedItemStack;
 import kr.toxicity.model.api.util.function.BonePredicate;
 import lombok.Getter;
 import org.bukkit.Location;
-import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -29,11 +24,9 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Queue;
 import java.util.UUID;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -48,21 +41,10 @@ public abstract class Tracker implements AutoCloseable {
 
     private static final ScheduledExecutorService EXECUTOR = Executors.newScheduledThreadPool(256);
 
-    /**
-     * Tracker's namespace.
-     */
-    public static final NamespacedKey TRACKING_ID = Objects.requireNonNull(NamespacedKey.fromString("bettermodel_tracker"));
-
-    public static final Gson PARSER = new GsonBuilder()
-            .registerTypeAdapter(ModelScaler.class, (JsonDeserializer<ModelScaler>) (json, typeOfT, context) -> json.isJsonObject() ? ModelScaler.deserialize(json.getAsJsonObject()) : ModelScaler.defaultScaler())
-            .registerTypeAdapter(ModelScaler.class, (JsonSerializer<ModelScaler>) (src, typeOfSrc, context) -> src.serialize())
-            .registerTypeAdapter(ModelRotator.class, (JsonDeserializer<ModelRotator>) (json, typeOfT, context) -> json.isJsonObject() ? ModelRotator.deserialize(json.getAsJsonObject()) : ModelRotator.YAW)
-            .registerTypeAdapter(ModelRotator.class, (JsonSerializer<ModelRotator>) (src, typeOfSrc, context) -> src.serialize())
-            .create();
-
     @Getter
     protected final RenderPipeline pipeline;
     private final ScheduledFuture<?> task;
+    private final Queue<Runnable> queuedTask = new ConcurrentLinkedQueue<>();
     private final AtomicBoolean isClosed = new AtomicBoolean();
     private final AtomicBoolean readyForForceUpdate = new AtomicBoolean();
     private final AtomicBoolean forRemoval = new AtomicBoolean();
@@ -89,8 +71,15 @@ public abstract class Tracker implements AutoCloseable {
         dataBundler = pipeline.createBundler();
         var config = BetterModel.plugin().configManager();
         updater = () -> {
+            var isMinecraftTickTime = frame % 5 == 0;
+            if (isMinecraftTickTime) {
+                Runnable task;
+                while ((task = queuedTask.poll()) != null) {
+                    task.run();
+                }
+            }
             pipeline.move(
-                    frame % 5 == 0 ? (isRunningSingleAnimation() && config.lockOnPlayAnimation()) ? pipeline.getRotation() : rotation() : null,
+                    isMinecraftTickTime ? (isRunningSingleAnimation() && config.lockOnPlayAnimation()) ? pipeline.getRotation() : rotation() : null,
                     viewBundler
             );
             consumer.accept(this, viewBundler);
@@ -143,6 +132,14 @@ public abstract class Tracker implements AutoCloseable {
                 rotator,
                 modifier
         );
+    }
+
+    /**
+     * Register this task on next tick
+     * @param runnable task
+     */
+    public void task(@NotNull Runnable runnable) {
+        queuedTask.add(runnable);
     }
 
     /**
