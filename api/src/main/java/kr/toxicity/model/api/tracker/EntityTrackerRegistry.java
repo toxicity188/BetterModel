@@ -98,9 +98,10 @@ public final class EntityTrackerRegistry {
     @ApiStatus.Internal
     public @NotNull EntityTracker create(@NotNull String key, @NotNull Function<EntityTrackerRegistry, EntityTracker> supplier) {
         var created = supplier.apply(this);
-        putTracker(key, created);
-        refreshSpawn();
-        save();
+        if (putTracker(key, created)) {
+            refreshSpawn();
+            save();
+        }
         return created;
     }
 
@@ -109,7 +110,8 @@ public final class EntityTrackerRegistry {
         return get != null ? get : create(key, supplier);
     }
 
-    private void putTracker(@NotNull String key, @NotNull EntityTracker created) {
+    private boolean putTracker(@NotNull String key, @NotNull EntityTracker created) {
+        if (created.isClosed()) return false;
         created.handleCloseEvent(t -> {
             if (isClosed()) return;
             trackerMap.compute(key, (k, v) -> v == created ? null : v);
@@ -117,6 +119,7 @@ public final class EntityTrackerRegistry {
         });
         var previous = trackerMap.put(key, created);
         if (previous != null) previous.close();
+        return true;
     }
 
     private void refreshSpawn() {
