@@ -13,7 +13,7 @@ adventurePlatformBukkit = "net.kyori:adventure-platform-bukkit:4.4.0"
 commandApi = "dev.jorel:commandapi-bukkit-shade:10.0.1"
 lombok = "org.projectlombok:lombok:1.18.38"
 bStats = "org.bstats:bstats-bukkit:3.1.0"
-dynamicUV = "com.github.toxicity188:DynamicUV:0cebd6d42b"
+dynamicUV = "com.github.toxicity188:DynamicUV:1.0.3"
 
 [bundles]
 library = [
