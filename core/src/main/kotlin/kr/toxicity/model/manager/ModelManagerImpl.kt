@@ -298,19 +298,17 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                     }
                 },
                 this,
-                children.mapNotNull {
-                    if (it is BlueprintGroup) {
-                        it.boneName() to it.parse()
-                    } else null
-                }.toMap(),
+                children.filterIsInstance<BlueprintGroup>()
+                    .associate { it.boneName() to it.parse() },
                 hitBox(),
             )
         }
-        return ModelRenderer(this, group.mapNotNull {
-            if (it is BlueprintGroup) {
-                it.boneName() to it.parse()
-            } else null
-        }.toMap(), animations)
+        return ModelRenderer(
+            this,
+            group.filterIsInstance<BlueprintGroup>()
+                .associate { it.boneName() to it.parse() },
+            animations
+        )
     }
 
     override fun renderer(name: String): ModelRenderer? = renderMap[name]

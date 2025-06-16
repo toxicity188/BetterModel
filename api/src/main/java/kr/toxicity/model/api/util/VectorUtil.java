@@ -233,4 +233,18 @@ public final class VectorUtil {
                 Math.fma(t3, Math.fma(-1f, p0.z, Math.fma(3f, p1.z, Math.fma(-3f, p2.z, p3.z))), Math.fma(t2, Math.fma(2f, p0.z, Math.fma(-5f, p1.z, Math.fma(4f, p2.z, -p3.z))), Math.fma(t, -p0.z + p2.z, 2f * p1.z)))
         ).mul(0.5F);
     }
+
+    public static @NotNull Vector3f fma(@NotNull Vector3f a, @NotNull Vector3f b, @NotNull Vector3f c) {
+        a.x = Math.fma(a.x, b.x, c.x);
+        a.y = Math.fma(a.y, b.y, c.y);
+        a.z = Math.fma(a.z, b.z, c.z);
+        return a;
+    }
+
+    public static @NotNull Vector3f fma(@NotNull Vector3f a, float b, @NotNull Vector3f c) {
+        a.x = Math.fma(a.x, b, c.x);
+        a.y = Math.fma(a.y, b, c.y);
+        a.z = Math.fma(a.z, b, c.z);
+        return a;
+    }
 }

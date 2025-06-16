@@ -35,8 +35,8 @@ class HttpPlayerSkinProvider : PlayerSkinProvider {
                 .build(), HttpResponse.BodyHandlers.ofInputStream()
             ).thenCompose {
                 val uuid = it.body()
-                    .use {
-                        JsonParser.parseReader(it.bufferedReader())
+                    .use { stream ->
+                        JsonParser.parseReader(stream.bufferedReader())
                     }
                     .asJsonObject
                     .getAsJsonPrimitive("id")

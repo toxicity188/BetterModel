@@ -60,7 +60,7 @@ public final class RenderedBone implements HitBoxSource {
     private final SequencedMap<String, TreeIterator> animators = new LinkedHashMap<>();
     private final Collection<TreeIterator> reversedView = animators.sequencedValues().reversed();
     private final Int2ObjectOpenHashMap<ItemStack> tintCacheMap = new Int2ObjectOpenHashMap<>();
-    private final AtomicBoolean forceUpdateAnimation = new AtomicBoolean();
+    private final AtomicBoolean forceUpdateAnimation = new AtomicBoolean(true);
     @Getter
     private final boolean dummyBone;
     private final Object itemLock = new Object();
@@ -335,7 +335,7 @@ public final class RenderedBone implements HitBoxSource {
             if (d != null) d.rotate(rotation, bundler);
         }
         --delay;
-        if (firstTick || (shouldUpdateAnimation() && updateAnimation())) {
+        if (shouldUpdateAnimation() && (updateAnimation() || firstTick)) {
             firstTick = false;
             var f = frame();
             delay = f;
@@ -377,13 +377,17 @@ public final class RenderedBone implements HitBoxSource {
         var progress = 1F - progress();
         var after = afterTransform != null ? afterTransform : relativeOffset();
         var before = beforeTransform != null ? beforeTransform : BoneMovement.EMPTY;
-        return VectorUtil.linear(before.transform(), after.transform(), progress)
-                .add(itemStack.offset())
-                .add(localOffset)
-                .rotate(
-                        MathUtil.toQuaternion(VectorUtil.linear(before.rawRotation(), after.rawRotation(), progress))
+        return VectorUtil.fma(
+                        VectorUtil.linear(before.transform(), after.transform(), progress)
+                                .add(itemStack.offset())
+                                .add(localOffset)
+                                .rotate(
+                                        MathUtil.toQuaternion(VectorUtil.linear(before.rawRotation(), after.rawRotation(), progress))
+                                ),
+                        VectorUtil.linear(before.scale(), after.scale(), progress),
+                        globalOffset
+
                 )
-                .fma(VectorUtil.linear(before.scale(), after.scale(), progress), globalOffset)
                 .add(root.getGroup().getPosition())
                 .mul(scale.getAsFloat())
                 .rotateX(-rotation.radianX())
@@ -406,10 +410,13 @@ public final class RenderedBone implements HitBoxSource {
         if (display != null) {
             var mul = scale.getAsFloat();
             display.transform(
-                    new Vector3f(boneMovement.transform())
-                            .add(root.group.getPosition())
-                            .add(new Vector3f(itemStack.offset()).rotate(boneMovement.rotation()))
-                            .fma(mul, defaultPosition.get()),
+                    VectorUtil.fma(
+                            new Vector3f(boneMovement.transform())
+                                    .add(root.group.getPosition())
+                                    .add(new Vector3f(itemStack.offset()).rotate(boneMovement.rotation())),
+                            mul,
+                            defaultPosition.get()
+                    ),
                     new Vector3f(boneMovement.scale())
                             .mul(itemStack.scale())
                             .mul(mul),
@@ -442,10 +449,11 @@ public final class RenderedBone implements HitBoxSource {
         if (parent != null) {
             var p = parent.relativeOffset();
             return relativeOffsetCache = new BoneMovement(
-                    def.transform()
-                            .rotate(p.rotation())
-                            .fma(p.scale(), p.transform())
-                            .sub(parent.lastModifiedPosition)
+                    VectorUtil.fma(
+                            def.transform().rotate(p.rotation()),
+                            p.scale(),
+                            p.transform()
+                    ).sub(parent.lastModifiedPosition)
                             .add(modifiedPosition(preventModifierUpdate)),
                     def.scale().mul(p.scale()),
                     new Quaternionf(p.rotation())

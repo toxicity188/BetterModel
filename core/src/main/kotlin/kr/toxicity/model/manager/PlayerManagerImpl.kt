@@ -93,19 +93,17 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
                 scale,
                 ItemStack(Material.AIR),
                 this,
-                children.mapNotNull {
-                    if (it is BlueprintGroup) {
-                        it.boneName() to it.parse()
-                    } else null
-                }.toMap(),
+                children.filterIsInstance<BlueprintGroup>()
+                    .associate { it.boneName() to it.parse() },
                 hitBox()
             )
         }
-        return ModelRenderer(this, group.mapNotNull {
-            if (it is BlueprintGroup) {
-                it.boneName() to it.parse()
-            } else null
-        }.toMap(), animations)
+        return ModelRenderer(
+            this,
+            group.filterIsInstance<BlueprintGroup>()
+                .associate { it.boneName() to it.parse() },
+            animations
+        )
     }
 
     override fun player(uuid: UUID): PlayerChannelHandler? = playerMap[uuid]
