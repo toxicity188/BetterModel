@@ -31,7 +31,7 @@ public interface BoneItemMapper extends BiFunction<RenderSource<?>, TransformedI
 
         @Override
         @NotNull
-        public TransformedItemStack apply(@NotNull RenderSource source, @NotNull TransformedItemStack transformedItemStack) {
+        public TransformedItemStack apply(@NotNull RenderSource<?> source, @NotNull TransformedItemStack transformedItemStack) {
             return transformedItemStack;
         }
     };

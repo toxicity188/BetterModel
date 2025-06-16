@@ -91,10 +91,10 @@ public final class RendererGroup {
      * @param location location
      * @return entity
      */
-    public @NotNull RenderedBone create(@NotNull RenderSource source, @NotNull TrackerModifier modifier, @NotNull Location location) {
+    public @NotNull RenderedBone create(@NotNull RenderSource<?> source, @NotNull TrackerModifier modifier, @NotNull Location location) {
         return create(source, modifier, null, location);
     }
-    private @NotNull RenderedBone create(@NotNull RenderSource source, @NotNull TrackerModifier modifier, @Nullable RenderedBone parentBone, @NotNull Location location) {
+    private @NotNull RenderedBone create(@NotNull RenderSource<?> source, @NotNull TrackerModifier modifier, @Nullable RenderedBone parentBone, @NotNull Location location) {
         return new RenderedBone(
                 this,
                 parentBone,

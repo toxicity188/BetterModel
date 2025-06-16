@@ -142,7 +142,7 @@ public final class RenderedBone implements HitBoxSource {
         return iterator != null ? iterator.animation : null;
     }
 
-    public boolean updateItem(@NotNull Predicate<RenderedBone> predicate, @NotNull RenderSource source) {
+    public boolean updateItem(@NotNull Predicate<RenderedBone> predicate, @NotNull RenderSource<?> source) {
         return itemStack(predicate, itemMapper.apply(source, itemStack));
     }
 
