@@ -110,11 +110,11 @@ public abstract class Tracker implements AutoCloseable {
     }
 
     public final void rotation(@NotNull Supplier<ModelRotation> supplier) {
-        this.rotationSupplier = supplier;
+        this.rotationSupplier = Objects.requireNonNull(supplier);
     }
 
     public final void rotator(@NotNull ModelRotator rotator) {
-        this.rotator = rotator;
+        this.rotator = Objects.requireNonNull(rotator);
     }
 
     public @NotNull ModelScaler scaler() {
@@ -139,7 +139,7 @@ public abstract class Tracker implements AutoCloseable {
      * @param runnable task
      */
     public void task(@NotNull Runnable runnable) {
-        queuedTask.add(runnable);
+        queuedTask.add(Objects.requireNonNull(runnable));
     }
 
     /**
@@ -147,7 +147,7 @@ public abstract class Tracker implements AutoCloseable {
      * @param consumer consumer
      */
     public void frame(@NotNull BiConsumer<Tracker, PacketBundler> consumer) {
-        this.consumer = this.consumer.andThen(consumer);
+        this.consumer = this.consumer.andThen(Objects.requireNonNull(consumer));
     }
     /**
      * Runs consumer on tick.
@@ -162,7 +162,7 @@ public abstract class Tracker implements AutoCloseable {
      * @param consumer consumer
      */
     public void tick(long tick, @NotNull BiConsumer<Tracker, PacketBundler> consumer) {
-        schedule(5 * tick, consumer);
+        schedule(2 * tick, consumer);
     }
 
     /**
@@ -171,6 +171,7 @@ public abstract class Tracker implements AutoCloseable {
      * @param consumer consumer
      */
     public void schedule(long period, @NotNull BiConsumer<Tracker, PacketBundler> consumer) {
+        Objects.requireNonNull(consumer);
         if (period <= 0) throw new RuntimeException("period cannot be <= 0");
         frame((t, b) -> {
             if (frame % period == 0) consumer.accept(t, b);
@@ -529,7 +530,7 @@ public abstract class Tracker implements AutoCloseable {
     }
 
     public void handleCloseEvent(@NotNull Consumer<Tracker> consumer) {
-        closeEventHandler = closeEventHandler.andThen(consumer);
+        closeEventHandler = closeEventHandler.andThen(Objects.requireNonNull(consumer));
     }
 
     /**

@@ -26,17 +26,17 @@ public final class DummyTracker extends Tracker {
     /**
      * Void tracker.
      * @param location location
-     * @param instance render instance.
+     * @param pipeline render instance.
      * @param modifier modifier
      * @param preUpdateConsumer task on pre-update
      */
-    public DummyTracker(@NotNull Location location, @NotNull RenderPipeline instance, @NotNull TrackerModifier modifier, @NotNull Consumer<DummyTracker> preUpdateConsumer) {
-        super(instance, modifier);
+    public DummyTracker(@NotNull Location location, @NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<DummyTracker> preUpdateConsumer) {
+        super(pipeline, modifier);
         this.location = location;
-        instance.animate("spawn");
-        instance.scale(() -> scaler().scale(this));
+        pipeline.animate("spawn");
+        pipeline.scale(() -> scaler().scale(this));
         rotation(() -> new ModelRotation(this.location.getPitch(), this.location.getYaw()));
-        instance.defaultPosition(FunctionUtil.asSupplier(new Vector3f()));
+        pipeline.defaultPosition(FunctionUtil.asSupplier(new Vector3f()));
         preUpdateConsumer.accept(this);
         update();
         EventUtil.call(new CreateDummyTrackerEvent(this));
