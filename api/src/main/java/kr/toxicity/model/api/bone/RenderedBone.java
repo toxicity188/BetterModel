@@ -86,7 +86,7 @@ public final class RenderedBone implements HitBoxSource {
     //Animation
     private boolean firstTick = true;
     private AnimationMovement keyFrame = null;
-    private volatile long delay = 0;
+    private volatile int delay = 0;
     private TreeIterator currentIterator = null;
     private BoneMovement beforeTransform, afterTransform, relativeOffsetCache;
     private ModelRotation rotation = ModelRotation.EMPTY;
@@ -281,7 +281,7 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     private boolean shouldUpdateAnimation() {
-        return forceUpdateAnimation.compareAndSet(true, false) || keyframeFinished() || delay % 2 == 0;
+        return forceUpdateAnimation.compareAndSet(true, false) || keyframeFinished() || delay % 5 == 0;
     }
 
     private boolean updateAnimation() {
@@ -341,7 +341,7 @@ public final class RenderedBone implements HitBoxSource {
         if (shouldUpdateAnimation() && (updateAnimation() || firstTick)) {
             firstTick = false;
             var f = frame();
-            delay = f;
+            delay = Math.round(f);
             beforeTransform = afterTransform;
             var boneMovement = afterTransform = relativeOffset();
             if (d != null) {
@@ -364,8 +364,8 @@ public final class RenderedBone implements HitBoxSource {
         if (d != null) d.sendEntityData(showItem, bundler);
     }
 
-    private static int toInterpolationDuration(long delay) {
-        return (int) Math.ceil((float) delay / 2F);
+    private static int toInterpolationDuration(float delay) {
+        return (int) Math.ceil(delay / 5F);
     }
 
     public @NotNull Vector3f worldPosition() {
@@ -432,8 +432,8 @@ public final class RenderedBone implements HitBoxSource {
         defaultPosition = () -> new Vector3f(movement.get()).add(itemStack.position());
     }
 
-    private int frame() {
-        return keyFrame != null ? Math.round(keyFrame.time() * 40) : parent != null ? parent.frame() : 0;
+    private float frame() {
+        return keyFrame != null ? keyFrame.time() * 100F : parent != null ? parent.frame() : 0F;
     }
 
     private @NotNull BoneMovement defaultFrame() {
@@ -442,7 +442,7 @@ public final class RenderedBone implements HitBoxSource {
 
     private float progress() {
         var f = frame();
-        return f == 0 ? 0F : delay / (float) f;
+        return f == 0 ? 0F : (float) delay / f;
     }
 
     private @NotNull BoneMovement relativeOffset() {
