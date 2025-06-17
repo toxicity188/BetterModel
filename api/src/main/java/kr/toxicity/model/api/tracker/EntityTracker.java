@@ -156,7 +156,7 @@ public class EntityTracker extends Tracker {
         tick((t, b) -> {
             if (damageTint.getAndDecrement() == 0) tint(-1);
         });
-        rotation(() -> adapter.dead() ? pipeline.getRotation() : new ModelRotation(entity.getPitch(), entity instanceof LivingEntity ? adapter.bodyYaw() : entity.getYaw()));
+        rotation(() -> new ModelRotation(entity.getPitch(), entity instanceof LivingEntity ? adapter.bodyYaw() : entity.getYaw()));
         preUpdateConsumer.accept(this);
         update();
         EventUtil.call(new CreateEntityTrackerEvent(this));
@@ -168,6 +168,11 @@ public class EntityTracker extends Tracker {
                         || e.getName().tagged(BoneTags.HITBOX)
                         || e.getGroup().getMountController().canMount()
         );
+    }
+
+    @Override
+    public @NotNull ModelRotation rotation() {
+        return registry.adapter().dead() ? pipeline.getRotation() : super.rotation();
     }
 
     private void createHitBox(@NotNull Predicate<RenderedBone> predicate) {
@@ -231,12 +236,6 @@ public class EntityTracker extends Tracker {
         if (!modifier().damageTint()) return;
         var get = damageTint.get();
         if (get <= 0 && damageTint.compareAndSet(get, 10)) task(() -> tint(damageTintValue()));
-    }
-
-    @Override
-    public void close() {
-        super.close();
-        if (registry.entity() instanceof Player player) player.updateInventory();
     }
 
     @Override

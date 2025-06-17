@@ -30,7 +30,6 @@ import net.minecraft.world.entity.player.Player
 import net.minecraft.world.entity.projectile.Projectile
 import net.minecraft.world.entity.projectile.ProjectileDeflection
 import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.Items
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import org.bukkit.Bukkit
@@ -119,7 +118,7 @@ internal class HitBoxImpl(
 
     override fun getArmorSlots(): MutableIterable<ItemStack> = mutableSetOf()
     override fun hasMountDriver(): Boolean = controllingPassenger != null
-    override fun getItemBySlot(slot: EquipmentSlot): ItemStack = Items.AIR.defaultInstance
+    override fun getItemBySlot(slot: EquipmentSlot): ItemStack = net.minecraft.world.item.ItemStack.EMPTY
     override fun setItemSlot(slot: EquipmentSlot, stack: ItemStack) {
     }
     override fun getMainArm(): HumanoidArm = HumanoidArm.RIGHT

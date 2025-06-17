@@ -35,7 +35,6 @@ import net.minecraft.world.entity.ai.attributes.Attributes
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.Items
 import net.minecraft.world.item.component.CustomModelData
-import net.minecraft.world.item.component.DyedItemColor
 import net.minecraft.world.item.component.ResolvableProfile
 import net.minecraft.world.level.entity.LevelEntityGetter
 import net.minecraft.world.level.entity.LevelEntityGetterAdapter
@@ -116,12 +115,13 @@ class NMSImpl : NMS {
         val entity = registry.entity()
         val target = (entity as CraftEntity).vanillaEntity
         val task = {
-            PacketBundlerImpl(mutableListOf(
-                ClientboundSetEntityDataPacket(target.id, target.entityData.pack()).toRegistryDataPacket(registry),
-                ClientboundSetEquipmentPacket(target.id, EquipmentSlot.entries.map { e ->
-                    Pair.of(e, Items.AIR.defaultInstance)
-                })
-            )).send(player)
+            val list: MutableList<Packet<ClientGamePacketListener>> = mutableListOf(
+                ClientboundSetEntityDataPacket(target.id, target.entityData.pack()).toRegistryDataPacket(registry)
+            )
+            if (target is LivingEntity) target.toEmptyEquipmentPacket()?.let { 
+                list += it
+            }
+            PacketBundlerImpl(list).send(player)
         }
         if (entity is Player) BetterModel.plugin().scheduler().asyncTaskLater(CONFIG.playerHideDelay()) {
             if (condition.asBoolean) task()
@@ -135,6 +135,13 @@ class NMSImpl : NMS {
             registry.entityFlag(it.value() as Byte)
         ) else it
     })
+    
+    private fun LivingEntity.toEmptyEquipmentPacket(): ClientboundSetEquipmentPacket? {
+        val equip = EquipmentSlot.entries.mapNotNull { 
+            if (hasItemInSlot(it)) Pair.of(it, net.minecraft.world.item.ItemStack.EMPTY) else null
+        }
+        return if (equip.isNotEmpty()) ClientboundSetEquipmentPacket(id, equip) else null
+    }
 
     inner class PlayerChannelHandlerImpl(
         private val player: Player
@@ -185,17 +192,16 @@ class NMSImpl : NMS {
         override fun endTrack(registry: EntityTrackerRegistry) {
             val handle = registry.adapter().handle() as Entity
             entityUUIDMap.remove(handle.uuid)
-            val list = arrayListOf<Packet<ClientGamePacketListener>>()
+            val list = mutableListOf<Packet<ClientGamePacketListener>>()
             list += ClientboundSetEntityDataPacket(handle.id, handle.entityData.pack())
             if (handle is LivingEntity) {
-                list += ClientboundSetEquipmentPacket(handle.id, EquipmentSlot.entries.mapNotNull {
-                    runCatching {
-                        Pair.of(it, handle.getItemBySlot(it))
-                    }.getOrNull()
-                })
+                val equip = EquipmentSlot.entries.mapNotNull { 
+                    if (handle.hasItemInSlot(it)) Pair.of(it, handle.getItemBySlot(it)) else null
+                }
+                if (equip.isNotEmpty()) list += ClientboundSetEquipmentPacket(handle.id, equip)
             }
             list += ClientboundSetPassengersPacket(handle)
-            send(ClientboundBundlePacket(list))
+            PacketBundlerImpl(list).send(player)
         }
 
         private fun <T : ClientGamePacketListener> Packet<in T>.handle(): Packet<in T> {
@@ -235,9 +241,10 @@ class NMSImpl : NMS {
                 is ClientboundSetEntityDataPacket -> id.toRegistry()?.let { registry ->
                     return toRegistryDataPacket(registry)
                 }
-                is ClientboundSetEquipmentPacket -> if (entity.toRegistry()?.hideOption()?.equipment() == true) return ClientboundSetEquipmentPacket(entity, EquipmentSlot.entries.map { e ->
-                    Pair.of(e, Items.AIR.defaultInstance)
-                })
+                is ClientboundSetEquipmentPacket -> entity.toRegistry()?.let {
+                    val livingEntity = it.adapter().handle() as? LivingEntity ?: return this
+                    if (it.hideOption().equipment()) return livingEntity.toEmptyEquipmentPacket() ?: this
+                }
                 is ClientboundRespawnPacket -> EntityTrackerRegistry.registry(player.uniqueId)?.let {
                     send(it.mountPacket())
                 }
@@ -252,7 +259,9 @@ class NMSImpl : NMS {
         override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
             fun EntityTrackerRegistry.updatePlayerLimb() {
                 player.updateInventory()
-                connection.send(ClientboundSetEquipmentPacket(connection.player.id, emptyList()))
+                connection.player.toEmptyEquipmentPacket()?.let {
+                    connection.send(it)
+                }
                 BetterModel.plugin().scheduler().asyncTaskLater(1) {
                     trackers().forEach { tracker ->
                         if (tracker.updateItem(BonePredicate.of(BonePredicate.State.NOT_SET) {
@@ -314,6 +323,7 @@ class NMSImpl : NMS {
 
     override fun create(location: Location): ModelDisplay = ModelDisplayImpl(ItemDisplay(EntityType.ITEM_DISPLAY, (location.world as CraftWorld).handle).apply {
         billboardConstraints = Display.BillboardConstraints.FIXED
+        valid = true
         moveTo(
             location.x,
             location.y,
@@ -367,7 +377,7 @@ class NMSImpl : NMS {
                 if (it.id == itemSerializer) SynchedEntityData.DataValue(
                     it.id,
                     EntityDataSerializers.ITEM_STACK,
-                    if (showItem) display.itemStack else Items.AIR.defaultInstance
+                    if (showItem) display.itemStack else net.minecraft.world.item.ItemStack.EMPTY
                 ) else it
             })
             frame(f)
@@ -461,7 +471,7 @@ class NMSImpl : NMS {
                     if (it.id == itemSerializer) SynchedEntityData.DataValue(
                         it.id,
                         EntityDataSerializers.ITEM_STACK,
-                        if (showItem) display.itemStack else Items.AIR.defaultInstance
+                        if (showItem) display.itemStack else net.minecraft.world.item.ItemStack.EMPTY
                     ) else it
                 }.toList())
         }
@@ -488,7 +498,7 @@ class NMSImpl : NMS {
 
     override fun tint(itemStack: ItemStack, rgb: Int): ItemStack {
         return CraftItemStack.asBukkitCopy(CraftItemStack.asNMSCopy(itemStack).apply {
-            set(DataComponents.DYED_COLOR, DyedItemColor(rgb, false))
+            //set(DataComponents.DYED_COLOR, DyedItemColor(rgb, false))
             set(DataComponents.CUSTOM_MODEL_DATA, get(DataComponents.CUSTOM_MODEL_DATA)?.let {
                 CustomModelData(it.floats, it.flags, it.strings, it.colors
                     .run {

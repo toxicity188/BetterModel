@@ -58,7 +58,7 @@ public final class RenderPipeline {
     private Consumer<PacketBundler> showPacketHandler = b -> {};
 
     @Getter
-    private ModelRotation rotation = ModelRotation.EMPTY;
+    private ModelRotation rotation = ModelRotation.INVALID;
 
     @Getter
     private final ScriptProcessor scriptProcessor = new ScriptProcessor();

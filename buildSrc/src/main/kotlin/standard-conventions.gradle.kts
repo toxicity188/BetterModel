@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "kr.toxicity.model"
-version = "1.6.2" + (BUILD_NUMBER?.let { "-SNAPSHOT-$it" } ?: "")
+version = property("plugin_version").toString() + (BUILD_NUMBER?.let { "-SNAPSHOT-$it" } ?: "")
 
 repositories {
     mavenCentral()

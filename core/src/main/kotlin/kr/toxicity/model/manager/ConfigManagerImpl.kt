@@ -24,7 +24,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     private var item = Material.LEATHER_HORSE_ARMOR
     private var maxSight = -1.0
     private var minSight = 5.0
-    private var lockOnPlayAnimation = true
+    private var lockOnPlayAnimation = false
     private var namespace = "bettermodel"
     private var packType = PackType.FOLDER
     private var buildFolderLocation = "BetterModel/build".replace('/', File.separatorChar)
@@ -82,7 +82,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
         maxSight = yaml.getDouble("max-sight", -1.0)
         if (maxSight <= 0.0) maxSight = EntityUtil.RENDER_DISTANCE
         minSight = yaml.getDouble("min-sight", 5.0)
-        lockOnPlayAnimation = yaml.getBoolean("lock-on-play-animation", true)
+        lockOnPlayAnimation = yaml.getBoolean("lock-on-play-animation", false)
         namespace = yaml.getString("namespace") ?: "bettermodel"
         animatedTextureFrameTime = yaml.getInt("animated-texture-frame-time", 10)
         createPackMcmeta = yaml.getBoolean("create-pack-mcmeta", true)

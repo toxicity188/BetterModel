@@ -15,6 +15,10 @@ public record ModelRotation(float x, float y) {
      * Empty rotation
      */
     public static final ModelRotation EMPTY = new ModelRotation(0, 0);
+    /**
+     * Invalid rotation
+     */
+    public static final ModelRotation INVALID = new ModelRotation(Float.MAX_VALUE, Float.MAX_VALUE);
 
     private static final float DEGREES_TO_PACKS = 256F / 360F;
 

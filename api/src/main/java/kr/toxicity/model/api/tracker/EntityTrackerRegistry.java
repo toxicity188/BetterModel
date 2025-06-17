@@ -284,10 +284,10 @@ public final class EntityTrackerRegistry {
     }
 
     private void remove(@NotNull PlayerChannelHandler handler) {
+        handler.endTrack(this);
         for (EntityTracker value : trackerMap.values()) {
             value.remove(handler.player());
         }
-        handler.endTrack(this);
     }
 
     public @NotNull HideOption hideOption() {

@@ -105,7 +105,7 @@ public abstract class Tracker implements AutoCloseable {
      * Gets model rotation.
      * @return rotation
      */
-    public final @NotNull ModelRotation rotation() {
+    public @NotNull ModelRotation rotation() {
         return rotator.apply(this, rotationSupplier.get());
     }
 

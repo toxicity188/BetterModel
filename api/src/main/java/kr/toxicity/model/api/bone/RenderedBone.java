@@ -91,7 +91,7 @@ public final class RenderedBone implements HitBoxSource {
     private BoneMovement beforeTransform, afterTransform, relativeOffsetCache;
     private ModelRotation rotation = ModelRotation.EMPTY;
 
-    private Supplier<Vector3f> defaultPosition = FunctionUtil.asSupplier(new Vector3f());
+    private Supplier<Vector3f> defaultPosition = FunctionUtil.asSupplier(EMPTY_VECTOR);
     private FloatSupplier scale = () -> 1F;
 
     private Function<Vector3f, Vector3f> positionModifier = p -> p;
@@ -414,14 +414,14 @@ public final class RenderedBone implements HitBoxSource {
             var mul = scale.getAsFloat();
             display.transform(
                     VectorUtil.fma(
-                            new Vector3f(boneMovement.transform())
-                                    .add(root.group.getPosition())
-                                    .add(new Vector3f(itemStack.offset()).rotate(boneMovement.rotation())),
+                            itemStack.offset().rotate(boneMovement.rotation(), new Vector3f())
+                                    .add(boneMovement.transform())
+                                    .add(root.group.getPosition()),
                             mul,
-                            defaultPosition.get()
-                    ),
-                    new Vector3f(boneMovement.scale())
-                            .mul(itemStack.scale())
+                            itemStack.position()
+                    ).add(defaultPosition.get()),
+                    boneMovement.scale()
+                            .mul(itemStack.scale(), new Vector3f())
                             .mul(mul),
                     boneMovement.rotation()
             );
@@ -429,7 +429,7 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     public void defaultPosition(@NotNull Supplier<Vector3f> movement) {
-        defaultPosition = () -> new Vector3f(movement.get()).add(itemStack.position());
+        defaultPosition = movement;
     }
 
     private float frame() {
@@ -459,8 +459,7 @@ public final class RenderedBone implements HitBoxSource {
                     ).sub(parent.lastModifiedPosition)
                             .add(modifiedPosition(preventModifierUpdate)),
                     def.scale().mul(p.scale()),
-                    new Quaternionf(p.rotation())
-                            .div(parent.lastModifiedRotation)
+                    p.rotation().div(parent.lastModifiedRotation, new Quaternionf())
                             .mul(def.rotation())
                             .mul(modifiedRotation(preventModifierUpdate)),
                     def.rawRotation()

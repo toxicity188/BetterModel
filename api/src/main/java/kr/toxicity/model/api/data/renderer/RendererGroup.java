@@ -69,7 +69,7 @@ public final class RendererGroup {
         this.itemMapper = name.toItemMapper();
         this.parent = group;
         this.children = children;
-        this.itemStack = new TransformedItemStack(
+        this.itemStack = TransformedItemStack.of(
                 new Vector3f(),
                 new Vector3f(),
                 new Vector3f(scale).div(4),
