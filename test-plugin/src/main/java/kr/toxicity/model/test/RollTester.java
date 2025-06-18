@@ -93,7 +93,7 @@ public final class RollTester implements ModelTester, Listener {
                         }
                         player.setVelocity(player.getVelocity()
                                 .add(new Vector(0, 0, 0.75).rotateAroundY(-Math.toRadians(input + t.registry().adapter().bodyYaw())))
-                                .setY(0.35));
+                                .setY(0.15));
                     } else t.close();
                 });
     }

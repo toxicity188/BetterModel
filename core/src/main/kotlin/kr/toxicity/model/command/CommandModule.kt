@@ -91,9 +91,7 @@ class CommandModule(
 
     override fun run(info: ExecutionInfo<CommandSender, BukkitCommandSender<out CommandSender>>) {
         val audience = info.sender().audience()
-        helpComponents.forEach {
-            audience.info(it)
-        }
+        helpComponents.forEach(audience::info)
     }
 
     private fun CommandAPICommand.toComponent() = Component.text()

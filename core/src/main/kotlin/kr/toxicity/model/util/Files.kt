@@ -15,9 +15,7 @@ fun File.forEach(block: (File) -> Unit) {
 }
 
 fun File.fileTreeList() = mutableListOf<File>().apply {
-    forEachAllFolder {
-        add(it)
-    }
+    forEachAllFolder(::add)
 }
 
 fun File.forEachAllFolder(block: (File) -> Unit) {

@@ -1,16 +1,17 @@
 package kr.toxicity.model.nms.v1_21_R5
 
-import ca.spottedleaf.moonrise.common.util.TickThread
+import com.mojang.datafixers.util.Pair
 import io.netty.buffer.Unpooled
+import io.papermc.paper.configuration.GlobalConfiguration
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.nms.PacketBundler
-import kr.toxicity.model.api.tracker.Tracker
+import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.util.EventUtil
 import net.minecraft.network.FriendlyByteBuf
+import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket
 import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.network.syncher.SynchedEntityData.DataItem
-import net.minecraft.server.MinecraftServer
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.*
 import net.minecraft.world.entity.ai.goal.RangedAttackGoal
@@ -18,10 +19,11 @@ import net.minecraft.world.entity.ai.goal.RangedBowAttackGoal
 import net.minecraft.world.entity.ai.goal.RangedCrossbowAttackGoal
 import net.minecraft.world.entity.animal.FlyingAnimal
 import net.minecraft.world.entity.player.Player
+import net.minecraft.world.item.ItemStack
 import net.minecraft.world.phys.Vec3
+import org.bukkit.Bukkit
 import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.event.Event
-import org.bukkit.util.Vector
 import org.joml.Quaternionf
 import org.joml.Vector3f
 
@@ -39,6 +41,10 @@ internal inline fun <reified T, reified R> createAdaptedFieldGetter(noinline pap
 
 internal val CONFIG by lazy {
     BetterModel.plugin().configManager()
+}
+
+internal val ONLINE_MODE by lazy {
+    if (BetterModel.IS_PAPER) GlobalConfiguration.get().proxies.isProxyOnlineMode else Bukkit.getOnlineMode()
 }
 
 internal val EMPTY_QUATERNION = Quaternionf()
@@ -61,14 +67,8 @@ private val DATA_ITEMS by lazy {
     }
 }
 
-@Suppress("UNCHECKED_CAST")
-internal fun SynchedEntityData.pack(): List<SynchedEntityData.DataValue<*>> {
-    if (BetterModel.IS_PAPER) return packAll()
-    val list = arrayListOf<SynchedEntityData.DataValue<*>>()
-    (DATA_ITEMS[this] as Array<DataItem<*>?>).forEach {
-        list += (it ?: return@forEach).value()
-    }
-    return list
+internal fun SynchedEntityData.pack(): List<SynchedEntityData.DataValue<*>> = if (BetterModel.IS_PAPER) packAll() else (DATA_ITEMS[this] as Array<*>).mapNotNull {
+    (it as? DataItem<*>)?.value()
 }
 
 internal fun Entity.isWalking(): Boolean {
@@ -105,7 +105,7 @@ internal val Entity.isFlying: Boolean
         is FlyingAnimal -> isFlying
         is Mob -> isNoAi
         is Player -> abilities.flying
-        is LivingEntity -> isFlyingVehicle
+        is LivingEntity -> isFallFlying
         else -> false
     }
 
@@ -145,5 +145,13 @@ internal fun EntityTrackerRegistry.entityFlag(byte: Byte): Byte {
     return b.toByte()
 }
 
-internal fun Vector.toVanilla() = Vec3(x, y, z)
-internal fun Vec3.toBukkit() = Vector(x, y, z)
+internal fun org.bukkit.util.Vector.toVanilla() = Vec3(x, y, z)
+internal fun Vec3.toBukkit() = org.bukkit.util.Vector(x, y, z)
+
+internal fun LivingEntity.toEquipmentPacket(mapper: (EquipmentSlot) -> ItemStack = ::getItemBySlot): ClientboundSetEquipmentPacket? {
+    val equip = EquipmentSlot.entries.mapNotNull {
+        if (hasItemInSlot(it)) Pair.of(it, mapper(it)) else null
+    }
+    return if (equip.isNotEmpty()) ClientboundSetEquipmentPacket(id, equip) else null
+}
+internal fun LivingEntity.toEmptyEquipmentPacket() = toEquipmentPacket { ItemStack.EMPTY }

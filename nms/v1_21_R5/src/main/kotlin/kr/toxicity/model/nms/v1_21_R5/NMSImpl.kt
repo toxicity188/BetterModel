@@ -2,8 +2,6 @@ package kr.toxicity.model.nms.v1_21_R5
 
 import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.EntityLookup
 import com.mojang.authlib.GameProfile
-import com.mojang.datafixers.util.Pair
-import com.mojang.math.Transformation
 import io.netty.channel.ChannelDuplexHandler
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
@@ -12,11 +10,10 @@ import kr.toxicity.model.api.data.blueprint.NamedBoundingBox
 import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.nms.*
 import kr.toxicity.model.api.player.PlayerLimb
-import kr.toxicity.model.api.tracker.EntityTracker
+import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.tracker.ModelRotation
-import kr.toxicity.model.api.tracker.Tracker
-import kr.toxicity.model.api.util.BonePredicate
 import kr.toxicity.model.api.util.TransformedItemStack
+import kr.toxicity.model.api.util.function.BonePredicate
 import net.minecraft.core.component.DataComponents
 import net.minecraft.network.Connection
 import net.minecraft.network.protocol.Packet
@@ -28,6 +25,7 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.server.network.ServerCommonPacketListenerImpl
+import net.minecraft.util.ARGB
 import net.minecraft.util.Brightness
 import net.minecraft.world.effect.MobEffects
 import net.minecraft.world.entity.*
@@ -36,7 +34,6 @@ import net.minecraft.world.entity.ai.attributes.Attributes
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.Items
 import net.minecraft.world.item.component.CustomModelData
-import net.minecraft.world.item.component.DyedItemColor
 import net.minecraft.world.item.component.ResolvableProfile
 import net.minecraft.world.level.entity.LevelEntityGetter
 import net.minecraft.world.level.entity.LevelEntityGetterAdapter
@@ -53,6 +50,7 @@ import org.joml.Vector3f
 import java.lang.reflect.Field
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import java.util.function.BooleanSupplier
 
 class NMSImpl : NMS {
 
@@ -119,7 +117,7 @@ class NMSImpl : NMS {
             val list: MutableList<Packet<ClientGamePacketListener>> = mutableListOf(
                 ClientboundSetEntityDataPacket(target.id, target.entityData.pack()).toRegistryDataPacket(registry)
             )
-            if (target is LivingEntity) target.toEmptyEquipmentPacket()?.let { 
+            if (target is LivingEntity) target.toEmptyEquipmentPacket()?.let {
                 list += it
             }
             PacketBundlerImpl(list).send(player)
@@ -153,7 +151,7 @@ class NMSImpl : NMS {
         }
 
         override fun isSlim(): Boolean = slim
-        override fun trackedTrackers(): Collection<EntityTracker> = uuidValuesView
+        override fun trackedRegistries(): Collection<EntityTrackerRegistry> = uuidValuesView
 
         override fun close() {
             val channel = getConnection(connection).channel
@@ -173,7 +171,7 @@ class NMSImpl : NMS {
         private fun send(packet: Packet<*>) = connection.send(packet)
 
         private fun Int.toPlayerEntity() = toEntity(connection.player.level())
-        private fun Int.toTracker() = toPlayerEntity()?.let {
+        private fun Int.toRegistry() = toPlayerEntity()?.let {
             entityUUIDMap[it.uuid]
         }
 
@@ -214,14 +212,14 @@ class NMSImpl : NMS {
                     entityIds
                         .asSequence()
                         .mapNotNull {
-                            it.toTracker()
+                            it.toRegistry()
                         }
                         .forEach {
                             it.remove()
                         }
                 }
                 is ClientboundSetPassengersPacket -> {
-                    vehicle.toTracker()?.let {
+                    vehicle.toRegistry()?.let {
                         return it.mountPacket(array = useByteBuf { buffer ->
                             ClientboundSetPassengersPacket.STREAM_CODEC.encode(buffer, this)
                             buffer.readVarInt()
@@ -229,18 +227,13 @@ class NMSImpl : NMS {
                         })
                     }
                 }
-                is ClientboundSetEntityDataPacket -> id.toTracker()?.let { tracker ->
-                    return ClientboundSetEntityDataPacket(id, packedItems().map {
-                        if (it.id == sharedFlag) SynchedEntityData.DataValue(
-                            it.id,
-                            EntityDataSerializers.BYTE,
-                            tracker.entityFlag(it.value() as Byte)
-                        ) else it
-                    })
+                is ClientboundSetEntityDataPacket -> id.toRegistry()?.let { registry ->
+                    return toRegistryDataPacket(registry)
                 }
-                is ClientboundSetEquipmentPacket -> if (entity.toTracker()?.hideOption()?.equipment() == true) return ClientboundSetEquipmentPacket(entity, EquipmentSlot.entries.map { e ->
-                    Pair.of(e, net.minecraft.world.item.ItemStack.EMPTY)
-                })
+                is ClientboundSetEquipmentPacket -> entity.toRegistry()?.let {
+                    val livingEntity = it.adapter().handle() as? LivingEntity ?: return this
+                    if (it.hideOption().equipment()) return livingEntity.toEmptyEquipmentPacket() ?: this
+                } 
                 is ClientboundRespawnPacket -> EntityTrackerRegistry.registry(player.uniqueId)?.let {
                     send(it.mountPacket())
                 }
@@ -253,34 +246,36 @@ class NMSImpl : NMS {
         }
 
         override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
-            fun Tracker.updatePlayerLimb() {
+            fun EntityTrackerRegistry.updatePlayerLimb() {
                 player.updateInventory()
-                connection.player.toEmptyEquipmentPacket()?.let { 
+                connection.player.toEmptyEquipmentPacket()?.let {
                     connection.send(it)
                 }
                 BetterModel.plugin().scheduler().asyncTaskLater(1) {
-                    if (updateItem(BonePredicate.of(BonePredicate.State.NOT_SET) {
-                        it.itemMapper is PlayerLimb.LimbItemMapper
-                    })) forceUpdate(true)
+                    trackers().forEach { tracker ->
+                        if (tracker.updateItem(BonePredicate.of(BonePredicate.State.NOT_SET) {
+                                it.itemMapper is PlayerLimb.LimbItemMapper
+                            })) tracker.forceUpdate(true)
+                    }
                 }
             }
             when (msg) {
                 is ServerboundSetCarriedItemPacket -> {
-                    connection.player.id.toTracker()?.let { tracker ->
-                        if (!tracker.hideOption().equipment()) return super.channelRead(ctx, msg)
+                    connection.player.id.toRegistry()?.let { registry ->
+                        if (!registry.hideOption().equipment()) return super.channelRead(ctx, msg)
                         if (CONFIG.cancelPlayerModelInventory()) {
                             connection.send(ClientboundSetHeldSlotPacket(player.inventory.heldItemSlot))
                             return
                         } else {
-                            tracker.updatePlayerLimb()
+                            registry.updatePlayerLimb()
                         }
                     }
                 }
                 is ServerboundPlayerActionPacket -> {
-                    connection.player.id.toTracker()?.let { tracker ->
-                        if (!tracker.hideOption().equipment()) return super.channelRead(ctx, msg)
+                    connection.player.id.toRegistry()?.let { registry ->
+                        if (!registry.hideOption().equipment()) return super.channelRead(ctx, msg)
                         if (CONFIG.cancelPlayerModelInventory()) return
-                        else tracker.updatePlayerLimb()
+                        else registry.updatePlayerLimb()
                     }
                 }
             }
@@ -296,16 +291,17 @@ class NMSImpl : NMS {
         bundler.unwrap() += registry.mountPacket()
     }
 
-    private fun EntityTracker.mountPacket(entity: Entity = adapter.handle() as Entity, array: IntArray = entity.passengers.filter {
-        EntityTracker.tracker(it.uuid) == null
+    private fun EntityTrackerRegistry.mountPacket(entity: Entity = adapter().handle() as Entity, array: IntArray = entity.passengers.filter {
+        EntityTrackerRegistry.registry(it.uuid) == null
     }.map {
         it.id
     }.toIntArray()): ClientboundSetPassengersPacket {
         return useByteBuf { buffer ->
             buffer.writeVarInt(entity.id)
-            buffer.writeVarIntArray((displays().mapNotNull {
-                (it as? ModelDisplayImpl)?.display?.id
-            }.toIntArray() + array))
+            buffer.writeVarIntArray((displays()
+                .mapToInt { 
+                    (it as ModelDisplayImpl).display.id 
+                }.toArray() + array))
             ClientboundSetPassengersPacket.STREAM_CODEC.decode(buffer)
         }
     }
@@ -367,11 +363,12 @@ class NMSImpl : NMS {
             val f = display.transformationInterpolationDuration
             frame(0)
             bundler.unwrap() += ClientboundSetEntityDataPacket(display.id, display.entityData.nonDefaultValues!!.map {
-                if (it.id == itemSerializer) SynchedEntityData.DataValue(
+                val value = if (it.id == itemSerializer) SynchedEntityData.DataValue(
                     it.id,
                     EntityDataSerializers.ITEM_STACK,
                     if (showItem) display.itemStack else net.minecraft.world.item.ItemStack.EMPTY
                 ) else it
+                value
             })
             frame(f)
         }
@@ -439,14 +436,12 @@ class NMSImpl : NMS {
         }
 
         override fun transform(position: Vector3f, scale: Vector3f, rotation: Quaternionf) {
-            display.setTransformation(
-                Transformation(
-                    position,
-                    rotation,
-                    scale,
-                    EMPTY_QUATERNION
-                )
-            )
+            display.setTransformation(com.mojang.math.Transformation(
+                position,
+                rotation,
+                scale,
+                EMPTY_QUATERNION
+            ))
         }
 
         override fun sendTransformation(bundler: PacketBundler) {
@@ -493,7 +488,7 @@ class NMSImpl : NMS {
 
     override fun tint(itemStack: ItemStack, rgb: Int): ItemStack {
         return CraftItemStack.asBukkitCopy(CraftItemStack.asNMSCopy(itemStack).apply {
-            set(DataComponents.DYED_COLOR, DyedItemColor(rgb))
+            //set(DataComponents.DYED_COLOR, DyedItemColor(rgb))
             set(DataComponents.CUSTOM_MODEL_DATA, get(DataComponents.CUSTOM_MODEL_DATA)?.let {
                 CustomModelData(it.floats, it.flags, it.strings, it.colors
                     .run {
@@ -518,7 +513,7 @@ class NMSImpl : NMS {
             mountController
         ).craftEntity
     }
-    override fun version(): NMSVersion = NMSVersion.V1_21_R4
+    override fun version(): NMSVersion = NMSVersion.V1_21_R5
 
     override fun adapt(entity: org.bukkit.entity.Entity): EntityAdapter {
         entity as CraftEntity
@@ -600,4 +595,6 @@ class NMSImpl : NMS {
             TransformedItemStack.of(CraftItemStack.asBukkitCopy(this))
         }
     }
+
+    override fun isProxyOnlineMode(): Boolean = ONLINE_MODE
 }

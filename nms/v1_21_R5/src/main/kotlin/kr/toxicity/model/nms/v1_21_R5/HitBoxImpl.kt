@@ -29,7 +29,6 @@ import net.minecraft.world.entity.player.Player
 import net.minecraft.world.entity.projectile.Projectile
 import net.minecraft.world.entity.projectile.ProjectileDeflection
 import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.Items
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
@@ -408,7 +407,7 @@ internal class HitBoxImpl(
     }
 
     override fun deflection(projectile: Projectile): ProjectileDeflection {
-        if (projectile.owner?.uuid === delegate.uuid) return ProjectileDeflection.NONE
+        if (projectile.owner?.uuid == delegate.uuid) return ProjectileDeflection.NONE
         return delegate.deflection(projectile)
     }
 

@@ -67,14 +67,8 @@ private val DATA_ITEMS by lazy {
     }
 }
 
-@Suppress("UNCHECKED_CAST")
-internal fun SynchedEntityData.pack(): List<SynchedEntityData.DataValue<*>> {
-    if (BetterModel.IS_PAPER) return packAll()!!
-    val list = arrayListOf<SynchedEntityData.DataValue<*>>()
-    (DATA_ITEMS[this] as Array<DataItem<*>?>).forEach {
-        list += (it ?: return@forEach).value()
-    }
-    return list
+internal fun SynchedEntityData.pack(): List<SynchedEntityData.DataValue<*>> = if (BetterModel.IS_PAPER) packAll()!! else (DATA_ITEMS[this] as Array<*>).mapNotNull {
+    (it as? DataItem<*>)?.value()
 }
 
 internal fun Entity.isWalking(): Boolean {
