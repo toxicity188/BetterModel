@@ -1,6 +1,6 @@
 package kr.toxicity.model.api.event;
 
-import kr.toxicity.model.api.BetterModel;
+import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.ApiStatus;
 
@@ -13,7 +13,7 @@ public abstract class AbstractModelEvent extends Event {
      */
     @ApiStatus.Internal
     public AbstractModelEvent() {
-        this(!BetterModel.plugin().nms().isSync());
+        this(!Bukkit.isPrimaryThread());
     }
 
     /**

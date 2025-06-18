@@ -125,9 +125,6 @@ internal fun Entity.moveTo(x: Double, y: Double, z: Double, yaw: Float, pitch: F
     setOldPosAndRot()
 }
 
-internal val isTickThread
-    get() = if (BetterModel.IS_PAPER) TickThread.isTickThread() else Thread.currentThread() === MinecraftServer.getServer().serverThread
-
 internal fun <T> useByteBuf(block: (FriendlyByteBuf) -> T): T {
     val buffer = FriendlyByteBuf(Unpooled.buffer())
     return try {

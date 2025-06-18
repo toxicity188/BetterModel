@@ -88,12 +88,6 @@ public interface NMS {
     @NotNull EntityAdapter adapt(@NotNull Entity entity);
 
     /**
-     * Checks current thread is sync or not
-     * @return sync or not
-     */
-    boolean isSync();
-
-    /**
      * Gets game profile from player
      * @param player player
      * @return game profile

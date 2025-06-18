@@ -2,7 +2,6 @@ package kr.toxicity.model.nms.v1_21_R2
 
 import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.EntityLookup
 import com.mojang.authlib.GameProfile
-import com.mojang.datafixers.util.Pair
 import io.netty.channel.ChannelDuplexHandler
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
@@ -133,13 +132,6 @@ class NMSImpl : NMS {
             registry.entityFlag(it.value() as Byte)
         ) else it
     })
-    
-    private fun LivingEntity.toEmptyEquipmentPacket(): ClientboundSetEquipmentPacket? {
-        val equip = EquipmentSlot.entries.mapNotNull { 
-            if (hasItemInSlot(it)) Pair.of(it, net.minecraft.world.item.ItemStack.EMPTY) else null
-        }
-        return if (equip.isNotEmpty()) ClientboundSetEquipmentPacket(id, equip) else null
-    }
 
     inner class PlayerChannelHandlerImpl(
         private val player: Player
@@ -192,11 +184,8 @@ class NMSImpl : NMS {
             entityUUIDMap.remove(handle.uuid)
             val list = mutableListOf<Packet<ClientGamePacketListener>>()
             list += ClientboundSetEntityDataPacket(handle.id, handle.entityData.pack())
-            if (handle is LivingEntity) {
-                val equip = EquipmentSlot.entries.mapNotNull { 
-                    if (handle.hasItemInSlot(it)) Pair.of(it, handle.getItemBySlot(it)) else null
-                }
-                if (equip.isNotEmpty()) list += ClientboundSetEquipmentPacket(handle.id, equip)
+            if (handle is LivingEntity) handle.toEquipmentPacket()?.let {
+                list += it
             }
             list += ClientboundSetPassengersPacket(handle)
             PacketBundlerImpl(list).send(player)
@@ -584,8 +573,6 @@ class NMSImpl : NMS {
             }
         }
     }
-
-    override fun isSync(): Boolean = isTickThread
     
     override fun profile(player: Player): GameProfile = getGameProfile((player as CraftPlayer).handle)
 

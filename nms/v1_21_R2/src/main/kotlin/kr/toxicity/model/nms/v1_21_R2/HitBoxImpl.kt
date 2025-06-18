@@ -118,7 +118,7 @@ internal class HitBoxImpl(
 
     override fun getArmorSlots(): MutableIterable<ItemStack> = mutableSetOf()
     override fun hasMountDriver(): Boolean = controllingPassenger != null
-    override fun getItemBySlot(slot: EquipmentSlot): ItemStack = net.minecraft.world.item.ItemStack.EMPTY
+    override fun getItemBySlot(slot: EquipmentSlot): ItemStack = ItemStack.EMPTY
     override fun setItemSlot(slot: EquipmentSlot, stack: ItemStack) {
     }
     override fun getMainArm(): HumanoidArm = HumanoidArm.RIGHT
