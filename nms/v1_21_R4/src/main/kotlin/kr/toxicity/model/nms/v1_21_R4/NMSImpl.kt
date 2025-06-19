@@ -114,7 +114,7 @@ class NMSImpl : NMS {
         val entity = registry.entity()
         val target = (entity as CraftEntity).vanillaEntity
         val task = {
-            val list: MutableList<Packet<ClientGamePacketListener>> = mutableListOf(
+            val list = mutableListOf<Packet<ClientGamePacketListener>>(
                 ClientboundSetEntityDataPacket(target.id, target.entityData.pack()).toRegistryDataPacket(registry)
             )
             if (target is LivingEntity) target.toEmptyEquipmentPacket()?.let {
@@ -184,12 +184,13 @@ class NMSImpl : NMS {
         override fun endTrack(registry: EntityTrackerRegistry) {
             val handle = registry.adapter().handle() as Entity
             entityUUIDMap.remove(handle.uuid)
-            val list = mutableListOf<Packet<ClientGamePacketListener>>()
-            list += ClientboundSetEntityDataPacket(handle.id, handle.entityData.pack())
+            val list = mutableListOf(
+                ClientboundSetEntityDataPacket(handle.id, handle.entityData.pack()),
+                ClientboundSetPassengersPacket(handle)
+            )
             if (handle is LivingEntity) handle.toEquipmentPacket()?.let {
                 list += it
             }
-            list += ClientboundSetPassengersPacket(handle)
             PacketBundlerImpl(list).send(player)
         }
 
@@ -231,8 +232,9 @@ class NMSImpl : NMS {
                     return toRegistryDataPacket(registry)
                 }
                 is ClientboundSetEquipmentPacket -> entity.toRegistry()?.let {
-                    val livingEntity = it.adapter().handle() as? LivingEntity ?: return this
-                    if (it.hideOption().equipment()) return livingEntity.toEmptyEquipmentPacket() ?: this
+                    if (it.hideOption().equipment()) (it.adapter().handle() as? LivingEntity)?.toEmptyEquipmentPacket()?.let { packet ->
+                        return packet
+                    }
                 } 
                 is ClientboundRespawnPacket -> EntityTrackerRegistry.registry(player.uniqueId)?.let {
                     send(it.mountPacket())
@@ -363,12 +365,11 @@ class NMSImpl : NMS {
             val f = display.transformationInterpolationDuration
             frame(0)
             bundler.unwrap() += ClientboundSetEntityDataPacket(display.id, display.entityData.nonDefaultValues!!.map {
-                val value = if (it.id == itemSerializer) SynchedEntityData.DataValue(
+                if (it.id == itemSerializer) SynchedEntityData.DataValue(
                     it.id,
                     EntityDataSerializers.ITEM_STACK,
                     if (showItem) display.itemStack else net.minecraft.world.item.ItemStack.EMPTY
                 ) else it
-                value
             })
             frame(f)
         }
