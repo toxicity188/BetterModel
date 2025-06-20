@@ -25,7 +25,7 @@ dependencies {
     }
     compileOnly("net.skinsrestorer:skinsrestorer-api:15.6.8")
     compileOnly("io.lumine:Mythic-Dist:5.9.1")
-    compileOnly("com.hibiscusmc:HMCCosmetics:2.7.8")
+    compileOnly("com.hibiscusmc:HMCCosmetics:2.7.9-42802e41")
 }
 
 bukkitPluginYaml {
