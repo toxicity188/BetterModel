@@ -50,7 +50,9 @@ public final class RenderPipeline {
     private final Map<String, BlueprintAnimation> animationMap;
     private final Map<UUID, PlayerChannelHandler> playerMap = new ConcurrentHashMap<>();
     private final Set<UUID> hidePlayerSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
+
     private Predicate<Player> viewFilter = p -> true;
+    private Predicate<Player> hideFilter = p -> hidePlayerSet.contains(p.getUniqueId());
 
     private Consumer<PacketBundler> spawnPacketHandler = b -> {};
     private Consumer<PacketBundler> despawnPacketHandler = b -> {};
@@ -92,6 +94,9 @@ public final class RenderPipeline {
 
     public void viewFilter(@NotNull Predicate<Player> filter) {
         this.viewFilter = this.viewFilter.and(Objects.requireNonNull(filter));
+    }
+    public void hideFilter(@NotNull Predicate<Player> filter) {
+        this.hideFilter = this.hideFilter.and(Objects.requireNonNull(filter));
     }
 
     public void spawnPacketHandler(@NotNull Consumer<PacketBundler> spawnPacketHandler) {
@@ -326,7 +331,7 @@ public final class RenderPipeline {
         return playerMap.values().stream();
     }
     public @NotNull Stream<Player> nonHidePlayer() {
-        return filteredPlayer(p -> !hidePlayerSet.contains(p.getUniqueId()));
+        return filteredPlayer(p -> !isHide(p));
     }
     public @NotNull Stream<Player> viewedPlayer() {
         return filteredPlayer(viewFilter);
@@ -356,7 +361,7 @@ public final class RenderPipeline {
     }
 
     public boolean isHide(@NotNull Player player) {
-        return hidePlayerSet.contains(player.getUniqueId());
+        return hideFilter.test(player);
     }
 
     public boolean show(@NotNull Player player) {

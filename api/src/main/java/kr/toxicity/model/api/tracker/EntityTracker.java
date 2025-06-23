@@ -15,8 +15,6 @@ import kr.toxicity.model.api.util.function.BonePredicate;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -110,6 +108,8 @@ public class EntityTracker extends Tracker {
             pipeline.hidePacketHandler(b -> shadow.sendEntityData(false, b));
             pipeline.showPacketHandler(shadow::sendEntityData);
         }
+
+        pipeline.hideFilter(p -> !p.canSee(registry.entity()));
 
         //Animation
         pipeline.defaultPosition(FunctionUtil.throttleTick(() -> adapter.passengerPosition().mul(-1)));
@@ -284,19 +284,5 @@ public class EntityTracker extends Tracker {
     @ApiStatus.Internal
     public void refresh() {
         BetterModel.plugin().scheduler().task(registry.entity(), () -> pipeline.createHitBox(registry.adapter(), r -> r.getHitBox() != null, null));
-    }
-
-    @Override
-    public boolean hide(@NotNull Player player) {
-        var success = super.hide(player);
-        if (success) BetterModel.plugin().scheduler().task(player, () -> player.hideEntity((Plugin) BetterModel.plugin(), registry.entity()));
-        return success;
-    }
-
-    @Override
-    public boolean show(@NotNull Player player) {
-        var success = super.show(player);
-        if (success) BetterModel.plugin().scheduler().task(player, () -> player.showEntity((Plugin) BetterModel.plugin(), registry.entity()));
-        return success;
     }
 }
