@@ -87,8 +87,8 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
         }
     }
 
-    private val reloadStartTask = arrayListOf<() -> Unit>()
-    private val reloadEndTask = arrayListOf<(ReloadResult) -> Unit>()
+    private var reloadStartTask: () -> Unit = {}
+    private var reloadEndTask: (ReloadResult) -> Unit = {}
 
     override fun onLoad() {
         BetterModel.register(this)
@@ -161,9 +161,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
 
     override fun reload(info: ReloadInfo): ReloadResult {
         if (!onReload.compareAndSet(false, true)) return ON_RELOAD
-        reloadStartTask.forEach {
-            it()
-        }
+        reloadStartTask()
         val result = runCatching {
             val time = System.currentTimeMillis()
             managers.forEach {
@@ -173,9 +171,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
         }.getOrElse {
             Failure(it)
         }
-        reloadEndTask.forEach {
-            it(result)
-        }
+        reloadEndTask(result)
         onReload.set(false)
         return result
     }
@@ -210,14 +206,20 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
     override fun audiences(): BukkitAudiences = audiences
     override fun isSnapshot(): Boolean = snapshot > 0
 
+    @Synchronized
     override fun addReloadStartHandler(runnable: Runnable) {
-        reloadStartTask += {
+        val previous = reloadStartTask
+        reloadStartTask = {
+            previous()
             runnable.run()
         }
     }
 
+    @Synchronized
     override fun addReloadEndHandler(consumer: Consumer<ReloadResult>) {
-        reloadEndTask += {
+        val previous = reloadEndTask
+        reloadEndTask = {
+            previous(it)
             consumer.accept(it)
         }
     }

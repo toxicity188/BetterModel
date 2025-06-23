@@ -24,4 +24,9 @@ bukkitPluginYaml {
     depend = listOf(
         "BetterModel"
     )
+    commands.register("rollinfo") {
+        usage = "/<command>"
+        description = "Gets roll animation's info."
+        permission = "bettermodel.rollinfo"
+    }
 }

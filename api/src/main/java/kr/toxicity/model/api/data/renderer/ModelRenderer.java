@@ -8,8 +8,6 @@ import kr.toxicity.model.api.data.blueprint.ModelBlueprint;
 import kr.toxicity.model.api.tracker.DummyTracker;
 import kr.toxicity.model.api.tracker.EntityTracker;
 import kr.toxicity.model.api.tracker.TrackerModifier;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -17,25 +15,25 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
  * A blueprint renderer.
+ *
+ * @param parent parent blueprint
+ * @param rendererGroupMap group map
+ * @param animationMap animation map
  */
-@RequiredArgsConstructor
-public final class ModelRenderer {
-    @Getter
-    private final ModelBlueprint parent;
-    private final Map<BoneName, RendererGroup> rendererGroupMap;
-    private final Map<String, BlueprintAnimation> animationMap;
-
+public record ModelRenderer(
+        @NotNull ModelBlueprint parent,
+        @NotNull @Unmodifiable Map<BoneName, RendererGroup> rendererGroupMap,
+        @NotNull @Unmodifiable Map<String, BlueprintAnimation> animationMap
+) {
     /**
      * Gets a renderer group by tree
+     *
      * @param name part name
      * @return group or null
      */
@@ -60,11 +58,22 @@ public final class ModelRenderer {
      * @return names
      */
     public @NotNull @Unmodifiable Set<String> animations() {
-        return Collections.unmodifiableSet(animationMap.keySet());
+        return animationMap.keySet();
+    }
+
+    /**
+     * Gets blueprint animation by name
+     *
+     * @param name name
+     * @return optional animation
+     */
+    public @NotNull Optional<BlueprintAnimation> animation(@NotNull String name) {
+        return Optional.ofNullable(animationMap.get(name));
     }
 
     /**
      * Gets model's name.
+     *
      * @return name
      */
     public @NotNull String name() {
@@ -75,6 +84,7 @@ public final class ModelRenderer {
 
     /**
      * Creates tracker by location
+     *
      * @param location location
      * @return empty tracker
      */
@@ -84,18 +94,21 @@ public final class ModelRenderer {
 
     /**
      * Creates tracker by location
+     *
      * @param location location
      * @param modifier modifier
      * @return empty tracker
      */
     public @NotNull DummyTracker create(@NotNull Location location, @NotNull TrackerModifier modifier) {
-        return create(location, modifier, t -> {});
+        return create(location, modifier, t -> {
+        });
     }
 
     /**
      * Creates tracker by location
-     * @param location location
-     * @param modifier modifier
+     *
+     * @param location          location
+     * @param modifier          modifier
      * @param preUpdateConsumer task on pre-update
      * @return empty tracker
      */
@@ -110,8 +123,9 @@ public final class ModelRenderer {
 
     /**
      * Creates tracker by location and player
+     *
      * @param location location
-     * @param player player
+     * @param player   player
      * @return empty tracker
      */
     public @NotNull DummyTracker create(@NotNull Location location, @NotNull Player player) {
@@ -120,8 +134,9 @@ public final class ModelRenderer {
 
     /**
      * Creates tracker by location and profile
+     *
      * @param location location
-     * @param profile profile
+     * @param profile  profile
      * @return empty tracker
      */
     public @NotNull DummyTracker create(@NotNull Location location, @NotNull GameProfile profile) {
@@ -130,9 +145,10 @@ public final class ModelRenderer {
 
     /**
      * Creates tracker by location and profile
+     *
      * @param location location
-     * @param profile profile
-     * @param slim slim
+     * @param profile  profile
+     * @param slim     slim
      * @return empty tracker
      */
     public @NotNull DummyTracker create(@NotNull Location location, @NotNull GameProfile profile, boolean slim) {
@@ -141,8 +157,9 @@ public final class ModelRenderer {
 
     /**
      * Creates tracker by location and player
+     *
      * @param location location
-     * @param player player
+     * @param player   player
      * @param modifier modifier
      * @return empty tracker
      */
@@ -153,8 +170,9 @@ public final class ModelRenderer {
 
     /**
      * Creates tracker by location and profile
+     *
      * @param location location
-     * @param profile profile
+     * @param profile  profile
      * @param modifier modifier
      * @return empty tracker
      */
@@ -164,22 +182,25 @@ public final class ModelRenderer {
 
     /**
      * Creates tracker by location and profile
+     *
      * @param location location
-     * @param profile profile
-     * @param slim slim
+     * @param profile  profile
+     * @param slim     slim
      * @param modifier modifier
      * @return empty tracker
      */
     public @NotNull DummyTracker create(@NotNull Location location, @NotNull GameProfile profile, boolean slim, @NotNull TrackerModifier modifier) {
-        return create(location, profile, slim, modifier, t -> {});
+        return create(location, profile, slim, modifier, t -> {
+        });
     }
 
     /**
      * Creates tracker by location and profile
-     * @param location location
-     * @param profile profile
-     * @param slim slim
-     * @param modifier modifier
+     *
+     * @param location          location
+     * @param profile           profile
+     * @param slim              slim
+     * @param modifier          modifier
      * @param preUpdateConsumer task on pre-update
      * @return empty tracker
      */
@@ -196,6 +217,7 @@ public final class ModelRenderer {
 
     /**
      * Creates tracker by entity
+     *
      * @param entity entity
      * @return entity tracker
      */
@@ -205,6 +227,7 @@ public final class ModelRenderer {
 
     /**
      * Gets or creates tracker by entity
+     *
      * @param entity entity
      * @return entity tracker
      */
@@ -214,28 +237,33 @@ public final class ModelRenderer {
 
     /**
      * Creates tracker by entity
-     * @param entity entity
+     *
+     * @param entity   entity
      * @param modifier modifier
      * @return entity tracker
      */
     public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull TrackerModifier modifier) {
-        return create(entity, modifier, t -> {});
+        return create(entity, modifier, t -> {
+        });
     }
 
     /**
      * Gets or creates tracker by entity
-     * @param entity entity
+     *
+     * @param entity   entity
      * @param modifier modifier
      * @return entity tracker
      */
     public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull TrackerModifier modifier) {
-        return getOrCreate(entity, modifier, t -> {});
+        return getOrCreate(entity, modifier, t -> {
+        });
     }
 
     /**
      * Creates tracker by entity
-     * @param entity entity
-     * @param modifier modifier
+     *
+     * @param entity            entity
+     * @param modifier          modifier
      * @param preUpdateConsumer task on pre-update
      * @return entity tracker
      */
@@ -250,8 +278,9 @@ public final class ModelRenderer {
 
     /**
      * Gets or creates tracker by entity
-     * @param entity entity
-     * @param modifier modifier
+     *
+     * @param entity            entity
+     * @param modifier          modifier
      * @param preUpdateConsumer task on pre-update
      * @return entity tracker
      */
@@ -269,6 +298,6 @@ public final class ModelRenderer {
         return new RenderPipeline(this, source, rendererGroupMap
                 .entrySet()
                 .stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().create(source, modifier, location))), animationMap);
+                .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, e -> e.getValue().create(source, modifier, location))));
     }
 }

@@ -5,6 +5,7 @@ import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.RenderedBone;
+import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.data.renderer.ModelRenderer;
 import kr.toxicity.model.api.data.renderer.RenderPipeline;
 import kr.toxicity.model.api.event.*;
@@ -54,7 +55,7 @@ public abstract class Tracker implements AutoCloseable {
     private long frame = 0;
     private ModelRotator rotator = ModelRotator.YAW;
     private ModelScaler scaler = ModelScaler.entity();
-    private Supplier<ModelRotation> rotationSupplier = () -> rotator.apply(this, ModelRotation.EMPTY);
+    private Supplier<ModelRotation> rotationSupplier = () -> ModelRotation.EMPTY;
     private Consumer<Tracker> closeEventHandler = t -> EventUtil.call(new CloseTrackerEvent(t));
 
     private BiConsumer<Tracker, PacketBundler> consumer = (t, b) -> {};
@@ -354,6 +355,18 @@ public abstract class Tracker implements AutoCloseable {
      * @return success
      */
     public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
+        return pipeline.animate(filter, animation, modifier, removeTask);
+    }
+
+    /**
+     * Players this animation by once
+     * @param filter bone predicate
+     * @param animation animation
+     * @param modifier modifier
+     * @param removeTask remove task
+     * @return success
+     */
+    public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
         return pipeline.animate(filter, animation, modifier, removeTask);
     }
 

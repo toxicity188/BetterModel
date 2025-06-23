@@ -108,7 +108,7 @@ public final class RendererGroup {
                         rotation
                 ),
                 modifier,
-                parent -> children.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().create(source, modifier, parent, location)))
+                parent -> children.entrySet().stream().collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, e -> e.getValue().create(source, modifier, parent, location)))
         );
     }
 

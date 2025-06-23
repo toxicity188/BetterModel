@@ -20,7 +20,7 @@ dependencies {
     }
     implementation(libs.bundles.shadedLibrary)
 
-    compileOnly("net.citizensnpcs:citizens-main:2.0.38-SNAPSHOT") {
+    compileOnly("net.citizensnpcs:citizens-main:2.0.39-SNAPSHOT") {
         exclude("net.byteflux")
     }
     compileOnly("net.skinsrestorer:skinsrestorer-api:15.7.1")

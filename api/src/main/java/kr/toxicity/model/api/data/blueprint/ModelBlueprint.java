@@ -39,7 +39,7 @@ public record ModelBlueprint(
      * @return blueprint
      */
     public static @NotNull ModelBlueprint from(@NotNull String name, @NotNull ModelData data) {
-        var elementMap = data.elements().stream().collect(Collectors.toMap(ModelElement::uuid, e -> e));
+        var elementMap = data.elements().stream().collect(Collectors.toUnmodifiableMap(ModelElement::uuid, e -> e));
         var list = new ArrayList<BlueprintChildren>();
         for (ModelChildren modelChildren : data.outliner()) {
             var children = BlueprintChildren.from(modelChildren, elementMap);
@@ -51,7 +51,7 @@ public record ModelBlueprint(
                 data.resolution(),
                 data.textures().stream().map(BlueprintTexture::from).toList(),
                 list,
-                data.animations().stream().map(BlueprintAnimation::from).collect(Collectors.toMap(BlueprintAnimation::name, a -> a))
+                data.animations().stream().map(BlueprintAnimation::from).collect(Collectors.toUnmodifiableMap(BlueprintAnimation::name, a -> a))
         );
     }
 

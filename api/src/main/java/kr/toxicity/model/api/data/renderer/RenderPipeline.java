@@ -66,13 +66,12 @@ public final class RenderPipeline {
     public RenderPipeline(
             @NotNull ModelRenderer parent,
             @NotNull RenderSource<?> source,
-            @NotNull Map<BoneName, RenderedBone> entityMap,
-            @NotNull Map<String, BlueprintAnimation> animationMap
+            @NotNull Map<BoneName, RenderedBone> entityMap
     ) {
         this.parent = parent;
         this.source = source;
         this.entityMap = entityMap;
-        this.animationMap = animationMap;
+        this.animationMap = parent.animationMap();
 
         var b = new ArrayList<RenderedBone>();
         for (RenderedBone value : entityMap.values()) {
@@ -92,21 +91,21 @@ public final class RenderPipeline {
     }
 
     public void viewFilter(@NotNull Predicate<Player> filter) {
-        this.viewFilter = this.viewFilter.and(filter);
+        this.viewFilter = this.viewFilter.and(Objects.requireNonNull(filter));
     }
 
     public void spawnPacketHandler(@NotNull Consumer<PacketBundler> spawnPacketHandler) {
-        this.spawnPacketHandler = this.spawnPacketHandler.andThen(spawnPacketHandler);
+        this.spawnPacketHandler = this.spawnPacketHandler.andThen(Objects.requireNonNull(spawnPacketHandler));
     }
 
     public void despawnPacketHandler(@NotNull Consumer<PacketBundler> despawnPacketHandler) {
-        this.despawnPacketHandler = this.despawnPacketHandler.andThen(despawnPacketHandler);
+        this.despawnPacketHandler = this.despawnPacketHandler.andThen(Objects.requireNonNull(despawnPacketHandler));
     }
     public void hidePacketHandler(@NotNull Consumer<PacketBundler> despawnPacketHandler) {
-        this.hidePacketHandler = this.hidePacketHandler.andThen(despawnPacketHandler);
+        this.hidePacketHandler = this.hidePacketHandler.andThen(Objects.requireNonNull(despawnPacketHandler));
     }
     public void showPacketHandler(@NotNull Consumer<PacketBundler> despawnPacketHandler) {
-        this.showPacketHandler = this.showPacketHandler.andThen(despawnPacketHandler);
+        this.showPacketHandler = this.showPacketHandler.andThen(Objects.requireNonNull(despawnPacketHandler));
     }
 
     public void createHitBox(@NotNull EntityAdapter entity, @NotNull Predicate<RenderedBone> predicate, @Nullable HitBoxListener listener) {
@@ -248,15 +247,19 @@ public final class RenderPipeline {
         return animate(e -> true, animation, modifier, () -> {});
     }
 
+    public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
+        scriptProcessor.animate(animation.script(), animation.loop(), modifier);
+        var playOnceTask = FunctionUtil.playOnce(removeTask);
+        for (RenderedBone value : entityMap.values()) {
+            value.iterateAnimation(AnimationPredicate.of(filter), (b, a) -> b.addAnimation(a, animation.name(), animation, modifier, playOnceTask));
+        }
+        return true;
+    }
+
     public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
         var get = animationMap.get(animation);
         if (get == null) return false;
-        scriptProcessor.animate(get.script(), get.loop(), modifier);
-        var playOnceTask = FunctionUtil.playOnce(removeTask);
-        for (RenderedBone value : entityMap.values()) {
-            value.iterateAnimation(AnimationPredicate.of(filter), (b, a) -> b.addAnimation(a, animation, get, modifier, playOnceTask));
-        }
-        return true;
+        return animate(filter, get, modifier, removeTask);
     }
 
     public boolean replace(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull String animation, @NotNull AnimationModifier modifier) {

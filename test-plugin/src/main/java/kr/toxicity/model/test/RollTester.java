@@ -5,6 +5,8 @@ import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.tracker.ModelRotation;
 import kr.toxicity.model.api.tracker.TrackerModifier;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Particle;
 import org.bukkit.block.Block;
@@ -31,6 +33,8 @@ public final class RollTester implements ModelTester, Listener {
     @Override
     public void start(@NotNull BetterModelTest test) {
         Bukkit.getPluginManager().registerEvents(this, test);
+        var command = test.getCommand("rollinfo");
+        if (command != null) command.setExecutor((sender, command1, label, args) -> sendRollTime(sender));
     }
 
     @Override
@@ -74,8 +78,21 @@ public final class RollTester implements ModelTester, Listener {
         if (event.getEntity() instanceof Player player && invulnerableSet.contains(player.getUniqueId())) event.setCancelled(true);
     }
 
-    private static Block underBlock(@NotNull Player player) {
+    private static @NotNull Block underBlock(@NotNull Player player) {
         return player.getLocation().add(0, -1, 0).getBlock();
+    }
+
+    private static boolean sendRollTime(@NotNull Audience audience) {
+        return BetterModel.limb("steve")
+                .flatMap(r -> r.animation("roll"))
+                .map(animation -> {
+                    audience.sendMessage(Component.text()
+                            .append(Component.text("Loop mode: " + animation.loop()))
+                            .appendNewline()
+                            .append(Component.text("Length: " + animation.length() + " second")));
+                    return audience;
+                })
+                .isPresent();
     }
 
     private void playRoll(@NotNull Player player) {
@@ -89,10 +106,10 @@ public final class RollTester implements ModelTester, Listener {
                     })) {
                         if (coolTimeSet.add(player.getUniqueId()) && invulnerableSet.add(player.getUniqueId())) {
                             BetterModel.plugin().scheduler().asyncTaskLater(8, () -> invulnerableSet.remove(player.getUniqueId()));
+                            player.setVelocity(player.getVelocity()
+                                    .add(new Vector(0, 0, 0.75).rotateAroundY(-Math.toRadians(input + t.registry().adapter().bodyYaw())))
+                                    .setY(0.15));
                         }
-                        player.setVelocity(player.getVelocity()
-                                .add(new Vector(0, 0, 0.75).rotateAroundY(-Math.toRadians(input + t.registry().adapter().bodyYaw())))
-                                .setY(0.15));
                     } else t.close();
                 });
     }

@@ -133,7 +133,7 @@ public final class RenderedBone implements HitBoxSource {
             display.invisible(itemMapper == BoneItemMapper.EMPTY && !group.getParent().visibility());
         }
         defaultFrame = movement;
-        children = Collections.unmodifiableMap(childrenMapper.apply(this));
+        children = childrenMapper.apply(this);
         applyItem();
     }
 
