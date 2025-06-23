@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
@@ -34,12 +35,12 @@ public final class FunctionUtil {
     }
 
     /**
-     * Throttles this function by tick
+     * Makes this function runnable only once.
      * @param runnable target
-     * @return throttled function
+     * @return play once function
      */
-    public static @NotNull Runnable throttleTick(@NotNull Runnable runnable) {
-        return runnable instanceof TickThrottledRunnable throttledRunnable ? throttledRunnable : new TickThrottledRunnable(runnable);
+    public static @NotNull Runnable playOnce(@NotNull Runnable runnable) {
+        return runnable instanceof PlayOnceRunnable playOnceRunnable ? playOnceRunnable : new PlayOnceRunnable(runnable);
     }
 
     /**
@@ -91,15 +92,13 @@ public final class FunctionUtil {
     }
 
     @RequiredArgsConstructor
-    private static class TickThrottledRunnable implements Runnable {
+    private static class PlayOnceRunnable implements Runnable {
         private final @NotNull Runnable delegate;
-        private final AtomicLong time = new AtomicLong(-51);
+        private final AtomicBoolean played = new AtomicBoolean();
 
         @Override
         public void run() {
-            var old = time.get();
-            var current = System.currentTimeMillis();
-            if (current - old >= 50 && time.compareAndSet(old, current)) delegate.run();
+            if (played.compareAndSet(false, true)) delegate.run();
         }
     }
 

@@ -1,6 +1,5 @@
 package kr.toxicity.model.test;
 
-import com.destroystokyo.paper.event.entity.EntityKnockbackByEntityEvent;
 import io.papermc.paper.event.entity.EntityPushedByEntityAttackEvent;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationModifier;

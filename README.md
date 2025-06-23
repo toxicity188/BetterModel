@@ -89,7 +89,7 @@ This plugin supports player animation.
 ### Version
 - Spigot, Paper or a fork (e.g., Folia)
 - Java 21
-- Minecraft 1.20.3-1.21.5
+- Minecraft 1.20.3-1.21.6
 
 ### Dependency
 No

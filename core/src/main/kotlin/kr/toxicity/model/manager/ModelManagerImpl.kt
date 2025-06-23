@@ -130,7 +130,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
         if (ConfigManagerImpl.module().model()) {
             val modelFileMap = ConcurrentHashMap<String, Pair<File, ModelBlueprint>>()
             DATA_FOLDER.getOrCreateDirectory("models") { folder ->
-                folder.addResourceAs("demon_knight.bbmodel")
+                if (PLUGIN.version().useModernResource()) folder.addResourceAs("demon_knight.bbmodel")
             }.fileTreeList()
                 .filter { it.extension == "bbmodel" }
                 .forEachAsync {

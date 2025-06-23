@@ -1,6 +1,5 @@
 import com.vanniktech.maven.publish.JavaLibrary
 import com.vanniktech.maven.publish.JavadocJar
-import com.vanniktech.maven.publish.SonatypeHost
 
 plugins {
     alias(libs.plugins.bukkitConvention)
@@ -26,7 +25,7 @@ dependencies {
 }
 
 mavenPublishing  {
-    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    publishToMavenCentral()
     signAllPublications()
     coordinates("io.github.toxicity188", rootProject.name, project.version as String)
     configure(JavaLibrary(

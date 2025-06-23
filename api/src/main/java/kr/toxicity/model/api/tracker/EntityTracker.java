@@ -156,7 +156,7 @@ public class EntityTracker extends Tracker {
         tick((t, b) -> {
             if (damageTint.getAndDecrement() == 0) tint(-1);
         });
-        rotation(() -> new ModelRotation(entity.getPitch(), entity instanceof LivingEntity ? adapter.bodyYaw() : entity.getYaw()));
+        rotation(() -> new ModelRotation(adapter.pitch(), entity instanceof LivingEntity ? adapter.bodyYaw() : adapter.yaw()));
         preUpdateConsumer.accept(this);
         update();
         EventUtil.call(new CreateEntityTrackerEvent(this));

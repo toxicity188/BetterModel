@@ -353,7 +353,7 @@ public abstract class Tracker implements AutoCloseable {
      * @param removeTask remove task
      * @return success
      */
-    public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
+    public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
         return pipeline.animate(filter, animation, modifier, removeTask);
     }
 

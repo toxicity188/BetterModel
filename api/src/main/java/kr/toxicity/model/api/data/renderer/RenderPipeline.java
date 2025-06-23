@@ -244,16 +244,17 @@ public final class RenderPipeline {
         return animate(e -> true, animation, AnimationModifier.DEFAULT, () -> {});
     }
 
-    public boolean animate(@NotNull String animation, AnimationModifier modifier) {
+    public boolean animate(@NotNull String animation, @NotNull AnimationModifier modifier) {
         return animate(e -> true, animation, modifier, () -> {});
     }
 
-    public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
+    public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
         var get = animationMap.get(animation);
         if (get == null) return false;
         scriptProcessor.animate(get.script(), get.loop(), modifier);
+        var playOnceTask = FunctionUtil.playOnce(removeTask);
         for (RenderedBone value : entityMap.values()) {
-            value.iterateAnimation(AnimationPredicate.of(filter), (b, a) -> b.addAnimation(a, animation, get, modifier, FunctionUtil.throttleTick(removeTask)));
+            value.iterateAnimation(AnimationPredicate.of(filter), (b, a) -> b.addAnimation(a, animation, get, modifier, playOnceTask));
         }
         return true;
     }
