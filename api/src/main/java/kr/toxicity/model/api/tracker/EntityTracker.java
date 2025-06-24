@@ -12,6 +12,7 @@ import kr.toxicity.model.api.util.EventUtil;
 import kr.toxicity.model.api.util.FunctionUtil;
 import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.function.BonePredicate;
+import kr.toxicity.model.api.util.lazy.LazyFloatProvider;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -38,6 +39,7 @@ public class EntityTracker extends Tracker {
 
     private final AtomicInteger damageTintValue = new AtomicInteger(0xFF8080);
     private final AtomicLong damageTint = new AtomicLong(-1);
+    private final AtomicLong headRotationDelay = new AtomicLong(150);
 
     /**
      * Get or creates tracker
@@ -114,11 +116,12 @@ public class EntityTracker extends Tracker {
         //Animation
         pipeline.defaultPosition(FunctionUtil.throttleTick(() -> adapter.passengerPosition().mul(-1)));
         pipeline.scale(scale);
-        Function<Quaternionf, Quaternionf> headRotator = r -> r.mul(MathUtil.toQuaternion(new Vector3f(
+        var headVector = LazyFloatProvider.ofVector(TRACKER_TICK_INTERVAL, () -> (float) headRotationDelay.get(), () -> new Vector3f(
                 Math.clamp(adapter.pitch(), -90, 90),
                 Math.clamp(-adapter.yaw() + adapter.bodyYaw(), -90, 90),
                 0
-        )));
+        ));
+        Function<Quaternionf, Quaternionf> headRotator = r -> r.mul(MathUtil.toQuaternion(headVector.get()));
         pipeline.addRotationModifier(
                 BonePredicate.of(BonePredicate.State.NOT_SET, r -> r.getName().tagged(BoneTags.HEAD)),
                 headRotator
@@ -274,8 +277,19 @@ public class EntityTracker extends Tracker {
         forceUpdate(true);
     }
 
+    /**
+     * Cancels damage tint task
+     */
     public void cancelDamageTint() {
         damageTint.set(-1);
+    }
+
+    /**
+     * Sets head rotation delay
+     * @param delay delay
+     */
+    public void headRotationDelay(long delay) {
+        headRotationDelay.set(delay);
     }
 
     /**

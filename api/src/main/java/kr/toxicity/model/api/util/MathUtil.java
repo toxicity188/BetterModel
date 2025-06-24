@@ -24,6 +24,10 @@ public final class MathUtil {
     }
 
     /**
+     * Minecraft tick mills
+     */
+    public static int MINECRAFT_TICK_MILLS = 50;
+    /**
      * Valid rotation degree
      */
     public static final float ROTATION_DEGREE = 22.5F;

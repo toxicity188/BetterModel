@@ -12,6 +12,7 @@ import kr.toxicity.model.api.data.renderer.RenderSource;
 import kr.toxicity.model.api.data.renderer.RendererGroup;
 import kr.toxicity.model.api.nms.*;
 import kr.toxicity.model.api.tracker.ModelRotation;
+import kr.toxicity.model.api.tracker.Tracker;
 import kr.toxicity.model.api.tracker.TrackerModifier;
 import kr.toxicity.model.api.util.FunctionUtil;
 import kr.toxicity.model.api.util.MathUtil;
@@ -281,7 +282,7 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     private boolean shouldUpdateAnimation() {
-        return forceUpdateAnimation.compareAndSet(true, false) || keyframeFinished() || delay % 5 == 0;
+        return forceUpdateAnimation.compareAndSet(true, false) || keyframeFinished() || delay % Tracker.MINECRAFT_TICK_MULTIPLIER == 0;
     }
 
     private boolean updateAnimation() {
@@ -365,7 +366,7 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     private static int toInterpolationDuration(float delay) {
-        return (int) Math.ceil(delay / 5F);
+        return (int) Math.ceil(delay / (float) Tracker.MINECRAFT_TICK_MULTIPLIER);
     }
 
     public @NotNull Vector3f worldPosition() {
@@ -448,7 +449,7 @@ public final class RenderedBone implements HitBoxSource {
     private @NotNull BoneMovement relativeOffset() {
         if (relativeOffsetCache != null) return relativeOffsetCache;
         var def = defaultFrame();
-        var preventModifierUpdate = toInterpolationDuration(frame()) < 3;
+        var preventModifierUpdate = toInterpolationDuration(frame()) < 1;
         if (parent != null) {
             var p = parent.relativeOffset();
             return relativeOffsetCache = new BoneMovement(

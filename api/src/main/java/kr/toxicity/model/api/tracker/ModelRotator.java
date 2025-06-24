@@ -3,6 +3,8 @@ package kr.toxicity.model.api.tracker;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import kr.toxicity.model.api.util.lazy.LazyFloatProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,9 +42,18 @@ public sealed interface ModelRotator extends BiFunction<Tracker, ModelRotation, 
         return result != null ? result : EMPTY;
     }
 
+    static @NotNull ModelRotator lazy(long mills) {
+        return Objects.requireNonNull(DESERIALIZER.lazy.apply(mills));
+    }
+
     @NotNull String name();
     @Nullable ModelRotator source();
     @Nullable JsonElement data();
+
+    default @NotNull ModelRotator root() {
+        var source = source();
+        return source != null ? source.root() : this;
+    }
 
     default @NotNull JsonObject serialize() {
         var json = new JsonObject();
@@ -111,6 +122,10 @@ public sealed interface ModelRotator extends BiFunction<Tracker, ModelRotation, 
         default @Nullable ModelRotator apply() {
             return apply(JsonNull.INSTANCE);
         }
+
+        default @Nullable ModelRotator apply(long value) {
+            return apply(new JsonPrimitive(value));
+        }
     }
 
     final class Deserializer {
@@ -120,6 +135,14 @@ public sealed interface ModelRotator extends BiFunction<Tracker, ModelRotation, 
         private final BuiltInDeserializer empty = register("empty", j -> Getter.of(ModelRotation.EMPTY));
         private final BuiltInDeserializer yaw = register("yaw", j -> Getter.of(ModelRotation::yaw));
         private final BuiltInDeserializer pitch = register("pitch", j -> Getter.of(ModelRotation::pitch));
+        private final BuiltInDeserializer lazy = register("lazy", j -> {
+            if (j.isJsonPrimitive()) {
+                var f = j.getAsLong();
+                var xLazy = new LazyFloatProvider(f);
+                var yLazy = new LazyFloatProvider(f);
+                return Getter.of(r -> new ModelRotation(xLazy.updateAndGet(r.x()), yLazy.updateAndGet(r.y())));
+            } else return null;
+        });
 
         private Deserializer() {
         }

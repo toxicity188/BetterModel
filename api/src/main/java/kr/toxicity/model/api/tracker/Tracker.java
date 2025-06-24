@@ -13,6 +13,7 @@ import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.util.EntityUtil;
 import kr.toxicity.model.api.util.EventUtil;
+import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.TransformedItemStack;
 import kr.toxicity.model.api.util.function.BonePredicate;
 import lombok.Getter;
@@ -40,6 +41,8 @@ import java.util.stream.Stream;
  */
 public abstract class Tracker implements AutoCloseable {
 
+    public static final int TRACKER_TICK_INTERVAL = 10;
+    public static final int MINECRAFT_TICK_MULTIPLIER = MathUtil.MINECRAFT_TICK_MILLS / TRACKER_TICK_INTERVAL;
     private static final ScheduledExecutorService EXECUTOR = Executors.newScheduledThreadPool(256);
 
     @Getter
@@ -72,7 +75,7 @@ public abstract class Tracker implements AutoCloseable {
         dataBundler = pipeline.createBundler();
         var config = BetterModel.plugin().configManager();
         updater = () -> {
-            var isMinecraftTickTime = frame % 5 == 0;
+            var isMinecraftTickTime = frame % MINECRAFT_TICK_MULTIPLIER == 0;
             if (isMinecraftTickTime) {
                 Runnable task;
                 while ((task = queuedTask.poll()) != null) {
@@ -97,7 +100,7 @@ public abstract class Tracker implements AutoCloseable {
         task = EXECUTOR.scheduleAtFixedRate(() -> {
             if (playerCount() > 0 || forRemoval.get()) updater.run();
             frame++;
-        }, 10, 10, TimeUnit.MILLISECONDS);
+        }, TRACKER_TICK_INTERVAL, TRACKER_TICK_INTERVAL, TimeUnit.MILLISECONDS);
         if (modifier.sightTrace()) pipeline.viewFilter(p -> EntityUtil.canSee(p.getEyeLocation(), location()));
         tick((t, b) -> t.pipeline.getScriptProcessor().tick());
     }
@@ -163,7 +166,7 @@ public abstract class Tracker implements AutoCloseable {
      * @param consumer consumer
      */
     public void tick(long tick, @NotNull BiConsumer<Tracker, PacketBundler> consumer) {
-        schedule(5 * tick, consumer);
+        schedule(MINECRAFT_TICK_MULTIPLIER * tick, consumer);
     }
 
     /**

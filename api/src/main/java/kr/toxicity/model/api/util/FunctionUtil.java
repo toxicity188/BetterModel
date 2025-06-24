@@ -50,7 +50,18 @@ public final class FunctionUtil {
      * @return throttled function
      */
     public static <T> @NotNull Supplier<T> throttleTick(@NotNull Supplier<T> supplier) {
-        return supplier instanceof TickThrottledSupplier<T> throttledSupplier ? throttledSupplier : new TickThrottledSupplier<>(supplier);
+        return throttleTick(MathUtil.MINECRAFT_TICK_MILLS, supplier);
+    }
+
+    /**
+     * Throttles this function by tick
+     * @param <T> type
+     * @param tick tick
+     * @param supplier target
+     * @return throttled function
+     */
+    public static <T> @NotNull Supplier<T> throttleTick(long tick, @NotNull Supplier<T> supplier) {
+        return supplier instanceof TickThrottledSupplier<T> throttledSupplier ? new TickThrottledSupplier<>(tick, throttledSupplier.delegate) : new TickThrottledSupplier<>(tick, supplier);
     }
 
     /**
@@ -59,8 +70,19 @@ public final class FunctionUtil {
      * @return throttled function
      */
     public static @NotNull FloatSupplier throttleTickFloat(@NotNull FloatSupplier supplier) {
-        return supplier instanceof TickThrottledFloatSupplier throttledSupplier ? throttledSupplier : new TickThrottledFloatSupplier(supplier);
+        return throttleTickFloat(MathUtil.MINECRAFT_TICK_MILLS, supplier);
     }
+
+    /**
+     * Throttles this function by tick
+     * @param tick tick
+     * @param supplier target
+     * @return throttled function
+     */
+    public static @NotNull FloatSupplier throttleTickFloat(long tick, @NotNull FloatSupplier supplier) {
+        return supplier instanceof TickThrottledFloatSupplier throttledSupplier ? new TickThrottledFloatSupplier(tick, throttledSupplier.delegate) : new TickThrottledFloatSupplier(tick, supplier);
+    }
+
     /**
      * Throttles this function by tick
      * @param supplier target
@@ -88,7 +110,19 @@ public final class FunctionUtil {
      * @return throttled function
      */
     public static <T, R> @NotNull Function<T, R> throttleTick(@NotNull Function<T, R> function) {
-        return function instanceof TickThrottledFunction<T, R> throttledFunction ? throttledFunction : new TickThrottledFunction<>(function);
+        return throttleTick(MathUtil.MINECRAFT_TICK_MILLS, function);
+    }
+
+    /**
+     * Throttles this function by tick
+     * @param <T> from
+     * @param <R> return
+     * @param tick tick
+     * @param function target
+     * @return throttled function
+     */
+    public static <T, R> @NotNull Function<T, R> throttleTick(long tick, @NotNull Function<T, R> function) {
+        return function instanceof TickThrottledFunction<T, R> throttledFunction ? new TickThrottledFunction<>(tick, throttledFunction.delegate) : new TickThrottledFunction<>(tick, function);
     }
 
     @RequiredArgsConstructor
@@ -102,32 +136,45 @@ public final class FunctionUtil {
         }
     }
 
-    @RequiredArgsConstructor
     private static class TickThrottledSupplier<T> implements Supplier<T> {
-        private final @NotNull Supplier<T> delegate;
-        private final AtomicLong time = new AtomicLong(-51);
+        private final long tick;
+        private final Supplier<T> delegate;
+        private final AtomicLong time;
         private volatile T cache;
+
+        public TickThrottledSupplier(long tick, @NotNull Supplier<T> delegate) {
+            this.tick = tick;
+            this.delegate = delegate;
+            time = new AtomicLong(-tick - 1);
+        }
 
         @Override
         public T get() {
             var old = time.get();
             var current = System.currentTimeMillis();
-            if (current - old >= 50 && time.compareAndSet(old, current)) cache = delegate.get();
+            if (current - old >= tick && time.compareAndSet(old, current)) cache = delegate.get();
             return cache;
         }
     }
 
     @RequiredArgsConstructor
     private static class TickThrottledFloatSupplier implements FloatSupplier {
-        private final @NotNull FloatSupplier delegate;
-        private final AtomicLong time = new AtomicLong(-51);
+        private final long tick;
+        private final FloatSupplier delegate;
+        private final AtomicLong time;
         private volatile float cache;
+
+        public TickThrottledFloatSupplier(long tick, @NotNull FloatSupplier delegate) {
+            this.tick = tick;
+            this.delegate = delegate;
+            time = new AtomicLong(-tick - 1);
+        }
 
         @Override
         public float getAsFloat() {
             var old = time.get();
             var current = System.currentTimeMillis();
-            if (current - old >= 50 && time.compareAndSet(old, current)) cache = delegate.getAsFloat();
+            if (current - old >= tick && time.compareAndSet(old, current)) cache = delegate.getAsFloat();
             return cache;
         }
     }
@@ -164,15 +211,22 @@ public final class FunctionUtil {
 
     @RequiredArgsConstructor
     private static class TickThrottledFunction<T, R> implements Function<T, R> {
+        private final long tick;
         private final @NotNull Function<T, R> delegate;
-        private final AtomicLong time = new AtomicLong(-51);
+        private final AtomicLong time;
         private volatile R cache;
+
+        public TickThrottledFunction(long tick, @NotNull Function<T, R> delegate) {
+            this.tick = tick;
+            this.delegate = delegate;
+            time = new AtomicLong(-tick - 1);
+        }
 
         @Override
         public R apply(T t) {
             var old = time.get();
             var current = System.currentTimeMillis();
-            if (current - old >= 50 && time.compareAndSet(old, current)) cache = delegate.apply(t);
+            if (current - old >= tick && time.compareAndSet(old, current)) cache = delegate.apply(t);
             return cache;
         }
     }
