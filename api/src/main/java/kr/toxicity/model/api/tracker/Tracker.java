@@ -364,10 +364,9 @@ public abstract class Tracker implements AutoCloseable {
      * @param animation animation
      * @param modifier modifier
      * @param removeTask remove task
-     * @return success
      */
-    public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
-        return pipeline.animate(filter, animation, modifier, removeTask);
+    public void animate(@NotNull Predicate<RenderedBone> filter, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
+        pipeline.animate(filter, animation, modifier, removeTask);
     }
 
     /**
@@ -410,6 +409,16 @@ public abstract class Tracker implements AutoCloseable {
         return pipeline.replace(filter, target, animation, modifier);
     }
 
+    /**
+     * Replaces some animation by loop
+     * @param filter bone predicate
+     * @param target old animation's name
+     * @param animation new animation
+     * @param modifier modifier
+     */
+    public void replace(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier) {
+        pipeline.replace(filter, target, animation, modifier);
+    }
 
     /**
      * Toggles some part

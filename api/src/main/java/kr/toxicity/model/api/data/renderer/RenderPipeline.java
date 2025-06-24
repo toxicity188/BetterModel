@@ -223,7 +223,7 @@ public final class RenderPipeline {
     public double height() {
         var h = 0D;
         for (RenderedBone renderer : bones()) {
-            var lt = renderer.worldPosition().y;
+            var lt = renderer.hitBoxPosition().y;
             if (renderer.getName().tagged(BoneTags.HEAD, BoneTags.HEAD_WITH_CHILDREN)) return lt;
             if (h < lt) h = lt;
         }
@@ -252,29 +252,33 @@ public final class RenderPipeline {
         return animate(e -> true, animation, modifier, () -> {});
     }
 
-    public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
+    public void animate(@NotNull Predicate<RenderedBone> filter, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
         scriptProcessor.animate(animation.script(), animation.loop(), modifier);
         var playOnceTask = FunctionUtil.playOnce(removeTask);
         for (RenderedBone value : entityMap.values()) {
             value.iterateAnimation(AnimationPredicate.of(filter), (b, a) -> b.addAnimation(a, animation.name(), animation, modifier, playOnceTask));
         }
-        return true;
     }
 
     public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
         var get = animationMap.get(animation);
         if (get == null) return false;
-        return animate(filter, get, modifier, removeTask);
+        animate(filter, get, modifier, removeTask);
+        return true;
     }
 
     public boolean replace(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull String animation, @NotNull AnimationModifier modifier) {
         var get = animationMap.get(animation);
         if (get == null) return false;
-        scriptProcessor.replace(get.script(), get.loop(), modifier);
-        for (RenderedBone value : entityMap.values()) {
-            value.iterateAnimation(AnimationPredicate.of(filter), (b, a) -> b.replaceAnimation(a, target, animation, get, modifier));
-        }
+        replace(filter, target, get, modifier);
         return true;
+    }
+
+    public void replace(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier) {
+        scriptProcessor.replace(animation.script(), animation.loop(), modifier);
+        for (RenderedBone value : entityMap.values()) {
+            value.iterateAnimation(AnimationPredicate.of(filter), (b, a) -> b.replaceAnimation(a, target, animation.name(), animation, modifier));
+        }
     }
 
     public void stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String target) {
