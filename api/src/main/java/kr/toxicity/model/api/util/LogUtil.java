@@ -31,7 +31,7 @@ public final class LogUtil {
         var list = new ArrayList<String>();
         list.add(message);
         list.add("Reason: " + throwable.getMessage());
-        if (BetterModel.plugin().configManager().debug().exception()) {
+        if (BetterModel.config().debug().exception()) {
             list.add("Stack trace:");
             try (
                     var byteArray = new ByteArrayOutputStream();

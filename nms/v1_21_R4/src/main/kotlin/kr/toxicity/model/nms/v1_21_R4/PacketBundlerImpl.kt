@@ -17,11 +17,7 @@ internal class PacketBundlerImpl(
     override fun copy(): PacketBundler = PacketBundlerImpl(ArrayList(list))
     override fun send(player: Player, onSuccess: Runnable) {
         val connection = (player as CraftPlayer).handle.connection
-        when (list.size) {
-            0 -> {}
-            1 -> connection.send(list[0], PacketSendListener.thenRun(onSuccess))
-            else -> connection.send(bundlePacket, PacketSendListener.thenRun(onSuccess))
-        }
+        if (list.isNotEmpty()) connection.send(bundlePacket, PacketSendListener.thenRun(onSuccess))
     }
     override fun isEmpty(): Boolean = list.isEmpty()
     operator fun plusAssign(other: Packet<ClientGamePacketListener>) {

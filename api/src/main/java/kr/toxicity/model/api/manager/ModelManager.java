@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -25,7 +26,7 @@ public interface ModelManager extends GlobalManager {
      * @return all renderers
      */
     @NotNull @Unmodifiable
-    List<ModelRenderer> renderers();
+    Collection<ModelRenderer> renderers();
 
     /**
      * Gets all key of renderer

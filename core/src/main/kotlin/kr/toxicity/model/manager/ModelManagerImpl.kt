@@ -130,7 +130,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
         if (ConfigManagerImpl.module().model()) {
             val modelFileMap = ConcurrentHashMap<String, Pair<File, ModelBlueprint>>()
             DATA_FOLDER.getOrCreateDirectory("models") { folder ->
-                if (PLUGIN.version().useModernResource()) folder.addResourceAs("demon_knight.bbmodel")
+                if (PLUGIN.version().useModernResource()) folder.addResource("demon_knight.bbmodel")
             }.fileTreeList()
                 .filter { it.extension == "bbmodel" }
                 .forEachAsync {
@@ -312,6 +312,6 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
     }
 
     override fun renderer(name: String): ModelRenderer? = renderMap[name]
-    override fun renderers(): List<ModelRenderer> = renderMap.values.toList()
+    override fun renderers(): Collection<ModelRenderer> = Collections.unmodifiableCollection(renderMap.values)
     override fun keys(): Set<String> = Collections.unmodifiableSet(renderMap.keys)
 }

@@ -26,7 +26,7 @@ class DismountModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc),
             val d = driver(args)
             tracker.bone {
                 (set.isEmpty() || set.contains(it.name.name))
-                        && (it.hitBox?.hasMountDriver() == true)
+                        && it.hitBox?.hasMountDriver() == true
                         && (d || it.hitBox?.mountController()?.canControl() == true)
             }?.let {
                 it.hitBox?.dismount(p1.bukkitEntity)

@@ -7,7 +7,7 @@ import org.bukkit.Bukkit
 import org.bukkit.entity.Entity
 import org.bukkit.scheduler.BukkitTask
 
-class StandardScheduler : ModelScheduler {
+class BukkitScheduler : ModelScheduler {
 
     private fun BukkitTask.wrap() = object : ModelTask {
         override fun isCancelled(): Boolean = this@wrap.isCancelled

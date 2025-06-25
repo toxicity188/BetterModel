@@ -48,7 +48,7 @@ class MountModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), IT
             val set = seat(args)
             tracker.bone {
                 (set.isEmpty() || set.contains(it.name.name))
-                        && (it.hitBox?.hasMountDriver() != true)
+                        && it.hitBox?.hasMountDriver() != true
                         && (it.hitBox != null || it.createHitBox(tracker.registry().adapter(), { true }, dismountListener))
             }?.let {
                 it.hitBox?.let { hitBox ->

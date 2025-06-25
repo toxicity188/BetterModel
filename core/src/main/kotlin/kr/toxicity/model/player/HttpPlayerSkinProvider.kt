@@ -35,8 +35,9 @@ class HttpPlayerSkinProvider : PlayerSkinProvider {
                 .build(), HttpResponse.BodyHandlers.ofInputStream()
             ).thenCompose {
                 val uuid = it.body()
+                    .bufferedReader()
                     .use { stream ->
-                        JsonParser.parseReader(stream.bufferedReader())
+                        JsonParser.parseReader(stream)
                     }
                     .asJsonObject
                     .getAsJsonPrimitive("id")
@@ -46,8 +47,8 @@ class HttpPlayerSkinProvider : PlayerSkinProvider {
                     .uri(URI.create("https://sessionserver.mojang.com/session/minecraft/profile/$uuid"))
                     .build(), HttpResponse.BodyHandlers.ofInputStream())
             }.thenApply {
-                it.body().use { stream ->
-                    serializer.fromJson(stream.bufferedReader(), Profile::class.java).let { p ->
+                it.body().bufferedReader().use { stream ->
+                    serializer.fromJson(stream, Profile::class.java).let { p ->
                         GameProfile(
                             p.id,
                             p.name

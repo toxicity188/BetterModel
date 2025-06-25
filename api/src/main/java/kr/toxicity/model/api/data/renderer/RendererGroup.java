@@ -79,7 +79,7 @@ public final class RendererGroup {
         this.hitBox = box;
         rotation = group.rotation().toVector();
         if (name.tagged(BoneTags.SEAT)) {
-            mountController = BetterModel.plugin().configManager().defaultMountController();
+            mountController = BetterModel.config().defaultMountController();
         } else if (name.tagged(BoneTags.SUB_SEAT)) {
             mountController = MountControllers.NONE;
         } else mountController = MountControllers.INVALID;

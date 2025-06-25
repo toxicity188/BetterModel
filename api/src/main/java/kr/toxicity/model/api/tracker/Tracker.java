@@ -73,7 +73,7 @@ public abstract class Tracker implements AutoCloseable {
         this.modifier = modifier;
         viewBundler = pipeline.createBundler();
         dataBundler = pipeline.createBundler();
-        var config = BetterModel.plugin().configManager();
+        var config = BetterModel.config();
         updater = () -> {
             var isMinecraftTickTime = frame % MINECRAFT_TICK_MULTIPLIER == 0;
             if (isMinecraftTickTime) {

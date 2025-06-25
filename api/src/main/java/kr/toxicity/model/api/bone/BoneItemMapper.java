@@ -2,10 +2,8 @@ package kr.toxicity.model.api.bone;
 
 import kr.toxicity.model.api.data.renderer.RenderSource;
 import kr.toxicity.model.api.util.TransformedItemStack;
-import org.bukkit.Material;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiFunction;
@@ -45,7 +43,7 @@ public interface BoneItemMapper extends BiFunction<RenderSource<?>, TransformedI
     static @NotNull BoneItemMapper player(@NotNull ItemDisplay.ItemDisplayTransform transform, @NotNull Function<Player, TransformedItemStack> mapper) {
         return new BoneItemMapper() {
 
-            private static final TransformedItemStack AIR = TransformedItemStack.of(new ItemStack(Material.AIR));
+            private static final TransformedItemStack AIR = TransformedItemStack.empty();
 
             @NotNull
             @Override

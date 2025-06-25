@@ -62,7 +62,7 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
         renderMap.clear()
         if (ConfigManagerImpl.module().playerAnimation()) {
             DATA_FOLDER.getOrCreateDirectory("players") { folder ->
-                folder.addResourceAs("steve.bbmodel")
+                folder.addResource("steve.bbmodel")
             }.forEachAllFolder {
                 if (it.extension == "bbmodel") {
                     val load = it.toModel()
@@ -72,7 +72,7 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
         }
     }
 
-    override fun limbs(): List<ModelRenderer> = renderMap.values.toList()
+    override fun limbs(): Collection<ModelRenderer> = Collections.unmodifiableCollection(renderMap.values)
     override fun limb(name: String): ModelRenderer? = renderMap[name]
 
     override fun animate(player: Player, model: String, animation: String, modifier: AnimationModifier): Boolean {

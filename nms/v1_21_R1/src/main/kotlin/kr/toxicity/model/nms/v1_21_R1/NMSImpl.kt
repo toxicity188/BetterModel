@@ -300,10 +300,10 @@ class NMSImpl : NMS {
     }.toIntArray()): ClientboundSetPassengersPacket {
         return useByteBuf { buffer ->
             buffer.writeVarInt(entity.id)
-            buffer.writeVarIntArray((displays()
+            buffer.writeVarIntArray(displays()
                 .mapToInt { 
                     (it as ModelDisplayImpl).display.id 
-                }.toArray() + array))
+                }.toArray() + array)
             ClientboundSetPassengersPacket.STREAM_CODEC.decode(buffer)
         }
     }

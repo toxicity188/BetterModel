@@ -697,10 +697,10 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
             }
         }
         fun drawTo(from: UVPos, to: UVPos) {
-            drawTo(from, to, (0..<4), (4..<16))
-            drawTo(from, to, (4..<8), (0..<16))
-            drawTo(from, to, (8..<12), (0..<16))
-            drawTo(from, to, (12..<16), (4..<16))
+            drawTo(from, to, 0..<4, 4..<16)
+            drawTo(from, to, 4..<8, 0..<16)
+            drawTo(from, to, 8..<12, 0..<16)
+            drawTo(from, to, 12..<16, 4..<16)
         }
         newImage.createGraphics().let {
             it.drawImage(this, 0, 0, null)

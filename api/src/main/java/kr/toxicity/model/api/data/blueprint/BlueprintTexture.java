@@ -69,7 +69,7 @@ public record BlueprintTexture(
         var json = new JsonObject();
         var animation = new JsonObject();
         animation.addProperty("interpolate", true);
-        animation.addProperty("frametime", BetterModel.plugin().configManager().animatedTextureFrameTime());
+        animation.addProperty("frametime", BetterModel.config().animatedTextureFrameTime());
         json.add("animation", animation);
         return json;
     }
@@ -80,7 +80,7 @@ public record BlueprintTexture(
      * @return texture name in pack
      */
     public @NotNull String packName(@NotNull String parentName) {
-        return BetterModel.plugin().configManager().namespace() + ":item/" + PackUtil.toPackName(parentName + "_" + name());
+        return BetterModel.config().namespace() + ":item/" + PackUtil.toPackName(parentName + "_" + name());
     }
 
     /**

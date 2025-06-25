@@ -15,7 +15,7 @@ import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.api.version.MinecraftVersion.*
 import kr.toxicity.model.manager.*
 import kr.toxicity.model.scheduler.PaperScheduler
-import kr.toxicity.model.scheduler.StandardScheduler
+import kr.toxicity.model.scheduler.BukkitScheduler
 import kr.toxicity.model.util.*
 import net.kyori.adventure.platform.bukkit.BukkitAudiences
 import net.kyori.adventure.text.Component
@@ -51,7 +51,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
         )
     }
 
-    private val scheduler = if (BetterModel.IS_FOLIA) PaperScheduler() else StandardScheduler()
+    private val scheduler = if (BetterModel.IS_FOLIA) PaperScheduler() else BukkitScheduler()
     private val log = object : BetterModelLogger {
         private val internalLogger = logger
         override fun info(vararg message: String) {
@@ -127,8 +127,8 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
                 @EventHandler
                 fun PlayerJoinEvent.join() {
                     if (!player.isOp || !ConfigManagerImpl.versionCheck()) return
-                    versionNoticeList.forEach {
-                        audiences.player(player).sendMessage(it)
+                    player.audience().run {
+                        versionNoticeList.forEach(::sendMessage)
                     }
                 }
             })

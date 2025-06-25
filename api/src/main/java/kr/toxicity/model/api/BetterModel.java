@@ -3,16 +3,14 @@ package kr.toxicity.model.api;
 import kr.toxicity.model.api.data.renderer.ModelRenderer;
 import kr.toxicity.model.api.event.PluginEndReloadEvent;
 import kr.toxicity.model.api.event.PluginStartReloadEvent;
+import kr.toxicity.model.api.manager.ConfigManager;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.util.EventUtil;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static kr.toxicity.model.api.util.ReflectionUtil.classExists;
 
@@ -47,6 +45,14 @@ public final class BetterModel {
     private static BetterModelPlugin instance;
 
     /**
+     * Gets config manager
+     * @return config
+     */
+    public static @NotNull ConfigManager config() {
+        return plugin().configManager();
+    }
+
+    /**
      * Gets model render by name
      * @param name name
      * @return optional renderer
@@ -75,14 +81,14 @@ public final class BetterModel {
      * Gets all models
      * @return all models
      */
-    public static @NotNull @Unmodifiable List<ModelRenderer> models() {
+    public static @NotNull @Unmodifiable Collection<ModelRenderer> models() {
         return plugin().modelManager().renderers();
     }
     /**
      * Gets all limbs
      * @return all limbs
      */
-    public static @NotNull @Unmodifiable List<ModelRenderer> limbs() {
+    public static @NotNull @Unmodifiable Collection<ModelRenderer> limbs() {
         return plugin().playerManager().limbs();
     }
 

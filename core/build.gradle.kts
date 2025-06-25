@@ -44,9 +44,7 @@ bukkitPluginYaml {
         "SkinsRestorer"
     )
     libraries = libs.bundles.library.map {
-        it.map { lib ->
-            lib.toString()
-        }
+        it.map(Any::toString)
     }
     permissions.create("bettermodel") {
         default = Permission.Default.OP

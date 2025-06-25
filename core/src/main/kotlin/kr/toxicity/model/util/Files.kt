@@ -35,7 +35,7 @@ fun File.forEachAll(block: (File) -> Unit) {
     }
 }
 
-fun File.addResourceAs(name: String) {
+fun File.addResource(name: String) {
     copyResourceAs(name) {
         File(this, name).outputStream().buffered()
     }

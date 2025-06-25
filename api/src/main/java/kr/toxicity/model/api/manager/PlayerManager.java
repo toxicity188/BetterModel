@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.UUID;
 
 /**
@@ -57,7 +57,7 @@ public interface PlayerManager extends GlobalManager {
      * @return renderers
      */
     @NotNull @Unmodifiable
-    List<ModelRenderer> limbs();
+    Collection<ModelRenderer> limbs();
 
     /**
      * Gets renderer for player animation by name.

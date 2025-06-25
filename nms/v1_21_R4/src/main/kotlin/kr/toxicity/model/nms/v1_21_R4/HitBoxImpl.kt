@@ -220,21 +220,7 @@ internal class HitBoxImpl(
         else delegate.isNoGravity = fly
         onFly = fly && !delegate.onGround()
         if (onFly) delegate.resetFallDistance()
-        val riddenInput = mountController.move(
-            if (onFly) MountController.MoveType.FLY else MountController.MoveType.DEFAULT,
-            player.bukkitEntity,
-            delegate.bukkitEntity as org.bukkit.entity.LivingEntity,
-            Vector3f(
-                player.xMovement(),
-                player.yMovement(),
-                player.zMovement()
-            ),
-            Vector3f(
-                travelVector.x.toFloat(),
-                travelVector.y.toFloat(),
-                travelVector.z.toFloat()
-            )
-        )
+        val riddenInput = rideInput(player, travelVector)
         val f = if (!onFly && !delegate.shouldDiscardFriction()) delegate.level()
             .getBlockState(blockPosBelowThatAffectsMyMovement)
             .block
@@ -291,6 +277,22 @@ internal class HitBoxImpl(
         firstTick = false
         listener.sync(craftEntity)
     }
+
+    private fun rideInput(player: ServerPlayer, travelVector: Vec3) = mountController.move(
+        if (onFly) MountController.MoveType.FLY else MountController.MoveType.DEFAULT,
+        player.bukkitEntity,
+        delegate.bukkitEntity as org.bukkit.entity.LivingEntity,
+        Vector3f(
+            player.xMovement(),
+            player.yMovement(),
+            player.zMovement()
+        ),
+        Vector3f(
+            travelVector.x.toFloat(),
+            travelVector.y.toFloat(),
+            travelVector.z.toFloat()
+        )
+    )
 
     override fun remove(reason: RemovalReason, cause: EntityRemoveEvent.Cause?) {
         initialSetup()
