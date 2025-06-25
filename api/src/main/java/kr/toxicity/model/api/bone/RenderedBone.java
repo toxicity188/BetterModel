@@ -434,7 +434,7 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     private float frame() {
-        return keyFrame != null ? keyFrame.time() * 100F : parent != null ? parent.frame() : 0F;
+        return keyFrame != null ? keyFrame.time() * 20F * Tracker.MINECRAFT_TICK_MULTIPLIER : parent != null ? parent.frame() : 0F;
     }
 
     private @NotNull BoneMovement defaultFrame() {

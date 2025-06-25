@@ -46,7 +46,7 @@ public final class VectorUtil {
         return sum(position, rotation, scale, set);
     }
 
-    public static @NotNull List<AnimationPoint> sum(@NotNull List<VectorPoint> position, @NotNull List<VectorPoint> rotation, @NotNull List<VectorPoint> scale, FloatCollection points) {
+    public static @NotNull List<AnimationPoint> sum(@NotNull List<VectorPoint> position, @NotNull List<VectorPoint> rotation, @NotNull List<VectorPoint> scale, @NotNull FloatCollection points) {
         var list = new ArrayList<AnimationPoint>();
         var pp = putPoint(position, points);
         var rp = putPoint(rotation, points);
@@ -95,9 +95,9 @@ public final class VectorUtil {
         for (int i = 0; i < vectorPoints.size() - 1; i++) {
             var before = vectorPoints.get(i);
             var after = vectorPoints.get(i + 1);
-            var angle = (float) Math.ceil(Math.toDegrees(MathUtil.toQuaternion(after.vector())
-                    .mul(MathUtil.toQuaternion(before.vector()).invert())
-                    .angle()) / 45F);
+            var sub = after.vector().sub(before.vector(), new Vector3f()).absolute();
+            var max = Math.max(sub.x, Math.max(sub.y, sub.z)) / 30F;
+            var angle = (float) Math.ceil(max);
             if (angle > 1) {
                 for (float t = 1; t < angle; t++) {
                     frames.add(linear(before.time(), after.time(), t / angle));
