@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * Entity tracker
@@ -39,7 +40,8 @@ public class EntityTracker extends Tracker {
 
     private final AtomicInteger damageTintValue = new AtomicInteger(0xFF8080);
     private final AtomicLong damageTint = new AtomicLong(-1);
-    private final AtomicLong headRotationDelay = new AtomicLong(150);
+
+    private final HeadRotationProperty headRotationProperty = new HeadRotationProperty();
 
     /**
      * Get or creates tracker
@@ -116,12 +118,7 @@ public class EntityTracker extends Tracker {
         //Animation
         pipeline.defaultPosition(FunctionUtil.throttleTick(() -> adapter.passengerPosition().mul(-1)));
         pipeline.scale(scale);
-        var headVector = LazyFloatProvider.ofVector(TRACKER_TICK_INTERVAL, () -> (float) headRotationDelay.get(), () -> new Vector3f(
-                Math.clamp(adapter.pitch(), -90, 90),
-                Math.clamp(-adapter.yaw() + adapter.bodyYaw(), -90, 90),
-                0
-        ));
-        Function<Quaternionf, Quaternionf> headRotator = r -> r.mul(MathUtil.toQuaternion(headVector.get()));
+        Function<Quaternionf, Quaternionf> headRotator = r -> r.mul(MathUtil.toQuaternion(headRotationProperty.get()));
         pipeline.addRotationModifier(
                 BonePredicate.of(BonePredicate.State.NOT_SET, r -> r.getName().tagged(BoneTags.HEAD)),
                 headRotator
@@ -285,11 +282,11 @@ public class EntityTracker extends Tracker {
     }
 
     /**
-     * Sets head rotation delay
-     * @param delay delay
+     * Gets head rotation property
+     * @return rotation property
      */
-    public void headRotationDelay(long delay) {
-        headRotationDelay.set(delay);
+    public @NotNull HeadRotationProperty headRotationProperty() {
+        return headRotationProperty;
     }
 
     /**
@@ -298,5 +295,41 @@ public class EntityTracker extends Tracker {
     @ApiStatus.Internal
     public void refresh() {
         BetterModel.plugin().scheduler().task(registry.entity(), () -> pipeline.createHitBox(registry.adapter(), r -> r.getHitBox() != null, null));
+    }
+
+    public final class HeadRotationProperty implements Supplier<Vector3f> {
+        private float rotationDelay = 150;
+        private float minRotation = -90;
+        private float maxRotation = 90;
+        private final Supplier<Vector3f> delegate = LazyFloatProvider.ofVector(TRACKER_TICK_INTERVAL, () -> rotationDelay, () -> new Vector3f(
+                Math.clamp(registry.adapter().pitch(), minRotation, maxRotation),
+                Math.clamp(-registry.adapter().yaw() + registry.adapter().bodyYaw(), minRotation, maxRotation),
+                0
+        ));
+
+        private HeadRotationProperty() {
+        }
+
+        @Override
+        public @NotNull Vector3f get() {
+            return delegate.get();
+        }
+
+        public synchronized void delay(float delay) {
+            rotationDelay = delay;
+        }
+
+        public void minRotation(float min) {
+            rotation(min, maxRotation);
+        }
+
+        public void maxRotation(float max) {
+            rotation(minRotation, max);
+        }
+
+        public synchronized void rotation(float min, float max) {
+            minRotation = Math.min(min, max);
+            maxRotation = Math.max(min, max);
+        }
     }
 }
