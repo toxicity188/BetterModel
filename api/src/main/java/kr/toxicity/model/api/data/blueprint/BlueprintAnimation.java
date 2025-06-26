@@ -1,7 +1,6 @@
 package kr.toxicity.model.api.data.blueprint;
 
 import it.unimi.dsi.fastutil.floats.FloatAVLTreeSet;
-import it.unimi.dsi.fastutil.floats.FloatComparators;
 import it.unimi.dsi.fastutil.floats.FloatSet;
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationMovement;
@@ -10,14 +9,15 @@ import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.BoneTagRegistry;
 import kr.toxicity.model.api.data.raw.ModelAnimation;
 import kr.toxicity.model.api.data.raw.ModelAnimator;
-import kr.toxicity.model.api.data.raw.ModelKeyframe;
 import kr.toxicity.model.api.script.BlueprintScript;
 import kr.toxicity.model.api.util.VectorUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import static kr.toxicity.model.api.util.CollectionUtil.*;
 
 /**
  * A model animation.
@@ -51,11 +51,10 @@ public record BlueprintAnimation(
             var name = entry.getValue().name();
             if (name == null) continue;
             var builder = new BlueprintAnimator.Builder(animation.length());
-            var frameList = new ArrayList<>(entry.getValue().keyframes());
-            frameList.sort(Comparator.naturalOrder());
-            for (ModelKeyframe keyframe : frameList) {
-                builder.addFrame(keyframe);
-            }
+            entry.getValue().keyframes()
+                    .stream()
+                    .sorted(Comparator.naturalOrder())
+                    .forEach(builder::addFrame);
             if (entry.getKey().equals("effects")) {
                 blueprintScript = BlueprintScript.from(animation, entry.getValue());
             }
@@ -80,35 +79,31 @@ public record BlueprintAnimation(
     }
 
     private static @NotNull Map<BoneName, BlueprintAnimator> newMap(@NotNull Map<BoneName, BlueprintAnimator.AnimatorData> oldMap) {
-        var newMap = new HashMap<BoneName, BlueprintAnimator>();
-        FloatSet floatSet = new FloatAVLTreeSet(FloatComparators.NATURAL_COMPARATOR);
-        oldMap.values().forEach(a -> a.points().stream().mapToDouble(t -> t.position().time()).forEach(d -> floatSet.add(((float) d))));
-        for (Map.Entry<BoneName, BlueprintAnimator.AnimatorData> entry : oldMap.entrySet()) {
-            var list = getAnimationMovements(floatSet, entry);
-            newMap.put(entry.getKey(), new BlueprintAnimator(
-                    entry.getValue().name(),
-                    list
-            ));
-        }
-        return newMap;
+        var floatSet = mapFloat(oldMap.values()
+                .stream()
+                .flatMap(a -> a.points().stream()), p -> p.position().time(), FloatAVLTreeSet::new);
+        return mapValue(oldMap, value -> new BlueprintAnimator(
+                value.name(),
+                getAnimationMovements(floatSet, value)
+        ));
     }
 
-    private static @NotNull List<AnimationMovement> getAnimationMovements(@NotNull FloatSet floatSet, @NotNull Map.Entry<BoneName, BlueprintAnimator.AnimatorData> entry) {
-        var frame = entry.getValue().points();
+    private static @NotNull List<AnimationMovement> getAnimationMovements(@NotNull FloatSet floatSet, @NotNull BlueprintAnimator.AnimatorData value) {
+        var frame = value.points();
         if (frame.isEmpty()) return Collections.emptyList();
-        var list = VectorUtil.putAnimationPoint(frame, floatSet).stream().map(AnimationPoint::toMovement).collect(Collectors.toList());
+        var list = VectorUtil.putAnimationPoint(frame, floatSet).stream().map(AnimationPoint::toMovement).toList();
         return processFrame(list);
     }
 
     private static @NotNull List<AnimationMovement> processFrame(@NotNull List<AnimationMovement> target) {
         if (target.size() <= 1) return target;
-        var list = new ArrayList<AnimationMovement>();
-        list.add(target.getFirst());
-        for (int i = 1; i < target.size(); i++) {
-            var get = target.get(i);
-            list.add(get.time(get.time() - target.get(i - 1).time()));
-        }
-        return list;
+        return IntStream.range(0, target.size()).mapToObj(i -> {
+            if (i == 0) return target.getFirst();
+            else {
+                var get = target.get(i);
+                return get.time(get.time() - target.get(i - 1).time());
+            }
+        }).toList();
     }
 
     /**

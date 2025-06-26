@@ -244,14 +244,13 @@ public sealed interface ModelScaler {
         private Deserializer() {
             getterMap.put("composite", d -> {
                 if (d.isJsonArray()) {
-                    var list = new ArrayList<ModelScaler>();
-                    for (JsonElement jsonElement : d.getAsJsonArray()) {
-                        if (jsonElement.isJsonObject()) {
-                            var child = buildScaler(jsonElement.getAsJsonObject());
-                            if (child != null) list.add(child);
-                        }
-                    }
-                    return new Composite.CompositeGetter(list);
+                    return new Composite.CompositeGetter(d.getAsJsonArray()
+                            .asList()
+                            .stream()
+                            .filter(JsonElement::isJsonObject)
+                            .map(element -> buildScaler(element.getAsJsonObject()))
+                            .filter(Objects::nonNull)
+                            .toList());
                 } else return Getter.DEFAULT;
             });
         }

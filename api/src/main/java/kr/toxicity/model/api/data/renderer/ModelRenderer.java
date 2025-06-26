@@ -17,7 +17,8 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
+
+import static kr.toxicity.model.api.util.CollectionUtil.mapValue;
 
 /**
  * A blueprint renderer.
@@ -295,9 +296,6 @@ public record ModelRenderer(
     }
 
     private @NotNull RenderPipeline pipeline(@NotNull RenderSource<?> source, @NotNull Location location, @NotNull TrackerModifier modifier) {
-        return new RenderPipeline(this, source, rendererGroupMap
-                .entrySet()
-                .stream()
-                .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, e -> e.getValue().create(source, modifier, location))));
+        return new RenderPipeline(this, source, mapValue(rendererGroupMap, value -> value.create(source, modifier, location)));
     }
 }

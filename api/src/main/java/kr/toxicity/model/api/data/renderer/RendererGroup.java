@@ -20,7 +20,8 @@ import org.jetbrains.annotations.Unmodifiable;
 import org.joml.Vector3f;
 
 import java.util.Map;
-import java.util.stream.Collectors;
+
+import static kr.toxicity.model.api.util.CollectionUtil.mapValue;
 
 /**
  * A group of models.
@@ -102,13 +103,13 @@ public final class RendererGroup {
                 itemMapper.transform(),
                 location,
                 new BoneMovement(
-                        parentBone != null ? new Vector3f(position).sub(parentBone.getGroup().position) : new Vector3f(),
+                        parentBone != null ? position.sub(parentBone.getGroup().position, new Vector3f()) : new Vector3f(),
                         new Vector3f(1),
                         MathUtil.toQuaternion(rotation),
                         rotation
                 ),
                 modifier,
-                parent -> children.entrySet().stream().collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, e -> e.getValue().create(source, modifier, parent, location)))
+                parent -> mapValue(children, value -> value.create(source, modifier, parent, location))
         );
     }
 

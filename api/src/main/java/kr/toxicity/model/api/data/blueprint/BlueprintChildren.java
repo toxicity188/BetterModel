@@ -15,6 +15,9 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
+import java.util.stream.Stream;
+
+import static kr.toxicity.model.api.util.CollectionUtil.*;
 
 /**
  * A children of blueprint (group, element).
@@ -30,16 +33,13 @@ public sealed interface BlueprintChildren {
     static BlueprintChildren from(@NotNull ModelChildren children, @NotNull @Unmodifiable Map<String, ModelElement> elementMap) {
         return switch (children) {
             case ModelChildren.ModelGroup modelGroup -> {
-                var child = modelGroup.children().stream().map(c -> from(c, elementMap)).toList();
+                var child = mapToList(modelGroup.children(), c -> from(c, elementMap));
                 yield new BlueprintGroup(
                         modelGroup.name(),
                         modelGroup.origin(),
                         modelGroup.rotation().invertXZ(),
                         child,
-                        child.stream()
-                                .map(c -> c instanceof BlueprintElement element ? element : null)
-                                .filter(Objects::nonNull)
-                                .anyMatch(element -> element.element.visibility())
+                        filterIsInstance(child, BlueprintElement.class).anyMatch(element -> element.element.visibility())
                 );
             }
             case ModelChildren.ModelUUID modelUUID -> new BlueprintElement(Objects.requireNonNull(elementMap.get(modelUUID.uuid())));
@@ -103,13 +103,8 @@ public sealed interface BlueprintChildren {
                 float scale,
                 @NotNull ModelBlueprint parent
         ) {
-            var list = new ArrayList<BlueprintElement>();
-            for (BlueprintChildren child : children) {
-                if (child instanceof BlueprintElement element && MathUtil.checkValidDegree(element.identifierDegree())) {
-                    list.add(element);
-                }
-            }
-            return buildJson(-2, 1, scale, parent, Float3.ZERO, list);
+            return buildJson(-2, 1, scale, parent, Float3.ZERO, filterIsInstance(children, BlueprintElement.class)
+                    .filter(element -> MathUtil.checkValidDegree(element.identifierDegree())));
         }
 
         /**
@@ -122,18 +117,14 @@ public sealed interface BlueprintChildren {
                 float scale,
                 @NotNull ModelBlueprint parent
         ) {
-            var list = new ArrayList<BlueprintJson>();
-            var floatMap = new HashMap<Float3, List<BlueprintElement>>();
-            for (BlueprintChildren child : children) {
-                if (child instanceof BlueprintElement element) {
-                    floatMap.computeIfAbsent(element.identifierDegree(), u -> new ArrayList<>()).add(element);
-                }
-            }
-            var i = 0;
-            for (Map.Entry<Float3, List<BlueprintElement>> entry : floatMap.entrySet()) {
-                var json = buildJson(0, ++i, scale, parent, entry.getKey(), entry.getValue());
-                if (json != null) list.add(json);
-            }
+            var list = mapIndexed(
+                    group(
+                            filterIsInstance(children, BlueprintElement.class),
+                            BlueprintElement::identifierDegree
+                    ),
+                    (i, entry) -> buildJson(0, i + 1, scale, parent, entry.getKey(), entry.getValue().stream())
+            ).filter(Objects::nonNull)
+                    .toList();
             return list.isEmpty() ? null : list;
         }
 
@@ -143,10 +134,10 @@ public sealed interface BlueprintChildren {
                 float scale,
                 @NotNull ModelBlueprint parent,
                 @NotNull Float3 identifier,
-                @NotNull List<BlueprintElement> cubes
+                @NotNull Stream<BlueprintElement> cubes
         ) {
             if (parent.textures().isEmpty()) return null;
-            var texturedCube = cubes.stream()
+            var texturedCube = cubes
                     .filter(c -> c.element.hasTexture())
                     .toList();
             if (texturedCube.isEmpty()) return null;
@@ -180,32 +171,28 @@ public sealed interface BlueprintChildren {
          * @return bounding box
          */
         public @Nullable NamedBoundingBox hitBox() {
-            var elements = new ArrayList<ModelBoundingBox>();
-            for (BlueprintChildren child : children) {
-                if (child instanceof BlueprintElement(ModelElement element)) {
-                    var from = element.from()
-                            .minus(origin)
-                            .toVector()
-                            .div(16);
-                    var to = element.to()
-                            .minus(origin)
-                            .toVector()
-                            .div(16);
-                    elements.add(ModelBoundingBox.of(
-                            from.x,
-                            from.y,
-                            from.z,
-                            to.x,
-                            to.y,
-                            to.z
-                    ).invert());
-                }
-            }
-            var max = EntityUtil.max(elements);
+            var max = EntityUtil.max(filterIsInstance(children, BlueprintElement.class).map(be -> {
+                var element = be.element;
+                var from = element.from()
+                        .minus(origin)
+                        .toVector()
+                        .div(16);
+                var to = element.to()
+                        .minus(origin)
+                        .toVector()
+                        .div(16);
+                return ModelBoundingBox.of(
+                        from.x,
+                        from.y,
+                        from.z,
+                        to.x,
+                        to.y,
+                        to.z
+                ).invert();
+            }).toList());
             return max != null ? new NamedBoundingBox(boneName(), max) : null;
         }
     }
-
 
     /**
      * Blueprint element.

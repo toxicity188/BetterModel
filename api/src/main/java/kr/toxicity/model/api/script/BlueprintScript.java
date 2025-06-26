@@ -8,10 +8,10 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.IntStream;
 
 /**
  * A script data of blueprint.
@@ -233,11 +233,12 @@ public record BlueprintScript(@NotNull String name, int length, @NotNull List<Ti
 
     private static @NotNull List<ModelKeyframe> processFrame(@NotNull List<ModelKeyframe> target) {
         if (target.size() <= 1) return target;
-        var list = new ArrayList<ModelKeyframe>();
-        for (int i = 1; i < target.size(); i++) {
-            var get = target.get(i);
-            list.add(get.time(get.time() - target.get(i - 1).time()));
-        }
-        return list;
+        return IntStream.range(0, target.size()).mapToObj(i -> {
+            if (i == 0) return target.getFirst();
+            else {
+                var get = target.get(i);
+                return get.time(get.time() - target.get(i - 1).time());
+            }
+        }).toList();
     }
 }
