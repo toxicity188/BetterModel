@@ -33,7 +33,7 @@ public record BlueprintTexture(
     public static @NotNull BlueprintTexture from(@NotNull ModelTexture blueprint) {
         BufferedImage image;
         try (
-                var input = new ByteArrayInputStream(Base64.getDecoder().decode(blueprint.source().split(",")[1]));
+                var input = new ByteArrayInputStream(Base64.getDecoder().decode(blueprint.source().split(",")[1]))
         ) {
             image = ImageIO.read(input);
         } catch (Exception e) {
