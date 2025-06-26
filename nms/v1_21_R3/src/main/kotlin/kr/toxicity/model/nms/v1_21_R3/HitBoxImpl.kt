@@ -216,30 +216,34 @@ internal class HitBoxImpl(
 
     private fun mountControl(player: ServerPlayer, travelVector: Vec3) {
         if (!mountController.canFly() && delegate.isFallFlying) return
-        val fly = (player.isJump() && mountController.canFly()) || noGravity || onFly
-        if (delegate is Mob) delegate.isNoAi = fly
-        else delegate.isNoGravity = fly
-        onFly = fly && !delegate.onGround()
-        if (onFly) delegate.resetFallDistance()
+        
+        updateFlyStatus(player)
         val riddenInput = rideInput(player, travelVector)
-        val f = if (!onFly && !delegate.shouldDiscardFriction()) delegate.level()
-            .getBlockState(blockPosBelowThatAffectsMyMovement)
-            .block
-            .getFriction() else 1.0f
-        val speed = delegate.getAttributeValue(Attributes.MOVEMENT_SPEED).toFloat() * f
-        val movement = riddenInput
-            .mul(speed)
-            .rotateY(-Math.toRadians(player.yRot.toDouble()).toFloat())
-        if (movement.length() > 0.01) {
+        if (riddenInput.length() > 0.01) {
             delegate.yBodyRot = player.yRot
             if (onFly) delegate.yHeadRot = player.yRot
             delegate.move(MoverType.SELF, Vec3(riddenInput.x.toDouble(), riddenInput.y.toDouble(), riddenInput.z.toDouble()))
         }
         val dy = delegate.deltaMovement.y + delegate.gravity
-        if (!onFly && mountController.canJump() && (delegate.horizontalCollision || player.isJump()) && dy >= 0.0 && dy <= 0.01 && jumpDelay == 0) {
+        if (!onFly && mountController.canJump() && (delegate.horizontalCollision || player.isJump()) && dy in 0.0..0.01 && jumpDelay == 0) {
             jumpDelay = 10
             delegate.jumpFromGround()
         }
+    }
+    
+    private fun movementSpeed() = delegate.getAttribute(Attributes.MOVEMENT_SPEED)?.let { 
+        it.value.toFloat() * (if (!onFly && !delegate.shouldDiscardFriction()) delegate.level()
+            .getBlockState(blockPosBelowThatAffectsMyMovement)
+            .block
+            .getFriction() else 1.0F)
+    } ?: 0.0F
+
+    private fun updateFlyStatus(player: ServerPlayer) {
+        val fly = (player.isJump() && mountController.canFly()) || noGravity || onFly
+        if (delegate is Mob) delegate.isNoAi = fly
+        else delegate.isNoGravity = fly
+        onFly = fly && !delegate.onGround()
+        if (onFly) delegate.resetFallDistance()
     }
 
     private fun rideInput(player: ServerPlayer, travelVector: Vec3) = mountController.move(
@@ -256,7 +260,7 @@ internal class HitBoxImpl(
             travelVector.y.toFloat(),
             travelVector.z.toFloat()
         )
-    )
+    ).mul(movementSpeed()).rotateY(-Math.toRadians(player.yRot.toDouble()).toFloat())
     
     override fun tick() {
         delegate.removalReason?.let {
