@@ -180,7 +180,7 @@ public final class VectorUtil {
             if (derivative != 0) {
                 t -= error / derivative;
             }
-            t = Math.max(0F, Math.min(1F, t));
+            t = Math.clamp(t, 0F, 1F);
         }
 
         return t;
@@ -197,8 +197,8 @@ public final class VectorUtil {
             @Nullable Vector3f bezierRightTime,
             @Nullable Vector3f bezierRightValue
     ) {
-        Vector3f p1 = bezierRightValue != null ? new Vector3f(bezierRightValue).add(startValue) : startValue;
-        Vector3f p2 = bezierLeftValue != null ? new Vector3f(bezierLeftValue).add(endValue) : endValue;
+        Vector3f p1 = bezierRightValue != null ? bezierRightValue.add(startValue, new Vector3f()) : startValue;
+        Vector3f p2 = bezierLeftValue != null ? bezierLeftValue.add(endValue, new Vector3f()) : endValue;
         return new Vector3f(
                 cubicBezier(startValue.x, p1.x, p2.x, endValue.x, solveBezierTForTime(
                         time,
@@ -228,9 +228,9 @@ public final class VectorUtil {
         var t2 = t * t;
         var t3 = t2 * t;
         return new Vector3f(
-                Math.fma(t3, Math.fma(-1f, p0.x, Math.fma(3f, p1.x, Math.fma(-3f, p2.x, p3.x))), Math.fma(t2, Math.fma(2f, p0.x, Math.fma(-5f, p1.x, Math.fma(4f, p2.x, -p3.x))), Math.fma(t, -p0.x + p2.x, 2f * p1.x))),
-                Math.fma(t3,Math.fma(-1f, p0.y, Math.fma(3f, p1.y, Math.fma(-3f, p2.y, p3.y))), Math.fma(t2, Math.fma(2f, p0.y, Math.fma(-5f, p1.y, Math.fma(4f, p2.y, -p3.y))), Math.fma(t, -p0.y + p2.y, 2f * p1.y))),
-                Math.fma(t3, Math.fma(-1f, p0.z, Math.fma(3f, p1.z, Math.fma(-3f, p2.z, p3.z))), Math.fma(t2, Math.fma(2f, p0.z, Math.fma(-5f, p1.z, Math.fma(4f, p2.z, -p3.z))), Math.fma(t, -p0.z + p2.z, 2f * p1.z)))
+                Math.fma(t3, Math.fma(-1F, p0.x, Math.fma(3F, p1.x, Math.fma(-3F, p2.x, p3.x))), Math.fma(t2, Math.fma(2F, p0.x, Math.fma(-5F, p1.x, Math.fma(4F, p2.x, -p3.x))), Math.fma(t, -p0.x + p2.x, 2F * p1.x))),
+                Math.fma(t3,Math.fma(-1F, p0.y, Math.fma(3F, p1.y, Math.fma(-3F, p2.y, p3.y))), Math.fma(t2, Math.fma(2F, p0.y, Math.fma(-5F, p1.y, Math.fma(4F, p2.y, -p3.y))), Math.fma(t, -p0.y + p2.y, 2F * p1.y))),
+                Math.fma(t3, Math.fma(-1F, p0.z, Math.fma(3F, p1.z, Math.fma(-3F, p2.z, p3.z))), Math.fma(t2, Math.fma(2F, p0.z, Math.fma(-5F, p1.z, Math.fma(4F, p2.z, -p3.z))), Math.fma(t, -p0.z + p2.z, 2F * p1.z)))
         ).mul(0.5F);
     }
 

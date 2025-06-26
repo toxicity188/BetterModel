@@ -4,8 +4,6 @@ import kr.toxicity.model.api.util.interpolation.VectorInterpolation;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
-import java.util.Objects;
-
 public record VectorPoint(@NotNull Vector3f vector, float time, @NotNull VectorInterpolation interpolation) implements Comparable<VectorPoint> {
 
     public static final VectorPoint EMPTY = new VectorPoint(
@@ -27,6 +25,6 @@ public record VectorPoint(@NotNull Vector3f vector, float time, @NotNull VectorI
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(time);
+        return Float.hashCode(time);
     }
 }

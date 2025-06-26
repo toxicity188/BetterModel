@@ -30,7 +30,7 @@ public sealed interface BlueprintChildren {
      * @param elementMap element map
      * @return children
      */
-    static BlueprintChildren from(@NotNull ModelChildren children, @NotNull @Unmodifiable Map<String, ModelElement> elementMap) {
+    static @NotNull BlueprintChildren from(@NotNull ModelChildren children, @NotNull @Unmodifiable Map<String, ModelElement> elementMap) {
         return switch (children) {
             case ModelChildren.ModelGroup modelGroup -> {
                 var child = mapToList(modelGroup.children(), c -> from(c, elementMap));
@@ -104,7 +104,11 @@ public sealed interface BlueprintChildren {
                 @NotNull ModelBlueprint parent
         ) {
             return buildJson(-2, 1, scale, parent, Float3.ZERO, filterIsInstance(children, BlueprintElement.class)
-                    .filter(element -> MathUtil.checkValidDegree(element.identifierDegree())));
+                    .filter(filterWithWarning(
+                            element -> MathUtil.checkValidDegree(element.identifierDegree()),
+                            element -> "The model " + parent.name() + "'s cube \"" + element.element.name() + "\" has an invalid rotation which does not supported in legacy client (<=1.21.3) " + element.element.rotation()
+                    ))
+            );
         }
 
         /**
@@ -113,7 +117,9 @@ public sealed interface BlueprintChildren {
          * @param parent parent
          * @return json
          */
-        public @Nullable List<BlueprintJson> buildModernJson(
+        @Nullable
+        @Unmodifiable
+        public List<BlueprintJson> buildModernJson(
                 float scale,
                 @NotNull ModelBlueprint parent
         ) {

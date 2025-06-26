@@ -160,6 +160,11 @@ public record Float3(
         return array;
     }
 
+    @Override
+    public @NotNull String toString() {
+        return toJson().toString();
+    }
+
     /**
      * Converts floats to vector.
      * @return vector

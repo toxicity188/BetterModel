@@ -1,6 +1,7 @@
 package kr.toxicity.model.api.util;
 
 import it.unimi.dsi.fastutil.floats.FloatCollection;
+import kr.toxicity.model.api.BetterModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -180,6 +182,23 @@ public final class CollectionUtil {
     @Unmodifiable
     public static <E, K, V> Map<K, V> associate(@NotNull Collection<E> collection, @NotNull Function<E, K> keyMapper, @NotNull Function<E, V> valueMapper) {
         return associate(collection.stream(), keyMapper, valueMapper);
+    }
+
+    /**
+     * Gets filter with warning if not matched
+     * @param predicate delegated predicate
+     * @param lazyLogFunction log function
+     * @return predicate
+     * @param <T> type
+     */
+    @NotNull
+    public static <T> Predicate<T> filterWithWarning(@NotNull Predicate<T> predicate, @NotNull Function<T, String> lazyLogFunction) {
+        var logger = BetterModel.plugin().logger();
+        return t -> {
+            var testedValue = predicate.test(t);
+            if (!testedValue) logger.warn(lazyLogFunction.apply(t));
+            return testedValue;
+        };
     }
 
     /**
