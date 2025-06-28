@@ -3,12 +3,11 @@ package kr.toxicity.model.api.tracker;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.nms.EntityAdapter;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
+import kr.toxicity.model.api.util.entity.EntityId;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -29,8 +28,8 @@ import java.util.stream.Stream;
 
 public final class EntityTrackerRegistry {
 
-    private static final Map<UUID, EntityTrackerRegistry> REGISTRY_MAP = new ConcurrentHashMap<>();
-    private static final Int2ObjectMap<EntityTrackerRegistry> ID_TRACKER_MAP = new Int2ObjectOpenHashMap<>();
+    private static final Map<UUID, EntityTrackerRegistry> UUID_REGISTRY_MAP = new ConcurrentHashMap<>();
+    private static final Map<EntityId, EntityTrackerRegistry> ID_REGISTRY_MAP = new ConcurrentHashMap<>();
     /**
      * Tracker's namespace.
      */
@@ -38,12 +37,12 @@ public final class EntityTrackerRegistry {
     /**
      * Registries
      */
-    public static final Collection<EntityTrackerRegistry> REGISTRIES = Collections.unmodifiableCollection(REGISTRY_MAP.values());
+    public static final Collection<EntityTrackerRegistry> REGISTRIES = Collections.unmodifiableCollection(UUID_REGISTRY_MAP.values());
 
     private final AtomicBoolean closed = new AtomicBoolean();
     private final AtomicBoolean autoSpawn = new AtomicBoolean(true);
     private final Entity entity;
-    private final int id;
+    private final EntityId id;
     private final EntityAdapter adapter;
     private final ConcurrentNavigableMap<String, EntityTracker> trackerMap = new ConcurrentSkipListMap<>();
     private final Collection<EntityTracker> trackers = Collections.unmodifiableCollection(trackerMap.values());
@@ -52,11 +51,11 @@ public final class EntityTrackerRegistry {
     private HideOption hideOption = HideOption.DEFAULT;
 
     public static @Nullable EntityTrackerRegistry registry(@NotNull UUID uuid) {
-        return REGISTRY_MAP.get(uuid);
+        return UUID_REGISTRY_MAP.get(uuid);
     }
 
-    public static @Nullable EntityTrackerRegistry registry(int id) {
-        return ID_TRACKER_MAP.get(id);
+    public static @Nullable EntityTrackerRegistry registry(@NotNull EntityId id) {
+        return ID_REGISTRY_MAP.get(id);
     }
 
     @ApiStatus.Internal
@@ -64,11 +63,9 @@ public final class EntityTrackerRegistry {
         var get = registry(entity.getUniqueId());
         if (get != null) return get;
         var registry = new EntityTrackerRegistry(entity);
-        var put = REGISTRY_MAP.putIfAbsent(entity.getUniqueId(), registry);
+        var put = UUID_REGISTRY_MAP.putIfAbsent(entity.getUniqueId(), registry);
         if (put != null) return put;
-        synchronized (ID_TRACKER_MAP) {
-            ID_TRACKER_MAP.put(registry.id, registry);
-        }
+        ID_REGISTRY_MAP.put(registry.id, registry);
         registry.load();
         var stream = entity.getTrackedBy().stream();
         if (entity instanceof Player player) stream = Stream.concat(Stream.of(player), stream);
@@ -90,7 +87,7 @@ public final class EntityTrackerRegistry {
 
     private EntityTrackerRegistry(@NotNull Entity entity) {
         this.entity = entity;
-        this.id = entity.getEntityId();
+        this.id = EntityId.of(entity);
         this.adapter = BetterModel.plugin().nms().adapt(entity);
     }
 
@@ -102,7 +99,7 @@ public final class EntityTrackerRegistry {
         return entity().getUniqueId();
     }
 
-    public int id() {
+    public @NotNull EntityId id() {
         return id;
     }
 
@@ -183,10 +180,8 @@ public final class EntityTrackerRegistry {
             value.close();
         }
         entity.getPersistentDataContainer().remove(TRACKING_ID);
-        if (REGISTRY_MAP.remove(entity.getUniqueId()) != null) {
-            synchronized (ID_TRACKER_MAP) {
-                ID_TRACKER_MAP.remove(id);
-            }
+        if (UUID_REGISTRY_MAP.remove(entity.getUniqueId()) != null) {
+            ID_REGISTRY_MAP.remove(id);
         }
     }
 
