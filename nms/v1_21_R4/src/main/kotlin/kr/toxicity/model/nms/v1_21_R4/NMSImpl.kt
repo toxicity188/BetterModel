@@ -48,8 +48,6 @@ import org.bukkit.inventory.ItemStack
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import java.lang.reflect.Field
-import java.util.*
-import java.util.concurrent.ConcurrentHashMap
 import java.util.function.BooleanSupplier
 
 class NMSImpl : NMS {
@@ -139,8 +137,6 @@ class NMSImpl : NMS {
         private val player: Player
     ) : PlayerChannelHandler, ChannelDuplexHandler() {
         private val connection = (player as CraftPlayer).handle.connection
-        private val entityUUIDMap = ConcurrentHashMap<UUID, EntityTrackerRegistry>()
-        private val uuidValuesView = Collections.unmodifiableCollection(entityUUIDMap.values)
         private val slim = BetterModel.plugin().skinManager().isSlim(profile())
 
         init {
@@ -151,19 +147,11 @@ class NMSImpl : NMS {
         }
 
         override fun isSlim(): Boolean = slim
-        override fun trackedRegistries(): Collection<EntityTrackerRegistry> = uuidValuesView
 
         override fun close() {
             val channel = getConnection(connection).channel
             channel.eventLoop().submit {
                 channel.pipeline().remove(INJECT_NAME)
-            }
-            unregisterAll()
-        }
-
-        override fun unregisterAll() {
-            entityUUIDMap.values.toList().forEach {
-                it.remove(player)
             }
         }
 
@@ -171,19 +159,12 @@ class NMSImpl : NMS {
         private fun send(packet: Packet<*>) = connection.send(packet)
 
         private fun Int.toPlayerEntity() = toEntity(connection.player.serverLevel())
-        private fun Int.toRegistry() = toPlayerEntity()?.let {
-            entityUUIDMap[it.uuid]
-        }
+        private fun Int.toRegistry(filter: EntityTrackerRegistry.() -> Boolean = { isSpawned(player ) }) = (EntityTrackerRegistry.registry(this) ?: toPlayerEntity()?.let {
+            EntityTrackerRegistry.registry(it.uuid)
+        })?.takeIf(filter)
 
-        override fun startTrack(registry: EntityTrackerRegistry) {
-            entityUUIDMap.computeIfAbsent(registry.entity().uniqueId) {
-                registry
-            }
-        }
-
-        override fun endTrack(registry: EntityTrackerRegistry) {
+        override fun sendEntityData(registry: EntityTrackerRegistry) {
             val handle = registry.adapter().handle() as Entity
-            entityUUIDMap.remove(handle.uuid)
             val list = mutableListOf(
                 ClientboundSetEntityDataPacket(handle.id, handle.entityData.pack()),
                 ClientboundSetPassengersPacket(handle)
@@ -200,12 +181,10 @@ class NMSImpl : NMS {
                     it.handle()
                 })
                 is ClientboundAddEntityPacket -> {
-                    id.toPlayerEntity()?.let { e ->
-                        if (!EntityTrackerRegistry.hasModelData(e.bukkitEntity)) return this
-                        BetterModel.plugin().scheduler().taskLater(1, e.bukkitEntity) {
-                            EntityTrackerRegistry.registry(e.bukkitEntity).let {
-                                if (it.canBeSpawnedAt(player)) it.spawn(player)
-                            }
+                    EntityTrackerRegistry.registry(id)?.spawnIfMatched(player) ?: id.toPlayerEntity()?.bukkitEntity?.let { e ->
+                        if (!EntityTrackerRegistry.hasModelData(e)) return this
+                        BetterModel.plugin().scheduler().taskLater(1, e) {
+                            EntityTrackerRegistry.registry(e).spawnIfMatched(player)
                         }
                     }
                 }
@@ -503,7 +482,7 @@ class NMSImpl : NMS {
     }
 
     override fun createHitBox(entity: EntityAdapter, supplier: HitBoxSource, namedBoundingBox: NamedBoundingBox, mountController: MountController, listener: HitBoxListener): HitBox? {
-        val handle = entity.handle() as? LivingEntity ?: return null
+        val handle = entity.handle() as? Entity ?: return null
         val newBox = namedBoundingBox.center()
         return HitBoxImpl(
             namedBoundingBox.name,

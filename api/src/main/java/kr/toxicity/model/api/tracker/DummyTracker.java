@@ -24,7 +24,7 @@ public final class DummyTracker extends Tracker {
     private UUID uuid = UUID.randomUUID();
 
     /**
-     * Void tracker.
+     * Dummy tracker.
      * @param location location
      * @param pipeline render instance.
      * @param modifier modifier

@@ -22,7 +22,6 @@ import net.minecraft.world.InteractionResult
 import net.minecraft.world.damagesource.DamageSource
 import net.minecraft.world.effect.MobEffectInstance
 import net.minecraft.world.entity.*
-import net.minecraft.world.entity.ai.attributes.AttributeMap
 import net.minecraft.world.entity.ai.attributes.Attributes
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
@@ -34,7 +33,6 @@ import org.bukkit.Particle
 import org.bukkit.craftbukkit.v1_20_R3.CraftServer
 import org.bukkit.craftbukkit.v1_20_R3.entity.CraftLivingEntity
 import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer
-import org.bukkit.entity.Entity
 import org.bukkit.event.entity.EntityPotionEffectEvent
 import org.bukkit.plugin.Plugin
 import org.bukkit.util.Vector
@@ -47,14 +45,14 @@ internal class HitBoxImpl(
     private val source: ModelBoundingBox,
     private val supplier: HitBoxSource,
     private val listener: HitBoxListener,
-    private val delegate: LivingEntity,
+    private val delegate: Entity,
     private var mountController: MountController
 ) : LivingEntity(EntityType.SILVERFISH, delegate.level()), HitBox {
 
     private var initialized = false
     private var jumpDelay = 0
     private var mounted = false
-    private var collision = delegate.collides
+    private var collision = ifLivingEntity { collides } == true
     private var noGravity = if (delegate is Mob) delegate.isNoAi else delegate.isNoGravity
     private var forceDismount = false
     private var onFly = false
@@ -95,12 +93,14 @@ internal class HitBoxImpl(
     private fun initialSetup() {
         if (mounted) {
             mounted = false
-            delegate.collides = collision
+            if (delegate is Mob) delegate.isNoAi = noGravity
+            else delegate.isNoGravity = noGravity
+            ifLivingEntity { collides = collision }
         }
     }
 
     override fun groupName(): BoneName = name
-    override fun source(): Entity = delegate.bukkitEntity
+    override fun source(): org.bukkit.entity.Entity = delegate.bukkitEntity
     override fun forceDismount(): Boolean = forceDismount
     override fun mountController(): MountController = mountController
     override fun mountController(controller: MountController) {
@@ -118,20 +118,22 @@ internal class HitBoxImpl(
     }
     override fun getMainArm(): HumanoidArm = HumanoidArm.RIGHT
     
-    override fun mount(entity: Entity) {
+    override fun mount(entity: org.bukkit.entity.Entity) {
         if (controllingPassenger != null) return
         if (interaction.bukkitEntity.addPassenger(entity)) {
             if (mountController.canControl()) {
                 mounted = true
-                collision = delegate.collides
                 noGravity = delegate.isNoGravity
-                delegate.collides = false
+                ifLivingEntity {
+                    collision = collides
+                    collides = false
+                }
             }
             listener.mount(craftEntity, entity)
         }
     }
 
-    override fun dismount(entity: Entity) {
+    override fun dismount(entity: org.bukkit.entity.Entity) {
         forceDismount = true
         if (interaction.bukkitEntity.removePassenger(entity)) listener.dismount(craftEntity, entity)
         forceDismount = false
@@ -155,15 +157,15 @@ internal class HitBoxImpl(
     }
 
     override fun knockback(strength: Double, x: Double, z: Double) {
-        delegate.knockback(strength, x, z)
+        ifLivingEntity { knockback(strength, x, z) }
     }
 
-    override fun push(pushingEntity: net.minecraft.world.entity.Entity) {
+    override fun push(pushingEntity: Entity) {
         if (pushingEntity === delegate) return
         delegate.push(pushingEntity)
     }
 
-    override fun push(x: Double, y: Double, z: Double, pushingEntity: net.minecraft.world.entity.Entity?) {
+    override fun push(x: Double, y: Double, z: Double, pushingEntity: Entity?) {
         if (pushingEntity === delegate) return
         delegate.push(x, y, z, pushingEntity)
     }
@@ -172,15 +174,15 @@ internal class HitBoxImpl(
         return delegate.isCollidable(ignoreClimbing)
     }
 
-    override fun canCollideWith(entity: net.minecraft.world.entity.Entity): Boolean {
+    override fun canCollideWith(entity: Entity): Boolean {
         return checkCollide(entity) && delegate.canCollideWith(entity)
     }
 
-    override fun canCollideWithBukkit(entity: net.minecraft.world.entity.Entity): Boolean {
+    override fun canCollideWithBukkit(entity: Entity): Boolean {
         return checkCollide(entity) && delegate.canCollideWithBukkit(entity)
     }
 
-    private fun checkCollide(entity: net.minecraft.world.entity.Entity): Boolean {
+    private fun checkCollide(entity: Entity): Boolean {
         return entity !== delegate
                 && passengers.none { it === entity }
                 && delegate.passengers.none { it === entity }
@@ -188,7 +190,7 @@ internal class HitBoxImpl(
     }
 
     override fun getActiveEffects(): Collection<MobEffectInstance?> {
-        return delegate.getActiveEffects()
+        return ifLivingEntity { getActiveEffects() } ?: emptyList()
     }
 
     override fun getControllingPassenger(): LivingEntity? {
@@ -199,7 +201,9 @@ internal class HitBoxImpl(
         return isWalking()
     }
 
-    private fun mountControl(player: ServerPlayer, travelVector: Vec3) {
+    private fun mountControl(player: ServerPlayer) {
+        if (delegate !is LivingEntity) return
+        val travelVector = Vec3(delegate.xxa.toDouble(), delegate.yya.toDouble(), delegate.zza.toDouble())
         if (!mountController.canFly() && delegate.isFallFlying) return
 
         updateFlyStatus(player)
@@ -220,11 +224,13 @@ internal class HitBoxImpl(
         }
     }
 
-    private fun movementSpeed() = delegate.getAttribute(Attributes.MOVEMENT_SPEED)?.let {
-        it.value.toFloat() * (if (!onFly && !delegate.shouldDiscardFriction()) delegate.level()
-            .getBlockState(blockPosBelowThatAffectsMyMovement)
-            .block
-            .getFriction() else 1.0F)
+    private fun movementSpeed() = ifLivingEntity {
+        getAttribute(Attributes.MOVEMENT_SPEED)?.value?.toFloat()?.let {
+            if (!onFly && !shouldDiscardFriction()) level()
+                .getBlockState(blockPosBelowThatAffectsMyMovement)
+                .block
+                .getFriction() * it else it
+        } ?: 0.0F
     } ?: 0.0F
 
     private fun updateFlyStatus(player: ServerPlayer) {
@@ -261,7 +267,7 @@ internal class HitBoxImpl(
         interaction.isInvisible = delegate.isInvisible
         if (controller is ServerPlayer && !isDeadOrDying && mountController.canControl()) {
             if (delegate is Mob) delegate.navigation.stop()
-            mountControl(controller, Vec3(delegate.xxa.toDouble(), delegate.yya.toDouble(), delegate.zza.toDouble()))
+            mountControl(controller)
         } else initialSetup()
         yRot = supplier.hitBoxRotation().y
         yHeadRot = yRot
@@ -296,7 +302,7 @@ internal class HitBoxImpl(
     override fun hasExactlyOnePlayerPassenger(): Boolean = false
 
     override fun isDeadOrDying(): Boolean {
-        return delegate.isDeadOrDying
+        return ifLivingEntity { isDeadOrDying } == true
     }
 
     override fun triggerInteract(player: org.bukkit.entity.Player, hand: ModelInteractionHand) {
@@ -355,21 +361,21 @@ internal class HitBoxImpl(
     }
 
     override fun addEffect(effectInstance: MobEffectInstance, cause: EntityPotionEffectEvent.Cause): Boolean {
-        return delegate.addEffect(effectInstance, cause)
+        return ifLivingEntity { addEffect(effectInstance, cause) } == true
     }
 
-    override fun addEffect(effectInstance: MobEffectInstance, entity: net.minecraft.world.entity.Entity?): Boolean {
+    override fun addEffect(effectInstance: MobEffectInstance, entity: Entity?): Boolean {
         if (entity === delegate) return false
-        return delegate.addEffect(effectInstance, entity)
+        return ifLivingEntity { addEffect(effectInstance, entity) } == true
     }
 
     override fun addEffect(
         effectInstance: MobEffectInstance,
-        entity: net.minecraft.world.entity.Entity?,
+        entity: Entity?,
         cause: EntityPotionEffectEvent.Cause
     ): Boolean {
         if (entity === delegate) return false
-        return delegate.addEffect(effectInstance, entity, cause)
+        return ifLivingEntity { addEffect(effectInstance, entity, cause) } == true
     }
 
     override fun hurt(source: DamageSource, amount: Float): Boolean {
@@ -379,15 +385,11 @@ internal class HitBoxImpl(
         val event = ModelDamagedEvent(craftEntity, ds, amount)
         if (!event.call()) return false
         if (listener.damage(this, ds, amount.toDouble())) return false
-        return delegate.hurt(source, event.damage)
+        return ifLivingEntity { hurt(source, event.damage) } == true
     }
 
     override fun getHealth(): Float {
-        return delegate.health
-    }
-
-    override fun getAttributes(): AttributeMap {
-        return if (initialized) delegate.attributes else super.getAttributes()
+        return ifLivingEntity { health } ?: super.getHealth()
     }
 
     override fun makeBoundingBox(): AABB {
@@ -417,7 +419,11 @@ internal class HitBoxImpl(
 
     override fun removeHitBox() {
         BetterModel.plugin().scheduler().task(bukkitEntity) {
-            remove(delegate.removalReason ?: RemovalReason.KILLED)
+            remove(ifLivingEntity { removalReason } ?: RemovalReason.KILLED)
         }
+    }
+
+    private inline fun <T> ifLivingEntity(block: LivingEntity.() -> T): T? {
+        return (delegate as? LivingEntity)?.block()
     }
 }

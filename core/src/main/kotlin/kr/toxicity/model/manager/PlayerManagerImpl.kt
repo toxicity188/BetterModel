@@ -13,7 +13,6 @@ import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
-import org.bukkit.event.player.PlayerChangedWorldEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.inventory.ItemStack
@@ -24,6 +23,7 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
 
     private val playerMap = ConcurrentHashMap<UUID, PlayerChannelHandler>()
     private val renderMap = hashMapOf<String, ModelRenderer>()
+    private val rendererView = renderMap.toImmutableView()
 
     override fun start() {
         registerListener(object : Listener {
@@ -35,14 +35,14 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
                     "Unable to load ${player.name}'s data."
                 }
             }
-            @EventHandler
-            fun PlayerChangedWorldEvent.change() {
-                if (player.isOnline) runCatching {
-                    player.register().unregisterAll()
-                }.handleFailure {
-                    "Unable to refresh ${player.name}'s data."
-                }
-            }
+//            @EventHandler
+//            fun PlayerChangedWorldEvent.change() {
+//                if (player.isOnline) runCatching {
+//                    player.register().unregisterAll()
+//                }.handleFailure {
+//                    "Unable to refresh ${player.name}'s data."
+//                }
+//            }
             @EventHandler
             fun PlayerQuitEvent.quit() {
                 playerMap.remove(player.uniqueId)?.use {
@@ -72,8 +72,9 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
         }
     }
 
-    override fun limbs(): Collection<ModelRenderer> = Collections.unmodifiableCollection(renderMap.values)
-    override fun limb(name: String): ModelRenderer? = renderMap[name]
+    override fun limbs(): Collection<ModelRenderer> = rendererView.values
+    override fun limb(name: String): ModelRenderer? = rendererView[name]
+    override fun keys(): Set<String> = rendererView.keys
 
     override fun animate(player: Player, model: String, animation: String, modifier: AnimationModifier): Boolean {
         return renderMap[model]?.let {

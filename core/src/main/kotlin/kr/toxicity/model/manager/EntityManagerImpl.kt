@@ -28,130 +28,143 @@ import org.bukkit.inventory.EquipmentSlot
 
 object EntityManagerImpl : EntityManager, GlobalManagerImpl {
 
-    override fun start() {
-        if (BetterModel.IS_PAPER) registerListener(object : Listener { //More accurate world change event for Paper
-            @EventHandler(priority = EventPriority.MONITOR)
-            fun EntityRemoveFromWorldEvent.remove() {
-                EntityTrackerRegistry.registry(entity.uniqueId)?.despawn()
+    private class PaperListener : Listener { //More accurate world change event for Paper
+        @EventHandler(priority = EventPriority.MONITOR)
+        fun EntityRemoveFromWorldEvent.remove() {
+            EntityTrackerRegistry.registry(entity.uniqueId)?.despawn()
+        }
+        @EventHandler(priority = EventPriority.MONITOR)
+        fun EntityAddToWorldEvent.add() {
+            EntityTrackerRegistry.registry(entity.uniqueId)?.refresh()
+        }
+        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+        fun EntityJumpEvent.jump() {
+            entity.forEachTracker { it.animate("jump") }
+        }
+    }
+
+    private class SpigotListener : Listener { //Portal event for Spigot
+        @EventHandler(priority = EventPriority.MONITOR)
+        fun EntityRemoveEvent.remove() {
+            entity.forEachTracker {
+                if (!it.forRemoval()) it.despawn()
             }
-            @EventHandler(priority = EventPriority.MONITOR)
-            fun EntityAddToWorldEvent.add() {
+        }
+        @EventHandler(priority = EventPriority.MONITOR)
+        fun EntityPortalEvent.add() {
+            EntityTrackerRegistry.registry(entity.uniqueId)?.let {
+                it.despawn()
+                it.refresh()
+            }
+        }
+        @EventHandler(priority = EventPriority.MONITOR)
+        fun PlayerPortalEvent.add() {
+            EntityTrackerRegistry.registry(player.uniqueId)?.let {
+                it.despawn()
+                it.refresh()
+            }
+        }
+    }
+
+    //Event handlers
+    private val standardListener = object : Listener {
+        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+        fun EntityPotionEffectEvent.potion() { //Apply potion effect
+            entity.forEachTracker { it.updateBaseEntity() }
+        }
+        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+        fun EntityDismountEvent.dismount() { //Dismount
+            val e = dismounted
+            isCancelled = e is HitBox && (e.mountController().canFly() || !e.mountController().canDismountBySelf()) && !e.forceDismount()
+        }
+        @EventHandler(priority = EventPriority.MONITOR)
+        fun PlayerQuitEvent.quit() { //Quit
+            EntityTrackerRegistry.registry(player.uniqueId)?.close()
+            (player.vehicle as? HitBox)?.dismount(player)
+        }
+        @EventHandler(priority = EventPriority.MONITOR)
+        fun ChunkLoadEvent.load() { //Chunk load
+            chunk.entities.forEach { entity ->
                 EntityTrackerRegistry.registry(entity.uniqueId)?.refresh()
             }
-            @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-            fun EntityJumpEvent.jump() {
-                entity.forEachTracker { it.animate("jump") }
+        }
+        @EventHandler(priority = EventPriority.MONITOR)
+        fun ChunkUnloadEvent.unload() { //Chunk unload
+            chunk.entities.forEach { entity ->
+                EntityTrackerRegistry.registry(entity.uniqueId)?.despawn()
             }
-        })
-        else registerListener(object : Listener { //Portal event for Spigot
-            @EventHandler(priority = EventPriority.MONITOR)
-            fun EntityRemoveEvent.remove() {
-                entity.forEachTracker {
-                    if (!it.forRemoval()) it.despawn()
-                }
+        }
+        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+        fun EntityDeathEvent.death() { //Death
+            entity.forEachTracker {
+                if (!it.animate("death", AnimationModifier.DEFAULT_WITH_PLAY_ONCE) {
+                        it.close()
+                    }) it.close()
+                else it.forRemoval(true)
             }
-            @EventHandler(priority = EventPriority.MONITOR)
-            fun EntityPortalEvent.add() {
-                EntityTrackerRegistry.registry(entity.uniqueId)?.let {
-                    it.despawn()
-                    it.refresh()
-                }
-            }
-            @EventHandler(priority = EventPriority.MONITOR)
-            fun PlayerPortalEvent.add() {
-                EntityTrackerRegistry.registry(player.uniqueId)?.let {
-                    it.despawn()
-                    it.refresh()
-                }
-            }
-        })
-        registerListener(object : Listener {
+        }
+        @EventHandler(priority = EventPriority.MONITOR)
+        fun PlayerInteractAtEntityEvent.interact() {
+            (rightClicked as? HitBox)?.triggerInteractAt(
+                player,
+                when (this.hand) {
+                    EquipmentSlot.HAND -> ModelInteractionHand.RIGHT
+                    EquipmentSlot.OFF_HAND -> ModelInteractionHand.LEFT
+                    else -> return
+                },
+                clickedPosition
+            )
+        }
 
-            @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-            fun EntityPotionEffectEvent.potion() { //Apply potion effect
-                entity.forEachTracker { it.updateBaseEntity() }
-            }
-            @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-            fun EntityDismountEvent.dismount() { //Dismount
-                val e = dismounted
-                isCancelled = e is HitBox && (e.mountController().canFly() || !e.mountController().canDismountBySelf()) && !e.forceDismount()
-            }
-            @EventHandler(priority = EventPriority.MONITOR)
-            fun PlayerQuitEvent.quit() { //Quit
-                EntityTrackerRegistry.registry(player.uniqueId)?.close()
-                (player.vehicle as? HitBox)?.dismount(player)
-            }
-            @EventHandler(priority = EventPriority.MONITOR)
-            fun ChunkLoadEvent.load() { //Chunk load
-                chunk.entities.forEach { entity ->
-                    EntityTrackerRegistry.registry(entity.uniqueId)?.refresh()
-                }
-            }
-            @EventHandler(priority = EventPriority.MONITOR)
-            fun ChunkUnloadEvent.unload() { //Chunk unload
-                chunk.entities.forEach { entity ->
-                    EntityTrackerRegistry.registry(entity.uniqueId)?.despawn()
-                }
-            }
-            @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-            fun EntityDeathEvent.death() { //Death
-                entity.forEachTracker {
-                    if (!it.animate("death", AnimationModifier.DEFAULT_WITH_PLAY_ONCE) {
-                            it.close()
-                        }) it.close()
-                    else it.forRemoval(true)
-                }
-            }
-            @EventHandler(priority = EventPriority.MONITOR)
-            fun PlayerInteractAtEntityEvent.interact() {
-                (rightClicked as? HitBox)?.triggerInteractAt(
+        @EventHandler(priority = EventPriority.MONITOR)
+        fun PlayerInteractEntityEvent.interact() { //Interact base entity based on interaction entity
+            val isRight = hand == EquipmentSlot.HAND
+            val dismount = isRight && player.triggerDismount(rightClicked)
+            (rightClicked as? HitBox)?.let {
+                it.triggerInteract(
                     player,
                     when (this.hand) {
                         EquipmentSlot.HAND -> ModelInteractionHand.RIGHT
                         EquipmentSlot.OFF_HAND -> ModelInteractionHand.LEFT
                         else -> return
-                    },
-                    clickedPosition
+                    }
                 )
+                if (isRight && !dismount) player.triggerMount(it)
             }
-
-            @EventHandler(priority = EventPriority.MONITOR)
-            fun PlayerInteractEntityEvent.interact() { //Interact base entity based on interaction entity
-                val isRight = hand == EquipmentSlot.HAND
-                val dismount = isRight && player.triggerDismount(rightClicked)
-                (rightClicked as? HitBox)?.let {
-                    it.triggerInteract(
-                        player,
-                        when (this.hand) {
-                            EquipmentSlot.HAND -> ModelInteractionHand.RIGHT
-                            EquipmentSlot.OFF_HAND -> ModelInteractionHand.LEFT
-                            else -> return
-                        }
-                    )
-                    if (isRight && !dismount) player.triggerMount(it)
+        }
+        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+        fun EntityDamageEvent.damage() { //Damage
+            if (this is EntityDamageByEntityEvent) {
+                val victim = entity.run {
+                    if (this is HitBox) source().uniqueId else uniqueId
                 }
-            }
-            @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-            fun EntityDamageEvent.damage() { //Damage
-                if (this is EntityDamageByEntityEvent) {
-                    val victim = entity.run {
-                        if (this is HitBox) source().uniqueId else uniqueId
-                    }
-                    val v = damager.vehicle
-                    if (v is HitBox && !v.mountController().canBeDamagedByRider() && v.source().uniqueId == victim) {
-                        isCancelled = true
-                        return
-                    }
+                val v = damager.vehicle
+                if (v is HitBox && !v.mountController().canBeDamagedByRider() && v.source().uniqueId == victim) {
+                    isCancelled = true
+                    return
+                }
 //                    if (cause == EntityDamageEvent.DamageCause.ENTITY_ATTACK) {
 //                        EntityTracker.tracker(damager)?.animate("attack", AnimationModifier.DEFAULT_WITH_PLAY_ONCE)
 //                    }
-                }
-                entity.forEachTracker {
-                    it.animate("damage", AnimationModifier.DEFAULT_WITH_PLAY_ONCE)
-                    it.damageTint()
-                }
             }
-        })
+            entity.forEachTracker {
+                it.animate("damage", AnimationModifier.DEFAULT_WITH_PLAY_ONCE)
+                it.damageTint()
+            }
+        }
+    }
+    private val platformListener = if (BetterModel.IS_PAPER) PaperListener() else SpigotListener()
+
+    //Lifecycles
+    override fun start() {
+        registerListener(standardListener)
+        registerListener(platformListener)
+    }
+
+    override fun reload(info: ReloadInfo) {
+        EntityTrackerRegistry.REGISTRIES.forEach {
+            it.reload()
+        }
     }
 
     override fun end() {
@@ -160,6 +173,7 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
         }
     }
 
+    //Extension
     private fun Entity.forEachTracker(block: (EntityTracker) -> Unit) {
         EntityTrackerRegistry.registry(uniqueId)?.trackers()?.forEach(block)
     }
@@ -177,11 +191,5 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
 
     private fun Player.triggerMount(hitBox: HitBox) {
         if (hitBox.mountController().canMount()) hitBox.mount(this)
-    }
-
-    override fun reload(info: ReloadInfo) {
-        EntityTrackerRegistry.REGISTRIES.forEach {
-            it.reload()
-        }
     }
 }

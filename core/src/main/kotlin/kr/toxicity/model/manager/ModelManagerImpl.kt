@@ -34,6 +34,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
 
     private lateinit var itemModelNamespace: NamespacedKey
     private val renderMap = hashMapOf<String, ModelRenderer>()
+    private val rendererView = renderMap.toImmutableView()
 
     private class PackData(
         val path: String,
@@ -311,7 +312,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
         )
     }
 
-    override fun renderer(name: String): ModelRenderer? = renderMap[name]
-    override fun renderers(): Collection<ModelRenderer> = Collections.unmodifiableCollection(renderMap.values)
-    override fun keys(): Set<String> = Collections.unmodifiableSet(renderMap.keys)
+    override fun renderer(name: String): ModelRenderer? = rendererView[name]
+    override fun renderers(): Collection<ModelRenderer> = rendererView.values
+    override fun keys(): Set<String> = rendererView.keys
 }

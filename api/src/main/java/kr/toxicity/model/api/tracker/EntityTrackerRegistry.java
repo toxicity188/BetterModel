@@ -3,6 +3,8 @@ package kr.toxicity.model.api.tracker;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.nms.EntityAdapter;
 import kr.toxicity.model.api.nms.ModelDisplay;
@@ -29,6 +31,7 @@ import java.util.stream.Stream;
 public final class EntityTrackerRegistry {
 
     private static final Map<UUID, EntityTrackerRegistry> REGISTRY_MAP = new ConcurrentHashMap<>();
+    private static final Int2ObjectMap<EntityTrackerRegistry> ID_TRACKER_MAP = new Int2ObjectOpenHashMap<>();
     /**
      * Tracker's namespace.
      */
@@ -41,15 +44,20 @@ public final class EntityTrackerRegistry {
     private final AtomicBoolean closed = new AtomicBoolean();
     private final AtomicBoolean autoSpawn = new AtomicBoolean(true);
     private final Entity entity;
+    private final int id;
     private final EntityAdapter adapter;
     private final ConcurrentNavigableMap<String, EntityTracker> trackerMap = new ConcurrentSkipListMap<>();
     private final Collection<EntityTracker> trackers = Collections.unmodifiableCollection(trackerMap.values());
     private final Map<UUID, PlayerChannelHandler> viewedPlayerMap = new ConcurrentHashMap<>();
-    private Predicate<Player> spawnFilter = p -> autoSpawn();
+    private Predicate<Player> spawnFilter = p -> autoSpawn() && p.getWorld() == entity().getWorld();
     private HideOption hideOption = HideOption.DEFAULT;
 
     public static @Nullable EntityTrackerRegistry registry(@NotNull UUID uuid) {
         return REGISTRY_MAP.get(uuid);
+    }
+
+    public static @Nullable EntityTrackerRegistry registry(int id) {
+        return ID_TRACKER_MAP.get(id);
     }
 
     @ApiStatus.Internal
@@ -59,6 +67,9 @@ public final class EntityTrackerRegistry {
         var registry = new EntityTrackerRegistry(entity);
         var put = REGISTRY_MAP.putIfAbsent(entity.getUniqueId(), registry);
         if (put != null) return put;
+        synchronized (ID_TRACKER_MAP) {
+            ID_TRACKER_MAP.put(registry.id, registry);
+        }
         registry.load();
         entity.getWorld().getNearbyEntities(entity.getLocation(), EntityUtil.RENDER_DISTANCE , EntityUtil.RENDER_DISTANCE , EntityUtil.RENDER_DISTANCE)
                 .stream()
@@ -80,11 +91,20 @@ public final class EntityTrackerRegistry {
 
     private EntityTrackerRegistry(@NotNull Entity entity) {
         this.entity = entity;
+        this.id = entity.getEntityId();
         this.adapter = BetterModel.plugin().nms().adapt(entity);
     }
 
     public @NotNull Entity entity() {
         return entity;
+    }
+
+    public @NotNull UUID uuid() {
+        return entity().getUniqueId();
+    }
+
+    public int id() {
+        return id;
     }
 
     public @NotNull EntityAdapter adapter() {
@@ -156,16 +176,19 @@ public final class EntityTrackerRegistry {
     }
 
     private void close0() {
-        var playerIterator = viewedPlayerMap.values().iterator();
-        while (playerIterator.hasNext()) {
-            remove(playerIterator.next());
-            playerIterator.remove();
+        for (PlayerChannelHandler value : viewedPlayerMap.values()) {
+            value.sendEntityData(this);
         }
+        viewedPlayerMap.clear();
         for (EntityTracker value : trackerMap.values()) {
             value.close();
         }
         entity.getPersistentDataContainer().remove(TRACKING_ID);
-        REGISTRY_MAP.remove(entity.getUniqueId());
+        if (REGISTRY_MAP.remove(entity.getUniqueId()) != null) {
+            synchronized (ID_TRACKER_MAP) {
+                ID_TRACKER_MAP.remove(id);
+            }
+        }
     }
 
     public void reload() {
@@ -255,6 +278,32 @@ public final class EntityTrackerRegistry {
     }
 
     /**
+     * Checks this tracker is spawned by some player
+     * @param player player
+     * @return is spawned
+     */
+    public boolean isSpawned(@NotNull Player player) {
+        return isSpawned(player.getUniqueId());
+    }
+    /**
+     * Checks this tracker is spawned by some player
+     * @param uuid player's uuid
+     * @return is spawned
+     */
+    public boolean isSpawned(@NotNull UUID uuid) {
+        return viewedPlayerMap.containsKey(uuid);
+    }
+
+    /**
+     * Spawns this tracker to player if the spawn condition is matched
+     * @param player player
+     * @return success
+     */
+    public boolean spawnIfMatched(@NotNull Player player) {
+        return canBeSpawnedAt(player) && spawn(player);
+    }
+
+    /**
      * Spawns this tracker to some player
      * @param player target player
      * @return success
@@ -272,22 +321,17 @@ public final class EntityTrackerRegistry {
         }
         BetterModel.plugin().nms().mount(this, bundler);
         bundler.send(player, () -> BetterModel.plugin().nms().hide(player, this, () -> viewedPlayerMap.containsKey(player.getUniqueId())));
-        handler.startTrack(this);
         return true;
     }
 
     public boolean remove(@NotNull Player player) {
         var handler = viewedPlayerMap.remove(player.getUniqueId());
         if (handler == null) return false;
-        remove(handler);
-        return true;
-    }
-
-    private void remove(@NotNull PlayerChannelHandler handler) {
-        handler.endTrack(this);
+        handler.sendEntityData(this);
         for (EntityTracker value : trackerMap.values()) {
-            value.remove(handler.player());
+            if (!value.forRemoval()) value.remove(handler.player());
         }
+        return true;
     }
 
     public @NotNull HideOption hideOption() {

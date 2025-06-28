@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -65,4 +66,11 @@ public interface PlayerManager extends GlobalManager {
      * @return renderer or null
      */
     @Nullable ModelRenderer limb(@NotNull String name);
+
+    /**
+     * Gets all key of renderer
+     * @return keys
+     */
+    @NotNull @Unmodifiable
+    Set<String> keys();
 }
