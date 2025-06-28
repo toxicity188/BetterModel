@@ -9,7 +9,6 @@ import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.nms.EntityAdapter;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
-import kr.toxicity.model.api.util.EntityUtil;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -71,7 +70,7 @@ public final class EntityTrackerRegistry {
             ID_TRACKER_MAP.put(registry.id, registry);
         }
         registry.load();
-        entity.getWorld().getNearbyEntities(entity.getLocation(), EntityUtil.RENDER_DISTANCE , EntityUtil.RENDER_DISTANCE , EntityUtil.RENDER_DISTANCE)
+        entity.getTrackedBy()
                 .stream()
                 .map(p -> BetterModel.player(p.getUniqueId()).orElse(null))
                 .filter(Objects::nonNull)
