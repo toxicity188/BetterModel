@@ -4,9 +4,11 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.config.DebugConfig;
 import kr.toxicity.model.api.nms.EntityAdapter;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
+import kr.toxicity.model.api.util.LogUtil;
 import kr.toxicity.model.api.util.entity.EntityId;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Entity;
@@ -139,8 +141,13 @@ public final class EntityTrackerRegistry {
         if (created.isClosed()) return false;
         created.handleCloseEvent(t -> {
             if (isClosed()) return;
-            trackerMap.compute(key, (k, v) -> v == created ? null : v);
-            if (trackerMap.isEmpty()) close0();
+            if (trackerMap.compute(key, (k, v) -> v == created ? null : v) == null) {
+                LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> entity.getUniqueId() + "'s tracker " + key + " has been removed. (" + trackerMap.size() + ")");
+            }
+            if (trackerMap.isEmpty()) {
+                close0();
+                LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> entity.getUniqueId() + "'s tracker registry has been removed. (" + REGISTRIES.size() + ")");
+            }
         });
         var previous = trackerMap.put(key, created);
         if (previous != null) previous.close();

@@ -291,12 +291,12 @@ public final class RenderPipeline {
     public boolean spawn(@NotNull Player player, @NotNull PacketBundler bundler) {
         var get = BetterModel.plugin().playerManager().player(player.getUniqueId());
         if (get == null) return false;
+        playerMap.put(player.getUniqueId(), get);
         spawnPacketHandler.accept(bundler);
         var hided = isHide(player);
         for (RenderedBone value : entityMap.values()) {
             value.iterateTree(b -> b.spawn(hided, bundler));
         }
-        playerMap.put(player.getUniqueId(), get);
         return true;
     }
 

@@ -2,6 +2,7 @@ debug:
   hitbox: false
   exception: false
   pack: false
+  tracker: false
 module:
   model: true
   player-animation: true

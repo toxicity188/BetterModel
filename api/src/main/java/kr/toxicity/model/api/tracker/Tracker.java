@@ -5,16 +5,14 @@ import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.RenderedBone;
+import kr.toxicity.model.api.config.DebugConfig;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.data.renderer.ModelRenderer;
 import kr.toxicity.model.api.data.renderer.RenderPipeline;
 import kr.toxicity.model.api.event.*;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
-import kr.toxicity.model.api.util.EntityUtil;
-import kr.toxicity.model.api.util.EventUtil;
-import kr.toxicity.model.api.util.MathUtil;
-import kr.toxicity.model.api.util.TransformedItemStack;
+import kr.toxicity.model.api.util.*;
 import kr.toxicity.model.api.util.function.BonePredicate;
 import lombok.Getter;
 import org.bukkit.Location;
@@ -47,7 +45,8 @@ public abstract class Tracker implements AutoCloseable {
 
     @Getter
     protected final RenderPipeline pipeline;
-    private final ScheduledFuture<?> task;
+    private volatile ScheduledFuture<?> task;
+    private long frame = 0;
     private final Queue<Runnable> queuedTask = new ConcurrentLinkedQueue<>();
     private final AtomicBoolean isClosed = new AtomicBoolean();
     private final AtomicBoolean readyForForceUpdate = new AtomicBoolean();
@@ -55,7 +54,6 @@ public abstract class Tracker implements AutoCloseable {
     private final TrackerModifier modifier;
     private final Runnable updater;
     private PacketBundler viewBundler, dataBundler;
-    private long frame = 0;
     private ModelRotator rotator = ModelRotator.YAW;
     private ModelScaler scaler = ModelScaler.entity();
     private Supplier<ModelRotation> rotationSupplier = () -> ModelRotation.EMPTY;
@@ -97,12 +95,44 @@ public abstract class Tracker implements AutoCloseable {
                 viewBundler = pipeline.createBundler();
             }
         };
-        task = EXECUTOR.scheduleAtFixedRate(() -> {
-            if (playerCount() > 0 || forRemoval.get()) updater.run();
-            frame++;
-        }, TRACKER_TICK_INTERVAL, TRACKER_TICK_INTERVAL, TimeUnit.MILLISECONDS);
         if (modifier.sightTrace()) pipeline.viewFilter(p -> EntityUtil.canSee(p.getEyeLocation(), location()));
         tick((t, b) -> t.pipeline.getScriptProcessor().tick());
+        pipeline.spawnPacketHandler(p -> start());
+    }
+
+    /**
+     * Returns this model is being scheduled.
+     * @return is scheduled
+     */
+    public boolean isScheduled() {
+        return task != null && !task.isCancelled();
+    }
+
+    private void start() {
+        if (isScheduled()) return;
+        synchronized (this) {
+            if (isScheduled()) return;
+            task = EXECUTOR.scheduleAtFixedRate(() -> {
+                if (playerCount() == 0 && !forRemoval.get()) {
+                    shutdown();
+                    return;
+                }
+                updater.run();
+                frame++;
+            }, TRACKER_TICK_INTERVAL, TRACKER_TICK_INTERVAL, TimeUnit.MILLISECONDS);
+            LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " scheduler started: " + name());
+        }
+    }
+
+    private void shutdown() {
+        if (!isScheduled()) return;
+        synchronized (this) {
+            if (!isScheduled()) return;
+            task.cancel(true);
+            task = null;
+            frame = 0;
+            LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " scheduler shutdown: " + name());
+        }
     }
 
     /**
@@ -214,8 +244,9 @@ public abstract class Tracker implements AutoCloseable {
     public void close() {
         if (isClosed.compareAndSet(false, true)) {
             closeEventHandler.accept(this);
-            task.cancel(true);
+            shutdown();
             pipeline.despawn();
+            LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " closed: " + name());
         }
     }
 
@@ -223,7 +254,10 @@ public abstract class Tracker implements AutoCloseable {
      * Despawns this tracker to all players
      */
     public void despawn() {
-        if (!isClosed()) pipeline.despawn();
+        if (!isClosed()) {
+            pipeline.despawn();
+            LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " despawned: " + name());
+        }
     }
 
     public @NotNull TrackerModifier modifier() {
@@ -259,7 +293,9 @@ public abstract class Tracker implements AutoCloseable {
     protected boolean spawn(@NotNull Player player, @NotNull PacketBundler bundler) {
         if (isClosed()) return false;
         if (!EventUtil.call(new ModelSpawnAtPlayerEvent(player, this))) return false;
-        return pipeline.spawn(player, bundler);
+        var result = pipeline.spawn(player, bundler);
+        if (result) LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " is spawned at player " + player.getName() + ": " + name());
+        return result;
     }
 
     /**
@@ -270,7 +306,9 @@ public abstract class Tracker implements AutoCloseable {
     public boolean remove(@NotNull Player player) {
         if (isClosed()) return false;
         EventUtil.call(new ModelDespawnAtPlayerEvent(player, this));
-        return pipeline.remove(player);
+        var result = pipeline.remove(player);
+        if (result) LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " is despawned at player " + player.getName() + ": " + name());
+        return result;
     }
 
     /**

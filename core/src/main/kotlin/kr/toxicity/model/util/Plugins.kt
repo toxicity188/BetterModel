@@ -2,6 +2,7 @@ package kr.toxicity.model.util
 
 import kr.toxicity.model.BetterModelPluginImpl
 import kr.toxicity.model.api.BetterModel
+import kr.toxicity.model.api.config.DebugConfig
 import kr.toxicity.model.api.util.HttpUtil
 import kr.toxicity.model.api.util.LogUtil
 import kr.toxicity.model.api.util.PackUtil
@@ -16,7 +17,7 @@ val DATA_FOLDER
 fun info(vararg message: String) = PLUGIN.logger().info(*message)
 fun warn(vararg message: String) = PLUGIN.logger().warn(*message)
 fun debugPack(lazyMessage: () -> String) {
-    if (ConfigManagerImpl.debug().pack) info("[${Thread.currentThread().name}] ${lazyMessage()}")
+    if (ConfigManagerImpl.debug().has(DebugConfig.DebugOption.PACK)) info("[${Thread.currentThread().name}] ${lazyMessage()}")
 }
 
 fun Throwable.handleException(message: String) = LogUtil.handleException(message, this)

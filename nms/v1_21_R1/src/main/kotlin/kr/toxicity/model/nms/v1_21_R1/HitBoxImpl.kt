@@ -2,6 +2,7 @@ package kr.toxicity.model.nms.v1_21_R1
 
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.bone.BoneName
+import kr.toxicity.model.api.config.DebugConfig
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import kr.toxicity.model.api.event.ModelDamagedEvent
 import kr.toxicity.model.api.event.ModelInteractAtEvent
@@ -407,7 +408,7 @@ internal class HitBoxImpl(
                 vec3.y + (source.maxY - source.minY) * scale + type.height,
                 vec3.z + source.maxZ * scale
             ).apply {
-                if (CONFIG.debug().hitBox) {
+                if (CONFIG.debug().has(DebugConfig.DebugOption.HITBOX)) {
                     bukkitEntity.world.spawnParticle(Particle.DUST, minX, minY, minZ, 1, 0.0, 0.0, 0.0, 0.0, Particle.DustOptions(Color.RED, 1F))
                     bukkitEntity.world.spawnParticle(Particle.DUST, maxX, maxY, maxZ, 1, 0.0, 0.0, 0.0, 0.0, Particle.DustOptions(Color.RED, 1F))
                 }
