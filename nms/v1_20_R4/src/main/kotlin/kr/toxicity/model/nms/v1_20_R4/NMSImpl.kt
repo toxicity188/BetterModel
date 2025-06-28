@@ -181,7 +181,11 @@ class NMSImpl : NMS {
                     it.handle()
                 })
                 is ClientboundAddEntityPacket -> {
-                    EntityTrackerRegistry.registry(id)?.spawnIfMatched(player) ?: id.toPlayerEntity()?.bukkitEntity?.let { e ->
+                    EntityTrackerRegistry.registry(id)?.let {
+                        BetterModel.plugin().scheduler().asyncTaskLater(1) {
+                            it.spawnIfMatched(player)
+                        }
+                    } ?: id.toPlayerEntity()?.bukkitEntity?.let { e ->
                         if (!EntityTrackerRegistry.hasModelData(e)) return this
                         BetterModel.plugin().scheduler().taskLater(1, e) {
                             EntityTrackerRegistry.registry(e).spawnIfMatched(player)
@@ -531,7 +535,7 @@ class NMSImpl : NMS {
                 val duration = handle.invulnerableDuration.toFloat()
                 if (duration <= 0F) return 0F
                 val knockBack = 1 - (handle.getAttribute(Attributes.KNOCKBACK_RESISTANCE)?.value?.toFloat() ?: 0F)
-                return handle.invulnerableTime.toFloat() / duration * knockBack * (1F - 1F / (handle.deltaMovement.length().toFloat() * 20 + 1F))
+                return handle.invulnerableTime.toFloat() / duration * knockBack
             }
 
             override fun walkSpeed(): Float {

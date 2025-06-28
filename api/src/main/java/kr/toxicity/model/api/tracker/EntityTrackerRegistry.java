@@ -299,7 +299,7 @@ public final class EntityTrackerRegistry {
      * @return success
      */
     public boolean spawnIfMatched(@NotNull Player player) {
-        return canBeSpawnedAt(player) && spawn(player);
+        return !isClosed() && canBeSpawnedAt(player) && spawn(player);
     }
 
     /**
