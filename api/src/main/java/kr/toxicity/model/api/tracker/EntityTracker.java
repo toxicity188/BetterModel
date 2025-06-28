@@ -183,7 +183,7 @@ public class EntityTracker extends Tracker {
      * Syncs this tracker to base entity's data.
      */
     public void updateBaseEntity() {
-        BetterModel.plugin().scheduler().taskLater(1, registry.entity(), () -> {
+        BetterModel.plugin().scheduler().asyncTaskLater(1, () -> {
             updateBaseEntity0();
             forceUpdate(true);
         });

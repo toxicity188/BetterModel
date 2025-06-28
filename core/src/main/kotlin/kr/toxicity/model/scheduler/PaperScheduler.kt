@@ -27,12 +27,6 @@ class PaperScheduler : ModelScheduler {
         }.wrap()
     }
 
-    override fun taskLater(delay: Long, location: Location, runnable: Runnable) = ifEnabled {
-        Bukkit.getRegionScheduler().runDelayed(PLUGIN, location, {
-            runnable.run()
-        }, delay).wrap()
-    }
-
     override fun asyncTask(runnable: Runnable) = Bukkit.getAsyncScheduler().runNow(PLUGIN) {
         runnable.run()
     }.wrap()

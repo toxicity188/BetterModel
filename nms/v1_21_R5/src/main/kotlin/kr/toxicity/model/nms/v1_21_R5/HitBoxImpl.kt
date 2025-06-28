@@ -451,6 +451,6 @@ internal class HitBoxImpl(
     }
 
     private inline fun <T> ifLivingEntity(block: LivingEntity.() -> T): T? {
-        return (delegate as? LivingEntity)?.block()
+        return if (delegate.valid) (delegate as? LivingEntity)?.block() else null
     }
 }

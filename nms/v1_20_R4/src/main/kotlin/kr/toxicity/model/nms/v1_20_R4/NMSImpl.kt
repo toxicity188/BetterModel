@@ -159,9 +159,10 @@ class NMSImpl : NMS {
         private fun send(packet: Packet<*>) = connection.send(packet)
 
         private fun Int.toPlayerEntity() = toEntity(connection.player.serverLevel())
-        private fun Int.toRegistry(filter: EntityTrackerRegistry.() -> Boolean = { isSpawned(player ) }) = (EntityTrackerRegistry.registry(this) ?: toPlayerEntity()?.let {
-            EntityTrackerRegistry.registry(it.uuid)
-        })?.takeIf(filter)
+        private fun Int.toRegistry(
+            toRegistry: (Entity) -> EntityTrackerRegistry? = { EntityTrackerRegistry.registry(it.uuid) },
+            filter: EntityTrackerRegistry.() -> Boolean = { isSpawned(player ) }
+        ) = (EntityTrackerRegistry.registry(this) ?: toPlayerEntity()?.let(toRegistry))?.takeIf(filter)
 
         override fun sendEntityData(registry: EntityTrackerRegistry) {
             val handle = registry.adapter().handle() as Entity
@@ -181,14 +182,12 @@ class NMSImpl : NMS {
                     it.handle()
                 })
                 is ClientboundAddEntityPacket -> {
-                    EntityTrackerRegistry.registry(id)?.let {
+                    id.toRegistry(
+                        { if (EntityTrackerRegistry.hasModelData(it.bukkitEntity)) EntityTrackerRegistry.registry(it.bukkitEntity) else null },
+                        { true }
+                    )?.let {
                         BetterModel.plugin().scheduler().asyncTaskLater(1) {
                             it.spawnIfMatched(player)
-                        }
-                    } ?: id.toPlayerEntity()?.bukkitEntity?.let { e ->
-                        if (!EntityTrackerRegistry.hasModelData(e)) return this
-                        BetterModel.plugin().scheduler().taskLater(1, e) {
-                            EntityTrackerRegistry.registry(e).spawnIfMatched(player)
                         }
                     }
                 }
