@@ -70,9 +70,9 @@ public final class EntityTrackerRegistry {
             ID_TRACKER_MAP.put(registry.id, registry);
         }
         registry.load();
-        entity.getTrackedBy()
-                .stream()
-                .map(p -> BetterModel.player(p.getUniqueId()).orElse(null))
+        var stream = entity.getTrackedBy().stream();
+        if (entity instanceof Player player) stream = Stream.concat(Stream.of(player), stream);
+        stream.map(p -> BetterModel.player(p.getUniqueId()).orElse(null))
                 .filter(Objects::nonNull)
                 .forEach(h -> registry.viewedPlayerMap.put(h.player().getUniqueId(), h));
         return registry;
