@@ -36,7 +36,7 @@ public interface ModelScheduler {
      * @return scheduled task
      */
     default @Nullable ModelTask taskLater(long delay, @NotNull Entity entity, @NotNull Runnable runnable) {
-        return taskLater(delay, entity, runnable);
+        return taskLater(delay, entity.getLocation(), runnable);
     }
 
     /**
