@@ -1,5 +1,7 @@
 package kr.toxicity.model.api.util;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import it.unimi.dsi.fastutil.floats.FloatCollection;
 import kr.toxicity.model.api.BetterModel;
 import org.jetbrains.annotations.NotNull;
@@ -66,6 +68,34 @@ public final class CollectionUtil {
     @Unmodifiable
     public static <E, R> List<R> mapToList(@NotNull Stream<E> stream, @NotNull Function<E, R> mapper) {
         return stream.map(mapper).toList();
+    }
+
+    /**
+     * Maps stream to JSON
+     * @param collection collection
+     * @param mapper mapper
+     * @return JSON array
+     * @param <E> element
+     * @param <R> return value
+     */
+    @NotNull
+    public static <E, R extends JsonElement> JsonArray mapToJson(@NotNull Collection<E> collection, @NotNull Function<E, R> mapper) {
+        return mapToJson(collection.stream(), mapper);
+    }
+
+    /**
+     * Maps stream to JSON
+     * @param stream stream
+     * @param mapper mapper
+     * @return JSON array
+     * @param <E> element
+     * @param <R> return value
+     */
+    @NotNull
+    public static <E, R extends JsonElement> JsonArray mapToJson(@NotNull Stream<E> stream, @NotNull Function<E, R> mapper) {
+        var array = new JsonArray();
+        stream.map(mapper).forEach(array::add);
+        return array;
     }
 
     /**

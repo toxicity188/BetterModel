@@ -255,8 +255,9 @@ public final class RenderPipeline {
     public void animate(@NotNull Predicate<RenderedBone> filter, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
         scriptProcessor.animate(animation.script(), animation.loop(), modifier);
         var playOnceTask = FunctionUtil.playOnce(removeTask);
+        var animationPredicate = AnimationPredicate.of(filter);
         for (RenderedBone value : entityMap.values()) {
-            value.iterateAnimation(AnimationPredicate.of(filter), (b, a) -> b.addAnimation(a, animation.name(), animation, modifier, playOnceTask));
+            value.iterateAnimation(animationPredicate, (b, a) -> b.addAnimation(a, animation.name(), animation, modifier, playOnceTask));
         }
     }
 
@@ -276,8 +277,9 @@ public final class RenderPipeline {
 
     public void replace(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier) {
         scriptProcessor.replace(animation.script(), animation.loop(), modifier);
+        var animationPredicate = AnimationPredicate.of(filter);
         for (RenderedBone value : entityMap.values()) {
-            value.iterateAnimation(AnimationPredicate.of(filter), (b, a) -> b.replaceAnimation(a, target, animation.name(), animation, modifier));
+            value.iterateAnimation(animationPredicate, (b, a) -> b.replaceAnimation(a, target, animation.name(), animation, modifier));
         }
     }
 

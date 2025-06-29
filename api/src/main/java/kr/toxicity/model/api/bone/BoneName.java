@@ -10,7 +10,7 @@ import java.util.Set;
  * @param tags tags
  * @param name name
  */
-public record BoneName(@NotNull Set<BoneTag> tags, @NotNull String name) {
+public record BoneName(@NotNull Set<BoneTag> tags, @NotNull String name, @NotNull String rawName) {
 
     /**
      * Checks this name has some tags

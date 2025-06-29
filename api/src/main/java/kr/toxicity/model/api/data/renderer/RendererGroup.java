@@ -76,7 +76,7 @@ public final class RendererGroup {
                 new Vector3f(scale).div(4),
                 itemStack != null ? itemStack : new ItemStack(Material.AIR)
         );
-        position = group.origin().toVector().div(16);
+        position = group.origin().toBlockScale().toVector();
         this.hitBox = box;
         rotation = group.rotation().toVector();
         if (name.tagged(BoneTags.SEAT)) {

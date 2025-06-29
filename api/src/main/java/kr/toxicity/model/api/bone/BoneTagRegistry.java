@@ -45,14 +45,14 @@ public final class BoneTagRegistry {
      */
     public static @NotNull BoneName parse(@NotNull String rawName) {
         var tagArray = Arrays.stream(rawName.split("_")).toList();
-        if (tagArray.size() < 2) return new BoneName(Collections.emptySet(), rawName);
+        if (tagArray.size() < 2) return new BoneName(Collections.emptySet(), rawName, rawName);
         var set = new HashSet<BoneTag>();
         for (String s : tagArray) {
             var tag = byTagName(s).orElse(null);
             if (tag != null && set.size() < tagArray.size()) {
                 set.add(tag);
-            } else return new BoneName(set, String.join("_", tagArray.subList(set.size(), tagArray.size())));
+            } else return new BoneName(set, String.join("_", tagArray.subList(set.size(), tagArray.size())), rawName);
         }
-        return new BoneName(set, String.join("_", tagArray.subList(set.size(), tagArray.size())));
+        return new BoneName(set, String.join("_", tagArray.subList(set.size(), tagArray.size())), rawName);
     }
 }

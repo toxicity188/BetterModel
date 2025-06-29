@@ -1,15 +1,10 @@
 package kr.toxicity.model.api.util;
 
 import kr.toxicity.model.api.BetterModel;
-import kr.toxicity.model.api.data.blueprint.ModelBoundingBox;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Comparator;
-import java.util.List;
 
 import static java.lang.Math.*;
 
@@ -76,16 +71,5 @@ public final class EntityUtil {
         var ty = t + Y_RENDER_THRESHOLD;
         var tz = t + X_RENDER_THRESHOLD;
         return (ry <= ty || ry >= PI * 2 - ty) && (rz <= tz || rz >= PI * 2 - tz);
-    }
-
-    /**
-     * Gets max hit-box size.
-     * @param target hit-box list
-     * @return max hit-box
-     */
-    public static @Nullable ModelBoundingBox max(@NotNull List<ModelBoundingBox> target) {
-        return target.stream()
-                .max(Comparator.comparingDouble(ModelBoundingBox::length))
-                .orElse(null);
     }
 }

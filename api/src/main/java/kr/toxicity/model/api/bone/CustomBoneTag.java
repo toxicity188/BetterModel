@@ -7,7 +7,6 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
 import java.util.function.Function;
 
 /**
@@ -41,11 +40,11 @@ public record CustomBoneTag(
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof CustomBoneTag that)) return false;
-        return Objects.equals(name, that.name);
+        return name.equals(that.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(name);
+        return name.hashCode();
     }
 }

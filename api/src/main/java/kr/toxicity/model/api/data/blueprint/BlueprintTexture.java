@@ -5,6 +5,7 @@ import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.raw.ModelResolution;
 import kr.toxicity.model.api.data.raw.ModelTexture;
 import kr.toxicity.model.api.util.PackUtil;
+import kr.toxicity.model.api.util.json.JsonObjectBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import javax.imageio.ImageIO;
@@ -66,12 +67,12 @@ public record BlueprintTexture(
      * @return mcmeta
      */
     public @NotNull JsonObject toMcmeta() {
-        var json = new JsonObject();
-        var animation = new JsonObject();
-        animation.addProperty("interpolate", true);
-        animation.addProperty("frametime", BetterModel.config().animatedTextureFrameTime());
-        json.add("animation", animation);
-        return json;
+        return JsonObjectBuilder.builder()
+                .jsonObject("animation", animation -> {
+                    animation.property("interpolate", true);
+                    animation.property("frametime", BetterModel.config().animatedTextureFrameTime());
+                })
+                .build();
     }
 
     /**

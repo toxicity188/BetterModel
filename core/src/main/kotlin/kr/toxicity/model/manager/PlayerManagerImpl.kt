@@ -90,19 +90,19 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
     private fun ModelBlueprint.toRenderer(): ModelRenderer {
         fun BlueprintGroup.parse(): RendererGroup {
             return RendererGroup(
-                boneName(),
+                name,
                 scale,
                 ItemStack(Material.AIR),
                 this,
                 children.filterIsInstance<BlueprintGroup>()
-                    .associate { it.boneName() to it.parse() },
+                    .associate { it.name to it.parse() },
                 hitBox()
             )
         }
         return ModelRenderer(
             this,
             group.filterIsInstance<BlueprintGroup>()
-                .associate { it.boneName() to it.parse() },
+                .associate { it.name to it.parse() },
             animations
         )
     }

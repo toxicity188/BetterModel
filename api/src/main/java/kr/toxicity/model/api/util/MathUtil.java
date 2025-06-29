@@ -27,6 +27,7 @@ public final class MathUtil {
      * Minecraft tick mills
      */
     public static int MINECRAFT_TICK_MILLS = 50;
+
     /**
      * Valid rotation degree
      */
@@ -41,6 +42,11 @@ public final class MathUtil {
      * Radians to degrees
      */
     public static final float RADIANS_TO_DEGREES = 1F / DEGREES_TO_RADIANS;
+
+    /**
+     * Multiplier value for convert model size to block size
+     */
+    public static final float MODEL_TO_BLOCK_MULTIPLIER = 16;
 
     /**
      * Valid rotation degrees

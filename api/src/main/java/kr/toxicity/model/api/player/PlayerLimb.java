@@ -4,6 +4,7 @@ import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.bone.BoneItemMapper;
 import kr.toxicity.model.api.data.renderer.RenderSource;
 import kr.toxicity.model.api.skin.SkinData;
+import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.TransformedItemStack;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -216,7 +217,7 @@ public enum PlayerLimb {
     }
 
     private static @NotNull Vector3f offset(float x, float y, float z, float inflate) {
-        return new Vector3f(0, -0.25F, 0).add(new Vector3f(x, y, z).div(16)).add(new Vector3f(0, inflate, 0).div(32));
+        return new Vector3f(0, -0.25F, 0).add(new Vector3f(x, y, z).div(MathUtil.MODEL_TO_BLOCK_MULTIPLIER)).add(new Vector3f(0, inflate, 0).div(32));
     }
 
     private final @NotNull Vector3f position;

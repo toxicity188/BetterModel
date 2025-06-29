@@ -287,9 +287,9 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
     private fun ModelBlueprint.toRenderer(scale: Float, consumer: (BlueprintGroup) -> Int?): ModelRenderer {
         fun BlueprintGroup.parse(): RendererGroup {
             return RendererGroup(
-                boneName(),
+                name,
                 scale,
-                if (boneName().toItemMapper() !== BoneItemMapper.EMPTY) null else consumer(this)?.let { i ->
+                if (name.toItemMapper() !== BoneItemMapper.EMPTY) null else consumer(this)?.let { i ->
                     ItemStack(ConfigManagerImpl.item()).apply {
                         itemMeta = itemMeta.apply {
                             @Suppress("DEPRECATION") //To support legacy server :(
@@ -300,14 +300,14 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                 },
                 this,
                 children.filterIsInstance<BlueprintGroup>()
-                    .associate { it.boneName() to it.parse() },
+                    .associate { it.name to it.parse() },
                 hitBox(),
             )
         }
         return ModelRenderer(
             this,
             group.filterIsInstance<BlueprintGroup>()
-                .associate { it.boneName() to it.parse() },
+                .associate { it.name to it.parse() },
             animations
         )
     }

@@ -57,7 +57,7 @@ public record BlueprintAnimator(
                 var vec = dataPoint.toVector();
                 switch (keyframe.channel()) {
                     case POSITION -> transform.add(new VectorPoint(
-                            MathUtil.transformToDisplay(vec.div(16)),
+                            MathUtil.transformToDisplay(vec.div(MathUtil.MODEL_TO_BLOCK_MULTIPLIER)),
                             keyframe.time(),
                             interpolation
                     ));

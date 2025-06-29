@@ -28,6 +28,7 @@ import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -41,7 +42,19 @@ public abstract class Tracker implements AutoCloseable {
 
     public static final int TRACKER_TICK_INTERVAL = 10;
     public static final int MINECRAFT_TICK_MULTIPLIER = MathUtil.MINECRAFT_TICK_MILLS / TRACKER_TICK_INTERVAL;
-    private static final ScheduledExecutorService EXECUTOR = Executors.newScheduledThreadPool(256);
+    private static final ScheduledExecutorService EXECUTOR = Executors.newScheduledThreadPool(256, new ThreadFactory() {
+
+        private final AtomicInteger integer = new AtomicInteger();
+
+        @Override
+        public Thread newThread(@NotNull Runnable r) {
+            var thread = new Thread(r);
+            thread.setDaemon(true);
+            thread.setName("BetterModel-Worker-" + integer.getAndIncrement());
+            thread.setUncaughtExceptionHandler((t, e) -> LogUtil.handleException("Exception has occurred in " + t.getName(), e));
+            return thread;
+        }
+    });
 
     @Getter
     protected final RenderPipeline pipeline;
@@ -76,9 +89,7 @@ public abstract class Tracker implements AutoCloseable {
             var isMinecraftTickTime = frame % MINECRAFT_TICK_MULTIPLIER == 0;
             if (isMinecraftTickTime) {
                 Runnable task;
-                while ((task = queuedTask.poll()) != null) {
-                    task.run();
-                }
+                while ((task = queuedTask.poll()) != null) task.run();
             }
             pipeline.move(
                     isMinecraftTickTime ? (isRunningSingleAnimation() && config.lockOnPlayAnimation()) ? pipeline.getRotation() : rotation() : null,
@@ -161,7 +172,7 @@ public abstract class Tracker implements AutoCloseable {
 
     public @NotNull TrackerData asTrackerData() {
         return new TrackerData(
-                pipeline.name(),
+                name(),
                 scaler,
                 rotator,
                 modifier
@@ -221,7 +232,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return name
      */
     public @NotNull String name() {
-        return pipeline.getParent().name();
+        return pipeline.name();
     }
 
     /**

@@ -112,6 +112,14 @@ public record Float3(
     }
 
     /**
+     * Converts item model scale to block scale
+     * @return block
+     */
+    public @NotNull Float3 toBlockScale() {
+        return div(MathUtil.MODEL_TO_BLOCK_MULTIPLIER);
+    }
+
+    /**
      * Multiplies floats.
      * @param value multiplier
      * @return new floats

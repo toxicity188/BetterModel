@@ -46,9 +46,7 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
     private class SpigotListener : Listener { //Portal event for Spigot
         @EventHandler(priority = EventPriority.MONITOR)
         fun EntityRemoveEvent.remove() {
-            entity.forEachTracker {
-                if (!it.forRemoval()) it.despawn()
-            }
+            EntityTrackerRegistry.registry(entity.uniqueId)?.despawn()
         }
         @EventHandler(priority = EventPriority.MONITOR)
         fun EntityPortalEvent.add() {

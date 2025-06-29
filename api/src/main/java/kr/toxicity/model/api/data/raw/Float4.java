@@ -1,6 +1,7 @@
 package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.*;
+import kr.toxicity.model.api.util.MathUtil;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -55,7 +56,7 @@ public record Float4(
      * @return new floats
      */
     public @NotNull Float4 div(@NotNull ModelResolution resolution) {
-        return div((float) resolution.width() / 16, (float) resolution.height() / 16);
+        return div((float) resolution.width() / MathUtil.MODEL_TO_BLOCK_MULTIPLIER, (float) resolution.height() / MathUtil.MODEL_TO_BLOCK_MULTIPLIER);
     }
 
     /**
