@@ -25,7 +25,7 @@ dependencies {
     }
     compileOnly("net.skinsrestorer:skinsrestorer-api:15.7.3")
     compileOnly("io.lumine:Mythic-Dist:5.9.1")
-    compileOnly("com.hibiscusmc:HMCCosmetics:2.7.8")
+    compileOnly("com.hibiscusmc:HMCCosmetics:2.8.0-f56d5c90")
     //implementation(rootProject.fileTree("libs"))
 }
 
