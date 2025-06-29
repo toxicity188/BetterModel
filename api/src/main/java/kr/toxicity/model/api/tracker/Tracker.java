@@ -271,6 +271,10 @@ public abstract class Tracker implements AutoCloseable {
         }
     }
 
+    /**
+     * Gets tracker modifier
+     * @return tracker modifier
+     */
     public @NotNull TrackerModifier modifier() {
         return modifier;
     }

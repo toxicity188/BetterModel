@@ -3,28 +3,50 @@ package kr.toxicity.model.api.util.lazy;
 import kr.toxicity.model.api.util.FunctionUtil;
 import kr.toxicity.model.api.util.VectorUtil;
 import kr.toxicity.model.api.util.function.FloatSupplier;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 import java.util.Objects;
 import java.util.function.Supplier;
 
+/**
+ * Lazy float provider
+ */
+@ApiStatus.Internal
 public final class LazyFloatProvider {
     private final FloatSupplier requiredTime;
     private long time = System.currentTimeMillis();
     private float storedValue;
     private boolean first = true;
 
+    /**
+     * Creates from time
+     * @param requiredTime required time
+     */
     public LazyFloatProvider(long requiredTime) {
         this((float) requiredTime);
     }
+    /**
+     * Creates from time
+     * @param requiredTime required time
+     */
     public LazyFloatProvider(float requiredTime) {
         this(() -> requiredTime);
     }
+    /**
+     * Creates from time supplier
+     * @param requiredTime required time supplier
+     */
     public LazyFloatProvider(@NotNull FloatSupplier requiredTime) {
         this.requiredTime = requiredTime;
     }
 
+    /**
+     * Updates and gets float
+     * @param updateValue destination value
+     * @return interpolated value
+     */
     public float updateAndGet(float updateValue) {
         var req = requiredTime.getAsFloat();
         if (req <= 0 || first) {
@@ -41,6 +63,13 @@ public final class LazyFloatProvider {
         );
     }
 
+    /**
+     * Gets lazy provider of vector
+     * @param tick throttle tick
+     * @param requiredTime required time
+     * @param delegate source provider
+     * @return lazy provider
+     */
     public static @NotNull Supplier<Vector3f> ofVector(long tick, @NotNull FloatSupplier requiredTime, @NotNull Supplier<Vector3f> delegate) {
         Objects.requireNonNull(requiredTime);
         Objects.requireNonNull(delegate);

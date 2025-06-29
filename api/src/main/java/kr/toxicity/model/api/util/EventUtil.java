@@ -11,6 +11,9 @@ import org.jetbrains.annotations.NotNull;
  */
 @ApiStatus.Internal
 public final class EventUtil {
+    /**
+     * No initializer
+     */
     private EventUtil() {
         throw new RuntimeException();
     }

@@ -4,6 +4,13 @@ import com.google.gson.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Tracker data
+ * @param id model id
+ * @param scaler scaler
+ * @param rotator rotator
+ * @param modifier modifier
+ */
 public record TrackerData(
         @NotNull String id,
         @Nullable ModelScaler scaler,
@@ -20,10 +27,19 @@ public record TrackerData(
             .registerTypeAdapter(ModelRotator.class, (JsonSerializer<ModelRotator>) (src, typeOfSrc, context) -> src.serialize())
             .create();
 
+    /**
+     * Serializes data as JSON
+     * @return JSON element
+     */
     public @NotNull JsonElement serialize() {
         return PARSER.toJsonTree(this);
     }
 
+    /**
+     * Deserializes data from JSON
+     * @param element JSON element
+     * @return tracker data
+     */
     public static @NotNull TrackerData deserialize(@NotNull JsonElement element) {
         return element.isJsonPrimitive() ? new TrackerData(
                 element.getAsString(),

@@ -6,7 +6,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+/**
+ * Catmull-rom interpolator
+ */
 public enum CatmullRomInterpolation implements VectorInterpolation {
+    /**
+     * Singleton
+     */
     INSTANCE
     ;
     

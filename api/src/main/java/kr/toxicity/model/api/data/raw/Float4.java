@@ -79,7 +79,7 @@ public record Float4(
      * @return json array
      */
     public @NotNull JsonArray toJson() {
-        var array = new JsonArray();
+        var array = new JsonArray(4);
         array.add(dx);
         array.add(dz);
         array.add(tx);

@@ -5,9 +5,16 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+/**
+ * Step interpolator
+ */
 public enum StepInterpolation implements VectorInterpolation {
+    /**
+     * Singleton
+     */
     INSTANCE
     ;
+
     @NotNull
     @Override
     public VectorPoint interpolate(@NotNull List<VectorPoint> points, int p2Index, float time) {

@@ -13,14 +13,20 @@ import org.joml.Vector3f;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Vector util
+ */
 @ApiStatus.Internal
 public final class VectorUtil {
 
+    /**
+     * No initializer
+     */
     private VectorUtil() {
         throw new RuntimeException();
     }
 
-    private static void point(@NotNull FloatCollection target, List<VectorPoint> points) {
+    private static void point(@NotNull FloatCollection target, @NotNull List<VectorPoint> points) {
         for (VectorPoint point : points) {
             target.add(point.time());
         }

@@ -10,9 +10,8 @@ import java.util.regex.Pattern;
  */
 @ApiStatus.Internal
 public final class PackUtil {
-
     /**
-     * Private initializer
+     * No initializer
      */
     private PackUtil() {
         throw new RuntimeException();
@@ -20,6 +19,11 @@ public final class PackUtil {
 
     private static final Pattern REPLACE_SOURCE = Pattern.compile("[^a-z0-9_.]");
 
+    /**
+     * Converts some path to compatible with Minecraft resource location
+     * @param raw raw path
+     * @return converted path
+     */
     public static @NotNull String toPackName(@NotNull String raw) {
         return REPLACE_SOURCE.matcher(raw.toLowerCase()).replaceAll("_");
     }

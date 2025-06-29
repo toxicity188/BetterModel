@@ -44,14 +44,26 @@ public final class HttpUtil {
             .registerTypeAdapter(Semver.class, (JsonDeserializer<Semver>) (json, typeOfT, context) -> new Semver(json.getAsString(), Semver.SemverType.LOOSE))
             .create();
 
+    /**
+     * No initializer
+     */
     private HttpUtil() {
         throw new RuntimeException();
     }
 
+    /**
+     * Searches BetterModel's latest version
+     * @return latest version
+     */
     public static @NotNull LatestVersion versionList() {
         return versionList(BetterModel.plugin().version());
     }
 
+    /**
+     * Searches BetterModel's latest version compatible with current server
+     * @param version server version
+     * @return latest version
+     */
     public static @NotNull LatestVersion versionList(@NotNull MinecraftVersion version) {
         return client(client -> {
             try (var stream = client.send(HttpRequest.newBuilder()
@@ -77,6 +89,11 @@ public final class HttpUtil {
         });
     }
 
+    /**
+     * Gets the latest version from a version list
+     * @param versions versions
+     * @return latest version
+     */
     public static @NotNull LatestVersion latestOf(@NotNull List<PluginVersion> versions) {
         PluginVersion release = null, snapshot = null;
         for (PluginVersion version : versions) {
@@ -87,14 +104,29 @@ public final class HttpUtil {
         return new LatestVersion(release, snapshot);
     }
 
+    /**
+     * Latest version
+     * @param release release
+     * @param snapshot snapshot
+     */
     public record LatestVersion(@Nullable PluginVersion release, @Nullable PluginVersion snapshot) {
     }
 
+    /**
+     * Plugin version
+     * @param versionNumber number
+     * @param versionType type
+     * @param versions game versions
+     */
     public record PluginVersion(
             @NotNull @SerializedName("version_number") Semver versionNumber,
             @NotNull @SerializedName("version_type") String versionType,
             @NotNull @SerializedName("game_versions") List<MinecraftVersion> versions
     ) {
+        /**
+         * Creates a text component with URL
+         * @return text component
+         */
         public @NotNull Component toURLComponent() {
             var url = "https://modrinth.com/plugin/bettermodel/version/" + versionNumber.getOriginalValue();
             return Component.text()
@@ -111,6 +143,12 @@ public final class HttpUtil {
         }
     }
 
+    /**
+     * Uses http client
+     * @param consumer consumer
+     * @return result
+     * @param <T> type
+     */
     public static <T> @NotNull Result<T> client(@NotNull HttpClientConsumer<T> consumer) {
         try {
             return new Result.Success<>(consumer.accept(CLIENT));
@@ -119,8 +157,17 @@ public final class HttpUtil {
         }
     }
 
+    /**
+     * http result
+     * @param <T> type
+     */
     public sealed interface Result<T> {
 
+        /**
+         * Gets the value or handle exception
+         * @param function exception handler
+         * @return value
+         */
         default @NotNull T orElse(@NotNull Function<Exception, T> function) {
             return switch (this) {
                 case Failure<T> failure -> function.apply(failure.exception);
@@ -128,12 +175,33 @@ public final class HttpUtil {
             };
         }
 
+        /**
+         * Success
+         * @param result result value
+         * @param <T> type
+         */
         record Success<T>(@NotNull T result) implements Result<T> {}
+
+        /**
+         * Failure
+         * @param exception exception
+         * @param <T> type
+         */
         record Failure<T>(@NotNull Exception exception) implements Result<T> {}
     }
 
+    /**
+     * Http client consumer
+     * @param <T> type
+     */
     @FunctionalInterface
     public interface HttpClientConsumer<T> {
+        /**
+         * Accepts a task with an http client
+         * @param client client
+         * @return value
+         * @throws Exception exception
+         */
         @NotNull T accept(@NotNull HttpClient client) throws Exception;
     }
 }

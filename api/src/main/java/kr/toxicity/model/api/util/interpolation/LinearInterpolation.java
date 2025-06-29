@@ -6,7 +6,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+/**
+ * Linear interpolator
+ */
 public enum LinearInterpolation implements VectorInterpolation {
+    /**
+     * Singleton
+     */
     INSTANCE
     ;
     @NotNull

@@ -9,6 +9,9 @@ import org.joml.Vector3f;
 
 import java.util.List;
 
+/**
+ * Bezier interpolator
+ */
 @RequiredArgsConstructor
 public final class BezierInterpolation implements VectorInterpolation {
 

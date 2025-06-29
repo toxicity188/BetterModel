@@ -5,6 +5,9 @@ import kr.toxicity.model.api.player.PlayerSkinProvider;
 import kr.toxicity.model.api.skin.SkinData;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Skin manager
+ */
 public interface SkinManager extends GlobalManager {
     boolean supported();
     @NotNull SkinData getOrRequest(@NotNull GameProfile profile);

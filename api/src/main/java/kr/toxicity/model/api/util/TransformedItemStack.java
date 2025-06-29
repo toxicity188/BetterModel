@@ -17,6 +17,10 @@ import java.util.function.Function;
  */
 public record TransformedItemStack(@NotNull Vector3f position, @NotNull Vector3f offset, @NotNull Vector3f scale, @NotNull ItemStack itemStack) {
 
+    /**
+     * Creates empty transformed item
+     * @return empty transformed item
+     */
     public static @NotNull TransformedItemStack empty() {
         return of(new ItemStack(Material.AIR));
     }

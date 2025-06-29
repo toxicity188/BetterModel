@@ -294,6 +294,9 @@ public class EntityTracker extends Tracker {
         BetterModel.plugin().scheduler().task(registry.entity(), () -> pipeline.createHitBox(registry.adapter(), r -> r.getHitBox() != null, null));
     }
 
+    /**
+     * Head rotation property
+     */
     public final class HeadRotationProperty implements Supplier<Vector3f> {
         private float rotationDelay = 150;
         private float minRotation = -90;
@@ -304,6 +307,9 @@ public class EntityTracker extends Tracker {
                 0
         ));
 
+        /**
+         * Private initializer
+         */
         private HeadRotationProperty() {
         }
 
@@ -312,18 +318,35 @@ public class EntityTracker extends Tracker {
             return delegate.get();
         }
 
+        /**
+         * Sets rotation delay
+         * @param delay delay
+         */
         public synchronized void delay(float delay) {
             rotationDelay = delay;
         }
 
+        /**
+         * Sets min rotation degree
+         * @param min rotation degree
+         */
         public void minRotation(float min) {
             rotation(min, maxRotation);
         }
 
+        /**
+         * Sets max rotation degree
+         * @param max rotation degree
+         */
         public void maxRotation(float max) {
             rotation(minRotation, max);
         }
 
+        /**
+         * Sets rotation degree
+         * @param min min rotation degree
+         * @param max max rotation degree
+         */
         public synchronized void rotation(float min, float max) {
             minRotation = Math.min(min, max);
             maxRotation = Math.max(min, max);

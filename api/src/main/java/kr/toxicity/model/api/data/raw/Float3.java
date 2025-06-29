@@ -55,7 +55,7 @@ public record Float3(
 
         @Override
         public Float3 apply(JsonElement element) {
-            if (element == null || element.isJsonNull()) return new Float3(0, 0, 0);
+            if (element == null || element.isJsonNull()) return ZERO;
             var array = element.getAsJsonArray();
             return new Float3(
                     array.get(0).getAsFloat(),
@@ -161,7 +161,7 @@ public record Float3(
      * @return json array
      */
     public @NotNull JsonArray toJson() {
-        var array = new JsonArray();
+        var array = new JsonArray(3);
         array.add(x);
         array.add(y);
         array.add(z);

@@ -128,7 +128,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
                 fun PlayerJoinEvent.join() {
                     if (!player.isOp || !ConfigManagerImpl.versionCheck()) return
                     player.audience().run {
-                        versionNoticeList.forEach(::sendMessage)
+                        versionNoticeList.forEach(::info)
                     }
                 }
             })
