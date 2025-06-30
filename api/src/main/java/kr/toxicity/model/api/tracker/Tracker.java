@@ -29,7 +29,6 @@ import java.util.UUID;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -40,8 +39,6 @@ import java.util.stream.Stream;
  */
 public abstract class Tracker implements AutoCloseable {
 
-    public static final int TRACKER_TICK_INTERVAL = 10;
-    public static final int MINECRAFT_TICK_MULTIPLIER = MathUtil.MINECRAFT_TICK_MILLS / TRACKER_TICK_INTERVAL;
     private static final ScheduledExecutorService EXECUTOR = Executors.newScheduledThreadPool(256, new ThreadFactory() {
 
         private final AtomicInteger integer = new AtomicInteger();
@@ -55,6 +52,14 @@ public abstract class Tracker implements AutoCloseable {
             return thread;
         }
     });
+    /**
+     * Tracker tick interval
+     */
+    public static final int TRACKER_TICK_INTERVAL = 10;
+    /**
+     * Multiplier value for convert tracker tick to minecraft tick
+     */
+    public static final int MINECRAFT_TICK_MULTIPLIER = MathUtil.MINECRAFT_TICK_MILLS / TRACKER_TICK_INTERVAL;
 
     @Getter
     protected final RenderPipeline pipeline;
@@ -72,7 +77,7 @@ public abstract class Tracker implements AutoCloseable {
     private Supplier<ModelRotation> rotationSupplier = () -> ModelRotation.EMPTY;
     private Consumer<Tracker> closeEventHandler = t -> EventUtil.call(new CloseTrackerEvent(t));
 
-    private BiConsumer<Tracker, PacketBundler> consumer = (t, b) -> {};
+    private ScheduledPacketHandler handler = (t, v, d) -> {};
 
     /**
      * Creates tracker
@@ -95,8 +100,7 @@ public abstract class Tracker implements AutoCloseable {
                     isMinecraftTickTime ? (isRunningSingleAnimation() && config.lockOnPlayAnimation()) ? pipeline.getRotation() : rotation() : null,
                     viewBundler
             );
-            consumer.accept(this, viewBundler);
-            if (readyForForceUpdate.compareAndSet(true, false)) pipeline.forceUpdate(dataBundler);
+            handler.handle(this, viewBundler, dataBundler);
             if (!dataBundler.isEmpty()) {
                 pipeline.nonHidePlayer().forEach(dataBundler::send);
                 dataBundler = pipeline.createBundler();
@@ -107,7 +111,10 @@ public abstract class Tracker implements AutoCloseable {
             }
         };
         if (modifier.sightTrace()) pipeline.viewFilter(p -> EntityUtil.canSee(p.getEyeLocation(), location()));
-        tick((t, b) -> t.pipeline.getScriptProcessor().tick());
+        frame((t, v, d) -> {
+            if (readyForForceUpdate.compareAndSet(true, false)) pipeline.forceUpdate(d);
+        });
+        tick((t, v, d) -> t.pipeline.getScriptProcessor().tick());
         pipeline.spawnPacketHandler(p -> start());
     }
 
@@ -189,37 +196,37 @@ public abstract class Tracker implements AutoCloseable {
 
     /**
      * Runs consumer on frame.
-     * @param consumer consumer
+     * @param handler handler
      */
-    public void frame(@NotNull BiConsumer<Tracker, PacketBundler> consumer) {
-        this.consumer = this.consumer.andThen(Objects.requireNonNull(consumer));
+    public void frame(@NotNull ScheduledPacketHandler handler) {
+        this.handler = this.handler.then(Objects.requireNonNull(handler));
     }
     /**
      * Runs consumer on tick.
-     * @param consumer consumer
+     * @param handler handler
      */
-    public void tick(@NotNull BiConsumer<Tracker, PacketBundler> consumer) {
-        tick(1, consumer);
+    public void tick(@NotNull ScheduledPacketHandler handler) {
+        tick(1, handler);
     }
     /**
      * Runs consumer on tick.
      * @param tick tick
-     * @param consumer consumer
+     * @param handler handler
      */
-    public void tick(long tick, @NotNull BiConsumer<Tracker, PacketBundler> consumer) {
-        schedule(MINECRAFT_TICK_MULTIPLIER * tick, consumer);
+    public void tick(long tick, @NotNull ScheduledPacketHandler handler) {
+        schedule(MINECRAFT_TICK_MULTIPLIER * tick, handler);
     }
 
     /**
      * Schedules some task.
      * @param period period
-     * @param consumer consumer
+     * @param handler handler
      */
-    public void schedule(long period, @NotNull BiConsumer<Tracker, PacketBundler> consumer) {
-        Objects.requireNonNull(consumer);
+    public void schedule(long period, @NotNull ScheduledPacketHandler handler) {
+        Objects.requireNonNull(handler);
         if (period <= 0) throw new RuntimeException("period cannot be <= 0");
-        frame((t, b) -> {
-            if (frame % period == 0) consumer.accept(t, b);
+        frame((t, v, d) -> {
+            if (frame % period == 0) handler.handle(t, v, d);
         });
     }
 
@@ -635,5 +642,44 @@ public abstract class Tracker implements AutoCloseable {
     @ApiStatus.Internal
     public boolean forRemoval() {
         return forRemoval.get();
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) return true;
+        if (!(o instanceof Tracker tracker)) return false;
+        return name().equals(tracker.name());
+    }
+
+    @Override
+    public int hashCode() {
+        return name().hashCode();
+    }
+
+    /**
+     * Scheduled packet handler
+     */
+    @FunctionalInterface
+    public interface ScheduledPacketHandler {
+        /**
+         * Handles packet
+         * @param tracker tracker,
+         * @param viewBundler view bundler
+         * @param dataBundler data bundler
+         */
+        void handle(@NotNull Tracker tracker, @NotNull PacketBundler viewBundler, @NotNull PacketBundler dataBundler);
+
+        /**
+         * Plus another handler
+         * @param other other
+         * @return merged handler
+         */
+        default @NotNull ScheduledPacketHandler then(@NotNull ScheduledPacketHandler other) {
+            return (t, v, d) -> {
+                handle(t, v, d);
+                other.handle(t, v, d);
+            };
+        }
     }
 }
