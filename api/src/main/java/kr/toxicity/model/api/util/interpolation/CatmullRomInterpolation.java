@@ -18,23 +18,18 @@ public enum CatmullRomInterpolation implements VectorInterpolation {
     
     private static @NotNull VectorPoint indexOf(@NotNull List<VectorPoint> list, int index, int relative) {
         var i = index + relative;
-        if (i < 0) i += list.size();
-        else if (i >= list.size()) {
-            i %= list.size();
-        }
-        return list.get(i);
+        while (i < 0) i += list.size();
+        return list.get(i % list.size());
     }
     
     @NotNull
     @Override
     public VectorPoint interpolate(@NotNull List<VectorPoint> points, int p2Index, float time) {
-        if (points.size() < 4) {
-            return VectorInterpolation.defaultInterpolation().interpolate(points, p2Index, time);
-        }
         var p0 = indexOf(points, p2Index, -2);
         var p1 = indexOf(points, p2Index, -1);
         var p2 = points.get(p2Index);
-        var p3 = indexOf(points, p2Index, 1);
+        var next = indexOf(points, p2Index, 1);
+        var p3 = next.time() == 0 ? indexOf(points, p2Index, 2) : next;
         return new VectorPoint(
                 VectorUtil.catmull_rom(
                         p0.vector(),

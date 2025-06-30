@@ -17,7 +17,8 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.util.*;
 import java.util.stream.IntStream;
 
-import static kr.toxicity.model.api.util.CollectionUtil.*;
+import static kr.toxicity.model.api.util.CollectionUtil.mapFloat;
+import static kr.toxicity.model.api.util.CollectionUtil.mapValue;
 
 /**
  * A model animation.

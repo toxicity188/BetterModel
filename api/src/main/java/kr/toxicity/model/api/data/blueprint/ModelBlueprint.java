@@ -11,7 +11,8 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.util.List;
 import java.util.Map;
 
-import static kr.toxicity.model.api.util.CollectionUtil.*;
+import static kr.toxicity.model.api.util.CollectionUtil.associate;
+import static kr.toxicity.model.api.util.CollectionUtil.mapToList;
 
 /**
  * Parsed BlockBench model
