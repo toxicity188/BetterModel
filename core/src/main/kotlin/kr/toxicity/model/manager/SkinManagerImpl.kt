@@ -658,7 +658,7 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
                                 selected
                             )
                             EntityTrackerRegistry.registry(id)?.trackers()?.forEach { tracker ->
-                                if (tracker.updateItem(BonePredicate.of(BonePredicate.State.NOT_SET) { bone ->
+                                if (tracker.updateItem(BonePredicate.from { bone ->
                                         bone.itemMapper is PlayerLimb.LimbItemMapper
                                     })) tracker.forceUpdate(true)
                             }

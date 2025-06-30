@@ -61,6 +61,7 @@ internal class HitBoxImpl(
     private var noGravity = if (delegate is Mob) delegate.isNoAi else delegate.isNoGravity
     private var forceDismount = false
     private var onFly = false
+    private val height = type.height * 0.0625F
 
     val craftEntity: HitBox by lazy {
         object : CraftLivingEntity(Bukkit.getServer() as CraftServer, this), HitBox by this {}
@@ -89,6 +90,7 @@ internal class HitBoxImpl(
         isSilent = true
         initialized = true
         if (BetterModel.IS_PAPER) `moonrise$setUpdatingSectionStatus`(false)
+        getAttribute(Attributes.SCALE)?.baseValue = 0.0625
         refreshDimensions()
         level().addFreshEntity(this)
         level().addFreshEntity(interaction.apply {
@@ -283,7 +285,7 @@ internal class HitBoxImpl(
         yHeadRot = yRot
         yBodyRot = yRot
         val pos = relativePosition()
-        val minusHeight = rotatedSource.minY * supplier.hitBoxScale() - type.height
+        val minusHeight = rotatedSource.minY * supplier.hitBoxScale() - height
         setPos(
             pos.x.toDouble(),
             pos.y.toDouble() + minusHeight,
@@ -425,10 +427,10 @@ internal class HitBoxImpl(
             val source = rotatedSource
             AABB(
                 vec3.x + source.minX * scale,
-                vec3.y + type.height,
+                vec3.y + height,
                 vec3.z + source.minZ * scale,
                 vec3.x + source.maxX * scale,
-                vec3.y + (source.maxY - source.minY) * scale + type.height,
+                vec3.y + (source.maxY - source.minY) * scale + height,
                 vec3.z + source.maxZ * scale
             ).apply {
                 if (CONFIG.debug().has(DebugConfig.DebugOption.HITBOX)) {
@@ -438,7 +440,7 @@ internal class HitBoxImpl(
             }
         }
     }
-    override fun getDefaultDimensions(pose: Pose): EntityDimensions = dimensions
+    override fun getDefaultDimensions(pose: Pose): EntityDimensions = dimensions.scale(16F)
 
     override fun removeHitBox() {
         BetterModel.plugin().scheduler().task(bukkitEntity) {

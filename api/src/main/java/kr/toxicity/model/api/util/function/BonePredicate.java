@@ -33,8 +33,8 @@ public interface BonePredicate extends Predicate<RenderedBone> {
      * @param predicate predicate
      * @return bone predicate
      */
-    static @NotNull BonePredicate of(@NotNull Predicate<RenderedBone> predicate) {
-        return of(State.FALSE, predicate);
+    static @NotNull BonePredicate from(@NotNull Predicate<RenderedBone> predicate) {
+        return of(State.NOT_SET, predicate);
     }
 
     /**

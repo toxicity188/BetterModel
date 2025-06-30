@@ -179,7 +179,7 @@ class NMSImpl : NMS {
 
         private fun <T : ClientGamePacketListener> Packet<in T>.handle(): Packet<in T> {
             when (this) {
-                is ClientboundBundlePacket -> return ClientboundBundlePacket(subPackets().mapNotNull {
+                is ClientboundBundlePacket -> return if (subPackets() is PacketBundler) this else ClientboundBundlePacket(subPackets().mapNotNull {
                     it.handle() as? Packet<ClientGamePacketListener>
                 })
                 is ClientboundAddEntityPacket -> {
@@ -238,7 +238,7 @@ class NMSImpl : NMS {
                 }
                 BetterModel.plugin().scheduler().asyncTaskLater(1) {
                     trackers().forEach { tracker ->
-                        if (tracker.updateItem(BonePredicate.of(BonePredicate.State.NOT_SET) {
+                        if (tracker.updateItem(BonePredicate.from {
                                 it.itemMapper is PlayerLimb.LimbItemMapper
                             })) tracker.forceUpdate(true)
                     }

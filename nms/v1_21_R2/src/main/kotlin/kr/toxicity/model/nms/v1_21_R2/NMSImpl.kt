@@ -236,7 +236,7 @@ class NMSImpl : NMS {
                 }
                 BetterModel.plugin().scheduler().asyncTaskLater(1) {
                     trackers().forEach { tracker ->
-                        if (tracker.updateItem(BonePredicate.of(BonePredicate.State.NOT_SET) {
+                        if (tracker.updateItem(BonePredicate.from {
                                 it.itemMapper is PlayerLimb.LimbItemMapper
                             })) tracker.forceUpdate(true)
                     }

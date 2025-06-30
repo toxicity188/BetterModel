@@ -96,8 +96,8 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
 
     override fun onEnable() {
         audiences()
-        nms = when (version) { //TODO Add 1.21.7 NMS
-            V1_21_6 -> kr.toxicity.model.nms.v1_21_R5.NMSImpl()
+        nms = when (version) {
+            V1_21_6, V1_21_7 -> kr.toxicity.model.nms.v1_21_R5.NMSImpl()
             V1_21_5 -> kr.toxicity.model.nms.v1_21_R4.NMSImpl()
             V1_21_4 -> kr.toxicity.model.nms.v1_21_R3.NMSImpl()
             V1_21_2, V1_21_3 -> kr.toxicity.model.nms.v1_21_R2.NMSImpl()

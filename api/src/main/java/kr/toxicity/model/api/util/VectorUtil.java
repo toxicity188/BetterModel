@@ -150,7 +150,7 @@ public final class VectorUtil {
     }
 
     public static float linear(float p0, float p1, float alpha) {
-        return Math.fma(p1 - p0, alpha, p0);
+        return fma(p1 - p0, alpha, p0);
     }
 
     public static float cubicBezier(float p0, float p1, float p2, float p3, float t) {
@@ -161,7 +161,7 @@ public final class VectorUtil {
         float utt = u * tt;
         float uut = uu * t;
         float ttt = tt * t;
-        return Math.fma(uuu, p0, Math.fma(3.0F * uut, p1, Math.fma(3.0F * utt, p2, ttt * p3)));
+        return fma(uuu, p0, fma(3.0F * uut, p1, fma(3.0F * utt, p2, ttt * p3)));
     }
 
     public static float derivativeBezier(float p0, float p1, float p2, float p3, float t) {
@@ -169,7 +169,7 @@ public final class VectorUtil {
         float uu = u * u;
         float ut = u * t;
         float tt = t * t;
-        return Math.fma(3.0F * uu, (p1 - p0), Math.fma(6.0F * ut, (p2 - p1), 3.0F * tt * (p3 - p2)));
+        return fma(3.0F * uu, p1 - p0, fma(6.0F * ut, p2 - p1, 3.0F * tt * (p3 - p2)));
     }
 
     public static float solveBezierTForTime(float time, float t0, float h1, float h2, float t1) {
@@ -234,23 +234,27 @@ public final class VectorUtil {
         var t2 = t * t;
         var t3 = t2 * t;
         return new Vector3f(
-                Math.fma(t3, Math.fma(-1F, p0.x, Math.fma(3F, p1.x, Math.fma(-3F, p2.x, p3.x))), Math.fma(t2, Math.fma(2F, p0.x, Math.fma(-5F, p1.x, Math.fma(4F, p2.x, -p3.x))), Math.fma(t, -p0.x + p2.x, 2F * p1.x))),
-                Math.fma(t3,Math.fma(-1F, p0.y, Math.fma(3F, p1.y, Math.fma(-3F, p2.y, p3.y))), Math.fma(t2, Math.fma(2F, p0.y, Math.fma(-5F, p1.y, Math.fma(4F, p2.y, -p3.y))), Math.fma(t, -p0.y + p2.y, 2F * p1.y))),
-                Math.fma(t3, Math.fma(-1F, p0.z, Math.fma(3F, p1.z, Math.fma(-3F, p2.z, p3.z))), Math.fma(t2, Math.fma(2F, p0.z, Math.fma(-5F, p1.z, Math.fma(4F, p2.z, -p3.z))), Math.fma(t, -p0.z + p2.z, 2F * p1.z)))
+                fma(t3, fma(-1F, p0.x, fma(3F, p1.x, fma(-3F, p2.x, p3.x))), fma(t2, fma(2F, p0.x, fma(-5F, p1.x, fma(4F, p2.x, -p3.x))), fma(t, -p0.x + p2.x, 2F * p1.x))),
+                fma(t3,fma(-1F, p0.y, fma(3F, p1.y, fma(-3F, p2.y, p3.y))), fma(t2, fma(2F, p0.y, fma(-5F, p1.y, fma(4F, p2.y, -p3.y))), fma(t, -p0.y + p2.y, 2F * p1.y))),
+                fma(t3, fma(-1F, p0.z, fma(3F, p1.z, fma(-3F, p2.z, p3.z))), fma(t2, fma(2F, p0.z, fma(-5F, p1.z, fma(4F, p2.z, -p3.z))), fma(t, -p0.z + p2.z, 2F * p1.z)))
         ).mul(0.5F);
     }
 
     public static @NotNull Vector3f fma(@NotNull Vector3f a, @NotNull Vector3f b, @NotNull Vector3f c) {
-        a.x = Math.fma(a.x, b.x, c.x);
-        a.y = Math.fma(a.y, b.y, c.y);
-        a.z = Math.fma(a.z, b.z, c.z);
+        a.x = fma(a.x, b.x, c.x);
+        a.y = fma(a.y, b.y, c.y);
+        a.z = fma(a.z, b.z, c.z);
         return a;
     }
 
     public static @NotNull Vector3f fma(@NotNull Vector3f a, float b, @NotNull Vector3f c) {
-        a.x = Math.fma(a.x, b, c.x);
-        a.y = Math.fma(a.y, b, c.y);
-        a.z = Math.fma(a.z, b, c.z);
+        a.x = fma(a.x, b, c.x);
+        a.y = fma(a.y, b, c.y);
+        a.z = fma(a.z, b, c.z);
         return a;
+    }
+
+    public static float fma(float a, float b, float c) {
+        return Math.fma(a, b, c);
     }
 }

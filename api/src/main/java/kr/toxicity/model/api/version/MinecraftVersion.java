@@ -69,14 +69,14 @@ public record MinecraftVersion(int first, int second, int third) implements Comp
 
     /**
      * Parses version from string
-     * @param version version like "1.21.6"
+     * @param version version like "1.21.7"
      */
     public MinecraftVersion(@NotNull String version) {
         this(version.split("\\."));
     }
     /**
      * Parses version from a string array
-     * @param version version array like ["1", "21", "6"]
+     * @param version version array like ["1", "21", "7"]
      */
     public MinecraftVersion(@NotNull String[] version) {
         this(
