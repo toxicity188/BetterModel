@@ -23,7 +23,7 @@ dependencies {
     compileOnly("net.citizensnpcs:citizens-main:2.0.39-SNAPSHOT") {
         exclude("net.byteflux")
     }
-    compileOnly("net.skinsrestorer:skinsrestorer-api:15.7.3")
+    compileOnly("net.skinsrestorer:skinsrestorer-api:15.7.4")
     compileOnly("io.lumine:Mythic-Dist:5.9.2")
     compileOnly("com.hibiscusmc:HMCCosmetics:2.7.8")
     implementation(rootProject.fileTree("libs"))
