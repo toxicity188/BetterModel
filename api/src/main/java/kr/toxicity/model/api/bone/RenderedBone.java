@@ -81,8 +81,8 @@ public final class RenderedBone implements HitBoxSource {
     @Getter
     @Setter
     private BoneItemMapper itemMapper;
-    private int previousTint, tint = 0xFFFFFF;
-    private TransformedItemStack itemStack;
+    private volatile int previousTint, tint = 0xFFFFFF;
+    private volatile TransformedItemStack itemStack;
 
     //Animation
     private boolean firstTick = true;

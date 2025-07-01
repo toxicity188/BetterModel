@@ -9,6 +9,7 @@ import java.util.Set;
  * A tagged name of some bone
  * @param tags tags
  * @param name name
+ * @param rawName original name
  */
 public record BoneName(@NotNull Set<BoneTag> tags, @NotNull String name, @NotNull String rawName) {
 
@@ -30,5 +31,17 @@ public record BoneName(@NotNull Set<BoneTag> tags, @NotNull String name, @NotNul
      */
     public @NotNull BoneItemMapper toItemMapper() {
         return tags.isEmpty() ? BoneItemMapper.EMPTY : tags.stream().map(BoneTag::itemMapper).filter(Objects::nonNull).findFirst().orElse(BoneItemMapper.EMPTY);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof BoneName boneName)) return false;
+        return name.equals(boneName.name) && tags.equals(boneName.tags);
+    }
+
+    @Override
+    public int hashCode() {
+        return 31 * tags.hashCode() * name.hashCode();
     }
 }
