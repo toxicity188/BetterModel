@@ -69,7 +69,7 @@ public final class VectorUtil {
 
     public static @NotNull List<VectorPoint> putPoint(@NotNull List<VectorPoint> vectors, @NotNull FloatSet points) {
         var newVectors = new ArrayList<VectorPoint>();
-        if (vectors.size() <= 1) {
+        if (vectors.size() < 2) {
             var first = vectors.isEmpty() ? VectorPoint.EMPTY : vectors.getFirst();
             points.iterator().forEachRemaining(f -> newVectors.add(new VectorPoint(first.vector(), f, first.interpolation())));
             return newVectors;

@@ -25,7 +25,6 @@ public enum CatmullRomInterpolation implements VectorInterpolation {
     @NotNull
     @Override
     public VectorPoint interpolate(@NotNull List<VectorPoint> points, int p2Index, float time) {
-        if (points.size() < 2) return LinearInterpolation.INSTANCE.interpolate(points, p2Index, time);
         var p0 = indexOf(points, p2Index, -2);
         var p1 = indexOf(points, p2Index, -1);
         var p2 = points.get(p2Index);
