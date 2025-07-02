@@ -658,12 +658,6 @@ public final class RenderedBone implements HitBoxSource {
             previous = keyFrame != null ? keyFrame.time((float) modifier.end() / 20) : new AnimationMovement((float) modifier.end() / 20, null, null, null);
         }
 
-        @NotNull
-        @Override
-        public AnimationMovement first() {
-            return iterator.first();
-        }
-
         @Override
         public int index() {
             return iterator.index();
@@ -693,7 +687,7 @@ public final class RenderedBone implements HitBoxSource {
         public AnimationMovement next() {
             if (!started) {
                 started = true;
-                return first().time((float) modifier.start() / 20);
+                return iterator.next().time((float) modifier.start() / 20);
             }
             if (!iterator.hasNext()) {
                 ended = true;

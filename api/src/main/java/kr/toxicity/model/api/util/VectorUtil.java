@@ -4,7 +4,6 @@ import it.unimi.dsi.fastutil.floats.*;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationPoint;
 import kr.toxicity.model.api.animation.VectorPoint;
-import kr.toxicity.model.api.util.interpolation.VectorInterpolation;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,13 +25,13 @@ public final class VectorUtil {
         throw new RuntimeException();
     }
 
-    private static void point(@NotNull FloatCollection target, @NotNull List<VectorPoint> points) {
+    private static void point(@NotNull FloatSet target, @NotNull List<VectorPoint> points) {
         for (VectorPoint point : points) {
             target.add(point.time());
         }
     }
 
-    public static @NotNull List<AnimationPoint> putAnimationPoint(@NotNull List<AnimationPoint> animations, @NotNull FloatCollection points) {
+    public static @NotNull List<AnimationPoint> putAnimationPoint(@NotNull List<AnimationPoint> animations, @NotNull FloatSet points) {
         return sum(
                 animations.stream().map(AnimationPoint::position).distinct().toList(),
                 animations.stream().map(AnimationPoint::rotation).distinct().toList(),
@@ -43,6 +42,7 @@ public final class VectorUtil {
 
     public static @NotNull List<AnimationPoint> sum(float length, @NotNull List<VectorPoint> position, @NotNull List<VectorPoint> rotation, @NotNull List<VectorPoint> scale) {
         var set = new FloatAVLTreeSet(FloatComparators.NATURAL_COMPARATOR);
+        set.add(0);
         set.add(length);
         point(set, position);
         point(set, scale);
@@ -52,7 +52,7 @@ public final class VectorUtil {
         return sum(position, rotation, scale, set);
     }
 
-    public static @NotNull List<AnimationPoint> sum(@NotNull List<VectorPoint> position, @NotNull List<VectorPoint> rotation, @NotNull List<VectorPoint> scale, @NotNull FloatCollection points) {
+    public static @NotNull List<AnimationPoint> sum(@NotNull List<VectorPoint> position, @NotNull List<VectorPoint> rotation, @NotNull List<VectorPoint> scale, @NotNull FloatSet points) {
         var list = new ArrayList<AnimationPoint>();
         var pp = putPoint(position, points);
         var rp = putPoint(rotation, points);
@@ -67,17 +67,18 @@ public final class VectorUtil {
         return list;
     }
 
-    public static @NotNull List<VectorPoint> putPoint(@NotNull List<VectorPoint> vectors, @NotNull FloatCollection points) {
+    public static @NotNull List<VectorPoint> putPoint(@NotNull List<VectorPoint> vectors, @NotNull FloatSet points) {
         var newVectors = new ArrayList<VectorPoint>();
-        if (vectors.isEmpty()) {
-            points.iterator().forEachRemaining(f -> newVectors.add(new VectorPoint(new Vector3f(), f, VectorInterpolation.defaultInterpolation())));
+        if (vectors.size() <= 1) {
+            var first = vectors.isEmpty() ? VectorPoint.EMPTY : vectors.getFirst();
+            points.iterator().forEachRemaining(f -> newVectors.add(new VectorPoint(first.vector(), f, first.interpolation())));
             return newVectors;
         }
+        var p1 = VectorPoint.EMPTY;
+        var p2 = vectors.getFirst();
         var last = vectors.getLast();
         var length = last.time();
         var i = 0;
-        var p1 = VectorPoint.EMPTY;
-        var p2 = vectors.getFirst();
         var t = p2.time();
         for (float point : points) {
             while (i < vectors.size() - 1 && t < point) {
@@ -235,7 +236,7 @@ public final class VectorUtil {
         var t3 = t2 * t;
         return new Vector3f(
                 fma(t3, fma(-1F, p0.x, fma(3F, p1.x, fma(-3F, p2.x, p3.x))), fma(t2, fma(2F, p0.x, fma(-5F, p1.x, fma(4F, p2.x, -p3.x))), fma(t, -p0.x + p2.x, 2F * p1.x))),
-                fma(t3,fma(-1F, p0.y, fma(3F, p1.y, fma(-3F, p2.y, p3.y))), fma(t2, fma(2F, p0.y, fma(-5F, p1.y, fma(4F, p2.y, -p3.y))), fma(t, -p0.y + p2.y, 2F * p1.y))),
+                fma(t3, fma(-1F, p0.y, fma(3F, p1.y, fma(-3F, p2.y, p3.y))), fma(t2, fma(2F, p0.y, fma(-5F, p1.y, fma(4F, p2.y, -p3.y))), fma(t, -p0.y + p2.y, 2F * p1.y))),
                 fma(t3, fma(-1F, p0.z, fma(3F, p1.z, fma(-3F, p2.z, p3.z))), fma(t2, fma(2F, p0.z, fma(-5F, p1.z, fma(4F, p2.z, -p3.z))), fma(t, -p0.z + p2.z, 2F * p1.z)))
         ).mul(0.5F);
     }

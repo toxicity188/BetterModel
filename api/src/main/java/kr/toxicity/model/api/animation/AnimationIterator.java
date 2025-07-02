@@ -18,12 +18,6 @@ import java.util.function.Function;
 public interface AnimationIterator extends Iterator<AnimationMovement> {
 
     /**
-     * Gets the first element of animation.
-     * @return first element
-     */
-    @NotNull AnimationMovement first();
-
-    /**
      * Clears this iterator
      */
     void clear();
@@ -102,12 +96,6 @@ public interface AnimationIterator extends Iterator<AnimationMovement> {
         private final List<AnimationMovement> keyFrame;
         private int index = 0;
 
-        @NotNull
-        @Override
-        public AnimationMovement first() {
-            return keyFrame.getFirst();
-        }
-
         @Override
         public int index() {
             return index;
@@ -149,12 +137,6 @@ public interface AnimationIterator extends Iterator<AnimationMovement> {
         private final List<AnimationMovement> keyFrame;
         private int index = 0;
         private boolean finished = false;
-
-        @NotNull
-        @Override
-        public AnimationMovement first() {
-            return keyFrame.getFirst();
-        }
 
         @Override
         public int index() {
@@ -206,12 +188,6 @@ public interface AnimationIterator extends Iterator<AnimationMovement> {
     final class Loop implements AnimationIterator {
         private final List<AnimationMovement> keyFrame;
         private int index = 0;
-
-        @NotNull
-        @Override
-        public AnimationMovement first() {
-            return keyFrame.getFirst();
-        }
 
         @Override
         public int index() {
