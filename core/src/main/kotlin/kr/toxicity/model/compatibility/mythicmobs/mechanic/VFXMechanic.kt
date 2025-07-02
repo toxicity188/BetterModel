@@ -18,10 +18,6 @@ class VFXMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTarget
     private val scl = mlc.toPlaceholderFloat(arrayOf("scale"), 1F)
     private val spd = mlc.toPlaceholderFloat(arrayOf("speed"), 1F)
 
-    init {
-        isAsyncSafe = false
-    }
-
     override fun cast(p0: SkillMetadata): SkillResult {
         val args = p0.toPlaceholderArgs()
         val m1 = mid(args) ?: return SkillResult.CONDITION_FAILED
@@ -32,7 +28,7 @@ class VFXMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTarget
                 st(args),
                 false,
                 false,
-                0F,
+                10F,
                 false
             )) { t ->
                 t.scaler(ModelScaler.value(scl(args)))

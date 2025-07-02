@@ -25,10 +25,6 @@ class ModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTarg
     private val shadow = mlc.toPlaceholderBoolean(arrayOf("shadow"), false)
     private val r = mlc.toPlaceholderBoolean(arrayOf("remove", "r"), false)
 
-    init {
-        isAsyncSafe = false
-    }
-
     override fun cast(p0: SkillMetadata): SkillResult {
         val args = p0.toPlaceholderArgs()
         val e = p0.caster.entity.bukkitEntity
