@@ -340,7 +340,6 @@ public final class RenderedBone implements HitBoxSource {
         }
         --delay;
         if (shouldUpdateAnimation() && (updateAnimation() || firstTick)) {
-            firstTick = false;
             var f = frame();
             delay = Math.round(f);
             beforeTransform = afterTransform;
@@ -348,11 +347,17 @@ public final class RenderedBone implements HitBoxSource {
             if (d != null) {
                 d.frame(toInterpolationDuration(f));
                 setup(boneMovement);
-                d.sendTransformation(bundler);
-                return true;
+                if (isVisible()) d.sendTransformation(bundler);
             }
+            firstTick = false;
+            return true;
         }
         return false;
+    }
+
+    public boolean isVisible() {
+        if (display == null || display.invisible()) return false;
+        return (beforeTransform != null && beforeTransform.isVisible()) || (afterTransform != null && afterTransform.isVisible());
     }
 
     public void forceUpdate(@NotNull PacketBundler bundler) {

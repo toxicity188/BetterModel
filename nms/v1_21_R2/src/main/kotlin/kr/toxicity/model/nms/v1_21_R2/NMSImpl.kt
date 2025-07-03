@@ -103,6 +103,8 @@ class NMSImpl : NMS {
         private val displaySet = Display::class.java.serializers().map { e ->
             e.toSerializerId()
         }
+        private val interpolationDelay = displaySet.first()
+        private val animationSet = displaySet.subList(3, 6).toIntSet()
         private val transformSet = displaySet.subList(0, 6).toIntSet()
         private val entityDataSet = (mutableListOf(sharedFlag) + itemId + displaySet.subList(transformSet.size, displaySet.size)).toIntSet()
     }
@@ -111,10 +113,11 @@ class NMSImpl : NMS {
         val entity = registry.entity()
         val target = (entity as CraftEntity).vanillaEntity
         val task = {
-            val list = mutableListOf<Packet<ClientGamePacketListener>>(
-                ClientboundSetEntityDataPacket(target.id, target.entityData.pack()).toRegistryDataPacket(registry)
-            )
-            if (target is LivingEntity) target.toEmptyEquipmentPacket()?.let { 
+            val list = mutableListOf<Packet<ClientGamePacketListener>>()
+            target.entityData.pack()?.let {
+                list += ClientboundSetEntityDataPacket(target.id, it).toRegistryDataPacket(registry)
+            }
+            if (target is LivingEntity) target.toEmptyEquipmentPacket()?.let {
                 list += it
             }
             PacketBundlerImpl(list).send(player)
@@ -165,10 +168,12 @@ class NMSImpl : NMS {
 
         override fun sendEntityData(registry: EntityTrackerRegistry) {
             val handle = registry.adapter().handle() as Entity
-            val list = mutableListOf(
-                ClientboundSetEntityDataPacket(handle.id, handle.entityData.pack()),
+            val list = mutableListOf<Packet<ClientGamePacketListener>>(
                 ClientboundSetPassengersPacket(handle)
             )
+            handle.entityData.pack()?.let {
+                list += ClientboundSetEntityDataPacket(handle.id, it)
+            }
             if (handle is LivingEntity) handle.toEquipmentPacket()?.let {
                 list += it
             }
@@ -426,25 +431,31 @@ class NMSImpl : NMS {
         }
 
         override fun sendTransformation(bundler: PacketBundler) {
-            bundler.unwrap() += ClientboundSetEntityDataPacket(display.id, display.entityData.pack().filter {
-                transformSet.contains(it.id)
-            })
+            display.entityData.pack(
+                clean = true,
+                itemFilter = { interpolationDelay == it.accessor.id || it.isDirty },
+                valueFilter = { transformSet.contains(it.id) },
+                required = { it.any { packed -> animationSet.contains(packed.second.id)} }
+            )?.run {
+                bundler.unwrap() += ClientboundSetEntityDataPacket(display.id, this)
+            }
         }
 
         override fun invisible(): Boolean = display.isInvisible || forceInvisibility || display.itemStack.`is`(Items.AIR)
         override fun sendEntityData(showItem: Boolean, bundler: PacketBundler) {
-            bundler.unwrap() += ClientboundSetEntityDataPacket(display.id, display.entityData.pack()
-                .asSequence()
-                .filter {
-                    entityDataSet.contains(it.id)
-                }
-                .map {
-                    if (it.id == itemSerializer) SynchedEntityData.DataValue(
-                        it.id,
-                        EntityDataSerializers.ITEM_STACK,
-                        if (showItem) display.itemStack else net.minecraft.world.item.ItemStack.EMPTY
-                    ) else it
-                }.toList())
+            display.entityData.pack(
+                clean = true,
+                itemFilter = { it.isDirty },
+                valueFilter = { entityDataSet.contains(it.id) }
+            )?.map {
+                if (it.id == itemSerializer) SynchedEntityData.DataValue(
+                    it.id,
+                    EntityDataSerializers.ITEM_STACK,
+                    if (showItem) display.itemStack else net.minecraft.world.item.ItemStack.EMPTY
+                ) else it
+            }?.run {
+                bundler.unwrap() += ClientboundSetEntityDataPacket(display.id, this)
+            }
         }
 
         private val removePacket

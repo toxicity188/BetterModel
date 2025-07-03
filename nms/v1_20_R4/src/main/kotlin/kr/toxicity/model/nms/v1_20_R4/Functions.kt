@@ -1,6 +1,5 @@
 package kr.toxicity.model.nms.v1_20_R4
 
-import com.mojang.datafixers.util.Pair
 import io.netty.buffer.Unpooled
 import io.papermc.paper.configuration.GlobalConfiguration
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet
@@ -13,6 +12,7 @@ import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket
 import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.network.syncher.SynchedEntityData.DataItem
+import net.minecraft.network.syncher.SynchedEntityData.DataValue
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.*
@@ -71,9 +71,22 @@ private val DATA_ITEMS by lazy {
     }
 }
 
-internal fun SynchedEntityData.pack(): List<SynchedEntityData.DataValue<*>> = if (BetterModel.IS_PAPER) packAll()!! else (DATA_ITEMS[this] as Array<*>).mapNotNull {
-    (it as? DataItem<*>)?.value()
-}
+internal fun SynchedEntityData.pack(
+    clean: Boolean = false,
+    itemFilter: (DataItem<*>) -> Boolean = { true },
+    valueFilter: (DataValue<*>) -> Boolean = { true },
+    required: (List<Pair<DataItem<*>, DataValue<*>>>) -> Boolean = { it.isNotEmpty() }
+): List<DataValue<*>>? = (DATA_ITEMS[this] as Array<*>)
+    .mapNotNull map@ {
+        val item = (it as? DataItem<*>)?.takeIf(itemFilter) ?: return@map null
+        val value = item.value().takeIf(valueFilter) ?: return@map null
+        item to value
+    }
+    .takeIf(required)
+    ?.map {
+        if (clean) it.first.isDirty = false
+        it.second
+    }
 
 internal fun Entity.isWalking(): Boolean {
     return controllingPassenger?.isWalking() ?: when (this) {
@@ -157,7 +170,7 @@ internal fun Vec3.toBukkit() = org.bukkit.util.Vector(x, y, z)
 
 internal fun LivingEntity.toEquipmentPacket(mapper: (EquipmentSlot) -> ItemStack = ::getItemBySlot): ClientboundSetEquipmentPacket? {
     val equip = EquipmentSlot.entries.mapNotNull {
-        if (hasItemInSlot(it)) Pair.of(it, mapper(it)) else null
+        if (hasItemInSlot(it)) com.mojang.datafixers.util.Pair.of(it, mapper(it)) else null
     }
     return if (equip.isNotEmpty()) ClientboundSetEquipmentPacket(id, equip) else null
 }

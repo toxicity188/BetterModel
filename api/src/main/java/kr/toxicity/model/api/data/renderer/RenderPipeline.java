@@ -46,7 +46,6 @@ public final class RenderPipeline {
     private final List<RenderedBone> bones;
     @Getter
     private final int displayAmount;
-    private final int initialBundlerSize;
     private final Map<String, BlueprintAnimation> animationMap;
     private final Map<UUID, PlayerChannelHandler> playerMap = new ConcurrentHashMap<>();
     private final Set<UUID> hidePlayerSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
@@ -83,13 +82,11 @@ public final class RenderPipeline {
         displayAmount = (int) bones.stream()
                 .filter(rb -> rb.getDisplay() != null)
                 .count();
-        initialBundlerSize = displayAmount + 10;
-
         animate("idle", new AnimationModifier(6, 0, 1));
     }
 
     public @NotNull PacketBundler createBundler() {
-        return BetterModel.plugin().nms().createBundler(initialBundlerSize);
+        return BetterModel.plugin().nms().createBundler(displayAmount);
     }
 
     public void viewFilter(@NotNull Predicate<Player> filter) {
