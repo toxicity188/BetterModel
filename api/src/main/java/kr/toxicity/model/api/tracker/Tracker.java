@@ -69,6 +69,7 @@ public abstract class Tracker implements AutoCloseable {
     private final AtomicBoolean isClosed = new AtomicBoolean();
     private final AtomicBoolean readyForForceUpdate = new AtomicBoolean();
     private final AtomicBoolean forRemoval = new AtomicBoolean();
+    private final AtomicBoolean rotationLock = new AtomicBoolean();
     private final TrackerModifier modifier;
     private final Runnable updater;
     private PacketBundler viewBundler, dataBundler;
@@ -158,7 +159,15 @@ public abstract class Tracker implements AutoCloseable {
      * @return rotation
      */
     public @NotNull ModelRotation rotation() {
-        return rotator.apply(this, rotationSupplier.get());
+        return rotationLock.get() ? pipeline.getRotation() : rotator.apply(this, rotationSupplier.get());
+    }
+
+    /**
+     * Locks model rotation.
+     * @return success
+     */
+    public boolean lockRotation(boolean lock) {
+        return rotationLock.compareAndSet(!lock, lock);
     }
 
     public final void rotation(@NotNull Supplier<ModelRotation> supplier) {

@@ -86,11 +86,11 @@ public final class RenderedBone implements HitBoxSource {
 
     //Animation
     private boolean firstTick = true;
-    private AnimationMovement keyFrame = null;
-    private volatile int delay = 0;
-    private TreeIterator currentIterator = null;
-    private BoneMovement beforeTransform, afterTransform, relativeOffsetCache;
-    private ModelRotation rotation = ModelRotation.EMPTY;
+    private int delay;
+    private volatile AnimationMovement keyFrame = null;
+    private volatile BoneMovement beforeTransform, afterTransform, relativeOffsetCache;
+    private volatile TreeIterator currentIterator = null;
+    private volatile ModelRotation rotation = ModelRotation.EMPTY;
 
     private Supplier<Vector3f> defaultPosition = FunctionUtil.asSupplier(EMPTY_VECTOR);
     private FloatSupplier scale = () -> 1F;
@@ -332,7 +332,7 @@ public final class RenderedBone implements HitBoxSource {
         return true;
     }
 
-    public synchronized boolean move(@Nullable ModelRotation rotation, @NotNull PacketBundler bundler) {
+    public boolean move(@Nullable ModelRotation rotation, @NotNull PacketBundler bundler) {
         var d = display;
         if (rotation != null) {
             this.rotation = rotation;

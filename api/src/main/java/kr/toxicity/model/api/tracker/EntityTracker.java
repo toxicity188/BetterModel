@@ -18,12 +18,10 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -42,30 +40,6 @@ public class EntityTracker extends Tracker {
     private final AtomicLong damageTint = new AtomicLong(-1);
 
     private final HeadRotationProperty headRotationProperty = new HeadRotationProperty();
-
-    /**
-     * Get or creates tracker
-     * @param entity source
-     * @return tracker or null
-     * @deprecated use EntityTrackerRegistry#registry instead.
-     */
-    @Deprecated(forRemoval = true)
-    public static @Nullable EntityTracker tracker(@NotNull Entity entity) {
-        return tracker(entity.getUniqueId());
-    }
-
-    /**
-     * Gets tracker
-     * @param uuid entity's uuid
-     * @return tracker or null
-     * @deprecated use EntityTrackerRegistry#registry instead.
-     */
-    @Deprecated(forRemoval = true)
-    public static @Nullable EntityTracker tracker(@NotNull UUID uuid) {
-        return Optional.ofNullable(EntityTrackerRegistry.registry(uuid))
-                .map(EntityTrackerRegistry::first)
-                .orElse(null);
-    }
 
     /**
      * Gets world uuid in tracker
