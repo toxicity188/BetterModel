@@ -332,18 +332,23 @@ public final class RenderedBone implements HitBoxSource {
         return true;
     }
 
-    public boolean move(@Nullable ModelRotation rotation, @NotNull PacketBundler bundler) {
-        var d = display;
-        if (rotation != null) {
-            this.rotation = rotation;
-            if (d != null) d.rotate(rotation, bundler);
+    public boolean rotate(@NotNull ModelRotation rotation, @NotNull PacketBundler bundler) {
+        this.rotation = rotation;
+        if (display != null) {
+            display.rotate(rotation, bundler);
+            return true;
         }
+        return false;
+    }
+
+    public boolean tick(@NotNull PacketBundler bundler) {
         --delay;
         if (shouldUpdateAnimation() && (updateAnimation() || firstTick)) {
             var f = frame();
             delay = Math.round(f);
             beforeTransform = afterTransform;
             var boneMovement = afterTransform = relativeOffset();
+            var d = display;
             if (d != null) {
                 d.frame(toInterpolationDuration(f));
                 setup(boneMovement);

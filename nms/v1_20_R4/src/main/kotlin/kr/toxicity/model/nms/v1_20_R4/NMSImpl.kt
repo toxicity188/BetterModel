@@ -118,7 +118,9 @@ class NMSImpl : NMS {
         val target = (entity as CraftEntity).vanillaEntity
         val task = {
             val list = mutableListOf<Packet<ClientGamePacketListener>>()
-            target.entityData.pack()?.let {
+            target.entityData.pack(
+                valueFilter = { it.id == sharedFlag }
+            )?.let {
                 list += ClientboundSetEntityDataPacket(target.id, it).toRegistryDataPacket(registry)
             }
             if (target is LivingEntity) target.toEmptyEquipmentPacket()?.let {
@@ -174,7 +176,9 @@ class NMSImpl : NMS {
             val list = mutableListOf<Packet<ClientGamePacketListener>>(
                 ClientboundSetPassengersPacket(handle)
             )
-            handle.entityData.pack()?.let {
+            handle.entityData.pack(
+                valueFilter = { it.id == sharedFlag }
+            )?.let {
                 list += ClientboundSetEntityDataPacket(handle.id, it)
             }
             if (handle is LivingEntity) handle.toEquipmentPacket()?.let {
@@ -353,13 +357,7 @@ class NMSImpl : NMS {
             bundler.unwrap() += addPacket
             val f = display.transformationInterpolationDuration
             frame(0)
-            bundler.unwrap() += ClientboundSetEntityDataPacket(display.id, display.entityData.nonDefaultValues!!.map {
-                if (it.id == itemSerializer) SynchedEntityData.DataValue(
-                    it.id,
-                    EntityDataSerializers.ITEM_STACK,
-                    if (showItem) display.itemStack else net.minecraft.world.item.ItemStack.EMPTY
-                ) else it
-            })
+            bundler.unwrap() += ClientboundSetEntityDataPacket(display.id, display.entityData.nonDefaultValues!!.markVisible(showItem))
             frame(f)
         }
 
@@ -415,7 +413,9 @@ class NMSImpl : NMS {
 
         override fun syncPosition(adapter: EntityAdapter, bundler: PacketBundler) {
             val handle = adapter.handle() as Entity
-            display.setPos(handle.position())
+            val pos = handle.position()
+            if (display.position() == pos) return
+            display.setPos(pos)
             display.onGround = handle.onGround
             teleport(adapter.entity().location, bundler)
         }
@@ -434,27 +434,38 @@ class NMSImpl : NMS {
                 clean = true,
                 itemFilter = { interpolationDelay == it.accessor.id || it.isDirty },
                 valueFilter = { transformSet.contains(it.id) },
-                required = { it.any { packed -> animationSet.contains(packed.second.id)} }
+                required = { it.any { packed -> animationSet.contains(packed.second.id) } }
             )?.run {
                 bundler.unwrap() += ClientboundSetEntityDataPacket(display.id, this)
             }
         }
 
         override fun invisible(): Boolean = display.isInvisible || forceInvisibility || display.itemStack.`is`(Items.AIR)
-        override fun sendEntityData(showItem: Boolean, bundler: PacketBundler) {
+
+        override fun sendEntityData(bundler: PacketBundler) {
             display.entityData.pack(
                 clean = true,
                 itemFilter = { it.isDirty },
                 valueFilter = { entityDataSet.contains(it.id) }
-            )?.map {
-                if (it.id == itemSerializer) SynchedEntityData.DataValue(
-                    it.id,
-                    EntityDataSerializers.ITEM_STACK,
-                    if (showItem) display.itemStack else net.minecraft.world.item.ItemStack.EMPTY
-                ) else it
-            }?.run {
+            )?.markVisible(!invisible())?.run {
                 bundler.unwrap() += ClientboundSetEntityDataPacket(display.id, this)
             }
+        }
+        
+        override fun sendEntityData(showItem: Boolean, bundler: PacketBundler) {
+            display.entityData.pack(
+                valueFilter = { entityDataSet.contains(it.id) }
+            )?.markVisible(showItem)?.run {
+                bundler.unwrap() += ClientboundSetEntityDataPacket(display.id, this)
+            }
+        }
+        
+        private fun List<SynchedEntityData.DataValue<*>>.markVisible(showItem: Boolean) = map {
+            if (it.id == itemSerializer) SynchedEntityData.DataValue(
+                it.id,
+                EntityDataSerializers.ITEM_STACK,
+                if (showItem) display.itemStack else net.minecraft.world.item.ItemStack.EMPTY
+            ) else it
         }
 
 

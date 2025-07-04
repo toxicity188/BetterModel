@@ -156,7 +156,7 @@ public final class EntityTrackerRegistry {
 
     private void refreshSpawn() {
         for (PlayerChannelHandler value : viewedPlayerMap.values()) {
-            spawn(value.player());
+            spawn(value.player(), true);
         }
     }
 
@@ -310,6 +310,9 @@ public final class EntityTrackerRegistry {
      * @return success
      */
     public boolean spawn(@NotNull Player player) {
+        return spawn(player, false);
+    }
+    private boolean spawn(@NotNull Player player, boolean shouldNotSpawned) {
         var handler = BetterModel.plugin()
                 .playerManager()
                 .player(player.getUniqueId());
@@ -318,12 +321,13 @@ public final class EntityTrackerRegistry {
         if (trackerMap.isEmpty()) return false;
         var bundler = BetterModel.plugin().nms().createBundler(10);
         for (EntityTracker value : trackerMap.values()) {
-            value.spawn(player, bundler);
+            if (!shouldNotSpawned || !value.pipeline.isSpawned(player.getUniqueId())) value.spawn(player, bundler);
         }
         BetterModel.plugin().nms().mount(this, bundler);
         bundler.send(player, () -> BetterModel.plugin().nms().hide(player, this, () -> viewedPlayerMap.containsKey(player.getUniqueId())));
         return true;
     }
+
 
     public boolean remove(@NotNull Player player) {
         var handler = viewedPlayerMap.remove(player.getUniqueId());

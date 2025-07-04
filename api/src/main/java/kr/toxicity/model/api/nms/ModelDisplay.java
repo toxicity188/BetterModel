@@ -108,9 +108,7 @@ public interface ModelDisplay {
      * Sends entity data
      * @param bundler packet bundler
      */
-    default void sendEntityData(@NotNull PacketBundler bundler) {
-        sendEntityData(!invisible(), bundler);
-    }
+    void sendEntityData(@NotNull PacketBundler bundler);
 
     /**
      * Sends entity data

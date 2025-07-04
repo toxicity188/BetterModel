@@ -75,11 +75,11 @@ public class EntityTracker extends Tracker {
                     .mapToDouble(b -> Math.max(b.box().x(), b.box().z()))
                     .max()
                     .orElse(0D);
-            tick(((t, v, d) -> {
+            tick(((t, s) -> {
                 shadow.shadowRadius(scale.getAsFloat() * baseScale);
                 shadow.sync(adapter);
-                shadow.sendEntityData(d);
-                shadow.syncPosition(adapter, v);
+                shadow.sendEntityData(s.getTickBundler());
+                shadow.syncPosition(adapter, s.getTickBundler());
             }));
             pipeline.spawnPacketHandler(shadow::spawn);
             pipeline.despawnPacketHandler(shadow::remove);
@@ -116,15 +116,15 @@ public class EntityTracker extends Tracker {
             if (isClosed()) return;
             createHitBox();
         });
-        tick((t, v, d) -> updateBaseEntity0());
-        tick((t, v, d) -> {
+        tick((t, s) -> updateBaseEntity0());
+        tick((t, s) -> {
             var reader = t.pipeline.getScriptProcessor().getCurrentReader();
             if (reader == null) return;
             var script = reader.script();
             if (script == null) return;
             BetterModel.plugin().scheduler().task(entity, () -> script.accept(entity));
         });
-        tick((t, v, d) -> {
+        tick((t, s) -> {
             if (damageTint.getAndDecrement() == 0) tint(-1);
         });
         rotation(() -> new ModelRotation(adapter.pitch(), entity instanceof LivingEntity ? adapter.bodyYaw() : adapter.yaw()));

@@ -12,6 +12,7 @@ import kr.toxicity.model.api.data.renderer.RenderPipeline;
 import kr.toxicity.model.api.event.*;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
+import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.util.*;
 import kr.toxicity.model.api.util.function.BonePredicate;
 import lombok.Getter;
@@ -72,13 +73,13 @@ public abstract class Tracker implements AutoCloseable {
     private final AtomicBoolean rotationLock = new AtomicBoolean();
     private final TrackerModifier modifier;
     private final Runnable updater;
-    private PacketBundler viewBundler, dataBundler;
+    private final BundlerSet bundlerSet;
     private ModelRotator rotator = ModelRotator.YAW;
     private ModelScaler scaler = ModelScaler.entity();
     private Supplier<ModelRotation> rotationSupplier = () -> ModelRotation.EMPTY;
     private Consumer<Tracker> closeEventHandler = t -> EventUtil.call(new CloseTrackerEvent(t));
 
-    private ScheduledPacketHandler handler = (t, v, d) -> {};
+    private ScheduledPacketHandler handler = (t, s) -> t.pipeline.tick(s.viewBundler);
 
     /**
      * Creates tracker
@@ -88,8 +89,7 @@ public abstract class Tracker implements AutoCloseable {
     public Tracker(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier) {
         this.pipeline = pipeline;
         this.modifier = modifier;
-        viewBundler = pipeline.createBundler();
-        dataBundler = pipeline.createBundler();
+        bundlerSet = new BundlerSet();
         var config = BetterModel.config();
         updater = () -> {
             var isMinecraftTickTime = frame % MINECRAFT_TICK_MULTIPLIER == 0;
@@ -97,25 +97,18 @@ public abstract class Tracker implements AutoCloseable {
                 Runnable task;
                 while ((task = queuedTask.poll()) != null) task.run();
             }
-            pipeline.move(
-                    isMinecraftTickTime ? (isRunningSingleAnimation() && config.lockOnPlayAnimation()) ? pipeline.getRotation() : rotation() : null,
-                    viewBundler
-            );
-            handler.handle(this, viewBundler, dataBundler);
-            if (!dataBundler.isEmpty()) {
-                pipeline.nonHidePlayer().forEach(dataBundler::send);
-                dataBundler = pipeline.createBundler();
-            }
-            if (!viewBundler.isEmpty()) {
-                pipeline.viewedPlayer().forEach(viewBundler::send);
-                viewBundler = pipeline.createBundler();
-            }
+            handler.handle(this, bundlerSet);
+            bundlerSet.send();
         };
         if (modifier.sightTrace()) pipeline.viewFilter(p -> EntityUtil.canSee(p.getEyeLocation(), location()));
-        frame((t, v, d) -> {
-            if (readyForForceUpdate.compareAndSet(true, false)) pipeline.forceUpdate(d);
+        frame((t, s) -> {
+            if (readyForForceUpdate.compareAndSet(true, false)) t.pipeline.forceUpdate(s.dataBundler);
         });
-        tick((t, v, d) -> t.pipeline.getScriptProcessor().tick());
+        tick((t, s) -> pipeline.rotate(
+                (t.isRunningSingleAnimation() && config.lockOnPlayAnimation()) ? t.pipeline.getRotation() : t.rotation(),
+                s.tickBundler
+        ));
+        tick((t, s) -> t.pipeline.getScriptProcessor().tick());
         pipeline.spawnPacketHandler(p -> start());
     }
 
@@ -234,8 +227,8 @@ public abstract class Tracker implements AutoCloseable {
     public void schedule(long period, @NotNull ScheduledPacketHandler handler) {
         Objects.requireNonNull(handler);
         if (period <= 0) throw new RuntimeException("period cannot be <= 0");
-        frame((t, v, d) -> {
-            if (frame % period == 0) handler.handle(t, v, d);
+        frame((t, s) -> {
+            if (frame % period == 0) handler.handle(t, s);
         });
     }
 
@@ -673,11 +666,10 @@ public abstract class Tracker implements AutoCloseable {
     public interface ScheduledPacketHandler {
         /**
          * Handles packet
-         * @param tracker tracker,
-         * @param viewBundler view bundler
-         * @param dataBundler data bundler
+         * @param tracker tracker
+         * @param bundlerSet bundler set
          */
-        void handle(@NotNull Tracker tracker, @NotNull PacketBundler viewBundler, @NotNull PacketBundler dataBundler);
+        void handle(@NotNull Tracker tracker, @NotNull BundlerSet bundlerSet);
 
         /**
          * Plus another handler
@@ -685,10 +677,41 @@ public abstract class Tracker implements AutoCloseable {
          * @return merged handler
          */
         default @NotNull ScheduledPacketHandler then(@NotNull ScheduledPacketHandler other) {
-            return (t, v, d) -> {
-                handle(t, v, d);
-                other.handle(t, v, d);
+            return (t, s) -> {
+                handle(t, s);
+                other.handle(t, s);
             };
+        }
+    }
+
+    /**
+     * Bundler set
+     */
+    @Getter
+    public class BundlerSet {
+        private PacketBundler tickBundler = pipeline.createBundler();
+        private PacketBundler viewBundler = pipeline.createBundler();
+        private PacketBundler dataBundler = pipeline.createBundler();
+
+        /**
+         * Private initializer
+         */
+        private BundlerSet() {
+        }
+
+        private void send() {
+            if (!tickBundler.isEmpty()) {
+                pipeline.allPlayer().map(PlayerChannelHandler::player).forEach(tickBundler::send);
+                tickBundler = pipeline.createBundler();
+            }
+            if (!dataBundler.isEmpty()) {
+                pipeline.nonHidePlayer().forEach(dataBundler::send);
+                dataBundler = pipeline.createBundler();
+            }
+            if (!viewBundler.isEmpty()) {
+                pipeline.viewedPlayer().forEach(viewBundler::send);
+                viewBundler = pipeline.createBundler();
+            }
         }
     }
 }

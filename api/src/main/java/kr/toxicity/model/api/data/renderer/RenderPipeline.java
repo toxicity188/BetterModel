@@ -110,6 +110,10 @@ public final class RenderPipeline {
         this.showPacketHandler = this.showPacketHandler.andThen(Objects.requireNonNull(despawnPacketHandler));
     }
 
+    public boolean isSpawned(@NotNull UUID uuid) {
+        return playerMap.containsKey(uuid);
+    }
+
     public void createHitBox(@NotNull EntityAdapter entity, @NotNull Predicate<RenderedBone> predicate, @Nullable HitBoxListener listener) {
         for (RenderedBone value : entityMap.values()) {
             value.iterateTree(b -> b.createHitBox(entity, predicate, listener));
@@ -149,11 +153,20 @@ public final class RenderPipeline {
         }
     }
 
-    public boolean move(@Nullable ModelRotation rotation, @NotNull PacketBundler bundler) {
-        var rot = rotation == null || rotation.equals(this.rotation) ? null : (this.rotation = rotation);
+    public boolean rotate(@NotNull ModelRotation rotation, @NotNull PacketBundler bundler) {
+        if (rotation.equals(this.rotation)) return false;
+        var rot = this.rotation = rotation;
         var match = false;
         for (RenderedBone value : entityMap.values()) {
-            if (value.matchTree(b -> b.move(rot, bundler))) match = true;
+            if (value.matchTree(b -> b.rotate(rot, bundler))) match = true;
+        }
+        return match;
+    }
+
+    public boolean tick(@NotNull PacketBundler bundler) {
+        var match = false;
+        for (RenderedBone value : entityMap.values()) {
+            if (value.matchTree(b -> b.tick(bundler))) match = true;
         }
         return match;
     }
@@ -371,7 +384,7 @@ public final class RenderPipeline {
         if (hidePlayerSet.remove(player.getUniqueId())) {
             if (playerMap.containsKey(player.getUniqueId())) {
                 var bundler = createBundler();
-                forceUpdate(bundler);
+                forceUpdate(true, bundler);
                 showPacketHandler.accept(bundler);
                 if (!bundler.isEmpty()) bundler.send(player);
             }
