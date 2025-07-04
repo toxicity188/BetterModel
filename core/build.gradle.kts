@@ -18,7 +18,9 @@ dependencies {
     rootProject.project("nms").subprojects.forEach {
         implementation(project(":nms:${it.name}", configuration = "reobf"))
     }
-    implementation(libs.bundles.shadedLibrary)
+    implementation(libs.bundles.shadedLibrary) {
+        exclude("net.kyori")
+    }
 
     compileOnly("net.citizensnpcs:citizens-main:2.0.39-SNAPSHOT") {
         exclude("net.byteflux")

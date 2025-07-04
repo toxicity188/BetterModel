@@ -1,6 +1,8 @@
 package kr.toxicity.model.nms.v1_20_R3
 
+import kr.toxicity.library.sharedpackets.PluginBundlePacket
 import kr.toxicity.model.api.nms.PacketBundler
+import net.kyori.adventure.key.Key
 import net.minecraft.network.PacketSendListener
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.ClientGamePacketListener
@@ -10,10 +12,11 @@ import org.bukkit.entity.Player
 
 internal class PacketBundlerImpl(
     private val list: MutableList<Packet<ClientGamePacketListener>>
-) : PacketBundler, Iterable<Packet<ClientGamePacketListener>> by list {
-    private val bundlePacket by lazy {
-        ClientboundBundlePacket(this)
+) : PacketBundler, PluginBundlePacket<Packet<ClientGamePacketListener>> by PluginBundlePacket.of(key, list) {
+    private companion object {
+        private val key = Key.key("bettermodel")
     }
+    private val bundlePacket = ClientboundBundlePacket(this)
     override fun copy(): PacketBundler = PacketBundlerImpl(ArrayList(list))
     override fun send(player: Player, onSuccess: Runnable) {
         val connection = (player as CraftPlayer).handle.connection

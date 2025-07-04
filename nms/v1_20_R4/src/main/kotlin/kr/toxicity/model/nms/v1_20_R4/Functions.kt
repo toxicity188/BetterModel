@@ -45,11 +45,11 @@ internal inline fun <reified T, reified R> createAdaptedFieldGetter(noinline pap
 
 internal val EMPTY_QUATERNION = Quaternionf()
 
-internal val CONFIG by lazy {
+internal val CONFIG by lazy(LazyThreadSafetyMode.NONE) {
     BetterModel.config()
 }
 
-internal val ONLINE_MODE by lazy {
+internal val ONLINE_MODE by lazy(LazyThreadSafetyMode.NONE) {
     if (BetterModel.IS_PAPER) GlobalConfiguration.get().proxies.isProxyOnlineMode else Bukkit.getOnlineMode()
 }
 
@@ -63,7 +63,7 @@ internal fun Entity.passengerPosition(): Vector3f {
 
 internal fun Event.call(): Boolean = EventUtil.call(this)
 
-private val DATA_ITEMS by lazy {
+private val DATA_ITEMS by lazy(LazyThreadSafetyMode.NONE) {
     SynchedEntityData::class.java.declaredFields.first {
         it.type.isArray
     }.apply {

@@ -14,6 +14,7 @@ commandApi = "dev.jorel:commandapi-bukkit-shade:10.1.1"
 lombok = "org.projectlombok:lombok:1.18.38"
 bStats = "org.bstats:bstats-bukkit:3.1.0"
 dynamicUV = "com.github.toxicity188:DynamicUV:1.0.3"
+sharedPackets = "com.github.toxicity188:SharedPackets:1.0.0"
 
 [bundles]
 library = [
@@ -25,7 +26,8 @@ library = [
 shadedLibrary = [
     "commandApi",
     "bStats",
-    "dynamicUV"
+    "dynamicUV",
+    "sharedPackets"
 ]
 
 [plugins]

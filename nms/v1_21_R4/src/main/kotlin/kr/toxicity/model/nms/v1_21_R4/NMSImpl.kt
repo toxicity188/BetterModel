@@ -15,6 +15,7 @@ import kr.toxicity.model.api.tracker.ModelRotation
 import kr.toxicity.model.api.util.TransformedItemStack
 import kr.toxicity.model.api.util.entity.EntityId
 import kr.toxicity.model.api.util.function.BonePredicate
+import net.kyori.adventure.key.Keyed
 import net.minecraft.core.component.DataComponents
 import net.minecraft.network.Connection
 import net.minecraft.network.protocol.Packet
@@ -184,7 +185,7 @@ class NMSImpl : NMS {
 
         private fun <T : ClientGamePacketListener> Packet<in T>.handle(): Packet<in T> {
             when (this) {
-                is ClientboundBundlePacket -> return if (subPackets() is PacketBundler) this else ClientboundBundlePacket(subPackets().map {
+                is ClientboundBundlePacket -> return if (subPackets() is Keyed) this else ClientboundBundlePacket(subPackets().map {
                     it.handle()
                 })
                 is ClientboundAddEntityPacket -> {
