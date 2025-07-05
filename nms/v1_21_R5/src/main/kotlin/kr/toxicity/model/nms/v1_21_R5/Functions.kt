@@ -170,8 +170,8 @@ internal fun LivingEntity.toEquipmentPacket(mapper: (EquipmentSlot) -> ItemStack
 }
 internal fun LivingEntity.toEmptyEquipmentPacket() = toEquipmentPacket { ItemStack.EMPTY }
 
-internal fun Entity.trackedEntity() = (if (BetterModel.IS_FOLIA) `moonrise$getTrackedEntity`() else (level() as ServerLevel).chunkSource.chunkMap.entityMap.get(id))
-    ?.seenBy
+@Suppress("UNNECESSARY_SAFE_CALL")
+internal fun Entity.trackedEntity() = if (BetterModel.IS_FOLIA) `moonrise$getTrackedEntity`()?.seenBy
     ?.map {
         it.player.bukkitEntity
-    } ?: emptyList()
+    } ?: emptyList() else bukkitEntity.trackedBy

@@ -13,7 +13,6 @@ import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket
 import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.network.syncher.SynchedEntityData.DataItem
 import net.minecraft.network.syncher.SynchedEntityData.DataValue
-import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.util.Mth
 import net.minecraft.world.effect.MobEffects
@@ -179,7 +178,4 @@ internal fun LivingEntity.toEquipmentPacket(mapper: (EquipmentSlot) -> ItemStack
 }
 internal fun LivingEntity.toEmptyEquipmentPacket() = toEquipmentPacket { ItemStack.EMPTY }
 
-internal fun Entity.trackedEntity() = (level() as ServerLevel).chunkSource.chunkMap.entityMap.get(id)
-    ?.seenBy
-    ?.filterIsInstance<ServerPlayer>()
-    ?.map(ServerPlayer::getBukkitEntity) ?: emptyList()
+internal fun Entity.trackedEntity() = bukkitEntity.trackedBy
