@@ -518,6 +518,8 @@ class NMSImpl : NMS {
 
             override fun entity(): org.bukkit.entity.Entity = entity
             override fun handle(): Entity = entity.vanillaEntity
+            override fun id(): Int = handle().id
+            override fun trackedPlayer(): Collection<Player> = handle().trackedEntity()
             override fun dead(): Boolean = (handle() as? LivingEntity)?.isDeadOrDying == true || handle().removalReason?.shouldSave() == false
             override fun invisible(): Boolean = handle().isInvisible || (handle() as? LivingEntity)?.hasEffect(MobEffects.INVISIBILITY) == true
             override fun glow(): Boolean = handle().isCurrentlyGlowing

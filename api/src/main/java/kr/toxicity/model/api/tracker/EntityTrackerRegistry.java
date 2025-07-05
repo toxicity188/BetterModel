@@ -69,7 +69,7 @@ public final class EntityTrackerRegistry {
         if (put != null) return put;
         ID_REGISTRY_MAP.put(registry.id, registry);
         registry.load();
-        var stream = entity.getTrackedBy().stream();
+        var stream = registry.adapter.trackedPlayer().stream();
         if (entity instanceof Player player) stream = Stream.concat(Stream.of(player), stream);
         stream.map(p -> BetterModel.player(p.getUniqueId()).orElse(null))
                 .filter(Objects::nonNull)
@@ -89,8 +89,8 @@ public final class EntityTrackerRegistry {
 
     private EntityTrackerRegistry(@NotNull Entity entity) {
         this.entity = entity;
-        this.id = EntityId.of(entity);
         this.adapter = BetterModel.plugin().nms().adapt(entity);
+        this.id = new EntityId(entity.getWorld().getUID(), adapter.id());
     }
 
     public @NotNull Entity entity() {

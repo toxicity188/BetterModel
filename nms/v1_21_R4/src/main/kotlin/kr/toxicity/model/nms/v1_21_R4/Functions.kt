@@ -12,6 +12,7 @@ import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket
 import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.network.syncher.SynchedEntityData.DataItem
 import net.minecraft.network.syncher.SynchedEntityData.DataValue
+import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.*
 import net.minecraft.world.entity.ai.goal.RangedAttackGoal
@@ -169,3 +170,9 @@ internal fun LivingEntity.toEquipmentPacket(mapper: (EquipmentSlot) -> ItemStack
     return if (equip.isNotEmpty()) ClientboundSetEquipmentPacket(id, equip) else null
 }
 internal fun LivingEntity.toEmptyEquipmentPacket() = toEquipmentPacket { ItemStack.EMPTY }
+
+internal fun Entity.trackedEntity() = (if (BetterModel.IS_FOLIA) `moonrise$getTrackedEntity`() else (level() as ServerLevel).chunkSource.chunkMap.entityMap.get(id))
+    ?.seenBy
+    ?.map {
+        it.player.bukkitEntity
+    } ?: emptyList()
