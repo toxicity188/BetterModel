@@ -193,13 +193,11 @@ class NMSImpl : NMS {
                     it.handle()
                 })
                 is ClientboundAddEntityPacket -> {
+                BetterModel.plugin().scheduler().task(player.location) {
                     id.toRegistry(
                         { if (EntityTrackerRegistry.hasModelData(it.bukkitEntity)) EntityTrackerRegistry.registry(it.bukkitEntity) else null },
                         { true }
-                    )?.let {
-                        BetterModel.plugin().scheduler().asyncTaskLater(1) {
-                            it.spawnIfMatched(player)
-                        }
+                    )?.spawnIfMatched(player)
                     }
                 }
                 is ClientboundRemoveEntitiesPacket -> {
