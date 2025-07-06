@@ -110,8 +110,11 @@ public final class VectorUtil {
             var max = Math.max(sub.x, Math.max(sub.y, sub.z)) / 30F;
             var angle = (float) Math.ceil(max);
             if (angle > 1) {
+                var last = before.time();
                 for (float t = 1; t < angle; t++) {
-                    frames.add(linear(before.time(), after.time(), t / angle));
+                    var value = linear(before.time(), after.time(), t / angle);
+                    if (value - last < 0.05) continue;
+                    frames.add(last = value);
                 }
             }
         }
