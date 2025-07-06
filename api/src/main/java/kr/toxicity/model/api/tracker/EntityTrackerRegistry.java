@@ -25,7 +25,6 @@ import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public final class EntityTrackerRegistry {
@@ -42,14 +41,12 @@ public final class EntityTrackerRegistry {
     public static final Collection<EntityTrackerRegistry> REGISTRIES = Collections.unmodifiableCollection(UUID_REGISTRY_MAP.values());
 
     private final AtomicBoolean closed = new AtomicBoolean();
-    private final AtomicBoolean autoSpawn = new AtomicBoolean(true);
     private final Entity entity;
     private final EntityId id;
     private final EntityAdapter adapter;
     private final ConcurrentNavigableMap<String, EntityTracker> trackerMap = new ConcurrentSkipListMap<>();
     private final Collection<EntityTracker> trackers = Collections.unmodifiableCollection(trackerMap.values());
     private final Map<UUID, PlayerChannelHandler> viewedPlayerMap = new ConcurrentHashMap<>();
-    private Predicate<Player> spawnFilter = p -> autoSpawn() && p.getWorld() == entity().getWorld();
     private HideOption hideOption = HideOption.DEFAULT;
 
     public static @Nullable EntityTrackerRegistry registry(@NotNull UUID uuid) {
@@ -154,7 +151,7 @@ public final class EntityTrackerRegistry {
         return true;
     }
 
-    private void refreshSpawn() {
+    public void refreshSpawn() {
         for (PlayerChannelHandler value : viewedPlayerMap.values()) {
             spawn(value.player(), true);
         }
@@ -250,35 +247,6 @@ public final class EntityTrackerRegistry {
     }
 
     /**
-     * Checks this tracker supports auto spawn
-     * @return auto spawn
-     */
-    public boolean autoSpawn() {
-        return autoSpawn.get();
-    }
-
-    /**
-     * Sets this tracker is auto-spawned by some player's client
-     * @param spawn auto spawn
-     */
-    public void autoSpawn(boolean spawn) {
-        autoSpawn.set(spawn);
-    }
-
-    /**
-     * Checks this tracker can be spawned at this player's client
-     * @param player target player
-     * @return can be spawned at
-     */
-    public boolean canBeSpawnedAt(@NotNull Player player) {
-        return spawnFilter.test(player);
-    }
-
-    public void spawnFilter(@NotNull Predicate<Player> predicate) {
-        this.spawnFilter = this.spawnFilter.and(predicate);
-    }
-
-    /**
      * Checks this tracker is spawned by some player
      * @param player player
      * @return is spawned
@@ -292,16 +260,9 @@ public final class EntityTrackerRegistry {
      * @return is spawned
      */
     public boolean isSpawned(@NotNull UUID uuid) {
-        return viewedPlayerMap.containsKey(uuid);
-    }
-
-    /**
-     * Spawns this tracker to player if the spawn condition is matched
-     * @param player player
-     * @return success
-     */
-    public boolean spawnIfMatched(@NotNull Player player) {
-        return !isClosed() && canBeSpawnedAt(player) && spawn(player);
+        return viewedPlayerMap.containsKey(uuid) && trackerMap.values()
+                .stream()
+                .anyMatch(t -> t.pipeline.isSpawned(uuid));
     }
 
     /**
@@ -321,8 +282,10 @@ public final class EntityTrackerRegistry {
         if (trackerMap.isEmpty()) return false;
         var bundler = BetterModel.plugin().nms().createBundler(10);
         for (EntityTracker value : trackerMap.values()) {
-            if (!shouldNotSpawned || !value.pipeline.isSpawned(player.getUniqueId())) value.spawn(player, bundler);
+            if (shouldNotSpawned && value.pipeline.isSpawned(player.getUniqueId())) continue;
+            if (value.canBeSpawnedAt(player)) value.spawn(player, bundler);
         }
+        if (bundler.isEmpty()) return false;
         BetterModel.plugin().nms().mount(this, bundler);
         bundler.send(player, () -> BetterModel.plugin().nms().hide(player, this, () -> viewedPlayerMap.containsKey(player.getUniqueId())));
         return true;

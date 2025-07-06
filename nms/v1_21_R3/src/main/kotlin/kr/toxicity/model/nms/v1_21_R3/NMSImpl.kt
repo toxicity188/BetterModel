@@ -198,7 +198,7 @@ class NMSImpl : NMS {
                         { true }
                     )?.let {
                         BetterModel.plugin().scheduler().asyncTaskLater(1) {
-                            it.spawnIfMatched(player)
+                            it.spawn(player)
                         }
                     }
                 }
@@ -230,7 +230,7 @@ class NMSImpl : NMS {
                     }
                 }
                 is ClientboundRespawnPacket -> EntityTrackerRegistry.registry(player.uniqueId)?.let {
-                    send(it.mountPacket())
+                    PacketBundlerImpl(mutableListOf(it.mountPacket())).send(player)
                 }
             }
             return this

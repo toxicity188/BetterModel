@@ -380,7 +380,6 @@ public abstract class Tracker implements AutoCloseable {
      */
     public abstract @NotNull UUID uuid();
 
-
     /**
      * Players this animation by once
      * @param animation animation's name
@@ -645,7 +644,6 @@ public abstract class Tracker implements AutoCloseable {
     public boolean forRemoval() {
         return forRemoval.get();
     }
-
 
     @Override
     public boolean equals(Object o) {

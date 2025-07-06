@@ -14,6 +14,7 @@ import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.function.BonePredicate;
 import kr.toxicity.model.api.util.lazy.LazyFloatProvider;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.jetbrains.annotations.ApiStatus;
@@ -21,8 +22,11 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+import java.util.Collections;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
@@ -38,6 +42,7 @@ public class EntityTracker extends Tracker {
 
     private final AtomicInteger damageTintValue = new AtomicInteger(0xFF8080);
     private final AtomicLong damageTint = new AtomicLong(-1);
+    private final Set<UUID> markForSpawn = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     private final HeadRotationProperty headRotationProperty = new HeadRotationProperty();
 
@@ -220,12 +225,12 @@ public class EntityTracker extends Tracker {
 
     @Override
     public @NotNull Location location() {
-        return registry.entity().getLocation();
+        return sourceEntity().getLocation();
     }
 
     @Override
     public @NotNull UUID uuid() {
-        return registry.entity().getUniqueId();
+        return sourceEntity().getUniqueId();
     }
 
     /**
@@ -266,6 +271,31 @@ public class EntityTracker extends Tracker {
     @ApiStatus.Internal
     public void refresh() {
         BetterModel.plugin().scheduler().task(registry.entity(), () -> pipeline.createHitBox(registry.adapter(), r -> r.getHitBox() != null, null));
+    }
+
+    /**
+     * Marks specific player for spawning
+     * @return success
+     */
+    public boolean markPlayerForSpawn(@NotNull OfflinePlayer player) {
+        return markForSpawn.add(player.getUniqueId());
+    }
+
+    /**
+     * Unmarks specific player for spawning
+     * @return success
+     */
+    public boolean unmarkPlayerForSpawn(@NotNull OfflinePlayer player) {
+        return markForSpawn.remove(player.getUniqueId());
+    }
+
+    /**
+     * Checks this model can be spawned at given player
+     * @param player target player
+     * @return can be spawned
+     */
+    public boolean canBeSpawnedAt(@NotNull OfflinePlayer player) {
+        return markForSpawn.isEmpty() || markForSpawn.contains(player.getUniqueId());
     }
 
     /**
