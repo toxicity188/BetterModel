@@ -297,7 +297,7 @@ public final class EntityTrackerRegistry {
         if (handler == null) return false;
         handler.sendEntityData(this);
         for (EntityTracker value : trackerMap.values()) {
-            if (!value.forRemoval()) value.remove(handler.player());
+            if (!value.forRemoval() && value.pipeline.isSpawned(player.getUniqueId())) value.remove(handler.player());
         }
         return true;
     }

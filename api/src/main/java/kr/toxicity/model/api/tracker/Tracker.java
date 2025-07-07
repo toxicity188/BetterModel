@@ -26,7 +26,6 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
-import java.util.UUID;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -295,8 +294,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return success
      */
     public boolean forceUpdate(boolean force) {
-        var get = readyForForceUpdate.get();
-        return readyForForceUpdate.compareAndSet(get, force);
+        return readyForForceUpdate.compareAndSet(!force, force);
     }
 
     /**
@@ -373,12 +371,6 @@ public abstract class Tracker implements AutoCloseable {
      * @return location
      */
     public abstract @NotNull Location location();
-
-    /**
-     * Gets uuid of a model.
-     * @return uuid
-     */
-    public abstract @NotNull UUID uuid();
 
     /**
      * Players this animation by once

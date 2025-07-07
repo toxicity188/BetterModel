@@ -47,14 +47,6 @@ public class EntityTracker extends Tracker {
     private final HeadRotationProperty headRotationProperty = new HeadRotationProperty();
 
     /**
-     * Gets world uuid in tracker
-     * @return world
-     */
-    public @NotNull UUID world() {
-        return registry.entity().getWorld().getUID();
-    }
-
-    /**
      * Creates entity tracker
      * @param registry registry
      * @param pipeline render instance
@@ -226,11 +218,6 @@ public class EntityTracker extends Tracker {
     @Override
     public @NotNull Location location() {
         return sourceEntity().getLocation();
-    }
-
-    @Override
-    public @NotNull UUID uuid() {
-        return sourceEntity().getUniqueId();
     }
 
     /**

@@ -5,14 +5,12 @@ import kr.toxicity.model.api.event.CreateDummyTrackerEvent;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.util.EventUtil;
 import kr.toxicity.model.api.util.FunctionUtil;
-import lombok.Setter;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 import java.util.Objects;
-import java.util.UUID;
 import java.util.function.Consumer;
 
 /**
@@ -20,8 +18,6 @@ import java.util.function.Consumer;
  */
 public final class DummyTracker extends Tracker {
     private Location location;
-    @Setter
-    private UUID uuid = UUID.randomUUID();
 
     /**
      * Dummy tracker.
@@ -54,12 +50,6 @@ public final class DummyTracker extends Tracker {
         if (!bundler.isEmpty()) pipeline.allPlayer()
                 .map(PlayerChannelHandler::player)
                 .forEach(bundler::send);
-    }
-
-    @NotNull
-    @Override
-    public UUID uuid() {
-        return uuid;
     }
 
     /**

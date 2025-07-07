@@ -37,12 +37,12 @@ class PlayLimbAnimMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), 
         if (remove(args)) {
             EntityTrackerRegistry.registry(targetPlayer.uniqueId)?.remove(currentModelId)
         } else {
-            val renderer = BetterModel.limb(currentModelId).orElse(null) ?: return SkillResult.CONDITION_FAILED.also {
+            val renderer = BetterModel.limb(currentModelId).orElse(null) ?: return SkillResult.CONDITION_FAILED.apply {
                 warn("Error: Player not found '$currentModelId'")
             }
             val loopType = mode(args)
             val modifier = AnimationModifier({ true }, 0, 0, loopType, speed(args))
-            renderer.getOrCreate(targetPlayer).apply {
+            renderer.getOrCreate(targetPlayer).run {
                 if (!animate(
                         currentAnimationId,
                         modifier,
