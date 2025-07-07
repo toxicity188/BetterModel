@@ -122,7 +122,7 @@ class NMSImpl : NMS {
             )?.let {
                 list += ClientboundSetEntityDataPacket(target.id, it).toRegistryDataPacket(registry)
             }
-            if (target is LivingEntity) target.toEmptyEquipmentPacket()?.let {
+            if (registry.hideOption().equipment && target is LivingEntity) target.toEmptyEquipmentPacket()?.let {
                 list += it
             }
             PacketBundlerImpl(list).send(player)
@@ -181,7 +181,7 @@ class NMSImpl : NMS {
             )?.let {
                 list += ClientboundSetEntityDataPacket(handle.id, it)
             }
-            if (handle is LivingEntity) handle.toEquipmentPacket()?.let {
+            if (registry.hideOption().equipment && handle is LivingEntity) handle.toEquipmentPacket()?.let {
                 list += it
             }
             PacketBundlerImpl(list).send(player)
