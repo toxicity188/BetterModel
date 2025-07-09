@@ -2,6 +2,7 @@ package kr.toxicity.model.api.script;
 
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationIterator;
+import kr.toxicity.model.api.data.raw.Datapoint;
 import kr.toxicity.model.api.data.raw.ModelAnimation;
 import kr.toxicity.model.api.data.raw.ModelAnimator;
 import kr.toxicity.model.api.data.raw.ModelKeyframe;
@@ -9,6 +10,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -32,10 +34,10 @@ public record BlueprintScript(@NotNull String name, @NotNull AnimationIterator.T
                 .stream()
                 .map(d -> AnimationScript.of(d.dataPoints()
                         .stream()
-                        .map(p -> {
-                            var raw = p.script();
-                            return raw == null ? AnimationScript.EMPTY : BetterModel.plugin().scriptManager().build(raw);
-                        })
+                        .map(Datapoint::script)
+                        .filter(Objects::nonNull)
+                        .map(raw -> BetterModel.plugin().scriptManager().build(raw))
+                        .filter(Objects::nonNull)
                         .toList()
                 ).time(d.time()));
         return new BlueprintScript(
