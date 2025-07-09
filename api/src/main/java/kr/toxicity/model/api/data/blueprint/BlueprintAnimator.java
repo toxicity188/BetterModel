@@ -96,7 +96,7 @@ public record BlueprintAnimator(
      * @param type type
      * @return iterator
      */
-    public @NotNull AnimationIterator iterator(@NotNull AnimationIterator.Type type) {
+    public @NotNull AnimationIterator<AnimationMovement> iterator(@NotNull AnimationIterator.Type type) {
         return type.create(keyFrame);
     }
 }

@@ -3,6 +3,7 @@ package kr.toxicity.model.api.data.renderer;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.animation.AnimationPredicate;
+import kr.toxicity.model.api.animation.RunningAnimation;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.BoneTags;
 import kr.toxicity.model.api.bone.RenderedBone;
@@ -120,7 +121,7 @@ public final class RenderPipeline {
         }
     }
 
-    public @Nullable RenderedBone.RunningAnimation runningAnimation() {
+    public @Nullable RunningAnimation runningAnimation() {
         for (RenderedBone value : entityMap.values()) {
             var get = value.findNotNullByTree(RenderedBone::runningAnimation);
             if (get != null) return get;
@@ -267,7 +268,7 @@ public final class RenderPipeline {
         var playOnceTask = FunctionUtil.playOnce(removeTask);
         var animationPredicate = AnimationPredicate.of(filter);
         for (RenderedBone value : entityMap.values()) {
-            value.iterateAnimation(animationPredicate, (b, a) -> b.addAnimation(a, animation.name(), animation, modifier, playOnceTask));
+            value.iterateAnimation(animationPredicate, (b, a) -> b.addAnimation(a, animation, modifier, playOnceTask));
         }
     }
 
@@ -289,7 +290,7 @@ public final class RenderPipeline {
         scriptProcessor.replace(animation.script(), animation.loop(), modifier);
         var animationPredicate = AnimationPredicate.of(filter);
         for (RenderedBone value : entityMap.values()) {
-            value.iterateAnimation(animationPredicate, (b, a) -> b.replaceAnimation(a, target, animation.name(), animation, modifier));
+            value.iterateAnimation(animationPredicate, (b, a) -> b.replaceAnimation(a, target, animation, modifier));
         }
     }
 

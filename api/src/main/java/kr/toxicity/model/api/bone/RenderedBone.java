@@ -2,10 +2,7 @@ package kr.toxicity.model.api.bone;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import kr.toxicity.model.api.BetterModel;
-import kr.toxicity.model.api.animation.AnimationIterator;
-import kr.toxicity.model.api.animation.AnimationModifier;
-import kr.toxicity.model.api.animation.AnimationMovement;
-import kr.toxicity.model.api.animation.AnimationPredicate;
+import kr.toxicity.model.api.animation.*;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox;
 import kr.toxicity.model.api.data.renderer.RenderSource;
@@ -35,7 +32,6 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.*;
 
 /**
@@ -62,10 +58,12 @@ public final class RenderedBone implements HitBoxSource {
     @NotNull
     private final Map<BoneName, RenderedBone> children;
 
-    private final SequencedMap<String, TreeIterator> animators = new LinkedHashMap<>();
-    private final Collection<TreeIterator> reversedView = animators.sequencedValues().reversed();
+    private final AnimationStateHandler<AnimationMovement> state = new AnimationStateHandler<>(
+            AnimationMovement::new,
+            AnimationMovement::time,
+            t -> relativeOffsetCache = null
+    );
     private final Int2ObjectOpenHashMap<ItemStack> tintCacheMap = new Int2ObjectOpenHashMap<>();
-    private final AtomicBoolean forceUpdateAnimation = new AtomicBoolean(true);
     @Getter
     private final boolean dummyBone;
     private final Object itemLock = new Object();
@@ -87,10 +85,7 @@ public final class RenderedBone implements HitBoxSource {
 
     //Animation
     private boolean firstTick = true;
-    private int delay;
-    private volatile AnimationMovement keyFrame = null;
     private volatile BoneMovement beforeTransform, afterTransform, relativeOffsetCache;
-    private volatile TreeIterator currentIterator = null;
     private volatile ModelRotation rotation = ModelRotation.EMPTY;
 
     private Supplier<Vector3f> defaultPosition = FunctionUtil.asSupplier(EMPTY_VECTOR);
@@ -140,8 +135,7 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     public @Nullable RunningAnimation runningAnimation() {
-        var iterator = currentIterator;
-        return iterator != null ? iterator.animation : null;
+        return state.runningAnimation();
     }
 
     public boolean updateItem(@NotNull Predicate<RenderedBone> predicate, @NotNull RenderSource<?> source) {
@@ -278,61 +272,6 @@ public final class RenderedBone implements HitBoxSource {
         return false;
     }
 
-    private boolean keyframeFinished() {
-        return delay <= 0;
-    }
-
-    private boolean shouldUpdateAnimation() {
-        return forceUpdateAnimation.compareAndSet(true, false) || keyframeFinished() || delay % Tracker.MINECRAFT_TICK_MULTIPLIER == 0;
-    }
-
-    private boolean updateAnimation() {
-        synchronized (animators) {
-            var iterator = reversedView.iterator();
-            while (iterator.hasNext()) {
-                var next = iterator.next();
-                if (!next.getAsBoolean()) continue;
-                if (currentIterator == null) {
-                    if (updateKeyframe(iterator, next)) {
-                        currentIterator = next;
-                        return true;
-                    }
-                } else if (currentIterator != next) {
-                    if (updateKeyframe(iterator, next)) {
-                        currentIterator.clear();
-                        currentIterator = next;
-                        delay = 0;
-                        return true;
-                    }
-                } else if (keyframeFinished()) {
-                    if (updateKeyframe(iterator, next)) {
-                        return true;
-                    }
-                } else {
-                    return false;
-                }
-            }
-        }
-        return setKeyframe(null);
-    }
-
-    private boolean updateKeyframe(@NotNull Iterator<TreeIterator> iterator, @NotNull TreeIterator next) {
-        if (!next.hasNext()) {
-            next.run();
-            iterator.remove();
-            return false;
-        } else {
-            return setKeyframe(next.next());
-        }
-    }
-
-    private boolean setKeyframe(@Nullable AnimationMovement next) {
-        if (keyFrame == next) return false;
-        relativeOffsetCache = null;
-        keyFrame = next;
-        return true;
-    }
-
     public boolean rotate(@NotNull ModelRotation rotation, @NotNull PacketBundler bundler) {
         this.rotation = rotation;
         if (display != null) {
@@ -343,15 +282,13 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     public boolean tick(@NotNull PacketBundler bundler) {
-        --delay;
-        if (shouldUpdateAnimation() && (updateAnimation() || firstTick)) {
-            var f = frame();
-            delay = Math.round(f);
+        state.tick();
+        if (state.shouldUpdateAnimation() && (state.updateAnimation() || firstTick)) {
             beforeTransform = afterTransform;
             var boneMovement = afterTransform = relativeOffset();
             var d = display;
             if (d != null) {
-                d.frame(toInterpolationDuration(f));
+                d.frame(toInterpolationDuration(frame()));
                 setup(boneMovement);
                 if (isVisible()) d.sendTransformation(bundler);
             }
@@ -445,16 +382,18 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     private float frame() {
-        return keyFrame != null ? keyFrame.time() * 20F * Tracker.MINECRAFT_TICK_MULTIPLIER : parent != null ? parent.frame() : 0F;
+        var frame = state.frame();
+        return frame == 0 && parent != null ? parent.frame() : frame;
     }
 
     private @NotNull BoneMovement defaultFrame() {
-        return defaultFrame.plus(keyFrame != null ? keyFrame : new AnimationMovement(0, null, null, null));
+        var keyframe = state.getKeyframe();
+        return defaultFrame.plus(keyframe != null ? keyframe : new AnimationMovement(0));
     }
 
     private float progress() {
         var f = frame();
-        return f == 0 ? 0F : (float) delay / f;
+        return f == 0 ? 0F : (float) state.getDelay() / f;
     }
 
     private @NotNull BoneMovement relativeOffset() {
@@ -526,34 +465,25 @@ public final class RenderedBone implements HitBoxSource {
         if (display != null) display.spawn(!hide && !display.invisible(), bundler);
     }
 
-    public boolean addAnimation(@NotNull AnimationPredicate filter, @NotNull String parent, @NotNull BlueprintAnimation animator, @NotNull AnimationModifier modifier, Runnable removeTask) {
+    public boolean addAnimation(@NotNull AnimationPredicate filter, @NotNull BlueprintAnimation animator, @NotNull AnimationModifier modifier, Runnable removeTask) {
         if (filter.test(this)) {
             var get = animator.animator().get(getName());
             if (get == null && animator.override() && !filter.isChildren()) return false;
             var type = modifier.type(animator.loop());
-            var iterator = get != null ? new TreeIterator(parent, get.iterator(type), modifier, removeTask) : new TreeIterator(parent, animator.emptyIterator(type), modifier, removeTask);
-            synchronized (animators) {
-                animators.putLast(parent, iterator);
-            }
-            forceUpdateAnimation.set(true);
+            var iterator = get != null ? get.iterator(type) : animator.emptyIterator(type);
+            state.addAnimation(animator.name(), iterator, modifier, removeTask);
             return true;
         }
         return false;
     }
 
-    public boolean replaceAnimation(@NotNull AnimationPredicate filter, @NotNull String target, @NotNull String parent, @NotNull BlueprintAnimation animator, @NotNull AnimationModifier modifier) {
+    public boolean replaceAnimation(@NotNull AnimationPredicate filter, @NotNull String target, @NotNull BlueprintAnimation animator, @NotNull AnimationModifier modifier) {
         if (filter.test(this)) {
             var get = animator.animator().get(getName());
             if (get == null && animator.override() && !filter.isChildren()) return false;
             var type = modifier.type(animator.loop());
-            synchronized (animators) {
-                var v = animators.get(target);
-                if (v != null) animators.replace(target, get != null ? new TreeIterator(parent, get.iterator(type), v.modifier, v.removeTask) : new TreeIterator(parent, animator.emptyIterator(type), v.modifier, v.removeTask));
-                else animators.replace(target, get != null ? new TreeIterator(parent, get.iterator(type), modifier, () -> {
-                }) : new TreeIterator(parent, animator.emptyIterator(type), modifier, () -> {
-                }));
-            }
-            forceUpdateAnimation.set(true);
+            var iterator = get != null ? get.iterator(type) : animator.emptyIterator(type);
+            state.replaceAnimation(target, iterator, modifier);
             return true;
         }
         return false;
@@ -562,14 +492,10 @@ public final class RenderedBone implements HitBoxSource {
     /**
      * Stops bone's animation
      * @param filter filter
-     * @param parent animation's name
+     * @param name animation's name
      */
-    public void stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String parent) {
-        if (filter.test(this)) {
-            synchronized (animators) {
-                if (animators.remove(parent) != null) forceUpdateAnimation.set(true);
-            }
-        }
+    public void stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String name) {
+        if (filter.test(this)) state.stopAnimation(name);
     }
 
     /**
@@ -645,81 +571,6 @@ public final class RenderedBone implements HitBoxSource {
             if (value.iterateAnimation(childPredicate, mapper)) parentResult = true;
         }
         return parentResult;
-    }
-
-    public record RunningAnimation(@NotNull String name, @NotNull AnimationIterator.Type type) {}
-
-    private class TreeIterator implements AnimationIterator, BooleanSupplier, Runnable {
-        private final RunningAnimation animation;
-        private final AnimationIterator iterator;
-        private final AnimationModifier modifier;
-        private final Runnable removeTask;
-
-        private final AnimationMovement previous;
-
-        private boolean started = false;
-        private boolean ended = false;
-
-        public TreeIterator(String name, AnimationIterator iterator, AnimationModifier modifier, Runnable removeTask) {
-            animation = new RunningAnimation(name, iterator.type());
-            this.iterator = iterator;
-            this.modifier = modifier;
-            this.removeTask = removeTask;
-
-            previous = keyFrame != null ? keyFrame.time((float) modifier.end() / 20) : new AnimationMovement((float) modifier.end() / 20, null, null, null);
-        }
-
-        @Override
-        public int index() {
-            return iterator.index();
-        }
-
-        @Override
-        public int lastIndex() {
-            return iterator.lastIndex();
-        }
-
-        @Override
-        public void run() {
-            removeTask.run();
-        }
-
-        @Override
-        public boolean getAsBoolean() {
-            return modifier.predicate().getAsBoolean();
-        }
-
-        @Override
-        public boolean hasNext() {
-            return iterator.hasNext() || (modifier.end() > 0 && !ended);
-        }
-
-        @Override
-        public AnimationMovement next() {
-            if (!started) {
-                started = true;
-                return iterator.next().time((float) modifier.start() / 20);
-            }
-            if (!iterator.hasNext()) {
-                ended = true;
-                return previous;
-            }
-            var nxt = iterator.next();
-            nxt = nxt.time(nxt.time() / modifier.speedValue());
-            return nxt;
-        }
-
-        @Override
-        public void clear() {
-            iterator.clear();
-            started = ended = !iterator.hasNext();
-        }
-
-        @NotNull
-        @Override
-        public Type type() {
-            return iterator.type();
-        }
     }
 
     @NotNull

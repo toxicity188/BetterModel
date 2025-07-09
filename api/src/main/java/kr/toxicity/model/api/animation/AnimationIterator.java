@@ -10,12 +10,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.Function;
 
 /**
  * A keyframe iterator of animation.
  */
-public interface AnimationIterator extends Iterator<AnimationMovement> {
+public interface AnimationIterator<T extends Timed> extends Iterator<T> {
 
     /**
      * Clears this iterator
@@ -48,15 +47,30 @@ public interface AnimationIterator extends Iterator<AnimationMovement> {
         /**
          * Play once
          */
-        PLAY_ONCE(PlayOnce::new),
+        PLAY_ONCE {
+            @Override
+            public @NotNull <T extends Timed> AnimationIterator<T> create(@NotNull List<T> keyFrames) {
+                return new PlayOnce<>(keyFrames);
+            }
+        },
         /**
          * Loop
          */
-        LOOP(Loop::new),
+        LOOP {
+            @Override
+            public @NotNull <T extends Timed> AnimationIterator<T> create(@NotNull List<T> keyFrames) {
+                return new Loop<>(keyFrames);
+            }
+        },
         /**
          * Hold on last
          */
-        HOLD_ON_LAST(HoldOnLast::new)
+        HOLD_ON_LAST {
+            @Override
+            public @NotNull <T extends Timed> AnimationIterator<T> create(@NotNull List<T> keyFrames) {
+                return new HoldOnLast<>(keyFrames);
+            }
+        }
         ;
 
         /**
@@ -75,25 +89,20 @@ public interface AnimationIterator extends Iterator<AnimationMovement> {
                 return PLAY_ONCE;
             }
         };
-
-        private final Function<List<AnimationMovement>, AnimationIterator> mapper;
-
         /**
          * Creates iterator by given keyframes
          * @param keyFrames keyframes
          * @return iterator
          */
-        public @NotNull AnimationIterator create(@NotNull List<AnimationMovement> keyFrames) {
-            return mapper.apply(keyFrames);
-        }
+        public abstract <T extends Timed> @NotNull AnimationIterator<T> create(@NotNull List<T> keyFrames);
     }
 
     /**
      * Play once
      */
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-    final class PlayOnce implements AnimationIterator {
-        private final List<AnimationMovement> keyFrame;
+    final class PlayOnce<T extends Timed> implements AnimationIterator<T> {
+        private final List<T> keyFrame;
         private int index = 0;
 
         @Override
@@ -118,7 +127,7 @@ public interface AnimationIterator extends Iterator<AnimationMovement> {
 
         @Override
         @NotNull
-        public AnimationMovement next() {
+        public T next() {
             return keyFrame.get(index++);
         }
 
@@ -133,8 +142,8 @@ public interface AnimationIterator extends Iterator<AnimationMovement> {
      * Hold on last
      */
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-    final class HoldOnLast implements AnimationIterator {
-        private final List<AnimationMovement> keyFrame;
+    final class HoldOnLast<T extends Timed> implements AnimationIterator<T> {
+        private final List<T> keyFrame;
         private int index = 0;
         private boolean finished = false;
 
@@ -161,11 +170,9 @@ public interface AnimationIterator extends Iterator<AnimationMovement> {
 
         @Override
         @NotNull
-        public AnimationMovement next() {
+        public T next() {
             if (finished) {
-                var last = keyFrame.getLast();
-                // Returns the last frame with time 0 to maintain the state without causing a long delay.
-                return new AnimationMovement(0, last.transform(), last.scale(), last.rotation());
+                return keyFrame.getLast();
             }
             var nextFrame = keyFrame.get(index++);
             if (index >= keyFrame.size()) {
@@ -185,8 +192,8 @@ public interface AnimationIterator extends Iterator<AnimationMovement> {
      * Loop
      */
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-    final class Loop implements AnimationIterator {
-        private final List<AnimationMovement> keyFrame;
+    final class Loop<T extends Timed> implements AnimationIterator<T> {
+        private final List<T> keyFrame;
         private int index = 0;
 
         @Override
@@ -211,7 +218,7 @@ public interface AnimationIterator extends Iterator<AnimationMovement> {
 
         @Override
         @NotNull
-        public AnimationMovement next() {
+        public T next() {
             if (index >= keyFrame.size()) index = 0;
             return keyFrame.get(index++);
         }

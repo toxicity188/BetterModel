@@ -69,12 +69,12 @@ public record BlueprintAnimation(
                 animation.override(),
                 newMap,
                 blueprintScript,
-                newMap.isEmpty() ? List.of(new AnimationMovement(0, null, null, null)) : newMap.values()
+                newMap.isEmpty() ? List.of(new AnimationMovement(0)) : newMap.values()
                         .iterator()
                         .next()
                         .keyFrame()
                         .stream()
-                        .map(a -> new AnimationMovement(a.time(), null, null, null))
+                        .map(a -> new AnimationMovement(a.time()))
                         .toList()
         );
     }
@@ -112,7 +112,7 @@ public record BlueprintAnimation(
      * @param type type
      * @return iterator
      */
-    public @NotNull AnimationIterator emptyIterator(@NotNull AnimationIterator.Type type) {
+    public @NotNull AnimationIterator<AnimationMovement> emptyIterator(@NotNull AnimationIterator.Type type) {
         return type.create(emptyAnimator);
     }
 }
