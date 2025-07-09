@@ -12,6 +12,7 @@ import kr.toxicity.model.api.data.raw.ModelAnimator;
 import kr.toxicity.model.api.script.BlueprintScript;
 import kr.toxicity.model.api.util.VectorUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
@@ -36,7 +37,7 @@ public record BlueprintAnimation(
         float length,
         boolean override,
         @NotNull @Unmodifiable Map<BoneName, BlueprintAnimator> animator,
-        @NotNull BlueprintScript script,
+        @Nullable BlueprintScript script,
         @NotNull List<AnimationMovement> emptyAnimator
 ) {
     /**
@@ -46,7 +47,7 @@ public record BlueprintAnimation(
      */
     public static @NotNull BlueprintAnimation from(@NotNull ModelAnimation animation) {
         var map = new HashMap<BoneName, BlueprintAnimator.AnimatorData>();
-        BlueprintScript blueprintScript = BlueprintScript.emptyOf(animation);
+        BlueprintScript blueprintScript = null;
         var animator = animation.animators();
         for (Map.Entry<String, ModelAnimator> entry : animator.entrySet()) {
             var name = entry.getValue().name();
@@ -69,7 +70,7 @@ public record BlueprintAnimation(
                 animation.override(),
                 newMap,
                 blueprintScript,
-                newMap.isEmpty() ? List.of(new AnimationMovement(0)) : newMap.values()
+                newMap.isEmpty() ? List.of(AnimationMovement.EMPTY) : newMap.values()
                         .iterator()
                         .next()
                         .keyFrame()

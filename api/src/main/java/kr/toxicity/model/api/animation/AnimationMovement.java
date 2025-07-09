@@ -18,6 +18,8 @@ public record AnimationMovement(
         @Nullable Vector3f rotation
 ) implements Comparable<AnimationMovement>, Timed {
 
+    public static final AnimationMovement EMPTY = new AnimationMovement(0);
+
     public AnimationMovement(float time) {
         this(time, null, null, null);
     }

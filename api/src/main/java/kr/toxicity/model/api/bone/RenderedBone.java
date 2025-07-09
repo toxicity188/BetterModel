@@ -31,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import java.util.*;
+import java.util.Map;
 import java.util.function.*;
 
 /**
@@ -59,8 +59,8 @@ public final class RenderedBone implements HitBoxSource {
     private final Map<BoneName, RenderedBone> children;
 
     private final AnimationStateHandler<AnimationMovement> state = new AnimationStateHandler<>(
-            AnimationMovement::new,
-            AnimationMovement::time,
+            AnimationMovement.EMPTY,
+            (a, s, t) -> a.time(t),
             t -> relativeOffsetCache = null
     );
     private final Int2ObjectOpenHashMap<ItemStack> tintCacheMap = new Int2ObjectOpenHashMap<>();
@@ -282,8 +282,7 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     public boolean tick(@NotNull PacketBundler bundler) {
-        state.tick();
-        if (state.shouldUpdateAnimation() && (state.updateAnimation() || firstTick)) {
+        if (state.tick() || firstTick) {
             beforeTransform = afterTransform;
             var boneMovement = afterTransform = relativeOffset();
             var d = display;

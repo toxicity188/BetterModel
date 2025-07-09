@@ -12,7 +12,6 @@ import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket
 import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.network.syncher.SynchedEntityData.DataItem
 import net.minecraft.network.syncher.SynchedEntityData.DataValue
-import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.*
 import net.minecraft.world.entity.ai.goal.RangedAttackGoal
@@ -92,7 +91,7 @@ internal fun Entity.isWalking(): Boolean {
                 is RangedAttackGoal, is RangedCrossbowAttackGoal<*>, is RangedBowAttackGoal<*> -> true
                 else -> false
             }
-        }) && deltaMovement.horizontalDistance() > 0.002
+        })
         is ServerPlayer -> xMovement() != 0F || zMovement() != 0F
         else -> false
     }

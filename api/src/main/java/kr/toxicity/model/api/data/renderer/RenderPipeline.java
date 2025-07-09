@@ -3,6 +3,7 @@ package kr.toxicity.model.api.data.renderer;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.animation.AnimationPredicate;
+import kr.toxicity.model.api.animation.AnimationStateHandler;
 import kr.toxicity.model.api.animation.RunningAnimation;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.BoneTags;
@@ -12,7 +13,8 @@ import kr.toxicity.model.api.nms.EntityAdapter;
 import kr.toxicity.model.api.nms.HitBoxListener;
 import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
-import kr.toxicity.model.api.script.ScriptProcessor;
+import kr.toxicity.model.api.script.AnimationScript;
+import kr.toxicity.model.api.script.TimeScript;
 import kr.toxicity.model.api.tracker.ModelRotation;
 import kr.toxicity.model.api.util.FunctionUtil;
 import kr.toxicity.model.api.util.TransformedItemStack;
@@ -63,7 +65,16 @@ public final class RenderPipeline {
     private ModelRotation rotation = ModelRotation.INVALID;
 
     @Getter
-    private final ScriptProcessor scriptProcessor = new ScriptProcessor();
+    private final AnimationStateHandler<TimeScript> scriptProcessor = new AnimationStateHandler<>(
+            TimeScript.EMPTY,
+            (a, s, t) -> s == AnimationStateHandler.MappingState.PROGRESS ? a.time(t) : AnimationScript.EMPTY.time(t),
+            s -> {
+                if (s == null) return;
+                if (s.isSync()) {
+                    BetterModel.plugin().scheduler().task(getSource().location(), () -> s.accept(getSource()));
+                } else s.accept(getSource());
+            }
+    );
 
     public RenderPipeline(
             @NotNull ModelRenderer parent,
@@ -264,7 +275,8 @@ public final class RenderPipeline {
     }
 
     public void animate(@NotNull Predicate<RenderedBone> filter, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
-        scriptProcessor.animate(animation.script(), animation.loop(), modifier);
+        var script = animation.script();
+        if (script != null) scriptProcessor.addAnimation(animation.name(), script.iterator(), modifier, () -> {});
         var playOnceTask = FunctionUtil.playOnce(removeTask);
         var animationPredicate = AnimationPredicate.of(filter);
         for (RenderedBone value : entityMap.values()) {
@@ -287,7 +299,8 @@ public final class RenderPipeline {
     }
 
     public void replace(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier) {
-        scriptProcessor.replace(animation.script(), animation.loop(), modifier);
+        var script = animation.script();
+        if (script != null) scriptProcessor.replaceAnimation(target, script.iterator(), modifier);
         var animationPredicate = AnimationPredicate.of(filter);
         for (RenderedBone value : entityMap.values()) {
             value.iterateAnimation(animationPredicate, (b, a) -> b.replaceAnimation(a, target, animation, modifier));

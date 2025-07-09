@@ -12,6 +12,7 @@ import kr.toxicity.model.api.util.EventUtil;
 import kr.toxicity.model.api.util.FunctionUtil;
 import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.function.BonePredicate;
+import kr.toxicity.model.api.util.function.FloatConstantSupplier;
 import kr.toxicity.model.api.util.lazy.LazyFloatProvider;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
@@ -104,7 +105,7 @@ public class EntityTracker extends Tracker {
             var hitBox = e.getHitBox();
             return hitBox != null && hitBox.onWalk();
         }));
-        var walkSpeedSupplier = FunctionUtil.throttleTickFloat(modifier.damageAnimation() ? () -> adapter.walkSpeed() + 4F * (float) Math.sqrt(damageTickProvider.getAsFloat()) : () -> 1F);
+        var walkSpeedSupplier = modifier.damageAnimation() ? FunctionUtil.throttleTickFloat(() -> adapter.walkSpeed() + 4F * (float) Math.sqrt(damageTickProvider.getAsFloat())) : FloatConstantSupplier.ONE;
         pipeline.animate("walk", new AnimationModifier(walkSupplier, 6, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
         pipeline.animate("idle_fly", new AnimationModifier(adapter::fly, 6, 0, AnimationIterator.Type.LOOP, 1F));
         pipeline.animate("walk_fly", new AnimationModifier(() -> adapter.fly() && walkSupplier.getAsBoolean(), 6, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
@@ -114,13 +115,6 @@ public class EntityTracker extends Tracker {
             createHitBox();
         });
         tick((t, s) -> updateBaseEntity0());
-        tick((t, s) -> {
-            var reader = t.pipeline.getScriptProcessor().getCurrentReader();
-            if (reader == null) return;
-            var script = reader.script();
-            if (script == null) return;
-            BetterModel.plugin().scheduler().task(entity, () -> script.accept(entity));
-        });
         tick((t, s) -> {
             if (damageTint.getAndDecrement() == 0) tint(-1);
         });

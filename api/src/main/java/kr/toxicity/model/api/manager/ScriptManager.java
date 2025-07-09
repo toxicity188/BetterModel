@@ -1,6 +1,6 @@
 package kr.toxicity.model.api.manager;
 
-import kr.toxicity.model.api.script.EntityScript;
+import kr.toxicity.model.api.script.AnimationScript;
 import kr.toxicity.model.api.script.EntityScriptBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,7 +14,7 @@ public interface ScriptManager extends GlobalManager {
      * @param script raw script
      * @return entity script
      */
-    @Nullable EntityScript build(@NotNull String script);
+    @Nullable AnimationScript build(@NotNull String script);
 
     /**
      * Adds script parser to registry

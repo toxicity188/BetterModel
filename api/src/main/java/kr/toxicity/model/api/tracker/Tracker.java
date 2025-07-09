@@ -107,7 +107,7 @@ public abstract class Tracker implements AutoCloseable {
                 (t.isRunningSingleAnimation() && config.lockOnPlayAnimation()) ? t.pipeline.getRotation() : t.rotation(),
                 s.tickBundler
         ));
-        tick((t, s) -> t.pipeline.getScriptProcessor().tick());
+        frame((t, s) -> t.pipeline.getScriptProcessor().tick());
         pipeline.spawnPacketHandler(p -> start());
     }
 

@@ -94,7 +94,7 @@ internal fun Entity.isWalking(): Boolean {
                 is RangedAttackGoal, is RangedCrossbowAttackGoal<*>, is RangedBowAttackGoal<*> -> true
                 else -> false
             }
-        }) && deltaMovement.horizontalDistance() > 0.002
+        })
         is ServerPlayer -> xMovement() != 0F || zMovement() != 0F
         else -> false
     }

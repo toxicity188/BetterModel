@@ -19,7 +19,7 @@ class ModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTarg
     private val mid = mlc.modelPlaceholder
     private val s = mlc.toPlaceholderFloat(arrayOf("scale", "s"), 1F)
     private val st = mlc.toPlaceholderBoolean(arrayOf("sight-trace", "st"), true)
-    private val da = mlc.toPlaceholderBoolean(arrayOf("damageanimation", "da", "animation"), true)
+    private val da = mlc.toPlaceholderBoolean(arrayOf("damageanimation", "da", "animation"), false)
     private val dt = mlc.toPlaceholderBoolean(arrayOf("damagetint", "tint", "dt"), true)
     private val vr = mlc.toPlaceholderFloat(arrayOf("view-range", "vr"), EntityUtil.ENTITY_MODEL_VIEW_RADIUS)
     private val shadow = mlc.toPlaceholderBoolean(arrayOf("shadow"), false)

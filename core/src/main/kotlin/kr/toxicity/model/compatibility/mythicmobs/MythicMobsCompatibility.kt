@@ -1,43 +1,31 @@
 package kr.toxicity.model.compatibility.mythicmobs
 
-import io.lumine.mythic.api.adapters.AbstractEntity
-import io.lumine.mythic.api.skills.SkillCaster
-import io.lumine.mythic.bukkit.BukkitAdapter
 import io.lumine.mythic.bukkit.MythicBukkit
 import io.lumine.mythic.bukkit.events.MythicConditionLoadEvent
 import io.lumine.mythic.bukkit.events.MythicMechanicLoadEvent
 import io.lumine.mythic.bukkit.events.MythicTargeterLoadEvent
-import io.lumine.mythic.core.skills.SkillMetadataImpl
-import io.lumine.mythic.core.skills.SkillTriggers
-import kr.toxicity.model.api.script.EntityScript
+import kr.toxicity.model.api.data.renderer.RenderSource
+import kr.toxicity.model.api.script.AnimationScript
 import kr.toxicity.model.compatibility.Compatibility
 import kr.toxicity.model.compatibility.mythicmobs.condition.ModelHasPassengerCondition
 import kr.toxicity.model.compatibility.mythicmobs.mechanic.*
 import kr.toxicity.model.compatibility.mythicmobs.targeter.ModelPartTargeter
 import kr.toxicity.model.manager.ScriptManagerImpl
 import kr.toxicity.model.util.registerListener
+import kr.toxicity.model.util.warn
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 
 class MythicMobsCompatibility : Compatibility {
     override fun start() {
         ScriptManagerImpl.addBuilder("mm") { name ->
-            EntityScript { entity ->
-                MythicBukkit.inst().skillManager.getSkill(name).ifPresent { skill ->
-                    skill.execute(SkillMetadataImpl(
-                        SkillTriggers.API,
-                        object : SkillCaster {
-                            private val lazyEntity by lazy {
-                                BukkitAdapter.adapt(entity)
-                            }
-                            override fun getEntity(): AbstractEntity = lazyEntity
-                            override fun setUsingDamageSkill(p0: Boolean) {
-                            }
-                            override fun isUsingDamageSkill(): Boolean = false
-                        },
-                        null
-                    ))
-                }
+            AnimationScript.of script@ { source ->
+                if (source !is RenderSource.Entity) return@script
+                if (!MythicBukkit.inst().apiHelper.castSkill(
+                    source.entity(),
+                    name,
+                    MythicBukkit.inst().apiHelper.getMythicMobInstance(source.entity())?.power ?: 1F
+                )) warn("Unknown MythicMobs skill name: $name")
             }
         }
         registerListener(object : Listener {

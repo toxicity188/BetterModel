@@ -1,6 +1,7 @@
 package kr.toxicity.model.api.script;
 
-import org.bukkit.entity.Entity;
+import kr.toxicity.model.api.animation.Timed;
+import kr.toxicity.model.api.data.renderer.RenderSource;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -8,9 +9,21 @@ import org.jetbrains.annotations.NotNull;
  * @param time time
  * @param script source script
  */
-public record TimeScript(int time, @NotNull EntityScript script) implements EntityScript {
+public record TimeScript(float time, @NotNull AnimationScript script) implements AnimationScript, Timed {
+
+    public static final TimeScript EMPTY = AnimationScript.EMPTY.time(0);
+
     @Override
-    public void accept(Entity entity) {
-        script.accept(entity);
+    public boolean isSync() {
+        return script.isSync();
+    }
+
+    @Override
+    public void accept(@NotNull RenderSource<?> renderSource) {
+        script.accept(renderSource);
+    }
+
+    public @NotNull TimeScript time(float time) {
+        return new TimeScript(time, script);
     }
 }

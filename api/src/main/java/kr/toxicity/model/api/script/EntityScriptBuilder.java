@@ -12,5 +12,5 @@ public interface EntityScriptBuilder {
      * @param arg raw line
      * @return script
      */
-    @NotNull EntityScript build(@NotNull String arg);
+    @NotNull AnimationScript build(@NotNull String arg);
 }

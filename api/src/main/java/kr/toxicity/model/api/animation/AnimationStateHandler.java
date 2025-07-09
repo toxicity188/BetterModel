@@ -18,13 +18,13 @@ import java.util.function.Consumer;
 @RequiredArgsConstructor
 public final class AnimationStateHandler<T extends Timed> {
     
-    private final AnimationCreator<T> initialCreator;
+    private final T initialValue;
     private final AnimationMapper<T> mapper;
     private final Consumer<T> setConsumer;
 
     private final SequencedMap<String, TreeIterator> animators = new LinkedHashMap<>();
     private final Collection<TreeIterator> reversedView = animators.sequencedValues().reversed();
-    private final AtomicBoolean forceUpdateAnimation = new AtomicBoolean(true);
+    private final AtomicBoolean forceUpdateAnimation = new AtomicBoolean();
 
     @Getter
     @Setter
@@ -42,15 +42,16 @@ public final class AnimationStateHandler<T extends Timed> {
         return iterator != null ? iterator.animation : null;
     }
 
-    public void tick() {
+    public boolean tick() {
         delay--;
+        return shouldUpdateAnimation() && updateAnimation();
     }
 
-    public boolean shouldUpdateAnimation() {
+    private boolean shouldUpdateAnimation() {
         return forceUpdateAnimation.compareAndSet(true, false) || keyframeFinished() || delay % Tracker.MINECRAFT_TICK_MULTIPLIER == 0;
     }
 
-    public boolean updateAnimation() {
+    private boolean updateAnimation() {
         synchronized (animators) {
             var iterator = reversedView.iterator();
             while (iterator.hasNext()) {
@@ -131,7 +132,13 @@ public final class AnimationStateHandler<T extends Timed> {
     
     @FunctionalInterface
     public interface AnimationMapper<T extends Timed> {
-        @NotNull T map(T t, float time);
+        @NotNull T map(T t, @NotNull MappingState state, float time);
+    }
+
+    public enum MappingState {
+        START,
+        PROGRESS,
+        END
     }
 
     private class TreeIterator implements BooleanSupplier, Runnable {
@@ -151,7 +158,7 @@ public final class AnimationStateHandler<T extends Timed> {
             this.modifier = modifier;
             this.removeTask = removeTask;
 
-            previous = keyframe != null ? keyframe : initialCreator.create((float) modifier.end() / 20);
+            previous = keyframe != null ? keyframe : initialValue;
         }
 
         @Override
@@ -171,14 +178,14 @@ public final class AnimationStateHandler<T extends Timed> {
         public @NotNull T next() {
             if (!started) {
                 started = true;
-                return mapper.map(iterator.next(), (float) modifier.start() / 20);
+                return mapper.map(iterator.next(), MappingState.START, (float) modifier.start() / 20);
             }
             if (!iterator.hasNext()) {
                 ended = true;
-                return mapper.map(previous, (float) modifier.end() / 20);
+                return mapper.map(previous, MappingState.END, (float) modifier.end() / 20);
             }
             var nxt = iterator.next();
-            return mapper.map(nxt, nxt.time() / modifier.speedValue());
+            return mapper.map(nxt, MappingState.PROGRESS, nxt.time() / modifier.speedValue());
         }
 
         public void clear() {
