@@ -1,5 +1,7 @@
 package kr.toxicity.model.api.util;
 
+import kr.toxicity.model.api.util.function.BooleanConstantSupplier;
+import kr.toxicity.model.api.util.function.FloatConstantSupplier;
 import kr.toxicity.model.api.util.function.FloatSupplier;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.ApiStatus;
@@ -80,7 +82,11 @@ public final class FunctionUtil {
      * @return throttled function
      */
     public static @NotNull FloatSupplier throttleTickFloat(long tick, @NotNull FloatSupplier supplier) {
-        return supplier instanceof TickThrottledFloatSupplier throttledSupplier ? new TickThrottledFloatSupplier(tick, throttledSupplier.delegate) : new TickThrottledFloatSupplier(tick, supplier);
+        return switch (supplier) {
+            case TickThrottledFloatSupplier throttledSupplier -> new TickThrottledFloatSupplier(tick, throttledSupplier.delegate);
+            case FloatConstantSupplier constantSupplier -> constantSupplier;
+            default -> new TickThrottledFloatSupplier(tick, supplier);
+        };
     }
 
     /**
@@ -89,7 +95,11 @@ public final class FunctionUtil {
      * @return throttled function
      */
     public static @NotNull BooleanSupplier throttleTickBoolean(@NotNull BooleanSupplier supplier) {
-        return supplier instanceof TickThrottledBooleanSupplier throttledSupplier ? throttledSupplier : new TickThrottledBooleanSupplier(supplier);
+        return switch (supplier) {
+            case TickThrottledBooleanSupplier throttledSupplier -> throttledSupplier;
+            case BooleanConstantSupplier booleanConstantSupplier -> booleanConstantSupplier;
+            default -> new TickThrottledBooleanSupplier(supplier);
+        };
     }
 
     /**

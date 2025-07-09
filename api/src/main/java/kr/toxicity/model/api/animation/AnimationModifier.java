@@ -1,6 +1,8 @@
 package kr.toxicity.model.api.animation;
 
 import kr.toxicity.model.api.util.FunctionUtil;
+import kr.toxicity.model.api.util.function.BooleanConstantSupplier;
+import kr.toxicity.model.api.util.function.FloatConstantSupplier;
 import kr.toxicity.model.api.util.function.FloatSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,7 +65,7 @@ public record AnimationModifier(@NotNull BooleanSupplier predicate, int start, i
          * @param speed speed
          */
         public SpeedModifier(float speed) {
-            this(() -> speed);
+            this(FloatConstantSupplier.of(speed));
         }
 
         /**
@@ -83,7 +85,7 @@ public record AnimationModifier(@NotNull BooleanSupplier predicate, int start, i
      * @param speed     speed
      */
     public AnimationModifier(int start, int end, float speed) {
-        this(() -> true, start, end, null, speed);
+        this(BooleanConstantSupplier.TRUE, start, end, null, speed);
     }
 
     /**
@@ -155,7 +157,7 @@ public record AnimationModifier(@NotNull BooleanSupplier predicate, int start, i
     }
 
     public static final AnimationModifier DEFAULT = new AnimationModifier(1, 0, 1F);
-    public static final AnimationModifier DEFAULT_WITH_PLAY_ONCE = new AnimationModifier(() -> true, 1, 0, AnimationIterator.Type.PLAY_ONCE, 1F);
+    public static final AnimationModifier DEFAULT_WITH_PLAY_ONCE = new AnimationModifier(BooleanConstantSupplier.TRUE, 1, 0, AnimationIterator.Type.PLAY_ONCE, 1F);
 
     /**
      * Gets modifier's type or default value

@@ -19,6 +19,7 @@ import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.TransformedItemStack;
 import kr.toxicity.model.api.util.VectorUtil;
 import kr.toxicity.model.api.util.function.BonePredicate;
+import kr.toxicity.model.api.util.function.FloatConstantSupplier;
 import kr.toxicity.model.api.util.function.FloatSupplier;
 import lombok.Getter;
 import lombok.Setter;
@@ -93,7 +94,7 @@ public final class RenderedBone implements HitBoxSource {
     private volatile ModelRotation rotation = ModelRotation.EMPTY;
 
     private Supplier<Vector3f> defaultPosition = FunctionUtil.asSupplier(EMPTY_VECTOR);
-    private FloatSupplier scale = () -> 1F;
+    private FloatSupplier scale = FloatConstantSupplier.ONE;
 
     private Function<Vector3f, Vector3f> positionModifier = p -> p;
     private Vector3f lastModifiedPosition = new Vector3f();
