@@ -66,7 +66,6 @@ public final class AnimationStateHandler<T extends Timed> {
                     if (updateKeyframe(iterator, next)) {
                         currentIterator.clear();
                         currentIterator = next;
-                        delay = 0;
                         return true;
                     }
                 } else if (keyframeFinished()) {
