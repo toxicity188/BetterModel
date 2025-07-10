@@ -36,6 +36,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.Items
 import net.minecraft.world.item.component.CustomModelData
+import net.minecraft.world.item.component.DyedItemColor
 import net.minecraft.world.item.component.ResolvableProfile
 import net.minecraft.world.level.entity.LevelEntityGetter
 import net.minecraft.world.level.entity.LevelEntityGetterAdapter
@@ -495,7 +496,7 @@ class NMSImpl : NMS {
 
     override fun tint(itemStack: ItemStack, rgb: Int): ItemStack {
         return CraftItemStack.asBukkitCopy(CraftItemStack.asNMSCopy(itemStack).apply {
-            //set(DataComponents.DYED_COLOR, DyedItemColor(rgb, false))
+            set(DataComponents.DYED_COLOR, DyedItemColor(rgb, false))
             set(DataComponents.CUSTOM_MODEL_DATA, get(DataComponents.CUSTOM_MODEL_DATA)?.let {
                 CustomModelData(it.floats, it.flags, it.strings, it.colors
                     .run {

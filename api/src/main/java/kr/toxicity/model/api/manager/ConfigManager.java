@@ -3,6 +3,7 @@ package kr.toxicity.model.api.manager;
 import kr.toxicity.model.api.config.DebugConfig;
 import kr.toxicity.model.api.config.ModuleConfig;
 import kr.toxicity.model.api.mount.MountController;
+import kr.toxicity.model.api.pack.PackConfig;
 import org.bukkit.Material;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,6 +23,12 @@ public interface ConfigManager {
      * @return module config
      */
     @NotNull ModuleConfig module();
+
+    /**
+     * Gets pack config
+     * @return pack config
+     */
+    @NotNull PackConfig pack();
 
     /**
      * Checks metrics is enabled
@@ -90,12 +97,6 @@ public interface ConfigManager {
     int animatedTextureFrameTime();
 
     /**
-     * Checks whether BetterModel should create pack.mcmeta or not
-     * @return create pack mcmeta
-     */
-    boolean createPackMcmeta();
-
-    /**
      * Checks use Purpur afk.
      * @return use Purpur afk
      */
@@ -143,6 +144,10 @@ public interface ConfigManager {
         /**
          * Build to zip
          */
-        ZIP
+        ZIP,
+        /**
+         * Nothing to build
+         */
+        NONE
     }
 }

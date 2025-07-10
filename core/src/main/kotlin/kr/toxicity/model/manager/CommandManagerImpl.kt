@@ -13,10 +13,14 @@ import kr.toxicity.model.api.animation.AnimationIterator
 import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.manager.CommandManager
 import kr.toxicity.model.api.manager.ReloadInfo
+import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.command.commandModule
 import kr.toxicity.model.util.*
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.event.HoverEvent
+import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
@@ -109,10 +113,29 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                         when (val result = PLUGIN.reload()) {
                             is OnReload -> audience.warn("The plugin still on reload!")
                             is Success -> {
-                                audience.info("Reload completed. (${result.time.withComma()} ms)")
-                                audience.info("${BetterModel.models().size.withComma()} of models are loaded successfully.")
+                                audience.info()
+                                audience.info(
+                                    Component.text()
+                                        .content("Reload completed. (${result.totalTime().withComma()}ms)")
+                                        .color(NamedTextColor.GREEN)
+                                )
+                                audience.info(Component.text()
+                                    .content("Assets reload time - ${result.assetsTime().withComma()}ms")
+                                    .color(NamedTextColor.GRAY)
+                                    .hoverEvent(HoverEvent.showText(Component.text("Reading all config and model.")))
+                                )
+                                audience.info(Component.text()
+                                    .content("Packing time - ${result.packingTime().withComma()}ms")
+                                    .color(NamedTextColor.GRAY)
+                                    .hoverEvent(HoverEvent.showText(Component.text("Packing all model to resource pack.")))
+                                )
+                                audience.info(Component.text()
+                                    .content("${BetterModel.models().size.withComma()} of models are loaded successfully.")
+                                    .color(NamedTextColor.YELLOW)
+                                )
                             }
                             is Failure -> {
+                                audience.warn()
                                 audience.warn("Reload failed.")
                                 audience.warn("Please read the log to find the problem.")
                                 result.throwable.handleException("Reload failed.")
@@ -170,7 +193,7 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
         CommandAPI.onEnable()
     }
 
-    override fun reload(info: ReloadInfo) {
+    override fun reload(info: ReloadInfo, zipper: PackZipper) {
 
     }
 

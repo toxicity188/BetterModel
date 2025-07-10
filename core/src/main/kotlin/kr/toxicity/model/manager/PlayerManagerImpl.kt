@@ -8,6 +8,7 @@ import kr.toxicity.model.api.data.renderer.RendererGroup
 import kr.toxicity.model.api.manager.PlayerManager
 import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.api.nms.PlayerChannelHandler
+import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.util.*
 import org.bukkit.Material
 import org.bukkit.entity.Player
@@ -58,7 +59,7 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
         if (SkinManagerImpl.supported()) SkinManagerImpl.getOrRequest(profile())
     }
 
-    override fun reload(info: ReloadInfo) {
+    override fun reload(info: ReloadInfo, zipper: PackZipper) {
         renderMap.clear()
         if (ConfigManagerImpl.module().playerAnimation()) {
             DATA_FOLDER.getOrCreateDirectory("players") { folder ->

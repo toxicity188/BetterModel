@@ -9,6 +9,7 @@ import kr.toxicity.model.api.manager.EntityManager
 import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.ModelInteractionHand
+import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.util.registerListener
@@ -159,7 +160,7 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
         registerListener(platformListener)
     }
 
-    override fun reload(info: ReloadInfo) {
+    override fun reload(info: ReloadInfo, zipper: PackZipper) {
         EntityTrackerRegistry.REGISTRIES.forEach {
             it.reload()
         }

@@ -7,6 +7,7 @@ import kr.toxicity.model.api.event.CreatePlayerSkinEvent
 import kr.toxicity.model.api.event.RemovePlayerSkinEvent
 import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.api.manager.SkinManager
+import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.player.PlayerLimb
 import kr.toxicity.model.api.player.PlayerSkinProvider
 import kr.toxicity.model.api.skin.SkinData
@@ -743,7 +744,7 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         override fun rightForeLeg(): TransformedItemStack = rightForeLeg
     }
 
-    override fun reload(info: ReloadInfo) {
+    override fun reload(info: ReloadInfo, zipper: PackZipper) {
         uvNamespace = UVNamespace(
             ConfigManagerImpl.namespace(),
             "player_limb"

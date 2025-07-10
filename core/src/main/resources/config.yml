@@ -6,6 +6,9 @@ debug:
 module:
   model: true
   player-animation: true
+pack:
+  generate-modern-model: true
+  generate-legacy-model: true
 metrics: true
 sight-trace: true
 item: leather_horse_armor

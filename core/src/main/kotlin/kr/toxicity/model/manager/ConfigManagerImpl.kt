@@ -7,6 +7,8 @@ import kr.toxicity.model.api.manager.ConfigManager.PackType
 import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.mount.MountControllers
+import kr.toxicity.model.api.pack.PackConfig
+import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.util.EntityUtil
 import kr.toxicity.model.configuration.PluginConfiguration
 import kr.toxicity.model.util.PLUGIN
@@ -19,6 +21,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
 
     private var debug = DebugConfig.DEFAULT
     private var module = ModuleConfig.DEFAULT
+    private var pack = PackConfig.DEFAULT
     private var metrics: Metrics? = null
     private var sightTrace = true
     private var item = Material.LEATHER_HORSE_ARMOR
@@ -30,7 +33,6 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     private var buildFolderLocation = "BetterModel/build".replace('/', File.separatorChar)
     private var followMobInvisibility = true
     private var animatedTextureFrameTime = 10
-    private var createPackMcmeta = true
     private var usePurpurAfk = true
     private var versionCheck = true
     private var defaultMountController = MountControllers.WALK
@@ -40,6 +42,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
 
     override fun debug(): DebugConfig = debug
     override fun module(): ModuleConfig = module
+    override fun pack(): PackConfig = pack
     override fun item(): Material = item
     override fun metrics(): Boolean = metrics != null
     override fun sightTrace(): Boolean = sightTrace
@@ -51,7 +54,6 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     override fun buildFolderLocation(): String = buildFolderLocation
     override fun followMobInvisibility(): Boolean = followMobInvisibility
     override fun animatedTextureFrameTime(): Int = animatedTextureFrameTime
-    override fun createPackMcmeta(): Boolean = createPackMcmeta
     override fun usePurpurAfk(): Boolean = usePurpurAfk
     override fun versionCheck(): Boolean = versionCheck
     override fun defaultMountController(): MountController = defaultMountController
@@ -59,7 +61,7 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
     override fun cancelPlayerModelInventory(): Boolean = cancelPlayerModelInventory
     override fun playerHideDelay(): Long = playerHideDelay
 
-    override fun reload(info: ReloadInfo) {
+    override fun reload(info: ReloadInfo, zipper: PackZipper) {
         val yaml = PluginConfiguration.CONFIG.create()
         if (yaml.getBoolean("metrics", true)) {
             if (metrics == null) metrics = Metrics(PLUGIN, 24237)
@@ -73,6 +75,9 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
         module = yaml.getConfigurationSection("module")?.let {
             ModuleConfig.from(it)
         } ?: ModuleConfig.DEFAULT
+        pack = yaml.getConfigurationSection("pack")?.let {
+            PackConfig.from(it)
+        } ?: PackConfig.DEFAULT
         sightTrace = yaml.getBoolean("sight-trace", true)
         item = yaml.getString("item")?.let {
             runCatching {
@@ -85,7 +90,6 @@ object ConfigManagerImpl : ConfigManager, GlobalManagerImpl {
         lockOnPlayAnimation = yaml.getBoolean("lock-on-play-animation", false)
         namespace = yaml.getString("namespace") ?: "bettermodel"
         animatedTextureFrameTime = yaml.getInt("animated-texture-frame-time", 10)
-        createPackMcmeta = yaml.getBoolean("create-pack-mcmeta", true)
         packType = yaml.getString("pack-type")?.let {
             runCatching {
                 PackType.valueOf(it.uppercase())

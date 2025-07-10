@@ -117,7 +117,7 @@ public final class BetterModel {
     public static void register(@NotNull BetterModelPlugin instance) {
         Objects.requireNonNull(instance, "instance cannot be null.");
         if (BetterModel.instance == instance) throw new RuntimeException("Duplicated instance.");
-        instance.addReloadStartHandler(() -> EventUtil.call(new PluginStartReloadEvent()));
+        instance.addReloadStartHandler(zipper -> EventUtil.call(new PluginStartReloadEvent(zipper)));
         instance.addReloadEndHandler(t -> EventUtil.call(new PluginEndReloadEvent(t)));
         BetterModel.instance = instance;
     }

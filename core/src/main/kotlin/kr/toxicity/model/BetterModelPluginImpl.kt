@@ -8,6 +8,7 @@ import kr.toxicity.model.api.BetterModelPlugin.ReloadResult
 import kr.toxicity.model.api.BetterModelPlugin.ReloadResult.*
 import kr.toxicity.model.api.manager.*
 import kr.toxicity.model.api.nms.NMS
+import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.scheduler.ModelScheduler
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.util.HttpUtil
@@ -87,7 +88,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
         }
     }
 
-    private var reloadStartTask: () -> Unit = {}
+    private var reloadStartTask: (PackZipper) -> Unit = {}
     private var reloadEndTask: (ReloadResult) -> Unit = {}
 
     override fun onLoad() {
@@ -141,7 +142,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
             is Failure -> result.throwable.handleException("Unable to load plugin properly.")
             is OnReload -> throw RuntimeException("Plugin load failed.")
             is Success -> info(
-                "Plugin is loaded. (${result.time.withComma()} ms)",
+                "Plugin is loaded. (${result.totalTime().withComma()} ms)",
                 "Minecraft version: $version, NMS version: ${nms.version()}",
                 "Platform: ${when {
                     BetterModel.IS_FOLIA -> "Folia"
@@ -161,13 +162,14 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
 
     override fun reload(info: ReloadInfo): ReloadResult {
         if (!onReload.compareAndSet(false, true)) return ON_RELOAD
-        reloadStartTask()
+        val zipper = PackZipper.zipper().also(reloadStartTask)
         val result = runCatching {
             val time = System.currentTimeMillis()
             managers.forEach {
-                it.reload(info)
+                it.reload(info, zipper)
             }
-            Success(System.currentTimeMillis() - time)
+            val generator = if (info.firstReload) ConfigManager.PackType.NONE else ConfigManagerImpl.packType()
+            Success(System.currentTimeMillis() - time, generator.toGenerator().create(zipper))
         }.getOrElse {
             Failure(it)
         }
@@ -207,11 +209,11 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
     override fun isSnapshot(): Boolean = snapshot > 0
 
     @Synchronized
-    override fun addReloadStartHandler(runnable: Runnable) {
+    override fun addReloadStartHandler(consumer: Consumer<PackZipper>) {
         val previous = reloadStartTask
         reloadStartTask = {
-            previous()
-            runnable.run()
+            previous(it)
+            consumer.accept(it)
         }
     }
 

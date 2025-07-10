@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static kr.toxicity.model.api.util.CollectionUtil.*;
@@ -86,21 +87,23 @@ public sealed interface BlueprintChildren {
         }
 
         /**
-         * Gets blueprint json
+         * Gets blueprint legacy json
+         * @param skipLog skip log
          * @param scale scale
          * @param parent parent
          * @return json
          */
-        public @Nullable BlueprintJson buildJson(
+        public @Nullable BlueprintJson buildLegacyJson(
+                boolean skipLog,
                 float scale,
                 @NotNull ModelBlueprint parent
         ) {
-            return buildJson(-2, 1, scale, parent, Float3.ZERO, filterIsInstance(children, BlueprintElement.class)
-                    .filter(filterWithWarning(
-                            element -> MathUtil.checkValidDegree(element.identifierDegree()),
-                            element -> "The model " + parent.name() + "'s cube \"" + element.element.name() + "\" has an invalid rotation which does not supported in legacy client (<=1.21.3) " + element.element.rotation()
-                    ))
+            Predicate<BlueprintElement> filter = element -> MathUtil.checkValidDegree(element.identifierDegree());
+            if (!skipLog) filter = filterWithWarning(
+                    filter,
+                    element -> "The model " + parent.name() + "'s cube \"" + element.element.name() + "\" has an invalid rotation which does not supported in legacy client (<=1.21.3) " + element.element.rotation()
             );
+            return buildJson(-2, 1, scale, parent, Float3.ZERO, filterIsInstance(children, BlueprintElement.class).filter(filter));
         }
 
         /**

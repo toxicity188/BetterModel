@@ -3,11 +3,15 @@ package kr.toxicity.model.api;
 import com.vdurmont.semver4j.Semver;
 import kr.toxicity.model.api.manager.*;
 import kr.toxicity.model.api.nms.NMS;
+import kr.toxicity.model.api.pack.PackData;
+import kr.toxicity.model.api.pack.PackZipper;
 import kr.toxicity.model.api.scheduler.ModelScheduler;
 import kr.toxicity.model.api.version.MinecraftVersion;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.io.InputStream;
 import java.util.function.Consumer;
 
 /**
@@ -106,9 +110,9 @@ public interface BetterModelPlugin {
 
     /**
      * Adds event handler on reload start.
-     * @param runnable task
+     * @param consumer task
      */
-    void addReloadStartHandler(@NotNull Runnable runnable);
+    void addReloadStartHandler(@NotNull Consumer<PackZipper> consumer);
     /**
      * Adds event handler on the reload end.
      * @param consumer result consumer
@@ -128,15 +132,38 @@ public interface BetterModelPlugin {
     @NotNull BukkitAudiences audiences();
 
     /**
+     * Gets plugin resource from a path
+     * @param path path
+     */
+    @Nullable InputStream getResource(@NotNull String path);
+
+    /**
      * A result of reload.
      */
     sealed interface ReloadResult {
 
         /**
          * Reload success.
-         * @param time total time
+         * @param assetsTime assets reloading time
+         * @param packData pack data
          */
-        record Success(long time) implements ReloadResult {
+        record Success(long assetsTime, @NotNull PackData packData) implements ReloadResult {
+
+            /**
+             * Gets packing time
+             * @return packing time
+             */
+            public long packingTime() {
+                return packData().time();
+            }
+
+            /**
+             * Gets total reload time
+             * @return total reload time
+             */
+            public long totalTime() {
+                return assetsTime + packingTime();
+            }
         }
 
         /**

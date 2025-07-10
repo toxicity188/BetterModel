@@ -46,6 +46,15 @@ public final class FunctionUtil {
     }
 
     /**
+     * Memoize this supplier
+     * @param supplier target
+     * @return Memoized supplier
+     */
+    public static <T> @NotNull Supplier<T> memoize(@NotNull Supplier<T> supplier) {
+        return supplier instanceof MemoizedSupplier<T> memoizedSupplier ? memoizedSupplier : new MemoizedSupplier<>(supplier);
+    }
+
+    /**
      * Throttles this function by tick
      * @param <T> type
      * @param supplier target
@@ -143,6 +152,24 @@ public final class FunctionUtil {
         @Override
         public void run() {
             if (played.compareAndSet(false, true)) delegate.run();
+        }
+    }
+
+    @RequiredArgsConstructor
+    private static class MemoizedSupplier<T> implements Supplier<T> {
+        private final @NotNull Supplier<T> delegate;
+        private volatile T t;
+
+        @Override
+        public T get() {
+            var result = t;
+            if (result == null) {
+                synchronized (this) {
+                    if (t == null) t = delegate.get();
+                    result = t;
+                }
+            }
+            return result;
         }
     }
 
