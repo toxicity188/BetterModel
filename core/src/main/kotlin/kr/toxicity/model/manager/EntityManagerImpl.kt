@@ -22,8 +22,8 @@ import org.bukkit.event.player.PlayerInteractAtEntityEvent
 import org.bukkit.event.player.PlayerInteractEntityEvent
 import org.bukkit.event.player.PlayerPortalEvent
 import org.bukkit.event.player.PlayerQuitEvent
-import org.bukkit.event.world.ChunkLoadEvent
-import org.bukkit.event.world.ChunkUnloadEvent
+import org.bukkit.event.world.EntitiesLoadEvent
+import org.bukkit.event.world.EntitiesUnloadEvent
 import org.bukkit.inventory.EquipmentSlot
 
 object EntityManagerImpl : EntityManager, GlobalManagerImpl {
@@ -48,14 +48,14 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
         fun EntityRemoveEvent.remove() {
             EntityTrackerRegistry.registry(entity.uniqueId)?.despawn()
         }
-        @EventHandler(priority = EventPriority.MONITOR)
+        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         fun EntityPortalEvent.add() {
             EntityTrackerRegistry.registry(entity.uniqueId)?.let {
                 it.despawn()
                 it.refresh()
             }
         }
-        @EventHandler(priority = EventPriority.MONITOR)
+        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         fun PlayerPortalEvent.add() {
             EntityTrackerRegistry.registry(player.uniqueId)?.let {
                 it.despawn()
@@ -81,14 +81,14 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
             (player.vehicle as? HitBox)?.dismount(player)
         }
         @EventHandler(priority = EventPriority.MONITOR)
-        fun ChunkLoadEvent.load() { //Chunk load
-            chunk.entities.forEach { entity ->
+        fun EntitiesLoadEvent.load() { //Chunk load
+            entities.forEach { entity ->
                 EntityTrackerRegistry.registry(entity.uniqueId)?.refresh()
             }
         }
         @EventHandler(priority = EventPriority.MONITOR)
-        fun ChunkUnloadEvent.unload() { //Chunk unload
-            chunk.entities.forEach { entity ->
+        fun EntitiesUnloadEvent.unload() { //Chunk unload
+            entities.forEach { entity ->
                 EntityTrackerRegistry.registry(entity.uniqueId)?.despawn()
             }
         }

@@ -16,6 +16,7 @@ import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.util.*;
 import kr.toxicity.model.api.util.function.BonePredicate;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
@@ -29,7 +30,7 @@ import java.util.Queue;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -76,7 +77,7 @@ public abstract class Tracker implements AutoCloseable {
     private ModelRotator rotator = ModelRotator.YAW;
     private ModelScaler scaler = ModelScaler.entity();
     private Supplier<ModelRotation> rotationSupplier = () -> ModelRotation.EMPTY;
-    private Consumer<Tracker> closeEventHandler = t -> EventUtil.call(new CloseTrackerEvent(t));
+    private BiConsumer<Tracker, CloseReason> closeEventHandler = (t, r) -> EventUtil.call(new CloseTrackerEvent(t, r));
 
     private ScheduledPacketHandler handler = (t, s) -> t.pipeline.tick(s.viewBundler);
 
@@ -261,8 +262,12 @@ public abstract class Tracker implements AutoCloseable {
 
     @Override
     public void close() {
+        close(CloseReason.REMOVE);
+    }
+
+    protected void close(@NotNull CloseReason reason) {
         if (isClosed.compareAndSet(false, true)) {
-            closeEventHandler.accept(this);
+            closeEventHandler.accept(this, reason);
             shutdown();
             pipeline.despawn();
             LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " closed: " + name());
@@ -607,7 +612,7 @@ public abstract class Tracker implements AutoCloseable {
         return EventUtil.call(new PlayerShowTrackerEvent(this, player)) && pipeline.show(player);
     }
 
-    public void handleCloseEvent(@NotNull Consumer<Tracker> consumer) {
+    public void handleCloseEvent(@NotNull BiConsumer<Tracker, CloseReason> consumer) {
         closeEventHandler = closeEventHandler.andThen(Objects.requireNonNull(consumer));
     }
 
@@ -691,7 +696,7 @@ public abstract class Tracker implements AutoCloseable {
 
         private void send() {
             if (!tickBundler.isEmpty()) {
-                pipeline.allPlayer().map(PlayerChannelHandler::player).forEach(tickBundler::send);
+                pipeline.allPlayer().forEach(tickBundler::send);
                 tickBundler = pipeline.createBundler();
             }
             if (!dataBundler.isEmpty()) {
@@ -702,6 +707,18 @@ public abstract class Tracker implements AutoCloseable {
                 pipeline.viewedPlayer().forEach(viewBundler::send);
                 viewBundler = pipeline.createBundler();
             }
+        }
+    }
+
+    @RequiredArgsConstructor
+    public enum CloseReason {
+        REMOVE(false),
+        DESPAWN(true)
+        ;
+        private final boolean save;
+
+        public boolean shouldBeSave() {
+            return save;
         }
     }
 }

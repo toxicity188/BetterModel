@@ -136,13 +136,13 @@ public final class EntityTrackerRegistry {
 
     private boolean putTracker(@NotNull String key, @NotNull EntityTracker created) {
         if (created.isClosed()) return false;
-        created.handleCloseEvent(t -> {
+        created.handleCloseEvent((t, r) -> {
             if (isClosed()) return;
             if (trackerMap.compute(key, (k, v) -> v == created ? null : v) == null) {
                 LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> entity.getUniqueId() + "'s tracker " + key + " has been removed. (" + trackerMap.size() + ")");
             }
             if (trackerMap.isEmpty()) {
-                close0();
+                close(r);
                 LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> entity.getUniqueId() + "'s tracker registry has been removed. (" + REGISTRIES.size() + ")");
             }
         });
@@ -170,20 +170,20 @@ public final class EntityTrackerRegistry {
 
     public boolean close() {
         if (closed.compareAndSet(false, true)) {
-            close0();
+            close(Tracker.CloseReason.REMOVE);
             return true;
         } else return false;
     }
 
-    private void close0() {
+    private void close(@NotNull Tracker.CloseReason reason) {
         for (PlayerChannelHandler value : viewedPlayerMap.values()) {
             value.sendEntityData(this);
         }
         viewedPlayerMap.clear();
         for (EntityTracker value : trackerMap.values()) {
-            value.close();
+            value.close(reason);
         }
-        entity.getPersistentDataContainer().remove(TRACKING_ID);
+        if (!reason.shouldBeSave()) entity.getPersistentDataContainer().remove(TRACKING_ID);
         if (UUID_REGISTRY_MAP.remove(entity.getUniqueId()) != null) {
             ID_REGISTRY_MAP.remove(id);
         }

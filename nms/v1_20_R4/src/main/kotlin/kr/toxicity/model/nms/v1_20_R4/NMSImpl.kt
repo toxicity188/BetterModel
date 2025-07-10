@@ -197,7 +197,7 @@ class NMSImpl : NMS {
                         { if (EntityTrackerRegistry.hasModelData(it.bukkitEntity)) EntityTrackerRegistry.registry(it.bukkitEntity) else null },
                         { true }
                     )?.let {
-                        BetterModel.plugin().scheduler().asyncTaskLater(1) {
+                        BetterModel.plugin().scheduler().asyncTaskLater(player.ping.toLong() / 50 + 1) {
                             it.spawn(player)
                         }
                     }
@@ -520,7 +520,7 @@ class NMSImpl : NMS {
             override fun handle(): Entity = entity.vanillaEntity
             override fun id(): Int = handle().id
             override fun trackedPlayer(): Collection<Player> = handle().trackedEntity()
-            override fun dead(): Boolean = (handle() as? LivingEntity)?.isDeadOrDying == true || handle().removalReason?.shouldSave() == false
+            override fun dead(): Boolean = (handle() as? LivingEntity)?.isDeadOrDying == true || handle().removalReason?.shouldSave() == false || !handle().valid
             override fun invisible(): Boolean = handle().isInvisible || (handle() as? LivingEntity)?.hasEffect(MobEffects.INVISIBILITY) == true
             override fun glow(): Boolean = handle().isCurrentlyGlowing
 

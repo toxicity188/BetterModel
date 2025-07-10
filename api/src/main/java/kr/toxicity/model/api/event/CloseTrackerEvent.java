@@ -18,14 +18,17 @@ public final class CloseTrackerEvent extends AbstractModelEvent {
     public static final HandlerList HANDLER_LIST = new HandlerList();
 
     private final Tracker tracker;
+    private final Tracker.CloseReason reason;
 
     /**
      * Creates event
      * @param tracker tracker
+     * @param reason reason
      */
     @ApiStatus.Internal
-    public CloseTrackerEvent(@NotNull Tracker tracker) {
+    public CloseTrackerEvent(@NotNull Tracker tracker, @NotNull Tracker.CloseReason reason) {
         this.tracker = tracker;
+        this.reason = reason;
     }
 
     @NotNull

@@ -357,8 +357,9 @@ public final class RenderPipeline {
         return playerMap.size();
     }
 
-    public @NotNull Stream<PlayerChannelHandler> allPlayer() {
-        return playerMap.values().stream();
+    public @NotNull Stream<Player> allPlayer() {
+        return playerMap.values().stream()
+                .map(PlayerChannelHandler::player);
     }
     public @NotNull Stream<Player> nonHidePlayer() {
         return filteredPlayer(p -> !isHide(p));
@@ -367,9 +368,7 @@ public final class RenderPipeline {
         return filteredPlayer(viewFilter);
     }
     public @NotNull Stream<Player> filteredPlayer(@NotNull Predicate<Player> predicate) {
-        return allPlayer()
-                .map(PlayerChannelHandler::player)
-                .filter(predicate);
+        return allPlayer().filter(predicate);
     }
 
     public boolean hide(@NotNull Player player) {

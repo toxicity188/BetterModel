@@ -203,7 +203,7 @@ public class EntityTracker extends Tracker {
     @Override
     public void despawn() {
         if (registry.adapter().dead()) {
-            close();
+            close(CloseReason.DESPAWN);
             return;
         }
         super.despawn();

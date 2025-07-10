@@ -48,7 +48,6 @@ public final class DummyTracker extends Tracker {
         var bundler = pipeline.createBundler();
         pipeline.teleport(location, bundler);
         if (!bundler.isEmpty()) pipeline.allPlayer()
-                .map(PlayerChannelHandler::player)
                 .forEach(bundler::send);
     }
 
