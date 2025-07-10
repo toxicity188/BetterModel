@@ -123,11 +123,6 @@ public final class AnimationStateHandler<T extends Timed> {
     public float frame() {
         return keyframe != null ? keyframe.time() * 20F * Tracker.MINECRAFT_TICK_MULTIPLIER : 0F;
     }
-
-    @FunctionalInterface
-    public interface AnimationCreator<T extends Timed> {
-        @NotNull T create(float time);
-    }
     
     @FunctionalInterface
     public interface AnimationMapper<T extends Timed> {

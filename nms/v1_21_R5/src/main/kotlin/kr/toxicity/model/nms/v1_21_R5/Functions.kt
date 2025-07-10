@@ -86,12 +86,12 @@ internal fun SynchedEntityData.pack(
 
 internal fun Entity.isWalking(): Boolean {
     return controllingPassenger?.isWalking() ?: when (this) {
-        is Mob -> (navigation.isInProgress || goalSelector.availableGoals.any {
+        is Mob -> navigation.isInProgress || goalSelector.availableGoals.any {
             it.isRunning && when (it.goal) {
                 is RangedAttackGoal, is RangedCrossbowAttackGoal<*>, is RangedBowAttackGoal<*> -> true
                 else -> false
             }
-        })
+        }
         is ServerPlayer -> xMovement() != 0F || zMovement() != 0F
         else -> false
     }
