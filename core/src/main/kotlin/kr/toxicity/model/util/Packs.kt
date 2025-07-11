@@ -1,11 +1,11 @@
 package kr.toxicity.model.util
 
-import kr.toxicity.model.api.manager.ConfigManager
-import kr.toxicity.model.api.manager.ConfigManager.PackType.*
+import kr.toxicity.model.api.BetterModelConfig
+import kr.toxicity.model.api.BetterModelConfig.PackType.*
 import kr.toxicity.model.api.pack.PackData
 import kr.toxicity.model.api.pack.PackPath
 import kr.toxicity.model.api.pack.PackZipper
-import kr.toxicity.model.manager.ConfigManagerImpl
+import kr.toxicity.model.BetterModelConfigImpl
 import java.io.File
 import java.security.DigestOutputStream
 import java.security.MessageDigest
@@ -15,7 +15,7 @@ import java.util.zip.Deflater
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
-fun ConfigManager.PackType.toGenerator() = when (this) {
+fun BetterModelConfig.PackType.toGenerator() = when (this) {
     FOLDER -> FolderGenerator()
     ZIP -> ZipGenerator()
     NONE -> NoneGenerator()
@@ -27,7 +27,7 @@ interface PackGenerator {
 
 class FolderGenerator : PackGenerator {
     private val time = System.currentTimeMillis()
-    private val file = File(DATA_FOLDER.parent, ConfigManagerImpl.buildFolderLocation())
+    private val file = File(DATA_FOLDER.parent, CONFIG.buildFolderLocation())
     private val fileTree = sortedMapOf<String, File>(Comparator.reverseOrder()).apply {
         val l = file.path.length + 1
         file.forEach { sub ->
@@ -66,7 +66,7 @@ class FolderGenerator : PackGenerator {
 
 class ZipGenerator : PackGenerator {
     private val time = System.currentTimeMillis()
-    private val file = File(DATA_FOLDER.parent, "${ConfigManagerImpl.buildFolderLocation()}.zip")
+    private val file = File(DATA_FOLDER.parent, "${CONFIG.buildFolderLocation()}.zip")
 
     override fun create(zipper: PackZipper): PackData {
         val map = ConcurrentHashMap<PackPath, ByteArray>()

@@ -45,6 +45,12 @@ public interface BetterModelPlugin {
     boolean isSnapshot();
 
     /**
+     * Gets BetterModel's config
+     * @return config
+     */
+    @NotNull BetterModelConfig config();
+
+    /**
      * Gets running server's minecraft version.
      * @return minecraft version
      */
@@ -92,11 +98,6 @@ public interface BetterModelPlugin {
      * @return compatibility manager
      */
     @NotNull CompatibilityManager compatibilityManager();
-    /**
-     * Gets config manager.
-     * @return config manager
-     */
-    @NotNull ConfigManager configManager();
     /**
      * Gets skin manager.
      * @return skin manager

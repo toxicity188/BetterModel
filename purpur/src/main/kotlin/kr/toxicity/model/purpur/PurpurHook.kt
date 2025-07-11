@@ -10,7 +10,7 @@ import org.bukkit.plugin.Plugin
 object PurpurHook {
     fun start() {
         val plugin = BetterModel.plugin()
-        val config = plugin.configManager()
+        val config = BetterModel.config()
         plugin.logger().info(
             "BetterModel is currently running in Purpur.",
             "Some Purpur features will be enabled."

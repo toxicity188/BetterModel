@@ -1,4 +1,4 @@
-package kr.toxicity.model.api.manager;
+package kr.toxicity.model.api;
 
 import kr.toxicity.model.api.config.DebugConfig;
 import kr.toxicity.model.api.config.ModuleConfig;
@@ -8,9 +8,9 @@ import org.bukkit.Material;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Config manager
+ * BetterModel's config
  */
-public interface ConfigManager {
+public interface BetterModelConfig {
 
     /**
      * Gets debug config

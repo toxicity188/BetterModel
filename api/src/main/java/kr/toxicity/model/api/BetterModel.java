@@ -3,7 +3,6 @@ package kr.toxicity.model.api;
 import kr.toxicity.model.api.data.renderer.ModelRenderer;
 import kr.toxicity.model.api.event.PluginEndReloadEvent;
 import kr.toxicity.model.api.event.PluginStartReloadEvent;
-import kr.toxicity.model.api.manager.ConfigManager;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.util.EventUtil;
 import org.jetbrains.annotations.ApiStatus;
@@ -51,8 +50,8 @@ public final class BetterModel {
      * Gets config manager
      * @return config
      */
-    public static @NotNull ConfigManager config() {
-        return plugin().configManager();
+    public static @NotNull BetterModelConfig config() {
+        return plugin().config();
     }
 
     /**

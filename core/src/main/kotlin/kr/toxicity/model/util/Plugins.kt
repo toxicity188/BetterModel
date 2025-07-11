@@ -6,18 +6,20 @@ import kr.toxicity.model.api.config.DebugConfig
 import kr.toxicity.model.api.util.HttpUtil
 import kr.toxicity.model.api.util.LogUtil
 import kr.toxicity.model.api.util.PackUtil
-import kr.toxicity.model.manager.ConfigManagerImpl
+import kr.toxicity.model.BetterModelConfigImpl
 import java.net.http.HttpClient
 
 val PLUGIN
     get() = BetterModel.plugin() as BetterModelPluginImpl
+val CONFIG
+    get() = BetterModel.config()
 val DATA_FOLDER
     get() = PLUGIN.dataFolder
 
 fun info(vararg message: String) = PLUGIN.logger().info(*message)
 fun warn(vararg message: String) = PLUGIN.logger().warn(*message)
 fun debugPack(lazyMessage: () -> String) {
-    if (ConfigManagerImpl.debug().has(DebugConfig.DebugOption.PACK)) info("[${Thread.currentThread().name}] ${lazyMessage()}")
+    if (CONFIG.debug().has(DebugConfig.DebugOption.PACK)) info("[${Thread.currentThread().name}] ${lazyMessage()}")
 }
 
 fun Throwable.handleException(message: String) = LogUtil.handleException(message, this)

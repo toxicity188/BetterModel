@@ -6,6 +6,7 @@ import kr.toxicity.model.api.BetterModelLogger
 import kr.toxicity.model.api.BetterModelPlugin
 import kr.toxicity.model.api.BetterModelPlugin.ReloadResult
 import kr.toxicity.model.api.BetterModelPlugin.ReloadResult.*
+import kr.toxicity.model.api.BetterModelConfig
 import kr.toxicity.model.api.manager.*
 import kr.toxicity.model.api.nms.NMS
 import kr.toxicity.model.api.pack.PackZipper
@@ -14,13 +15,16 @@ import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.util.HttpUtil
 import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.api.version.MinecraftVersion.*
+import kr.toxicity.model.configuration.PluginConfiguration
 import kr.toxicity.model.manager.*
 import kr.toxicity.model.scheduler.PaperScheduler
 import kr.toxicity.model.scheduler.BukkitScheduler
 import kr.toxicity.model.util.*
 import net.kyori.adventure.platform.bukkit.BukkitAudiences
 import net.kyori.adventure.text.Component
+import org.bstats.bukkit.Metrics
 import org.bukkit.Bukkit
+import org.bukkit.configuration.MemoryConfiguration
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
@@ -42,7 +46,6 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
     private val managers by lazy {
         listOf(
             CompatibilityManagerImpl,
-            ConfigManagerImpl,
             SkinManagerImpl,
             ModelManagerImpl,
             PlayerManagerImpl,
@@ -88,6 +91,21 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
         }
     }
 
+    private var _metrics: Metrics? = null
+    private var _config = BetterModelConfigImpl(MemoryConfiguration())
+    private var config
+        get() = _config
+        set(value) {
+            _config = value.apply {
+                if (metrics()) {
+                    if (_metrics == null) _metrics = Metrics(this@BetterModelPluginImpl, 24237)
+                } else {
+                    _metrics?.shutdown()
+                    _metrics = null
+                }
+            }
+        }
+
     private var reloadStartTask: (PackZipper) -> Unit = {}
     private var reloadEndTask: (ReloadResult) -> Unit = {}
 
@@ -127,7 +145,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
             registerListener(object : Listener {
                 @EventHandler
                 fun PlayerJoinEvent.join() {
-                    if (!player.isOp || !ConfigManagerImpl.versionCheck()) return
+                    if (!player.isOp || !config.versionCheck()) return
                     player.audience().run {
                         versionNoticeList.forEach(::info)
                     }
@@ -162,18 +180,18 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
 
     override fun reload(info: ReloadInfo): ReloadResult {
         if (!onReload.compareAndSet(false, true)) return ON_RELOAD
+        config = BetterModelConfigImpl(PluginConfiguration.CONFIG.create())
         val zipper = PackZipper.zipper().also(reloadStartTask)
         val result = runCatching {
             val time = System.currentTimeMillis()
             managers.forEach {
                 it.reload(info, zipper)
             }
-            val generator = if (info.firstReload) ConfigManager.PackType.NONE else ConfigManagerImpl.packType()
+            val generator = if (info.firstReload) BetterModelConfig.PackType.NONE else CONFIG.packType()
             Success(System.currentTimeMillis() - time, generator.toGenerator().create(zipper))
         }.getOrElse {
             Failure(it)
-        }
-        reloadEndTask(result)
+        }.also(reloadEndTask)
         onReload.set(false)
         return result
     }
@@ -198,10 +216,10 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
     override fun entityManager(): EntityManager = EntityManagerImpl
     override fun commandManager(): CommandManager = CommandManagerImpl
     override fun compatibilityManager(): CompatibilityManager = CompatibilityManagerImpl
-    override fun configManager(): ConfigManager = ConfigManagerImpl
     override fun scriptManager(): ScriptManager = ScriptManagerImpl
     override fun skinManager(): SkinManager = SkinManagerImpl
 
+    override fun config(): BetterModelConfig = config
     override fun version(): MinecraftVersion = version
     override fun semver(): Semver = semver
     override fun nms(): NMS = nms

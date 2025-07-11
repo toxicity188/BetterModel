@@ -164,7 +164,6 @@ class NMSImpl : NMS {
         }
 
         override fun player(): Player = player
-        private fun send(packet: Packet<*>) = connection.send(packet)
 
         private fun Int.toPlayerEntity() = toEntity(connection.player.level())
         private fun Int.toRegistry(
@@ -531,7 +530,7 @@ class NMSImpl : NMS {
             override fun handle(): Entity = entity.vanillaEntity
             override fun id(): Int = handle().id
             override fun trackedPlayer(): Collection<Player> = handle().trackedEntity()
-            override fun dead(): Boolean = (handle() as? LivingEntity)?.isDeadOrDying == true || handle().removalReason?.shouldSave() == false || !handle().valid
+            override fun dead(): Boolean = (handle() as? LivingEntity)?.isDeadOrDying == true || handle().removalReason != null || !handle().valid
             override fun invisible(): Boolean = handle().isInvisible || (handle() as? LivingEntity)?.hasEffect(MobEffects.INVISIBILITY) == true
             override fun glow(): Boolean = handle().isCurrentlyGlowing
 

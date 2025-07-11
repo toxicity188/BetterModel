@@ -167,7 +167,6 @@ class NMSImpl : NMS {
         ) = (EntityTrackerRegistry.registry(EntityId(player.world.uid, this)) ?: toPlayerEntity()?.let(toRegistry))?.takeIf(filter)
 
         override fun player(): Player = player
-        private fun send(packet: Packet<*>) = connection.send(packet)
 
         override fun sendEntityData(registry: EntityTrackerRegistry) {
             val handle = registry.adapter().handle() as Entity
@@ -524,7 +523,7 @@ class NMSImpl : NMS {
             override fun handle(): Entity = entity.vanillaEntity
             override fun id(): Int = handle().id
             override fun trackedPlayer(): Collection<Player> = handle().trackedEntity()
-            override fun dead(): Boolean = (handle() as? LivingEntity)?.isDeadOrDying == true || handle().removalReason?.shouldSave() == false || !handle().valid
+            override fun dead(): Boolean = (handle() as? LivingEntity)?.isDeadOrDying == true || handle().removalReason != null || !handle().valid
             override fun invisible(): Boolean = handle().isInvisible || (handle() as? LivingEntity)?.hasEffect(MobEffects.INVISIBILITY) == true
             override fun glow(): Boolean = handle().isCurrentlyGlowing
 

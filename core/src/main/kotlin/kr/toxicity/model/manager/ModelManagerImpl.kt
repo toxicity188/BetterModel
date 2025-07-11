@@ -2,6 +2,7 @@ package kr.toxicity.model.manager
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import kr.toxicity.model.BetterModelConfigImpl
 import kr.toxicity.model.api.bone.BoneItemMapper
 import kr.toxicity.model.api.bone.BoneTagRegistry
 import kr.toxicity.model.api.bone.BoneTags
@@ -84,7 +85,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
     private fun loadModels(zipper: PackZipper) {
         val legacyModel = zipper.legacy().bettermodel().models().resolve("item")
         val modernModel = zipper.modern().bettermodel().models().resolve("modern_item")
-        val itemName = ConfigManagerImpl.item().name.lowercase()
+        val itemName = CONFIG.item().name.lowercase()
         val model = importModels(zipper)
 
         val maxScale = model.maxOfOrNull {
@@ -117,7 +118,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                         add("predicate", JsonObject().apply {
                             addProperty("custom_model_data", index)
                         })
-                        addProperty("model", "${ConfigManagerImpl.namespace()}:item/${blueprint.name}")
+                        addProperty("model", "${CONFIG.namespace()}:item/${blueprint.name}")
                     })
                     legacyModel.add("${blueprint.name}.json") {
                         blueprint.element.get().toByteArray()
@@ -167,10 +168,10 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
     }
 
     override fun reload(info: ReloadInfo, zipper: PackZipper) {
-        itemModelNamespace = NamespacedKey(ConfigManagerImpl.namespace(), MODERN_MODEL_ITEM_NAME)
+        itemModelNamespace = NamespacedKey(CONFIG.namespace(), MODERN_MODEL_ITEM_NAME)
         renderMap.clear()
-        if (ConfigManagerImpl.module().model()) loadModels(zipper)
-        if (ConfigManagerImpl.module().playerAnimation()) loadPlayerModels(zipper)
+        if (CONFIG.module().model()) loadModels(zipper)
+        if (CONFIG.module().playerAnimation()) loadPlayerModels(zipper)
     }
 
     private fun List<BlueprintJson>.toModernJson() = if (size == 1) get(0).toModernJson() else jsonObjectOf(
@@ -180,7 +181,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
 
     private fun BlueprintJson.toModernJson() = jsonObjectOf(
         "type" to "minecraft:model",
-        "model" to "${ConfigManagerImpl.namespace()}:modern_item/${name}",
+        "model" to "${CONFIG.namespace()}:modern_item/${name}",
         "tints" to jsonArrayOf(
             jsonObjectOf(
                 "type" to "minecraft:custom_model_data",
@@ -195,7 +196,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                 name,
                 scale,
                 if (name.toItemMapper() !== BoneItemMapper.EMPTY) null else consumer(this)?.let { i ->
-                    ItemStack(ConfigManagerImpl.item()).apply {
+                    ItemStack(CONFIG.item()).apply {
                         itemMeta = itemMeta.apply {
                             @Suppress("DEPRECATION") //To support legacy server :(
                             setCustomModelData(i)

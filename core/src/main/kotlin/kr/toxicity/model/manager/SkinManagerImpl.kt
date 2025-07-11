@@ -3,6 +3,7 @@ package kr.toxicity.model.manager
 import com.google.gson.JsonParser
 import com.mojang.authlib.GameProfile
 import kr.toxicity.library.dynamicuv.*
+import kr.toxicity.model.BetterModelConfigImpl
 import kr.toxicity.model.api.event.CreatePlayerSkinEvent
 import kr.toxicity.model.api.event.RemovePlayerSkinEvent
 import kr.toxicity.model.api.manager.ReloadInfo
@@ -34,7 +35,7 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
     private const val DIV_FACTOR = 16F / 0.9375F
 
     private var uvNamespace = UVNamespace(
-        ConfigManagerImpl.namespace(),
+        CONFIG.namespace(),
         "player_limb"
     )
 
@@ -746,7 +747,7 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
 
     override fun reload(info: ReloadInfo, zipper: PackZipper) {
         uvNamespace = UVNamespace(
-            ConfigManagerImpl.namespace(),
+            CONFIG.namespace(),
             "player_limb"
         )
     }

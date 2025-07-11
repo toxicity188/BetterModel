@@ -1,5 +1,6 @@
 package kr.toxicity.model.manager
 
+import kr.toxicity.model.BetterModelConfigImpl
 import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.data.blueprint.BlueprintChildren.BlueprintGroup
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint
@@ -61,7 +62,7 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
 
     override fun reload(info: ReloadInfo, zipper: PackZipper) {
         renderMap.clear()
-        if (ConfigManagerImpl.module().playerAnimation()) {
+        if (CONFIG.module().playerAnimation()) {
             DATA_FOLDER.getOrCreateDirectory("players") { folder ->
                 folder.addResource("steve.bbmodel")
             }.forEachAllFolder {
