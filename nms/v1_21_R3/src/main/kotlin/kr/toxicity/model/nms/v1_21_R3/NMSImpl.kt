@@ -124,8 +124,9 @@ class NMSImpl : NMS {
             )?.let {
                 list += ClientboundSetEntityDataPacket(target.id, it).toRegistryDataPacket(channel.uuid(), registry)
             }
-            if (registry.hideOption(channel.uuid()).equipment && target is LivingEntity) target.toEmptyEquipmentPacket()?.let {
-                list += it
+            if (target is LivingEntity) {
+                val packet = if (registry.hideOption(channel.uuid()).equipment) target.toEmptyEquipmentPacket() else target.toEquipmentPacket()
+                packet?.let { list += it }
             }
             PacketBundlerImpl(list).send(channel.player())
         }
@@ -183,7 +184,7 @@ class NMSImpl : NMS {
             )?.let {
                 list += ClientboundSetEntityDataPacket(handle.id, it)
             }
-            if (registry.hideOption(uuid).equipment && handle is LivingEntity) handle.toEquipmentPacket()?.let {
+            if (handle is LivingEntity) handle.toEquipmentPacket()?.let {
                 list += it
             }
             PacketBundlerImpl(list).send(player)
@@ -244,9 +245,11 @@ class NMSImpl : NMS {
 
         override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
             fun EntityTrackerRegistry.updatePlayerLimb() {
-                player.updateInventory()
-                connection.player.toEmptyEquipmentPacket()?.let {
-                    connection.send(it)
+                if (hideOption(uuid).equipment) {
+                    player.updateInventory()
+                    connection.player.toEmptyEquipmentPacket()?.let {
+                        connection.send(it)
+                    }
                 }
                 BetterModel.plugin().scheduler().asyncTaskLater(1) {
                     trackers().forEach { tracker ->

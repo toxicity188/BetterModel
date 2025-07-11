@@ -145,7 +145,7 @@ public final class EntityTrackerRegistry {
             if (trackerMap.isEmpty()) {
                 close(r);
                 LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> entity.getUniqueId() + "'s tracker registry has been removed. (" + REGISTRIES.size() + ")");
-            }
+            } else refreshRemove();
         });
         var previous = trackerMap.put(key, created);
         if (previous != null) previous.close();
@@ -154,6 +154,12 @@ public final class EntityTrackerRegistry {
 
     public void refreshSpawn() {
         viewedPlayer().forEach(value -> spawn(value.player(), true));
+    }
+
+    private void refreshRemove() {
+        for (PlayerChannelCache value : viewedPlayerMap.values()) {
+            value.hide();
+        }
     }
 
     public boolean remove(@NotNull String key) {
@@ -316,6 +322,11 @@ public final class EntityTrackerRegistry {
     private class PlayerChannelCache {
         private final PlayerChannelHandler channelHandler;
         private volatile EntityHideOption hideOption = EntityHideOption.DEFAULT;
+
+        private void hide() {
+            reapplyHideOption();
+            BetterModel.plugin().nms().hide(channelHandler, EntityTrackerRegistry.this, () -> viewedPlayerMap.containsKey(channelHandler.uuid()));
+        }
 
         private void spawn(@NotNull PacketBundler bundler) {
             reapplyHideOption();
