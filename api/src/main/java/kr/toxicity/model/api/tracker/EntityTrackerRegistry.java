@@ -142,8 +142,7 @@ public final class EntityTrackerRegistry {
             if (trackerMap.compute(key, (k, v) -> v == created ? null : v) == null) {
                 LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> entity.getUniqueId() + "'s tracker " + key + " has been removed. (" + trackerMap.size() + ")");
             }
-            if (trackerMap.isEmpty()) {
-                close(r);
+            if (trackerMap.isEmpty() && close(r)) {
                 LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> entity.getUniqueId() + "'s tracker registry has been removed. (" + REGISTRIES.size() + ")");
             } else refreshRemove();
         });
@@ -174,13 +173,11 @@ public final class EntityTrackerRegistry {
     }
 
     public boolean close() {
-        if (closed.compareAndSet(false, true)) {
-            close(Tracker.CloseReason.REMOVE);
-            return true;
-        } else return false;
+        return close(Tracker.CloseReason.REMOVE);
     }
 
-    private void close(@NotNull Tracker.CloseReason reason) {
+    private boolean close(@NotNull Tracker.CloseReason reason) {
+        if (!closed.compareAndSet(false, true)) return false;
         viewedPlayer().forEach(value -> value.sendEntityData(this));
         viewedPlayerMap.clear();
         for (EntityTracker value : trackerMap.values()) {
@@ -190,6 +187,7 @@ public final class EntityTrackerRegistry {
         if (UUID_REGISTRY_MAP.remove(entity.getUniqueId()) != null) {
             ID_REGISTRY_MAP.remove(id);
         }
+        return true;
     }
 
     public void reload() {

@@ -114,7 +114,6 @@ public final class RollTester implements ModelTester, Listener {
                 });
     }
 
-    @SuppressWarnings("UnstableApiUsage")
     private static float inputToYaw(@NotNull Player player) {
         var input = player.getCurrentInput();
         var leftRightDegree = switch (TriState.of(input.isLeft(), input.isRight())) {
