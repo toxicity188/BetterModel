@@ -29,6 +29,7 @@ import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.event.Event
 import org.joml.Quaternionf
 import org.joml.Vector3f
+import java.util.UUID
 import kotlin.math.max
 
 internal inline fun <reified T, reified R> createAdaptedFieldGetter(noinline paperGetter: (T) -> R): (T) -> R {
@@ -156,9 +157,9 @@ internal fun <T> useByteBuf(block: (FriendlyByteBuf) -> T): T {
 
 internal fun PacketBundler.unwrap(): PacketBundlerImpl = this as PacketBundlerImpl
 
-internal fun EntityTrackerRegistry.entityFlag(byte: Byte): Byte {
+internal fun EntityTrackerRegistry.entityFlag(uuid: UUID, byte: Byte): Byte {
     var b = byte.toInt()
-    val hideOption = hideOption()
+    val hideOption = hideOption(uuid)
     if (hideOption.fire()) b = b and 1.inv()
     if (hideOption.visibility()) b = b or (1 shl 5)
     if (hideOption.glowing()) b = b and (1 shl 6).inv()

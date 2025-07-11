@@ -1,11 +1,12 @@
 package kr.toxicity.model.api.pack;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
 
-@RequiredArgsConstructor
+@RequiredArgsConstructor(access = AccessLevel.MODULE)
 public final class PackBuilder {
     private final PackAssets assets;
     private final PackPath path;

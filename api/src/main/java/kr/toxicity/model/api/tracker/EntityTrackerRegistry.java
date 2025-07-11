@@ -7,9 +7,11 @@ import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.config.DebugConfig;
 import kr.toxicity.model.api.nms.EntityAdapter;
 import kr.toxicity.model.api.nms.ModelDisplay;
+import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.util.LogUtil;
 import kr.toxicity.model.api.util.entity.EntityId;
+import lombok.RequiredArgsConstructor;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -46,8 +48,7 @@ public final class EntityTrackerRegistry {
     private final EntityAdapter adapter;
     private final ConcurrentNavigableMap<String, EntityTracker> trackerMap = new ConcurrentSkipListMap<>();
     private final Collection<EntityTracker> trackers = Collections.unmodifiableCollection(trackerMap.values());
-    private final Map<UUID, PlayerChannelHandler> viewedPlayerMap = new ConcurrentHashMap<>();
-    private HideOption hideOption = HideOption.DEFAULT;
+    private final Map<UUID, PlayerChannelCache> viewedPlayerMap = new ConcurrentHashMap<>();
 
     public static @Nullable EntityTrackerRegistry registry(@NotNull UUID uuid) {
         return UUID_REGISTRY_MAP.get(uuid);
@@ -70,7 +71,7 @@ public final class EntityTrackerRegistry {
         if (entity instanceof Player player) stream = Stream.concat(Stream.of(player), stream);
         stream.map(p -> BetterModel.player(p.getUniqueId()).orElse(null))
                 .filter(Objects::nonNull)
-                .forEach(h -> registry.viewedPlayerMap.put(h.player().getUniqueId(), h));
+                .forEach(registry::registerPlayer);
         return registry;
     }
 
@@ -152,9 +153,7 @@ public final class EntityTrackerRegistry {
     }
 
     public void refreshSpawn() {
-        for (PlayerChannelHandler value : viewedPlayerMap.values()) {
-            spawn(value.player(), true);
-        }
+        viewedPlayer().forEach(value -> spawn(value.player(), true));
     }
 
     public boolean remove(@NotNull String key) {
@@ -176,9 +175,7 @@ public final class EntityTrackerRegistry {
     }
 
     private void close(@NotNull Tracker.CloseReason reason) {
-        for (PlayerChannelHandler value : viewedPlayerMap.values()) {
-            value.sendEntityData(this);
-        }
+        viewedPlayer().forEach(value -> value.sendEntityData(this));
         viewedPlayerMap.clear();
         for (EntityTracker value : trackerMap.values()) {
             value.close(reason);
@@ -278,7 +275,7 @@ public final class EntityTrackerRegistry {
                 .playerManager()
                 .player(player.getUniqueId());
         if (handler == null) return false;
-        viewedPlayerMap.put(player.getUniqueId(), handler);
+        var cache = registerPlayer(handler);
         if (trackerMap.isEmpty()) return false;
         var bundler = BetterModel.plugin().nms().createBundler(10);
         for (EntityTracker value : trackerMap.values()) {
@@ -287,14 +284,22 @@ public final class EntityTrackerRegistry {
         }
         if (bundler.isEmpty()) return false;
         BetterModel.plugin().nms().mount(this, bundler);
-        bundler.send(player, () -> BetterModel.plugin().nms().hide(player, this, () -> viewedPlayerMap.containsKey(player.getUniqueId())));
+        cache.spawn(bundler);
         return true;
     }
 
+    private @NotNull PlayerChannelCache registerPlayer(@NotNull PlayerChannelHandler handler) {
+        return viewedPlayerMap.computeIfAbsent(handler.uuid(), u -> new PlayerChannelCache(handler));
+    }
+
+    public @NotNull Stream<PlayerChannelHandler> viewedPlayer() {
+        return viewedPlayerMap.values().stream().map(c -> c.channelHandler);
+    }
 
     public boolean remove(@NotNull Player player) {
-        var handler = viewedPlayerMap.remove(player.getUniqueId());
-        if (handler == null) return false;
+        var cache = viewedPlayerMap.remove(player.getUniqueId());
+        if (cache == null) return false;
+        var handler = cache.channelHandler;
         handler.sendEntityData(this);
         for (EntityTracker value : trackerMap.values()) {
             if (!value.forRemoval() && value.pipeline.isSpawned(player.getUniqueId())) value.remove(handler.player());
@@ -302,26 +307,26 @@ public final class EntityTrackerRegistry {
         return true;
     }
 
-    public @NotNull HideOption hideOption() {
-        return hideOption;
+    public @NotNull EntityHideOption hideOption(@NotNull UUID uuid) {
+        var cache = viewedPlayerMap.get(uuid);
+        return cache != null ? cache.hideOption : EntityHideOption.FALSE;
     }
 
-    public void hideOption(@NotNull HideOption hideOption) {
-        this.hideOption = Objects.requireNonNull(hideOption);
-    }
+    @RequiredArgsConstructor
+    private class PlayerChannelCache {
+        private final PlayerChannelHandler channelHandler;
+        private volatile EntityHideOption hideOption = EntityHideOption.DEFAULT;
 
-    @lombok.Builder
-    public record HideOption(
-            boolean equipment,
-            boolean fire,
-            boolean visibility,
-            boolean glowing
-    ) {
-        public static final HideOption DEFAULT = new HideOption(
-                true,
-                true,
-                true,
-                true
-        );
+        private void spawn(@NotNull PacketBundler bundler) {
+            reapplyHideOption();
+            bundler.send(channelHandler.player(), () -> BetterModel.plugin().nms().hide(channelHandler, EntityTrackerRegistry.this, () -> viewedPlayerMap.containsKey(channelHandler.uuid())));
+        }
+
+        private synchronized void reapplyHideOption() {
+            hideOption = EntityHideOption.composite(trackerMap.values()
+                    .stream()
+                    .filter(t -> t.pipeline.isSpawned(channelHandler.uuid()))
+                    .map(EntityTracker::hideOption));
+        }
     }
 }

@@ -57,11 +57,11 @@ public interface NMS {
 
     /**
      * Sends a hide packet for some entity to some player
-     * @param player player
+     * @param channel channel handler
      * @param registry registry
      * @param condition condition
      */
-    void hide(@NotNull Player player, @NotNull EntityTrackerRegistry registry, @NotNull BooleanSupplier condition);
+    void hide(@NotNull PlayerChannelHandler channel, @NotNull EntityTrackerRegistry registry, @NotNull BooleanSupplier condition);
 
     /**
      * Creates delegator hit-box of target entity

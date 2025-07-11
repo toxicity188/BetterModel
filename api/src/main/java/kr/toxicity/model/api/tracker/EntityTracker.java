@@ -46,6 +46,7 @@ public class EntityTracker extends Tracker {
     private final Set<UUID> markForSpawn = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     private final HeadRotationProperty headRotationProperty = new HeadRotationProperty();
+    private EntityHideOption hideOption = EntityHideOption.DEFAULT;
 
     /**
      * Creates entity tracker
@@ -277,6 +278,14 @@ public class EntityTracker extends Tracker {
      */
     public boolean canBeSpawnedAt(@NotNull OfflinePlayer player) {
         return markForSpawn.isEmpty() || markForSpawn.contains(player.getUniqueId());
+    }
+
+    public @NotNull EntityHideOption hideOption() {
+        return hideOption;
+    }
+
+    public void hideOption(@NotNull EntityHideOption hideOption) {
+        this.hideOption = Objects.requireNonNull(hideOption);
     }
 
     /**

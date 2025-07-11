@@ -51,6 +51,7 @@ import org.bukkit.inventory.ItemStack
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import java.lang.reflect.Field
+import java.util.UUID
 import java.util.function.BooleanSupplier
 
 class NMSImpl : NMS {
@@ -113,7 +114,7 @@ class NMSImpl : NMS {
         private val entityDataSet = (mutableListOf(sharedFlag) + itemId + displaySet.subList(transformSet.size, displaySet.size)).toIntSet()
     }
 
-    override fun hide(player: Player, registry: EntityTrackerRegistry, condition: BooleanSupplier) {
+    override fun hide(channel: PlayerChannelHandler, registry: EntityTrackerRegistry, condition: BooleanSupplier) {
         val entity = registry.entity()
         val target = (entity as CraftEntity).vanillaEntity
         val task = {
@@ -121,23 +122,23 @@ class NMSImpl : NMS {
             target.entityData.pack(
                 valueFilter = { it.id == sharedFlag }
             )?.let {
-                list += ClientboundSetEntityDataPacket(target.id, it).toRegistryDataPacket(registry)
+                list += ClientboundSetEntityDataPacket(target.id, it).toRegistryDataPacket(channel.uuid(), registry)
             }
-            if (registry.hideOption().equipment && target is LivingEntity) target.toEmptyEquipmentPacket()?.let {
+            if (registry.hideOption(channel.uuid()).equipment && target is LivingEntity) target.toEmptyEquipmentPacket()?.let {
                 list += it
             }
-            PacketBundlerImpl(list).send(player)
+            PacketBundlerImpl(list).send(channel.player())
         }
         if (entity is Player) BetterModel.plugin().scheduler().asyncTaskLater(CONFIG.playerHideDelay()) {
             if (condition.asBoolean) task()
         } else task()
     }
     
-    private fun ClientboundSetEntityDataPacket.toRegistryDataPacket(registry: EntityTrackerRegistry) = ClientboundSetEntityDataPacket(id, packedItems().map {
+    private fun ClientboundSetEntityDataPacket.toRegistryDataPacket(uuid: UUID, registry: EntityTrackerRegistry) = ClientboundSetEntityDataPacket(id, packedItems().map {
         if (it.id == sharedFlag) SynchedEntityData.DataValue(
             it.id,
             EntityDataSerializers.BYTE,
-            registry.entityFlag(it.value() as Byte)
+            registry.entityFlag(uuid, it.value() as Byte)
         ) else it
     })
 
@@ -145,6 +146,7 @@ class NMSImpl : NMS {
         private val player: Player
     ) : PlayerChannelHandler, ChannelDuplexHandler() {
         private val connection = (player as CraftPlayer).handle.connection
+        private val uuid = player.uniqueId
         private val slim = BetterModel.plugin().skinManager().isSlim(profile())
 
         init {
@@ -155,7 +157,7 @@ class NMSImpl : NMS {
         }
 
         override fun isSlim(): Boolean = slim
-
+        override fun uuid(): UUID = uuid
         override fun close() {
             val channel = getConnection(connection).channel
             channel.eventLoop().submit {
@@ -181,7 +183,7 @@ class NMSImpl : NMS {
             )?.let {
                 list += ClientboundSetEntityDataPacket(handle.id, it)
             }
-            if (registry.hideOption().equipment && handle is LivingEntity) handle.toEquipmentPacket()?.let {
+            if (registry.hideOption(uuid).equipment && handle is LivingEntity) handle.toEquipmentPacket()?.let {
                 list += it
             }
             PacketBundlerImpl(list).send(player)
@@ -222,10 +224,10 @@ class NMSImpl : NMS {
                     }
                 }
                 is ClientboundSetEntityDataPacket -> id.toRegistry()?.let { registry ->
-                    return toRegistryDataPacket(registry)
+                    return toRegistryDataPacket(uuid, registry)
                 }
                 is ClientboundSetEquipmentPacket -> entity.toRegistry()?.let {
-                    if (it.hideOption().equipment()) (it.adapter().handle() as? LivingEntity)?.toEmptyEquipmentPacket()?.let { packet ->
+                    if (it.hideOption(uuid).equipment()) (it.adapter().handle() as? LivingEntity)?.toEmptyEquipmentPacket()?.let { packet ->
                         return packet
                     }
                 } 
@@ -257,7 +259,7 @@ class NMSImpl : NMS {
             when (msg) {
                 is ServerboundSetCarriedItemPacket -> {
                     connection.player.id.toRegistry()?.let { registry ->
-                        if (!registry.hideOption().equipment()) return super.channelRead(ctx, msg)
+                        if (!registry.hideOption(uuid).equipment()) return super.channelRead(ctx, msg)
                         if (CONFIG.cancelPlayerModelInventory()) {
                             connection.send(ClientboundSetHeldSlotPacket(player.inventory.heldItemSlot))
                             return
@@ -268,7 +270,7 @@ class NMSImpl : NMS {
                 }
                 is ServerboundPlayerActionPacket -> {
                     connection.player.id.toRegistry()?.let { registry ->
-                        if (!registry.hideOption().equipment()) return super.channelRead(ctx, msg)
+                        if (!registry.hideOption(uuid).equipment()) return super.channelRead(ctx, msg)
                         if (CONFIG.cancelPlayerModelInventory()) return
                         else registry.updatePlayerLimb()
                     }

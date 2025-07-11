@@ -70,7 +70,7 @@ public record BlueprintAnimation(
                 animation.override(),
                 newMap,
                 blueprintScript,
-                newMap.isEmpty() ? List.of(AnimationMovement.EMPTY) : newMap.values()
+                newMap.isEmpty() ? List.of(new AnimationMovement(animation.length())) : newMap.values()
                         .iterator()
                         .next()
                         .keyFrame()
