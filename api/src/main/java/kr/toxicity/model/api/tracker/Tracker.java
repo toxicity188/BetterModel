@@ -17,6 +17,7 @@ import kr.toxicity.model.api.util.function.BonePredicate;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Location;
+import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -499,6 +500,15 @@ public abstract class Tracker implements AutoCloseable {
      */
     public boolean glow(@NotNull BonePredicate predicate, boolean glow, int glowColor) {
         return pipeline.glow(predicate, glow, glowColor);
+    }
+
+    /**
+     * Sets billboard of some model part
+     * @param billboard billboard
+     * @return success
+     */
+    public boolean billboard(@NotNull BonePredicate predicate, @NotNull Display.Billboard billboard) {
+        return pipeline.billboard(predicate, billboard);
     }
 
     /**

@@ -3,11 +3,7 @@ package kr.toxicity.model.compatibility.mythicmobs.condition
 import io.lumine.mythic.api.adapters.AbstractEntity
 import io.lumine.mythic.api.config.MythicLineConfig
 import io.lumine.mythic.api.skills.conditions.IEntityCondition
-import kr.toxicity.model.compatibility.mythicmobs.MM_SEAT
-import kr.toxicity.model.compatibility.mythicmobs.modelPlaceholder
-import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderArgs
-import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderStringList
-import kr.toxicity.model.compatibility.mythicmobs.toTracker
+import kr.toxicity.model.compatibility.mythicmobs.*
 
 class ModelHasPassengerCondition(mlc: MythicLineConfig) : IEntityCondition {
 

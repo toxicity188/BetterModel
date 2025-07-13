@@ -2,11 +2,11 @@ package kr.toxicity.model
 
 import com.vdurmont.semver4j.Semver
 import kr.toxicity.model.api.BetterModel
+import kr.toxicity.model.api.BetterModelConfig
 import kr.toxicity.model.api.BetterModelLogger
 import kr.toxicity.model.api.BetterModelPlugin
 import kr.toxicity.model.api.BetterModelPlugin.ReloadResult
 import kr.toxicity.model.api.BetterModelPlugin.ReloadResult.*
-import kr.toxicity.model.api.BetterModelConfig
 import kr.toxicity.model.api.manager.*
 import kr.toxicity.model.api.nms.NMS
 import kr.toxicity.model.api.pack.PackZipper
@@ -17,8 +17,8 @@ import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.api.version.MinecraftVersion.*
 import kr.toxicity.model.configuration.PluginConfiguration
 import kr.toxicity.model.manager.*
-import kr.toxicity.model.scheduler.PaperScheduler
 import kr.toxicity.model.scheduler.BukkitScheduler
+import kr.toxicity.model.scheduler.PaperScheduler
 import kr.toxicity.model.util.*
 import net.kyori.adventure.platform.bukkit.BukkitAudiences
 import net.kyori.adventure.text.Component

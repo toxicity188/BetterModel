@@ -1,8 +1,6 @@
 package kr.toxicity.model.manager
 
 import com.google.gson.JsonArray
-import com.google.gson.JsonObject
-import kr.toxicity.model.BetterModelConfigImpl
 import kr.toxicity.model.api.bone.BoneItemMapper
 import kr.toxicity.model.api.bone.BoneTagRegistry
 import kr.toxicity.model.api.bone.BoneTags
@@ -21,8 +19,6 @@ import org.bukkit.NamespacedKey
 import org.bukkit.inventory.ItemStack
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.collections.forEach
-import kotlin.collections.maxOfOrNull
 
 object ModelManagerImpl : ModelManager, GlobalManagerImpl {
 

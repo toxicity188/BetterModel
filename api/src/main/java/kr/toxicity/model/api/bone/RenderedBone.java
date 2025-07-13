@@ -23,6 +23,7 @@ import lombok.Setter;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Display;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
@@ -212,6 +213,19 @@ public final class RenderedBone implements HitBoxSource {
         if (display != null && predicate.test(this)) {
             display.glow(glow);
             display.glowColor(glowColor);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Apply a billboard to this model.
+     * @param billboard billboard
+     * @return success or not
+     */
+    public boolean billboard(@NotNull Predicate<RenderedBone> predicate, @NotNull Display.Billboard billboard) {
+        if (display != null && predicate.test(this)) {
+            display.billboard(billboard);
             return true;
         }
         return false;

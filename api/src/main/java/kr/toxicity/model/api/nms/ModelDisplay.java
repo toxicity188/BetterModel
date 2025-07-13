@@ -2,6 +2,7 @@ package kr.toxicity.model.api.nms;
 
 import kr.toxicity.model.api.tracker.ModelRotation;
 import org.bukkit.Location;
+import org.bukkit.entity.Display;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -154,4 +155,10 @@ public interface ModelDisplay {
      * @param glowColor hex glow color
      */
     void glowColor(int glowColor);
+
+    /**
+     * Sets display billboard
+     * @param billboard billboard
+     */
+    void billboard(@NotNull Display.Billboard billboard);
 }

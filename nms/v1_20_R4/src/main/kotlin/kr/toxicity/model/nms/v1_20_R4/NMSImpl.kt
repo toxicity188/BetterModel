@@ -406,6 +406,10 @@ class NMSImpl : NMS {
             display.glowColorOverride = glowColor
         }
 
+        override fun billboard(billboard: org.bukkit.entity.Display.Billboard) {
+            display.billboardConstraints = Display.BillboardConstraints.BY_ID.apply(billboard.ordinal)
+        }
+
         override fun syncPosition(adapter: EntityAdapter, bundler: PacketBundler) {
             val handle = adapter.handle() as Entity
             val pos = handle.position()

@@ -1,6 +1,5 @@
 package kr.toxicity.model.manager
 
-import kr.toxicity.model.BetterModelConfigImpl
 import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.data.blueprint.BlueprintChildren.BlueprintGroup
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint
@@ -10,6 +9,7 @@ import kr.toxicity.model.api.manager.PlayerManager
 import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.api.nms.PlayerChannelHandler
 import kr.toxicity.model.api.pack.PackZipper
+import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.util.*
 import org.bukkit.Material
 import org.bukkit.entity.Player
@@ -47,6 +47,9 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
 //            }
             @EventHandler
             fun PlayerQuitEvent.quit() {
+                PLUGIN.scheduler().asyncTask {
+                    EntityTrackerRegistry.REGISTRIES.forEach { registry -> registry.remove(player) }
+                }
                 playerMap.remove(player.uniqueId)?.use {
                     SkinManagerImpl.removeCache(it.profile())
                 }

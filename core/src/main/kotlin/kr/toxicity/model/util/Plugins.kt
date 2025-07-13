@@ -6,7 +6,6 @@ import kr.toxicity.model.api.config.DebugConfig
 import kr.toxicity.model.api.util.HttpUtil
 import kr.toxicity.model.api.util.LogUtil
 import kr.toxicity.model.api.util.PackUtil
-import kr.toxicity.model.BetterModelConfigImpl
 import java.net.http.HttpClient
 
 val PLUGIN

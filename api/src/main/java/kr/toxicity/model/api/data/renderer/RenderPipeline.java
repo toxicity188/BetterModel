@@ -22,6 +22,7 @@ import kr.toxicity.model.api.util.function.BonePredicate;
 import kr.toxicity.model.api.util.function.FloatSupplier;
 import lombok.Getter;
 import org.bukkit.Location;
+import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -216,6 +217,10 @@ public final class RenderPipeline {
 
     public boolean glow(@NotNull BonePredicate predicate, boolean glow, int glowColor) {
         return anyMatch(predicate, (b, p) -> b.glow(p, glow, glowColor));
+    }
+
+    public boolean billboard(@NotNull BonePredicate predicate, @NotNull Display.Billboard billboard) {
+        return anyMatch(predicate, (b, p) -> b.billboard(p, billboard));
     }
 
     public boolean brightness(@NotNull BonePredicate predicate, int block, int sky) {

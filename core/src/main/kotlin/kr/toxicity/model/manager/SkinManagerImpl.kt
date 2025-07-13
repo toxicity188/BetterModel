@@ -3,7 +3,6 @@ package kr.toxicity.model.manager
 import com.google.gson.JsonParser
 import com.mojang.authlib.GameProfile
 import kr.toxicity.library.dynamicuv.*
-import kr.toxicity.model.BetterModelConfigImpl
 import kr.toxicity.model.api.event.CreatePlayerSkinEvent
 import kr.toxicity.model.api.event.RemovePlayerSkinEvent
 import kr.toxicity.model.api.manager.ReloadInfo
