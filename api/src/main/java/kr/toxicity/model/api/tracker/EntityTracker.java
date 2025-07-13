@@ -257,6 +257,7 @@ public class EntityTracker extends Tracker {
 
     /**
      * Marks specific player for spawning
+     * @param player player
      * @return success
      */
     public boolean markPlayerForSpawn(@NotNull OfflinePlayer player) {
@@ -264,11 +265,32 @@ public class EntityTracker extends Tracker {
     }
 
     /**
+     * Marks specific player for spawning
+     * @param uuids uuids
+     * @return success
+     */
+    public boolean markPlayerForSpawn(@NotNull Set<UUID> uuids) {
+        return markForSpawn.addAll(uuids);
+    }
+
+    /**
      * Unmarks specific player for spawning
+     * @param player player
      * @return success
      */
     public boolean unmarkPlayerForSpawn(@NotNull OfflinePlayer player) {
         return markForSpawn.remove(player.getUniqueId());
+    }
+
+    public @NotNull TrackerData asTrackerData() {
+        return new TrackerData(
+                name(),
+                scaler,
+                rotator,
+                modifier,
+                hideOption,
+                markForSpawn
+        );
     }
 
     /**

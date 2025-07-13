@@ -1,8 +1,13 @@
 package kr.toxicity.model.api.tracker;
 
 import com.google.gson.*;
+import com.google.gson.annotations.SerializedName;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Collections;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Tracker data
@@ -10,12 +15,15 @@ import org.jetbrains.annotations.Nullable;
  * @param scaler scaler
  * @param rotator rotator
  * @param modifier modifier
+ * @param hideOption hide option
  */
 public record TrackerData(
         @NotNull String id,
         @Nullable ModelScaler scaler,
         @Nullable ModelRotator rotator,
-        @NotNull TrackerModifier modifier
+        @NotNull TrackerModifier modifier,
+        @Nullable @SerializedName("hide-option") EntityHideOption hideOption,
+        @Nullable @SerializedName("mark-for-spawn") Set<UUID> markForSpawn
 ) {
     /**
      * Parser
@@ -25,7 +33,18 @@ public record TrackerData(
             .registerTypeAdapter(ModelScaler.class, (JsonSerializer<ModelScaler>) (src, typeOfSrc, context) -> src.serialize())
             .registerTypeAdapter(ModelRotator.class, (JsonDeserializer<ModelRotator>) (json, typeOfT, context) -> json.isJsonObject() ? ModelRotator.deserialize(json.getAsJsonObject()) : ModelRotator.YAW)
             .registerTypeAdapter(ModelRotator.class, (JsonSerializer<ModelRotator>) (src, typeOfSrc, context) -> src.serialize())
+            .registerTypeAdapter(EntityHideOption.class, (JsonDeserializer<EntityHideOption>) (json, typeOfT, context) -> json.isJsonArray() ? EntityHideOption.deserialize(json.getAsJsonArray()) : EntityHideOption.DEFAULT)
+            .registerTypeAdapter(EntityHideOption.class, (JsonSerializer<EntityHideOption>) (src, typeOfSrc, context) -> src.serialize())
+            .registerTypeAdapter(UUID.class, (JsonDeserializer<UUID>) (json, typeOfT, context) -> UUID.fromString(json.getAsString()))
+            .registerTypeAdapter(UUID.class, (JsonSerializer<UUID>) (src, typeOfSrc, context) -> new JsonPrimitive(src.toString()))
             .create();
+
+    public void applyAs(@NotNull EntityTracker tracker) {
+        tracker.markPlayerForSpawn(markForSpawn());
+        tracker.hideOption(hideOption());
+        tracker.scaler(scaler());
+        tracker.rotator(rotator());
+    }
 
     /**
      * Serializes data as JSON
@@ -44,8 +63,10 @@ public record TrackerData(
         return element.isJsonPrimitive() ? new TrackerData(
                 element.getAsString(),
                 ModelScaler.entity(),
-                ModelRotator.YAW,
-                TrackerModifier.DEFAULT
+                null,
+                TrackerModifier.DEFAULT,
+                null,
+                null
         ) : PARSER.fromJson(element, TrackerData.class);
     }
 
@@ -57,6 +78,16 @@ public record TrackerData(
     @Override
     public @NotNull ModelRotator rotator() {
         return rotator != null ? rotator : ModelRotator.YAW;
+    }
+
+    @Override
+    public @NotNull EntityHideOption hideOption() {
+        return hideOption != null ? hideOption : EntityHideOption.DEFAULT;
+    }
+
+    @Override
+    public @NotNull Set<UUID> markForSpawn() {
+        return markForSpawn != null ? markForSpawn : Collections.emptySet();
     }
 
     @NotNull

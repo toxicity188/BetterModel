@@ -70,11 +70,11 @@ public abstract class Tracker implements AutoCloseable {
     private final AtomicBoolean readyForForceUpdate = new AtomicBoolean();
     private final AtomicBoolean forRemoval = new AtomicBoolean();
     private final AtomicBoolean rotationLock = new AtomicBoolean();
-    private final TrackerModifier modifier;
+    protected final TrackerModifier modifier;
     private final Runnable updater;
     private final BundlerSet bundlerSet;
-    private ModelRotator rotator = ModelRotator.YAW;
-    private ModelScaler scaler = ModelScaler.entity();
+    protected ModelRotator rotator = ModelRotator.YAW;
+    protected ModelScaler scaler = ModelScaler.entity();
     private Supplier<ModelRotation> rotationSupplier = () -> ModelRotation.EMPTY;
     private BiConsumer<Tracker, CloseReason> closeEventHandler = (t, r) -> EventUtil.call(new CloseTrackerEvent(t, r));
 
@@ -176,15 +176,6 @@ public abstract class Tracker implements AutoCloseable {
 
     public void scaler(@NotNull ModelScaler scaler) {
         this.scaler = Objects.requireNonNull(scaler);
-    }
-
-    public @NotNull TrackerData asTrackerData() {
-        return new TrackerData(
-                name(),
-                scaler,
-                rotator,
-                modifier
-        );
     }
 
     /**

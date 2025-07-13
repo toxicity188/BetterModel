@@ -114,12 +114,10 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                 }
                 //Legacy
                 blueprintGroup.buildLegacyJson(PLUGIN.version().useModernResource(), maxScale, load)?.let { blueprint ->
-                    legacyEntries.add(JsonObject().apply {
-                        add("predicate", JsonObject().apply {
-                            addProperty("custom_model_data", index)
-                        })
-                        addProperty("model", "${CONFIG.namespace()}:item/${blueprint.name}")
-                    })
+                    legacyEntries.add(jsonObjectOf(
+                        "predicate" to jsonObjectOf("custom_model_data" to index),
+                        "model" to "${CONFIG.namespace()}:item/${blueprint.name}"
+                    ))
                     legacyModel.add("${blueprint.name}.json") {
                         blueprint.element.get().toByteArray()
                     }
@@ -200,7 +198,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                         itemMeta = itemMeta.apply {
                             @Suppress("DEPRECATION") //To support legacy server :(
                             setCustomModelData(i)
-                            if (PLUGIN.version().useModernResource()) itemModel = itemModelNamespace
+                            if (PLUGIN.version().useItemModelName()) itemModel = itemModelNamespace
                         }
                     }
                 },

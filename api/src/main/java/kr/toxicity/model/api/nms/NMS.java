@@ -1,6 +1,7 @@
 package kr.toxicity.model.api.nms;
 
 import com.mojang.authlib.GameProfile;
+import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox;
 import kr.toxicity.model.api.mount.MountController;
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry;
@@ -59,9 +60,23 @@ public interface NMS {
      * Sends a hide packet for some entity to some player
      * @param channel channel handler
      * @param registry registry
+     */
+    void hide(@NotNull PlayerChannelHandler channel, @NotNull EntityTrackerRegistry registry);
+
+    /**
+     * Sends a hide packet for some entity to some player
+     * @param channel channel handler
+     * @param registry registry
      * @param condition condition
      */
-    void hide(@NotNull PlayerChannelHandler channel, @NotNull EntityTrackerRegistry registry, @NotNull BooleanSupplier condition);
+    default void hide(@NotNull PlayerChannelHandler channel, @NotNull EntityTrackerRegistry registry, @NotNull BooleanSupplier condition) {
+        if (registry.entity() instanceof Player) {
+            var plugin = BetterModel.plugin();
+            plugin.scheduler().asyncTaskLater(plugin.config().playerHideDelay(), () -> {
+                if (condition.getAsBoolean()) hide(channel, registry);
+            });
+        } else hide(channel, registry);
+    }
 
     /**
      * Creates delegator hit-box of target entity

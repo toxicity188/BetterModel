@@ -216,10 +216,7 @@ public final class EntityTrackerRegistry {
     }
 
     public void load(@NotNull Stream<TrackerData> stream) {
-        stream.forEach(parsed -> BetterModel.model(parsed.id()).ifPresent(model -> model.create(entity, parsed.modifier(), t -> {
-            t.scaler(parsed.scaler());
-            t.rotator(parsed.rotator());
-        })));
+        stream.forEach(parsed -> BetterModel.model(parsed.id()).ifPresent(model -> model.create(entity, parsed.modifier(), parsed::applyAs)));
         save();
     }
 
@@ -323,7 +320,7 @@ public final class EntityTrackerRegistry {
 
         private void hide() {
             reapplyHideOption();
-            BetterModel.plugin().nms().hide(channelHandler, EntityTrackerRegistry.this, () -> viewedPlayerMap.containsKey(channelHandler.uuid()));
+            BetterModel.plugin().nms().hide(channelHandler, EntityTrackerRegistry.this);
         }
 
         private void spawn(@NotNull PacketBundler bundler) {

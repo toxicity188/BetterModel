@@ -103,6 +103,14 @@ public record MinecraftVersion(int first, int second, int third) implements Comp
         return isGreaterOrEquals(V1_21_4);
     }
 
+    /**
+     * Checks this version should be use item model namespace.
+     * @return use item model namespace.
+     */
+    public boolean useItemModelName() {
+        return isGreaterOrEquals(V1_21_2);
+    }
+
     @Override
     public int compareTo(@NotNull MinecraftVersion o) {
         return COMPARATOR.compare(this, o);

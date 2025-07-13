@@ -30,7 +30,7 @@ import org.bukkit.craftbukkit.v1_20_R3.entity.CraftEntity
 import org.bukkit.event.Event
 import org.joml.Quaternionf
 import org.joml.Vector3f
-import java.util.UUID
+import java.util.*
 import kotlin.math.max
 
 internal inline fun <reified T, reified R> createAdaptedFieldGetter(noinline paperGetter: (T) -> R): (T) -> R {
@@ -171,9 +171,9 @@ internal fun EntityTrackerRegistry.entityFlag(uuid: UUID, byte: Byte): Byte {
 internal fun org.bukkit.util.Vector.toVanilla() = Vec3(x, y, z)
 internal fun Vec3.toBukkit() = org.bukkit.util.Vector(x, y, z)
 
-internal fun LivingEntity.toEquipmentPacket(mapper: (EquipmentSlot) -> ItemStack = ::getItemBySlot): ClientboundSetEquipmentPacket? {
+internal fun LivingEntity.toEquipmentPacket(mapper: (EquipmentSlot) -> ItemStack? = { if (hasItemInSlot(it)) getItemBySlot(it) else null }): ClientboundSetEquipmentPacket? {
     val equip = EquipmentSlot.entries.mapNotNull {
-        if (hasItemInSlot(it)) com.mojang.datafixers.util.Pair.of(it, mapper(it)) else null
+        mapper(it)?.let { item -> com.mojang.datafixers.util.Pair.of(it, item) }
     }
     return if (equip.isNotEmpty()) ClientboundSetEquipmentPacket(id, equip) else null
 }

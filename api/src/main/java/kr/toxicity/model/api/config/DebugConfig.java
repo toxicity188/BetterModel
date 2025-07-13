@@ -22,7 +22,7 @@ public record DebugConfig(@NotNull Set<DebugOption> options) {
          */
         HITBOX("hitbox"),
         /**
-         *  Debug packing resource pack
+         * Debug packing resource pack
          */
         PACK("pack"),
         /**

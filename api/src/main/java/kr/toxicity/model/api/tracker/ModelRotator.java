@@ -131,7 +131,7 @@ public sealed interface ModelRotator extends BiFunction<Tracker, ModelRotation, 
     final class Deserializer {
         private final Map<String, Builder> builderMap = new HashMap<>();
 
-        private final BuiltInDeserializer _default = register("empty", j -> Getter.of(r -> r));
+        private final BuiltInDeserializer _default = register("default", j -> Getter.of(r -> r));
         private final BuiltInDeserializer empty = register("empty", j -> Getter.of(ModelRotation.EMPTY));
         private final BuiltInDeserializer yaw = register("yaw", j -> Getter.of(ModelRotation::yaw));
         private final BuiltInDeserializer pitch = register("pitch", j -> Getter.of(ModelRotation::pitch));

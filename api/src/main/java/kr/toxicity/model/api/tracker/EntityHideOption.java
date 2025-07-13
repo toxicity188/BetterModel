@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.tracker;
 
+import com.google.gson.JsonArray;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.stream.Stream;
@@ -22,6 +23,24 @@ public record EntityHideOption(
         return builder()
                 .composite(options)
                 .build();
+    }
+
+    public static @NotNull EntityHideOption deserialize(@NotNull JsonArray array) {
+        return new EntityHideOption(
+                array.get(0).getAsBoolean(),
+                array.get(1).getAsBoolean(),
+                array.get(2).getAsBoolean(),
+                array.get(3).getAsBoolean()
+        );
+    }
+
+    public @NotNull JsonArray serialize() {
+        var array = new JsonArray(4);
+        array.add(equipment);
+        array.add(fire);
+        array.add(visibility);
+        array.add(glowing);
+        return array;
     }
 
     public static @NotNull Builder builder() {

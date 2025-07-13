@@ -51,8 +51,7 @@ import org.bukkit.inventory.meta.LeatherArmorMeta
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import java.lang.reflect.Field
-import java.util.UUID
-import java.util.function.BooleanSupplier
+import java.util.*
 
 class NMSImpl : NMS {
 
@@ -114,25 +113,19 @@ class NMSImpl : NMS {
         private val entityDataSet = (mutableListOf(sharedFlag) + itemId + displaySet.subList(transformSet.size, displaySet.size)).toIntSet()
     }
 
-    override fun hide(channel: PlayerChannelHandler, registry: EntityTrackerRegistry, condition: BooleanSupplier) {
-        val entity = registry.entity()
-        val target = (entity as CraftEntity).vanillaEntity
-        val task = {
-            val list = mutableListOf<Packet<ClientGamePacketListener>>()
-            target.entityData.pack(
-                valueFilter = { it.id == sharedFlag }
-            )?.let {
-                list += ClientboundSetEntityDataPacket(target.id, it).toRegistryDataPacket(channel.uuid(), registry)
-            }
-            if (target is LivingEntity) {
-                val packet = if (registry.hideOption(channel.uuid()).equipment) target.toEmptyEquipmentPacket() else target.toEquipmentPacket()
-                packet?.let { list += it }
-            }
-            PacketBundlerImpl(list).send(channel.player())
+    override fun hide(channel: PlayerChannelHandler, registry: EntityTrackerRegistry) {
+        val target = (registry.entity() as CraftEntity).vanillaEntity
+        val list = mutableListOf<Packet<ClientGamePacketListener>>()
+        target.entityData.pack(
+            valueFilter = { it.id == sharedFlag }
+        )?.let {
+            list += ClientboundSetEntityDataPacket(target.id, it).toRegistryDataPacket(channel.uuid(), registry)
         }
-        if (entity is Player) BetterModel.plugin().scheduler().asyncTaskLater(CONFIG.playerHideDelay()) {
-            if (condition.asBoolean) task()
-        } else task()
+        if (target is LivingEntity) {
+            val packet = if (registry.hideOption(channel.uuid()).equipment) target.toEmptyEquipmentPacket() else target.toEquipmentPacket()
+            packet?.let { list += it }
+        }
+        PacketBundlerImpl(list).send(channel.player())
     }
     
     private fun ClientboundSetEntityDataPacket.toRegistryDataPacket(uuid: UUID, registry: EntityTrackerRegistry) = ClientboundSetEntityDataPacket(id, packedItems().map {
