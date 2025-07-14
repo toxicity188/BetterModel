@@ -58,8 +58,12 @@ public final class EntityTrackerRegistry {
         return ID_REGISTRY_MAP.get(id);
     }
 
+    public static @Nullable EntityTrackerRegistry registry(@NotNull Entity entity) {
+        return hasModelData(entity) ? getOrCreate(entity) : null;
+    }
+
     @ApiStatus.Internal
-    public static @NotNull EntityTrackerRegistry registry(@NotNull Entity entity) {
+    public static @NotNull EntityTrackerRegistry getOrCreate(@NotNull Entity entity) {
         var get = registry(entity.getUniqueId());
         if (get != null) return get;
         var registry = new EntityTrackerRegistry(entity);

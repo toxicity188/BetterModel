@@ -190,7 +190,7 @@ class NMSImpl : NMS {
                 })
                 is ClientboundAddEntityPacket -> {
                     id.toRegistry(
-                        { if (EntityTrackerRegistry.hasModelData(it.bukkitEntity)) EntityTrackerRegistry.registry(it.bukkitEntity) else null },
+                        { EntityTrackerRegistry.registry(it.bukkitEntity) },
                         { true }
                     )?.let {
                         BetterModel.plugin().scheduler().asyncTaskLater(player.ping.toLong() / 50 + 1) {

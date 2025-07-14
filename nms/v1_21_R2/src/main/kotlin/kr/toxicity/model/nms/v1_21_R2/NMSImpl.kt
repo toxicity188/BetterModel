@@ -187,7 +187,7 @@ class NMSImpl : NMS {
                 })
                 is ClientboundAddEntityPacket -> {
                     id.toRegistry(
-                        { if (EntityTrackerRegistry.hasModelData(it.bukkitEntity)) EntityTrackerRegistry.registry(it.bukkitEntity) else null },
+                        { EntityTrackerRegistry.registry(it.bukkitEntity) },
                         { true }
                     )?.let {
                         BetterModel.plugin().scheduler().asyncTaskLater(player.ping.toLong() / 50 + 1) {
@@ -470,27 +470,24 @@ class NMSImpl : NMS {
             ) else it
         }
 
+        private val addPacket
+            get() = ClientboundAddEntityPacket(
+                display.id,
+                display.uuid,
+                display.x,
+                display.y + yOffset,
+                display.z,
+                display.xRot,
+                display.yRot,
+                display.type,
+                0,
+                display.deltaMovement,
+                display.yHeadRot.toDouble()
+            )
+
         private val removePacket
             get() = ClientboundRemoveEntitiesPacket(display.id)
-
-        private val addPacket
-            get() = display.addPacket
     }
-
-    private val Entity.addPacket
-        get() = ClientboundAddEntityPacket(
-            id,
-            uuid,
-            x,
-            y,
-            z,
-            xRot,
-            yRot,
-            type,
-            0,
-            deltaMovement,
-            yHeadRot.toDouble()
-        )
 
     override fun tint(itemStack: ItemStack, rgb: Int): ItemStack = itemStack.clone().apply {
         val meta = itemMeta

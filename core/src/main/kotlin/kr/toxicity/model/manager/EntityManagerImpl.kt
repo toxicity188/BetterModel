@@ -23,7 +23,6 @@ import org.bukkit.event.entity.*
 import org.bukkit.event.player.PlayerChangedWorldEvent
 import org.bukkit.event.player.PlayerInteractAtEntityEvent
 import org.bukkit.event.player.PlayerInteractEntityEvent
-import org.bukkit.event.player.PlayerPortalEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.world.EntitiesLoadEvent
 import org.bukkit.event.world.EntitiesUnloadEvent
@@ -34,11 +33,11 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
     private class PaperListener : Listener { //More accurate world change event for Paper
         @EventHandler(priority = EventPriority.MONITOR)
         fun EntityRemoveFromWorldEvent.remove() {
-            if (entity !is Player) EntityTrackerRegistry.registry(entity.uniqueId)?.despawn()
+            EntityTrackerRegistry.registry(entity.uniqueId)?.despawn()
         }
         @EventHandler(priority = EventPriority.MONITOR)
         fun EntityAddToWorldEvent.add() {
-            if (entity !is Player) EntityTrackerRegistry.registry(entity.uniqueId)?.refresh()
+            EntityTrackerRegistry.registry(entity)?.refresh()
         }
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         fun EntityJumpEvent.jump() {
@@ -49,11 +48,18 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
     private class SpigotListener : Listener { //Portal event for Spigot
         @EventHandler(priority = EventPriority.MONITOR)
         fun EntityRemoveEvent.remove() {
-            if (entity !is Player) EntityTrackerRegistry.registry(entity.uniqueId)?.despawn()
+            EntityTrackerRegistry.registry(entity.uniqueId)?.despawn()
         }
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         fun EntitySpawnEvent.spawn() {
-            if (entity !is Player) EntityTrackerRegistry.registry(entity.uniqueId)?.refresh()
+            EntityTrackerRegistry.registry(entity)?.refresh()
+        }
+        @EventHandler(priority = EventPriority.MONITOR)
+        fun PlayerChangedWorldEvent.change() {
+            EntityTrackerRegistry.registry(player.uniqueId)?.let {
+                it.despawn()
+                it.refresh()
+            }
         }
     }
 
@@ -67,13 +73,6 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
         fun EntityDismountEvent.dismount() { //Dismount
             val e = dismounted
             isCancelled = e is HitBox && (e.mountController().canFly() || !e.mountController().canDismountBySelf()) && !e.forceDismount()
-        }
-        @EventHandler(priority = EventPriority.MONITOR)
-        fun PlayerChangedWorldEvent.change() {
-            EntityTrackerRegistry.registry(player.uniqueId)?.let {
-                it.despawn()
-                it.refresh()
-            }
         }
         @EventHandler(priority = EventPriority.MONITOR)
         fun PlayerQuitEvent.quit() { //Quit
