@@ -12,6 +12,7 @@ import kr.toxicity.model.api.nms.ModelInteractionHand
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
+import kr.toxicity.model.util.PLUGIN
 import kr.toxicity.model.util.registerListener
 import org.bukkit.entity.Entity
 import org.bukkit.entity.Player
@@ -19,6 +20,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.*
+import org.bukkit.event.player.PlayerChangedWorldEvent
 import org.bukkit.event.player.PlayerInteractAtEntityEvent
 import org.bukkit.event.player.PlayerInteractEntityEvent
 import org.bukkit.event.player.PlayerPortalEvent
@@ -32,11 +34,11 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
     private class PaperListener : Listener { //More accurate world change event for Paper
         @EventHandler(priority = EventPriority.MONITOR)
         fun EntityRemoveFromWorldEvent.remove() {
-            EntityTrackerRegistry.registry(entity.uniqueId)?.despawn()
+            if (entity !is Player) EntityTrackerRegistry.registry(entity.uniqueId)?.despawn()
         }
         @EventHandler(priority = EventPriority.MONITOR)
         fun EntityAddToWorldEvent.add() {
-            EntityTrackerRegistry.registry(entity.uniqueId)?.refresh()
+            if (entity !is Player) EntityTrackerRegistry.registry(entity.uniqueId)?.refresh()
         }
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         fun EntityJumpEvent.jump() {
@@ -47,21 +49,11 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
     private class SpigotListener : Listener { //Portal event for Spigot
         @EventHandler(priority = EventPriority.MONITOR)
         fun EntityRemoveEvent.remove() {
-            EntityTrackerRegistry.registry(entity.uniqueId)?.despawn()
+            if (entity !is Player) EntityTrackerRegistry.registry(entity.uniqueId)?.despawn()
         }
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-        fun EntityPortalEvent.add() {
-            EntityTrackerRegistry.registry(entity.uniqueId)?.let {
-                it.despawn()
-                it.refresh()
-            }
-        }
-        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-        fun PlayerPortalEvent.add() {
-            EntityTrackerRegistry.registry(player.uniqueId)?.let {
-                it.despawn()
-                it.refresh()
-            }
+        fun EntitySpawnEvent.spawn() {
+            if (entity !is Player) EntityTrackerRegistry.registry(entity.uniqueId)?.refresh()
         }
     }
 
@@ -77,8 +69,18 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
             isCancelled = e is HitBox && (e.mountController().canFly() || !e.mountController().canDismountBySelf()) && !e.forceDismount()
         }
         @EventHandler(priority = EventPriority.MONITOR)
+        fun PlayerChangedWorldEvent.change() {
+            EntityTrackerRegistry.registry(player.uniqueId)?.let {
+                it.despawn()
+                it.refresh()
+            }
+        }
+        @EventHandler(priority = EventPriority.MONITOR)
         fun PlayerQuitEvent.quit() { //Quit
             EntityTrackerRegistry.registry(player.uniqueId)?.close()
+            PLUGIN.scheduler().asyncTask {
+                EntityTrackerRegistry.REGISTRIES.forEach { registry -> registry.remove(player) }
+            }
             (player.vehicle as? HitBox)?.dismount(player)
         }
         @EventHandler(priority = EventPriority.MONITOR)

@@ -127,18 +127,8 @@ internal val Entity.isFlying: Boolean
 internal val CraftEntity.vanillaEntity: Entity
     get() = if (BetterModel.IS_PAPER) handleRaw else handle
 
-internal fun Entity.moveTo(vec: Vec3) {
-    setPos(vec.x, vec.y, vec.z)
-    setOldPosAndRot()
-}
-
-internal fun Entity.moveTo(x: Double, y: Double, z: Double, yaw: Float, pitch: Float) {
-    setPos(x, y, z)
-    yRot = yaw
-    yHeadRot = yaw
-    xRot = pitch
-    setOldPosAndRot()
-}
+internal fun Entity.moveTo(vec: Vec3) = snapTo(vec)
+internal fun Entity.moveTo(x: Double, y: Double, z: Double, yaw: Float, pitch: Float) = snapTo(x, y, z, yaw, pitch)
 
 internal fun <T> useByteBuf(block: (FriendlyByteBuf) -> T): T {
     val buffer = FriendlyByteBuf(Unpooled.buffer())

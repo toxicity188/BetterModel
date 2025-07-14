@@ -300,7 +300,7 @@ class NMSImpl : NMS {
 
     override fun createBundler(initialCapacity: Int): PacketBundler = PacketBundlerImpl(ArrayList(initialCapacity))
 
-    override fun create(location: Location): ModelDisplay = ModelDisplayImpl(ItemDisplay(EntityType.ITEM_DISPLAY, (location.world as CraftWorld).handle).apply {
+    override fun create(location: Location, yOffset: Double): ModelDisplay = ModelDisplayImpl(ItemDisplay(EntityType.ITEM_DISPLAY, (location.world as CraftWorld).handle).apply {
         billboardConstraints = Display.BillboardConstraints.FIXED
         valid = true
         moveTo(
@@ -312,10 +312,11 @@ class NMSImpl : NMS {
         )
         itemTransform = ItemDisplayContext.FIXED
         entityData[Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID] = 3
-    })
+    }, yOffset)
 
     private inner class ModelDisplayImpl(
-        val display: ItemDisplay
+        val display: ItemDisplay,
+        val yOffset: Double
     ) : ModelDisplay {
 
         private var forceGlow = false
@@ -341,6 +342,9 @@ class NMSImpl : NMS {
             display.valid = !entity.dead()
             display.onGround = entity.ground()
             display.setGlowingTag(entity.glow() || forceGlow)
+            display.setOldPosAndRot()
+            display.setOldPosAndRot()
+            display.setPos((entity.handle() as Entity).position())
             if (CONFIG.followMobInvisibility()) display.isInvisible = entity.invisible()
         }
 
@@ -466,16 +470,12 @@ class NMSImpl : NMS {
                 if (showItem) display.itemStack else net.minecraft.world.item.ItemStack.EMPTY
             ) else it
         }
-
-        private val removePacket
-            get() = ClientboundRemoveEntitiesPacket(display.id)
-
         private val addPacket
             get() = ClientboundAddEntityPacket(
                 display.id,
                 display.uuid,
                 display.x,
-                display.y,
+                display.y + yOffset,
                 display.z,
                 display.xRot,
                 display.yRot,
@@ -484,6 +484,9 @@ class NMSImpl : NMS {
                 display.deltaMovement,
                 display.yHeadRot.toDouble()
             )
+        
+        private val removePacket
+            get() = ClientboundRemoveEntitiesPacket(display.id)
     }
 
     override fun tint(itemStack: ItemStack, rgb: Int): ItemStack = itemStack.clone().apply {

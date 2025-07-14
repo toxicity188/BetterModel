@@ -3,7 +3,7 @@ import com.vanniktech.maven.publish.JavadocJar
 
 plugins {
     alias(libs.plugins.bukkitConvention)
-    id("com.vanniktech.maven.publish") version "0.33.0"
+    id("com.vanniktech.maven.publish") version "0.34.0"
     signing
 }
 

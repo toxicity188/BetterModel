@@ -301,7 +301,7 @@ class NMSImpl : NMS {
 
     override fun createBundler(initialCapacity: Int): PacketBundler = PacketBundlerImpl(ArrayList(initialCapacity))
 
-    override fun create(location: Location): ModelDisplay = ModelDisplayImpl(ItemDisplay(EntityType.ITEM_DISPLAY, (location.world as CraftWorld).handle).apply {
+    override fun create(location: Location, yOffset: Double): ModelDisplay = ModelDisplayImpl(ItemDisplay(EntityType.ITEM_DISPLAY, (location.world as CraftWorld).handle).apply {
         billboardConstraints = Display.BillboardConstraints.FIXED
         valid = true
         moveTo(
@@ -313,10 +313,11 @@ class NMSImpl : NMS {
         )
         itemTransform = ItemDisplayContext.FIXED
         entityData[Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID] = 3
-    })
+    }, yOffset)
 
     private inner class ModelDisplayImpl(
-        val display: ItemDisplay
+        val display: ItemDisplay,
+        val yOffset: Double
     ) : ModelDisplay {
 
         private var forceGlow = false
@@ -342,6 +343,8 @@ class NMSImpl : NMS {
             display.valid = !entity.dead()
             display.onGround = entity.ground()
             display.setGlowingTag(entity.glow() || forceGlow)
+            display.setOldPosAndRot()
+            display.setPos((entity.handle() as Entity).position())
             if (CONFIG.followMobInvisibility()) display.isInvisible = entity.invisible()
         }
 
@@ -350,7 +353,7 @@ class NMSImpl : NMS {
         }
 
         override fun spawn(showItem: Boolean, bundler: PacketBundler) {
-            bundler.unwrap() += display.addPacket
+            bundler.unwrap() += addPacket
             val f = display.transformationInterpolationDuration
             frame(0)
             bundler.unwrap() += ClientboundSetEntityDataPacket(display.id, display.entityData.nonDefaultValues!!.markVisible(showItem))
@@ -414,10 +417,7 @@ class NMSImpl : NMS {
 
         override fun syncPosition(adapter: EntityAdapter, bundler: PacketBundler) {
             val handle = adapter.handle() as Entity
-            val pos = handle.position()
-            if (display.position() == pos) return
-            display.setPos(pos)
-            display.onGround = handle.onGround
+            if (display.position() == display.oldPosition()) return
             bundler.unwrap() += ClientboundEntityPositionSyncPacket(
                 display.id,
                 PositionMoveRotation.of(handle),
@@ -473,25 +473,25 @@ class NMSImpl : NMS {
             ) else it
         }
 
+        private val addPacket
+            get() = ClientboundAddEntityPacket(
+                display.id,
+                display.uuid,
+                display.x,
+                display.y + yOffset,
+                display.z,
+                display.xRot,
+                display.yRot,
+                display.type,
+                0,
+                display.deltaMovement,
+                display.yHeadRot.toDouble()
+            )
+
         private val removePacket
             get() = ClientboundRemoveEntitiesPacket(display.id)
 
     }
-
-    private val Entity.addPacket
-        get() = ClientboundAddEntityPacket(
-            id,
-            uuid,
-            x,
-            y,
-            z,
-            xRot,
-            yRot,
-            type,
-            0,
-            deltaMovement,
-            yHeadRot.toDouble()
-        )
 
     override fun tint(itemStack: ItemStack, rgb: Int): ItemStack {
         return CraftItemStack.asBukkitCopy(CraftItemStack.asNMSCopy(itemStack).apply {

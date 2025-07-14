@@ -67,11 +67,7 @@ public final class EntityTrackerRegistry {
         if (put != null) return put;
         ID_REGISTRY_MAP.put(registry.id, registry);
         registry.load();
-        var stream = registry.adapter.trackedPlayer().stream();
-        if (entity instanceof Player player) stream = Stream.concat(Stream.of(player), stream);
-        stream.map(p -> BetterModel.player(p.getUniqueId()).orElse(null))
-                .filter(Objects::nonNull)
-                .forEach(registry::registerPlayer);
+        registry.refreshPlayer();
         return registry;
     }
 
@@ -151,7 +147,7 @@ public final class EntityTrackerRegistry {
         return true;
     }
 
-    public void refreshSpawn() {
+    private void refreshSpawn() {
         viewedPlayer().forEach(value -> spawn(value.player(), true));
     }
 
@@ -159,6 +155,14 @@ public final class EntityTrackerRegistry {
         for (PlayerChannelCache value : viewedPlayerMap.values()) {
             value.hide();
         }
+    }
+
+    private void refreshPlayer() {
+        var stream = adapter.trackedPlayer().stream();
+        if (entity instanceof Player player) stream = Stream.concat(Stream.of(player), stream);
+        stream.map(p -> BetterModel.player(p.getUniqueId()).orElse(null))
+                .filter(Objects::nonNull)
+                .forEach(this::registerPlayer);
     }
 
     public boolean remove(@NotNull String key) {
@@ -207,12 +211,15 @@ public final class EntityTrackerRegistry {
         for (EntityTracker value : trackerMap.values()) {
             value.refresh();
         }
+        refreshPlayer();
+        refreshSpawn();
     }
 
     public void despawn() {
         for (EntityTracker value : trackerMap.values()) {
             if (!value.forRemoval()) value.despawn();
         }
+        viewedPlayerMap.clear();
     }
 
     public void load(@NotNull Stream<TrackerData> stream) {

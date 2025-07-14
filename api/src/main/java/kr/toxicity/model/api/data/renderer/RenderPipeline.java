@@ -24,7 +24,6 @@ import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
@@ -39,7 +38,6 @@ import java.util.stream.Stream;
 /**
  * A pipeline class of each tracker.
  */
-@ApiStatus.Internal
 public final class RenderPipeline {
     @Getter
     private final ModelRenderer parent;

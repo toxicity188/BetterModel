@@ -11,7 +11,6 @@ import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.TransformedItemStack;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -89,19 +88,16 @@ public final class RendererGroup {
     /**
      * Creates entity.
      * @param source source
-     * @param location location
      * @return entity
      */
-    public @NotNull RenderedBone create(@NotNull RenderSource<?> source, @NotNull TrackerModifier modifier, @NotNull Location location) {
-        return create(source, modifier, null, location);
+    public @NotNull RenderedBone create(@NotNull RenderSource<?> source, @NotNull TrackerModifier modifier) {
+        return create(source, modifier, null);
     }
-    private @NotNull RenderedBone create(@NotNull RenderSource<?> source, @NotNull TrackerModifier modifier, @Nullable RenderedBone parentBone, @NotNull Location location) {
+    private @NotNull RenderedBone create(@NotNull RenderSource<?> source, @NotNull TrackerModifier modifier, @Nullable RenderedBone parentBone) {
         return new RenderedBone(
                 this,
                 parentBone,
-                itemMapper.apply(source, itemStack),
-                itemMapper.transform(),
-                location,
+                source,
                 new BoneMovement(
                         parentBone != null ? position.sub(parentBone.getGroup().position, new Vector3f()) : new Vector3f(),
                         new Vector3f(1),
@@ -109,7 +105,7 @@ public final class RendererGroup {
                         rotation
                 ),
                 modifier,
-                parent -> mapValue(children, value -> value.create(source, modifier, parent, location))
+                parent -> mapValue(children, value -> value.create(source, modifier, parent))
         );
     }
 

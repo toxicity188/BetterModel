@@ -24,7 +24,6 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Display;
-import org.bukkit.entity.ItemDisplay;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -101,9 +100,7 @@ public final class RenderedBone implements HitBoxSource {
      * Creates entity.
      * @param group group
      * @param parent parent entity
-     * @param itemStack item
-     * @param transform display transform
-     * @param firstLocation spawn location
+     * @param source source
      * @param movement spawn movement
      * @param childrenMapper mapper
      */
@@ -111,9 +108,7 @@ public final class RenderedBone implements HitBoxSource {
     public RenderedBone(
             @NotNull RendererGroup group,
             @Nullable RenderedBone parent,
-            @NotNull TransformedItemStack itemStack,
-            @NotNull ItemDisplay.ItemDisplayTransform transform,
-            @NotNull Location firstLocation,
+            @NotNull RenderSource<?> source,
             @NotNull BoneMovement movement,
             @NotNull TrackerModifier modifier,
             @NotNull Function<RenderedBone, Map<BoneName, RenderedBone>> childrenMapper
@@ -122,11 +117,11 @@ public final class RenderedBone implements HitBoxSource {
         this.parent = parent;
         itemMapper = group.getItemMapper();
         root = parent != null ? parent.root : this;
-        this.itemStack = itemStack;
+        this.itemStack = itemMapper.apply(source, group.getItemStack());
         this.dummyBone = itemStack.isAir();
         if (!dummyBone) {
-            display = BetterModel.plugin().nms().create(firstLocation);
-            display.display(transform);
+            display = BetterModel.plugin().nms().create(source.location(), source instanceof RenderSource.Entity ? -1024 : 0);
+            display.display(itemMapper.transform());
             display.viewRange(modifier.viewRange());
             display.invisible(itemMapper == BoneItemMapper.EMPTY && !group.getParent().visibility());
         }

@@ -25,7 +25,17 @@ public interface NMS {
      * @param location start location
      * @return model display
      */
-    @NotNull ModelDisplay create(@NotNull Location location);
+    default @NotNull ModelDisplay create(@NotNull Location location) {
+        return create(location, 0);
+    }
+
+    /**
+     * Creates model display
+     * @param location start location
+     * @param yOffset y offset
+     * @return model display
+     */
+    @NotNull ModelDisplay create(@NotNull Location location, double yOffset);
 
     /**
      * Injects netty channel handler to player

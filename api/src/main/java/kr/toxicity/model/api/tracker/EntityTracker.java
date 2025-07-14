@@ -252,6 +252,7 @@ public class EntityTracker extends Tracker {
      */
     @ApiStatus.Internal
     public void refresh() {
+        updateBaseEntity0();
         BetterModel.plugin().scheduler().task(registry.entity(), () -> pipeline.createHitBox(registry.adapter(), r -> r.getHitBox() != null, null));
     }
 
