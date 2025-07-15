@@ -62,8 +62,6 @@ public final class RenderPipeline {
 
     @Getter
     private ModelRotation rotation = ModelRotation.INVALID;
-
-    @Getter
     private final AnimationStateHandler<TimeScript> scriptProcessor = new AnimationStateHandler<>(
             TimeScript.EMPTY,
             (a, s, t) -> s == AnimationStateHandler.MappingState.PROGRESS ? a.time(t) : AnimationScript.EMPTY.time(t),
@@ -175,6 +173,7 @@ public final class RenderPipeline {
     }
 
     public boolean tick(@NotNull PacketBundler bundler) {
+        scriptProcessor.tick();
         var match = false;
         for (RenderedBone value : entityMap.values()) {
             if (value.matchTree(b -> b.tick(bundler))) match = true;

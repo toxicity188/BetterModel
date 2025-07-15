@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.bone;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.*;
@@ -63,7 +64,7 @@ public final class RenderedBone implements HitBoxSource {
             (a, s, t) -> a.time(t),
             t -> relativeOffsetCache = null
     );
-    private final Int2ObjectOpenHashMap<ItemStack> tintCacheMap = new Int2ObjectOpenHashMap<>();
+    private final Int2ObjectMap<ItemStack> tintCacheMap = new Int2ObjectOpenHashMap<>();
     @Getter
     private final boolean dummyBone;
     private final Object itemLock = new Object();

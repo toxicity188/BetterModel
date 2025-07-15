@@ -70,7 +70,7 @@ public abstract class Tracker implements AutoCloseable {
     private final AtomicBoolean isClosed = new AtomicBoolean();
     private final AtomicBoolean readyForForceUpdate = new AtomicBoolean();
     private final AtomicBoolean forRemoval = new AtomicBoolean();
-    private final AtomicBoolean rotationLock = new AtomicBoolean();
+    protected final AtomicBoolean rotationLock = new AtomicBoolean();
     protected final TrackerModifier modifier;
     private final Runnable updater;
     private final BundlerSet bundlerSet;
@@ -108,7 +108,6 @@ public abstract class Tracker implements AutoCloseable {
                 (t.isRunningSingleAnimation() && config.lockOnPlayAnimation()) ? t.pipeline.getRotation() : t.rotation(),
                 s.tickBundler
         ));
-        frame((t, s) -> t.pipeline.getScriptProcessor().tick());
         pipeline.spawnPacketHandler(p -> start());
     }
 

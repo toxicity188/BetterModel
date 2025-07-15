@@ -47,7 +47,7 @@ public record BlueprintAnimation(
      */
     public static @NotNull BlueprintAnimation from(@NotNull ModelAnimation animation) {
         var map = new HashMap<BoneName, BlueprintAnimator.AnimatorData>();
-        BlueprintScript blueprintScript = null;
+        var blueprintScript = animation.override() ? null : BlueprintScript.fromEmpty(animation);
         var animator = animation.animators();
         for (Map.Entry<String, ModelAnimator> entry : animator.entrySet()) {
             var name = entry.getValue().name();

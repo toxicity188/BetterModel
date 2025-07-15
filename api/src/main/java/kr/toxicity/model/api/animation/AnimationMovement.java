@@ -16,17 +16,12 @@ public record AnimationMovement(
         @Nullable Vector3f transform,
         @Nullable Vector3f scale,
         @Nullable Vector3f rotation
-) implements Comparable<AnimationMovement>, Timed {
+) implements Timed {
 
     public static final AnimationMovement EMPTY = new AnimationMovement(0);
 
     public AnimationMovement(float time) {
         this(time, null, null, null);
-    }
-
-    @Override
-    public int compareTo(@NotNull AnimationMovement o) {
-        return Float.compare(time, o.time);
     }
 
     /**

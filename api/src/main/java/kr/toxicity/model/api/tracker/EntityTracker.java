@@ -318,6 +318,7 @@ public class EntityTracker extends Tracker {
         private float rotationDelay = 150;
         private float minRotation = -90;
         private float maxRotation = 90;
+        private volatile Vector3f previous = new Vector3f();
         private final Supplier<Vector3f> delegate = LazyFloatProvider.ofVector(TRACKER_TICK_INTERVAL, () -> rotationDelay, () -> new Vector3f(
                 Math.clamp(registry.adapter().pitch(), minRotation, maxRotation),
                 Math.clamp(-registry.adapter().yaw() + registry.adapter().bodyYaw(), minRotation, maxRotation),
@@ -332,7 +333,7 @@ public class EntityTracker extends Tracker {
 
         @Override
         public @NotNull Vector3f get() {
-            return delegate.get();
+            return rotationLock.get() ? previous : (previous = delegate.get());
         }
 
         /**
