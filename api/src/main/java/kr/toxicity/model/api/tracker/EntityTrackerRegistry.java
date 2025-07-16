@@ -5,6 +5,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.config.DebugConfig;
 import kr.toxicity.model.api.nms.EntityAdapter;
@@ -30,50 +32,59 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public final class EntityTrackerRegistry {
 
-    private static final Map<UUID, EntityTrackerRegistry> UUID_REGISTRY_MAP = new ConcurrentHashMap<>();
+    private static final Object2ObjectMap<UUID, EntityTrackerRegistry> UUID_REGISTRY_MAP = new Object2ObjectOpenHashMap<>();
     private static final Int2ObjectMap<EntityTrackerRegistry> ID_REGISTRY_MAP = new Int2ObjectOpenHashMap<>();
-    private static final ReentrantReadWriteLock ID_LOCK = new ReentrantReadWriteLock();
+    private static final ReentrantReadWriteLock REGISTRY_LOCK = new ReentrantReadWriteLock();
     /**
      * Tracker's namespace.
      */
     public static final NamespacedKey TRACKING_ID = Objects.requireNonNull(NamespacedKey.fromString("bettermodel_tracker"));
-    /**
-     * Registries
-     */
-    public static final Collection<EntityTrackerRegistry> REGISTRIES = Collections.unmodifiableCollection(UUID_REGISTRY_MAP.values());
 
     private final AtomicBoolean closed = new AtomicBoolean();
     private final Entity entity;
     private final int id;
+    private final UUID uuid;
     private final EntityAdapter adapter;
     private final ConcurrentNavigableMap<String, EntityTracker> trackerMap = new ConcurrentSkipListMap<>();
     private final Collection<EntityTracker> trackers = Collections.unmodifiableCollection(trackerMap.values());
     private final Map<UUID, PlayerChannelCache> viewedPlayerMap = new ConcurrentHashMap<>();
 
     public static @Nullable EntityTrackerRegistry registry(@NotNull UUID uuid) {
-        return UUID_REGISTRY_MAP.get(uuid);
+        return accessToReadLock(() -> UUID_REGISTRY_MAP.get(uuid));
     }
 
     public static @Nullable EntityTrackerRegistry registry(int id) {
-        ID_LOCK.readLock().lock();
+        return accessToReadLock(() -> ID_REGISTRY_MAP.get(id));
+    }
+
+    private static <T> T accessToReadLock(@NotNull Supplier<T> supplier) {
+        REGISTRY_LOCK.readLock().lock();
         try {
-            return ID_REGISTRY_MAP.get(id);
+            return supplier.get();
         } finally {
-            ID_LOCK.readLock().unlock();
+            REGISTRY_LOCK.readLock().unlock();
         }
     }
 
-    private static void accessToWriteLock(@NotNull Consumer<Int2ObjectMap<EntityTrackerRegistry>> consumer) {
-        ID_LOCK.writeLock().lock();
+    private static void accessToWriteLock(@NotNull Runnable runnable) {
+        REGISTRY_LOCK.writeLock().lock();
         try {
-            consumer.accept(ID_REGISTRY_MAP);
+            runnable.run();
         } finally {
-            ID_LOCK.writeLock().unlock();
+            REGISTRY_LOCK.writeLock().unlock();
         }
+    }
+
+    public static void registries(@NotNull Consumer<EntityTrackerRegistry> consumer) {
+        accessToReadLock(() -> {
+            UUID_REGISTRY_MAP.values().forEach(consumer);
+            return null;
+        });
     }
 
     public static @Nullable EntityTrackerRegistry registry(@NotNull Entity entity) {
@@ -82,12 +93,19 @@ public final class EntityTrackerRegistry {
 
     @ApiStatus.Internal
     public static @NotNull EntityTrackerRegistry getOrCreate(@NotNull Entity entity) {
-        var get = registry(entity.getUniqueId());
+        var uuid = entity.getUniqueId();
+        var get = registry(uuid);
         if (get != null) return get;
-        var registry = new EntityTrackerRegistry(entity);
-        var put = UUID_REGISTRY_MAP.putIfAbsent(entity.getUniqueId(), registry);
-        if (put != null) return put;
-        accessToWriteLock(map -> map.put(registry.id, registry));
+        EntityTrackerRegistry registry;
+        synchronized (uuid) {
+            var get2 = registry(uuid);
+            if (get2 != null) return get2;
+            registry = new EntityTrackerRegistry(entity);
+            accessToWriteLock(() -> {
+                UUID_REGISTRY_MAP.put(registry.uuid, registry);
+                ID_REGISTRY_MAP.put(registry.id, registry);
+            });
+        }
         registry.load();
         registry.refreshPlayer();
         return registry;
@@ -106,6 +124,7 @@ public final class EntityTrackerRegistry {
     private EntityTrackerRegistry(@NotNull Entity entity) {
         this.entity = entity;
         this.adapter = BetterModel.plugin().nms().adapt(entity);
+        this.uuid = entity.getUniqueId();
         this.id = adapter.id();
     }
 
@@ -114,7 +133,7 @@ public final class EntityTrackerRegistry {
     }
 
     public @NotNull UUID uuid() {
-        return entity().getUniqueId();
+        return uuid;
     }
 
     public int id() {
@@ -158,10 +177,10 @@ public final class EntityTrackerRegistry {
         created.handleCloseEvent((t, r) -> {
             if (isClosed()) return;
             if (trackerMap.compute(key, (k, v) -> v == created ? null : v) == null) {
-                LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> entity.getUniqueId() + "'s tracker " + key + " has been removed. (" + trackerMap.size() + ")");
+                LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> uuid + "'s tracker " + key + " has been removed. (" + trackerMap.size() + ")");
             }
             if (trackerMap.isEmpty() && close(r)) {
-                LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> entity.getUniqueId() + "'s tracker registry has been removed. (" + REGISTRIES.size() + ")");
+                LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> uuid + "'s tracker registry has been removed. (" + UUID_REGISTRY_MAP.size() + ")");
             } else refreshRemove();
         });
         var previous = trackerMap.put(key, created);
@@ -210,7 +229,10 @@ public final class EntityTrackerRegistry {
             value.close(reason);
         }
         if (!reason.shouldBeSave()) entity.getPersistentDataContainer().remove(TRACKING_ID);
-        if (UUID_REGISTRY_MAP.remove(entity.getUniqueId()) != null) accessToWriteLock(map -> map.remove(id));
+        accessToWriteLock(() -> {
+            UUID_REGISTRY_MAP.remove(uuid);
+            ID_REGISTRY_MAP.remove(id);
+        });
         return true;
     }
 

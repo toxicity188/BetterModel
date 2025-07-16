@@ -78,7 +78,7 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
         fun PlayerQuitEvent.quit() { //Quit
             EntityTrackerRegistry.registry(player.uniqueId)?.close()
             PLUGIN.scheduler().asyncTask {
-                EntityTrackerRegistry.REGISTRIES.forEach { registry -> registry.remove(player) }
+                EntityTrackerRegistry.registries { registry -> registry.remove(player) }
             }
             (player.vehicle as? HitBox)?.dismount(player)
         }
@@ -162,15 +162,11 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
     }
 
     override fun reload(info: ReloadInfo, zipper: PackZipper) {
-        EntityTrackerRegistry.REGISTRIES.forEach {
-            it.reload()
-        }
+        EntityTrackerRegistry.registries(EntityTrackerRegistry::reload)
     }
 
     override fun end() {
-        EntityTrackerRegistry.REGISTRIES.forEach {
-            it.save()
-        }
+        EntityTrackerRegistry.registries(EntityTrackerRegistry::save)
     }
 
     //Extension
