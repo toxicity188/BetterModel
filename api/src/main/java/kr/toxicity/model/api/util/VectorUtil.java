@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.floats.*;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationPoint;
 import kr.toxicity.model.api.animation.VectorPoint;
+import kr.toxicity.model.api.tracker.Tracker;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,7 +28,7 @@ public final class VectorUtil {
 
     private static void point(@NotNull FloatSet target, @NotNull List<VectorPoint> points) {
         for (VectorPoint point : points) {
-            target.add(point.time());
+            target.add(roundTime(point.time()));
         }
     }
 
@@ -112,8 +113,8 @@ public final class VectorUtil {
             if (angle > 1) {
                 var last = before.time();
                 for (float t = 1; t < angle; t++) {
-                    var value = linear(before.time(), after.time(), t / angle);
-                    if (value - last < 0.05) continue;
+                    var value = roundTime(linear(before.time(), after.time(), t / angle));
+                    if (value - last < 0.05 || value + 0.05 > after.time()) continue;
                     frames.add(last = value);
                 }
             }
@@ -124,21 +125,24 @@ public final class VectorUtil {
         insertLerpFrame(frames, (float) BetterModel.config().lerpFrameTime() / 20F);
     }
 
-    private static final float FRAME_HASH = 0.031F;
+    private static final float FRAME_HASH = (float) Tracker.TRACKER_TICK_INTERVAL / 1000F;
+
+    private static float roundTime(float time) {
+        return FRAME_HASH * (float) Math.ceil(time / FRAME_HASH);
+    }
 
     public static void insertLerpFrame(@NotNull FloatCollection frames, float frame) {
         if (frame <= 0F) return;
-        frame += FRAME_HASH;
         var list = new FloatArrayList(frames);
         var init = 0F;
         var initAfter = list.getFirst();
-        while ((init += frame) < initAfter - frame) {
+        while ((init += frame) <= initAfter - frame) {
             frames.add(init);
         }
         for (int i = 0; i < list.size() - 1; i++) {
             var before = list.getFloat(i);
             var after = list.getFloat(i + 1);
-            while ((before += frame) < after - frame) {
+            while ((before += frame) <= after - frame) {
                 frames.add(before);
             }
         }

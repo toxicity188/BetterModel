@@ -323,7 +323,7 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     private static int toInterpolationDuration(float delay) {
-        return (int) Math.ceil(delay / (float) Tracker.MINECRAFT_TICK_MULTIPLIER);
+        return Math.round(delay / (float) Tracker.MINECRAFT_TICK_MULTIPLIER + 0.25F);
     }
 
     public @NotNull Vector3f worldPosition() {

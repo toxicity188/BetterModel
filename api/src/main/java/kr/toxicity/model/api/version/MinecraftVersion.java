@@ -12,6 +12,10 @@ import java.util.Comparator;
  */
 public record MinecraftVersion(int first, int second, int third) implements Comparable<MinecraftVersion> {
     /**
+     * 1.21.8
+     */
+    public static final MinecraftVersion V1_21_8 = new MinecraftVersion(1, 21, 8);
+    /**
      * 1.21.7
      */
     public static final MinecraftVersion V1_21_7 = new MinecraftVersion(1, 21, 7);
@@ -69,14 +73,14 @@ public record MinecraftVersion(int first, int second, int third) implements Comp
 
     /**
      * Parses version from string
-     * @param version version like "1.21.7"
+     * @param version version like "1.21.8"
      */
     public MinecraftVersion(@NotNull String version) {
         this(version.split("\\."));
     }
     /**
      * Parses version from a string array
-     * @param version version array like ["1", "21", "7"]
+     * @param version version array like ["1", "21", "8"]
      */
     public MinecraftVersion(@NotNull String[] version) {
         this(

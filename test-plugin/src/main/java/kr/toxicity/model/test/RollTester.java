@@ -16,7 +16,10 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
@@ -70,6 +73,12 @@ public final class RollTester implements ModelTester, Listener {
         if (event.getHitEntity() instanceof Player player && invulnerableSet.contains(player.getUniqueId())) event.setCancelled(true);
     }
     @EventHandler
+    public void quit(@NotNull PlayerQuitEvent event) {
+        var get = event.getPlayer().getUniqueId();
+        invulnerableSet.remove(get);
+        coolTimeSet.remove(get);
+    }
+    @EventHandler
     public void damage(@NotNull EntityDamageByEntityEvent event) {
         if (event.getEntity() instanceof Player player && invulnerableSet.contains(player.getUniqueId())) event.setCancelled(true);
     }
@@ -105,6 +114,13 @@ public final class RollTester implements ModelTester, Listener {
                         t.close();
                     })) {
                         if (coolTimeSet.add(player.getUniqueId()) && invulnerableSet.add(player.getUniqueId())) {
+                            player.addPotionEffect(new PotionEffect(
+                                    PotionEffectType.LUCK,
+                                    8,
+                                    5,
+                                    true,
+                                    false
+                            ));
                             BetterModel.plugin().scheduler().asyncTaskLater(8, () -> invulnerableSet.remove(player.getUniqueId()));
                             player.setVelocity(player.getVelocity()
                                     .add(new Vector(0, 0, 0.75).rotateAroundY(-Math.toRadians(input + t.registry().adapter().bodyYaw())))

@@ -30,25 +30,28 @@ public record BlueprintScript(@NotNull String name, @NotNull AnimationIterator.T
      * @return blueprint script
      */
     public static @NotNull BlueprintScript from(@NotNull ModelAnimation animation, @NotNull ModelAnimator animator) {
-        var stream = Stream.concat(
-                Stream.of(TimeScript.EMPTY),
-                processFrame(animator.keyframes())
+        var stream = processFrame(animator.keyframes())
+                .stream()
+                .map(d -> AnimationScript.of(d.dataPoints()
                         .stream()
-                        .map(d -> AnimationScript.of(d.dataPoints()
-                                .stream()
-                                .map(Datapoint::script)
-                                .filter(Objects::nonNull)
-                                .map(raw -> BetterModel.plugin().scriptManager().build(raw))
-                                .filter(Objects::nonNull)
-                                .toList()
-                        ).time(d.time()))
-        );
+                        .map(Datapoint::script)
+                        .filter(Objects::nonNull)
+                        .map(raw -> BetterModel.plugin().scriptManager().build(raw))
+                        .filter(Objects::nonNull)
+                        .toList()
+                ).time(d.time()));
+        if (animator.keyframes().getFirst().time() > 0) {
+            stream = Stream.concat(Stream.of(TimeScript.EMPTY), stream);
+        }
         var time = animation.length() - animator.keyframes().getLast().time();
+        if (time > 0) {
+            stream = Stream.concat(stream, Stream.of(AnimationScript.EMPTY.time(time)));
+        }
         return new BlueprintScript(
                 animation.name(),
                 animation.loop(),
                 animation.length(),
-                Stream.concat(stream, Stream.of(AnimationScript.EMPTY.time(time))).distinct().toList()
+                stream.distinct().toList()
         );
     }
 
