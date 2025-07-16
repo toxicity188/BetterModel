@@ -13,7 +13,6 @@ import kr.toxicity.model.api.player.PlayerLimb
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.tracker.ModelRotation
 import kr.toxicity.model.api.util.TransformedItemStack
-import kr.toxicity.model.api.util.entity.EntityId
 import kr.toxicity.model.api.util.function.BonePredicate
 import net.kyori.adventure.key.Keyed
 import net.minecraft.core.component.DataComponents
@@ -165,7 +164,7 @@ class NMSImpl : NMS {
         private fun Int.toRegistry(
             toRegistry: (Entity) -> EntityTrackerRegistry? = { EntityTrackerRegistry.registry(it.uuid) },
             filter: EntityTrackerRegistry.() -> Boolean = { isSpawned(player ) }
-        ) = (EntityTrackerRegistry.registry(EntityId(player.world.uid, this)) ?: toPlayerEntity()?.let(toRegistry))?.takeIf(filter)
+        ) = (EntityTrackerRegistry.registry(this) ?: toPlayerEntity()?.let(toRegistry))?.takeIf(filter)
 
         override fun sendEntityData(registry: EntityTrackerRegistry) {
             val handle = registry.adapter().handle() as Entity

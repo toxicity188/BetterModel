@@ -5,7 +5,7 @@ import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.data.raw.Datapoint;
 import kr.toxicity.model.api.data.raw.ModelAnimation;
 import kr.toxicity.model.api.data.raw.ModelAnimator;
-import kr.toxicity.model.api.data.raw.ModelKeyframe;
+import kr.toxicity.model.api.util.VectorUtil;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,7 +30,7 @@ public record BlueprintScript(@NotNull String name, @NotNull AnimationIterator.T
      * @return blueprint script
      */
     public static @NotNull BlueprintScript from(@NotNull ModelAnimation animation, @NotNull ModelAnimator animator) {
-        var stream = processFrame(animator.keyframes())
+        var stream = animator.keyframes()
                 .stream()
                 .map(d -> AnimationScript.of(d.dataPoints()
                         .stream()
@@ -39,11 +39,11 @@ public record BlueprintScript(@NotNull String name, @NotNull AnimationIterator.T
                         .map(raw -> BetterModel.plugin().scriptManager().build(raw))
                         .filter(Objects::nonNull)
                         .toList()
-                ).time(d.time()));
+                ).time(VectorUtil.roundTime(d.time())));
         if (animator.keyframes().getFirst().time() > 0) {
             stream = Stream.concat(Stream.of(TimeScript.EMPTY), stream);
         }
-        var time = animation.length() - animator.keyframes().getLast().time();
+        var time = VectorUtil.roundTime(animation.length());
         if (time > 0) {
             stream = Stream.concat(stream, Stream.of(AnimationScript.EMPTY.time(time)));
         }
@@ -51,7 +51,7 @@ public record BlueprintScript(@NotNull String name, @NotNull AnimationIterator.T
                 animation.name(),
                 animation.loop(),
                 animation.length(),
-                stream.distinct().toList()
+                processFrame(stream.distinct().toList())
         );
     }
 
@@ -68,10 +68,12 @@ public record BlueprintScript(@NotNull String name, @NotNull AnimationIterator.T
         return type.create(scripts);
     }
 
-    private static @NotNull List<ModelKeyframe> processFrame(@NotNull List<ModelKeyframe> target) {
+    private static @NotNull List<TimeScript> processFrame(@NotNull List<TimeScript> target) {
         if (target.size() <= 1) return target;
         return IntStream.range(0, target.size()).mapToObj(i -> {
-            if (i == 0) return target.getFirst();
+            if (i == 0) {
+                return target.getFirst();
+            }
             else {
                 var get = target.get(i);
                 return get.time(get.time() - target.get(i - 1).time());

@@ -3,6 +3,8 @@ package kr.toxicity.model.api.tracker;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.config.DebugConfig;
 import kr.toxicity.model.api.nms.EntityAdapter;
@@ -10,7 +12,6 @@ import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.util.LogUtil;
-import kr.toxicity.model.api.util.entity.EntityId;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Entity;
@@ -26,13 +27,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
 public final class EntityTrackerRegistry {
 
     private static final Map<UUID, EntityTrackerRegistry> UUID_REGISTRY_MAP = new ConcurrentHashMap<>();
-    private static final Map<EntityId, EntityTrackerRegistry> ID_REGISTRY_MAP = new ConcurrentHashMap<>();
+    private static final Int2ObjectMap<EntityTrackerRegistry> ID_REGISTRY_MAP = new Int2ObjectOpenHashMap<>();
+    private static final ReentrantReadWriteLock ID_LOCK = new ReentrantReadWriteLock();
     /**
      * Tracker's namespace.
      */
@@ -44,7 +48,7 @@ public final class EntityTrackerRegistry {
 
     private final AtomicBoolean closed = new AtomicBoolean();
     private final Entity entity;
-    private final EntityId id;
+    private final int id;
     private final EntityAdapter adapter;
     private final ConcurrentNavigableMap<String, EntityTracker> trackerMap = new ConcurrentSkipListMap<>();
     private final Collection<EntityTracker> trackers = Collections.unmodifiableCollection(trackerMap.values());
@@ -54,8 +58,22 @@ public final class EntityTrackerRegistry {
         return UUID_REGISTRY_MAP.get(uuid);
     }
 
-    public static @Nullable EntityTrackerRegistry registry(@NotNull EntityId id) {
-        return ID_REGISTRY_MAP.get(id);
+    public static @Nullable EntityTrackerRegistry registry(int id) {
+        ID_LOCK.readLock().lock();
+        try {
+            return ID_REGISTRY_MAP.get(id);
+        } finally {
+            ID_LOCK.readLock().unlock();
+        }
+    }
+
+    private static void accessToWriteLock(@NotNull Consumer<Int2ObjectMap<EntityTrackerRegistry>> consumer) {
+        ID_LOCK.writeLock().lock();
+        try {
+            consumer.accept(ID_REGISTRY_MAP);
+        } finally {
+            ID_LOCK.writeLock().unlock();
+        }
     }
 
     public static @Nullable EntityTrackerRegistry registry(@NotNull Entity entity) {
@@ -69,7 +87,7 @@ public final class EntityTrackerRegistry {
         var registry = new EntityTrackerRegistry(entity);
         var put = UUID_REGISTRY_MAP.putIfAbsent(entity.getUniqueId(), registry);
         if (put != null) return put;
-        ID_REGISTRY_MAP.put(registry.id, registry);
+        accessToWriteLock(map -> map.put(registry.id, registry));
         registry.load();
         registry.refreshPlayer();
         return registry;
@@ -88,7 +106,7 @@ public final class EntityTrackerRegistry {
     private EntityTrackerRegistry(@NotNull Entity entity) {
         this.entity = entity;
         this.adapter = BetterModel.plugin().nms().adapt(entity);
-        this.id = new EntityId(entity.getWorld().getUID(), adapter.id());
+        this.id = adapter.id();
     }
 
     public @NotNull Entity entity() {
@@ -99,7 +117,7 @@ public final class EntityTrackerRegistry {
         return entity().getUniqueId();
     }
 
-    public @NotNull EntityId id() {
+    public int id() {
         return id;
     }
 
@@ -192,9 +210,7 @@ public final class EntityTrackerRegistry {
             value.close(reason);
         }
         if (!reason.shouldBeSave()) entity.getPersistentDataContainer().remove(TRACKING_ID);
-        if (UUID_REGISTRY_MAP.remove(entity.getUniqueId()) != null) {
-            ID_REGISTRY_MAP.remove(id);
-        }
+        if (UUID_REGISTRY_MAP.remove(entity.getUniqueId()) != null) accessToWriteLock(map -> map.remove(id));
         return true;
     }
 

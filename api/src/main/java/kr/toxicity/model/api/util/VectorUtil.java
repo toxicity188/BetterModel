@@ -127,7 +127,7 @@ public final class VectorUtil {
 
     private static final float FRAME_HASH = (float) Tracker.TRACKER_TICK_INTERVAL / 1000F;
 
-    private static float roundTime(float time) {
+    public static float roundTime(float time) {
         return FRAME_HASH * (float) Math.ceil(time / FRAME_HASH);
     }
 
