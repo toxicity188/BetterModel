@@ -1,6 +1,5 @@
 package kr.toxicity.model.api.data.blueprint;
 
-import it.unimi.dsi.fastutil.floats.FloatAVLTreeSet;
 import it.unimi.dsi.fastutil.floats.FloatSet;
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationMovement;
@@ -10,7 +9,8 @@ import kr.toxicity.model.api.bone.BoneTagRegistry;
 import kr.toxicity.model.api.data.raw.ModelAnimation;
 import kr.toxicity.model.api.data.raw.ModelAnimator;
 import kr.toxicity.model.api.script.BlueprintScript;
-import kr.toxicity.model.api.util.VectorUtil;
+import kr.toxicity.model.api.util.InterpolationUtil;
+import kr.toxicity.model.api.util.interpolation.AnimationInterpolator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
@@ -18,7 +18,6 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.util.*;
 import java.util.stream.IntStream;
 
-import static kr.toxicity.model.api.util.CollectionUtil.mapFloat;
 import static kr.toxicity.model.api.util.CollectionUtil.mapValue;
 
 /**
@@ -45,7 +44,7 @@ public record BlueprintAnimation(
      * @param animation raw animation
      * @return converted animation
      */
-    public static @NotNull BlueprintAnimation from(@NotNull ModelAnimation animation) {
+    public static @NotNull BlueprintAnimation from(@NotNull List<BlueprintChildren> children, @NotNull ModelAnimation animation) {
         var map = new HashMap<BoneName, BlueprintAnimator.AnimatorData>();
         var blueprintScript = animation.override() ? null : BlueprintScript.fromEmpty(animation);
         var animator = animation.animators();
@@ -62,7 +61,7 @@ public record BlueprintAnimation(
             }
             else map.put(BoneTagRegistry.parse(name), builder.build(name));
         }
-        var newMap = newMap(map);
+        var newMap = newMap(children, map);
         return new BlueprintAnimation(
                 animation.name(),
                 animation.loop(),
@@ -80,20 +79,17 @@ public record BlueprintAnimation(
         );
     }
 
-    private static @NotNull Map<BoneName, BlueprintAnimator> newMap(@NotNull Map<BoneName, BlueprintAnimator.AnimatorData> oldMap) {
-        var floatSet = mapFloat(oldMap.values()
-                .stream()
-                .flatMap(a -> a.points().stream()), p -> p.position().time(), FloatAVLTreeSet::new);
+    private static @NotNull Map<BoneName, BlueprintAnimator> newMap(@NotNull List<BlueprintChildren> children, @NotNull Map<BoneName, BlueprintAnimator.AnimatorData> oldMap) {
         return mapValue(oldMap, value -> new BlueprintAnimator(
                 value.name(),
-                getAnimationMovements(floatSet, value)
+                getAnimationMovements(AnimationInterpolator.interpolate(mapValue(oldMap, BlueprintAnimator.AnimatorData::points), children), value)
         ));
     }
 
     private static @NotNull List<AnimationMovement> getAnimationMovements(@NotNull FloatSet floatSet, @NotNull BlueprintAnimator.AnimatorData value) {
         var frame = value.points();
         if (frame.isEmpty()) return Collections.emptyList();
-        var list = VectorUtil.putAnimationPoint(frame, floatSet).stream().map(AnimationPoint::toMovement).toList();
+        var list = InterpolationUtil.putAnimationPoint(frame, floatSet).stream().map(AnimationPoint::toMovement).toList();
         return processFrame(list);
     }
 

@@ -5,7 +5,7 @@ import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.data.raw.Datapoint;
 import kr.toxicity.model.api.data.raw.ModelAnimation;
 import kr.toxicity.model.api.data.raw.ModelAnimator;
-import kr.toxicity.model.api.util.VectorUtil;
+import kr.toxicity.model.api.util.InterpolationUtil;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,11 +39,11 @@ public record BlueprintScript(@NotNull String name, @NotNull AnimationIterator.T
                         .map(raw -> BetterModel.plugin().scriptManager().build(raw))
                         .filter(Objects::nonNull)
                         .toList()
-                ).time(VectorUtil.roundTime(d.time())));
+                ).time(InterpolationUtil.roundTime(d.time())));
         if (animator.keyframes().getFirst().time() > 0) {
             stream = Stream.concat(Stream.of(TimeScript.EMPTY), stream);
         }
-        var time = VectorUtil.roundTime(animation.length());
+        var time = InterpolationUtil.roundTime(animation.length());
         if (time > 0) {
             stream = Stream.concat(stream, Stream.of(AnimationScript.EMPTY.time(time)));
         }

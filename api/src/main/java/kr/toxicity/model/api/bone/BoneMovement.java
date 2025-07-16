@@ -2,7 +2,7 @@ package kr.toxicity.model.api.bone;
 
 import kr.toxicity.model.api.animation.AnimationMovement;
 import kr.toxicity.model.api.util.MathUtil;
-import kr.toxicity.model.api.util.VectorUtil;
+import kr.toxicity.model.api.util.InterpolationUtil;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -47,6 +47,6 @@ public record BoneMovement(
     }
 
     public boolean isVisible() {
-        return VectorUtil.isVisible(scale);
+        return InterpolationUtil.isVisible(scale);
     }
 }

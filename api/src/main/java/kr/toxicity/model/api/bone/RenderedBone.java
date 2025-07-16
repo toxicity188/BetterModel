@@ -15,7 +15,7 @@ import kr.toxicity.model.api.tracker.TrackerModifier;
 import kr.toxicity.model.api.util.FunctionUtil;
 import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.TransformedItemStack;
-import kr.toxicity.model.api.util.VectorUtil;
+import kr.toxicity.model.api.util.InterpolationUtil;
 import kr.toxicity.model.api.util.function.BonePredicate;
 import kr.toxicity.model.api.util.function.FloatConstantSupplier;
 import kr.toxicity.model.api.util.function.FloatSupplier;
@@ -338,14 +338,14 @@ public final class RenderedBone implements HitBoxSource {
         var progress = 1F - progress();
         var after = afterTransform != null ? afterTransform : relativeOffset();
         var before = beforeTransform != null ? beforeTransform : BoneMovement.EMPTY;
-        return VectorUtil.fma(
-                        VectorUtil.linear(before.transform(), after.transform(), progress)
+        return MathUtil.fma(
+                        InterpolationUtil.lerp(before.transform(), after.transform(), progress)
                                 .add(itemStack.offset())
                                 .add(localOffset)
                                 .rotate(
-                                        MathUtil.toQuaternion(VectorUtil.linear(before.rawRotation(), after.rawRotation(), progress))
+                                        MathUtil.toQuaternion(InterpolationUtil.lerp(before.rawRotation(), after.rawRotation(), progress))
                                 ),
-                        VectorUtil.linear(before.scale(), after.scale(), progress),
+                        InterpolationUtil.lerp(before.scale(), after.scale(), progress),
                         globalOffset
 
                 )
@@ -359,19 +359,16 @@ public final class RenderedBone implements HitBoxSource {
         var progress = 1F - progress();
         var after = afterTransform != null ? afterTransform : relativeOffset();
         var before = beforeTransform != null ? beforeTransform : BoneMovement.EMPTY;
-        return new Quaternionf()
-                .rotateZYX(
-                        0,
-                        -rotation.radianY(),
-                        -rotation.radianX()
-                ).mul(MathUtil.toQuaternion(VectorUtil.linear(before.rawRotation(), after.rawRotation(), progress)));
+        return MathUtil.toQuaternion(InterpolationUtil.lerp(before.rawRotation(), after.rawRotation(), progress))
+                .rotateLocalX(-rotation.radianX())
+                .rotateLocalY(-rotation.radianY());
     }
 
     private void setup(@NotNull BoneMovement boneMovement) {
         if (display != null) {
             var mul = scale.getAsFloat();
             display.transform(
-                    VectorUtil.fma(
+                    MathUtil.fma(
                             itemStack.offset().rotate(boneMovement.rotation(), new Vector3f())
                                     .add(boneMovement.transform())
                                     .add(root.group.getPosition()),
@@ -412,7 +409,7 @@ public final class RenderedBone implements HitBoxSource {
         if (parent != null) {
             var p = parent.relativeOffset();
             return relativeOffsetCache = new BoneMovement(
-                    VectorUtil.fma(
+                    MathUtil.fma(
                             def.transform().rotate(p.rotation()),
                             p.scale(),
                             p.transform()

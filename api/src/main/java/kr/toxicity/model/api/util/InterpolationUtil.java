@@ -13,16 +13,18 @@ import org.joml.Vector3f;
 import java.util.ArrayList;
 import java.util.List;
 
+import static kr.toxicity.model.api.util.MathUtil.fma;
+
 /**
- * Vector util
+ * Interpolation util
  */
 @ApiStatus.Internal
-public final class VectorUtil {
+public final class InterpolationUtil {
 
     /**
      * No initializer
      */
-    private VectorUtil() {
+    private InterpolationUtil() {
         throw new RuntimeException();
     }
 
@@ -52,8 +54,6 @@ public final class VectorUtil {
         point(set, position);
         point(set, scale);
         point(set, rotation);
-        insertRotationFrame(set, rotation);
-        insertLerpFrame(set);
         return sum(position, rotation, scale, set);
     }
 
@@ -103,24 +103,6 @@ public final class VectorUtil {
         return newVectors;
     }
 
-    public static void insertRotationFrame(@NotNull FloatSet frames, @NotNull List<VectorPoint> vectorPoints) {
-        for (int i = 0; i < vectorPoints.size() - 1; i++) {
-            var before = vectorPoints.get(i);
-            var after = vectorPoints.get(i + 1);
-            var sub = after.vector().sub(before.vector(), new Vector3f()).absolute();
-            var max = Math.max(sub.x, Math.max(sub.y, sub.z)) / 30F;
-            var angle = (float) Math.ceil(max);
-            if (angle > 1) {
-                var last = before.time();
-                for (float t = 1; t < angle; t++) {
-                    var value = roundTime(linear(before.time(), after.time(), t / angle));
-                    if (value - last < 0.05 || value + 0.05 > after.time()) continue;
-                    frames.add(last = value);
-                }
-            }
-        }
-    }
-
     public static void insertLerpFrame(@NotNull FloatCollection frames) {
         insertLerpFrame(frames, (float) BetterModel.config().lerpFrameTime() / 20F);
     }
@@ -133,17 +115,16 @@ public final class VectorUtil {
 
     public static void insertLerpFrame(@NotNull FloatCollection frames, float frame) {
         if (frame <= 0F) return;
-        var list = new FloatArrayList(frames);
-        var init = 0F;
-        var initAfter = list.getFirst();
-        while ((init += frame) <= initAfter - frame) {
-            frames.add(roundTime(init));
-        }
-        for (int i = 0; i < list.size() - 1; i++) {
-            var before = list.getFloat(i);
-            var after = list.getFloat(i + 1);
-            while ((before += frame) <= after - frame) {
-                frames.add(roundTime(before));
+        var first = 0F;
+        var second = 0F;
+        for (Float v : new FloatAVLTreeSet(frames)) {
+            first = second;
+            second = v;
+            var max = (int) ((second - first) / frame);
+            for (int i = 0; i < max; i++) {
+                var add = roundTime(first + frame * (i + 1));
+                if (second - add < frame) continue;
+                frames.add(add);
             }
         }
     }
@@ -153,15 +134,15 @@ public final class VectorUtil {
         return div == 0 ? 0 : (alpha - p0) / div;
     }
 
-    public static @NotNull Vector3f linear(@NotNull Vector3f p0, @NotNull Vector3f p1, float alpha) {
+    public static @NotNull Vector3f lerp(@NotNull Vector3f p0, @NotNull Vector3f p1, float alpha) {
         return new Vector3f(
-                linear(p0.x, p1.x, alpha),
-                linear(p0.y, p1.y, alpha),
-                linear(p0.z, p1.z, alpha)
+                lerp(p0.x, p1.x, alpha),
+                lerp(p0.y, p1.y, alpha),
+                lerp(p0.z, p1.z, alpha)
         );
     }
 
-    public static float linear(float p0, float p1, float alpha) {
+    public static float lerp(float p0, float p1, float alpha) {
         return fma(p1 - p0, alpha, p0);
     }
 
@@ -250,23 +231,5 @@ public final class VectorUtil {
                 fma(t3, fma(-1F, p0.y, fma(3F, p1.y, fma(-3F, p2.y, p3.y))), fma(t2, fma(2F, p0.y, fma(-5F, p1.y, fma(4F, p2.y, -p3.y))), fma(t, -p0.y + p2.y, 2F * p1.y))),
                 fma(t3, fma(-1F, p0.z, fma(3F, p1.z, fma(-3F, p2.z, p3.z))), fma(t2, fma(2F, p0.z, fma(-5F, p1.z, fma(4F, p2.z, -p3.z))), fma(t, -p0.z + p2.z, 2F * p1.z)))
         ).mul(0.5F);
-    }
-
-    public static @NotNull Vector3f fma(@NotNull Vector3f a, @NotNull Vector3f b, @NotNull Vector3f c) {
-        a.x = fma(a.x, b.x, c.x);
-        a.y = fma(a.y, b.y, c.y);
-        a.z = fma(a.z, b.z, c.z);
-        return a;
-    }
-
-    public static @NotNull Vector3f fma(@NotNull Vector3f a, float b, @NotNull Vector3f c) {
-        a.x = fma(a.x, b, c.x);
-        a.y = fma(a.y, b, c.y);
-        a.z = fma(a.z, b, c.z);
-        return a;
-    }
-
-    public static float fma(float a, float b, float c) {
-        return Math.fma(a, b, c);
     }
 }

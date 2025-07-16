@@ -176,4 +176,22 @@ public final class MathUtil {
         ret.y = (float) asin(clamp(mat.m20, -1F, 1F));
         return ret.mul(RADIANS_TO_DEGREES);
     }
+
+    public static @NotNull Vector3f fma(@NotNull Vector3f a, @NotNull Vector3f b, @NotNull Vector3f c) {
+        a.x = fma(a.x, b.x, c.x);
+        a.y = fma(a.y, b.y, c.y);
+        a.z = fma(a.z, b.z, c.z);
+        return a;
+    }
+
+    public static @NotNull Vector3f fma(@NotNull Vector3f a, float b, @NotNull Vector3f c) {
+        a.x = fma(a.x, b, c.x);
+        a.y = fma(a.y, b, c.y);
+        a.z = fma(a.z, b, c.z);
+        return a;
+    }
+
+    public static float fma(float a, float b, float c) {
+        return Math.fma(a, b, c);
+    }
 }

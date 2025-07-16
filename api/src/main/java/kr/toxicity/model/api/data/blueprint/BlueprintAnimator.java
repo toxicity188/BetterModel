@@ -7,7 +7,7 @@ import kr.toxicity.model.api.animation.VectorPoint;
 import kr.toxicity.model.api.data.raw.Datapoint;
 import kr.toxicity.model.api.data.raw.ModelKeyframe;
 import kr.toxicity.model.api.util.MathUtil;
-import kr.toxicity.model.api.util.VectorUtil;
+import kr.toxicity.model.api.util.InterpolationUtil;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
@@ -82,7 +82,7 @@ public record BlueprintAnimator(
          * @return data
          */
         public @NotNull AnimatorData build(@NotNull String name) {
-            return new AnimatorData(name, VectorUtil.sum(
+            return new AnimatorData(name, InterpolationUtil.sum(
                     length,
                     transform.stream().distinct().toList(),
                     rotation.stream().distinct().toList(),

@@ -1,7 +1,7 @@
 package kr.toxicity.model.api.util.interpolation;
 
 import kr.toxicity.model.api.animation.VectorPoint;
-import kr.toxicity.model.api.util.VectorUtil;
+import kr.toxicity.model.api.util.InterpolationUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -31,12 +31,12 @@ public enum CatmullRomInterpolation implements VectorInterpolation {
         var next = indexOf(points, p2Index, 1);
         var p3 = next.time() == 0 ? indexOf(points, p2Index, 2) : next;
         return new VectorPoint(
-                VectorUtil.catmull_rom(
+                InterpolationUtil.catmull_rom(
                         p0.vector(),
                         p1.vector(),
                         p2.vector(),
                         p3.vector(),
-                        VectorUtil.alpha(p1.time(), p2.time(), time)
+                        InterpolationUtil.alpha(p1.time(), p2.time(), time)
                 ),
                 time
                 ,this

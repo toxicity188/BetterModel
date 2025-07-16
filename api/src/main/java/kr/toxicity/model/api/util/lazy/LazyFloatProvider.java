@@ -1,7 +1,7 @@
 package kr.toxicity.model.api.util.lazy;
 
 import kr.toxicity.model.api.util.FunctionUtil;
-import kr.toxicity.model.api.util.VectorUtil;
+import kr.toxicity.model.api.util.InterpolationUtil;
 import kr.toxicity.model.api.util.function.FloatSupplier;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -56,7 +56,7 @@ public final class LazyFloatProvider {
         var current = System.currentTimeMillis();
         var alpha = Math.clamp((float) (current - time) / req, 0, 1);
         time = current;
-        return storedValue = VectorUtil.linear(
+        return storedValue = InterpolationUtil.lerp(
                 storedValue,
                 updateValue,
                 alpha

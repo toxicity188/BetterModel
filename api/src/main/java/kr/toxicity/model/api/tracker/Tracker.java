@@ -4,6 +4,7 @@ import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.bone.BoneName;
+import kr.toxicity.model.api.bone.BoneTags;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.config.DebugConfig;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
@@ -239,7 +240,12 @@ public abstract class Tracker implements AutoCloseable {
      * @return height
      */
     public double height() {
-        return pipeline.height();
+        return bones()
+                .stream()
+                .filter(bone -> bone.getName().tagged(BoneTags.HEAD, BoneTags.HEAD_WITH_CHILDREN))
+                .mapToDouble(bone -> bone.hitBoxPosition().y)
+                .max()
+                .orElse(0F);
     }
 
     /**

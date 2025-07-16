@@ -1,7 +1,7 @@
 package kr.toxicity.model.api.util.interpolation;
 
 import kr.toxicity.model.api.animation.VectorPoint;
-import kr.toxicity.model.api.util.VectorUtil;
+import kr.toxicity.model.api.util.InterpolationUtil;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,7 +23,7 @@ public final class BezierInterpolation implements VectorInterpolation {
         var p1 = p2Index > 0 ? points.get(p2Index - 1) : VectorPoint.EMPTY;
         var p2 = points.get(p2Index);
         return new VectorPoint(
-                VectorUtil.bezier(
+                InterpolationUtil.bezier(
                         time,
                         p1.time(),
                         p2.time(),

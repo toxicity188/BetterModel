@@ -6,7 +6,6 @@ import kr.toxicity.model.api.animation.AnimationPredicate;
 import kr.toxicity.model.api.animation.AnimationStateHandler;
 import kr.toxicity.model.api.animation.RunningAnimation;
 import kr.toxicity.model.api.bone.BoneName;
-import kr.toxicity.model.api.bone.BoneTags;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.nms.EntityAdapter;
@@ -242,16 +241,6 @@ public final class RenderPipeline {
             if (get != null) return get;
         }
         return null;
-    }
-
-    public double height() {
-        var h = 0D;
-        for (RenderedBone renderer : bones()) {
-            var lt = renderer.hitBoxPosition().y;
-            if (renderer.getName().tagged(BoneTags.HEAD, BoneTags.HEAD_WITH_CHILDREN)) return lt;
-            if (h < lt) h = lt;
-        }
-        return h;
     }
 
     public boolean tint(@NotNull BonePredicate predicate, int rgb) {

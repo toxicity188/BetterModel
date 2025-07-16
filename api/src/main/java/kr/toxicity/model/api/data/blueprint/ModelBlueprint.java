@@ -40,14 +40,14 @@ public record ModelBlueprint(
      * @return blueprint
      */
     public static @NotNull ModelBlueprint from(@NotNull String name, @NotNull ModelData data) {
-        var elementMap = associate(data.elements(), ModelElement::uuid, e -> e);
+        var group = mapToList(data.outliner(), children -> BlueprintChildren.from(children, associate(data.elements(), ModelElement::uuid, e -> e)));
         return new ModelBlueprint(
                 name,
                 data.scale(),
                 data.resolution(),
                 mapToList(data.textures(), BlueprintTexture::from),
-                mapToList(data.outliner(), children -> BlueprintChildren.from(children, elementMap)),
-                associate(data.animations().stream().map(BlueprintAnimation::from), BlueprintAnimation::name, a -> a)
+                group,
+                associate(data.animations().stream().map(raw -> BlueprintAnimation.from(group, raw)), BlueprintAnimation::name, a -> a)
         );
     }
 
