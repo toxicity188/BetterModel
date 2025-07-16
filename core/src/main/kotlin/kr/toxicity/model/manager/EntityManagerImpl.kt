@@ -27,6 +27,7 @@ import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.world.EntitiesLoadEvent
 import org.bukkit.event.world.EntitiesUnloadEvent
 import org.bukkit.inventory.EquipmentSlot
+import org.bukkit.potion.PotionEffectType
 
 object EntityManagerImpl : EntityManager, GlobalManagerImpl {
 
@@ -67,7 +68,8 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
     private val standardListener = object : Listener {
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         fun EntityPotionEffectEvent.potion() { //Apply potion effect
-            entity.forEachTracker { it.updateBaseEntity() }
+            if (action == EntityPotionEffectEvent.Action.CHANGED) return
+            if (oldEffect?.type == PotionEffectType.GLOWING || newEffect?.type == PotionEffectType.GLOWING) entity.forEachTracker { it.updateBaseEntity() }
         }
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         fun EntityDismountEvent.dismount() { //Dismount
