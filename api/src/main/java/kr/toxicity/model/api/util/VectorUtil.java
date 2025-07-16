@@ -48,7 +48,7 @@ public final class VectorUtil {
     public static @NotNull List<AnimationPoint> sum(float length, @NotNull List<VectorPoint> position, @NotNull List<VectorPoint> rotation, @NotNull List<VectorPoint> scale) {
         var set = new FloatAVLTreeSet(FloatComparators.NATURAL_COMPARATOR);
         set.add(0);
-        set.add(length);
+        set.add(roundTime(length));
         point(set, position);
         point(set, scale);
         point(set, rotation);
@@ -137,13 +137,13 @@ public final class VectorUtil {
         var init = 0F;
         var initAfter = list.getFirst();
         while ((init += frame) <= initAfter - frame) {
-            frames.add(init);
+            frames.add(roundTime(init));
         }
         for (int i = 0; i < list.size() - 1; i++) {
             var before = list.getFloat(i);
             var after = list.getFloat(i + 1);
             while ((before += frame) <= after - frame) {
-                frames.add(before);
+                frames.add(roundTime(before));
             }
         }
     }
