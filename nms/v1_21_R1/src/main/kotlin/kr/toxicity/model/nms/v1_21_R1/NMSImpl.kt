@@ -20,7 +20,6 @@ import net.minecraft.network.syncher.EntityDataAccessor
 import net.minecraft.network.syncher.EntityDataSerializers
 import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.server.level.ServerLevel
-import net.minecraft.server.level.ServerPlayer
 import net.minecraft.server.network.ServerCommonPacketListenerImpl
 import net.minecraft.util.Brightness
 import net.minecraft.world.effect.MobEffects
@@ -321,6 +320,7 @@ class NMSImpl : NMS {
     ) : ModelDisplay {
 
         private val entityData = display.entityData
+        private val entityDataLock = Any()
         private var forceGlow = false
         private var forceInvisibility = false
 
@@ -380,31 +380,31 @@ class NMSImpl : NMS {
         }
 
         override fun display(transform: org.bukkit.entity.ItemDisplay.ItemDisplayTransform) {
-            synchronized(entityData) {
+            synchronized(entityDataLock) {
                 display.itemTransform = ItemDisplayContext.BY_ID.apply(transform.ordinal)
             }
         }
 
         override fun frame(frame: Int) {
-            synchronized(entityData) {
+            synchronized(entityDataLock) {
                 display.transformationInterpolationDuration = frame
             }
         }
 
         override fun moveDuration(duration: Int) {
-            synchronized(entityData) {
+            synchronized(entityDataLock) {
                 entityData[Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID] = duration
             }
         }
 
         override fun item(itemStack: ItemStack) {
-            synchronized(entityData) {
+            synchronized(entityDataLock) {
                 display.itemStack = CraftItemStack.asNMSCopy(itemStack)
             }
         }
 
         override fun brightness(block: Int, sky: Int) {
-            synchronized(entityData) {
+            synchronized(entityDataLock) {
                 display.brightnessOverride = if (block < 0 && sky < 0) null else Brightness(
                     block,
                     sky
@@ -413,38 +413,38 @@ class NMSImpl : NMS {
         }
 
         override fun viewRange(range: Float) {
-            synchronized(entityData) {
+            synchronized(entityDataLock) {
                 display.viewRange = range
             }
         }
 
         override fun shadowRadius(radius: Float) {
-            synchronized(entityData) {
+            synchronized(entityDataLock) {
                 display.shadowRadius = radius
             }
         }
 
         override fun glow(glow: Boolean) {
-            synchronized(entityData) {
+            synchronized(entityDataLock) {
                 forceGlow = glow
                 display.setGlowingTag(display.isCurrentlyGlowing || forceGlow)
             }
         }
 
         override fun glowColor(glowColor: Int) {
-            synchronized(entityData) {
+            synchronized(entityDataLock) {
                 display.glowColorOverride = glowColor
             }
         }
 
         override fun billboard(billboard: org.bukkit.entity.Display.Billboard) {
-            synchronized(entityData) {
+            synchronized(entityDataLock) {
                 display.billboardConstraints = Display.BillboardConstraints.BY_ID.apply(billboard.ordinal)
             }
         }
 
         override fun transform(position: Vector3f, scale: Vector3f, rotation: Quaternionf) {
-            synchronized(entityData) {
+            synchronized(entityDataLock) {
                 display.setTransformation(
                     com.mojang.math.Transformation(
                         position,
@@ -457,7 +457,7 @@ class NMSImpl : NMS {
         }
 
         override fun sendTransformation(bundler: PacketBundler) {
-            synchronized(entityData) {
+            synchronized(entityDataLock) {
                 entityData.pack(
                     clean = true,
                     itemFilter = { interpolationDelay == it.accessor.id || it.isDirty },
@@ -469,12 +469,12 @@ class NMSImpl : NMS {
             }
         }
 
-        override fun invisible(): Boolean = synchronized(entityData) {
+        override fun invisible(): Boolean = synchronized(entityDataLock) {
             display.isInvisible || forceInvisibility || display.itemStack.`is`(Items.AIR)
         }
 
         override fun sendEntityData(bundler: PacketBundler) {
-            synchronized(entityData) {
+            synchronized(entityDataLock) {
                 entityData.pack(
                     clean = true,
                     itemFilter = { it.isDirty },
@@ -486,7 +486,7 @@ class NMSImpl : NMS {
         }
 
         override fun sendEntityData(showItem: Boolean, bundler: PacketBundler) {
-            synchronized(entityData) {
+            synchronized(entityDataLock) {
                 entityData.pack(
                     valueFilter = { entityDataSet.contains(it.id) }
                 )
@@ -566,26 +566,11 @@ class NMSImpl : NMS {
                 return if (handle is LivingEntity) handle.scale.toDouble() else 1.0
             }
 
-            override fun pitch(): Float {
-                return handle().xRot
-            }
-
-            override fun ground(): Boolean {
-                return handle().onGround()
-            }
-
-            override fun bodyYaw(): Float {
-                val handle = handle()
-                return if (handle is ServerPlayer) handle.yRot else handle.visualRotationYInDegrees
-            }
-
-            override fun yaw(): Float {
-                return handle().yHeadRot
-            }
-
-            override fun fly(): Boolean {
-                return handle().isFlying
-            }
+            override fun pitch(): Float = handle().xRot
+            override fun ground(): Boolean = handle().onGround()
+            override fun bodyYaw(): Float = handle().yRot
+            override fun yaw(): Float = handle().yHeadRot
+            override fun fly(): Boolean = handle().isFlying
 
             override fun damageTick(): Float {
                 val handle = handle()
