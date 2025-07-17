@@ -300,17 +300,12 @@ public final class RenderedBone implements HitBoxSource {
             if (d != null) {
                 d.frame(toInterpolationDuration(frame()));
                 setup(boneMovement);
-                if (isVisible()) d.sendTransformation(bundler);
+                if (!d.invisible()) d.sendTransformation(bundler);
             }
             firstTick = false;
             return true;
         }
         return false;
-    }
-
-    public boolean isVisible() {
-        if (display == null || display.invisible()) return false;
-        return (beforeTransform != null && beforeTransform.isVisible()) || (afterTransform != null && afterTransform.isVisible());
     }
 
     public void forceUpdate(@NotNull PacketBundler bundler) {
@@ -324,7 +319,7 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     private static int toInterpolationDuration(float delay) {
-        return Math.round(delay / (float) Tracker.MINECRAFT_TICK_MULTIPLIER + 0.25F);
+        return delay <= 0 ? 0 : Math.max(Math.round(delay / (float) Tracker.MINECRAFT_TICK_MULTIPLIER), 1);
     }
 
     public @NotNull Vector3f worldPosition() {

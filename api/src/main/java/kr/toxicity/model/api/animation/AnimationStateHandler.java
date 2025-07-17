@@ -1,6 +1,7 @@
 package kr.toxicity.model.api.animation;
 
 import kr.toxicity.model.api.tracker.Tracker;
+import kr.toxicity.model.api.util.MathUtil;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -121,7 +122,7 @@ public final class AnimationStateHandler<T extends Timed> {
     }
 
     public float frame() {
-        return keyframe != null ? keyframe.time() * 20F * Tracker.MINECRAFT_TICK_MULTIPLIER : 0F;
+        return keyframe != null ? 20 * Tracker.MINECRAFT_TICK_MULTIPLIER * (keyframe.time() + 0.001F) : 0F;
     }
     
     @FunctionalInterface

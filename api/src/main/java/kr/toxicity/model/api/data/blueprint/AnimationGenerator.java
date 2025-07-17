@@ -83,7 +83,7 @@ public final class AnimationGenerator {
             var last = firstTime;
             for (float f = 1; f < length; f++) {
                 var addTime = InterpolationUtil.roundTime(InterpolationUtil.lerp(firstTime, secondTime, f / length));
-                if (addTime - last < 0.01 || secondTime - addTime < 0.01) continue;
+                if (addTime - last < 0.025 || secondTime - addTime < 0.025) continue;
                 floats.add(last = addTime);
             }
         }
