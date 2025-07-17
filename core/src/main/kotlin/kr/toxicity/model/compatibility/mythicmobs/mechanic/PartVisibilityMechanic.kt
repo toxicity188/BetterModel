@@ -17,7 +17,6 @@ class PartVisibilityMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc)
         val args = p0.toPlaceholderArgs()
         return p0.toTracker(model(args))?.let {
             it.update(
-                TrackerUpdateAction.TOGGLE_PART,
                 TrackerUpdateAction.togglePart(v(args)),
                 predicate(args)
             )

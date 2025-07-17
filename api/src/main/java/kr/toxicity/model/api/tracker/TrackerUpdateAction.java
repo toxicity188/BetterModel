@@ -11,45 +11,11 @@ import java.util.function.BiPredicate;
 
 /**
  * Tracker update action
- * @param <T> data type
  */
-public interface TrackerUpdateAction<T extends TrackerUpdateAction.ActionData> {
+public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, BonePredicate>  {
 
-    /**
-     * Tint
-     */
-    TrackerUpdateAction<Tint> TINT = t -> (b, p) -> b.tint(p, t.rgb);
-    /**
-     * Brightness
-     */
-    TrackerUpdateAction<Brightness> BRIGHTNESS = t -> (b, p) -> b.brightness(p, t.block, t.sky);
-    /**
-     * Glow
-     */
-    TrackerUpdateAction<Glow> GLOW = t -> (b, p) -> b.glow(p, t.glow, t.glowColor);
-    /**
-     * Enchant
-     */
-    TrackerUpdateAction<Enchant> ENCHANT = t -> (b, p) -> b.enchant(p, t == Enchant.TRUE);
-    /**
-     * Toggle part
-     */
-    TrackerUpdateAction<TogglePart> TOGGLE_PART = t -> (b, p) -> b.togglePart(p, t == TogglePart.TRUE);
-    /**
-     * Item stack
-     */
-    TrackerUpdateAction<ItemStack> ITEM_STACK = t -> (b, p) -> b.itemStack(p, t.itemStack);
-    /**
-     * Billboard
-     */
-    TrackerUpdateAction<Billboard> BILLBOARD = t -> (b, p) -> b.billboard(p, t.billboard);
-
-    /**
-     * Creates condition by given data
-     * @param t data
-     * @return condition
-     */
-    @NotNull TrackerUpdateAction.TrackerActionCondition create(@NotNull T t);
+    @Override
+    boolean test(@NotNull RenderedBone b, @NotNull BonePredicate p);
 
     /**
      * Creates brightness data
@@ -119,29 +85,33 @@ public interface TrackerUpdateAction<T extends TrackerUpdateAction.ActionData> {
     }
 
     /**
-     * Action data
-     */
-    sealed interface ActionData {
-    }
-
-    /**
      * Brightness
      * @param block block brightness
      * @param sky sky brightness
      */
-    record Brightness(int block, int sky) implements ActionData {}
+    record Brightness(int block, int sky) implements TrackerUpdateAction {
+        @Override
+        public boolean test(@NotNull RenderedBone b, @NotNull BonePredicate p) {
+            return b.brightness(p, block, sky);
+        }
+    }
 
     /**
      * Glow
      * @param glow should be applying a glow
      * @param glowColor glow color
      */
-    record Glow(boolean glow, int glowColor) implements ActionData {}
+    record Glow(boolean glow, int glowColor) implements TrackerUpdateAction {
+        @Override
+        public boolean test(@NotNull RenderedBone b, @NotNull BonePredicate p) {
+            return b.glow(p, glow, glowColor);
+        }
+    }
 
     /**
      * Enchant
      */
-    enum Enchant implements ActionData {
+    enum Enchant implements TrackerUpdateAction {
         /**
          * True
          */
@@ -150,18 +120,29 @@ public interface TrackerUpdateAction<T extends TrackerUpdateAction.ActionData> {
          * False
          */
         FALSE
+        ;
+
+        @Override
+        public boolean test(@NotNull RenderedBone b, @NotNull BonePredicate p) {
+            return b.enchant(p, this == TRUE);
+        }
     }
 
     /**
      * Tint
      * @param rgb rgb
      */
-    record Tint(int rgb) implements ActionData {}
+    record Tint(int rgb) implements TrackerUpdateAction {
+        @Override
+        public boolean test(@NotNull RenderedBone b, @NotNull BonePredicate p) {
+            return b.tint(p, rgb);
+        }
+    }
 
     /**
      * Toggle part
      */
-    enum TogglePart implements ActionData {
+    enum TogglePart implements TrackerUpdateAction {
         /**
          * True
          */
@@ -170,24 +151,33 @@ public interface TrackerUpdateAction<T extends TrackerUpdateAction.ActionData> {
          * False
          */
         FALSE
+        ;
+
+        @Override
+        public boolean test(@NotNull RenderedBone b, @NotNull BonePredicate p) {
+            return b.togglePart(p, this == TRUE);
+        }
     }
 
     /**
      * Item stack
      * @param itemStack item stack
      */
-    record ItemStack(@NotNull TransformedItemStack itemStack) implements ActionData {}
+    record ItemStack(@NotNull TransformedItemStack itemStack) implements TrackerUpdateAction {
+        @Override
+        public boolean test(@NotNull RenderedBone b, @NotNull BonePredicate p) {
+            return b.itemStack(p, itemStack);
+        }
+    }
 
     /**
      * Billboard
      * @param billboard billboard
      */
-    record Billboard(@NotNull Display.Billboard billboard) implements ActionData {}
-
-    /**
-     * Tracker action condition
-     */
-    @FunctionalInterface
-    interface TrackerActionCondition extends BiPredicate<RenderedBone, BonePredicate> {
+    record Billboard(@NotNull Display.Billboard billboard) implements TrackerUpdateAction {
+        @Override
+        public boolean test(@NotNull RenderedBone b, @NotNull BonePredicate p) {
+            return b.billboard(p, billboard);
+        }
     }
 }

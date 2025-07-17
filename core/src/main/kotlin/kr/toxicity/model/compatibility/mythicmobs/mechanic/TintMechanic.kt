@@ -22,7 +22,6 @@ class TintMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTarge
             } else {
                 it.cancelDamageTint()
                 it.update(
-                    TrackerUpdateAction.TINT,
                     TrackerUpdateAction.tint(color(args)),
                     predicate(args)
                 )

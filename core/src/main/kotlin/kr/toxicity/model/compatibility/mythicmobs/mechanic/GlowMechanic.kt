@@ -18,7 +18,6 @@ class GlowMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTarge
         val args = p0.toPlaceholderArgs()
         return p0.toTracker(model(args))?.let {
             it.update(
-                TrackerUpdateAction.GLOW,
                 TrackerUpdateAction.glow(glow(args), color(args)),
                 predicate(args)
             )

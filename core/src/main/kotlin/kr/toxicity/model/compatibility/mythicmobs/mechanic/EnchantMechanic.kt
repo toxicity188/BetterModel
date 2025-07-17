@@ -17,7 +17,6 @@ class EnchantMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTa
         val args = p0.toPlaceholderArgs()
         return p0.toTracker(model(args))?.let {
             it.update(
-                TrackerUpdateAction.ENCHANT,
                 TrackerUpdateAction.enchant(enchant(args)),
                 predicate(args)
             )

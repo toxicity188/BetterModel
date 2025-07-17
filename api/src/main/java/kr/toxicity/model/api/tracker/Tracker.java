@@ -480,7 +480,7 @@ public abstract class Tracker implements AutoCloseable {
      * @param rgb toggle
      */
     public boolean tint(@NotNull BonePredicate predicate, int rgb) {
-        return tryUpdate(TrackerUpdateAction.TINT, new TrackerUpdateAction.Tint(rgb), predicate);
+        return tryUpdate(TrackerUpdateAction.tint(rgb), predicate);
     }
 
 
@@ -506,44 +506,40 @@ public abstract class Tracker implements AutoCloseable {
 
     /**
      * Forces update of this tracker.
-     * @param updateAction action
-     * @param data data
-     * @param <T> data type
+     * @param action action
+     * @param <T> action type
      */
-    public <T extends TrackerUpdateAction.ActionData> void update(@NotNull TrackerUpdateAction<T> updateAction, T data) {
-        if (tryUpdate(updateAction, data)) forceUpdate(true);
+    public <T extends TrackerUpdateAction> void update(@NotNull T action) {
+        if (tryUpdate(action)) forceUpdate(true);
     }
 
     /**
      * Forces update of this tracker.
-     * @param updateAction action
-     * @param data data
+     * @param action action
      * @param predicate predicate
-     * @param <T> data type
+     * @param <T> action type
      */
-    public <T extends TrackerUpdateAction.ActionData> void update(@NotNull TrackerUpdateAction<T> updateAction, T data, @NotNull BonePredicate predicate) {
-        if (tryUpdate(updateAction, data, predicate)) forceUpdate(true);
+    public <T extends TrackerUpdateAction> void update(@NotNull T action, @NotNull BonePredicate predicate) {
+        if (tryUpdate(action, predicate)) forceUpdate(true);
     }
 
     /**
      * Update data of this tracker.
-     * @param updateAction action
-     * @param data data
-     * @param <T> data type
+     * @param action action
+     * @param <T> action type
      */
-    public <T extends TrackerUpdateAction.ActionData> boolean tryUpdate(@NotNull TrackerUpdateAction<T> updateAction, T data) {
-        return tryUpdate(updateAction, data, BonePredicate.TRUE);
+    public <T extends TrackerUpdateAction> boolean tryUpdate(@NotNull T action) {
+        return tryUpdate(action, BonePredicate.TRUE);
     }
 
     /**
      * Update data of this tracker.
-     * @param updateAction action
-     * @param data data
+     * @param action action
      * @param predicate predicate
-     * @param <T> data type
+     * @param <T> action type
      */
-    public <T extends TrackerUpdateAction.ActionData> boolean tryUpdate(@NotNull TrackerUpdateAction<T> updateAction, T data, @NotNull BonePredicate predicate) {
-        return pipeline.anyMatch(predicate, updateAction.create(data));
+    public <T extends TrackerUpdateAction> boolean tryUpdate(@NotNull T action, @NotNull BonePredicate predicate) {
+        return pipeline.anyMatch(predicate, action);
     }
 
     /**

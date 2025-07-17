@@ -25,7 +25,6 @@ class ChangePartMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), IN
         val model = ModelManagerImpl.renderer(n1)?.groupByTree(n2)?.itemStack ?: return SkillResult.CONDITION_FAILED
         return p0.toTracker(model(args))?.let {
             it.update(
-                TrackerUpdateAction.ITEM_STACK,
                 TrackerUpdateAction.itemStack(model),
                 predicate(args)
             )

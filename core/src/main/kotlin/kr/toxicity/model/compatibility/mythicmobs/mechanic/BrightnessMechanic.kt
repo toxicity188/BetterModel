@@ -22,7 +22,6 @@ class BrightnessMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), IN
         val args = p0.toPlaceholderArgs()
         return p0.toTracker(model(args))?.let {
             it.update(
-                TrackerUpdateAction.BRIGHTNESS,
                 TrackerUpdateAction.brightness(block(args), sky(args)),
                 predicate(args)
             )
