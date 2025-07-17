@@ -120,15 +120,16 @@ public final class RenderedBone implements HitBoxSource {
         root = parent != null ? parent.root : this;
         this.itemStack = itemMapper.apply(source, group.getItemStack());
         this.dummyBone = itemStack.isAir();
-        if (!dummyBone) {
-            display = BetterModel.plugin().nms().create(source.location(), source instanceof RenderSource.Entity ? -1024 : 0);
-            display.display(itemMapper.transform());
-            display.viewRange(modifier.viewRange());
-            display.invisible(itemMapper == BoneItemMapper.EMPTY && !group.getParent().visibility());
-        }
         defaultFrame = movement;
         children = childrenMapper.apply(this);
-        applyItem();
+        if (!dummyBone) {
+            display = BetterModel.plugin().nms().create(source.location(), source instanceof RenderSource.Entity ? -1024 : 0, d -> {
+                d.display(itemMapper.transform());
+                d.viewRange(modifier.viewRange());
+                d.invisible(itemMapper == BoneItemMapper.EMPTY && !group.getParent().visibility());
+                applyItem(d);
+            });
+        }
     }
 
     public @Nullable RunningAnimation runningAnimation() {
@@ -453,9 +454,13 @@ public final class RenderedBone implements HitBoxSource {
 
     private boolean applyItem() {
         if (display != null) {
-            display.item(itemStack.isAir() ? AIR : tintCacheMap.computeIfAbsent(tint, i -> BetterModel.plugin().nms().tint(itemStack.itemStack(), i)));
+            applyItem(display);
             return true;
-        } else return false;
+        }
+        return false;
+    }
+    private void applyItem(@NotNull ModelDisplay targetDisplay) {
+        targetDisplay.item(itemStack.isAir() ? AIR : tintCacheMap.computeIfAbsent(tint, i -> BetterModel.plugin().nms().tint(itemStack.itemStack(), i)));
     }
 
     public @NotNull BoneName getName() {

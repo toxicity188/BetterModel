@@ -9,10 +9,8 @@ import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox
 import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.nms.*
-import kr.toxicity.model.api.player.PlayerLimb
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.tracker.ModelRotation
-import kr.toxicity.model.api.util.function.BonePredicate
 import net.kyori.adventure.key.Keyed
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtUtils
@@ -51,6 +49,7 @@ import org.joml.Quaternionf
 import org.joml.Vector3f
 import java.lang.reflect.Field
 import java.util.*
+import java.util.function.Consumer
 
 class NMSImpl : NMS {
 
@@ -242,9 +241,9 @@ class NMSImpl : NMS {
                 }
                 BetterModel.plugin().scheduler().asyncTaskLater(1) {
                     trackers().forEach { tracker ->
-                        if (tracker.updateItem(BonePredicate.from {
-                                it.itemMapper is PlayerLimb.LimbItemMapper
-                            })) tracker.forceUpdate(true)
+                        tracker.updateDisplay { bone ->
+                            !bone.itemMapper.fixed()
+                        }
                     }
                 }
             }
@@ -299,7 +298,7 @@ class NMSImpl : NMS {
 
     override fun createBundler(initialCapacity: Int): PacketBundler = PacketBundlerImpl(ArrayList(initialCapacity))
 
-    override fun create(location: Location, yOffset: Double): ModelDisplay = ModelDisplayImpl(ItemDisplay(EntityType.ITEM_DISPLAY, (location.world as CraftWorld).handle).apply {
+    override fun create(location: Location, yOffset: Double, initialConsumer: Consumer<ModelDisplay>): ModelDisplay = ModelDisplayImpl(ItemDisplay(EntityType.ITEM_DISPLAY, (location.world as CraftWorld).handle).apply {
         billboardConstraints = Display.BillboardConstraints.FIXED
         valid = true
         moveTo(
@@ -311,7 +310,10 @@ class NMSImpl : NMS {
         )
         itemTransform = ItemDisplayContext.FIXED
         entityData[Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID] = 3
-    }, yOffset)
+    }, yOffset).apply {
+        initialConsumer.accept(this)
+        display.entityData.packDirty()
+    }
 
     private inner class ModelDisplayImpl(
         val display: ItemDisplay,
@@ -353,10 +355,7 @@ class NMSImpl : NMS {
 
         override fun spawn(showItem: Boolean, bundler: PacketBundler) {
             bundler.unwrap() += addPacket
-            val f = display.transformationInterpolationDuration
-            frame(0)
             bundler.unwrap() += ClientboundSetEntityDataPacket(display.id, display.entityData.nonDefaultValues!!.markVisible(showItem))
-            frame(f)
         }
 
         override fun frame(frame: Int) {

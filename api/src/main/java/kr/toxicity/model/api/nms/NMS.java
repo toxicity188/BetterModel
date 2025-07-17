@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 
 /**
  * A vanilla code handler of Minecraft (NMS)
@@ -26,16 +27,17 @@ public interface NMS {
      * @return model display
      */
     default @NotNull ModelDisplay create(@NotNull Location location) {
-        return create(location, 0);
+        return create(location, 0, d -> {});
     }
 
     /**
      * Creates model display
      * @param location start location
      * @param yOffset y offset
+     * @param initialConsumer initial consumer
      * @return model display
      */
-    @NotNull ModelDisplay create(@NotNull Location location, double yOffset);
+    @NotNull ModelDisplay create(@NotNull Location location, double yOffset, @NotNull Consumer<ModelDisplay> initialConsumer);
 
     /**
      * Injects netty channel handler to player

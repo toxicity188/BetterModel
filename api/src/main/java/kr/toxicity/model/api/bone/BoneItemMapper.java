@@ -63,6 +63,14 @@ public interface BoneItemMapper extends BiFunction<RenderSource<?>, TransformedI
     }
 
     /**
+     * Gets this mapper's display is fixed
+     * @return fixed
+     */
+    default boolean fixed() {
+        return transform() == ItemDisplay.ItemDisplayTransform.FIXED;
+    }
+
+    /**
      * Gets item display transformation
      * @return transformation
      */

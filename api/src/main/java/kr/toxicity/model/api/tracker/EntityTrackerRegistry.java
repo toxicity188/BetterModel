@@ -281,7 +281,9 @@ public final class EntityTrackerRegistry {
     }
 
     private void runSync(@NotNull Runnable runnable) {
-        if (Bukkit.isPrimaryThread()) runnable.run(); else BetterModel.plugin().scheduler().task(entity.getLocation(), runnable);
+        if (Bukkit.isPrimaryThread()) {
+            runnable.run();
+        } else BetterModel.plugin().scheduler().task(entity.getLocation(), runnable);
     }
 
     public @NotNull Stream<ModelDisplay> displays() {

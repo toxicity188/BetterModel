@@ -13,7 +13,6 @@ import kr.toxicity.model.api.player.PlayerSkinProvider
 import kr.toxicity.model.api.skin.SkinData
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.util.TransformedItemStack
-import kr.toxicity.model.api.util.function.BonePredicate
 import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.player.HttpPlayerSkinProvider
 import kr.toxicity.model.util.*
@@ -659,9 +658,9 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
                                 selected
                             )
                             EntityTrackerRegistry.registry(id)?.trackers()?.forEach { tracker ->
-                                if (tracker.updateItem(BonePredicate.from { bone ->
-                                        bone.itemMapper is PlayerLimb.LimbItemMapper
-                                    })) tracker.forceUpdate(true)
+                                tracker.updateDisplay { bone ->
+                                    bone.itemMapper is PlayerLimb.LimbItemMapper
+                                }
                             }
                         }
                     }

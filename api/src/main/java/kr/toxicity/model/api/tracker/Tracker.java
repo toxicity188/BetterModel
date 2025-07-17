@@ -36,6 +36,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -483,7 +484,6 @@ public abstract class Tracker implements AutoCloseable {
         return tryUpdate(TrackerUpdateAction.tint(rgb), predicate);
     }
 
-
     /**
      * Creates hitbox based on some entity
      * @param entity entity base
@@ -492,16 +492,22 @@ public abstract class Tracker implements AutoCloseable {
      * @return success
      */
     public boolean createHitBox(@NotNull EntityAdapter entity, @NotNull BonePredicate predicate, @Nullable HitBoxListener listener) {
-        return pipeline.anyMatch(predicate, (b, p) -> b.createHitBox(entity, p, listener));
+        return tryUpdate((b, p) -> b.createHitBox(entity, p, listener), predicate);
     }
 
     /**
      * Updates item
      * @param predicate predicate
-     * @return success
      */
-    public boolean updateItem(@NotNull BonePredicate predicate) {
-        return pipeline.anyMatch(predicate, (b, p) -> b.updateItem(p, pipeline.getSource()));
+    public void updateDisplay(@NotNull Predicate<RenderedBone> predicate) {
+        updateDisplay(BonePredicate.from(predicate));
+    }
+    /**
+     * Updates item
+     * @param predicate predicate
+     */
+    public void updateDisplay(@NotNull BonePredicate predicate) {
+        if (tryUpdate((b, p) -> b.updateItem(p, pipeline.getSource()), predicate)) forceUpdate(true);
     }
 
     /**
@@ -510,7 +516,17 @@ public abstract class Tracker implements AutoCloseable {
      * @param <T> action type
      */
     public <T extends TrackerUpdateAction> void update(@NotNull T action) {
-        if (tryUpdate(action)) forceUpdate(true);
+        if (tryUpdate(action, BonePredicate.TRUE)) forceUpdate(true);
+    }
+
+    /**
+     * Forces update of this tracker.
+     * @param action action
+     * @param predicate predicate
+     * @param <T> action type
+     */
+    public <T extends TrackerUpdateAction> void update(@NotNull T action, @NotNull Predicate<RenderedBone> predicate) {
+        update(action, BonePredicate.from(predicate));
     }
 
     /**
@@ -526,19 +542,9 @@ public abstract class Tracker implements AutoCloseable {
     /**
      * Update data of this tracker.
      * @param action action
-     * @param <T> action type
-     */
-    public <T extends TrackerUpdateAction> boolean tryUpdate(@NotNull T action) {
-        return tryUpdate(action, BonePredicate.TRUE);
-    }
-
-    /**
-     * Update data of this tracker.
-     * @param action action
      * @param predicate predicate
-     * @param <T> action type
      */
-    public <T extends TrackerUpdateAction> boolean tryUpdate(@NotNull T action, @NotNull BonePredicate predicate) {
+    public boolean tryUpdate(@NotNull BiPredicate<RenderedBone, BonePredicate> action, @NotNull BonePredicate predicate) {
         return pipeline.anyMatch(predicate, action);
     }
 
