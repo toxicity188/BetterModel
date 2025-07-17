@@ -110,7 +110,7 @@ public final class InterpolationUtil {
     private static final float FRAME_HASH = (float) Tracker.TRACKER_TICK_INTERVAL / 1000F;
 
     public static float roundTime(float time) {
-        return FRAME_HASH * (float) Math.ceil(time / FRAME_HASH);
+        return Math.round(time / FRAME_HASH) * FRAME_HASH;
     }
 
     public static void insertLerpFrame(@NotNull FloatCollection frames, float frame) {

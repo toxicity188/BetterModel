@@ -39,11 +39,11 @@ public record BlueprintScript(@NotNull String name, @NotNull AnimationIterator.T
                         .map(raw -> BetterModel.plugin().scriptManager().build(raw))
                         .filter(Objects::nonNull)
                         .toList()
-                ).time(InterpolationUtil.roundTime(d.time())));
+                ).time(d.time()));
         if (animator.keyframes().getFirst().time() > 0) {
             stream = Stream.concat(Stream.of(TimeScript.EMPTY), stream);
         }
-        var time = InterpolationUtil.roundTime(animation.length());
+        var time = animation.length();
         if (time > 0) {
             stream = Stream.concat(stream, Stream.of(AnimationScript.EMPTY.time(time)));
         }
@@ -53,7 +53,7 @@ public record BlueprintScript(@NotNull String name, @NotNull AnimationIterator.T
                 animation.loop(),
                 animation.length(),
                 stream.distinct()
-                        .map(t -> t.time(t.time() - (float) doubleCache.getAndSet(t.time())))
+                        .map(t -> t.time(InterpolationUtil.roundTime(t.time() - (float) doubleCache.getAndSet(t.time()))))
                         .toList()
         );
     }
