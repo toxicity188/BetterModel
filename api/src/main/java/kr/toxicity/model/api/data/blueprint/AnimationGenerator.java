@@ -58,9 +58,10 @@ public final class AnimationGenerator {
     private float firstTime = 0F;
     private float secondTime = 0F;
     public void interpolateRotation(@NotNull FloatSet floats) {
-        for (float v : new FloatAVLTreeSet(floats)) {
+        var iterator = new FloatAVLTreeSet(floats).iterator();
+        while (iterator.hasNext()) {
             firstTime = secondTime;
-            secondTime = v;
+            secondTime = iterator.nextFloat();
             if (secondTime - firstTime <= 0) continue;
             var minus = trees.stream()
                     .mapToDouble(t -> t.addTree(firstTime, secondTime, AnimationPoint::rotation))
@@ -70,7 +71,7 @@ public final class AnimationGenerator {
                     .mapToDouble(t -> t.maxTree(firstTime, secondTime, AnimationPoint::rotation))
                     .max()
                     .orElse(0);
-            var length = (float) Math.ceil(Math.max(minus / 90F, max / 45F));
+            var length = (float) Math.ceil(Math.max(minus / 60F, max / 45F));
             if (length < 2) continue;
             var last = firstTime;
             for (float f = 1; f < length; f++) {

@@ -28,8 +28,8 @@ public enum CatmullRomInterpolation implements VectorInterpolation {
         var p0 = indexOf(points, p2Index, -2);
         var p1 = indexOf(points, p2Index, -1);
         var p2 = points.get(p2Index);
-        var next = indexOf(points, p2Index, 1);
-        var p3 = next.time() == 0 ? indexOf(points, p2Index, 2) : next;
+        var p3 = indexOf(points, p2Index, 1);
+        //var p3 = next.time() == 0 ? indexOf(points, p2Index, 2) : next;
         return new VectorPoint(
                 InterpolationUtil.catmull_rom(
                         p0.vector(),

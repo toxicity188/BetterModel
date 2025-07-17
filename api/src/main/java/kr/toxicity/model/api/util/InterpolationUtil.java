@@ -117,9 +117,10 @@ public final class InterpolationUtil {
         if (frame <= 0F) return;
         var first = 0F;
         var second = 0F;
-        for (Float v : new FloatAVLTreeSet(frames)) {
+        var iterator = new FloatAVLTreeSet(frames).iterator();
+        while (iterator.hasNext()) {
             first = second;
-            second = v;
+            second = iterator.nextFloat();
             var max = (int) ((second - first) / frame);
             for (int i = 0; i < max; i++) {
                 var add = roundTime(first + frame * (i + 1));

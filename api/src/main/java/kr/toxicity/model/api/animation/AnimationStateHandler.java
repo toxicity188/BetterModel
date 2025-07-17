@@ -48,7 +48,7 @@ public final class AnimationStateHandler<T extends Timed> {
     }
 
     private boolean shouldUpdateAnimation() {
-        return forceUpdateAnimation.compareAndSet(true, false) || keyframeFinished() || delay % Tracker.MINECRAFT_TICK_MULTIPLIER == 0;
+        return forceUpdateAnimation.compareAndSet(true, false) || (keyframe != null && keyframeFinished()) || delay % Tracker.MINECRAFT_TICK_MULTIPLIER == 0;
     }
 
     private boolean updateAnimation() {

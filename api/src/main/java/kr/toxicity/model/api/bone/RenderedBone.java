@@ -394,7 +394,7 @@ public final class RenderedBone implements HitBoxSource {
 
     private @NotNull BoneMovement defaultFrame() {
         var keyframe = state.getKeyframe();
-        return defaultFrame.plus(keyframe != null ? keyframe : new AnimationMovement(0));
+        return defaultFrame.plus(keyframe != null ? keyframe : AnimationMovement.EMPTY);
     }
 
     private float progress() {
