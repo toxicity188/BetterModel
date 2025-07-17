@@ -1,8 +1,8 @@
 package kr.toxicity.model.api.bone;
 
 import kr.toxicity.model.api.animation.AnimationMovement;
-import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.InterpolationUtil;
+import kr.toxicity.model.api.util.MathUtil;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;

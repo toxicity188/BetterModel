@@ -11,14 +11,18 @@ import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.data.renderer.ModelRenderer;
 import kr.toxicity.model.api.data.renderer.RenderPipeline;
 import kr.toxicity.model.api.event.*;
+import kr.toxicity.model.api.nms.EntityAdapter;
+import kr.toxicity.model.api.nms.HitBoxListener;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
-import kr.toxicity.model.api.util.*;
+import kr.toxicity.model.api.util.EntityUtil;
+import kr.toxicity.model.api.util.EventUtil;
+import kr.toxicity.model.api.util.LogUtil;
+import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.function.BonePredicate;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Location;
-import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -351,23 +355,6 @@ public abstract class Tracker implements AutoCloseable {
     }
 
     /**
-     * Toggles red tint of a model.
-     * @param rgb toggle
-     */
-    public void tint(int rgb) {
-        tint(BonePredicate.TRUE, rgb);
-    }
-
-    /**
-     * Toggles red tint of a model.
-     * @param predicate predicate
-     * @param rgb toggle
-     */
-    public void tint(@NotNull BonePredicate predicate, int rgb) {
-        if (pipeline.tint(predicate, rgb)) forceUpdate(true);
-    }
-
-    /**
      * Gets location of a model.
      * @return location
      */
@@ -400,7 +387,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return success
      */
     public boolean animate(@NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
-        return animate(e -> true, animation, modifier, removeTask);
+        return animate(b -> true, animation, modifier, removeTask);
     }
 
     /**
@@ -477,72 +464,86 @@ public abstract class Tracker implements AutoCloseable {
         pipeline.replace(filter, target, animation, modifier);
     }
 
+    //--- Update action ---
+
     /**
-     * Toggles some part
+     * Toggles red tint of a model.
+     * @param rgb toggle
+     */
+    public void tint(int rgb) {
+        if (tint(BonePredicate.TRUE, rgb)) forceUpdate(true);
+    }
+
+    /**
+     * Toggles red tint of a model.
      * @param predicate predicate
-     * @param toggle toggle
-     * @return success
+     * @param rgb toggle
      */
-    public boolean togglePart(@NotNull BonePredicate predicate, boolean toggle) {
-        return pipeline.togglePart(predicate, toggle);
+    public boolean tint(@NotNull BonePredicate predicate, int rgb) {
+        return tryUpdate(TrackerUpdateAction.TINT, new TrackerUpdateAction.Tint(rgb), predicate);
     }
 
+
     /**
-     * Sets item of some model part
+     * Creates hitbox based on some entity
+     * @param entity entity base
      * @param predicate predicate
-     * @param itemStack item
+     * @param listener listener
      * @return success
      */
-    public boolean itemStack(@NotNull BonePredicate predicate, @NotNull TransformedItemStack itemStack) {
-        return pipeline.itemStack(predicate, itemStack);
+    public boolean createHitBox(@NotNull EntityAdapter entity, @NotNull BonePredicate predicate, @Nullable HitBoxListener listener) {
+        return pipeline.anyMatch(predicate, (b, p) -> b.createHitBox(entity, p, listener));
     }
 
-    /**
-     * Sets glow of some model part
-     * @param glow glow
-     * @param glowColor glowColor
-     * @return success
-     */
-    public boolean glow(@NotNull BonePredicate predicate, boolean glow, int glowColor) {
-        return pipeline.glow(predicate, glow, glowColor);
-    }
-
-    /**
-     * Sets billboard of some model part
-     * @param billboard billboard
-     * @return success
-     */
-    public boolean billboard(@NotNull BonePredicate predicate, @NotNull Display.Billboard billboard) {
-        return pipeline.billboard(predicate, billboard);
-    }
-
-    /**
-     * Sets enchantment of some model part
-     * @param predicate predicate
-     * @param enchant should enchant
-     * @return success
-     */
-    public boolean enchant(@NotNull BonePredicate predicate, boolean enchant) {
-        return pipeline.enchant(predicate, enchant);
-    }
-
-    /**
-     * Sets brightness of some model part
-     * @param predicate predicate
-     * @param block block light
-     * @param sky skylight
-     * @return success
-     */
-    public boolean brightness(@NotNull BonePredicate predicate, int block, int sky) {
-        return pipeline.brightness(predicate, block, sky);
-    }
     /**
      * Updates item
      * @param predicate predicate
      * @return success
      */
     public boolean updateItem(@NotNull BonePredicate predicate) {
-        return pipeline.updateItem(predicate);
+        return pipeline.anyMatch(predicate, (b, p) -> b.updateItem(p, pipeline.getSource()));
+    }
+
+    /**
+     * Forces update of this tracker.
+     * @param updateAction action
+     * @param data data
+     * @param <T> data type
+     */
+    public <T extends TrackerUpdateAction.ActionData> void update(@NotNull TrackerUpdateAction<T> updateAction, T data) {
+        if (tryUpdate(updateAction, data)) forceUpdate(true);
+    }
+
+    /**
+     * Forces update of this tracker.
+     * @param updateAction action
+     * @param data data
+     * @param predicate predicate
+     * @param <T> data type
+     */
+    public <T extends TrackerUpdateAction.ActionData> void update(@NotNull TrackerUpdateAction<T> updateAction, T data, @NotNull BonePredicate predicate) {
+        if (tryUpdate(updateAction, data, predicate)) forceUpdate(true);
+    }
+
+    /**
+     * Update data of this tracker.
+     * @param updateAction action
+     * @param data data
+     * @param <T> data type
+     */
+    public <T extends TrackerUpdateAction.ActionData> boolean tryUpdate(@NotNull TrackerUpdateAction<T> updateAction, T data) {
+        return tryUpdate(updateAction, data, BonePredicate.TRUE);
+    }
+
+    /**
+     * Update data of this tracker.
+     * @param updateAction action
+     * @param data data
+     * @param predicate predicate
+     * @param <T> data type
+     */
+    public <T extends TrackerUpdateAction.ActionData> boolean tryUpdate(@NotNull TrackerUpdateAction<T> updateAction, T data, @NotNull BonePredicate predicate) {
+        return pipeline.anyMatch(predicate, updateAction.create(data));
     }
 
     /**

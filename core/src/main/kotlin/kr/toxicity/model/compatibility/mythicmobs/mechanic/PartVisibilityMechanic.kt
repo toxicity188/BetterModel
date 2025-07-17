@@ -4,6 +4,7 @@ import io.lumine.mythic.api.config.MythicLineConfig
 import io.lumine.mythic.api.skills.INoTargetSkill
 import io.lumine.mythic.api.skills.SkillMetadata
 import io.lumine.mythic.api.skills.SkillResult
+import kr.toxicity.model.api.tracker.TrackerUpdateAction
 import kr.toxicity.model.compatibility.mythicmobs.*
 
 class PartVisibilityMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
@@ -15,7 +16,11 @@ class PartVisibilityMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc)
     override fun cast(p0: SkillMetadata): SkillResult {
         val args = p0.toPlaceholderArgs()
         return p0.toTracker(model(args))?.let {
-            if (it.togglePart(predicate(args), v(args))) it.forceUpdate(true)
+            it.update(
+                TrackerUpdateAction.TOGGLE_PART,
+                TrackerUpdateAction.togglePart(v(args)),
+                predicate(args)
+            )
             SkillResult.SUCCESS
         } ?: SkillResult.CONDITION_FAILED
     }

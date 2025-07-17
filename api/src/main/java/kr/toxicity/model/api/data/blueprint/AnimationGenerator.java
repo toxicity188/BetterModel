@@ -13,7 +13,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -32,8 +34,8 @@ public final class AnimationGenerator {
         var floatSet = mapFloat(pointMap.values()
                 .stream()
                 .flatMap(d -> d.points().stream()), p -> InterpolationUtil.roundTime(p.position().time()), FloatAVLTreeSet::new);
-        new AnimationGenerator(pointMap, children).interpolateRotation(floatSet);
         InterpolationUtil.insertLerpFrame(floatSet);
+        new AnimationGenerator(pointMap, children).interpolateRotation(floatSet);
         return mapValue(pointMap, v -> {
             var doubleCache = new AtomicDouble();
             return new BlueprintAnimator(
@@ -76,12 +78,12 @@ public final class AnimationGenerator {
                     .mapToDouble(t -> t.maxTree(firstTime, secondTime, AnimationPoint::rotation))
                     .max()
                     .orElse(0);
-            var length = (float) Math.ceil(Math.max(minus / 60F, max / 45F));
+            var length = (float) Math.ceil(Math.max(minus / 90F, max / 60F));
             if (length < 2) continue;
             var last = firstTime;
             for (float f = 1; f < length; f++) {
                 var addTime = InterpolationUtil.roundTime(InterpolationUtil.lerp(firstTime, secondTime, f / length));
-                if (addTime - last < 0.05 || secondTime - addTime < 0.05) continue;
+                if (addTime - last < 0.01 || secondTime - addTime < 0.01) continue;
                 floats.add(last = addTime);
             }
         }

@@ -4,6 +4,7 @@ import io.lumine.mythic.api.config.MythicLineConfig
 import io.lumine.mythic.api.skills.INoTargetSkill
 import io.lumine.mythic.api.skills.SkillMetadata
 import io.lumine.mythic.api.skills.SkillResult
+import kr.toxicity.model.api.tracker.TrackerUpdateAction
 import kr.toxicity.model.compatibility.mythicmobs.*
 
 class TintMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
@@ -20,7 +21,11 @@ class TintMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTarge
                 it.damageTintValue(color(args))
             } else {
                 it.cancelDamageTint()
-                it.tint(predicate(args), color(args))
+                it.update(
+                    TrackerUpdateAction.TINT,
+                    TrackerUpdateAction.tint(color(args)),
+                    predicate(args)
+                )
             }
             SkillResult.SUCCESS
         } ?: SkillResult.CONDITION_FAILED

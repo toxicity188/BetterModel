@@ -1,6 +1,9 @@
 package kr.toxicity.model.api.util;
 
-import it.unimi.dsi.fastutil.floats.*;
+import it.unimi.dsi.fastutil.floats.FloatAVLTreeSet;
+import it.unimi.dsi.fastutil.floats.FloatCollection;
+import it.unimi.dsi.fastutil.floats.FloatComparators;
+import it.unimi.dsi.fastutil.floats.FloatSet;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationPoint;
 import kr.toxicity.model.api.animation.VectorPoint;

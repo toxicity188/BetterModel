@@ -8,20 +8,16 @@ import kr.toxicity.model.api.animation.RunningAnimation;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
-import kr.toxicity.model.api.nms.EntityAdapter;
-import kr.toxicity.model.api.nms.HitBoxListener;
 import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.script.AnimationScript;
 import kr.toxicity.model.api.script.TimeScript;
 import kr.toxicity.model.api.tracker.ModelRotation;
 import kr.toxicity.model.api.util.FunctionUtil;
-import kr.toxicity.model.api.util.TransformedItemStack;
 import kr.toxicity.model.api.util.function.BonePredicate;
 import kr.toxicity.model.api.util.function.FloatSupplier;
 import lombok.Getter;
 import org.bukkit.Location;
-import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,7 +41,6 @@ public final class RenderPipeline {
 
     private final Map<BoneName, RenderedBone> entityMap;
     private final List<RenderedBone> bones;
-    @Getter
     private final int displayAmount;
     private final Map<String, BlueprintAnimation> animationMap;
     private final Map<UUID, PlayerChannelHandler> playerMap = new ConcurrentHashMap<>();
@@ -90,7 +85,7 @@ public final class RenderPipeline {
         displayAmount = (int) bones.stream()
                 .filter(rb -> rb.getDisplay() != null)
                 .count();
-        animate("idle", new AnimationModifier(6, 0, 1));
+        animate(ignore -> true, "idle", new AnimationModifier(6, 0, 1), () -> {});
     }
 
     public @NotNull PacketBundler createBundler() {
@@ -120,12 +115,6 @@ public final class RenderPipeline {
 
     public boolean isSpawned(@NotNull UUID uuid) {
         return playerMap.containsKey(uuid);
-    }
-
-    public void createHitBox(@NotNull EntityAdapter entity, @NotNull Predicate<RenderedBone> predicate, @Nullable HitBoxListener listener) {
-        for (RenderedBone value : entityMap.values()) {
-            value.iterateTree(b -> b.createHitBox(entity, predicate, listener));
-        }
     }
 
     public @Nullable RunningAnimation runningAnimation() {
@@ -181,46 +170,16 @@ public final class RenderPipeline {
     }
 
     public void defaultPosition(@NotNull Supplier<Vector3f> movement) {
-        for (RenderedBone value : entityMap.values()) {
-            value.iterateTree(b -> b.defaultPosition(movement));
-        }
+        iterate(b -> b.defaultPosition(movement));
     }
-
     public void forceUpdate(@NotNull PacketBundler bundler) {
-        for (RenderedBone value : entityMap.values()) {
-            value.iterateTree(b -> b.forceUpdate(bundler));
-        }
+        iterate(b -> b.forceUpdate(bundler));
     }
     public void forceUpdate(boolean showItem, @NotNull PacketBundler bundler) {
-        for (RenderedBone value : entityMap.values()) {
-            value.iterateTree(b -> b.forceUpdate(showItem, bundler));
-        }
+        iterate(b -> b.forceUpdate(showItem, bundler));
     }
-
     public void scale(@NotNull FloatSupplier scale) {
-        for (RenderedBone value : entityMap.values()) {
-            value.iterateTree(b -> b.scale(scale));
-        }
-    }
-
-    public boolean itemStack(@NotNull BonePredicate predicate, @NotNull TransformedItemStack itemStack) {
-        return anyMatch(predicate, (b, p) -> b.itemStack(p, itemStack));
-    }
-
-    public boolean updateItem(@NotNull BonePredicate predicate) {
-        return anyMatch(predicate, (b, p) -> b.updateItem(p, source));
-    }
-
-    public boolean glow(@NotNull BonePredicate predicate, boolean glow, int glowColor) {
-        return anyMatch(predicate, (b, p) -> b.glow(p, glow, glowColor));
-    }
-
-    public boolean billboard(@NotNull BonePredicate predicate, @NotNull Display.Billboard billboard) {
-        return anyMatch(predicate, (b, p) -> b.billboard(p, billboard));
-    }
-
-    public boolean brightness(@NotNull BonePredicate predicate, int block, int sky) {
-        return anyMatch(predicate, (b, p) -> b.brightness(p, block, sky));
+        iterate(b -> b.scale(scale));
     }
 
     public boolean addRotationModifier(@NotNull BonePredicate predicate, @NotNull Function<Quaternionf, Quaternionf> mapper) {
@@ -243,26 +202,11 @@ public final class RenderPipeline {
         return null;
     }
 
-    public boolean tint(@NotNull BonePredicate predicate, int rgb) {
-        return anyMatch(predicate, (b, p) -> b.tint(p, rgb));
-    }
-
-    public boolean enchant(@NotNull BonePredicate predicate, boolean enchant) {
-        return anyMatch(predicate, (b, p) -> b.enchant(p, enchant));
-    }
-
-    public void moveDuration(int duration) {
-        for (RenderedBone value : entityMap.values()) {
-            value.iterateTree(b -> b.moveDuration(duration));
-        }
-    }
-
-    public boolean animate(@NotNull String animation) {
-        return animate(e -> true, animation, AnimationModifier.DEFAULT, () -> {});
-    }
-
-    public boolean animate(@NotNull String animation, @NotNull AnimationModifier modifier) {
-        return animate(e -> true, animation, modifier, () -> {});
+    public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
+        var get = animationMap.get(animation);
+        if (get == null) return false;
+        animate(filter, get, modifier, removeTask);
+        return true;
     }
 
     public void animate(@NotNull Predicate<RenderedBone> filter, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
@@ -273,13 +217,6 @@ public final class RenderPipeline {
         for (RenderedBone value : entityMap.values()) {
             value.iterateAnimation(animationPredicate, (b, a) -> b.addAnimation(a, animation, modifier, playOnceTask));
         }
-    }
-
-    public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
-        var get = animationMap.get(animation);
-        if (get == null) return false;
-        animate(filter, get, modifier, removeTask);
-        return true;
     }
 
     public boolean replace(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull String animation, @NotNull AnimationModifier modifier) {
@@ -332,16 +269,21 @@ public final class RenderPipeline {
         }
     }
 
-    public boolean togglePart(@NotNull BonePredicate predicate, boolean toggle) {
-        return anyMatch(predicate, (b, p) -> b.togglePart(p, toggle));
-    }
-
-    private boolean anyMatch(@NotNull BonePredicate predicate, BiPredicate<RenderedBone, BonePredicate> mapper) {
+    public boolean anyMatch(@NotNull BonePredicate predicate, BiPredicate<RenderedBone, BonePredicate> mapper) {
+        Objects.requireNonNull(predicate);
+        Objects.requireNonNull(mapper);
         var result = false;
         for (RenderedBone value : entityMap.values()) {
             if (value.iterateTree(predicate, mapper)) result = true;
         }
         return result;
+    }
+
+    public void iterate(@NotNull Consumer<RenderedBone> consumer) {
+        Objects.requireNonNull(consumer);
+        for (RenderedBone value : entityMap.values()) {
+            value.iterateTree(consumer);
+        }
     }
 
     public int playerCount() {

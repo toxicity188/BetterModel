@@ -4,6 +4,7 @@ import io.lumine.mythic.api.config.MythicLineConfig
 import io.lumine.mythic.api.skills.INoTargetSkill
 import io.lumine.mythic.api.skills.SkillMetadata
 import io.lumine.mythic.api.skills.SkillResult
+import kr.toxicity.model.api.tracker.TrackerUpdateAction
 import kr.toxicity.model.compatibility.mythicmobs.*
 
 class GlowMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
@@ -16,7 +17,11 @@ class GlowMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTarge
     override fun cast(p0: SkillMetadata): SkillResult {
         val args = p0.toPlaceholderArgs()
         return p0.toTracker(model(args))?.let {
-            if (it.glow(predicate(args), glow(args), color(args))) it.forceUpdate(true)
+            it.update(
+                TrackerUpdateAction.GLOW,
+                TrackerUpdateAction.glow(glow(args), color(args)),
+                predicate(args)
+            )
             SkillResult.SUCCESS
         } ?: SkillResult.CONDITION_FAILED
     }

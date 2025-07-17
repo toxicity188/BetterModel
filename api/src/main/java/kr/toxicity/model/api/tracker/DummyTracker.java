@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.tracker;
 
+import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.RenderPipeline;
 import kr.toxicity.model.api.event.CreateDummyTrackerEvent;
 import kr.toxicity.model.api.util.EventUtil;
@@ -28,7 +29,7 @@ public final class DummyTracker extends Tracker {
     public DummyTracker(@NotNull Location location, @NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<DummyTracker> preUpdateConsumer) {
         super(pipeline, modifier);
         this.location = location;
-        pipeline.animate("spawn");
+        animate("spawn", AnimationModifier.DEFAULT_WITH_PLAY_ONCE);
         pipeline.scale(() -> scaler().scale(this));
         rotation(() -> new ModelRotation(this.location.getPitch(), this.location.getYaw()));
         pipeline.defaultPosition(FunctionUtil.asSupplier(new Vector3f()));

@@ -4,7 +4,6 @@ import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.bone.BoneTags;
-import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.data.renderer.RenderPipeline;
 import kr.toxicity.model.api.event.CreateEntityTrackerEvent;
 import kr.toxicity.model.api.nms.HitBoxListener;
@@ -20,6 +19,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
@@ -32,13 +32,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
  * Entity tracker
  */
 public class EntityTracker extends Tracker {
+
+    private static final BonePredicate HITBOX_REFRESH_PREDICATE = BonePredicate.from(r -> r.getHitBox() != null);
+
     private final EntityTrackerRegistry registry;
 
     private final AtomicInteger damageTintValue = new AtomicInteger(0xFF8080);
@@ -107,10 +109,10 @@ public class EntityTracker extends Tracker {
             return hitBox != null && hitBox.onWalk();
         }));
         var walkSpeedSupplier = modifier.damageAnimation() ? FunctionUtil.throttleTickFloat(() -> adapter.walkSpeed() + 4F * (float) Math.sqrt(damageTickProvider.getAsFloat())) : FloatConstantSupplier.ONE;
-        pipeline.animate("walk", new AnimationModifier(walkSupplier, 6, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
-        pipeline.animate("idle_fly", new AnimationModifier(adapter::fly, 6, 0, AnimationIterator.Type.LOOP, 1F));
-        pipeline.animate("walk_fly", new AnimationModifier(() -> adapter.fly() && walkSupplier.getAsBoolean(), 6, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
-        pipeline.animate("spawn", AnimationModifier.DEFAULT_WITH_PLAY_ONCE);
+        animate("walk", new AnimationModifier(walkSupplier, 6, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
+        animate("idle_fly", new AnimationModifier(adapter::fly, 6, 0, AnimationIterator.Type.LOOP, 1F));
+        animate("walk_fly", new AnimationModifier(() -> adapter.fly() && walkSupplier.getAsBoolean(), 6, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
+        animate("spawn", AnimationModifier.DEFAULT_WITH_PLAY_ONCE);
         BetterModel.plugin().scheduler().task(entity, () -> {
             if (isClosed()) return;
             createHitBox();
@@ -126,20 +128,17 @@ public class EntityTracker extends Tracker {
     }
 
     private void createHitBox() {
-        createHitBox(e ->
-                e.getName().name().equals("hitbox")
-                        || e.getName().tagged(BoneTags.HITBOX)
-                        || e.getGroup().getMountController().canMount()
+        createHitBox(
+                BonePredicate.from(b -> b.getName().name().equals("hitbox")
+                        || b.getName().tagged(BoneTags.HITBOX)
+                        || b.getGroup().getMountController().canMount()),
+                HitBoxListener.EMPTY
         );
     }
 
     @Override
     public @NotNull ModelRotation rotation() {
         return registry.adapter().dead() ? pipeline.getRotation() : super.rotation();
-    }
-
-    private void createHitBox(@NotNull Predicate<RenderedBone> predicate) {
-        createHitBox(predicate, HitBoxListener.EMPTY);
     }
 
     /**
@@ -172,8 +171,8 @@ public class EntityTracker extends Tracker {
      * @param predicate predicate
      * @param listener listener
      */
-    public void createHitBox(@NotNull Predicate<RenderedBone> predicate, @NotNull HitBoxListener listener) {
-        pipeline.createHitBox(registry.adapter(), predicate, listener);
+    public boolean createHitBox(@NotNull BonePredicate predicate, @Nullable HitBoxListener listener) {
+        return createHitBox(registry.adapter(), predicate, listener);
     }
 
     /**
@@ -228,7 +227,7 @@ public class EntityTracker extends Tracker {
      * @param duration duration
      */
     public void moveDuration(int duration) {
-        pipeline.moveDuration(duration);
+        pipeline.iterate(b -> b.moveDuration(duration));
         forceUpdate(true);
     }
 
@@ -253,7 +252,7 @@ public class EntityTracker extends Tracker {
     @ApiStatus.Internal
     public void refresh() {
         updateBaseEntity0();
-        BetterModel.plugin().scheduler().task(registry.entity(), () -> pipeline.createHitBox(registry.adapter(), r -> r.getHitBox() != null, null));
+        BetterModel.plugin().scheduler().task(registry.entity(), () -> createHitBox(HITBOX_REFRESH_PREDICATE, null));
     }
 
     /**
