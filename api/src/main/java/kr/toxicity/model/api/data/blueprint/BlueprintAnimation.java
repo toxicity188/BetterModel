@@ -1,24 +1,17 @@
 package kr.toxicity.model.api.data.blueprint;
 
-import it.unimi.dsi.fastutil.floats.FloatSet;
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationMovement;
-import kr.toxicity.model.api.animation.AnimationPoint;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.BoneTagRegistry;
 import kr.toxicity.model.api.data.raw.ModelAnimation;
 import kr.toxicity.model.api.data.raw.ModelAnimator;
 import kr.toxicity.model.api.script.BlueprintScript;
-import kr.toxicity.model.api.util.InterpolationUtil;
-import kr.toxicity.model.api.util.interpolation.AnimationInterpolator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
-import java.util.stream.IntStream;
-
-import static kr.toxicity.model.api.util.CollectionUtil.mapValue;
 
 /**
  * A model animation.
@@ -61,15 +54,15 @@ public record BlueprintAnimation(
             }
             else map.put(BoneTagRegistry.parse(name), builder.build(name));
         }
-        var newMap = newMap(children, map);
+        var animators = AnimationGenerator.createMovements(children, map);
         return new BlueprintAnimation(
                 animation.name(),
                 animation.loop(),
                 animation.length(),
                 animation.override(),
-                newMap,
+                animators,
                 blueprintScript,
-                newMap.isEmpty() ? List.of(new AnimationMovement(animation.length())) : newMap.values()
+                animators.isEmpty() ? List.of(new AnimationMovement(animation.length())) : animators.values()
                         .iterator()
                         .next()
                         .keyFrame()
@@ -77,32 +70,6 @@ public record BlueprintAnimation(
                         .map(a -> new AnimationMovement(a.time()))
                         .toList()
         );
-    }
-
-    private static @NotNull Map<BoneName, BlueprintAnimator> newMap(@NotNull List<BlueprintChildren> children, @NotNull Map<BoneName, BlueprintAnimator.AnimatorData> oldMap) {
-        var points = AnimationInterpolator.createPoints(mapValue(oldMap, BlueprintAnimator.AnimatorData::points), children);
-        return mapValue(oldMap, value -> new BlueprintAnimator(
-                value.name(),
-                getAnimationMovements(points, value)
-        ));
-    }
-
-    private static @NotNull List<AnimationMovement> getAnimationMovements(@NotNull FloatSet floatSet, @NotNull BlueprintAnimator.AnimatorData value) {
-        var frame = value.points();
-        if (frame.isEmpty()) return Collections.emptyList();
-        var list = InterpolationUtil.putAnimationPoint(frame, floatSet).stream().map(AnimationPoint::toMovement).toList();
-        return processFrame(list);
-    }
-
-    private static @NotNull List<AnimationMovement> processFrame(@NotNull List<AnimationMovement> target) {
-        if (target.size() <= 1) return target;
-        return IntStream.range(0, target.size()).mapToObj(i -> {
-            if (i == 0) return target.getFirst();
-            else {
-                var get = target.get(i);
-                return get.time(get.time() - target.get(i - 1).time());
-            }
-        }).toList();
     }
 
     /**

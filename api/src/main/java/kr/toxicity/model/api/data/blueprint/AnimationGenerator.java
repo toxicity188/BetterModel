@@ -1,13 +1,13 @@
-package kr.toxicity.model.api.util.interpolation;
+package kr.toxicity.model.api.data.blueprint;
 
 import it.unimi.dsi.fastutil.floats.Float2ObjectMap;
 import it.unimi.dsi.fastutil.floats.Float2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.floats.FloatAVLTreeSet;
 import it.unimi.dsi.fastutil.floats.FloatSet;
+import kr.toxicity.model.api.animation.AnimationMovement;
 import kr.toxicity.model.api.animation.AnimationPoint;
 import kr.toxicity.model.api.animation.VectorPoint;
 import kr.toxicity.model.api.bone.BoneName;
-import kr.toxicity.model.api.data.blueprint.BlueprintChildren;
 import kr.toxicity.model.api.util.InterpolationUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,37 +15,41 @@ import org.joml.Vector3f;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static kr.toxicity.model.api.util.CollectionUtil.*;
 
-public final class AnimationInterpolator {
+public final class AnimationGenerator {
 
     private static final Vector3f EMPTY = new Vector3f();
-    private final Map<BoneName, List<AnimationPoint>> pointMap;
+    private final Map<BoneName, BlueprintAnimator.AnimatorData> pointMap;
     private final List<AnimationTree> trees;
 
-    public static @NotNull FloatSet createPoints(
-            @NotNull Map<BoneName, List<AnimationPoint>> pointMap,
-            @NotNull List<BlueprintChildren> children
+    public static @NotNull Map<BoneName, BlueprintAnimator> createMovements(
+            @NotNull List<BlueprintChildren> children,
+            @NotNull Map<BoneName, BlueprintAnimator.AnimatorData> pointMap
     ) {
         var floatSet = mapFloat(pointMap.values()
                 .stream()
-                .flatMap(Collection::stream), p -> p.position().time(), FloatAVLTreeSet::new);
-        new AnimationInterpolator(pointMap, children).interpolateRotation(floatSet);
+                .flatMap(d -> d.points().stream()), p -> InterpolationUtil.roundTime(p.position().time()), FloatAVLTreeSet::new);
+        new AnimationGenerator(pointMap, children).interpolateRotation(floatSet);
         InterpolationUtil.insertLerpFrame(floatSet);
-        return floatSet;
+        return mapValue(pointMap, v -> new BlueprintAnimator(
+                v.name(),
+                processFrame(InterpolationUtil.putAnimationPoint(v.points(), floatSet).stream().map(AnimationPoint::toMovement).toList())
+        ));
     }
 
-    private AnimationInterpolator(
-            @NotNull Map<BoneName, List<AnimationPoint>> pointMap,
+    private AnimationGenerator(
+            @NotNull Map<BoneName, BlueprintAnimator.AnimatorData> pointMap,
             @NotNull List<BlueprintChildren> children
     ) {
         this.pointMap = pointMap;
         trees = filterIsInstance(children, BlueprintChildren.BlueprintGroup.class)
                 .map(g -> {
                     var get = pointMap.get(g.name());
-                    return new AnimationTree(g, get != null ? get : Collections.emptyList());
+                    return new AnimationTree(g, get != null ? get.points() : Collections.emptyList());
                 })
                 .flatMap(AnimationTree::flatten)
                 .toList();
@@ -97,7 +101,7 @@ public final class AnimationInterpolator {
             children = filterIsInstance(group.children(), BlueprintChildren.BlueprintGroup.class)
                     .map(g -> {
                         var get = pointMap.get(g.name());
-                        return new AnimationTree(this, g, get != null ? get : Collections.emptyList());
+                        return new AnimationTree(this, g, get != null ? get.points() : Collections.emptyList());
                     })
                     .toList();
         }
@@ -148,5 +152,16 @@ public final class AnimationInterpolator {
 
     private static float max(@NotNull Vector3f vector3f) {
         return Math.max(Math.abs(vector3f.x), Math.max(Math.abs(vector3f.y), Math.abs(vector3f.z)));
+    }
+
+    private static @NotNull List<AnimationMovement> processFrame(@NotNull List<AnimationMovement> target) {
+        if (target.size() <= 1) return target;
+        return IntStream.range(0, target.size()).mapToObj(i -> {
+            if (i == 0) return target.getFirst();
+            else {
+                var get = target.get(i);
+                return get.time(get.time() - target.get(i - 1).time());
+            }
+        }).toList();
     }
 }
