@@ -25,7 +25,7 @@ public final class AnimationInterpolator {
     private final Map<BoneName, List<AnimationPoint>> pointMap;
     private final List<AnimationTree> trees;
 
-    public static @NotNull FloatSet interpolate(
+    public static @NotNull FloatSet createPoints(
             @NotNull Map<BoneName, List<AnimationPoint>> pointMap,
             @NotNull List<BlueprintChildren> children
     ) {

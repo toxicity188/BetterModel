@@ -80,9 +80,10 @@ public record BlueprintAnimation(
     }
 
     private static @NotNull Map<BoneName, BlueprintAnimator> newMap(@NotNull List<BlueprintChildren> children, @NotNull Map<BoneName, BlueprintAnimator.AnimatorData> oldMap) {
+        var points = AnimationInterpolator.createPoints(mapValue(oldMap, BlueprintAnimator.AnimatorData::points), children);
         return mapValue(oldMap, value -> new BlueprintAnimator(
                 value.name(),
-                getAnimationMovements(AnimationInterpolator.interpolate(mapValue(oldMap, BlueprintAnimator.AnimatorData::points), children), value)
+                getAnimationMovements(points, value)
         ));
     }
 
