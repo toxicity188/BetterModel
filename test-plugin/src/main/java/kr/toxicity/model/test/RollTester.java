@@ -15,6 +15,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
@@ -74,6 +75,12 @@ public final class RollTester implements ModelTester, Listener {
     }
     @EventHandler
     public void quit(@NotNull PlayerQuitEvent event) {
+        var get = event.getPlayer().getUniqueId();
+        invulnerableSet.remove(get);
+        coolTimeSet.remove(get);
+    }
+    @EventHandler
+    public void death(@NotNull PlayerDeathEvent event) {
         var get = event.getPlayer().getUniqueId();
         invulnerableSet.remove(get);
         coolTimeSet.remove(get);

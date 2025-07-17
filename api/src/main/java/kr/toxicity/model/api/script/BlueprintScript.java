@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.script;
 
+import com.google.common.util.concurrent.AtomicDouble;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.data.raw.Datapoint;
@@ -11,7 +12,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -47,11 +47,14 @@ public record BlueprintScript(@NotNull String name, @NotNull AnimationIterator.T
         if (time > 0) {
             stream = Stream.concat(stream, Stream.of(AnimationScript.EMPTY.time(time)));
         }
+        var doubleCache = new AtomicDouble();
         return new BlueprintScript(
                 animation.name(),
                 animation.loop(),
                 animation.length(),
-                processFrame(stream.distinct().toList())
+                stream.distinct()
+                        .map(t -> t.time(t.time() - (float) doubleCache.getAndSet(t.time())))
+                        .toList()
         );
     }
 
@@ -66,18 +69,5 @@ public record BlueprintScript(@NotNull String name, @NotNull AnimationIterator.T
 
     public @NotNull AnimationIterator<TimeScript> iterator() {
         return type.create(scripts);
-    }
-
-    private static @NotNull List<TimeScript> processFrame(@NotNull List<TimeScript> target) {
-        if (target.size() <= 1) return target;
-        return IntStream.range(0, target.size()).mapToObj(i -> {
-            if (i == 0) {
-                return target.getFirst();
-            }
-            else {
-                var get = target.get(i);
-                return get.time(get.time() - target.get(i - 1).time());
-            }
-        }).toList();
     }
 }

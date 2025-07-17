@@ -39,8 +39,8 @@ tasks {
         })
         version(minecraft)
         downloadPlugins {
-            hangar("ViaVersion", "5.4.1")
-            hangar("ViaBackwards", "5.4.1")
+            //hangar("ViaVersion", "5.4.1")
+            //hangar("ViaBackwards", "5.4.1")
             hangar("Skript", "2.12.0")
         }
     }
@@ -97,7 +97,8 @@ val supportedVersion = listOf(
     "1.21.4",
     "1.21.5",
     "1.21.6",
-    "1.21.7"
+    "1.21.7",
+    "1.21.8"
 )
 
 hangarPublish {
