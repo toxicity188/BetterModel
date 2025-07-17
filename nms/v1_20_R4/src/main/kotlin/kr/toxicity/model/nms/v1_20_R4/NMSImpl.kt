@@ -320,6 +320,7 @@ class NMSImpl : NMS {
         val yOffset: Double
     ) : ModelDisplay {
 
+        private val entityData = display.entityData
         private var forceGlow = false
         private var forceInvisibility = false
 
@@ -349,23 +350,11 @@ class NMSImpl : NMS {
             if (CONFIG.followMobInvisibility()) display.isInvisible = entity.invisible()
         }
 
-        override fun display(transform: org.bukkit.entity.ItemDisplay.ItemDisplayTransform) {
-            display.itemTransform = ItemDisplayContext.BY_ID.apply(transform.ordinal)
-        }
-
         override fun spawn(showItem: Boolean, bundler: PacketBundler) {
             bundler.unwrap() += addPacket
             bundler.unwrap() += ClientboundSetEntityDataPacket(display.id, display.entityData.nonDefaultValues!!.markVisible(showItem))
-        }
-
-        override fun frame(frame: Int) {
-            display.transformationInterpolationDuration = frame
-        }
-
-        override fun moveDuration(duration: Int) {
-            display.entityData[Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID] = duration
-        }
-
+        }        
+        
         override fun remove(bundler: PacketBundler) {
             bundler.unwrap() += removePacket
         }
@@ -380,37 +369,6 @@ class NMSImpl : NMS {
             )
             bundler.unwrap() += ClientboundTeleportEntityPacket(display)
         }
-        override fun item(itemStack: ItemStack) {
-            display.itemStack = CraftItemStack.asNMSCopy(itemStack)
-        }
-
-        override fun brightness(block: Int, sky: Int) {
-            display.brightnessOverride = if (block < 0 && sky < 0) null else Brightness(
-                block,
-                sky
-            )
-        }
-
-        override fun viewRange(range: Float) {
-            display.viewRange = range
-        }
-
-        override fun shadowRadius(radius: Float) {
-            display.shadowRadius = radius
-        }
-
-        override fun glow(glow: Boolean) {
-            forceGlow = glow
-            display.setGlowingTag(display.isCurrentlyGlowing || forceGlow)
-        }
-
-        override fun glowColor(glowColor: Int) {
-            display.glowColorOverride = glowColor
-        }
-
-        override fun billboard(billboard: org.bukkit.entity.Display.Billboard) {
-            display.billboardConstraints = Display.BillboardConstraints.BY_ID.apply(billboard.ordinal)
-        }
 
         override fun syncPosition(adapter: EntityAdapter, bundler: PacketBundler) {
             val handle = adapter.handle() as Entity
@@ -421,42 +379,118 @@ class NMSImpl : NMS {
             teleport(adapter.entity().location, bundler)
         }
 
+        override fun display(transform: org.bukkit.entity.ItemDisplay.ItemDisplayTransform) {
+            synchronized(entityData) {
+                display.itemTransform = ItemDisplayContext.BY_ID.apply(transform.ordinal)
+            }
+        }
+
+        override fun frame(frame: Int) {
+            synchronized(entityData) {
+                display.transformationInterpolationDuration = frame
+            }
+        }
+
+        override fun moveDuration(duration: Int) {
+            synchronized(entityData) {
+                entityData[Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID] = duration
+            }
+        }
+
+        override fun item(itemStack: ItemStack) {
+            synchronized(entityData) {
+                display.itemStack = CraftItemStack.asNMSCopy(itemStack)
+            }
+        }
+
+        override fun brightness(block: Int, sky: Int) {
+            synchronized(entityData) {
+                display.brightnessOverride = if (block < 0 && sky < 0) null else Brightness(
+                    block,
+                    sky
+                )
+            }
+        }
+
+        override fun viewRange(range: Float) {
+            synchronized(entityData) {
+                display.viewRange = range
+            }
+        }
+
+        override fun shadowRadius(radius: Float) {
+            synchronized(entityData) {
+                display.shadowRadius = radius
+            }
+        }
+
+        override fun glow(glow: Boolean) {
+            synchronized(entityData) {
+                forceGlow = glow
+                display.setGlowingTag(display.isCurrentlyGlowing || forceGlow)
+            }
+        }
+
+        override fun glowColor(glowColor: Int) {
+            synchronized(entityData) {
+                display.glowColorOverride = glowColor
+            }
+        }
+
+        override fun billboard(billboard: org.bukkit.entity.Display.Billboard) {
+            synchronized(entityData) {
+                display.billboardConstraints = Display.BillboardConstraints.BY_ID.apply(billboard.ordinal)
+            }
+        }
+
         override fun transform(position: Vector3f, scale: Vector3f, rotation: Quaternionf) {
-            display.setTransformation(com.mojang.math.Transformation(
-                position,
-                rotation,
-                scale,
-                EMPTY_QUATERNION
-            ))
+            synchronized(entityData) {
+                display.setTransformation(
+                    com.mojang.math.Transformation(
+                        position,
+                        rotation,
+                        scale,
+                        EMPTY_QUATERNION
+                    )
+                )
+            }
         }
 
         override fun sendTransformation(bundler: PacketBundler) {
-            display.entityData.pack(
-                clean = true,
-                itemFilter = { interpolationDelay == it.accessor.id || it.isDirty },
-                valueFilter = { transformSet.contains(it.id) },
-                required = { it.any { packed -> animationSet.contains(packed.second.id) } }
-            )?.run {
+            synchronized(entityData) {
+                entityData.pack(
+                    clean = true,
+                    itemFilter = { interpolationDelay == it.accessor.id || it.isDirty },
+                    valueFilter = { transformSet.contains(it.id) },
+                    required = { it.any { packed -> animationSet.contains(packed.second.id) } }
+                )
+            }?.run {
                 bundler.unwrap() += ClientboundSetEntityDataPacket(display.id, this)
             }
         }
 
-        override fun invisible(): Boolean = display.isInvisible || forceInvisibility || display.itemStack.`is`(Items.AIR)
+        override fun invisible(): Boolean = synchronized(entityData) {
+            display.isInvisible || forceInvisibility || display.itemStack.`is`(Items.AIR)
+        }
 
         override fun sendEntityData(bundler: PacketBundler) {
-            display.entityData.pack(
-                clean = true,
-                itemFilter = { it.isDirty },
-                valueFilter = { entityDataSet.contains(it.id) }
-            )?.markVisible(!invisible())?.run {
+            synchronized(entityData) {
+                entityData.pack(
+                    clean = true,
+                    itemFilter = { it.isDirty },
+                    valueFilter = { entityDataSet.contains(it.id) }
+                )
+            }?.markVisible(!invisible())?.run {
                 bundler.unwrap() += ClientboundSetEntityDataPacket(display.id, this)
             }
         }
-        
+
         override fun sendEntityData(showItem: Boolean, bundler: PacketBundler) {
-            display.entityData.pack(
-                valueFilter = { entityDataSet.contains(it.id) }
-            )?.markVisible(showItem)?.run {
+            synchronized(entityData) {
+                entityData.pack(
+                    valueFilter = { entityDataSet.contains(it.id) }
+                )
+            }?.markVisible(showItem)?.run {
                 bundler.unwrap() += ClientboundSetEntityDataPacket(display.id, this)
             }
         }
