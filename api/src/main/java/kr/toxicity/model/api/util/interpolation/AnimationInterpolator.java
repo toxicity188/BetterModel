@@ -1,5 +1,7 @@
 package kr.toxicity.model.api.util.interpolation;
 
+import it.unimi.dsi.fastutil.floats.Float2ObjectMap;
+import it.unimi.dsi.fastutil.floats.Float2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.floats.FloatAVLTreeSet;
 import it.unimi.dsi.fastutil.floats.FloatSet;
 import kr.toxicity.model.api.animation.AnimationPoint;
@@ -19,6 +21,7 @@ import static kr.toxicity.model.api.util.CollectionUtil.*;
 
 public final class AnimationInterpolator {
 
+    private static final Vector3f EMPTY = new Vector3f();
     private final Map<BoneName, List<AnimationPoint>> pointMap;
     private final List<AnimationTree> trees;
 
@@ -78,6 +81,8 @@ public final class AnimationInterpolator {
         private final AnimationTree parent;
         private final List<AnimationTree> children;
         private final List<AnimationPoint> points;
+        private int searchCache = 0;
+        private final Float2ObjectMap<Vector3f> valueCache = new Float2ObjectOpenHashMap<>();
 
         AnimationTree(@NotNull BlueprintChildren.BlueprintGroup group, @NotNull List<AnimationPoint> points) {
             this(null, group, points);
@@ -117,30 +122,31 @@ public final class AnimationInterpolator {
             return parent != null ? parent.findTree(first, second, mapper).add(get) : get;
         }
         private @NotNull Vector3f find(float first, float second, @NotNull Function<AnimationPoint, VectorPoint> mapper) {
-            return find(second, mapper).sub(find(first, mapper));
+            return find(second, mapper).sub(find(first, mapper), new Vector3f());
         }
         private @NotNull Vector3f find(float time, @NotNull Function<AnimationPoint, VectorPoint> mapper) {
-            if (points.isEmpty()) return new Vector3f();
-            if (points.size() == 1) return new Vector3f();
-            var i = 0;
-            for (AnimationPoint point : points) {
-                if (mapper.apply(point).time() >= time) break;
-                i++;
-            }
-            if (i == 0) return new Vector3f();
-            if (i == points.size()) return new Vector3f();
-            var first = mapper.apply(points.get(i - 1));
-            var second = mapper.apply(points.get(i));
-            return second.time() == time ? second.vector().get(new Vector3f()) : InterpolationUtil.lerp(
-                    first.vector(),
-                    second.vector(),
-                    InterpolationUtil.alpha(first.time(), second.time(), time)
-            );
+            return valueCache.computeIfAbsent(time, f -> {
+                if (points.isEmpty()) return EMPTY;
+                if (points.size() == 1) return EMPTY;
+                var i = searchCache;
+                for (; i < points.size(); i++) {
+                    if (mapper.apply(points.get(i)).time() >= time) break;
+                }
+                searchCache = i;
+                if (i == 0) return EMPTY;
+                if (i == points.size()) return EMPTY;
+                var first = mapper.apply(points.get(i - 1));
+                var second = mapper.apply(points.get(i));
+                return second.time() == time ? second.vector() : InterpolationUtil.lerp(
+                        first.vector(),
+                        second.vector(),
+                        InterpolationUtil.alpha(first.time(), second.time(), time)
+                );
+            });
         }
     }
 
     private static float max(@NotNull Vector3f vector3f) {
-        //return vector3f.length();
         return Math.max(Math.abs(vector3f.x), Math.max(Math.abs(vector3f.y), Math.abs(vector3f.z)));
     }
 }

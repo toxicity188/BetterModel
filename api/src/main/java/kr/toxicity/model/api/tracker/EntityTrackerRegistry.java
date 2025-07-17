@@ -15,6 +15,7 @@ import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.util.LogUtil;
 import lombok.RequiredArgsConstructor;
+import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -228,7 +229,7 @@ public final class EntityTrackerRegistry {
         for (EntityTracker value : trackerMap.values()) {
             value.close(reason);
         }
-        if (!reason.shouldBeSave()) entity.getPersistentDataContainer().remove(TRACKING_ID);
+        if (!reason.shouldBeSave()) runSync(() -> entity.getPersistentDataContainer().remove(TRACKING_ID));
         accessToWriteLock(() -> {
             UUID_REGISTRY_MAP.remove(uuid);
             ID_REGISTRY_MAP.remove(id);
@@ -276,7 +277,11 @@ public final class EntityTrackerRegistry {
     }
 
     public void save() {
-        entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, serialize().toString());
+        runSync(() -> entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, serialize().toString()));
+    }
+
+    private void runSync(@NotNull Runnable runnable) {
+        if (Bukkit.isPrimaryThread()) runnable.run(); else BetterModel.plugin().scheduler().task(entity.getLocation(), runnable);
     }
 
     public @NotNull Stream<ModelDisplay> displays() {
