@@ -48,6 +48,7 @@ import org.joml.Quaternionf
 import org.joml.Vector3f
 import java.lang.reflect.Field
 import java.util.*
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Consumer
 
 class NMSImpl : NMS {
@@ -89,20 +90,21 @@ class NMSImpl : NMS {
 
         private fun Class<*>.serializers() = declaredFields.filter { f ->
             EntityDataAccessor::class.java.isAssignableFrom(f.type)
-        }
-
-        private fun Field.toSerializerId() = run {
-            isAccessible = true
-            (get(null) as EntityDataAccessor<*>).id
-        }
-
-        private val sharedFlag = Entity::class.java.serializers().first().toSerializerId()
-        private val itemId = ItemDisplay::class.java.serializers().map {
+        }.map { 
             it.toSerializerId()
         }
-        private val itemSerializer = itemId.first()
+        private fun Field.toSerializerId() = run {
+            isAccessible = true
+            get(null) as EntityDataAccessor<*>
+        }
+
+        private val sharedFlag = Entity::class.java.serializers().first().id
+        private val itemId = ItemDisplay::class.java.serializers().map {
+            it.id
+        }
+        private val itemSerializer = ItemDisplay::class.java.serializers().first()
         private val displaySet = Display::class.java.serializers().map { e ->
-            e.toSerializerId()
+            e.id
         }
         private val interpolationDelay = displaySet.first()
         private val animationSet = displaySet.subList(3, 6).toIntSet()
@@ -322,8 +324,8 @@ class NMSImpl : NMS {
 
         private val entityData = display.entityData
         private val entityDataLock = Any()
-        private var forceGlow = false
-        private var forceInvisibility = false
+        private val forceGlow = AtomicBoolean()
+        private val forceInvisibility = AtomicBoolean()
 
         override fun rotate(rotation: ModelRotation, bundler: PacketBundler) {
             if (!display.valid) return
@@ -338,13 +340,17 @@ class NMSImpl : NMS {
         }
 
         override fun invisible(invisible: Boolean) {
-            forceInvisibility = invisible
+            if (forceInvisibility.compareAndSet(!invisible, invisible)) {
+                synchronized(entityDataLock) {
+                    entityData.markDirty(itemSerializer)
+                }
+            }
         }
 
         override fun sync(entity: EntityAdapter) {
             display.valid = !entity.dead()
             display.onGround = entity.ground()
-            display.setGlowingTag(entity.glow() || forceGlow)
+            display.setGlowingTag(entity.glow() || forceGlow.get())
             display.setOldPosAndRot()
             display.setPos((entity.handle() as Entity).position())
             if (CONFIG.followMobInvisibility()) display.isInvisible = entity.invisible()
@@ -426,9 +432,9 @@ class NMSImpl : NMS {
         }
 
         override fun glow(glow: Boolean) {
+            if (!forceGlow.compareAndSet(!glow, glow)) return
             synchronized(entityDataLock) {
-                forceGlow = glow
-                display.setGlowingTag(display.isCurrentlyGlowing || forceGlow)
+                display.setGlowingTag(display.isCurrentlyGlowing || forceGlow.get())
             }
         }
 
@@ -471,7 +477,7 @@ class NMSImpl : NMS {
         }
 
         override fun invisible(): Boolean = synchronized(entityDataLock) {
-            display.isInvisible || forceInvisibility || display.itemStack.`is`(Items.AIR)
+            display.isInvisible || forceInvisibility.get() || display.itemStack.`is`(Items.AIR)
         }
 
         override fun sendEntityData(bundler: PacketBundler) {
@@ -497,7 +503,7 @@ class NMSImpl : NMS {
         }
 
         private fun List<SynchedEntityData.DataValue<*>>.markVisible(showItem: Boolean) = map {
-            if (it.id == itemSerializer) SynchedEntityData.DataValue(
+            if (it.id == itemSerializer.id) SynchedEntityData.DataValue(
                 it.id,
                 EntityDataSerializers.ITEM_STACK,
                 if (showItem) display.itemStack else net.minecraft.world.item.ItemStack.EMPTY

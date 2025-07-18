@@ -1,7 +1,6 @@
 package kr.toxicity.model.api.bone;
 
 import kr.toxicity.model.api.animation.AnimationMovement;
-import kr.toxicity.model.api.util.InterpolationUtil;
 import kr.toxicity.model.api.util.MathUtil;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
@@ -44,9 +43,5 @@ public record BoneMovement(
                 rot == null ? new Quaternionf(rotation) : MathUtil.toQuaternion(rawRot),
                 rawRot
         );
-    }
-
-    public boolean isVisible() {
-        return InterpolationUtil.isVisible(scale);
     }
 }

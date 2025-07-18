@@ -46,10 +46,6 @@ public final class InterpolationUtil {
         );
     }
 
-    public static boolean isVisible(@NotNull Vector3f vector3f) {
-        return vector3f.x > 0L && vector3f.y > 0L && vector3f.z > 0L;
-    }
-
     public static @NotNull List<AnimationPoint> sum(float length, @NotNull List<VectorPoint> position, @NotNull List<VectorPoint> rotation, @NotNull List<VectorPoint> scale) {
         var set = new FloatAVLTreeSet(FloatComparators.NATURAL_COMPARATOR);
         set.add(0);
