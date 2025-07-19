@@ -126,7 +126,7 @@ public final class RenderedBone implements HitBoxSource {
         defaultFrame = movement;
         children = childrenMapper.apply(this);
         if (!dummyBone) {
-            display = BetterModel.plugin().nms().create(source.location(), source instanceof RenderSource.Entity ? -1024 : 0, d -> {
+            display = BetterModel.plugin().nms().create(source.location(), source instanceof RenderSource.Entity ? -4096 : 0, d -> {
                 d.display(itemMapper.transform());
                 d.viewRange(modifier.viewRange());
                 d.invisible(itemMapper == BoneItemMapper.EMPTY && !group.getParent().visibility());
@@ -524,8 +524,8 @@ public final class RenderedBone implements HitBoxSource {
      * @param filter filter
      * @param name animation's name
      */
-    public void stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String name) {
-        if (filter.test(this)) state.stopAnimation(name);
+    public boolean stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String name) {
+        return filter.test(this) && state.stopAnimation(name);
     }
 
     /**
@@ -584,21 +584,21 @@ public final class RenderedBone implements HitBoxSource {
         return result;
     }
 
-    public boolean iterateTree(@NotNull BonePredicate predicate, @NotNull BiPredicate<RenderedBone, BonePredicate> mapper) {
+    public boolean matchTree(@NotNull BonePredicate predicate, @NotNull BiPredicate<RenderedBone, BonePredicate> mapper) {
         var parentResult = mapper.test(this, predicate);
         var childPredicate = predicate.children(parentResult);
         for (RenderedBone value : children.values()) {
-            if (value.iterateTree(childPredicate, mapper)) parentResult = true;
+            if (value.matchTree(childPredicate, mapper)) parentResult = true;
         }
         return parentResult;
     }
 
-    public boolean iterateAnimation(@NotNull AnimationPredicate predicate, @NotNull BiPredicate<RenderedBone, AnimationPredicate> mapper) {
+    public boolean matchTree(@NotNull AnimationPredicate predicate, @NotNull BiPredicate<RenderedBone, AnimationPredicate> mapper) {
         var parentResult = mapper.test(this, predicate);
         var childPredicate = predicate;
         if (parentResult) childPredicate = childPredicate.children();
         for (RenderedBone value : children.values()) {
-            if (value.iterateAnimation(childPredicate, mapper)) parentResult = true;
+            if (value.matchTree(childPredicate, mapper)) parentResult = true;
         }
         return parentResult;
     }

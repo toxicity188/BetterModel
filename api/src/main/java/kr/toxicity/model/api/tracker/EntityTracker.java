@@ -227,7 +227,7 @@ public class EntityTracker extends Tracker {
      * @param duration duration
      */
     public void moveDuration(int duration) {
-        pipeline.iterate(b -> b.moveDuration(duration));
+        pipeline.iterateTree(b -> b.moveDuration(duration));
         forceUpdate(true);
     }
 
@@ -322,7 +322,7 @@ public class EntityTracker extends Tracker {
             var value = (-registry.adapter().yaw() + registry.adapter().bodyYaw()) % 180F;
             return new Vector3f(
                     Math.clamp(registry.adapter().pitch(), minRotation, maxRotation),
-                    Math.clamp(value, minRotation, maxRotation),
+                    Math.clamp(MathUtil.absMin(value, 180 - value), minRotation, maxRotation),
                     0
             );
         });

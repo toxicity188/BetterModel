@@ -1,10 +1,10 @@
 package kr.toxicity.model.api.animation;
 
 import kr.toxicity.model.api.tracker.Tracker;
-import kr.toxicity.model.api.util.MathUtil;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,6 +17,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
 @RequiredArgsConstructor
+@ApiStatus.Internal
 public final class AnimationStateHandler<T extends Timed> {
     
     private final T initialValue;
@@ -115,10 +116,14 @@ public final class AnimationStateHandler<T extends Timed> {
         forceUpdateAnimation.set(true);
     }
 
-    public void stopAnimation(@NotNull String name) {
+    public boolean stopAnimation(@NotNull String name) {
         synchronized (animators) {
-            if (animators.remove(name) != null) forceUpdateAnimation.set(true);
+            if (animators.remove(name) != null) {
+                forceUpdateAnimation.set(true);
+                return true;
+            }
         }
+        return false;
     }
 
     public float frame() {

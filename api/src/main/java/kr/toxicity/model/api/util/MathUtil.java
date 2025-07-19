@@ -194,4 +194,8 @@ public final class MathUtil {
     public static float fma(float a, float b, float c) {
         return Math.fma(a, b, c);
     }
+
+    public static float absMin(float a, float b) {
+        return abs(a) < abs(b) ? a : b;
+    }
 }

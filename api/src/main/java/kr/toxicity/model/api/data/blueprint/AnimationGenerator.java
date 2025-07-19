@@ -42,7 +42,7 @@ public final class AnimationGenerator {
                     v.name(),
                     InterpolationUtil.putAnimationPoint(v.points(), floatSet).stream().map(point -> {
                         var animation = point.toMovement();
-                        return animation.time(InterpolationUtil.roundTime(animation.time() - (float) doubleCache.getAndSet(animation.time())));
+                        return animation.time(animation.time() - (float) doubleCache.getAndSet(animation.time()));
                     }).toList()
             );
         });

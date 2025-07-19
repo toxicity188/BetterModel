@@ -78,9 +78,7 @@ public final class RenderPipeline {
         this.animationMap = parent.animationMap();
 
         var b = new ArrayList<RenderedBone>();
-        for (RenderedBone value : entityMap.values()) {
-            value.iterateTree(b::add);
-        }
+        iterateTree(b::add);
         bones = Collections.unmodifiableList(b);
         displayAmount = (int) bones.stream()
                 .filter(rb -> rb.getDisplay() != null)
@@ -130,12 +128,10 @@ public final class RenderPipeline {
     }
 
     public void despawn() {
-        for (RenderedBone value : entityMap.values()) {
-            value.iterateTree(b -> {
-                var hb = b.getHitBox();
-                if (hb != null) hb.removeHitBox();
-            });
-        }
+        iterateTree(b -> {
+            var hb = b.getHitBox();
+            if (hb != null) hb.removeHitBox();
+        });
         var bundler = createBundler();
         remove0(bundler);
         if (!bundler.isEmpty()) for (PlayerChannelHandler value : playerMap.values()) {
@@ -145,49 +141,39 @@ public final class RenderPipeline {
     }
 
     public void teleport(@NotNull Location location, @NotNull PacketBundler bundler) {
-        for (RenderedBone value : entityMap.values()) {
-            value.iterateTree(b -> b.teleport(location, bundler));
-        }
+        iterateTree(b -> b.teleport(location, bundler));
     }
 
     public boolean rotate(@NotNull ModelRotation rotation, @NotNull PacketBundler bundler) {
         if (rotation.equals(this.rotation)) return false;
-        var rot = this.rotation = rotation;
-        var match = false;
-        for (RenderedBone value : entityMap.values()) {
-            if (value.matchTree(b -> b.rotate(rot, bundler))) match = true;
-        }
-        return match;
+        this.rotation = rotation;
+        return matchTree(b -> b.rotate(rotation, bundler));
     }
 
     public boolean tick(@NotNull PacketBundler bundler) {
         scriptProcessor.tick();
-        var match = false;
-        for (RenderedBone value : entityMap.values()) {
-            if (value.matchTree(b -> b.tick(bundler))) match = true;
-        }
-        return match;
+        return matchTree(b -> b.tick(bundler));
     }
 
     public void defaultPosition(@NotNull Supplier<Vector3f> movement) {
-        iterate(b -> b.defaultPosition(movement));
+        iterateTree(b -> b.defaultPosition(movement));
     }
     public void forceUpdate(@NotNull PacketBundler bundler) {
-        iterate(b -> b.forceUpdate(bundler));
+        iterateTree(b -> b.forceUpdate(bundler));
     }
     public void forceUpdate(boolean showItem, @NotNull PacketBundler bundler) {
-        iterate(b -> b.forceUpdate(showItem, bundler));
+        iterateTree(b -> b.forceUpdate(showItem, bundler));
     }
     public void scale(@NotNull FloatSupplier scale) {
-        iterate(b -> b.scale(scale));
+        iterateTree(b -> b.scale(scale));
     }
 
     public boolean addRotationModifier(@NotNull BonePredicate predicate, @NotNull Function<Quaternionf, Quaternionf> mapper) {
-        return anyMatch(predicate, (b, p) -> b.addRotationModifier(p, mapper));
+        return matchTree(predicate, (b, p) -> b.addRotationModifier(p, mapper));
     }
 
     public boolean addPositionModifier(@NotNull BonePredicate predicate, @NotNull Function<Vector3f, Vector3f> mapper) {
-        return anyMatch(predicate, (b, p) -> b.addPositionModifier(p, mapper));
+        return matchTree(predicate, (b, p) -> b.addPositionModifier(p, mapper));
     }
 
     public @NotNull @Unmodifiable List<RenderedBone> bones() {
@@ -205,41 +191,32 @@ public final class RenderPipeline {
     public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
         var get = animationMap.get(animation);
         if (get == null) return false;
-        animate(filter, get, modifier, removeTask);
-        return true;
+        return animate(filter, get, modifier, removeTask);
     }
 
-    public void animate(@NotNull Predicate<RenderedBone> filter, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
+    public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
         var script = animation.script();
         if (script != null) scriptProcessor.addAnimation(animation.name(), script.iterator(), modifier, () -> {});
         var playOnceTask = FunctionUtil.playOnce(removeTask);
-        var animationPredicate = AnimationPredicate.of(filter);
-        for (RenderedBone value : entityMap.values()) {
-            value.iterateAnimation(animationPredicate, (b, a) -> b.addAnimation(a, animation, modifier, playOnceTask));
-        }
+        return matchTree(AnimationPredicate.of(filter), (b, a) -> b.addAnimation(a, animation, modifier, playOnceTask));
     }
 
     public boolean replace(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull String animation, @NotNull AnimationModifier modifier) {
         var get = animationMap.get(animation);
         if (get == null) return false;
-        replace(filter, target, get, modifier);
-        return true;
+        return replace(filter, target, get, modifier);
     }
 
-    public void replace(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier) {
+    public boolean replace(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier) {
         var script = animation.script();
         if (script != null) scriptProcessor.replaceAnimation(target, script.iterator(), modifier);
-        var animationPredicate = AnimationPredicate.of(filter);
-        for (RenderedBone value : entityMap.values()) {
-            value.iterateAnimation(animationPredicate, (b, a) -> b.replaceAnimation(a, target, animation, modifier));
-        }
+        return matchTree(AnimationPredicate.of(filter), (b, a) -> b.replaceAnimation(a, target, animation, modifier));
     }
 
-    public void stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String target) {
-        scriptProcessor.stopAnimation(target);
-        for (RenderedBone value : entityMap.values()) {
-            value.iterateTree(b -> b.stopAnimation(filter, target));
-        }
+    public boolean stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String target) {
+        var result = scriptProcessor.stopAnimation(target);
+        if (matchTree(b -> b.stopAnimation(filter, target))) result = true;
+        return result;
     }
 
     public boolean spawn(@NotNull Player player, @NotNull PacketBundler bundler) {
@@ -248,9 +225,7 @@ public final class RenderPipeline {
         playerMap.put(player.getUniqueId(), get);
         spawnPacketHandler.accept(bundler);
         var hided = isHide(player);
-        for (RenderedBone value : entityMap.values()) {
-            value.iterateTree(b -> b.spawn(hided, bundler));
-        }
+        iterateTree(b -> b.spawn(hided, bundler));
         return true;
     }
 
@@ -264,22 +239,39 @@ public final class RenderPipeline {
 
     private void remove0(@NotNull PacketBundler bundler) {
         despawnPacketHandler.accept(bundler);
-        for (RenderedBone value : entityMap.values()) {
-            value.iterateTree(b -> b.remove(bundler));
-        }
+        iterateTree(b -> b.remove(bundler));
     }
 
-    public boolean anyMatch(@NotNull BonePredicate predicate, BiPredicate<RenderedBone, BonePredicate> mapper) {
+    public boolean matchTree(@NotNull BonePredicate predicate, BiPredicate<RenderedBone, BonePredicate> mapper) {
         Objects.requireNonNull(predicate);
         Objects.requireNonNull(mapper);
         var result = false;
         for (RenderedBone value : entityMap.values()) {
-            if (value.iterateTree(predicate, mapper)) result = true;
+            if (value.matchTree(predicate, mapper)) result = true;
         }
         return result;
     }
 
-    public void iterate(@NotNull Consumer<RenderedBone> consumer) {
+    public boolean matchTree(@NotNull AnimationPredicate predicate, BiPredicate<RenderedBone, AnimationPredicate> mapper) {
+        Objects.requireNonNull(predicate);
+        Objects.requireNonNull(mapper);
+        var result = false;
+        for (RenderedBone value : entityMap.values()) {
+            if (value.matchTree(predicate, mapper)) result = true;
+        }
+        return result;
+    }
+
+    public boolean matchTree(@NotNull Predicate<RenderedBone> predicate) {
+        Objects.requireNonNull(predicate);
+        var result = false;
+        for (RenderedBone value : entityMap.values()) {
+            if (value.matchTree(predicate)) result = true;
+        }
+        return result;
+    }
+
+    public void iterateTree(@NotNull Consumer<RenderedBone> consumer) {
         Objects.requireNonNull(consumer);
         for (RenderedBone value : entityMap.values()) {
             value.iterateTree(consumer);

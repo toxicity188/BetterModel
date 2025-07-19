@@ -410,26 +410,29 @@ public abstract class Tracker implements AutoCloseable {
      * @param animation animation
      * @param modifier modifier
      * @param removeTask remove task
+     * @return success
      */
-    public void animate(@NotNull Predicate<RenderedBone> filter, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
-        pipeline.animate(filter, animation, modifier, removeTask);
+    public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
+        return pipeline.animate(filter, animation, modifier, removeTask);
     }
 
     /**
      * Stops some animation
      * @param animation animation's name
+     * @return success
      */
-    public void stopAnimation(@NotNull String animation) {
-        stopAnimation(e -> true, animation);
+    public boolean stopAnimation(@NotNull String animation) {
+        return stopAnimation(e -> true, animation);
     }
 
     /**
      * Stops some animation
      * @param filter bone predicate
      * @param animation animation's name
+     * @return success
      */
-    public void stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String animation) {
-        pipeline.stopAnimation(filter, animation);
+    public boolean stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String animation) {
+        return pipeline.stopAnimation(filter, animation);
     }
 
     /**
@@ -461,9 +464,10 @@ public abstract class Tracker implements AutoCloseable {
      * @param target old animation's name
      * @param animation new animation
      * @param modifier modifier
+     * @return success
      */
-    public void replace(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier) {
-        pipeline.replace(filter, target, animation, modifier);
+    public boolean replace(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier) {
+        return pipeline.replace(filter, target, animation, modifier);
     }
 
     //--- Update action ---
@@ -546,7 +550,7 @@ public abstract class Tracker implements AutoCloseable {
      * @param predicate predicate
      */
     public boolean tryUpdate(@NotNull BiPredicate<RenderedBone, BonePredicate> action, @NotNull BonePredicate predicate) {
-        return pipeline.anyMatch(predicate, action);
+        return pipeline.matchTree(predicate, action);
     }
 
     /**
