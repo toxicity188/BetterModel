@@ -39,6 +39,9 @@ import java.util.function.Supplier;
  */
 public class EntityTracker extends Tracker {
 
+    private static final BonePredicate CREATE_HITBOX_PREDICATE = BonePredicate.from(b -> b.getName().name().equals("hitbox")
+            || b.getName().tagged(BoneTags.HITBOX)
+            || b.getGroup().getMountController().canMount());
     private static final BonePredicate HITBOX_REFRESH_PREDICATE = BonePredicate.from(r -> r.getHitBox() != null);
 
     private final EntityTrackerRegistry registry;
@@ -115,25 +118,16 @@ public class EntityTracker extends Tracker {
         animate("spawn", AnimationModifier.DEFAULT_WITH_PLAY_ONCE);
         BetterModel.plugin().scheduler().task(entity, () -> {
             if (isClosed()) return;
-            createHitBox();
+            createHitBox(CREATE_HITBOX_PREDICATE, HitBoxListener.EMPTY);
         });
         tick((t, s) -> updateBaseEntity0());
         tick((t, s) -> {
             if (damageTint.getAndDecrement() == 0) tint(-1);
         });
-        rotation(() -> new ModelRotation(adapter.pitch(), entity instanceof LivingEntity ? adapter.bodyYaw() : adapter.yaw()));
+        rotation(() -> new ModelRotation(adapter.pitch(), entity instanceof LivingEntity ? adapter.bodyYaw() : adapter.headYaw()));
         preUpdateConsumer.accept(this);
         update();
         EventUtil.call(new CreateEntityTrackerEvent(this));
-    }
-
-    private void createHitBox() {
-        createHitBox(
-                BonePredicate.from(b -> b.getName().name().equals("hitbox")
-                        || b.getName().tagged(BoneTags.HITBOX)
-                        || b.getGroup().getMountController().canMount()),
-                HitBoxListener.EMPTY
-        );
     }
 
     @Override
@@ -239,14 +233,6 @@ public class EntityTracker extends Tracker {
     }
 
     /**
-     * Gets head rotation property
-     * @return rotation property
-     */
-    public @NotNull HeadRotationProperty headRotationProperty() {
-        return headRotationProperty;
-    }
-
-    /**
      * Refresh this tracker
      */
     @ApiStatus.Internal
@@ -319,10 +305,10 @@ public class EntityTracker extends Tracker {
         private float maxRotation = 90F;
         private volatile Vector3f previous = new Vector3f();
         private final Supplier<Vector3f> delegate = LazyFloatProvider.ofVector(TRACKER_TICK_INTERVAL, () -> rotationDelay, () -> {
-            var value = (-registry.adapter().yaw() + registry.adapter().bodyYaw()) % 180F;
+            var value = (-registry.adapter().headYaw() + registry.adapter().bodyYaw()) % 180F;
             return new Vector3f(
                     Math.clamp(registry.adapter().pitch(), minRotation, maxRotation),
-                    Math.clamp(MathUtil.absMin(value, 180 - value), minRotation, maxRotation),
+                    Math.clamp(MathUtil.absMin(value, 360 - value), minRotation, maxRotation),
                     0
             );
         });

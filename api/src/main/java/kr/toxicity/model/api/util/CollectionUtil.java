@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import it.unimi.dsi.fastutil.floats.FloatCollection;
 import kr.toxicity.model.api.BetterModel;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
@@ -21,6 +22,7 @@ import java.util.stream.Stream;
 /**
  * Collection util
  */
+@ApiStatus.Internal
 public final class CollectionUtil {
     /**
      * No initializer

@@ -180,7 +180,7 @@ class NMSImpl : NMS {
             )?.let {
                 list += ClientboundSetEntityDataPacket(handle.id, it)
             }
-            if (handle is LivingEntity && handle !is net.minecraft.world.entity.player.Player) handle.toEquipmentPacket()?.let {
+            if (handle is LivingEntity) handle.toEquipmentPacket()?.let {
                 list += it
             }
             PacketBundlerImpl(list).send(player)
@@ -599,7 +599,7 @@ class NMSImpl : NMS {
             override fun pitch(): Float = handle().xRot
             override fun ground(): Boolean = handle().onGround()
             override fun bodyYaw(): Float = handle().yRot
-            override fun yaw(): Float = handle().yHeadRot
+            override fun headYaw(): Float = handle().yHeadRot
             override fun fly(): Boolean = handle().isFlying
 
             override fun damageTick(): Float {

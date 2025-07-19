@@ -1,6 +1,7 @@
 package kr.toxicity.model.api.util.interpolation;
 
 import kr.toxicity.model.api.animation.VectorPoint;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.List;
 /**
  * Step interpolator
  */
+@ApiStatus.Internal
 public enum StepInterpolation implements VectorInterpolation {
     /**
      * Singleton

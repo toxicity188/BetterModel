@@ -195,6 +195,7 @@ public interface AnimationIterator<T extends Timed> extends Iterator<T> {
     final class Loop<T extends Timed> implements AnimationIterator<T> {
         private final List<T> keyFrame;
         private int index = 0;
+        private boolean finished;
 
         @Override
         public int index() {
@@ -209,6 +210,7 @@ public interface AnimationIterator<T extends Timed> extends Iterator<T> {
         @Override
         public void clear() {
             index = 0;
+            finished = false;
         }
 
         @Override
@@ -219,7 +221,10 @@ public interface AnimationIterator<T extends Timed> extends Iterator<T> {
         @Override
         @NotNull
         public T next() {
-            if (index >= keyFrame.size()) index = 0;
+            if (index >= keyFrame.size()) {
+                index = finished ? 1 : 0;
+                finished = true;
+            }
             return keyFrame.get(index++);
         }
 

@@ -11,6 +11,7 @@ import kr.toxicity.model.compatibility.mythicmobs.condition.ModelHasPassengerCon
 import kr.toxicity.model.compatibility.mythicmobs.mechanic.*
 import kr.toxicity.model.compatibility.mythicmobs.targeter.ModelPartTargeter
 import kr.toxicity.model.manager.ScriptManagerImpl
+import kr.toxicity.model.util.CONFIG
 import kr.toxicity.model.util.registerListener
 import kr.toxicity.model.util.warn
 import org.bukkit.event.EventHandler
@@ -20,6 +21,7 @@ class MythicMobsCompatibility : Compatibility {
     override fun start() {
         ScriptManagerImpl.addBuilder("mm") { name ->
             AnimationScript.of script@ { source ->
+                if (!CONFIG.module().model) return@script
                 if (source !is RenderSource.Entity) return@script
                 if (!MythicBukkit.inst().apiHelper.castSkill(
                     source.entity(),
@@ -31,6 +33,7 @@ class MythicMobsCompatibility : Compatibility {
         registerListener(object : Listener {
             @EventHandler
             fun MythicMechanicLoadEvent.load() {
+                if (!CONFIG.module().model) return
                 when (mechanicName.lowercase()) {
                     "playlimbanim" -> register(PlayLimbAnimMechanic(config))
                     "model" -> register(ModelMechanic(config))
@@ -52,12 +55,14 @@ class MythicMobsCompatibility : Compatibility {
             }
             @EventHandler
             fun MythicConditionLoadEvent.load() {
+                if (!CONFIG.module().model) return
                 when (conditionName.lowercase()) {
                     "modelhaspassenger" -> register(ModelHasPassengerCondition(config))
                 }
             }
             @EventHandler
             fun MythicTargeterLoadEvent.load() {
+                if (!CONFIG.module().model) return
                 when (targeterName.lowercase()) {
                     "modelpart" -> register(ModelPartTargeter(config))
                 }

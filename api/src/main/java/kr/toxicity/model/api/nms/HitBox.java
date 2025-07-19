@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.nms;
 
+import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.mount.MountController;
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry;
@@ -131,6 +132,6 @@ public interface HitBox {
      * @return tracker
      */
     default @NotNull Optional<EntityTrackerRegistry> registry() {
-        return Optional.ofNullable(EntityTrackerRegistry.registry(source().getUniqueId()));
+        return BetterModel.registry(source().getUniqueId());
     }
 }

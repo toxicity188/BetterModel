@@ -2,6 +2,7 @@ package kr.toxicity.model.api.util.json;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -11,6 +12,7 @@ import java.util.function.Consumer;
 /**
  * JSON object builder
  */
+@ApiStatus.Internal
 public final class JsonObjectBuilder {
     private final JsonObject object = new JsonObject();
 

@@ -1,10 +1,12 @@
 package kr.toxicity.model.api.util.lock;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 
+@ApiStatus.Internal
 public final class DuplexLock {
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     

@@ -1,10 +1,12 @@
 package kr.toxicity.model.api.util.lock;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
 
+@ApiStatus.Internal
 public final class SingleLock {
 
     private final Object lock;

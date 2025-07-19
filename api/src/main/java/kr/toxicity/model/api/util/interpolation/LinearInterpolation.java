@@ -2,6 +2,7 @@ package kr.toxicity.model.api.util.interpolation;
 
 import kr.toxicity.model.api.animation.VectorPoint;
 import kr.toxicity.model.api.util.InterpolationUtil;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.List;
 /**
  * Linear interpolator
  */
+@ApiStatus.Internal
 public enum LinearInterpolation implements VectorInterpolation {
     /**
      * Singleton

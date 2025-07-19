@@ -96,7 +96,7 @@ public interface EntityAdapter {
      * Gets entity's yaw (y-rot)
      * @return yaw
      */
-    float yaw();
+    float headYaw();
 
     /**
      * Gets entity's damage tick
