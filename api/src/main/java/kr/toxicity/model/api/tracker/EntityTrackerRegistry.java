@@ -13,6 +13,7 @@ import kr.toxicity.model.api.nms.EntityAdapter;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
+import kr.toxicity.model.api.util.lock.DuplexLock;
 import kr.toxicity.model.api.util.LogUtil;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
@@ -30,17 +31,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public final class EntityTrackerRegistry {
 
     private static final Object2ObjectMap<UUID, EntityTrackerRegistry> UUID_REGISTRY_MAP = new Object2ObjectOpenHashMap<>();
     private static final Int2ObjectMap<EntityTrackerRegistry> ID_REGISTRY_MAP = new Int2ObjectOpenHashMap<>();
-    private static final ReentrantReadWriteLock REGISTRY_LOCK = new ReentrantReadWriteLock();
+    private static final DuplexLock REGISTRY_LOCK = new DuplexLock();
     /**
      * Tracker's namespace.
      */
@@ -56,33 +55,15 @@ public final class EntityTrackerRegistry {
     private final Map<UUID, PlayerChannelCache> viewedPlayerMap = new ConcurrentHashMap<>();
 
     public static @Nullable EntityTrackerRegistry registry(@NotNull UUID uuid) {
-        return accessToReadLock(() -> UUID_REGISTRY_MAP.get(uuid));
+        return REGISTRY_LOCK.accessToReadLock(() -> UUID_REGISTRY_MAP.get(uuid));
     }
 
     public static @Nullable EntityTrackerRegistry registry(int id) {
-        return accessToReadLock(() -> ID_REGISTRY_MAP.get(id));
-    }
-
-    private static <T> T accessToReadLock(@NotNull Supplier<T> supplier) {
-        REGISTRY_LOCK.readLock().lock();
-        try {
-            return supplier.get();
-        } finally {
-            REGISTRY_LOCK.readLock().unlock();
-        }
-    }
-
-    private static void accessToWriteLock(@NotNull Runnable runnable) {
-        REGISTRY_LOCK.writeLock().lock();
-        try {
-            runnable.run();
-        } finally {
-            REGISTRY_LOCK.writeLock().unlock();
-        }
+        return REGISTRY_LOCK.accessToReadLock(() -> ID_REGISTRY_MAP.get(id));
     }
 
     public static void registries(@NotNull Consumer<EntityTrackerRegistry> consumer) {
-        accessToReadLock(() -> {
+        REGISTRY_LOCK.accessToReadLock(() -> {
             UUID_REGISTRY_MAP.values().forEach(consumer);
             return null;
         });
@@ -102,9 +83,10 @@ public final class EntityTrackerRegistry {
             var get2 = registry(uuid);
             if (get2 != null) return get2;
             registry = new EntityTrackerRegistry(entity);
-            accessToWriteLock(() -> {
+            REGISTRY_LOCK.accessToWriteLock(() -> {
                 UUID_REGISTRY_MAP.put(registry.uuid, registry);
                 ID_REGISTRY_MAP.put(registry.id, registry);
+                return null;
             });
         }
         registry.load();
@@ -230,9 +212,10 @@ public final class EntityTrackerRegistry {
             value.close(reason);
         }
         if (!reason.shouldBeSave()) runSync(() -> entity.getPersistentDataContainer().remove(TRACKING_ID));
-        accessToWriteLock(() -> {
+        REGISTRY_LOCK.accessToWriteLock(() -> {
             UUID_REGISTRY_MAP.remove(uuid);
             ID_REGISTRY_MAP.remove(id);
+            return null;
         });
         return true;
     }

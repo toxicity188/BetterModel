@@ -11,6 +11,7 @@ import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.nms.*
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.tracker.ModelRotation
+import kr.toxicity.model.api.util.lock.DuplexLock
 import kr.toxicity.model.api.util.TransformedItemStack
 import net.kyori.adventure.key.Keyed
 import net.minecraft.core.component.DataComponents
@@ -323,7 +324,7 @@ class NMSImpl : NMS {
     ) : ModelDisplay {
 
         private val entityData = display.entityData
-        private val entityDataLock = Any()
+        private val entityDataLock = DuplexLock()
         private val forceGlow = AtomicBoolean()
         private val forceInvisibility = AtomicBoolean()
 
@@ -341,7 +342,7 @@ class NMSImpl : NMS {
 
         override fun invisible(invisible: Boolean) {
             if (forceInvisibility.compareAndSet(!invisible, invisible)) {
-                synchronized(entityDataLock) {
+                entityDataLock.accessToWriteLock {
                     entityData.markDirty(itemSerializer)
                 }
             }
@@ -350,15 +351,14 @@ class NMSImpl : NMS {
         override fun sync(entity: EntityAdapter) {
             display.valid = !entity.dead()
             display.onGround = entity.ground()
-            display.setGlowingTag(entity.glow() || forceGlow.get())
-            display.setOldPosAndRot()
             display.setOldPosAndRot()
             display.setPos((entity.handle() as Entity).position())
             val beforeInvisible = display.isInvisible
             val afterInvisible = entity.invisible()
-            if (CONFIG.followMobInvisibility() && beforeInvisible != afterInvisible) {
-                display.isInvisible = afterInvisible
-                synchronized(entityDataLock) {
+            entityDataLock.accessToWriteLock {
+                display.setGlowingTag(entity.glow() || forceGlow.get())
+                if (CONFIG.followMobInvisibility() && beforeInvisible != afterInvisible) {
+                    display.isInvisible = afterInvisible
                     entityData.markDirty(itemSerializer)
                 }
             }
@@ -366,7 +366,9 @@ class NMSImpl : NMS {
 
         override fun spawn(showItem: Boolean, bundler: PacketBundler) {
             bundler.unwrap() += addPacket
-            bundler.unwrap() += ClientboundSetEntityDataPacket(display.id, display.entityData.nonDefaultValues!!.markVisible(showItem))
+            bundler.unwrap() += entityDataLock.accessToReadLock {
+                ClientboundSetEntityDataPacket(display.id, entityData.nonDefaultValues!!.markVisible(showItem))
+            }
         }        
         
         override fun remove(bundler: PacketBundler) {
@@ -395,31 +397,31 @@ class NMSImpl : NMS {
         }
 
         override fun display(transform: org.bukkit.entity.ItemDisplay.ItemDisplayTransform) {
-            synchronized(entityDataLock) {
+            entityDataLock.accessToWriteLock {
                 display.itemTransform = ItemDisplayContext.BY_ID.apply(transform.ordinal)
             }
         }
 
         override fun frame(frame: Int) {
-            synchronized(entityDataLock) {
+            entityDataLock.accessToWriteLock {
                 display.transformationInterpolationDuration = frame
             }
         }
 
         override fun moveDuration(duration: Int) {
-            synchronized(entityDataLock) {
+            entityDataLock.accessToWriteLock {
                 entityData[Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID] = duration
             }
         }
 
         override fun item(itemStack: ItemStack) {
-            synchronized(entityDataLock) {
+            entityDataLock.accessToWriteLock {
                 display.itemStack = CraftItemStack.asNMSCopy(itemStack)
             }
         }
 
         override fun brightness(block: Int, sky: Int) {
-            synchronized(entityDataLock) {
+            entityDataLock.accessToWriteLock {
                 display.brightnessOverride = if (block < 0 && sky < 0) null else Brightness(
                     block,
                     sky
@@ -428,38 +430,38 @@ class NMSImpl : NMS {
         }
 
         override fun viewRange(range: Float) {
-            synchronized(entityDataLock) {
+            entityDataLock.accessToWriteLock {
                 display.viewRange = range
             }
         }
 
         override fun shadowRadius(radius: Float) {
-            synchronized(entityDataLock) {
+            entityDataLock.accessToWriteLock {
                 display.shadowRadius = radius
             }
         }
 
         override fun glow(glow: Boolean) {
             if (!forceGlow.compareAndSet(!glow, glow)) return
-            synchronized(entityDataLock) {
-                display.setGlowingTag(display.isCurrentlyGlowing || forceGlow.get())
+            entityDataLock.accessToWriteLock {
+                display.setGlowingTag(display.isCurrentlyGlowing || glow)
             }
         }
 
         override fun glowColor(glowColor: Int) {
-            synchronized(entityDataLock) {
+            entityDataLock.accessToWriteLock {
                 display.glowColorOverride = glowColor
             }
         }
 
         override fun billboard(billboard: org.bukkit.entity.Display.Billboard) {
-            synchronized(entityDataLock) {
+            entityDataLock.accessToWriteLock {
                 display.billboardConstraints = Display.BillboardConstraints.BY_ID.apply(billboard.ordinal)
             }
         }
 
         override fun transform(position: Vector3f, scale: Vector3f, rotation: Quaternionf) {
-            synchronized(entityDataLock) {
+            entityDataLock.accessToWriteLock {
                 display.setTransformation(
                     com.mojang.math.Transformation(
                         position,
@@ -472,7 +474,7 @@ class NMSImpl : NMS {
         }
 
         override fun sendTransformation(bundler: PacketBundler) {
-            synchronized(entityDataLock) {
+            entityDataLock.accessToWriteLock {
                 entityData.pack(
                     clean = true,
                     itemFilter = { interpolationDelay == it.accessor.id || it.isDirty },
@@ -484,12 +486,12 @@ class NMSImpl : NMS {
             }
         }
 
-        override fun invisible(): Boolean = synchronized(entityDataLock) {
+        override fun invisible(): Boolean = entityDataLock.accessToReadLock {
             display.isInvisible || forceInvisibility.get() || display.itemStack.`is`(Items.AIR)
         }
 
         override fun sendEntityData(bundler: PacketBundler) {
-            synchronized(entityDataLock) {
+            entityDataLock.accessToWriteLock {
                 entityData.pack(
                     clean = true,
                     itemFilter = { it.isDirty },
@@ -501,7 +503,7 @@ class NMSImpl : NMS {
         }
 
         override fun sendEntityData(showItem: Boolean, bundler: PacketBundler) {
-            synchronized(entityDataLock) {
+            entityDataLock.accessToReadLock {
                 entityData.pack(
                     valueFilter = { entityDataSet.contains(it.id) }
                 )
