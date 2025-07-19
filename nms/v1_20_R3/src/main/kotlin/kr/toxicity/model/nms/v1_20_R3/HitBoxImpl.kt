@@ -214,7 +214,7 @@ internal class HitBoxImpl(
             .rotateY(-Math.toRadians(player.yRot.toDouble()).toFloat())
 
         if (movement.length() > 0.01) {
-            delegate.yBodyRot = player.yRot
+            delegate.yRot = player.yRot
             if (onFly) delegate.yHeadRot = player.yRot
             delegate.move(MoverType.SELF, Vec3(riddenInput.x.toDouble(), riddenInput.y.toDouble(), riddenInput.z.toDouble()))
         }

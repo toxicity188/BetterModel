@@ -3,6 +3,7 @@ package kr.toxicity.model.api.tracker;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.util.TransformedItemStack;
 import kr.toxicity.model.api.util.function.BonePredicate;
+import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.Display;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,7 +16,7 @@ import java.util.function.BiPredicate;
 public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, BonePredicate>  {
 
     @Override
-    boolean test(@NotNull RenderedBone b, @NotNull BonePredicate p);
+    boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate);
 
     /**
      * Creates brightness data
@@ -91,8 +92,8 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
      */
     record Brightness(int block, int sky) implements TrackerUpdateAction {
         @Override
-        public boolean test(@NotNull RenderedBone b, @NotNull BonePredicate p) {
-            return b.brightness(p, block, sky);
+        public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
+            return bone.brightness(predicate, block, sky);
         }
     }
 
@@ -103,28 +104,30 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
      */
     record Glow(boolean glow, int glowColor) implements TrackerUpdateAction {
         @Override
-        public boolean test(@NotNull RenderedBone b, @NotNull BonePredicate p) {
-            return b.glow(p, glow, glowColor);
+        public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
+            return bone.glow(predicate, glow, glowColor);
         }
     }
 
     /**
      * Enchant
      */
+    @RequiredArgsConstructor
     enum Enchant implements TrackerUpdateAction {
         /**
          * True
          */
-        TRUE,
+        TRUE(true),
         /**
          * False
          */
-        FALSE
+        FALSE(false)
         ;
+        private final boolean value;
 
         @Override
-        public boolean test(@NotNull RenderedBone b, @NotNull BonePredicate p) {
-            return b.enchant(p, this == TRUE);
+        public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
+            return bone.enchant(predicate, value);
         }
     }
 
@@ -134,28 +137,30 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
      */
     record Tint(int rgb) implements TrackerUpdateAction {
         @Override
-        public boolean test(@NotNull RenderedBone b, @NotNull BonePredicate p) {
-            return b.tint(p, rgb);
+        public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
+            return bone.tint(predicate, rgb);
         }
     }
 
     /**
      * Toggle part
      */
+    @RequiredArgsConstructor
     enum TogglePart implements TrackerUpdateAction {
         /**
          * True
          */
-        TRUE,
+        TRUE(true),
         /**
          * False
          */
-        FALSE
+        FALSE(false)
         ;
+        private final boolean value;
 
         @Override
-        public boolean test(@NotNull RenderedBone b, @NotNull BonePredicate p) {
-            return b.togglePart(p, this == TRUE);
+        public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
+            return bone.togglePart(predicate, value);
         }
     }
 
@@ -165,8 +170,8 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
      */
     record ItemStack(@NotNull TransformedItemStack itemStack) implements TrackerUpdateAction {
         @Override
-        public boolean test(@NotNull RenderedBone b, @NotNull BonePredicate p) {
-            return b.itemStack(p, itemStack);
+        public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
+            return bone.itemStack(predicate, itemStack);
         }
     }
 
@@ -176,8 +181,8 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
      */
     record Billboard(@NotNull Display.Billboard billboard) implements TrackerUpdateAction {
         @Override
-        public boolean test(@NotNull RenderedBone b, @NotNull BonePredicate p) {
-            return b.billboard(p, billboard);
+        public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
+            return bone.billboard(predicate, billboard);
         }
     }
 }

@@ -4,7 +4,9 @@ import kr.toxicity.model.api.data.renderer.ModelRenderer;
 import kr.toxicity.model.api.event.PluginEndReloadEvent;
 import kr.toxicity.model.api.event.PluginStartReloadEvent;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
+import kr.toxicity.model.api.tracker.EntityTrackerRegistry;
 import kr.toxicity.model.api.util.EventUtil;
+import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
@@ -77,6 +79,24 @@ public final class BetterModel {
      */
     public static @NotNull Optional<PlayerChannelHandler> player(@NotNull UUID uuid) {
         return Optional.ofNullable(plugin().playerManager().player(uuid));
+    }
+
+    /**
+     * Gets entity registry by entity's uuid.
+     * @param uuid uuid
+     * @return optional registry
+     */
+    public static @NotNull Optional<EntityTrackerRegistry> registry(@NotNull UUID uuid) {
+        return Optional.ofNullable(EntityTrackerRegistry.registry(uuid));
+    }
+
+    /**
+     * Gets entity registry by entity.
+     * @param entity entity
+     * @return optional registry
+     */
+    public static @NotNull Optional<EntityTrackerRegistry> registry(@NotNull Entity entity) {
+        return Optional.ofNullable(EntityTrackerRegistry.registry(entity));
     }
 
     /**

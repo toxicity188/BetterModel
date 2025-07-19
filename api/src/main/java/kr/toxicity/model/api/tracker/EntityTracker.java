@@ -315,14 +315,17 @@ public class EntityTracker extends Tracker {
      */
     public final class HeadRotationProperty implements Supplier<Vector3f> {
         private float rotationDelay = 150;
-        private float minRotation = -90;
-        private float maxRotation = 90;
+        private float minRotation = -90F;
+        private float maxRotation = 90F;
         private volatile Vector3f previous = new Vector3f();
-        private final Supplier<Vector3f> delegate = LazyFloatProvider.ofVector(TRACKER_TICK_INTERVAL, () -> rotationDelay, () -> new Vector3f(
-                Math.clamp(registry.adapter().pitch(), minRotation, maxRotation),
-                Math.clamp(-registry.adapter().yaw() + registry.adapter().bodyYaw(), minRotation, maxRotation),
-                0
-        ));
+        private final Supplier<Vector3f> delegate = LazyFloatProvider.ofVector(TRACKER_TICK_INTERVAL, () -> rotationDelay, () -> {
+            var value = (-registry.adapter().yaw() + registry.adapter().bodyYaw()) % 180F;
+            return new Vector3f(
+                    Math.clamp(registry.adapter().pitch(), minRotation, maxRotation),
+                    Math.clamp(value, minRotation, maxRotation),
+                    0
+            );
+        });
 
         /**
          * Private initializer

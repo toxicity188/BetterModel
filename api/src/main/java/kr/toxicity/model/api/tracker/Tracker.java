@@ -115,6 +115,7 @@ public abstract class Tracker implements AutoCloseable {
                 s.tickBundler
         ));
         pipeline.spawnPacketHandler(p -> start());
+        LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " tracker created: " + name());
     }
 
     /**

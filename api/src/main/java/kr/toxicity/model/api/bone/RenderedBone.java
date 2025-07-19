@@ -300,7 +300,7 @@ public final class RenderedBone implements HitBoxSource {
             if (d != null) {
                 d.frame(toInterpolationDuration(frame()));
                 setup(boneMovement);
-                if (!d.invisible()) d.sendTransformation(bundler);
+                d.sendTransformation(bundler);
             }
             firstTick = false;
             return true;
