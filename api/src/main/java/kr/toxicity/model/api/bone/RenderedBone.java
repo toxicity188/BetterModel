@@ -373,7 +373,8 @@ public final class RenderedBone implements HitBoxSource {
                     ).add(defaultPosition.get()),
                     boneMovement.scale()
                             .mul(itemStack.scale(), new Vector3f())
-                            .mul(mul),
+                            .mul(mul)
+                            .max(EMPTY_VECTOR),
                     boneMovement.rotation()
             );
         }
