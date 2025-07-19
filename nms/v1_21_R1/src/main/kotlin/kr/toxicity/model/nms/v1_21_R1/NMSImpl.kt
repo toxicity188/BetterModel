@@ -353,7 +353,14 @@ class NMSImpl : NMS {
             display.setOldPosAndRot()
             display.setOldPosAndRot()
             display.setPos((entity.handle() as Entity).position())
-            if (CONFIG.followMobInvisibility()) display.isInvisible = entity.invisible()
+            val beforeInvisible = display.isInvisible
+            val afterInvisible = entity.invisible()
+            if (CONFIG.followMobInvisibility() && beforeInvisible != afterInvisible) {
+                display.isInvisible = afterInvisible
+                synchronized(entityDataLock) {
+                    entityData.markDirty(itemSerializer)
+                }
+            }
         }
 
         override fun spawn(showItem: Boolean, bundler: PacketBundler) {

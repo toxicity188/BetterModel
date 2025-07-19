@@ -40,9 +40,7 @@ internal inline fun <reified T, reified R> createAdaptedFieldGetter(noinline pap
     }
 }
 
-internal val CONFIG by lazy(LazyThreadSafetyMode.NONE) {
-    BetterModel.config()
-}
+internal val CONFIG get() = BetterModel.config()
 
 internal val ONLINE_MODE by lazy(LazyThreadSafetyMode.NONE) {
     if (BetterModel.IS_PAPER) GlobalConfiguration.get().proxies.isProxyOnlineMode else Bukkit.getOnlineMode()
