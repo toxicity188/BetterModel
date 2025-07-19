@@ -42,6 +42,7 @@ public final class RenderedBone implements HitBoxSource {
 
     private static final Vector3f EMPTY_VECTOR = new Vector3f();
     private static final ItemStack AIR = new ItemStack(Material.AIR);
+    private static final Consumer<PacketBundler> EMPTY_TICKER = b -> {};
 
     @Getter
     @NotNull
@@ -86,6 +87,8 @@ public final class RenderedBone implements HitBoxSource {
 
     //Animation
     private boolean firstTick = true;
+    private boolean beforeVisible;
+    private Consumer<PacketBundler> nextTicker = EMPTY_TICKER;
     private volatile BoneMovement beforeTransform, afterTransform, relativeOffsetCache;
     private volatile ModelRotation rotation = ModelRotation.EMPTY;
 
@@ -129,6 +132,7 @@ public final class RenderedBone implements HitBoxSource {
                 d.invisible(itemMapper == BoneItemMapper.EMPTY && !group.getParent().visibility());
                 applyItem(d);
             });
+            beforeVisible = !display.invisible();
         }
     }
 
@@ -293,19 +297,38 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     public boolean tick(@NotNull PacketBundler bundler) {
+        nextTicker.accept(bundler);
         if (state.tick() || firstTick) {
             beforeTransform = afterTransform;
             var boneMovement = afterTransform = relativeOffset();
             var d = display;
-            if (d != null) {
+            firstTick = false;
+            if (d == null) return true;
+            var afterVisible = isVisible();
+            var nowVisible = afterVisible && !beforeVisible;
+            if (nowVisible) {
+                d.frame(0);
+                d.sendTransformation(bundler);
+                nextTicker = b -> {
+                    nextTicker = EMPTY_TICKER;
+                    d.frame(toInterpolationDuration(frame() - 1));
+                    d.sendTransformation(b);
+                };
+            }
+            setup(boneMovement);
+            if (!nowVisible && (afterVisible || beforeVisible)) {
                 d.frame(toInterpolationDuration(frame()));
-                setup(boneMovement);
                 d.sendTransformation(bundler);
             }
-            firstTick = false;
+            beforeVisible = afterVisible;
             return true;
         }
         return false;
+    }
+
+    public boolean isVisible() {
+        if (display == null || display.invisible()) return false;
+        return afterTransform != null && afterTransform.isVisible();
     }
 
     public void forceUpdate(@NotNull PacketBundler bundler) {
