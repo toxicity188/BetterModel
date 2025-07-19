@@ -8,6 +8,7 @@ import kr.toxicity.model.api.nms.PacketBundler
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.util.EventUtil
 import net.minecraft.network.FriendlyByteBuf
+import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket
 import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.network.syncher.SynchedEntityData.DataItem
@@ -161,3 +162,5 @@ internal fun Entity.trackedEntity() = if (BetterModel.IS_FOLIA) `moonrise$getTra
     ?.map {
         it.player.bukkitEntity
     } ?: emptyList() else bukkitEntity.trackedBy
+
+internal fun ClientboundContainerSetSlotPacket.isInHand(player: Player) = containerId == 0 && player.inventory.selected == slot - 36

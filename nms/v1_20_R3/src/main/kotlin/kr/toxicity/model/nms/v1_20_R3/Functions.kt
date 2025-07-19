@@ -9,6 +9,7 @@ import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.util.EventUtil
 import net.minecraft.core.BlockPos
 import net.minecraft.network.FriendlyByteBuf
+import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket
 import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.network.syncher.SynchedEntityData.DataItem
@@ -178,3 +179,5 @@ internal fun LivingEntity.toEquipmentPacket(mapper: (EquipmentSlot) -> ItemStack
 internal fun LivingEntity.toEmptyEquipmentPacket() = toEquipmentPacket { ItemStack.EMPTY }
 
 internal fun Entity.trackedEntity() = bukkitEntity.trackedBy
+
+internal fun ClientboundContainerSetSlotPacket.isInHand(player: Player) = containerId == 0 && player.inventory.selected == slot - 36

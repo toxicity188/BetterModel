@@ -11,7 +11,7 @@ import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.nms.*
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.tracker.ModelRotation
-import kr.toxicity.model.api.util.lock.DuplexLock
+import kr.toxicity.model.api.util.lock.SingleLock
 import net.kyori.adventure.key.Keyed
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtUtils
@@ -159,6 +159,7 @@ class NMSImpl : NMS {
             }
         }
         override fun player(): Player = player
+        private val playerModel get() = connection.player.id.toRegistry()
 
         private fun Int.toPlayerEntity() = toEntity(connection.player.serverLevel())
         private fun Int.toRegistry(
@@ -224,8 +225,11 @@ class NMSImpl : NMS {
                         return packet
                     }
                 } 
-                is ClientboundRespawnPacket -> EntityTrackerRegistry.registry(player.uniqueId)?.let {
+                is ClientboundRespawnPacket -> playerModel?.let {
                     PacketBundlerImpl(mutableListOf(it.mountPacket())).send(player)
+                }
+                is ClientboundContainerSetSlotPacket if playerModel != null && isInHand(connection.player) -> {
+                    return ClientboundContainerSetSlotPacket(containerId, stateId, slot, net.minecraft.world.item.ItemStack.EMPTY)
                 }
             }
             return this
@@ -251,7 +255,7 @@ class NMSImpl : NMS {
             }
             when (msg) {
                 is ServerboundSetCarriedItemPacket -> {
-                    connection.player.id.toRegistry()?.let { registry ->
+                    playerModel?.let { registry ->
                         if (!registry.hideOption(uuid).equipment()) return super.channelRead(ctx, msg)
                         if (CONFIG.cancelPlayerModelInventory()) {
                             connection.send(ClientboundSetCarriedItemPacket(player.inventory.heldItemSlot))
@@ -262,7 +266,7 @@ class NMSImpl : NMS {
                     }
                 }
                 is ServerboundPlayerActionPacket -> {
-                    connection.player.id.toRegistry()?.let { registry ->
+                    playerModel?.let { registry ->
                         if (!registry.hideOption(uuid).equipment()) return super.channelRead(ctx, msg)
                         if (CONFIG.cancelPlayerModelInventory()) return
                         else registry.updatePlayerLimb()
@@ -323,7 +327,7 @@ class NMSImpl : NMS {
     ) : ModelDisplay {
 
         private val entityData = display.entityData
-        private val entityDataLock = DuplexLock()
+        private val entityDataLock = SingleLock()
         private val forceGlow = AtomicBoolean()
         private val forceInvisibility = AtomicBoolean()
 
@@ -341,7 +345,7 @@ class NMSImpl : NMS {
 
         override fun invisible(invisible: Boolean) {
             if (forceInvisibility.compareAndSet(!invisible, invisible)) {
-                entityDataLock.accessToWriteLock {
+                entityDataLock.accessToLock {
                     entityData.markDirty(itemSerializer)
                 }
             }
@@ -354,7 +358,7 @@ class NMSImpl : NMS {
             display.setPos((entity.handle() as Entity).position())
             val beforeInvisible = display.isInvisible
             val afterInvisible = entity.invisible()
-            entityDataLock.accessToWriteLock {
+            entityDataLock.accessToLock {
                 display.setGlowingTag(entity.glow() || forceGlow.get())
                 if (CONFIG.followMobInvisibility() && beforeInvisible != afterInvisible) {
                     display.isInvisible = afterInvisible
@@ -365,7 +369,7 @@ class NMSImpl : NMS {
 
         override fun spawn(showItem: Boolean, bundler: PacketBundler) {
             bundler.unwrap() += addPacket
-            bundler.unwrap() += entityDataLock.accessToReadLock {
+            bundler.unwrap() += entityDataLock.accessToLock {
                 ClientboundSetEntityDataPacket(display.id, entityData.nonDefaultValues!!.markVisible(showItem))
             }
         }        
@@ -395,31 +399,31 @@ class NMSImpl : NMS {
         }
 
         override fun display(transform: org.bukkit.entity.ItemDisplay.ItemDisplayTransform) {
-            entityDataLock.accessToWriteLock {
+            entityDataLock.accessToLock {
                 display.itemTransform = ItemDisplayContext.BY_ID.apply(transform.ordinal)
             }
         }
 
         override fun frame(frame: Int) {
-            entityDataLock.accessToWriteLock {
+            entityDataLock.accessToLock {
                 display.transformationInterpolationDuration = frame
             }
         }
 
         override fun moveDuration(duration: Int) {
-            entityDataLock.accessToWriteLock {
+            entityDataLock.accessToLock {
                 entityData[Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID] = duration
             }
         }
 
         override fun item(itemStack: ItemStack) {
-            entityDataLock.accessToWriteLock {
+            entityDataLock.accessToLock {
                 display.itemStack = CraftItemStack.asNMSCopy(itemStack)
             }
         }
 
         override fun brightness(block: Int, sky: Int) {
-            entityDataLock.accessToWriteLock {
+            entityDataLock.accessToLock {
                 display.brightnessOverride = if (block < 0 && sky < 0) null else Brightness(
                     block,
                     sky
@@ -428,38 +432,38 @@ class NMSImpl : NMS {
         }
 
         override fun viewRange(range: Float) {
-            entityDataLock.accessToWriteLock {
+            entityDataLock.accessToLock {
                 display.viewRange = range
             }
         }
 
         override fun shadowRadius(radius: Float) {
-            entityDataLock.accessToWriteLock {
+            entityDataLock.accessToLock {
                 display.shadowRadius = radius
             }
         }
 
         override fun glow(glow: Boolean) {
             if (!forceGlow.compareAndSet(!glow, glow)) return
-            entityDataLock.accessToWriteLock {
+            entityDataLock.accessToLock {
                 display.setGlowingTag(display.isCurrentlyGlowing || glow)
             }
         }
 
         override fun glowColor(glowColor: Int) {
-            entityDataLock.accessToWriteLock {
+            entityDataLock.accessToLock {
                 display.glowColorOverride = glowColor
             }
         }
 
         override fun billboard(billboard: org.bukkit.entity.Display.Billboard) {
-            entityDataLock.accessToWriteLock {
+            entityDataLock.accessToLock {
                 display.billboardConstraints = Display.BillboardConstraints.BY_ID.apply(billboard.ordinal)
             }
         }
 
         override fun transform(position: Vector3f, scale: Vector3f, rotation: Quaternionf) {
-            entityDataLock.accessToWriteLock {
+            entityDataLock.accessToLock {
                 display.setTransformation(
                     com.mojang.math.Transformation(
                         position,
@@ -472,7 +476,7 @@ class NMSImpl : NMS {
         }
 
         override fun sendTransformation(bundler: PacketBundler) {
-            entityDataLock.accessToWriteLock {
+            entityDataLock.accessToLock {
                 entityData.pack(
                     clean = true,
                     itemFilter = { interpolationDelay == it.accessor.id || it.isDirty },
@@ -484,12 +488,12 @@ class NMSImpl : NMS {
             }
         }
 
-        override fun invisible(): Boolean = entityDataLock.accessToReadLock {
+        override fun invisible(): Boolean = entityDataLock.accessToLock {
             display.isInvisible || forceInvisibility.get() || display.itemStack.`is`(Items.AIR)
         }
 
         override fun sendEntityData(bundler: PacketBundler) {
-            entityDataLock.accessToWriteLock {
+            entityDataLock.accessToLock {
                 entityData.pack(
                     clean = true,
                     itemFilter = { it.isDirty },
@@ -501,7 +505,7 @@ class NMSImpl : NMS {
         }
 
         override fun sendEntityData(showItem: Boolean, bundler: PacketBundler) {
-            entityDataLock.accessToReadLock {
+            entityDataLock.accessToLock {
                 entityData.pack(
                     valueFilter = { entityDataSet.contains(it.id) }
                 )
