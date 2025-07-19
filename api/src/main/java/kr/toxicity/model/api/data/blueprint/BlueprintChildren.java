@@ -35,12 +35,13 @@ public sealed interface BlueprintChildren {
         return switch (children) {
             case ModelChildren.ModelGroup modelGroup -> {
                 var child = mapToList(modelGroup.children(), c -> from(c, elementMap));
+                var filtered = filterIsInstance(child, BlueprintElement.class).toList();
                 yield new BlueprintGroup(
                         BoneTagRegistry.parse(modelGroup.name()),
                         modelGroup.origin(),
                         modelGroup.rotation().invertXZ(),
                         child,
-                        filterIsInstance(child, BlueprintElement.class).anyMatch(element -> element.element.visibility())
+                        filtered.isEmpty() ? modelGroup.visibility() : filtered.stream().anyMatch(element -> element.element.visibility())
                 );
             }
             case ModelChildren.ModelUUID modelUUID -> new BlueprintElement(Objects.requireNonNull(elementMap.get(modelUUID.uuid())));

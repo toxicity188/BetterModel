@@ -50,6 +50,7 @@ import org.joml.Vector3f
 import java.lang.reflect.Field
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
 
 class NMSImpl : NMS {
@@ -142,6 +143,7 @@ class NMSImpl : NMS {
         private val connection = (player as CraftPlayer).handle.connection
         private val uuid = player.uniqueId
         private val slim = BetterModel.plugin().skinManager().isSlim(profile())
+        private val cachedSlot = AtomicInteger()
 
         init {
             val pipeLine = getConnection(connection).channel.pipeline()
@@ -178,7 +180,7 @@ class NMSImpl : NMS {
             )?.let {
                 list += ClientboundSetEntityDataPacket(handle.id, it)
             }
-            if (handle is LivingEntity) handle.toEquipmentPacket()?.let {
+            if (handle is LivingEntity && handle !is net.minecraft.world.entity.player.Player) handle.toEquipmentPacket()?.let {
                 list += it
             }
             PacketBundlerImpl(list).send(player)
@@ -225,9 +227,20 @@ class NMSImpl : NMS {
                 is ClientboundRespawnPacket -> playerModel?.let {
                     PacketBundlerImpl(mutableListOf(it.mountPacket())).send(player)
                 }
-                is ClientboundContainerSetSlotPacket if playerModel != null && isInHand(connection.player) -> {
+                is ClientboundContainerSetSlotPacket if isInHand(connection.player) && playerModel?.hideOption(uuid)?.equipment() == true -> {
                     return ClientboundContainerSetSlotPacket(containerId, stateId, slot, net.minecraft.world.item.ItemStack.EMPTY)
                 }
+                is ClientboundContainerSetContentPacket if containerId == 0 && playerModel?.hideOption(uuid)?.equipment() == true -> {
+                    return ClientboundContainerSetContentPacket(
+                        containerId,
+                        stateId,
+                        items.apply {
+                            set(cachedSlot.getAndSet(connection.player.hotbarSlot), net.minecraft.world.item.ItemStack.EMPTY)
+                        },
+                        carriedItem
+                    )
+                }
+                is ClientboundContainerSetSlotPacket if containerId == 0 -> cachedSlot.set(slot)
             }
             return this
         }
@@ -237,32 +250,28 @@ class NMSImpl : NMS {
         }
 
         override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
-            fun EntityTrackerRegistry.updatePlayerLimb() {
+            fun EntityTrackerRegistry.updatePlayerLimb() = BetterModel.plugin().scheduler().asyncTaskLater(1) {
+                if (isClosed) return@asyncTaskLater
                 player.updateInventory()
-                connection.player.toEmptyEquipmentPacket()?.let {
-                    PacketBundlerImpl(mutableListOf(it)).send(player)
-                }
-                BetterModel.plugin().scheduler().asyncTaskLater(1) {
-                    trackers().forEach { tracker ->
-                        tracker.updateDisplay { bone ->
-                            !bone.itemMapper.fixed()
-                        }
+                trackers().forEach { tracker ->
+                    tracker.updateDisplay { bone ->
+                        !bone.itemMapper.fixed()
                     }
                 }
             }
             when (msg) {
                 is ServerboundSetCarriedItemPacket -> {
+                    cachedSlot.set(msg.slot + 36)
                     playerModel?.let { registry ->
                         if (!registry.hideOption(uuid).equipment()) return super.channelRead(ctx, msg)
                         if (CONFIG.cancelPlayerModelInventory()) {
                             connection.send(ClientboundSetHeldSlotPacket(player.inventory.heldItemSlot))
                             return
-                        } else {
-                            registry.updatePlayerLimb()
-                        }
+                        } else registry.updatePlayerLimb()
                     }
                 }
                 is ServerboundPlayerActionPacket -> {
+                    cachedSlot.set(connection.player.hotbarSlot)
                     playerModel?.let { registry ->
                         if (!registry.hideOption(uuid).equipment()) return super.channelRead(ctx, msg)
                         if (CONFIG.cancelPlayerModelInventory()) return

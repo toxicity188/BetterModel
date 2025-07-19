@@ -41,8 +41,8 @@ import java.util.function.*;
 public final class RenderedBone implements HitBoxSource {
 
     private static final Vector3f EMPTY_VECTOR = new Vector3f();
-    private static final ItemStack AIR = new ItemStack(Material.AIR);
     private static final Consumer<PacketBundler> EMPTY_TICKER = b -> {};
+    private static final ItemStack AIR = new ItemStack(Material.AIR);
 
     @Getter
     @NotNull
@@ -122,14 +122,14 @@ public final class RenderedBone implements HitBoxSource {
         itemMapper = group.getItemMapper();
         root = parent != null ? parent.root : this;
         this.itemStack = itemMapper.apply(source, group.getItemStack());
-        this.dummyBone = itemStack.isAir();
+        this.dummyBone = group.getItemStack().isAir() && itemMapper == BoneItemMapper.EMPTY;
         defaultFrame = movement;
         children = childrenMapper.apply(this);
         if (!dummyBone) {
             display = BetterModel.plugin().nms().create(source.location(), source instanceof RenderSource.Entity ? -4096 : 0, d -> {
                 d.display(itemMapper.transform());
                 d.viewRange(modifier.viewRange());
-                d.invisible(itemMapper == BoneItemMapper.EMPTY && !group.getParent().visibility());
+                d.invisible(!group.getParent().visibility());
                 applyItem(d);
             });
             beforeVisible = !display.invisible();

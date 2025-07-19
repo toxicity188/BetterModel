@@ -163,4 +163,5 @@ internal fun Entity.trackedEntity() = if (BetterModel.IS_FOLIA) `moonrise$getTra
         it.player.bukkitEntity
     } ?: emptyList() else bukkitEntity.trackedBy
 
-internal fun ClientboundContainerSetSlotPacket.isInHand(player: Player) = containerId == 0 && player.inventory.selected == slot - 36
+internal val Player.hotbarSlot get() = inventory.selected + 36
+internal fun ClientboundContainerSetSlotPacket.isInHand(player: Player) = containerId == 0 && player.hotbarSlot == slot

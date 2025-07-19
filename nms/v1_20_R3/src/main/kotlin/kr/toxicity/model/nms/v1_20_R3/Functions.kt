@@ -180,4 +180,5 @@ internal fun LivingEntity.toEmptyEquipmentPacket() = toEquipmentPacket { ItemSta
 
 internal fun Entity.trackedEntity() = bukkitEntity.trackedBy
 
-internal fun ClientboundContainerSetSlotPacket.isInHand(player: Player) = containerId == 0 && player.inventory.selected == slot - 36
+internal val Player.hotbarSlot get() = inventory.selected + 36
+internal fun ClientboundContainerSetSlotPacket.isInHand(player: Player) = containerId == 0 && player.hotbarSlot == slot

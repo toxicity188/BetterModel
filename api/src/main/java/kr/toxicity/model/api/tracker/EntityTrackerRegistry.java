@@ -215,6 +215,7 @@ public final class EntityTrackerRegistry {
         REGISTRY_LOCK.accessToWriteLock(() -> {
             UUID_REGISTRY_MAP.remove(uuid);
             ID_REGISTRY_MAP.remove(id);
+            if (entity instanceof Player player) player.updateInventory();
             return null;
         });
         return true;
