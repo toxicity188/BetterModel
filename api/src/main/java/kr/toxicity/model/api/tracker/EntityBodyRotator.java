@@ -1,9 +1,12 @@
 package kr.toxicity.model.api.tracker;
 
+import com.google.gson.annotations.SerializedName;
 import kr.toxicity.model.api.nms.EntityAdapter;
 import kr.toxicity.model.api.util.FunctionUtil;
 import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.lazy.LazyFloatProvider;
+import lombok.AllArgsConstructor;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
@@ -24,13 +27,13 @@ public final class EntityBodyRotator {
     private volatile boolean headUneven;
     private volatile boolean bodyUneven;
     private volatile boolean playerMode;
-    private volatile float minBody = -75F;
-    private volatile float maxBody = 75F;
-    private volatile float minHead = -75F;
-    private volatile float maxHead = 75F;
-    private volatile float stable = 15F;
-    private volatile int rotationDuration = 10;
-    private volatile int rotationDelay = 10;
+    private volatile float minBody;
+    private volatile float maxBody;
+    private volatile float minHead;
+    private volatile float maxHead;
+    private volatile float stable;
+    private volatile int rotationDuration;
+    private volatile int rotationDelay;
 
     EntityBodyRotator(@NotNull EntityAdapter adapter) {
         this.adapter = adapter;
@@ -40,7 +43,7 @@ public final class EntityBodyRotator {
         );
         this.provider = new LazyFloatProvider(adapter.bodyYaw(), () -> rotationDuration * MathUtil.MINECRAFT_TICK_MILLS);
         headSupplier = LazyFloatProvider.ofVector(MathUtil.MINECRAFT_TICK_MILLS, () -> 4 * MathUtil.MINECRAFT_TICK_MILLS, () -> {
-            var value = rotation.y() - adapter.headYaw();
+            var value = bodyRotation().y() - adapter.headYaw();
             return new Vector3f(
                     clampHead(adapter.pitch()),
                     clampHead(value),
@@ -51,6 +54,7 @@ public final class EntityBodyRotator {
                 adapter.pitch(),
                 bodyRotation0()
         ));
+        reset();
     }
 
     private float clampHead(float value) {
@@ -104,43 +108,91 @@ public final class EntityBodyRotator {
         return rotationLock.get() ? lastHeadRotation : (lastHeadRotation = headSupplier.get());
     }
 
-    public void setValue(@NotNull Consumer<Setter> consumer) {
+    public void setValue(@NotNull Consumer<RotatorData> consumer) {
         Objects.requireNonNull(consumer);
-        var setter = new Setter();
-        consumer.accept(setter);
+        var data = createData();
+        consumer.accept(data);
         synchronized (this) {
-            setter.set();
+            data.set(this);
         }
     }
 
-    @lombok.Setter
-    public class Setter {
+    void setValue(@NotNull RotatorData data) {
+        synchronized (this) {
+            data.set(this);
+        }
+    }
 
-        private boolean headUneven = EntityBodyRotator.this.headUneven;
-        private boolean bodyUneven = EntityBodyRotator.this.bodyUneven;
-        private boolean playerMode = EntityBodyRotator.this.playerMode;
-        private float minBody = EntityBodyRotator.this.minBody;
-        private float maxBody = EntityBodyRotator.this.maxBody;
-        private float minHead = EntityBodyRotator.this.minHead;
-        private float maxHead = EntityBodyRotator.this.maxHead;
-        private float stable = EntityBodyRotator.this.stable;
-        private int rotationDuration = EntityBodyRotator.this.rotationDuration;
-        private int rotationDelay = EntityBodyRotator.this.rotationDelay;
+    public void reset() {
+        setValue(RotatorData.defaultData());
+    }
 
-        private Setter() {
+    synchronized @NotNull RotatorData createData() {
+        return new RotatorData(
+                headUneven,
+                bodyUneven,
+                playerMode,
+                minBody,
+                maxBody,
+                minHead,
+                maxHead,
+                stable,
+                rotationDuration,
+                rotationDelay
+        );
+    }
+
+    @Setter
+    @AllArgsConstructor
+    public static final class RotatorData {
+
+        @SerializedName("head_uneven")
+        private boolean headUneven;
+        @SerializedName("body_uneven")
+        private boolean bodyUneven;
+        @SerializedName("player_mode")
+        private boolean playerMode;
+        @SerializedName("min_body")
+        private float minBody;
+        @SerializedName("max_body")
+        private float maxBody;
+        @SerializedName("min_head")
+        private float minHead;
+        @SerializedName("max_head")
+        private float maxHead;
+        @SerializedName("stable")
+        private float stable;
+        @SerializedName("rotation_duration")
+        private int rotationDuration;
+        @SerializedName("rotation_delay")
+        private int rotationDelay;
+
+        static @NotNull RotatorData defaultData() {
+            return new RotatorData(
+                    false,
+                    false,
+                    false,
+                    -75,
+                    75,
+                    -75,
+                    75,
+                    15,
+                    10,
+                    10
+            );
         }
 
-        private void set() {
-            EntityBodyRotator.this.headUneven = headUneven;
-            EntityBodyRotator.this.bodyUneven = bodyUneven;
-            EntityBodyRotator.this.playerMode = playerMode;
-            EntityBodyRotator.this.minBody = Math.min(minBody, maxBody);
-            EntityBodyRotator.this.maxBody = Math.max(minBody, maxBody);
-            EntityBodyRotator.this.minHead = Math.min(minHead, maxHead);
-            EntityBodyRotator.this.maxHead = Math.max(minBody, maxHead);
-            EntityBodyRotator.this.stable = Math.max(stable, 0);
-            EntityBodyRotator.this.rotationDuration = Math.max(rotationDuration, 0);
-            EntityBodyRotator.this.rotationDelay = Math.max(rotationDelay, 0);
+        private void set(@NotNull EntityBodyRotator rotator) {
+            rotator.headUneven = headUneven;
+            rotator.bodyUneven = bodyUneven;
+            rotator.playerMode = playerMode;
+            rotator.minBody = Math.min(minBody, maxBody);
+            rotator.maxBody = Math.max(minBody, maxBody);
+            rotator.minHead = Math.min(minHead, maxHead);
+            rotator.maxHead = Math.max(minBody, maxHead);
+            rotator.stable = Math.max(stable, 0);
+            rotator.rotationDuration = Math.max(rotationDuration, 0);
+            rotator.rotationDelay = Math.max(rotationDelay, 0);
         }
     }
 }

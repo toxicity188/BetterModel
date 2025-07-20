@@ -78,7 +78,7 @@ public final class AnimationGenerator {
                     .mapToDouble(t -> t.maxTree(firstTime, secondTime, AnimationPoint::rotation))
                     .max()
                     .orElse(0);
-            var length = (float) Math.ceil(Math.max(minus / 90F, max / 60F));
+            var length = (float) Math.ceil(Math.max(minus / 90F, max / 45F));
             if (length < 2) continue;
             var last = firstTime;
             for (float f = 1; f < length; f++) {

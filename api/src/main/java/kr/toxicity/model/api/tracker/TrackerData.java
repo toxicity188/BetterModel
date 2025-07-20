@@ -22,6 +22,7 @@ public record TrackerData(
         @Nullable ModelScaler scaler,
         @Nullable ModelRotator rotator,
         @NotNull TrackerModifier modifier,
+        @Nullable @SerializedName("body-rotator") EntityBodyRotator.RotatorData bodyRotator,
         @Nullable @SerializedName("hide-option") EntityHideOption hideOption,
         @Nullable @SerializedName("mark-for-spawn") Set<UUID> markForSpawn
 ) {
@@ -44,6 +45,7 @@ public record TrackerData(
         tracker.hideOption(hideOption());
         tracker.scaler(scaler());
         tracker.rotator(rotator());
+        tracker.bodyRotator().setValue(bodyRotator());
     }
 
     /**
@@ -65,6 +67,7 @@ public record TrackerData(
                 ModelScaler.entity(),
                 null,
                 TrackerModifier.DEFAULT,
+                EntityBodyRotator.RotatorData.defaultData(),
                 null,
                 null
         ) : PARSER.fromJson(element, TrackerData.class);
@@ -88,6 +91,11 @@ public record TrackerData(
     @Override
     public @NotNull Set<UUID> markForSpawn() {
         return markForSpawn != null ? markForSpawn : Collections.emptySet();
+    }
+
+    @Override
+    public @NotNull EntityBodyRotator.RotatorData bodyRotator() {
+        return bodyRotator != null ? bodyRotator : EntityBodyRotator.RotatorData.defaultData();
     }
 
     @NotNull

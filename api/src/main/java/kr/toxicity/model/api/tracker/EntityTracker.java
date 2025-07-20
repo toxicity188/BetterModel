@@ -270,6 +270,7 @@ public class EntityTracker extends Tracker {
                 scaler,
                 rotator,
                 modifier,
+                bodyRotator.createData(),
                 hideOption,
                 markForSpawn
         );

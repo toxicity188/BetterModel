@@ -22,6 +22,7 @@ public final class PlayerTracker extends EntityTracker {
     @ApiStatus.Internal
     public PlayerTracker(@NotNull EntityTrackerRegistry registry, @NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
         super(registry, pipeline, modifier, preUpdateConsumer);
+        bodyRotator().setValue(setter -> setter.setPlayerMode(true));
     }
 
     @Override
