@@ -14,12 +14,12 @@ import java.util.function.Supplier;
 
 public final class EntityBodyRotator {
     private final EntityAdapter adapter;
-    private ModelRotation rotation;
-    private int tick;
     private final LazyFloatProvider provider;
     private final Supplier<Vector3f> headSupplier;
     private final Supplier<ModelRotation> bodySupplier;
     private final AtomicBoolean rotationLock = new AtomicBoolean();
+    private int tick;
+    private ModelRotation rotation;
     private Vector3f lastHeadRotation = new Vector3f();
     private volatile boolean headUneven;
     private volatile boolean bodyUneven;

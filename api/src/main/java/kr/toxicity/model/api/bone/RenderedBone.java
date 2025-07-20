@@ -87,7 +87,7 @@ public final class RenderedBone implements HitBoxSource {
 
     //Animation
     private boolean firstTick = true;
-    private boolean beforeVisible;
+    private boolean beforeVisible = true;
     private Consumer<PacketBundler> nextTicker = EMPTY_TICKER;
     private volatile BoneMovement beforeTransform, afterTransform, relativeOffsetCache;
     private volatile ModelRotation rotation = ModelRotation.EMPTY;
@@ -132,7 +132,6 @@ public final class RenderedBone implements HitBoxSource {
                 d.invisible(!group.getParent().visibility());
                 applyItem(d);
             });
-            beforeVisible = !display.invisible();
         }
     }
 

@@ -20,7 +20,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 
-import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -44,7 +43,7 @@ public class EntityTracker extends Tracker {
 
     private final AtomicInteger damageTintValue = new AtomicInteger(0xFF8080);
     private final AtomicLong damageTint = new AtomicLong(-1);
-    private final Set<UUID> markForSpawn = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private final Set<UUID> markForSpawn = ConcurrentHashMap.newKeySet();
 
     private final EntityBodyRotator bodyRotator;
     private EntityHideOption hideOption = EntityHideOption.DEFAULT;

@@ -109,8 +109,8 @@ val MythicLineConfig.modelPlaceholder
     }
 
 fun MythicLineConfig.toBonePredicate(defaultPredicate: BonePredicate): (PlaceholderArgument) -> BonePredicate {
-    val match = toPlaceholderBoolean(MM_EXACT_MATCH, true) { it == true }
-    val children = toPlaceholderBoolean(MM_CHILDREN, false) { it == true }
+    val match = toPlaceholderBoolean(MM_EXACT_MATCH, true)
+    val children = toPlaceholderBoolean(MM_CHILDREN, false)
     val partSupplier = toPlaceholderString(MM_PART_ID) {
         it?.boneName?.name
     }

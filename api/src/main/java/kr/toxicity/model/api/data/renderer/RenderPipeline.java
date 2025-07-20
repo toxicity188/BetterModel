@@ -44,7 +44,7 @@ public final class RenderPipeline {
     private final int displayAmount;
     private final Map<String, BlueprintAnimation> animationMap;
     private final Map<UUID, PlayerChannelHandler> playerMap = new ConcurrentHashMap<>();
-    private final Set<UUID> hidePlayerSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private final Set<UUID> hidePlayerSet = ConcurrentHashMap.newKeySet();
 
     private Predicate<Player> viewFilter = p -> true;
     private Predicate<Player> hideFilter = p -> hidePlayerSet.contains(p.getUniqueId());

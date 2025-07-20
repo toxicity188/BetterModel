@@ -24,15 +24,14 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class RollTester implements ModelTester, Listener {
 
-    private final Set<UUID> coolTimeSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
-    private final Set<UUID> invulnerableSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private final Set<UUID> coolTimeSet = ConcurrentHashMap.newKeySet();
+    private final Set<UUID> invulnerableSet = ConcurrentHashMap.newKeySet();
 
     @Override
     public void start(@NotNull BetterModelTest test) {
