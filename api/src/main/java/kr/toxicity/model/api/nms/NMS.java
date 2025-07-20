@@ -54,6 +54,13 @@ public interface NMS {
     @NotNull PacketBundler createBundler(int initialCapacity);
 
     /**
+     * Creates parallel packet bundler
+     * @param threshold size threshold
+     * @return parallel packet bundler
+     */
+    @NotNull PacketBundler createParallelBundler(int threshold);
+
+    /**
      * Applies tint to some item
      * @param itemStack item
      * @param rgb hex rgb value

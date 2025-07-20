@@ -14,10 +14,10 @@ public interface PacketBundler {
     boolean isEmpty();
 
     /**
-     * Copy this bundler
-     * @return copy
+     * Gets bundler's packet size.
+     * @return size
      */
-    @NotNull PacketBundler copy();
+    int size();
 
     /**
      * Sends all packets to player

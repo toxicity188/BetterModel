@@ -4,7 +4,6 @@ import io.netty.buffer.Unpooled
 import io.papermc.paper.configuration.GlobalConfiguration
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet
 import kr.toxicity.model.api.BetterModel
-import kr.toxicity.model.api.nms.PacketBundler
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.util.EventUtil
 import net.minecraft.core.BlockPos
@@ -153,8 +152,6 @@ internal fun <T> useByteBuf(block: (FriendlyByteBuf) -> T): T {
         buffer.release()
     }
 }
-
-internal fun PacketBundler.unwrap(): PacketBundlerImpl = this as PacketBundlerImpl
 
 internal fun EntityTrackerRegistry.entityFlag(uuid: UUID, byte: Byte): Byte {
     var b = byte.toInt()

@@ -14,47 +14,48 @@ import java.io.File
 
 class BetterModelConfigImpl(yaml: ConfigurationSection) : BetterModelConfig {
 
-    private var debug = yaml.getConfigurationSection("debug")?.let {
+    private val debug = yaml.getConfigurationSection("debug")?.let {
         DebugConfig.from(it)
     } ?: DebugConfig.DEFAULT
-    private var module = yaml.getConfigurationSection("module")?.let {
+    private val module = yaml.getConfigurationSection("module")?.let {
         ModuleConfig.from(it)
     } ?: ModuleConfig.DEFAULT
-    private var pack = yaml.getConfigurationSection("pack")?.let {
+    private val pack = yaml.getConfigurationSection("pack")?.let {
         PackConfig.from(it)
     } ?: PackConfig.DEFAULT
-    private var metrics = yaml.getBoolean("metrics", true)
-    private var sightTrace = yaml.getBoolean("sight-trace", true)
-    private var item = yaml.getString("item")?.let {
+    private val metrics = yaml.getBoolean("metrics", true)
+    private val sightTrace = yaml.getBoolean("sight-trace", true)
+    private val item = yaml.getString("item")?.let {
         runCatching {
             Material.getMaterial(it.uppercase()).ifNull { "This item doesn't exist: $it" }
         }.getOrDefault(Material.LEATHER_HORSE_ARMOR)
     } ?: Material.LEATHER_HORSE_ARMOR
-    private var maxSight = yaml.getDouble("max-sight", -1.0).run {
+    private val maxSight = yaml.getDouble("max-sight", -1.0).run {
         if (this <= 0.0) EntityUtil.RENDER_DISTANCE else this
     }
-    private var minSight = yaml.getDouble("min-sight", 5.0)
-    private var lockOnPlayAnimation = yaml.getBoolean("lock-on-play-animation", false)
-    private var namespace = yaml.getString("namespace") ?: "bettermodel"
-    private var packType = yaml.getString("pack-type")?.let {
+    private val minSight = yaml.getDouble("min-sight", 5.0)
+    private val lockOnPlayAnimation = yaml.getBoolean("lock-on-play-animation", false)
+    private val namespace = yaml.getString("namespace") ?: "bettermodel"
+    private val packType = yaml.getString("pack-type")?.let {
         runCatching {
             BetterModelConfig.PackType.valueOf(it.uppercase())
         }.getOrNull()
     } ?: BetterModelConfig.PackType.ZIP
-    private var buildFolderLocation = (yaml.getString("build-folder-location") ?: "BetterModel/build").replace('/', File.separatorChar)
-    private var followMobInvisibility = yaml.getBoolean("follow-mob-invisibility", true)
-    private var animatedTextureFrameTime = yaml.getInt("animated-texture-frame-time", 10)
-    private var usePurpurAfk = yaml.getBoolean("use-purpur-afk", true)
-    private var versionCheck = yaml.getBoolean("version-check", true)
-    private var defaultMountController = when (yaml.getString("default-mount-controller")?.lowercase()) {
+    private val buildFolderLocation = (yaml.getString("build-folder-location") ?: "BetterModel/build").replace('/', File.separatorChar)
+    private val followMobInvisibility = yaml.getBoolean("follow-mob-invisibility", true)
+    private val animatedTextureFrameTime = yaml.getInt("animated-texture-frame-time", 10)
+    private val usePurpurAfk = yaml.getBoolean("use-purpur-afk", true)
+    private val versionCheck = yaml.getBoolean("version-check", true)
+    private val defaultMountController = when (yaml.getString("default-mount-controller")?.lowercase()) {
         "invalid" -> MountControllers.INVALID
         "none" -> MountControllers.NONE
         "fly" -> MountControllers.FLY
         else -> MountControllers.WALK
     }
-    private var lerpFrameTime = yaml.getInt("lerp-frame-time", 5)
-    private var cancelPlayerModelInventory = yaml.getBoolean("cancel-player-model-inventory")
-    private var playerHideDelay = yaml.getLong("player-hide-delay", 3L).coerceAtLeast(1L)
+    private val lerpFrameTime = yaml.getInt("lerp-frame-time", 5)
+    private val cancelPlayerModelInventory = yaml.getBoolean("cancel-player-model-inventory")
+    private val playerHideDelay = yaml.getLong("player-hide-delay", 3L).coerceAtLeast(1L)
+    private val packetBundlingSize = yaml.getInt("packet-bundling-size", 32).coerceAtLeast(4)
 
     override fun debug(): DebugConfig = debug
     override fun module(): ModuleConfig = module
@@ -76,4 +77,5 @@ class BetterModelConfigImpl(yaml: ConfigurationSection) : BetterModelConfig {
     override fun lerpFrameTime(): Int = lerpFrameTime
     override fun cancelPlayerModelInventory(): Boolean = cancelPlayerModelInventory
     override fun playerHideDelay(): Long = playerHideDelay
+    override fun packetBundlingSize(): Int = packetBundlingSize
 }

@@ -117,7 +117,7 @@ class NMSImpl : NMS {
 
     override fun hide(channel: PlayerChannelHandler, registry: EntityTrackerRegistry) {
         val target = (registry.entity() as CraftEntity).vanillaEntity
-        val list = mutableListOf<Packet<ClientGamePacketListener>>()
+        val list = bundlerOf()
         target.entityData.pack(
             valueFilter = { it.id == sharedFlag }
         )?.let {
@@ -127,7 +127,7 @@ class NMSImpl : NMS {
             val packet = if (registry.hideOption(channel.uuid()).equipment) target.toEmptyEquipmentPacket() else target.toEquipmentPacket()
             packet?.let { list += it }
         }
-        PacketBundlerImpl(list).send(channel.player())
+        list.send(channel.player())
     }
     
     private fun ClientboundSetEntityDataPacket.toRegistryDataPacket(uuid: UUID, registry: EntityTrackerRegistry) = ClientboundSetEntityDataPacket(id, packedItems().map {
@@ -172,7 +172,7 @@ class NMSImpl : NMS {
 
         override fun sendEntityData(registry: EntityTrackerRegistry) {
             val handle = registry.adapter().handle() as Entity
-            val list = mutableListOf<Packet<ClientGamePacketListener>>(
+            val list = bundlerOf(
                 ClientboundSetPassengersPacket(handle)
             )
             handle.entityData.pack(
@@ -183,7 +183,7 @@ class NMSImpl : NMS {
             if (handle is LivingEntity) handle.toEquipmentPacket()?.let {
                 list += it
             }
-            PacketBundlerImpl(list).send(player)
+            list.send(player)
         }
 
         private fun <T : ClientGamePacketListener> Packet<in T>.handle(): Packet<in T> {
@@ -225,7 +225,7 @@ class NMSImpl : NMS {
                     }
                 } 
                 is ClientboundRespawnPacket -> playerModel?.let {
-                    PacketBundlerImpl(mutableListOf(it.mountPacket())).send(player)
+                    bundlerOf(it.mountPacket()).send(player)
                 }
                 is ClientboundContainerSetSlotPacket if isInHand(connection.player) && playerModel?.hideOption(uuid)?.equipment() == true -> {
                     return ClientboundContainerSetSlotPacket(containerId, stateId, slot, net.minecraft.world.item.ItemStack.EMPTY)
@@ -288,7 +288,7 @@ class NMSImpl : NMS {
     }
 
     override fun mount(registry: EntityTrackerRegistry, bundler: PacketBundler) {
-        bundler.unwrap() += registry.mountPacket()
+        bundler += registry.mountPacket()
     }
 
     private fun EntityTrackerRegistry.mountPacket(entity: Entity = adapter().handle() as Entity, array: IntArray = entity.passengers.filter {
@@ -308,7 +308,8 @@ class NMSImpl : NMS {
 
     override fun inject(player: Player): PlayerChannelHandlerImpl = PlayerChannelHandlerImpl(player)
 
-    override fun createBundler(initialCapacity: Int): PacketBundler = PacketBundlerImpl(ArrayList(initialCapacity))
+    override fun createBundler(initialCapacity: Int): PacketBundler = bundlerOf(initialCapacity)
+    override fun createParallelBundler(threshold: Int): PacketBundler = parallelBundlerOf(threshold)
 
     override fun create(location: Location, yOffset: Double, initialConsumer: Consumer<ModelDisplay>): ModelDisplay = ModelDisplayImpl(ItemDisplay(EntityType.ITEM_DISPLAY, (location.world as CraftWorld).handle).apply {
         billboardConstraints = Display.BillboardConstraints.FIXED
@@ -341,7 +342,7 @@ class NMSImpl : NMS {
             if (!display.valid) return
             display.xRot = rotation.x
             display.yRot = rotation.y
-            bundler.unwrap() += ClientboundMoveEntityPacket.Rot(
+            bundler += ClientboundMoveEntityPacket.Rot(
                 display.id,
                 rotation.packedY(),
                 rotation.packedX(),
@@ -374,14 +375,14 @@ class NMSImpl : NMS {
         }
 
         override fun spawn(showItem: Boolean, bundler: PacketBundler) {
-            bundler.unwrap() += addPacket
-            bundler.unwrap() += entityDataLock.accessToLock {
+            bundler += addPacket
+            bundler += entityDataLock.accessToLock {
                 ClientboundSetEntityDataPacket(display.id, entityData.nonDefaultValues!!.markVisible(showItem))
             }
         }        
         
         override fun remove(bundler: PacketBundler) {
-            bundler.unwrap() += removePacket
+            bundler += removePacket
         }
 
         override fun teleport(location: Location, bundler: PacketBundler) {
@@ -392,7 +393,7 @@ class NMSImpl : NMS {
                 location.yaw,
                 0F
             )
-            bundler.unwrap() += ClientboundTeleportEntityPacket(display)
+            bundler += ClientboundTeleportEntityPacket(display)
         }
 
         override fun syncPosition(adapter: EntityAdapter, bundler: PacketBundler) {
@@ -490,7 +491,7 @@ class NMSImpl : NMS {
                     required = { it.any { packed -> animationSet.contains(packed.second.id) } }
                 )
             }?.run {
-                bundler.unwrap() += ClientboundSetEntityDataPacket(display.id, this)
+                bundler += ClientboundSetEntityDataPacket(display.id, this)
             }
         }
 
@@ -506,7 +507,7 @@ class NMSImpl : NMS {
                     valueFilter = { entityDataSet.contains(it.id) }
                 )
             }?.markVisible(!invisible())?.run {
-                bundler.unwrap() += ClientboundSetEntityDataPacket(display.id, this)
+                bundler += ClientboundSetEntityDataPacket(display.id, this)
             }
         }
 
@@ -516,7 +517,7 @@ class NMSImpl : NMS {
                     valueFilter = { entityDataSet.contains(it.id) }
                 )
             }?.markVisible(showItem)?.run {
-                bundler.unwrap() += ClientboundSetEntityDataPacket(display.id, this)
+                bundler += ClientboundSetEntityDataPacket(display.id, this)
             }
         }
         

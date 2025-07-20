@@ -90,6 +90,10 @@ public final class RenderPipeline {
         return BetterModel.plugin().nms().createBundler(displayAmount);
     }
 
+    public @NotNull PacketBundler createParallelBundler() {
+        return BetterModel.plugin().nms().createParallelBundler(BetterModel.config().packetBundlingSize());
+    }
+
     public void viewFilter(@NotNull Predicate<Player> filter) {
         this.viewFilter = this.viewFilter.and(Objects.requireNonNull(filter));
     }

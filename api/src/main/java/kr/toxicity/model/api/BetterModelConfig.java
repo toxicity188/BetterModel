@@ -134,6 +134,12 @@ public interface BetterModelConfig {
     long playerHideDelay();
 
     /**
+     * Gets packet bundling size
+     * @return packet bundling size
+     */
+    int packetBundlingSize();
+
+    /**
      * Pack type
      */
     enum PackType {
