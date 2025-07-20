@@ -11,16 +11,25 @@ class GlowMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTarge
 
     private val model = mlc.modelPlaceholder
     private val predicate = mlc.bonePredicateNullable
-    private val glow = mlc.toPlaceholderBoolean(arrayOf("glow", "g"), true)
+    private val glow = mlc.toNullablePlaceholderBoolean(arrayOf("glow", "g"), true)
     private val color = mlc.toPlaceholderColor(arrayOf("color", "c"))
 
     override fun cast(p0: SkillMetadata): SkillResult {
         val args = p0.toPlaceholderArgs()
         return p0.toTracker(model(args))?.let {
-            it.update(
-                TrackerUpdateAction.glow(glow(args), color(args)),
-                predicate(args)
-            )
+            val predicate = predicate(args)
+            glow(args)?.let { glow ->
+                it.update(
+                    TrackerUpdateAction.glow(glow),
+                    predicate
+                )
+            }
+            color(args)?.let { c ->
+                it.update(
+                    TrackerUpdateAction.glowColor(c),
+                    predicate
+                )
+            }
             SkillResult.SUCCESS
         } ?: SkillResult.CONDITION_FAILED
     }

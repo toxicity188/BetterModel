@@ -33,7 +33,7 @@ public final class AnimationGenerator {
     ) {
         var floatSet = mapFloat(pointMap.values()
                 .stream()
-                .flatMap(d -> d.points().stream()), p -> InterpolationUtil.roundTime(p.position().time()), FloatAVLTreeSet::new);
+                .flatMap(d -> d.points().stream()), p -> p.position().time(), FloatAVLTreeSet::new);
         InterpolationUtil.insertLerpFrame(floatSet);
         new AnimationGenerator(pointMap, children).interpolateRotation(floatSet);
         return mapValue(pointMap, v -> {
@@ -42,7 +42,7 @@ public final class AnimationGenerator {
                     v.name(),
                     InterpolationUtil.putAnimationPoint(v.points(), floatSet).stream().map(point -> {
                         var animation = point.toMovement();
-                        return animation.time(animation.time() - (float) doubleCache.getAndSet(animation.time()));
+                        return animation.time(InterpolationUtil.roundTime(animation.time() - (float) doubleCache.getAndSet(animation.time())));
                     }).toList()
             );
         });

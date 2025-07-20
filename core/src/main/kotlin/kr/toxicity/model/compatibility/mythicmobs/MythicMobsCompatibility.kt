@@ -51,6 +51,7 @@ class MythicMobsCompatibility : Compatibility {
                     "dismountmodel" -> register(DismountModelMechanic(config))
                     "dismountallmodel", "dismountall" -> register(DismountAllModelMechanic(config))
                     "lockmodel", "lockrotation" -> register(LockModelMechanic(config))
+                    "bodyrotation", "bodyclamp" -> register(BodyRotationMechanic(config))
                 }
             }
             @EventHandler

@@ -43,6 +43,16 @@ public final class LazyFloatProvider {
     }
 
     /**
+     * Creates from time supplier
+     * @param requiredTime required time supplier
+     * @param initialValue initial value
+     */
+    public LazyFloatProvider(float initialValue, @NotNull FloatSupplier requiredTime) {
+        this(requiredTime);
+        this.storedValue = initialValue;
+    }
+
+    /**
      * Updates and gets float
      * @param updateValue destination value
      * @return interpolated value
@@ -61,6 +71,15 @@ public final class LazyFloatProvider {
                 updateValue,
                 alpha
         );
+    }
+
+    /**
+     * Sets stored value
+     * @param storedValue new value
+     */
+    public void storedValue(float storedValue) {
+        this.storedValue = storedValue;
+        time = System.currentTimeMillis();
     }
 
     /**

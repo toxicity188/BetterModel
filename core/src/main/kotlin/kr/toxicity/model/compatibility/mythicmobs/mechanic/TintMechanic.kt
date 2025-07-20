@@ -12,7 +12,9 @@ class TintMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTarge
     private val model = mlc.modelPlaceholder
     private val predicate = mlc.bonePredicateNullable
     private val damageTint = mlc.toPlaceholderBoolean(arrayOf("damagetint", "d", "dmg", "damage"))
-    private val color = mlc.toPlaceholderColor(arrayOf("color", "c"))
+    private val color = mlc.toPlaceholderColor(arrayOf("color", "c")) {
+        it ?: 0xFFFFFF
+    }
 
     override fun cast(p0: SkillMetadata): SkillResult {
         val args = p0.toPlaceholderArgs()

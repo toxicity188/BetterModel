@@ -73,10 +73,10 @@ public abstract class Tracker implements AutoCloseable {
     private volatile ScheduledFuture<?> task;
     private long frame = 0;
     private final Queue<Runnable> queuedTask = new ConcurrentLinkedQueue<>();
+    private final AtomicBoolean tickPause = new AtomicBoolean();
     private final AtomicBoolean isClosed = new AtomicBoolean();
     private final AtomicBoolean readyForForceUpdate = new AtomicBoolean();
     private final AtomicBoolean forRemoval = new AtomicBoolean();
-    protected final AtomicBoolean rotationLock = new AtomicBoolean();
     protected final TrackerModifier modifier;
     private final Runnable updater;
     private final BundlerSet bundlerSet;
@@ -85,7 +85,9 @@ public abstract class Tracker implements AutoCloseable {
     private Supplier<ModelRotation> rotationSupplier = () -> ModelRotation.EMPTY;
     private BiConsumer<Tracker, CloseReason> closeEventHandler = (t, r) -> EventUtil.call(new CloseTrackerEvent(t, r));
 
-    private ScheduledPacketHandler handler = (t, s) -> t.pipeline.tick(s.viewBundler);
+    private ScheduledPacketHandler handler = (t, s) -> {
+        if (!tickPause.get()) t.pipeline.tick(s.viewBundler);
+    };
 
     /**
      * Creates tracker
@@ -158,15 +160,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return rotation
      */
     public @NotNull ModelRotation rotation() {
-        return rotationLock.get() ? pipeline.getRotation() : rotator.apply(this, rotationSupplier.get());
-    }
-
-    /**
-     * Locks model rotation.
-     * @return success
-     */
-    public boolean lockRotation(boolean lock) {
-        return rotationLock.compareAndSet(!lock, lock);
+        return rotator.apply(this, rotationSupplier.get());
     }
 
     public final void rotation(@NotNull Supplier<ModelRotation> supplier) {
@@ -294,6 +288,14 @@ public abstract class Tracker implements AutoCloseable {
         return modifier;
     }
 
+    /**
+     * Pauses this tracker's tick
+     * @param pause pause
+     * @return success
+     */
+    public boolean pause(boolean pause) {
+        return tickPause.compareAndSet(!pause, pause);
+    }
 
     /**
      * Forces packet update.

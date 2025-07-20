@@ -12,10 +12,10 @@ class BrightnessMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), IN
     private val model = mlc.modelPlaceholder
     private val predicate = mlc.bonePredicateNullable
     private val block = mlc.toPlaceholderInteger(arrayOf("block", "b")) {
-        it.coerceAtLeast(-1).coerceAtMost(15)
+        (it ?: -1).coerceAtLeast(-1).coerceAtMost(15)
     }
     private val sky = mlc.toPlaceholderInteger(arrayOf("sky", "s")) {
-        it.coerceAtLeast(-1).coerceAtMost(15)
+        (it ?: -1).coerceAtLeast(-1).coerceAtMost(15)
     }
 
     override fun cast(p0: SkillMetadata): SkillResult {

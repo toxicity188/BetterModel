@@ -16,7 +16,7 @@ class LockModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INo
 
     override fun cast(p0: SkillMetadata): SkillResult {
         val args = p0.toPlaceholderArgs()
-        return p0.toTracker(model(args))?.let {
+        return p0.toTracker(model(args))?.bodyRotator()?.let {
             it.lockRotation(lock(args))
             SkillResult.SUCCESS
         } ?: SkillResult.CONDITION_FAILED

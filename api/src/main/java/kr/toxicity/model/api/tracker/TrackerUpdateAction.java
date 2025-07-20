@@ -31,11 +31,19 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
     /**
      * Creates glow data
      * @param glow should be applying a glow
-     * @param glowColor glow color
      * @return glow data
      */
-    static @NotNull Glow glow(boolean glow, int glowColor) {
-        return new Glow(glow, glowColor);
+    static @NotNull Glow glow(boolean glow) {
+        return glow ? Glow.TRUE : Glow.FALSE;
+    }
+
+    /**
+     * Creates glow color data
+     * @param glowColor glow color
+     * @return glow color data
+     */
+    static @NotNull GlowColor glowColor(int glowColor) {
+        return new GlowColor(glowColor);
     }
 
     /**
@@ -99,13 +107,34 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
 
     /**
      * Glow
-     * @param glow should be applying a glow
-     * @param glowColor glow color
      */
-    record Glow(boolean glow, int glowColor) implements TrackerUpdateAction {
+    @RequiredArgsConstructor
+    enum Glow implements TrackerUpdateAction {
+        /**
+         * True
+         */
+        TRUE(true),
+        /**
+         * False
+         */
+        FALSE(false)
+        ;
+        private final boolean value;
+
         @Override
         public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
-            return bone.glow(predicate, glow, glowColor);
+            return bone.glow(predicate, value);
+        }
+    }
+
+    /**
+     * Glow color
+     * @param glowColor glow color
+     */
+    record GlowColor(int glowColor) implements TrackerUpdateAction {
+        @Override
+        public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
+            return bone.glowColor(predicate, glowColor);
         }
     }
 

@@ -12,16 +12,13 @@ import kr.toxicity.model.api.util.FunctionUtil;
 import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.function.BonePredicate;
 import kr.toxicity.model.api.util.function.FloatConstantSupplier;
-import kr.toxicity.model.api.util.lazy.LazyFloatProvider;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
-import org.joml.Vector3f;
 
 import java.util.Collections;
 import java.util.Objects;
@@ -32,7 +29,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * Entity tracker
@@ -50,7 +46,7 @@ public class EntityTracker extends Tracker {
     private final AtomicLong damageTint = new AtomicLong(-1);
     private final Set<UUID> markForSpawn = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
-    private final HeadRotationProperty headRotationProperty = new HeadRotationProperty();
+    private final EntityBodyRotator bodyRotator;
     private EntityHideOption hideOption = EntityHideOption.DEFAULT;
 
     /**
@@ -64,6 +60,7 @@ public class EntityTracker extends Tracker {
     public EntityTracker(@NotNull EntityTrackerRegistry registry, @NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
         super(pipeline, modifier);
         this.registry = registry;
+        bodyRotator = new EntityBodyRotator(registry.adapter());
 
         var entity = registry.entity();
         var adapter = registry.adapter();
@@ -96,7 +93,7 @@ public class EntityTracker extends Tracker {
         //Animation
         pipeline.defaultPosition(FunctionUtil.throttleTick(() -> adapter.passengerPosition().mul(-1)));
         pipeline.scale(scale);
-        Function<Quaternionf, Quaternionf> headRotator = r -> r.mul(MathUtil.toQuaternion(headRotationProperty.get()));
+        Function<Quaternionf, Quaternionf> headRotator = r -> r.mul(MathUtil.toQuaternion(bodyRotator.headRotation()));
         pipeline.addRotationModifier(
                 BonePredicate.of(BonePredicate.State.NOT_SET, r -> r.getName().tagged(BoneTags.HEAD)),
                 headRotator
@@ -124,7 +121,7 @@ public class EntityTracker extends Tracker {
         tick((t, s) -> {
             if (damageTint.getAndDecrement() == 0) tint(-1);
         });
-        rotation(() -> new ModelRotation(adapter.pitch(), entity instanceof LivingEntity ? adapter.bodyYaw() : adapter.headYaw()));
+        rotation(bodyRotator::bodyRotation);
         preUpdateConsumer.accept(this);
         update();
         EventUtil.call(new CreateEntityTrackerEvent(this));
@@ -280,6 +277,14 @@ public class EntityTracker extends Tracker {
     }
 
     /**
+     * Gets body rotator
+     * @return body rotator
+     */
+    public @NotNull EntityBodyRotator bodyRotator() {
+        return bodyRotator;
+    }
+
+    /**
      * Checks this model can be spawned at given player
      * @param player target player
      * @return can be spawned
@@ -294,68 +299,5 @@ public class EntityTracker extends Tracker {
 
     public void hideOption(@NotNull EntityHideOption hideOption) {
         this.hideOption = Objects.requireNonNull(hideOption);
-    }
-
-    /**
-     * Head rotation property
-     */
-    public final class HeadRotationProperty implements Supplier<Vector3f> {
-        private float rotationDelay = 150;
-        private float minRotation = -90F;
-        private float maxRotation = 90F;
-        private volatile Vector3f previous = new Vector3f();
-        private final Supplier<Vector3f> delegate = LazyFloatProvider.ofVector(TRACKER_TICK_INTERVAL, () -> rotationDelay, () -> {
-            var value = (-registry.adapter().headYaw() + registry.adapter().bodyYaw()) % 180F;
-            return new Vector3f(
-                    Math.clamp(registry.adapter().pitch(), minRotation, maxRotation),
-                    Math.clamp(MathUtil.absMin(value, 360 - value), minRotation, maxRotation),
-                    0
-            );
-        });
-
-        /**
-         * Private initializer
-         */
-        private HeadRotationProperty() {
-        }
-
-        @Override
-        public @NotNull Vector3f get() {
-            return rotationLock.get() ? previous : (previous = delegate.get());
-        }
-
-        /**
-         * Sets rotation delay
-         * @param delay delay
-         */
-        public synchronized void delay(float delay) {
-            rotationDelay = delay;
-        }
-
-        /**
-         * Sets min rotation degree
-         * @param min rotation degree
-         */
-        public void minRotation(float min) {
-            rotation(min, maxRotation);
-        }
-
-        /**
-         * Sets max rotation degree
-         * @param max rotation degree
-         */
-        public void maxRotation(float max) {
-            rotation(minRotation, max);
-        }
-
-        /**
-         * Sets rotation degree
-         * @param min min rotation degree
-         * @param max max rotation degree
-         */
-        public synchronized void rotation(float min, float max) {
-            minRotation = Math.min(min, max);
-            maxRotation = Math.max(min, max);
-        }
     }
 }

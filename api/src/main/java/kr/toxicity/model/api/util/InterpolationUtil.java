@@ -31,9 +31,12 @@ public final class InterpolationUtil {
         throw new RuntimeException();
     }
 
+    private static final float FRAME_HASH = (float) Tracker.TRACKER_TICK_INTERVAL / 1000F;
+    private static final float FRAME_HASH_REVERT = 1 / FRAME_HASH;
+
     private static void point(@NotNull FloatSet target, @NotNull List<VectorPoint> points) {
         for (VectorPoint point : points) {
-            target.add(roundTime(point.time()));
+            target.add(point.time());
         }
     }
 
@@ -49,7 +52,7 @@ public final class InterpolationUtil {
     public static @NotNull List<AnimationPoint> sum(float length, @NotNull List<VectorPoint> position, @NotNull List<VectorPoint> rotation, @NotNull List<VectorPoint> scale) {
         var set = new FloatAVLTreeSet(FloatComparators.NATURAL_COMPARATOR);
         set.add(0);
-        set.add(roundTime(length));
+        set.add(length);
         point(set, position);
         point(set, scale);
         point(set, rotation);
@@ -106,10 +109,8 @@ public final class InterpolationUtil {
         insertLerpFrame(frames, (float) BetterModel.config().lerpFrameTime() / 20F);
     }
 
-    private static final float FRAME_HASH = (float) Tracker.TRACKER_TICK_INTERVAL / 1000F;
-
     public static float roundTime(float time) {
-        return Math.round(time / FRAME_HASH) * FRAME_HASH;
+        return Math.round(MathUtil.fma(time, FRAME_HASH_REVERT, MathUtil.FRAME_EPSILON)) * FRAME_HASH;
     }
 
     public static void insertLerpFrame(@NotNull FloatCollection frames, float frame) {

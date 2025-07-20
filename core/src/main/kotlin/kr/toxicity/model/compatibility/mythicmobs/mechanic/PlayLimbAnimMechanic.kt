@@ -31,10 +31,11 @@ class PlayLimbAnimMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), 
         val targetPlayer = target.bukkitEntity as? Player ?: return SkillResult.CONDITION_FAILED
         val args = toPlaceholderArgs(data, target)
 
+        val removal = remove(args)
         val currentModelId = modelId(args) ?: return SkillResult.INVALID_CONFIG
-        val currentAnimationId = animationId(args) ?: if (!remove(args)) return SkillResult.INVALID_CONFIG else ""
+        val currentAnimationId = animationId(args) ?: if (!removal) return SkillResult.INVALID_CONFIG else ""
 
-        if (remove(args)) {
+        if (removal) {
             EntityTrackerRegistry.registry(targetPlayer.uniqueId)?.remove(currentModelId)
         } else {
             val renderer = BetterModel.limb(currentModelId).orElse(null) ?: return SkillResult.CONDITION_FAILED.apply {

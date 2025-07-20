@@ -207,12 +207,22 @@ public final class RenderedBone implements HitBoxSource {
     /**
      * Apply a glow to this model.
      * @param glow should glow
+     * @return success or not
+     */
+    public boolean glow(@NotNull Predicate<RenderedBone> predicate, boolean glow) {
+        if (display != null && predicate.test(this)) {
+            display.glow(glow);
+            return true;
+        }
+        return false;
+    }
+    /**
+     * Sets a glow color to this model.
      * @param glowColor hex glow color
      * @return success or not
      */
-    public boolean glow(@NotNull Predicate<RenderedBone> predicate, boolean glow, int glowColor) {
+    public boolean glowColor(@NotNull Predicate<RenderedBone> predicate, int glowColor) {
         if (display != null && predicate.test(this)) {
-            display.glow(glow);
             display.glowColor(glowColor);
             return true;
         }
@@ -327,7 +337,6 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     public boolean isVisible() {
-        if (display == null || display.invisible()) return false;
         return afterTransform != null && afterTransform.isVisible();
     }
 

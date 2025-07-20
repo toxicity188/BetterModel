@@ -14,8 +14,6 @@ val MM_CHILDREN = arrayOf("children", "child")
 val MM_EXACT_MATCH = arrayOf("exactmatch", "em", "exact", "match")
 val MM_SEAT = arrayOf("seat", "p", "pbone")
 
-const val WHITE = 0xFFFFFF
-
 fun SkillMetadata.toTracker(model: String?) = caster.entity.toTracker(model)
 fun AbstractEntity.toTracker(model: String?) = bukkitEntity.toTracker(model)
 
@@ -39,9 +37,10 @@ fun <T> MythicLineConfig.toPlaceholderString(array: Array<String>, defaultValue:
         }
     }
 }
-fun MythicLineConfig.toPlaceholderInteger(array: Array<String>, defaultValue: Int = 0) = toPlaceholderInteger(array, defaultValue) { it }
-fun <T> MythicLineConfig.toPlaceholderInteger(array: Array<String>, defaultValue: Int = 0, mapper: (Int) -> T): (PlaceholderArgument) -> T {
-    return getPlaceholderInteger(array, defaultValue).let {
+fun MythicLineConfig.toPlaceholderInteger(array: Array<String>, defaultValue: Int = 0) = toPlaceholderInteger(array, defaultValue) { it ?: defaultValue }
+fun MythicLineConfig.toNullablePlaceholderInteger(array: Array<String>, defaultValue: Int = 0) = toPlaceholderInteger(array, defaultValue) { it }
+fun <T> MythicLineConfig.toPlaceholderInteger(array: Array<String>, defaultValue: Int = 0, mapper: (Int?) -> T): (PlaceholderArgument) -> T {
+    return getPlaceholderInteger(array, defaultValue)?.let {
         { meta ->
             mapper(when (meta) {
                 is PlaceholderArgument.None -> it.get()
@@ -50,11 +49,16 @@ fun <T> MythicLineConfig.toPlaceholderInteger(array: Array<String>, defaultValue
                 is PlaceholderArgument.Entity -> it[meta.entity]
             })
         }
+    } ?: mapper(null).let { mapped ->
+        {
+            mapped
+        }
     }
 }
-fun MythicLineConfig.toPlaceholderFloat(array: Array<String>, defaultValue: Float = 0F) = toPlaceholderFloat(array, defaultValue) { it }
-fun <T> MythicLineConfig.toPlaceholderFloat(array: Array<String>, defaultValue: Float = 0F, mapper: (Float) -> T): (PlaceholderArgument) -> T {
-    return getPlaceholderFloat(array, defaultValue).let {
+fun MythicLineConfig.toPlaceholderFloat(array: Array<String>, defaultValue: Float = 0F) = toPlaceholderFloat(array, defaultValue) { it ?: defaultValue }
+fun MythicLineConfig.toNullablePlaceholderFloat(array: Array<String>, defaultValue: Float = 0F) = toPlaceholderFloat(array, defaultValue) { it }
+fun <T> MythicLineConfig.toPlaceholderFloat(array: Array<String>, defaultValue: Float = 0F, mapper: (Float?) -> T): (PlaceholderArgument) -> T {
+    return getPlaceholderFloat(array, defaultValue)?.let {
         { meta ->
             mapper(when (meta) {
                 is PlaceholderArgument.None -> it.get()
@@ -63,11 +67,16 @@ fun <T> MythicLineConfig.toPlaceholderFloat(array: Array<String>, defaultValue: 
                 is PlaceholderArgument.Entity -> it[meta.entity]
             })
         }
+    } ?: mapper(null).let { mapped ->
+        {
+            mapped
+        }
     }
 }
-fun MythicLineConfig.toPlaceholderBoolean(array: Array<String>, defaultValue: Boolean = false) = toPlaceholderBoolean(array, defaultValue) { it }
-fun <T> MythicLineConfig.toPlaceholderBoolean(array: Array<String>, defaultValue: Boolean = false, mapper: (Boolean) -> T): (PlaceholderArgument) -> T {
-    return getPlaceholderBoolean(array, defaultValue).let {
+fun MythicLineConfig.toPlaceholderBoolean(array: Array<String>, defaultValue: Boolean? = null) = toPlaceholderBoolean(array, defaultValue) { it == true }
+fun MythicLineConfig.toNullablePlaceholderBoolean(array: Array<String>, defaultValue: Boolean? = null) = toPlaceholderBoolean(array, defaultValue) { it }
+fun <T> MythicLineConfig.toPlaceholderBoolean(array: Array<String>, defaultValue: Boolean? = null, mapper: (Boolean?) -> T): (PlaceholderArgument) -> T {
+    return getPlaceholderBoolean(array, defaultValue)?.let {
         { meta ->
             mapper(when (meta) {
                 is PlaceholderArgument.None -> it.get()
@@ -75,13 +84,17 @@ fun <T> MythicLineConfig.toPlaceholderBoolean(array: Array<String>, defaultValue
                 is PlaceholderArgument.TargetedSkillMeta -> it.get(meta.meta, meta.target)
                 is PlaceholderArgument.Entity -> it[meta.entity]
             })
+        }
+    } ?: mapper(null).let { mapped ->
+        {
+            mapped
         }
     }
 }
 fun MythicLineConfig.toPlaceholderColor(array: Array<String>, defaultValue: String = "FFFFFF") = toPlaceholderColor(array, defaultValue) { it }
-fun <T> MythicLineConfig.toPlaceholderColor(array: Array<String>, defaultValue: String = "FFFFFF", mapper: (Int) -> T): (PlaceholderArgument) -> T {
+fun <T> MythicLineConfig.toPlaceholderColor(array: Array<String>, defaultValue: String = "FFFFFF", mapper: (Int?) -> T): (PlaceholderArgument) -> T {
     return toPlaceholderString(array, defaultValue) {
-        mapper(it?.toIntOrNull(16) ?: WHITE)
+        mapper(it?.toIntOrNull(16))
     }
 }
 
@@ -96,8 +109,8 @@ val MythicLineConfig.modelPlaceholder
     }
 
 fun MythicLineConfig.toBonePredicate(defaultPredicate: BonePredicate): (PlaceholderArgument) -> BonePredicate {
-    val match = toPlaceholderBoolean(MM_EXACT_MATCH, true)
-    val children = toPlaceholderBoolean(MM_CHILDREN, false)
+    val match = toPlaceholderBoolean(MM_EXACT_MATCH, true) { it == true }
+    val children = toPlaceholderBoolean(MM_CHILDREN, false) { it == true }
     val partSupplier = toPlaceholderString(MM_PART_ID) {
         it?.boneName?.name
     }

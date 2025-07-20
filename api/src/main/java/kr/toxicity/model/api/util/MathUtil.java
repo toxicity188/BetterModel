@@ -49,6 +49,11 @@ public final class MathUtil {
     public static final float MODEL_TO_BLOCK_MULTIPLIER = 16;
 
     /**
+     * Frame epsilon value
+     */
+    public static final float FRAME_EPSILON = 0.001F;
+
+    /**
      * Valid rotation degrees
      */
     public static final FloatSet VALID_ROTATION_DEGREES = FloatSet.of(
