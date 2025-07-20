@@ -64,7 +64,7 @@ public final class EntityBodyRotator {
         return rotationLock.compareAndSet(!lock, lock);
     }
 
-    public @NotNull ModelRotation bodyRotation() {
+    @NotNull ModelRotation bodyRotation() {
         return rotationLock.get() ? rotation : (rotation = bodySupplier.get());
     }
 
@@ -100,7 +100,7 @@ public final class EntityBodyRotator {
         return Math.abs(a - b) < 256F / 360F;
     }
 
-    public @NotNull Vector3f headRotation() {
+    @NotNull Vector3f headRotation() {
         return rotationLock.get() ? lastHeadRotation : (lastHeadRotation = headSupplier.get());
     }
 

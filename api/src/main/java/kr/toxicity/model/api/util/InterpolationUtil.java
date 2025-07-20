@@ -16,6 +16,7 @@ import org.joml.Vector3f;
 import java.util.ArrayList;
 import java.util.List;
 
+import static kr.toxicity.model.api.util.MathUtil.FRAME_EPSILON;
 import static kr.toxicity.model.api.util.MathUtil.fma;
 
 /**
@@ -110,7 +111,7 @@ public final class InterpolationUtil {
     }
 
     public static float roundTime(float time) {
-        return Math.round(MathUtil.fma(time, FRAME_HASH_REVERT, MathUtil.FRAME_EPSILON)) * FRAME_HASH;
+        return (int) fma(time, FRAME_HASH_REVERT, FRAME_EPSILON) * FRAME_HASH;
     }
 
     public static void insertLerpFrame(@NotNull FloatCollection frames, float frame) {
