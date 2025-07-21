@@ -22,18 +22,6 @@ public interface AnimationIterator<T extends Timed> extends Iterator<T> {
     void clear();
 
     /**
-     * Gets current index
-     * @return current index
-     */
-    int index();
-
-    /**
-     * Gets last index of animator
-     * @return last index
-     */
-    int lastIndex();
-
-    /**
      * Gets an animation type
      * @return type
      */
@@ -106,16 +94,6 @@ public interface AnimationIterator<T extends Timed> extends Iterator<T> {
         private int index = 0;
 
         @Override
-        public int index() {
-            return index;
-        }
-
-        @Override
-        public int lastIndex() {
-            return keyFrame.size() - 1;
-        }
-
-        @Override
         public void clear() {
             index = Integer.MAX_VALUE;
         }
@@ -146,16 +124,6 @@ public interface AnimationIterator<T extends Timed> extends Iterator<T> {
         private final List<T> keyFrame;
         private int index = 0;
         private boolean finished = false;
-
-        @Override
-        public int index() {
-            return index;
-        }
-
-        @Override
-        public int lastIndex() {
-            return keyFrame.size() - 1;
-        }
 
         @Override
         public void clear() {
@@ -195,22 +163,10 @@ public interface AnimationIterator<T extends Timed> extends Iterator<T> {
     final class Loop<T extends Timed> implements AnimationIterator<T> {
         private final List<T> keyFrame;
         private int index = 0;
-        private boolean finished;
-
-        @Override
-        public int index() {
-            return index;
-        }
-
-        @Override
-        public int lastIndex() {
-            return keyFrame.size() - 1;
-        }
 
         @Override
         public void clear() {
             index = 0;
-            finished = false;
         }
 
         @Override
@@ -221,10 +177,7 @@ public interface AnimationIterator<T extends Timed> extends Iterator<T> {
         @Override
         @NotNull
         public T next() {
-            if (index >= keyFrame.size()) {
-                index = finished ? 1 : 0;
-                finished = true;
-            }
+            if (index >= keyFrame.size()) index = 1;
             return keyFrame.get(index++);
         }
 

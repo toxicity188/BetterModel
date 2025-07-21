@@ -42,7 +42,6 @@ import org.bukkit.Location
 import org.bukkit.craftbukkit.CraftWorld
 import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.craftbukkit.entity.CraftPlayer
-import org.bukkit.craftbukkit.inventory.CraftItemStack
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.LeatherArmorMeta
@@ -228,14 +227,14 @@ class NMSImpl : NMS {
                     bundlerOf(it.mountPacket()).send(player)
                 }
                 is ClientboundContainerSetSlotPacket if isInHand(connection.player) && playerModel?.hideOption(uuid)?.equipment() == true -> {
-                    return ClientboundContainerSetSlotPacket(containerId, stateId, slot, net.minecraft.world.item.ItemStack.EMPTY)
+                    return ClientboundContainerSetSlotPacket(containerId, stateId, slot, EMPTY_ITEM)
                 }
                 is ClientboundContainerSetContentPacket if containerId == 0 && playerModel?.hideOption(uuid)?.equipment() == true -> {
                     return ClientboundContainerSetContentPacket(
                         containerId,
                         stateId,
                         (items as NonNullList<net.minecraft.world.item.ItemStack>).apply {
-                            set(cachedSlot.getAndSet(connection.player.hotbarSlot), net.minecraft.world.item.ItemStack.EMPTY)
+                            set(cachedSlot.getAndSet(connection.player.hotbarSlot), EMPTY_ITEM)
                         },
                         carriedItem
                     )
@@ -425,7 +424,7 @@ class NMSImpl : NMS {
 
         override fun item(itemStack: ItemStack) {
             entityDataLock.accessToLock {
-                display.itemStack = CraftItemStack.asNMSCopy(itemStack)
+                display.itemStack = itemStack.asVanilla()
             }
         }
 
@@ -525,7 +524,7 @@ class NMSImpl : NMS {
             if (it.id == itemSerializer.id) SynchedEntityData.DataValue(
                 it.id,
                 EntityDataSerializers.ITEM_STACK,
-                if (showItem) display.itemStack else net.minecraft.world.item.ItemStack.EMPTY
+                if (showItem) display.itemStack else EMPTY_ITEM
             ) else it
         }
         private val addPacket
@@ -626,10 +625,9 @@ class NMSImpl : NMS {
     
     override fun profile(player: Player): GameProfile = getGameProfile((player as CraftPlayer).handle)
 
-    override fun createPlayerHead(profile: GameProfile): ItemStack = net.minecraft.world.item.ItemStack(Items.PLAYER_HEAD).run {
+    override fun createPlayerHead(profile: GameProfile): ItemStack = VanillaItemStack(Items.PLAYER_HEAD).apply {
         set(DataComponents.PROFILE, ResolvableProfile(profile))
-        CraftItemStack.asBukkitCopy(this)
-    }
+    }.asBukkit()
 
     override fun isProxyOnlineMode(): Boolean = ONLINE_MODE
 }

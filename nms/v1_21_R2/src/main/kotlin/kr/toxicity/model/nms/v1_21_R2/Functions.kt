@@ -23,6 +23,7 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.phys.Vec3
 import org.bukkit.Bukkit
 import org.bukkit.craftbukkit.entity.CraftEntity
+import org.bukkit.craftbukkit.inventory.CraftItemStack
 import org.bukkit.event.Event
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -43,6 +44,9 @@ internal inline fun <reified T, reified R> createAdaptedFieldGetter(noinline pap
 internal val EMPTY_QUATERNION = Quaternionf()
 
 internal val CONFIG get() = BetterModel.config()
+internal val EMPTY_ITEM = VanillaItemStack.EMPTY
+internal fun BukkitItemStack.asVanilla() = CraftItemStack.asNMSCopy(this)
+internal fun VanillaItemStack.asBukkit() = CraftItemStack.asCraftMirror(this)
 
 internal val ONLINE_MODE by lazy(LazyThreadSafetyMode.NONE) {
     if (BetterModel.IS_PAPER) GlobalConfiguration.get().proxies.isProxyOnlineMode else Bukkit.getOnlineMode()

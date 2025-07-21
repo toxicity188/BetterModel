@@ -27,4 +27,4 @@ default-mount-controller: walk
 lerp-frame-time: 5
 cancel-player-model-inventory: false
 player-hide-delay: 3
-packet-bundling-size: 32
+packet-bundling-size: 16

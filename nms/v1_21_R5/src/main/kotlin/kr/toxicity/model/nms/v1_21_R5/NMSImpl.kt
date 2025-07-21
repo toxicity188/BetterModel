@@ -42,7 +42,6 @@ import org.bukkit.Location
 import org.bukkit.craftbukkit.CraftWorld
 import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.craftbukkit.entity.CraftPlayer
-import org.bukkit.craftbukkit.inventory.CraftItemStack
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.joml.Quaternionf
@@ -228,14 +227,14 @@ class NMSImpl : NMS {
                     bundlerOf(it.mountPacket()).send(player)
                 }
                 is ClientboundContainerSetSlotPacket if isInHand(connection.player) && playerModel?.hideOption(uuid)?.equipment() == true -> {
-                    return ClientboundContainerSetSlotPacket(containerId, stateId, slot, net.minecraft.world.item.ItemStack.EMPTY)
+                    return ClientboundContainerSetSlotPacket(containerId, stateId, slot, EMPTY_ITEM)
                 }
                 is ClientboundContainerSetContentPacket if containerId == 0 && playerModel?.hideOption(uuid)?.equipment() == true -> {
                     return ClientboundContainerSetContentPacket(
                         containerId,
                         stateId,
                         items.apply {
-                            set(cachedSlot.getAndSet(connection.player.hotbarSlot), net.minecraft.world.item.ItemStack.EMPTY)
+                            set(cachedSlot.getAndSet(connection.player.hotbarSlot), EMPTY_ITEM)
                         },
                         carriedItem
                     )
@@ -426,7 +425,7 @@ class NMSImpl : NMS {
 
         override fun item(itemStack: ItemStack) {
             entityDataLock.accessToLock {
-                display.itemStack = CraftItemStack.asNMSCopy(itemStack)
+                display.itemStack = itemStack.asVanilla()
             }
         }
 
@@ -526,7 +525,7 @@ class NMSImpl : NMS {
             if (it.id == itemSerializer.id) SynchedEntityData.DataValue(
                 it.id,
                 EntityDataSerializers.ITEM_STACK,
-                if (showItem) display.itemStack else net.minecraft.world.item.ItemStack.EMPTY
+                if (showItem) display.itemStack else EMPTY_ITEM
             ) else it
         }
 
@@ -551,7 +550,7 @@ class NMSImpl : NMS {
     }
 
     override fun tint(itemStack: ItemStack, rgb: Int): ItemStack {
-        return CraftItemStack.asBukkitCopy(CraftItemStack.asNMSCopy(itemStack).apply {
+        return itemStack.asVanilla().apply {
             set(DataComponents.DYED_COLOR, DyedItemColor(rgb))
             set(DataComponents.CUSTOM_MODEL_DATA, get(DataComponents.CUSTOM_MODEL_DATA)?.let {
                 CustomModelData(it.floats, it.flags, it.strings, it.colors
@@ -562,7 +561,7 @@ class NMSImpl : NMS {
                     }
                     .ifEmpty { listOf(rgb) })
             })
-        })
+        }.asBukkit()
     }
 
     override fun createHitBox(entity: EntityAdapter, supplier: HitBoxSource, namedBoundingBox: NamedBoundingBox, mountController: MountController, listener: HitBoxListener): HitBox? {
@@ -634,16 +633,15 @@ class NMSImpl : NMS {
 
     override fun profile(player: Player): GameProfile = getGameProfile((player as CraftPlayer).handle)
 
-    override fun createPlayerHead(profile: GameProfile): ItemStack = net.minecraft.world.item.ItemStack(Items.PLAYER_HEAD).run {
+    override fun createPlayerHead(profile: GameProfile): ItemStack = VanillaItemStack(Items.PLAYER_HEAD).apply {
         set(DataComponents.PROFILE, ResolvableProfile(profile))
-        CraftItemStack.asBukkitCopy(this)
-    }
+    }.asBukkit()
 
     override fun createSkinItem(model: String, flags: List<Boolean>, colors: List<Int>): TransformedItemStack {
-        return net.minecraft.world.item.ItemStack(Items.PLAYER_HEAD).run {
+        return VanillaItemStack(Items.PLAYER_HEAD).run {
             set(DataComponents.CUSTOM_MODEL_DATA, CustomModelData(emptyList(), flags, emptyList(), colors))
             set(DataComponents.ITEM_MODEL, ResourceLocation.parse(model))
-            TransformedItemStack.of(CraftItemStack.asBukkitCopy(this))
+            TransformedItemStack.of(asBukkit())
         }
     }
 
