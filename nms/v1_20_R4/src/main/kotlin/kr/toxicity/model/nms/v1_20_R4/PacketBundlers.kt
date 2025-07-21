@@ -34,8 +34,9 @@ internal class SimpleBundler(
 ) : PacketBundler, PluginBundlePacket<Packet<ClientGamePacketListener>> by PluginBundlePacket.of(KEY, list) {
     val bundlePacket = ClientboundBundlePacket(this)
     override fun send(player: Player, onSuccess: Runnable) {
+        if (isEmpty) return
         val connection = (player as CraftPlayer).handle.connection
-        if (list.isNotEmpty()) connection.send(bundlePacket, PacketSendListener.thenRun(onSuccess))
+        connection.send(bundlePacket, PacketSendListener.thenRun(onSuccess))
     }
     override fun isEmpty(): Boolean = list.isEmpty()
     override fun size(): Int = list.size
@@ -49,13 +50,14 @@ internal class ParallelBundler(val threshold: Int) : PacketBundler {
     private val subBundlers = mutableListOf(bundlerOf())
     private var selectedBundler = subBundlers.first()
     override fun send(player: Player, onSuccess: Runnable) {
+        if (isEmpty) return
         val connection = (player as CraftPlayer).handle.connection
         subBundlers.forEach {
-            if (!it.isEmpty) connection.send(it.bundlePacket)
+            connection.send(it.bundlePacket)
         }
     }
-    override fun isEmpty(): Boolean = subBundlers.isEmpty()
-    override fun size(): Int = subBundlers.size
+    override fun isEmpty(): Boolean = selectedBundler.isEmpty()
+    override fun size(): Int = subBundlers.sumOf(SimpleBundler::size)
     fun add(other: Packet<ClientGamePacketListener>) {
         sizeAssume += other.assumeSize()
         val bundler = if (sizeAssume > threshold) {

@@ -42,8 +42,10 @@ public final class EntityBodyRotator {
                 adapter.bodyYaw()
         );
         this.provider = new LazyFloatProvider(adapter.bodyYaw(), () -> rotationDuration * MathUtil.MINECRAFT_TICK_MILLS);
-        headSupplier = LazyFloatProvider.ofVector(MathUtil.MINECRAFT_TICK_MILLS, () -> 4 * MathUtil.MINECRAFT_TICK_MILLS, () -> {
-            var value = bodyRotation().y() - adapter.headYaw();
+        headSupplier = LazyFloatProvider.ofVector(Tracker.TRACKER_TICK_INTERVAL, () -> 4 * MathUtil.MINECRAFT_TICK_MILLS, () -> {
+            var value = rotation.y() - adapter.headYaw();
+            if (value > 180) value -= 360;
+            else if (value < -180) value += 360;
             return new Vector3f(
                     clampHead(adapter.pitch()),
                     clampHead(value),
@@ -73,12 +75,13 @@ public final class EntityBodyRotator {
     }
 
     private float bodyRotation0() {
+        if (playerMode) return adapter.headYaw();
         var headYaw = adapter.headYaw();
         if (isSimilar(headYaw, rotation.y())) tick = 0;
         if (adapter.onWalk()) {
             tick = 0;
             return stableBodyYaw();
-        } else if (tick++ > rotationDelay) {
+        } else if (++tick > rotationDelay) {
             var providedYaw = provider.updateAndGet(headYaw);
             return clampBody(providedYaw, headYaw);
         }
@@ -87,7 +90,6 @@ public final class EntityBodyRotator {
     }
 
     private float stableBodyYaw() {
-        if (playerMode) return adapter.headYaw();
         var yaw = adapter.bodyYaw();
         var headYaw = adapter.headYaw();
         var minStable = correctYaw(headYaw - stable);
@@ -101,7 +103,7 @@ public final class EntityBodyRotator {
     }
 
     private static boolean isSimilar(float a, float b) {
-        return Math.abs(a - b) < 256F / 360F;
+        return Math.abs(a - b) < MathUtil.FRAME_EPSILON;
     }
 
     @NotNull Vector3f headRotation() {
