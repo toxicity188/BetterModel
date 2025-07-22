@@ -16,8 +16,7 @@ import org.joml.Vector3f;
 import java.util.ArrayList;
 import java.util.List;
 
-import static kr.toxicity.model.api.util.MathUtil.FRAME_EPSILON;
-import static kr.toxicity.model.api.util.MathUtil.fma;
+import static kr.toxicity.model.api.util.MathUtil.*;
 
 /**
  * Interpolation util
@@ -170,12 +169,11 @@ public final class InterpolationUtil {
     public static float solveBezierTForTime(float time, float t0, float h1, float h2, float t1) {
         float t = 0.5F;
         int maxIterations = 20;
-        float epsilon = 1e-5F;
         for (int i = 0; i < maxIterations; i++) {
             float bezTime = cubicBezier(t0, h1, h2, t1, t);
             float derivative = derivativeBezier(t0, h1, h2, t1, t);
             float error = bezTime - time;
-            if (Math.abs(error) < epsilon) {
+            if (Math.abs(error) < FLOAT_COMPARISON_EPSILON) {
                 return t;
             }
             if (derivative != 0) {

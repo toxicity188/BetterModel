@@ -52,6 +52,18 @@ public final class MathUtil {
      * Frame epsilon value
      */
     public static final float FRAME_EPSILON = 0.001F;
+    /**
+     * Float comparison epsilon value
+     */
+    public static final float FLOAT_COMPARISON_EPSILON = 1E-5F;
+
+    public static boolean isSimilar(float a, float b) {
+        return abs(a - b) < FLOAT_COMPARISON_EPSILON;
+    }
+
+    public static int similarHashCode(float a) {
+        return Float.hashCode((int) (a / FLOAT_COMPARISON_EPSILON) * FLOAT_COMPARISON_EPSILON);
+    }
 
     /**
      * Valid rotation degrees

@@ -168,11 +168,6 @@ public record Float3(
         return array;
     }
 
-    @Override
-    public @NotNull String toString() {
-        return toJson().toString();
-    }
-
     /**
      * Converts floats to vector.
      * @return vector
@@ -180,4 +175,29 @@ public record Float3(
     public @NotNull Vector3f toVector() {
         return new Vector3f(x, y, z);
     }
+
+    @Override
+    public int hashCode() {
+        var hash = 31;
+        var value = 1;
+        value = value * hash + MathUtil.similarHashCode(x);
+        value = value * hash + MathUtil.similarHashCode(y);
+        value = value * hash + MathUtil.similarHashCode(z);
+        return value;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (!(obj instanceof Float3(float x1, float y1, float z1))) return false;
+        return MathUtil.isSimilar(x, x1)
+                && MathUtil.isSimilar(y, y1)
+                && MathUtil.isSimilar(z, z1);
+    }
+
+    @Override
+    public @NotNull String toString() {
+        return toJson().toString();
+    }
+
 }

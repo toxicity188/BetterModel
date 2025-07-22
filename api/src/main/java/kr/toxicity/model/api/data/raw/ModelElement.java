@@ -41,6 +41,11 @@ public record ModelElement(
         return !Boolean.FALSE.equals(_visibility);
     }
 
+    @Override
+    public @NotNull Float3 rotation() {
+        return rotation != null ? rotation : Float3.ZERO;
+    }
+
     /**
      * Checks this model has texture
      * @return model has texture

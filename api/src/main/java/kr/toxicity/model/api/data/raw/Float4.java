@@ -86,4 +86,30 @@ public record Float4(
         array.add(tz);
         return array;
     }
+
+    @Override
+    public int hashCode() {
+        var hash = 31;
+        var value = 1;
+        value = value * hash + MathUtil.similarHashCode(dx);
+        value = value * hash + MathUtil.similarHashCode(dz);
+        value = value * hash + MathUtil.similarHashCode(tx);
+        value = value * hash + MathUtil.similarHashCode(tz);
+        return value;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (!(obj instanceof Float4(float dx1, float dz1, float tx1, float tz1))) return false;
+        return MathUtil.isSimilar(dx, dx1)
+                && MathUtil.isSimilar(dz, dz1)
+                && MathUtil.isSimilar(tx, tx1)
+                && MathUtil.isSimilar(tz, tz1);
+    }
+
+    @Override
+    public @NotNull String toString() {
+        return toJson().toString();
+    }
 }

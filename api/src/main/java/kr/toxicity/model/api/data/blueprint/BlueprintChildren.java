@@ -13,6 +13,7 @@ import kr.toxicity.model.api.util.json.JsonObjectBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
+import org.joml.Quaternionf;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -197,12 +198,15 @@ public sealed interface BlueprintChildren {
     record BlueprintElement(@NotNull ModelElement element) implements BlueprintChildren {
 
         private @NotNull Float3 identifierDegree() {
-            var rot = element.rotation();
-            return rot == null ? Float3.ZERO : MathUtil.identifier(rot);
+            return MathUtil.identifier(element.rotation());
         }
 
         private static @NotNull Float3 centralize(@NotNull Float3 target, @NotNull Float3 groupOrigin, float scale) {
             return target.minus(groupOrigin).div(scale);
+        }
+
+        private static @NotNull Float3 deltaPosition(@NotNull Float3 target, @NotNull Quaternionf quaternionf) {
+            return target.rotate(quaternionf).minus(target);
         }
 
         private @NotNull JsonObject buildJson(
@@ -212,31 +216,28 @@ public sealed interface BlueprintChildren {
                 @NotNull BlueprintGroup group,
                 @NotNull Float3 identifier
         ) {
-            var centerOrigin = centralize(element.origin(), group.origin, scale);
             var qua = MathUtil.toQuaternion(identifier.toVector()).invert();
-            var rotOrigin = centerOrigin
-                    .rotate(qua)
-                    .minus(centerOrigin);
+            var centerOrigin = centralize(element.origin(), group.origin, scale);
+            var groupDelta = deltaPosition(centerOrigin, qua);
             var inflate = new Float3(element.inflate() / scale);
             return JsonObjectBuilder.builder()
                     .jsonArray("from", centralize(element.from(), group.origin, scale)
-                            .plus(rotOrigin)
+                            .plus(groupDelta)
                             .plus(Float3.CENTER)
                             .minus(inflate)
                             .toJson())
                     .jsonArray("to", centralize(element.to(), group.origin, scale)
-                            .plus(rotOrigin)
+                            .plus(groupDelta)
                             .plus(Float3.CENTER)
                             .plus(inflate)
                             .toJson())
                     .jsonObject("faces", element.faces().toJson(parent, tint))
-                    .jsonObject("rotation", Optional.ofNullable(element.rotation())
-                            .map(r -> r.minus(identifier))
+                    .jsonObject("rotation", Optional.of(element.rotation().minus(identifier))
                             .filter(r -> !Float3.ZERO.equals(r))
                             .map(rot -> {
                                 var rotation = getRotation(rot);
                                 rotation.add("origin", centerOrigin
-                                        .plus(rotOrigin)
+                                        .plus(groupDelta)
                                         .plus(Float3.CENTER)
                                         .toJson());
                                 return rotation;

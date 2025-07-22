@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.tracker;
 
+import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -13,6 +14,7 @@ import kr.toxicity.model.api.nms.EntityAdapter;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
+import kr.toxicity.model.api.util.CollectionUtil;
 import kr.toxicity.model.api.util.LogUtil;
 import kr.toxicity.model.api.util.lock.DuplexLock;
 import lombok.RequiredArgsConstructor;
@@ -63,10 +65,12 @@ public final class EntityTrackerRegistry {
     }
 
     public static void registries(@NotNull Consumer<EntityTrackerRegistry> consumer) {
-        REGISTRY_LOCK.accessToReadLock(() -> {
-            UUID_REGISTRY_MAP.values().forEach(consumer);
-            return null;
-        });
+        for (EntityTrackerRegistry registry : registries()) {
+            consumer.accept(registry);
+        }
+    }
+    public static @NotNull @Unmodifiable List<EntityTrackerRegistry> registries() {
+        return REGISTRY_LOCK.accessToReadLock(() -> ImmutableList.copyOf(UUID_REGISTRY_MAP.values()));
     }
 
     public static @Nullable EntityTrackerRegistry registry(@NotNull Entity entity) {
@@ -208,7 +212,7 @@ public final class EntityTrackerRegistry {
         if (!closed.compareAndSet(false, true)) return false;
         viewedPlayer().forEach(value -> value.sendEntityData(this));
         viewedPlayerMap.clear();
-        for (EntityTracker value : trackerMap.values()) {
+        for (EntityTracker value : trackers()) {
             value.close(reason);
         }
         if (!reason.shouldBeSave()) runSync(() -> entity.getPersistentDataContainer().remove(TRACKING_ID));
@@ -224,7 +228,7 @@ public final class EntityTrackerRegistry {
     public void reload() {
         closed.set(true);
         var data = new ArrayList<TrackerData>(trackerMap.size());
-        for (EntityTracker value : trackerMap.values()) {
+        for (EntityTracker value : trackers()) {
             data.add(value.asTrackerData());
             value.close();
         }
@@ -235,7 +239,7 @@ public final class EntityTrackerRegistry {
 
     public void refresh() {
         if (adapter.dead()) return;
-        for (EntityTracker value : trackerMap.values()) {
+        for (EntityTracker value : trackers()) {
             value.refresh();
         }
         refreshPlayer();
@@ -243,7 +247,7 @@ public final class EntityTrackerRegistry {
     }
 
     public void despawn() {
-        for (EntityTracker value : trackerMap.values()) {
+        for (EntityTracker value : trackers()) {
             if (!value.forRemoval()) value.despawn();
         }
         viewedPlayerMap.clear();
@@ -261,7 +265,8 @@ public final class EntityTrackerRegistry {
     }
 
     public void save() {
-        runSync(() -> entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, serialize().toString()));
+        var data = serialize().toString();
+        runSync(() -> entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, data));
     }
 
     private void runSync(@NotNull Runnable runnable) {
@@ -271,17 +276,13 @@ public final class EntityTrackerRegistry {
     }
 
     public @NotNull Stream<ModelDisplay> displays() {
-        return trackerMap.values()
+        return trackers()
                 .stream()
                 .flatMap(Tracker::displays);
     }
 
     public @NotNull JsonArray serialize() {
-        var array = new JsonArray(trackerMap.size());
-        for (EntityTracker value : trackerMap.values()) {
-            array.add(value.asTrackerData().serialize());
-        }
-        return array;
+        return CollectionUtil.mapToJson(trackers(), value -> value.asTrackerData().serialize());
     }
 
     /**
@@ -298,7 +299,7 @@ public final class EntityTrackerRegistry {
      * @return is spawned
      */
     public boolean isSpawned(@NotNull UUID uuid) {
-        return viewedPlayerMap.containsKey(uuid) && trackerMap.values()
+        return viewedPlayerMap.containsKey(uuid) && trackers()
                 .stream()
                 .anyMatch(t -> t.pipeline.isSpawned(uuid));
     }
@@ -319,7 +320,7 @@ public final class EntityTrackerRegistry {
         var cache = registerPlayer(handler);
         if (trackerMap.isEmpty()) return false;
         var bundler = BetterModel.plugin().nms().createBundler(10);
-        for (EntityTracker value : trackerMap.values()) {
+        for (EntityTracker value : trackers()) {
             if (shouldNotSpawned && value.pipeline.isSpawned(player.getUniqueId())) continue;
             if (value.canBeSpawnedAt(player)) value.spawn(player, bundler);
         }
@@ -342,7 +343,7 @@ public final class EntityTrackerRegistry {
         if (cache == null) return false;
         var handler = cache.channelHandler;
         handler.sendEntityData(this);
-        for (EntityTracker value : trackerMap.values()) {
+        for (EntityTracker value : trackers()) {
             if (!value.forRemoval() && value.pipeline.isSpawned(player.getUniqueId())) value.remove(handler.player());
         }
         return true;
@@ -369,7 +370,7 @@ public final class EntityTrackerRegistry {
         }
 
         private synchronized void reapplyHideOption() {
-            hideOption = EntityHideOption.composite(trackerMap.values()
+            hideOption = EntityHideOption.composite(trackers()
                     .stream()
                     .filter(t -> t.pipeline.isSpawned(channelHandler.uuid()))
                     .map(EntityTracker::hideOption));
