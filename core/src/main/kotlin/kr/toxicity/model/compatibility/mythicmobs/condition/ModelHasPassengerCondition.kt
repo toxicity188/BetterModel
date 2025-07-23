@@ -17,7 +17,7 @@ class ModelHasPassengerCondition(mlc: MythicLineConfig) : IEntityCondition {
         val args = p0.toPlaceholderArgs()
         val set = seat(args)
         return p0.toTracker(model(args))?.let {
-            if (set.isEmpty()) it.hasControllingPassenger() else set.any { seat ->
+            if (set.isEmpty()) it.hasPassenger() else set.any { seat ->
                 it.mountedHitBox().values.any { box ->
                     box.hitBox().positionSource().name == seat
                 }

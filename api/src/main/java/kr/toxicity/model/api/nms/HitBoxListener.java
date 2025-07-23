@@ -56,7 +56,7 @@ public interface HitBoxListener {
          * @return self
          */
         public @NotNull Builder damage(@NotNull OnDamage damage) {
-            this.damage = damage;
+            this.damage = this.damage.andThen(damage);
             return this;
         }
 
@@ -134,8 +134,28 @@ public interface HitBoxListener {
         }
     }
 
+    /**
+     * On damage
+     */
     interface OnDamage {
+        /**
+         * Handles damage event
+         * @param hitBox hit-box
+         * @param source damage source
+         * @param damage damage amount
+         * @return should be canceled
+         */
         boolean event(@NotNull HitBox hitBox, @NotNull ModelDamageSource source, double damage);
+
+
+        /**
+         * Sums two damage handlers
+         * @param other other
+         * @return new handler
+         */
+        default @NotNull OnDamage andThen(@NotNull OnDamage other) {
+            return (h, s, d) -> event(h, s, d) || other.event(h, s, d);
+        }
     }
 
     /**

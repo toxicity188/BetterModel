@@ -301,6 +301,14 @@ public class EntityTracker extends Tracker {
     }
 
     /**
+     * Checks this tracker has passenger
+     * @return has passenger
+     */
+    public boolean hasPassenger() {
+        return !mountedHitBox().isEmpty();
+    }
+
+    /**
      * Checks this tracker has controlling passenger
      * @return has controlling passenger
      */
