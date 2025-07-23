@@ -6,6 +6,7 @@ import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.bone.BoneTags;
 import kr.toxicity.model.api.data.renderer.RenderPipeline;
 import kr.toxicity.model.api.event.CreateEntityTrackerEvent;
+import kr.toxicity.model.api.nms.HitBox;
 import kr.toxicity.model.api.nms.HitBoxListener;
 import kr.toxicity.model.api.util.EventUtil;
 import kr.toxicity.model.api.util.FunctionUtil;
@@ -18,11 +19,10 @@ import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 import org.joml.Quaternionf;
 
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -44,6 +44,8 @@ public class EntityTracker extends Tracker {
     private final AtomicInteger damageTintValue = new AtomicInteger(0xFF8080);
     private final AtomicLong damageTint = new AtomicLong(-1);
     private final Set<UUID> markForSpawn = ConcurrentHashMap.newKeySet();
+    private final Map<UUID, MountedHitBox> _mountedHitBox = new ConcurrentHashMap<>();
+    private final Map<UUID, MountedHitBox> mountedHitBox = Collections.unmodifiableMap(_mountedHitBox);
 
     private final EntityBodyRotator bodyRotator;
     private EntityHideOption hideOption = EntityHideOption.DEFAULT;
@@ -162,7 +164,11 @@ public class EntityTracker extends Tracker {
      * @param listener listener
      */
     public boolean createHitBox(@NotNull BonePredicate predicate, @Nullable HitBoxListener listener) {
-        return createHitBox(registry.adapter(), predicate, listener);
+        var builder = listener != null ? listener.toBuilder() : HitBoxListener.builder();
+        return createHitBox(registry.adapter(), predicate, builder
+                .mount((h, e) -> _mountedHitBox.put(e.getUniqueId(), new MountedHitBox(e, h)))
+                .dismount((h, e) -> _mountedHitBox.remove(e.getUniqueId()))
+                .build());
     }
 
     /**
@@ -285,6 +291,28 @@ public class EntityTracker extends Tracker {
     }
 
     /**
+     * Gets currently mounted hitbox
+     * @return mounted hitbox
+     */
+    @NotNull
+    @Unmodifiable
+    public Map<UUID, MountedHitBox> mountedHitBox() {
+        return mountedHitBox;
+    }
+
+    /**
+     * Checks this tracker has controlling passenger
+     * @return has controlling passenger
+     */
+    public boolean hasControllingPassenger() {
+        return mountedHitBox()
+                .values()
+                .stream()
+                .map(MountedHitBox::hitBox)
+                .anyMatch(HitBox::hasBeenControlled);
+    }
+
+    /**
      * Checks this model can be spawned at given player
      * @param player target player
      * @return can be spawned
@@ -300,4 +328,6 @@ public class EntityTracker extends Tracker {
     public void hideOption(@NotNull EntityHideOption hideOption) {
         this.hideOption = Objects.requireNonNull(hideOption);
     }
+
+    public record MountedHitBox(@NotNull Entity entity, @NotNull HitBox hitBox) {}
 }

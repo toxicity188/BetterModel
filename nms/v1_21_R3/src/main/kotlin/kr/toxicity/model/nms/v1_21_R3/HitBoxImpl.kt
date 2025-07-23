@@ -3,6 +3,7 @@ package kr.toxicity.model.nms.v1_21_R3
 import io.papermc.paper.event.entity.EntityKnockbackEvent
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.bone.BoneName
+import kr.toxicity.model.api.bone.RenderedBone
 import kr.toxicity.model.api.config.DebugConfig
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import kr.toxicity.model.api.event.ModelDamagedEvent
@@ -11,7 +12,6 @@ import kr.toxicity.model.api.event.ModelInteractEvent
 import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.HitBoxListener
-import kr.toxicity.model.api.nms.HitBoxSource
 import kr.toxicity.model.api.nms.ModelInteractionHand
 import kr.toxicity.model.api.util.FunctionUtil
 import net.minecraft.core.BlockPos
@@ -49,7 +49,7 @@ import java.util.function.Supplier
 internal class HitBoxImpl(
     private val name: BoneName,
     private val source: ModelBoundingBox,
-    private val supplier: HitBoxSource,
+    private val bone: RenderedBone,
     private val listener: HitBoxListener,
     private val delegate: Entity,
     private var mountController: MountController
@@ -67,7 +67,7 @@ internal class HitBoxImpl(
         object : CraftLivingEntity(Bukkit.getServer() as CraftServer, this), HitBox by this {}
     }
     private val _rotatedSource = FunctionUtil.throttleTick(Supplier {
-        source.rotate(Quaterniond(supplier.hitBoxViewRotation()))
+        source.rotate(Quaterniond(bone.hitBoxViewRotation()))
     })
     private val rotatedSource get() = _rotatedSource.get()
     val dimensions: EntityDimensions get() = rotatedSource.run {
@@ -77,7 +77,7 @@ internal class HitBoxImpl(
             delegate.eyeHeight,
             EntityAttachments.createDefault(0F, 0F),
             false
-        ).scale(supplier.hitBoxScale())
+        ).scale(bone.hitBoxScale())
     }
     private val interaction by lazy {
         HitBoxInteraction(this)
@@ -110,13 +110,14 @@ internal class HitBoxImpl(
 
     override fun groupName(): BoneName = name
     override fun source(): org.bukkit.entity.Entity = delegate.bukkitEntity
+    override fun positionSource(): RenderedBone = bone
     override fun forceDismount(): Boolean = forceDismount
     override fun mountController(): MountController = mountController
     override fun mountController(controller: MountController) {
         this.mountController = controller
     }
     override fun relativePosition(): Vector3f = delegate.position().run {
-        supplier.hitBoxPosition().add(x.toFloat(), y.toFloat(), z.toFloat())
+        bone.hitBoxPosition().add(x.toFloat(), y.toFloat(), z.toFloat())
     }
     override fun listener(): HitBoxListener = listener
 
@@ -281,11 +282,11 @@ internal class HitBoxImpl(
             if (delegate is Mob) delegate.navigation.stop()
             mountControl(controller)
         } else initialSetup()
-        yRot = supplier.hitBoxRotation().y
+        yRot = bone.hitBoxRotation().y
         yHeadRot = yRot
         yBodyRot = yRot
         val pos = relativePosition()
-        val minusHeight = rotatedSource.minY * supplier.hitBoxScale() - height
+        val minusHeight = rotatedSource.minY * bone.hitBoxScale() - height
         setPos(
             pos.x.toDouble(),
             pos.y.toDouble() + minusHeight,
@@ -423,7 +424,7 @@ internal class HitBoxImpl(
         return if (!initialized) {
             super.makeBoundingBox(vec3)
         } else {
-            val scale = supplier.hitBoxScale()
+            val scale = bone.hitBoxScale()
             val source = rotatedSource
             AABB(
                 vec3.x + source.minX * scale,
@@ -444,6 +445,7 @@ internal class HitBoxImpl(
 
     override fun removeHitBox() {
         BetterModel.plugin().scheduler().task(bukkitEntity) {
+            dismountAll()
             remove(ifLivingEntity { removalReason } ?: RemovalReason.KILLED)
         }
     }

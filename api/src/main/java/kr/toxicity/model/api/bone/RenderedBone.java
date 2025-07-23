@@ -38,7 +38,7 @@ import java.util.function.*;
 /**
  * A rendered item-display.
  */
-public final class RenderedBone implements HitBoxSource {
+public final class RenderedBone {
 
     private static final Vector3f EMPTY_VECTOR = new Vector3f();
     private static final Consumer<PacketBundler> EMPTY_TICKER = b -> {};
@@ -612,7 +612,6 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     @NotNull
-    @Override
     public Vector3f hitBoxPosition() {
         var box = getGroup().getHitBox();
         if (box != null) return worldPosition(box.centerPoint());
@@ -620,18 +619,15 @@ public final class RenderedBone implements HitBoxSource {
     }
 
     @NotNull
-    @Override
     public Quaternionf hitBoxViewRotation() {
         return worldRotation();
     }
 
-    @Override
     public float hitBoxScale() {
         return scale.getAsFloat();
     }
 
     @NotNull
-    @Override
     public ModelRotation hitBoxRotation() {
         return rotation;
     }

@@ -76,6 +76,7 @@ public final class EntityBodyRotator {
 
     private float bodyRotation0() {
         if (playerMode) return adapter.headYaw();
+        if (adapter.hasControllingPassenger()) return adapter.bodyYaw();
         var headYaw = adapter.headYaw();
         if (isSimilar(headYaw, rotation.y())) tick = 0;
         if (adapter.onWalk()) {

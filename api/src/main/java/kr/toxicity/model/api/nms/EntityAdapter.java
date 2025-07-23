@@ -1,5 +1,8 @@
 package kr.toxicity.model.api.nms;
 
+import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.tracker.EntityTracker;
+import kr.toxicity.model.api.tracker.EntityTrackerRegistry;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -7,6 +10,8 @@ import org.jetbrains.annotations.Unmodifiable;
 import org.joml.Vector3f;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Optional;
 
 /**
  * An adapter of entity
@@ -115,4 +120,24 @@ public interface EntityAdapter {
      * @return passenger point
      */
     @NotNull Vector3f passengerPosition();
+
+    /**
+     * Gets tracker registry of this adapter
+     * @return optional tracker registry
+     */
+    default @NotNull Optional<EntityTrackerRegistry> registry() {
+        return BetterModel.registry(entity().getUniqueId());
+    }
+
+    /**
+     * Checks this entity has controlling passenger
+     * @return has controlling passenger
+     */
+    default boolean hasControllingPassenger() {
+        return registry()
+                .map(EntityTrackerRegistry::trackers)
+                .orElse(Collections.emptyList())
+                .stream()
+                .anyMatch(EntityTracker::hasControllingPassenger);
+    }
 }

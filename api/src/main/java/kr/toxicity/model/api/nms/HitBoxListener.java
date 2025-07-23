@@ -25,6 +25,15 @@ public interface HitBoxListener {
         return new Builder();
     }
 
+    default @NotNull Builder toBuilder() {
+        return new Builder()
+                .sync(this::sync)
+                .damage(this::damage)
+                .remove(this::remove)
+                .mount(this::mount)
+                .dismount(this::dismount);
+    }
+
     /**
      * Builder
      */
@@ -57,7 +66,7 @@ public interface HitBoxListener {
          * @return self
          */
         public @NotNull Builder dismount(@NotNull BiConsumer<HitBox, Entity> dismount) {
-            this.dismount = dismount;
+            this.dismount = this.dismount.andThen(dismount);
             return this;
         }
 
@@ -67,7 +76,7 @@ public interface HitBoxListener {
          * @return self
          */
         public @NotNull Builder mount(@NotNull BiConsumer<HitBox, Entity> mount) {
-            this.mount = mount;
+            this.mount = this.mount.andThen(mount);
             return this;
         }
 
@@ -77,7 +86,7 @@ public interface HitBoxListener {
          * @return self
          */
         public @NotNull Builder remove(@NotNull Consumer<HitBox> remove) {
-            this.remove = remove;
+            this.remove = this.remove.andThen(remove);
             return this;
         }
 
@@ -87,7 +96,7 @@ public interface HitBoxListener {
          * @return self
          */
         public @NotNull Builder sync(@NotNull Consumer<HitBox> sync) {
-            this.sync = sync;
+            this.sync = this.sync.andThen(sync);
             return this;
         }
 

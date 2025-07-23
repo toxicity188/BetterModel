@@ -2,6 +2,7 @@ package kr.toxicity.model.api.nms;
 
 import com.mojang.authlib.GameProfile;
 import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox;
 import kr.toxicity.model.api.mount.MountController;
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry;
@@ -100,13 +101,13 @@ public interface NMS {
     /**
      * Creates delegator hit-box of target entity
      * @param entity target entity
-     * @param supplier transformation supplier
+     * @param bone following bone
      * @param namedBoundingBox bounding box
      * @param controller mount controller
      * @param listener hitbox listener
      * @return hit-box
      */
-    @Nullable HitBox createHitBox(@NotNull EntityAdapter entity, @NotNull HitBoxSource supplier, @NotNull NamedBoundingBox namedBoundingBox, @NotNull MountController controller, @NotNull HitBoxListener listener);
+    @Nullable HitBox createHitBox(@NotNull EntityAdapter entity, @NotNull RenderedBone bone, @NotNull NamedBoundingBox namedBoundingBox, @NotNull MountController controller, @NotNull HitBoxListener listener);
 
     /**
      * Gets Spigot-mapped version of Minecraft vanilla code.

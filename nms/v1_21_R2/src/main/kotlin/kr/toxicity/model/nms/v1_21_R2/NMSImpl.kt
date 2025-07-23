@@ -6,6 +6,7 @@ import io.netty.channel.ChannelDuplexHandler
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
 import kr.toxicity.model.api.BetterModel
+import kr.toxicity.model.api.bone.RenderedBone
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox
 import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.nms.*
@@ -555,13 +556,13 @@ class NMSImpl : NMS {
         }
     }
 
-    override fun createHitBox(entity: EntityAdapter, supplier: HitBoxSource, namedBoundingBox: NamedBoundingBox, mountController: MountController, listener: HitBoxListener): HitBox? {
+    override fun createHitBox(entity: EntityAdapter, bone: RenderedBone, namedBoundingBox: NamedBoundingBox, mountController: MountController, listener: HitBoxListener): HitBox? {
         val handle = entity.handle() as? Entity ?: return null
         val newBox = namedBoundingBox.center()
         return HitBoxImpl(
             namedBoundingBox.name,
             newBox,
-            supplier,
+            bone,
             listener,
             handle,
             mountController
@@ -594,7 +595,7 @@ class NMSImpl : NMS {
             override fun pitch(): Float = handle().xRot
             override fun ground(): Boolean = handle().onGround()
             override fun bodyYaw(): Float = handle().yRot
-            override fun headYaw(): Float = handle().yHeadRot
+            override fun headYaw(): Float = if (handle() is LivingEntity) handle().yHeadRot else bodyYaw()
             override fun fly(): Boolean = handle().isFlying
 
             override fun damageTick(): Float {

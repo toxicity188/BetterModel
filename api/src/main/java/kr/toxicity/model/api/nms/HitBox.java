@@ -2,6 +2,7 @@ package kr.toxicity.model.api.nms;
 
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.bone.BoneName;
+import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.mount.MountController;
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry;
 import org.bukkit.entity.Entity;
@@ -93,6 +94,14 @@ public interface HitBox {
     boolean hasMountDriver();
 
     /**
+     * Gets this hit-box has been controlled by another entity
+     * @return has been controlled
+     */
+    default boolean hasBeenControlled() {
+        return mountController().canControl() && hasMountDriver();
+    }
+
+    /**
      * Dismounts this hit-box
      * @param entity dismount
      */
@@ -126,6 +135,12 @@ public interface HitBox {
      * @return listener
      */
     @NotNull HitBoxListener listener();
+
+    /**
+     * Gets a position source of this hitbox.
+     * @return source
+     */
+    @NotNull RenderedBone positionSource();
 
     /**
      * Gets this hitbox's tracker.
