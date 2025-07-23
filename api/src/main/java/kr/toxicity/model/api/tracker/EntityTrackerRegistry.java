@@ -10,10 +10,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.config.DebugConfig;
-import kr.toxicity.model.api.nms.EntityAdapter;
-import kr.toxicity.model.api.nms.ModelDisplay;
-import kr.toxicity.model.api.nms.PacketBundler;
-import kr.toxicity.model.api.nms.PlayerChannelHandler;
+import kr.toxicity.model.api.nms.*;
 import kr.toxicity.model.api.util.CollectionUtil;
 import kr.toxicity.model.api.util.LogUtil;
 import kr.toxicity.model.api.util.lock.DuplexLock;
@@ -55,6 +52,8 @@ public final class EntityTrackerRegistry {
     private final ConcurrentNavigableMap<String, EntityTracker> trackerMap = new ConcurrentSkipListMap<>();
     private final Collection<EntityTracker> trackers = Collections.unmodifiableCollection(trackerMap.values());
     private final Map<UUID, PlayerChannelCache> viewedPlayerMap = new ConcurrentHashMap<>();
+    final Map<UUID, MountedHitBox> mountedHitBoxCache = new ConcurrentHashMap<>();
+    private final Map<UUID, MountedHitBox> mountedHitBox = Collections.unmodifiableMap(mountedHitBoxCache);
 
     public static @Nullable EntityTrackerRegistry registry(@NotNull UUID uuid) {
         return REGISTRY_LOCK.accessToReadLock(() -> UUID_REGISTRY_MAP.get(uuid));
@@ -353,6 +352,39 @@ public final class EntityTrackerRegistry {
         var cache = viewedPlayerMap.get(uuid);
         return cache != null ? cache.hideOption : EntityHideOption.FALSE;
     }
+
+    /**
+     * Gets currently mounted hitbox
+     * @return mounted hitbox
+     */
+    @NotNull
+    @Unmodifiable
+    public Map<UUID, MountedHitBox> mountedHitBox() {
+        return mountedHitBox;
+    }
+    
+    /**
+     * Checks this tracker has passenger
+     * @return has passenger
+     */
+    public boolean hasPassenger() {
+        return !mountedHitBox().isEmpty();
+    }
+
+    /**
+     * Checks this tracker has controlling passenger
+     * @return has controlling passenger
+     */
+    public boolean hasControllingPassenger() {
+        return mountedHitBox()
+                .values()
+                .stream()
+                .map(MountedHitBox::hitBox)
+                .anyMatch(HitBox::hasBeenControlled);
+    }
+
+    
+    public record MountedHitBox(@NotNull Entity entity, @NotNull HitBox hitBox) {}
 
     @RequiredArgsConstructor
     private class PlayerChannelCache {

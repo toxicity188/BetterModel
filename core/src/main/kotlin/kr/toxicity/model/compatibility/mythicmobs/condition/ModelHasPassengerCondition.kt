@@ -16,7 +16,7 @@ class ModelHasPassengerCondition(mlc: MythicLineConfig) : IEntityCondition {
     override fun check(p0: AbstractEntity): Boolean {
         val args = p0.toPlaceholderArgs()
         val set = seat(args)
-        return p0.toTracker(model(args))?.let {
+        return p0.toTracker(model(args))?.registry()?.let {
             if (set.isEmpty()) it.hasPassenger() else set.any { seat ->
                 it.mountedHitBox().values.any { box ->
                     box.hitBox().positionSource().name == seat
