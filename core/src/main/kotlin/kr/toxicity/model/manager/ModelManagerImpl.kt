@@ -13,7 +13,6 @@ import kr.toxicity.model.api.event.ModelImportedEvent
 import kr.toxicity.model.api.manager.ModelManager
 import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.api.pack.PackZipper
-import kr.toxicity.model.api.util.FunctionUtil
 import kr.toxicity.model.util.*
 import org.bukkit.NamespacedKey
 import org.bukkit.inventory.ItemStack
@@ -138,15 +137,13 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                 "entries" to modernEntries
             )).toByteArray()
         }
-        val legacySupplier = FunctionUtil.memoize {
-            jsonObjectOf(
-                "parent" to "minecraft:item/generated",
-                "textures" to jsonObjectOf("layer0" to "minecraft:item/$itemName"),
-                "overrides" to legacyEntries
-            ).toByteArray()
-        }
-        legacyModel.add("$MODERN_MODEL_ITEM_NAME.json", legacySupplier)
-        zipper.legacy().minecraft().models().resolve("item").add("$itemName.json", legacySupplier)
+        val legacySupplier = jsonObjectOf(
+            "parent" to "minecraft:item/generated",
+            "textures" to jsonObjectOf("layer0" to "minecraft:item/$itemName"),
+            "overrides" to legacyEntries
+        ).toByteArray()
+        legacyModel.add("$MODERN_MODEL_ITEM_NAME.json") { legacySupplier }
+        zipper.legacy().minecraft().models().resolve("item").add("$itemName.json")  { legacySupplier }
     }
 
     private fun loadPlayerModels(zipper: PackZipper) {

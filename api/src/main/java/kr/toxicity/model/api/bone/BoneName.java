@@ -42,6 +42,10 @@ public record BoneName(@NotNull Set<BoneTag> tags, @NotNull String name, @NotNul
 
     @Override
     public int hashCode() {
-        return 31 * tags.hashCode() * name.hashCode();
+        var hash = 31;
+        var value = 1;
+        value = value * hash + tags.hashCode();
+        value = value * hash + name.hashCode();
+        return value;
     }
 }

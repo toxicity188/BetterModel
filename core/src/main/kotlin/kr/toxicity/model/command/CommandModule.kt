@@ -6,7 +6,13 @@ import dev.jorel.commandapi.commandsenders.BukkitCommandSender
 import dev.jorel.commandapi.executors.CommandExecutionInfo
 import dev.jorel.commandapi.executors.ExecutionInfo
 import kr.toxicity.model.util.audience
+import kr.toxicity.model.util.componentOf
+import kr.toxicity.model.util.componentWithLineOf
+import kr.toxicity.model.util.emptyComponentOf
 import kr.toxicity.model.util.info
+import kr.toxicity.model.util.lineComponentOf
+import kr.toxicity.model.util.spaceComponentOf
+import kr.toxicity.model.util.toComponent
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.HoverEvent
@@ -21,24 +27,27 @@ class CommandModule(
 ) : CommandExecutionInfo {
     companion object {
         private val lineMessage by lazy {
-            Component.text()
-                .content("----------------------------------------")
-                .color(NamedTextColor.GRAY)
-                .build()
+            componentOf("----------------------------------------") {
+                color(NamedTextColor.GRAY)
+            }
         }
         private val requiredMessage by lazy {
-            Component.text()
-                .append(Component.text("    <argument>").color(NamedTextColor.RED))
-                .append(Component.space())
-                .append(Component.text(" - required"))
-                .build()
+            componentOf {
+                append(componentOf("    <argument>") {
+                    color(NamedTextColor.RED)
+                })
+                append(spaceComponentOf())
+                append(componentOf(" - required"))
+            }
         }
         private val optionalMessage by lazy {
-            Component.text()
-                .append(Component.text("    [argument]").color(NamedTextColor.DARK_AQUA))
-                .append(Component.space())
-                .append(Component.text(" - optional"))
-                .build()
+            componentOf {
+                append(componentOf("    [argument]") {
+                    color(NamedTextColor.DARK_AQUA)
+                })
+                append(spaceComponentOf())
+                append(componentOf(" - optional"))
+            }
         }
     }
 
@@ -47,10 +56,10 @@ class CommandModule(
     private val helpComponents by lazy {
         mutableListOf(
             lineMessage,
-            Component.empty(),
+            emptyComponentOf(),
             requiredMessage,
             optionalMessage,
-            Component.empty(),
+            emptyComponentOf(),
         ).apply {
             sub.sortedBy {
                 it.name
@@ -94,34 +103,41 @@ class CommandModule(
         helpComponents.forEach(audience::info)
     }
 
-    private fun CommandAPICommand.toComponent() = Component.text()
-        .append(Component.text().content("/$rootName").color(NamedTextColor.YELLOW))
-        .append(Component.space())
-        .append(Component.text(name))
-        .append(arguments.map {
-            Component.space().append(it.toComponent())
+    private fun CommandAPICommand.toComponent() = componentOf {
+        append(componentOf("/$rootName") {
+            color(NamedTextColor.YELLOW)
         })
-        .append(Component.text().content(" - ").color(NamedTextColor.DARK_GRAY))
-        .append(Component.text(shortDescription).color(NamedTextColor.GRAY))
-        .hoverEvent(HoverEvent.showText(Component.text()
-            .append {
-                if (aliases.isNotEmpty()) Component.text()
-                    .append(Component.text("Aliases:").color(NamedTextColor.DARK_AQUA))
-                    .append(Component.newline())
-                    .append(aliases.map {
-                        Component.text(it).append(Component.newline())
+        append(spaceComponentOf())
+        append(name.toComponent())
+        append(arguments.map {
+            spaceComponentOf().append(it.toComponent())
+        })
+        append(componentOf(" - ") {
+            color(NamedTextColor.DARK_GRAY)
+        })
+        append(componentOf(shortDescription) {
+            color(NamedTextColor.GRAY)
+        })
+        hoverEvent(
+            HoverEvent.showText(componentOf {
+                append(if (aliases.isNotEmpty()) componentOf {
+                    append(componentOf("Aliases:") {
+                        color(NamedTextColor.DARK_AQUA)
                     })
-                    .append(Component.newline())
-                    .build()
-                else Component.empty()
+                    append(lineComponentOf())
+                    append(componentWithLineOf(*aliases.map(String::toComponent).toTypedArray()))
+                } else emptyComponentOf())
+                append(lineComponentOf())
+                append(lineComponentOf())
+                append("Click to suggest command.".toComponent())
             }
-            .append(Component.text("Click to suggest command."))
         ))
-        .clickEvent(ClickEvent.suggestCommand("/$rootName $name"))
-        .build()
+        clickEvent(ClickEvent.suggestCommand("/$rootName $name"))
+    }
 
-    private fun Argument<*>.toComponent() = Component.text()
-        .content(if (isOptional) "[$nodeName]" else "<$nodeName>")
-        .color(if (isOptional) NamedTextColor.DARK_AQUA else NamedTextColor.RED)
-        .hoverEvent(HoverEvent.showText(Component.text(argumentType.name)))
+    private fun Argument<*>.toComponent() = componentOf {
+        content(if (isOptional) "[$nodeName]" else "<$nodeName>")
+        color(if (isOptional) NamedTextColor.DARK_AQUA else NamedTextColor.RED)
+        hoverEvent(HoverEvent.showText(Component.text(argumentType.name)))
+    }
 }

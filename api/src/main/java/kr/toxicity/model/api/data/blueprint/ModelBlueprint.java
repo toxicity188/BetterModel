@@ -47,7 +47,7 @@ public record ModelBlueprint(
                 data.resolution(),
                 mapToList(data.textures(), BlueprintTexture::from),
                 group,
-                associate(data.animations().stream().map(raw -> BlueprintAnimation.from(group, raw)), BlueprintAnimation::name, a -> a)
+                associate(data.animations().stream().map(raw -> BlueprintAnimation.from(group, raw)), BlueprintAnimation::name)
         );
     }
 
@@ -58,6 +58,10 @@ public record ModelBlueprint(
     @NotNull
     @Unmodifiable
     public List<BlueprintImage> buildImage() {
-        return mapToList(textures, texture -> new BlueprintImage(PackUtil.toPackName(name + "_" + texture.name()), texture.image(), texture.isAnimatedTexture() ? texture.toMcmeta() : null));
+        return mapToList(textures, texture -> new BlueprintImage(
+                PackUtil.toPackName(name + "_" + texture.name()),
+                texture.image(),
+                texture.isAnimatedTexture() ? texture.toMcmeta() : null)
+        );
     }
 }

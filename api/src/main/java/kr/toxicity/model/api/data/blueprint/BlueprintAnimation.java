@@ -65,7 +65,7 @@ public record BlueprintAnimation(
                 animation.override(),
                 animators,
                 blueprintScript,
-                animators.isEmpty() ? List.of(new AnimationMovement(animation.length())) : animators.values()
+                animators.isEmpty() ? List.of(AnimationMovement.EMPTY, new AnimationMovement(animation.length())) : animators.values()
                         .iterator()
                         .next()
                         .keyFrame()

@@ -111,33 +111,38 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                         val audience = it.sender().audience()
                         audience.info("Start reloading. please wait...")
                         when (val result = PLUGIN.reload()) {
-                            is OnReload -> audience.warn("The plugin still on reload!")
+                            is OnReload -> audience.warn("This plugin is still on reload!")
                             is Success -> {
-                                audience.info()
                                 audience.info(
-                                    Component.text()
-                                        .content("Reload completed. (${result.totalTime().withComma()}ms)")
-                                        .color(NamedTextColor.GREEN)
-                                )
-                                audience.info(Component.text()
-                                    .content("Assets reload time - ${result.assetsTime().withComma()}ms")
-                                    .color(NamedTextColor.GRAY)
-                                    .hoverEvent(HoverEvent.showText(Component.text("Reading all config and model.")))
-                                )
-                                audience.info(Component.text()
-                                    .content("Packing time - ${result.packingTime().withComma()}ms")
-                                    .color(NamedTextColor.GRAY)
-                                    .hoverEvent(HoverEvent.showText(Component.text("Packing all model to resource pack.")))
-                                )
-                                audience.info(Component.text()
-                                    .content("${BetterModel.models().size.withComma()} of models are loaded successfully.")
-                                    .color(NamedTextColor.YELLOW)
+                                    emptyComponentOf(),
+                                    componentOf("Reload completed. (${result.totalTime().withComma()}ms)") {
+                                        color(NamedTextColor.GREEN)
+                                    },
+                                    componentOf("Assets reload time - ${result.assetsTime().withComma()}ms") {
+                                        color(NamedTextColor.GRAY)
+                                        hoverEvent(HoverEvent.showText(Component.text("Reading all config and model.")))
+                                    },
+                                    componentOf("Packing time - ${result.packingTime().withComma()}ms") {
+                                        color(NamedTextColor.GRAY)
+                                        hoverEvent(HoverEvent.showText(Component.text("Packing all model to resource pack.")))
+                                    },
+                                    componentOf("${BetterModel.models().size.withComma()} of models are loaded successfully.") {
+                                        color(NamedTextColor.YELLOW)
+                                    },
+                                    componentOf("${result.packData.bytes.size.withComma()} of files are zipped.") {
+                                        color(NamedTextColor.YELLOW)
+                                    },
+                                    emptyComponentOf()
                                 )
                             }
                             is Failure -> {
+                                audience.warn(
+                                    emptyComponentOf(),
+                                    "Reload failed.".toComponent(),
+                                    "Please read the log to find the problem.".toComponent(),
+                                    emptyComponentOf()
+                                )
                                 audience.warn()
-                                audience.warn("Reload failed.")
-                                audience.warn("Please read the log to find the problem.")
                                 result.throwable.handleException("Reload failed.")
                             }
                         }

@@ -238,6 +238,20 @@ public final class CollectionUtil {
      * Associates stream to map
      * @param stream stream
      * @param keyMapper key mapper
+     * @return unmodifiable map
+     * @param <E> element
+     * @param <K> key
+     */
+    @NotNull
+    @Unmodifiable
+    public static <E, K> Map<K, E> associate(@NotNull Stream<E> stream, @NotNull Function<E, K> keyMapper) {
+        return associate(stream, keyMapper, e -> e);
+    }
+
+    /**
+     * Associates stream to map
+     * @param stream stream
+     * @param keyMapper key mapper
      * @param valueMapper value mapper
      * @return unmodifiable map
      * @param <E> element
