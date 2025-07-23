@@ -15,14 +15,14 @@ import org.bukkit.craftbukkit.v1_20_R3.entity.CraftInteraction
 
 internal class HitBoxInteraction(
     val delegate: HitBoxImpl
-) : Interaction(EntityType.INTERACTION, delegate.level()), HitBox by delegate {
+) : Interaction(EntityType.INTERACTION, delegate.level()) {
 
     init {
         persist = false
     }
 
     private val craftEntity: CraftInteraction by lazy {
-        object : CraftInteraction(Bukkit.getServer() as CraftServer, this), HitBox by this {}
+        object : CraftInteraction(Bukkit.getServer() as CraftServer, this), HitBox by delegate {}
     }
 
     override fun getBukkitEntity(): CraftEntity = craftEntity

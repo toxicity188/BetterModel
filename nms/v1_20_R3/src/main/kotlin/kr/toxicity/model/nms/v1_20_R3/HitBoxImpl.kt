@@ -56,7 +56,6 @@ internal class HitBoxImpl(
     private var noGravity = if (delegate is Mob) delegate.isNoAi else delegate.isNoGravity
     private var forceDismount = false
     private var onFly = false
-    private val height = type.height
 
     val craftEntity: HitBox by lazy {
         object : CraftLivingEntity(Bukkit.getServer() as CraftServer, this), HitBox by this {}
@@ -275,7 +274,7 @@ internal class HitBoxImpl(
         yHeadRot = yRot
         yBodyRot = yRot
         val pos = relativePosition()
-        val minusHeight = rotatedSource.minY * bone.hitBoxScale() - height
+        val minusHeight = rotatedSource.minY * bone.hitBoxScale()
         setPos(
             pos.x.toDouble(),
             pos.y.toDouble() + minusHeight,
@@ -403,10 +402,10 @@ internal class HitBoxImpl(
             val source = rotatedSource
             AABB(
                 vec3.x + source.minX * scale,
-                vec3.y + height,
+                vec3.y,
                 vec3.z + source.minZ * scale,
                 vec3.x + source.maxX * scale,
-                vec3.y + (source.maxY - source.minY) * scale + height,
+                vec3.y + (source.maxY - source.minY) * scale,
                 vec3.z + source.maxZ * scale
             ).apply {
                 if (CONFIG.debug().has(DebugConfig.DebugOption.HITBOX)) {

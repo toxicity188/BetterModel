@@ -144,6 +144,10 @@ class NMSImpl : NMS {
         private val uuid = player.uniqueId
         private val slim = BetterModel.plugin().skinManager().isSlim(profile())
         private val cachedSlot = AtomicInteger()
+        private val hitBoxData = ItemDisplay(EntityType.ITEM_DISPLAY, connection.player.level()).run {
+            entityData[Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID] = 3
+            entityData.nonDefaultValues!!
+        }
 
         init {
             val pipeLine = getConnection(connection).channel.pipeline()
@@ -165,10 +169,15 @@ class NMSImpl : NMS {
         private val playerModel get() = connection.player.id.toRegistry()
 
         private fun Int.toPlayerEntity() = toEntity(connection.player.level())
-        private fun Int.toRegistry(
-            toRegistry: (Entity) -> EntityTrackerRegistry? = { EntityTrackerRegistry.registry(it.uuid) },
-            filter: EntityTrackerRegistry.() -> Boolean = { isSpawned(player ) }
-        ) = (EntityTrackerRegistry.registry(this) ?: toPlayerEntity()?.let(toRegistry))?.takeIf(filter)
+        private fun Entity.toRegistry() = EntityTrackerRegistry.registry(uuid)
+        private inline fun Int.toRegistry(
+            ifHitBox: (Entity) -> Unit = {}
+        ) = (EntityTrackerRegistry.registry(this) ?: toPlayerEntity()?.let {
+            if (it is HitBox) ifHitBox(it)
+            it.toRegistry()
+        })?.takeIf {
+            it.isSpawned(player)
+        }
 
         override fun sendEntityData(registry: EntityTrackerRegistry) {
             val handle = registry.adapter().handle() as Entity
@@ -186,16 +195,15 @@ class NMSImpl : NMS {
             list.send(player)
         }
 
-        private fun <T : ClientGamePacketListener> Packet<in T>.handle(): Packet<in T> {
+        private fun <T : ClientGamePacketListener> Packet<in T>.handle(): Packet<in T>? {
             when (this) {
-                is ClientboundBundlePacket -> return if (subPackets() is Keyed) this else ClientboundBundlePacket(subPackets().map {
+                is ClientboundBundlePacket -> return if (subPackets() is Keyed) this else ClientboundBundlePacket(subPackets().mapNotNull {
                     it.handle()
                 })
                 is ClientboundAddEntityPacket -> {
-                    id.toRegistry(
-                        { EntityTrackerRegistry.registry(it.bukkitEntity) },
-                        { true }
-                    )?.let {
+                    val entity = id.toPlayerEntity() ?: return this
+                    if (entity is HitBox) return entity.toFakeAddPacket()
+                    BetterModel.registry(entity.bukkitEntity).ifPresent {
                         BetterModel.plugin().scheduler().asyncTaskLater(player.ping.toLong() / 50 + 1) {
                             it.spawn(player)
                         }
@@ -204,8 +212,10 @@ class NMSImpl : NMS {
                 is ClientboundRemoveEntitiesPacket -> {
                     entityIds
                         .asSequence()
-                        .mapNotNull {
-                            it.toRegistry()
+                        .mapNotNull map@ {
+                            it.toRegistry {
+                                return@map null
+                            }
                         }
                         .forEach {
                             it.remove()
@@ -216,10 +226,14 @@ class NMSImpl : NMS {
                         return it.mountPacket(array = passengers)
                     }
                 }
-                is ClientboundSetEntityDataPacket -> id.toRegistry()?.let { registry ->
+                is ClientboundSetEntityDataPacket -> id.toRegistry {
+                    return ClientboundSetEntityDataPacket(id, hitBoxData)
+                }?.let { registry ->
                     return toRegistryDataPacket(uuid, registry)
                 }
-                is ClientboundSetEquipmentPacket -> entity.toRegistry()?.let {
+                is ClientboundSetEquipmentPacket -> entity.toRegistry {
+                    return null
+                }?.let {
                     if (it.hideOption(uuid).equipment()) (it.adapter().handle() as? LivingEntity)?.toEmptyEquipmentPacket()?.let { packet ->
                         return packet
                     }
@@ -246,7 +260,7 @@ class NMSImpl : NMS {
         }
 
         override fun write(ctx: ChannelHandlerContext, msg: Any, promise: ChannelPromise) {
-            super.write(ctx, if (msg is Packet<*>) msg.handle() else msg, promise)
+            super.write(ctx, if (msg is Packet<*>) msg.handle() ?: return else msg, promise)
         }
 
         override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {

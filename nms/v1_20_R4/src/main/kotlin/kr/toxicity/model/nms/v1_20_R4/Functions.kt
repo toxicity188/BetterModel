@@ -8,6 +8,7 @@ import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.util.EventUtil
 import net.minecraft.core.BlockPos
 import net.minecraft.network.FriendlyByteBuf
+import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket
 import net.minecraft.network.syncher.SynchedEntityData
@@ -181,3 +182,17 @@ internal fun Entity.trackedEntity() = bukkitEntity.trackedBy
 
 internal val Player.hotbarSlot get() = inventory.selected + 36
 internal fun ClientboundContainerSetSlotPacket.isInHand(player: Player) = containerId == 0 && player.hotbarSlot == slot
+
+internal fun Entity.toFakeAddPacket() = ClientboundAddEntityPacket(
+    id,
+    uuid,
+    x,
+    y,
+    z,
+    xRot,
+    yRot,
+    EntityType.ITEM_DISPLAY,
+    0,
+    deltaMovement,
+    yHeadRot.toDouble()
+)
