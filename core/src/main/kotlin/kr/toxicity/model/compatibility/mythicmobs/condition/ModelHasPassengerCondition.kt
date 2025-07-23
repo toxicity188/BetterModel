@@ -8,18 +8,17 @@ import kr.toxicity.model.util.boneName
 
 class ModelHasPassengerCondition(mlc: MythicLineConfig) : IEntityCondition {
 
-    private val model = mlc.modelPlaceholder
     private val seat = mlc.toPlaceholderStringList(MM_SEAT) {
-        it.map { s -> s.boneName }.toSet()
+        it.map { s -> s.boneName.name }.toSet()
     }
 
     override fun check(p0: AbstractEntity): Boolean {
         val args = p0.toPlaceholderArgs()
         val set = seat(args)
-        return p0.toTracker(model(args))?.registry()?.let {
+        return p0.toRegistry()?.let {
             if (set.isEmpty()) it.hasPassenger() else set.any { seat ->
                 it.mountedHitBox().values.any { box ->
-                    box.hitBox().positionSource().name == seat
+                    box.hitBox().positionSource().name.name == seat
                 }
             }
         } == true

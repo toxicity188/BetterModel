@@ -6,6 +6,7 @@ import io.lumine.mythic.api.skills.SkillMetadata
 import kr.toxicity.model.api.util.function.BonePredicate
 import kr.toxicity.model.util.boneName
 import kr.toxicity.model.util.toPackName
+import kr.toxicity.model.util.toRegistry
 import kr.toxicity.model.util.toTracker
 
 val MM_MODEL_ID = arrayOf("mid", "m", "model")
@@ -14,8 +15,10 @@ val MM_CHILDREN = arrayOf("children", "child")
 val MM_EXACT_MATCH = arrayOf("exactmatch", "em", "exact", "match")
 val MM_SEAT = arrayOf("seat", "p", "pbone")
 
+fun SkillMetadata.toRegistry() = caster.entity.toRegistry()
 fun SkillMetadata.toTracker(model: String?) = caster.entity.toTracker(model)
 fun AbstractEntity.toTracker(model: String?) = bukkitEntity.toTracker(model)
+fun AbstractEntity.toRegistry() = bukkitEntity.toRegistry()
 
 fun MythicLineConfig.toPlaceholderString(array: Array<String>, defaultValue: String? = null) = toPlaceholderString(array, defaultValue) { it }
 fun <T> MythicLineConfig.toPlaceholderStringList(array: Array<String>, mapper: (List<String>) -> T) = toPlaceholderString(array) {

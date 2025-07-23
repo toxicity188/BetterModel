@@ -6,12 +6,12 @@ import io.lumine.mythic.api.skills.ITargetedEntitySkill
 import io.lumine.mythic.api.skills.SkillMetadata
 import io.lumine.mythic.api.skills.SkillResult
 import kr.toxicity.model.compatibility.mythicmobs.*
+import kr.toxicity.model.util.boneName
 
 class DismountAllModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), ITargetedEntitySkill {
 
-    private val model = mlc.modelPlaceholder
     private val seat = mlc.toPlaceholderStringList(MM_SEAT) {
-        it.toSet()
+        it.map { s -> s.boneName.name }.toSet()
     }
 
     init {
@@ -20,11 +20,17 @@ class DismountAllModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(ml
 
     override fun castAtEntity(p0: SkillMetadata, p1: AbstractEntity): SkillResult {
         val args = toPlaceholderArgs(p0, p1)
-        return p0.toTracker(model(args))?.let { tracker ->
+        return p0.toRegistry()?.let { registry ->
             val set = seat(args)
-            tracker.bones().forEach {
-                if (set.isEmpty() || set.contains(it.name.name)) it.hitBox?.dismountAll()
-            }
+            registry.mountedHitBox()
+                .values
+                .asSequence()
+                .filter {
+                    set.isEmpty() || set.contains(it.hitBox.positionSource().name.name)
+                }
+                .forEach {
+                    it.dismountAll()
+                }
             SkillResult.SUCCESS
         } ?: SkillResult.CONDITION_FAILED
     }

@@ -225,7 +225,7 @@ class NMSImpl : NMS {
                 is ClientboundRespawnPacket -> playerModel?.let {
                     bundlerOf(it.mountPacket()).send(player)
                 }
-                is ClientboundContainerSetSlotPacket if containerId == 0 && playerModel?.hideOption(uuid)?.equipment() == true && slot - 36 == connection.player.inventory.selected -> {
+                is ClientboundContainerSetSlotPacket if isInHand(connection.player) && playerModel?.hideOption(uuid)?.equipment() == true -> {
                     return ClientboundContainerSetSlotPacket(containerId, stateId, slot, EMPTY_ITEM)
                 }
                 is ClientboundContainerSetContentPacket if containerId == 0 && playerModel?.hideOption(uuid)?.equipment() == true -> {

@@ -383,8 +383,26 @@ public final class EntityTrackerRegistry {
                 .anyMatch(HitBox::hasBeenControlled);
     }
 
-    
-    public record MountedHitBox(@NotNull Entity entity, @NotNull HitBox hitBox) {}
+
+    /**
+     * Hitbox with mount info
+     * @param entity entity
+     * @param hitBox hitbox
+     */
+    public record MountedHitBox(@NotNull Entity entity, @NotNull HitBox hitBox) {
+        /**
+         * Dismount this entity from hitbox.
+         */
+        public void dismount() {
+            hitBox.dismount(entity);
+        }
+        /**
+         * Dismount all entities from hitbox.
+         */
+        public void dismountAll() {
+            hitBox.dismountAll();
+        }
+    }
 
     @RequiredArgsConstructor
     private class PlayerChannelCache {
