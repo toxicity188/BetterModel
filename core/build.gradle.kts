@@ -39,6 +39,7 @@ bukkitPluginYaml {
     apiVersion = "1.20"
     author = "toxicity"
     description = "Lightweight BlockBench model engine & entity animation"
+    website = "https://modrinth.com/plugin/bettermodel"
     softDepend = listOf(
         "MythicMobs",
         "Citizens",

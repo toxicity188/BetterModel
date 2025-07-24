@@ -278,18 +278,19 @@ class NMSImpl : NMS {
                     cachedSlot.set(msg.slot + 36)
                     playerModel?.let { registry ->
                         if (!registry.hideOption(uuid).equipment()) return super.channelRead(ctx, msg)
+                        registry.updatePlayerLimb()
                         if (CONFIG.cancelPlayerModelInventory()) {
                             connection.send(ClientboundSetHeldSlotPacket(player.inventory.heldItemSlot))
                             return
-                        } else registry.updatePlayerLimb()
+                        }
                     }
                 }
                 is ServerboundPlayerActionPacket -> {
                     cachedSlot.set(connection.player.hotbarSlot)
                     playerModel?.let { registry ->
                         if (!registry.hideOption(uuid).equipment()) return super.channelRead(ctx, msg)
+                        registry.updatePlayerLimb()
                         if (CONFIG.cancelPlayerModelInventory()) return
-                        else registry.updatePlayerLimb()
                     }
                 }
             }
