@@ -4,6 +4,7 @@ import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.util.LogUtil;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,6 +45,7 @@ public final class PackZipper {
         return metaBuilder;
     }
 
+    @ApiStatus.Internal
     public @NotNull List<PackResource> build() {
         var config = BetterModel.config().pack();
         var resources = new ArrayList<PackResource>(assets.size() + legacy.size() + modern.size() + 2);

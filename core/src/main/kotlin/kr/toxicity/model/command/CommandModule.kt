@@ -55,6 +55,7 @@ class CommandModule(
     private val rootPermission: String = parent?.let { "${it.rootPermission}.${delegate.name}" } ?: delegate.name
     private val helpComponents by lazy {
         mutableListOf(
+            emptyComponentOf(),
             lineMessage,
             emptyComponentOf(),
             requiredMessage,
@@ -67,7 +68,8 @@ class CommandModule(
                 add(it.toComponent())
             }
             add(lineMessage)
-        }
+            add(emptyComponentOf())
+        }.toTypedArray()
     }
 
     init {
@@ -99,8 +101,7 @@ class CommandModule(
 
 
     override fun run(info: ExecutionInfo<CommandSender, BukkitCommandSender<out CommandSender>>) {
-        val audience = info.sender().audience()
-        helpComponents.forEach(audience::info)
+        info.sender().audience().info(*helpComponents)
     }
 
     private fun CommandAPICommand.toComponent() = componentOf {
