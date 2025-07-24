@@ -506,7 +506,7 @@ public final class RenderedBone {
     public boolean addAnimation(@NotNull AnimationPredicate filter, @NotNull BlueprintAnimation animator, @NotNull AnimationModifier modifier, Runnable removeTask) {
         if (filter.test(this)) {
             var get = animator.animator().get(getName());
-            if (get == null && animator.override() && !filter.isChildren()) return false;
+            if (get == null && modifier.override(animator.override()) && !filter.isChildren()) return false;
             var type = modifier.type(animator.loop());
             var iterator = get != null ? get.iterator(type) : animator.emptyIterator(type);
             state.addAnimation(animator.name(), iterator, modifier, removeTask);
@@ -518,7 +518,7 @@ public final class RenderedBone {
     public boolean replaceAnimation(@NotNull AnimationPredicate filter, @NotNull String target, @NotNull BlueprintAnimation animator, @NotNull AnimationModifier modifier) {
         if (filter.test(this)) {
             var get = animator.animator().get(getName());
-            if (get == null && animator.override() && !filter.isChildren()) return false;
+            if (get == null && modifier.override(animator.override()) && !filter.isChildren()) return false;
             var type = modifier.type(animator.loop());
             var iterator = get != null ? get.iterator(type) : animator.emptyIterator(type);
             state.replaceAnimation(target, iterator, modifier);

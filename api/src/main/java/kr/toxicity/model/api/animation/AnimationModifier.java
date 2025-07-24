@@ -1,12 +1,12 @@
 package kr.toxicity.model.api.animation;
 
-import kr.toxicity.model.api.util.FunctionUtil;
 import kr.toxicity.model.api.util.function.BooleanConstantSupplier;
 import kr.toxicity.model.api.util.function.FloatConstantSupplier;
 import kr.toxicity.model.api.util.function.FloatSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.function.BooleanSupplier;
 
 /**
@@ -16,66 +16,84 @@ import java.util.function.BooleanSupplier;
  * @param end end lerp
  * @param type animation type
  * @param speed speed modifier
+ * @param override override
  */
-public record AnimationModifier(@NotNull BooleanSupplier predicate, int start, int end, @Nullable AnimationIterator.Type type, @NotNull SpeedModifier speed) {
-
+public record AnimationModifier(
+        @NotNull BooleanSupplier predicate,
+        int start,
+        int end,
+        @Nullable AnimationIterator.Type type,
+        @NotNull FloatSupplier speed,
+        @Nullable Boolean override
+) {
 
     /**
-     * Creates speed modifier
-     * @param speed scala
-     * @return speed modifier
+     * Default modifier
      */
-    public static @NotNull SpeedModifier speed(float speed) {
-        return new SpeedModifier(speed);
+    public static final AnimationModifier DEFAULT = builder().build();
+
+    /**
+     * Default with play once modifier
+     */
+    public static final AnimationModifier DEFAULT_WITH_PLAY_ONCE = builder().type(AnimationIterator.Type.PLAY_ONCE).build();
+
+    public static @NotNull Builder builder() {
+        return new Builder();
     }
 
-    /**
-     * Creates speed modifier
-     * @param supplier speed supplier
-     * @return speed modifier
-     */
-    public static @NotNull SpeedModifier speed(@NotNull FloatSupplier supplier) {
-        return new SpeedModifier(supplier);
-    }
+    public static final class Builder {
+        private BooleanSupplier predicate = BooleanConstantSupplier.TRUE;
+        private int start = 1;
+        private int end = 0;
+        private AnimationIterator.Type type = null;
+        private FloatSupplier speed = FloatConstantSupplier.ONE;
+        private Boolean override = false;
 
-    /**
-     * Gets speed value
-     * @return speed value
-     */
-    public float speedValue() {
-        return speed.speed();
-    }
-
-    /**
-     * A modifier of speed
-     * @param supplier speed modifier
-     */
-    public record SpeedModifier(@NotNull FloatSupplier supplier) {
-
-        /**
-         * Creates modifier
-         * @param supplier speed modifier
-         */
-        public SpeedModifier(@NotNull FloatSupplier supplier) {
-            this.supplier = FunctionUtil.throttleTickFloat(supplier);
+        private Builder() {
         }
 
-        /**
-         * Creates modifier
-         * @param speed speed
-         */
-        public SpeedModifier(float speed) {
-            this(FloatConstantSupplier.of(speed));
+        public @NotNull Builder predicate(@NotNull BooleanSupplier predicate) {
+            this.predicate = Objects.requireNonNull(predicate);
+            return this;
         }
 
-        /**
-         * Gets speed
-         * @return speed value
-         */
-        public float speed() {
-            return supplier.getAsFloat();
+        public @NotNull Builder start(int start) {
+            this.start = start;
+            return this;
+        }
+
+        public @NotNull Builder end(int end) {
+            this.end = end;
+            return this;
+        }
+
+        public @NotNull Builder type(@Nullable AnimationIterator.Type type) {
+            this.type = type;
+            return this;
+        }
+
+        public @NotNull Builder speed(@NotNull FloatSupplier speed) {
+            this.speed = Objects.requireNonNull(speed);
+            return this;
+        }
+
+        public @NotNull Builder override(@Nullable Boolean override) {
+            this.override = override;
+            return this;
+        }
+
+        public @NotNull AnimationModifier build() {
+            return new AnimationModifier(
+                    predicate,
+                    start,
+                    end,
+                    type,
+                    speed,
+                    override
+            );
         }
     }
+
 
     /**
      * Creates modifier
@@ -85,7 +103,7 @@ public record AnimationModifier(@NotNull BooleanSupplier predicate, int start, i
      * @param speed     speed
      */
     public AnimationModifier(int start, int end, float speed) {
-        this(BooleanConstantSupplier.TRUE, start, end, null, speed);
+        this(BooleanConstantSupplier.TRUE, start, end, null, FloatConstantSupplier.of(speed));
     }
 
     /**
@@ -97,7 +115,7 @@ public record AnimationModifier(@NotNull BooleanSupplier predicate, int start, i
      * @param speed     speed
      */
     public AnimationModifier(@NotNull BooleanSupplier predicate, int start, int end, float speed) {
-        this(predicate, start, end, null, speed(speed));
+        this(predicate, start, end, null, FloatConstantSupplier.of(speed));
     }
 
     /**
@@ -109,7 +127,7 @@ public record AnimationModifier(@NotNull BooleanSupplier predicate, int start, i
      * @param supplier     speed supplier
      */
     public AnimationModifier(@NotNull BooleanSupplier predicate, int start, int end, @NotNull FloatSupplier supplier) {
-        this(predicate, start, end, null, new SpeedModifier(supplier));
+        this(predicate, start, end, null, supplier);
     }
 
     /**
@@ -122,9 +140,8 @@ public record AnimationModifier(@NotNull BooleanSupplier predicate, int start, i
      * @param speed     speed
      */
     public AnimationModifier(@NotNull BooleanSupplier predicate, int start, int end, @Nullable AnimationIterator.Type type, float speed) {
-        this(predicate, start, end, type, speed(speed));
+        this(predicate, start, end, type, FloatConstantSupplier.of(speed), null);
     }
-
 
     /**
      * Creates modifier
@@ -136,28 +153,8 @@ public record AnimationModifier(@NotNull BooleanSupplier predicate, int start, i
      * @param speed     speed
      */
     public AnimationModifier(@NotNull BooleanSupplier predicate, int start, int end, @Nullable AnimationIterator.Type type, @NotNull FloatSupplier speed) {
-        this(predicate, start, end, type, new SpeedModifier(speed));
+        this(predicate, start, end, type, speed, null);
     }
-
-    /**
-     * Creates modifier
-     *
-     * @param predicate animation predicate
-     * @param start     start time
-     * @param end       end time
-     * @param type type
-     * @param speed     speed
-     */
-    public AnimationModifier(@NotNull BooleanSupplier predicate, int start, int end, @Nullable AnimationIterator.Type type, @NotNull SpeedModifier speed) {
-        this.predicate = FunctionUtil.throttleTickBoolean(predicate);
-        this.start = start;
-        this.end = end;
-        this.type = type;
-        this.speed = speed;
-    }
-
-    public static final AnimationModifier DEFAULT = new AnimationModifier(1, 0, 1F);
-    public static final AnimationModifier DEFAULT_WITH_PLAY_ONCE = new AnimationModifier(BooleanConstantSupplier.TRUE, 1, 0, AnimationIterator.Type.PLAY_ONCE, 1F);
 
     /**
      * Gets modifier's type or default value
@@ -166,5 +163,22 @@ public record AnimationModifier(@NotNull BooleanSupplier predicate, int start, i
      */
     public @NotNull AnimationIterator.Type type(@NotNull AnimationIterator.Type defaultType) {
         return type != null ? type : defaultType;
+    }
+
+    /**
+     * Gets speed value
+     * @return speed value
+     */
+    public float speedValue() {
+        return speed.getAsFloat();
+    }
+
+    /**
+     * Gets override
+     * @param original original value
+     * @return override
+     */
+    public boolean override(boolean original) {
+        return override != null ? override : original;
     }
 }

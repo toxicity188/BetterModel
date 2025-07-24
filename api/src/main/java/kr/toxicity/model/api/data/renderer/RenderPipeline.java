@@ -1,10 +1,7 @@
 package kr.toxicity.model.api.data.renderer;
 
 import kr.toxicity.model.api.BetterModel;
-import kr.toxicity.model.api.animation.AnimationModifier;
-import kr.toxicity.model.api.animation.AnimationPredicate;
-import kr.toxicity.model.api.animation.AnimationStateHandler;
-import kr.toxicity.model.api.animation.RunningAnimation;
+import kr.toxicity.model.api.animation.*;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
@@ -83,7 +80,12 @@ public final class RenderPipeline {
         displayAmount = (int) bones.stream()
                 .filter(rb -> rb.getDisplay() != null)
                 .count();
-        animate(ignore -> true, "idle", new AnimationModifier(6, 0, 1), () -> {});
+        animate(
+                ignore -> true,
+                "idle",
+                AnimationModifier.builder().start(6).type(AnimationIterator.Type.LOOP).build(),
+                () -> {}
+        );
     }
 
     public @NotNull PacketBundler createBundler() {
