@@ -37,17 +37,24 @@ public record AnimationModifier(
      */
     public static final AnimationModifier DEFAULT_WITH_PLAY_ONCE = builder().type(AnimationIterator.Type.PLAY_ONCE).build();
 
+    /**
+     * Creates builder
+     * @return builder
+     */
     public static @NotNull Builder builder() {
         return new Builder();
     }
 
+    /**
+     * Builder
+     */
     public static final class Builder {
         private BooleanSupplier predicate = BooleanConstantSupplier.TRUE;
         private int start = 1;
         private int end = 0;
         private AnimationIterator.Type type = null;
         private FloatSupplier speed = FloatConstantSupplier.ONE;
-        private Boolean override = false;
+        private Boolean override = null;
 
         private Builder() {
         }
