@@ -11,10 +11,6 @@ import org.jetbrains.annotations.NotNull;
 @Getter
 public enum NMSVersion {
     /**
-     * 1.20.3-1.20.4
-     */
-    V1_20_R3(20,3, 22),
-    /**
      * 1.20.5-1.20.6
      */
     V1_20_R4(20,4, 32),

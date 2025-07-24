@@ -22,6 +22,7 @@ import net.minecraft.network.protocol.game.*
 import net.minecraft.network.syncher.EntityDataAccessor
 import net.minecraft.network.syncher.EntityDataSerializers
 import net.minecraft.network.syncher.SynchedEntityData
+import net.minecraft.server.MinecraftServer
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.network.ServerCommonPacketListenerImpl
 import net.minecraft.util.Brightness
@@ -113,6 +114,10 @@ class NMSImpl : NMS {
         private val animationSet = displaySet.subList(3, 6).toIntSet()
         private val transformSet = displaySet.subList(0, 6).toIntSet()
         private val entityDataSet = (mutableListOf(sharedFlag) + itemId + displaySet.subList(transformSet.size, displaySet.size)).toIntSet()
+        private val hitBoxData = ItemDisplay(EntityType.ITEM_DISPLAY, MinecraftServer.getServer().overworld()).run {
+            entityData[Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID] = 3
+            entityData.nonDefaultValues!!
+        }
     }
 
     override fun hide(channel: PlayerChannelHandler, registry: EntityTrackerRegistry) {
@@ -145,10 +150,6 @@ class NMSImpl : NMS {
         private val uuid = player.uniqueId
         private val slim = BetterModel.plugin().skinManager().isSlim(profile())
         private val cachedSlot = AtomicInteger()
-        private val hitBoxData = ItemDisplay(EntityType.ITEM_DISPLAY, connection.player.level()).run {
-            entityData[Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID] = 3
-            entityData.nonDefaultValues!!
-        }
 
         init {
             val pipeLine = getConnection(connection).channel.pipeline()
