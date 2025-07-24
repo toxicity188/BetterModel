@@ -23,7 +23,6 @@ public final class EntityBodyRotator {
     private final AtomicBoolean rotationLock = new AtomicBoolean();
     private int tick;
     private ModelRotation rotation;
-    private Vector3f lastHeadRotation = new Vector3f();
     private volatile boolean headUneven;
     private volatile boolean bodyUneven;
     private volatile boolean playerMode;
@@ -43,7 +42,7 @@ public final class EntityBodyRotator {
         );
         this.provider = new LazyFloatProvider(adapter.bodyYaw(), () -> rotationDuration * MathUtil.MINECRAFT_TICK_MILLS);
         headSupplier = LazyFloatProvider.ofVector(Tracker.TRACKER_TICK_INTERVAL, () -> 4 * MathUtil.MINECRAFT_TICK_MILLS, () -> {
-            var value = rotation.y() - adapter.headYaw();
+            var value = bodyRotation().y() - adapter.headYaw();
             if (value > 180) value -= 360;
             else if (value < -180) value += 360;
             return new Vector3f(
@@ -108,7 +107,7 @@ public final class EntityBodyRotator {
     }
 
     @NotNull Vector3f headRotation() {
-        return rotationLock.get() ? lastHeadRotation : (lastHeadRotation = headSupplier.get());
+        return headSupplier.get();
     }
 
     public void setValue(@NotNull Consumer<RotatorData> consumer) {

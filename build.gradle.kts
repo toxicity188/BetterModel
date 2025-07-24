@@ -39,8 +39,8 @@ tasks {
         })
         version(minecraft)
         downloadPlugins {
-            //hangar("ViaVersion", "5.4.1")
-            //hangar("ViaBackwards", "5.4.1")
+            hangar("ViaVersion", "5.4.2")
+            hangar("ViaBackwards", "5.4.2")
             hangar("Skript", "2.12.0")
         }
     }
