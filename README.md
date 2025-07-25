@@ -10,7 +10,7 @@ Welcome to **BetterModel**!
 
 </div>
 
-## ⚡Lightweight BlockBench model engine & entity animation
+## ⚡Lightweight BlockBench model engine for Bukkit
 ![Maven Central Version](https://img.shields.io/maven-central/v/io.github.toxicity188/BetterModel?style=flat-square&logo=sonatype)
 [![CodeFactor](https://www.codefactor.io/repository/github/toxicity188/bettermodel/badge?style=flat-square)](https://www.codefactor.io/repository/github/toxicity188/bettermodel)
 [![Total line](https://tokei.rs/b1/github/toxicity188/BetterModel?category=code&style=flat-square)](https://github.com/toxicity188/BetterModel)
@@ -48,9 +48,9 @@ Also, you can refer [my document](https://github.com/toxicity188/BetterModel/wik
 This plugin, of course, implements a Generic BlockBench model with animation.  
 
 #### Network optimization
-- Culling by sight-tracke
-- Skip sending packet if scale is zero
-- Parallel bundling of animation packet
+- Culling by sight-trace
+- Skip sending a packet if a scale is zero
+- Parallel bundling of an animation packet
 - Keyframe optimization
  
 You can see the report of network optimization in [here](https://github.com/toxicity188/BetterModel/wiki/Report-about-network-cost-about-two-model-plugin-(ModelEngine,-BetterModel)).

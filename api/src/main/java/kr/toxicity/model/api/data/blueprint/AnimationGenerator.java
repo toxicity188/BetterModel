@@ -138,8 +138,7 @@ public final class AnimationGenerator {
         }
         private @NotNull Vector3f find(float time, @NotNull Function<AnimationPoint, VectorPoint> mapper) {
             return valueCache.computeIfAbsent(time, f -> {
-                if (points.isEmpty()) return EMPTY;
-                if (points.size() == 1) return EMPTY;
+                if (points.size() <= 1) return EMPTY;
                 var i = searchCache;
                 for (; i < points.size(); i++) {
                     if (mapper.apply(points.get(i)).time() >= time) break;
