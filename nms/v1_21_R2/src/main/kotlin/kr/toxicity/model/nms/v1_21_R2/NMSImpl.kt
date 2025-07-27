@@ -223,6 +223,7 @@ class NMSImpl : NMS {
                         return it.mountPacket(array = passengers)
                     }
                 }
+                is ClientboundUpdateAttributesPacket if entityId.toPlayerEntity() is HitBox -> return null
                 is ClientboundSetEntityDataPacket -> id.toRegistry {
                     return ClientboundSetEntityDataPacket(id, hitBoxData)
                 }?.let { registry ->
