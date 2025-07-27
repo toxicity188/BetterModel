@@ -74,16 +74,12 @@ public final class AnimationGenerator {
                     .mapToDouble(t -> t.addTree(firstTime, secondTime, AnimationPoint::rotation))
                     .max()
                     .orElse(0);
-            var max = trees.stream()
-                    .mapToDouble(t -> t.maxTree(firstTime, secondTime, AnimationPoint::rotation))
-                    .max()
-                    .orElse(0);
-            var length = (float) Math.ceil(Math.max(minus / 90F, max / 45F));
+            var length = (float) Math.ceil(minus / 60);
             if (length < 2) continue;
             var last = firstTime;
             for (float f = 1; f < length; f++) {
                 var addTime = InterpolationUtil.lerp(firstTime, secondTime, f / length);
-                if (addTime - last < 0.025 || secondTime - addTime < 0.025) continue;
+                if (addTime - last < 0.01 || secondTime - addTime < 0.01) continue;
                 floats.add(last = addTime);
             }
         }
@@ -123,10 +119,6 @@ public final class AnimationGenerator {
 
         private float addTree(float first, float second, @NotNull Function<AnimationPoint, VectorPoint> mapper) {
             return max(findTree(first, second, mapper));
-        }
-        private float maxTree(float first, float second, @NotNull Function<AnimationPoint, VectorPoint> mapper) {
-            var get = max(find(first, second, mapper));
-            return parent != null ? Math.max(parent.maxTree(first, second, mapper), get) : get;
         }
 
         private @NotNull Vector3f findTree(float first, float second, @NotNull Function<AnimationPoint, VectorPoint> mapper) {
