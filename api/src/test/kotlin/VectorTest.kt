@@ -1,5 +1,4 @@
 import it.unimi.dsi.fastutil.floats.FloatAVLTreeSet
-import it.unimi.dsi.fastutil.floats.FloatSet
 import kr.toxicity.model.api.animation.VectorPoint
 import kr.toxicity.model.api.util.InterpolationUtil
 import kr.toxicity.model.api.util.interpolation.CatmullRomInterpolation
@@ -16,7 +15,7 @@ class VectorTest {
                 VectorPoint(Vector3f(3F, 4F, 5F), 3F, CatmullRomInterpolation.INSTANCE),
                 VectorPoint(Vector3f(4F, 5F, 6F), 4F, CatmullRomInterpolation.INSTANCE),
             ),
-            FloatSet.of(
+            FloatAVLTreeSet(floatArrayOf(
                 0F,
                 0.5F,
                 1F,
@@ -27,7 +26,7 @@ class VectorTest {
                 3.5F,
                 4F,
                 4.5F
-            )
+            ))
         ).forEach {
             println(it)
         }
