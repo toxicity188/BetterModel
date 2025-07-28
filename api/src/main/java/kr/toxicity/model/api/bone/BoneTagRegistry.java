@@ -44,7 +44,7 @@ public final class BoneTagRegistry {
      * @return bone name
      */
     public static @NotNull BoneName parse(@NotNull String rawName) {
-        var tagArray = Arrays.stream(rawName.split("_")).toList();
+        var tagArray = List.of(rawName.split("_"));
         if (tagArray.size() < 2) return new BoneName(Collections.emptySet(), rawName, rawName);
         var set = new HashSet<BoneTag>();
         for (String s : tagArray) {

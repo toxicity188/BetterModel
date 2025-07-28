@@ -36,7 +36,7 @@ public final class RenderPipeline {
     @Getter
     private final RenderSource<?> source;
 
-    private final Map<BoneName, RenderedBone> entityMap;
+    private final Map<BoneName, RenderedBone> boneMap;
     private final List<RenderedBone> bones;
     private final int displayAmount;
     private final Map<String, BlueprintAnimation> animationMap;
@@ -67,16 +67,13 @@ public final class RenderPipeline {
     public RenderPipeline(
             @NotNull ModelRenderer parent,
             @NotNull RenderSource<?> source,
-            @NotNull Map<BoneName, RenderedBone> entityMap
+            @NotNull Map<BoneName, RenderedBone> boneMap
     ) {
         this.parent = parent;
         this.source = source;
-        this.entityMap = entityMap;
+        this.boneMap = boneMap;
         this.animationMap = parent.animationMap();
-
-        var b = new ArrayList<RenderedBone>();
-        iterateTree(b::add);
-        bones = Collections.unmodifiableList(b);
+        bones = boneMap.values().stream().flatMap(RenderedBone::flatten).toList();
         displayAmount = (int) bones.stream()
                 .filter(rb -> rb.getDisplay() != null)
                 .count();
@@ -122,7 +119,7 @@ public final class RenderPipeline {
     }
 
     public @Nullable RunningAnimation runningAnimation() {
-        for (RenderedBone value : entityMap.values()) {
+        for (RenderedBone value : boneMap.values()) {
             var get = value.findNotNullByTree(RenderedBone::runningAnimation);
             if (get != null) return get;
         }
@@ -187,7 +184,7 @@ public final class RenderPipeline {
     }
 
     public @Nullable RenderedBone boneOf(@NotNull Predicate<RenderedBone> predicate) {
-        for (RenderedBone value : entityMap.values()) {
+        for (RenderedBone value : boneMap.values()) {
             var get = value.boneOf(predicate);
             if (get != null) return get;
         }
@@ -252,7 +249,7 @@ public final class RenderPipeline {
         Objects.requireNonNull(predicate);
         Objects.requireNonNull(mapper);
         var result = false;
-        for (RenderedBone value : entityMap.values()) {
+        for (RenderedBone value : boneMap.values()) {
             if (value.matchTree(predicate, mapper)) result = true;
         }
         return result;
@@ -262,7 +259,7 @@ public final class RenderPipeline {
         Objects.requireNonNull(predicate);
         Objects.requireNonNull(mapper);
         var result = false;
-        for (RenderedBone value : entityMap.values()) {
+        for (RenderedBone value : boneMap.values()) {
             if (value.matchTree(predicate, mapper)) result = true;
         }
         return result;
@@ -271,7 +268,7 @@ public final class RenderPipeline {
     public boolean matchTree(@NotNull Predicate<RenderedBone> predicate) {
         Objects.requireNonNull(predicate);
         var result = false;
-        for (RenderedBone value : entityMap.values()) {
+        for (RenderedBone value : boneMap.values()) {
             if (value.matchTree(predicate)) result = true;
         }
         return result;
@@ -279,7 +276,7 @@ public final class RenderPipeline {
 
     public void iterateTree(@NotNull Consumer<RenderedBone> consumer) {
         Objects.requireNonNull(consumer);
-        for (RenderedBone value : entityMap.values()) {
+        for (RenderedBone value : boneMap.values()) {
             value.iterateTree(consumer);
         }
     }

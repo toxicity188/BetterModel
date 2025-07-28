@@ -34,6 +34,7 @@ import org.joml.Vector3f;
 
 import java.util.Map;
 import java.util.function.*;
+import java.util.stream.Stream;
 
 /**
  * A rendered item-display.
@@ -565,6 +566,13 @@ public final class RenderedBone {
      */
     public @Nullable RenderedBone boneOf(@NotNull Predicate<RenderedBone> predicate) {
         return findNotNullByTree(b -> predicate.test(b) ? b : null);
+    }
+
+    public @NotNull Stream<RenderedBone> flatten() {
+        return Stream.concat(
+                Stream.of(this),
+                children.values().stream().flatMap(RenderedBone::flatten)
+        );
     }
 
     public <T> @Nullable T findNotNullByTree(@NotNull Function<RenderedBone, T> mapper) {

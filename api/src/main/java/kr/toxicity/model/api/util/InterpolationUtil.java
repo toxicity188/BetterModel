@@ -8,9 +8,9 @@ import kr.toxicity.model.api.tracker.Tracker;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 import org.joml.Vector3f;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static kr.toxicity.model.api.util.MathUtil.*;
@@ -32,24 +32,27 @@ public final class InterpolationUtil {
     private static final float FRAME_HASH = (float) Tracker.TRACKER_TICK_INTERVAL / 1000F;
     private static final float FRAME_HASH_REVERT = 1 / FRAME_HASH;
 
-    public static @NotNull List<AnimationMovement> buildAnimation(@NotNull List<VectorPoint> position, @NotNull List<VectorPoint> rotation, @NotNull List<VectorPoint> scale, @NotNull FloatSortedSet points) {
+    @NotNull
+    @Unmodifiable
+    public static List<AnimationMovement> buildAnimation(@NotNull List<VectorPoint> position, @NotNull List<VectorPoint> rotation, @NotNull List<VectorPoint> scale, @NotNull FloatSortedSet points) {
         var pp = interpolatorFor(position);
         var sp = interpolatorFor(scale);
         var rp = interpolatorFor(rotation);
-        var list = new ArrayList<AnimationMovement>(points.size());
+        var array = new AnimationMovement[points.size()];
         var before = 0F;
         var iterator = points.iterator();
+        var i = 0;
         while (iterator.hasNext()) {
             var f = iterator.nextFloat();
-            list.add(new AnimationMovement(
+            array[i++] = new AnimationMovement(
                     roundTime(f - before),
                     takeIf(pp.build(f).vector(), MathUtil::isNotZero),
                     takeIf(sp.build(f).vector(), MathUtil::isNotZero),
                     takeIf(rp.build(f).vector(), MathUtil::isNotZero)
-            ));
+            );
             before = f;
         }
-        return list;
+        return List.of(array);
     }
 
     public static @NotNull VectorPointBuilder interpolatorFor(@NotNull List<VectorPoint> vectors) {

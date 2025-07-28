@@ -28,7 +28,6 @@ public final class AnimationGenerator {
             @NotNull List<BlueprintChildren> children,
             @NotNull Map<BoneName, BlueprintAnimator.AnimatorData> pointMap
     ) {
-
         var floatSet = mapFloat(pointMap.values()
                 .stream()
                 .flatMap(BlueprintAnimator.AnimatorData::allPoints), VectorPoint::time, () -> new FloatAVLTreeSet(MathUtil.FRAME_COMPARATOR));

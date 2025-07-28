@@ -13,7 +13,7 @@ import java.util.function.BiPredicate;
 /**
  * Tracker update action
  */
-public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, BonePredicate>  {
+public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, BonePredicate> {
 
     @Override
     boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate);
