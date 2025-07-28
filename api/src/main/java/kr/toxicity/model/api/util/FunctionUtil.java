@@ -6,6 +6,7 @@ import kr.toxicity.model.api.util.function.FloatSupplier;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -34,6 +35,17 @@ public final class FunctionUtil {
      */
     public static <T> @NotNull Supplier<T> asSupplier(@NotNull T t) {
         return () -> t;
+    }
+
+    /**
+     * Takes value if predicate is matched
+     * @param t t
+     * @param predicate predicate
+     * @return t or null
+     * @param <T> type
+     */
+    public static <T> @Nullable T takeIf(@NotNull T t, @NotNull Predicate<T> predicate) {
+        return predicate.test(t) ? t : null;
     }
 
     /**

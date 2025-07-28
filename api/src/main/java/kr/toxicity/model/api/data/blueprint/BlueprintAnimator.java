@@ -2,11 +2,9 @@ package kr.toxicity.model.api.data.blueprint;
 
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationMovement;
-import kr.toxicity.model.api.animation.AnimationPoint;
 import kr.toxicity.model.api.animation.VectorPoint;
 import kr.toxicity.model.api.data.raw.Datapoint;
 import kr.toxicity.model.api.data.raw.ModelKeyframe;
-import kr.toxicity.model.api.util.InterpolationUtil;
 import kr.toxicity.model.api.util.MathUtil;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -14,6 +12,7 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * A movement of each group.
@@ -29,9 +28,26 @@ public record BlueprintAnimator(
     /**
      * Animation data
      * @param name name
-     * @param points points
+     * @param transform transform
+     * @param scale scale
+     * @param rotation rotation
      */
-    public record AnimatorData(@NotNull String name, @NotNull List<AnimationPoint> points) {}
+    public record AnimatorData(
+            @NotNull String name,
+            @NotNull List<VectorPoint> transform,
+            @NotNull List<VectorPoint> scale,
+            @NotNull List<VectorPoint> rotation
+    ) {
+        public @NotNull Stream<VectorPoint> allPoints() {
+            return Stream.concat(
+                    Stream.concat(
+                            transform.stream(),
+                            scale.stream()
+                    ),
+                    rotation.stream()
+            );
+        }
+    }
 
     /**
      * Builder
@@ -82,12 +98,12 @@ public record BlueprintAnimator(
          * @return data
          */
         public @NotNull AnimatorData build(@NotNull String name) {
-            return new AnimatorData(name, InterpolationUtil.sum(
-                    length,
-                    transform.stream().distinct().toList(),
-                    rotation.stream().distinct().toList(),
-                    scale.stream().distinct().toList()
-            ));
+            return new AnimatorData(
+                    name,
+                    transform,
+                    scale,
+                    rotation
+            );
         }
     }
 

@@ -1,8 +1,6 @@
 package kr.toxicity.model.api.data.blueprint;
 
-import com.google.common.util.concurrent.AtomicDouble;
 import it.unimi.dsi.fastutil.floats.*;
-import kr.toxicity.model.api.animation.AnimationPoint;
 import kr.toxicity.model.api.animation.VectorPoint;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.util.InterpolationUtil;
@@ -25,24 +23,27 @@ public final class AnimationGenerator {
     private final List<AnimationTree> trees;
 
     public static @NotNull Map<BoneName, BlueprintAnimator> createMovements(
+            float length,
             @NotNull List<BlueprintChildren> children,
             @NotNull Map<BoneName, BlueprintAnimator.AnimatorData> pointMap
     ) {
+
         var floatSet = mapFloat(pointMap.values()
                 .stream()
-                .flatMap(d -> d.points().stream()), p -> p.position().time(), FloatAVLTreeSet::new);
+                .flatMap(BlueprintAnimator.AnimatorData::allPoints), VectorPoint::time, FloatAVLTreeSet::new);
+        floatSet.add(0F);
+        floatSet.add(length);
         InterpolationUtil.insertLerpFrame(floatSet);
         new AnimationGenerator(pointMap, children).interpolateRotation(floatSet);
-        return mapValue(pointMap, v -> {
-            var doubleCache = new AtomicDouble();
-            return new BlueprintAnimator(
-                    v.name(),
-                    InterpolationUtil.putAnimationPoint(v.points(), floatSet).stream().map(point -> {
-                        var animation = point.toMovement();
-                        return animation.time(InterpolationUtil.roundTime(animation.time() - (float) doubleCache.getAndSet(animation.time())));
-                    }).toList()
-            );
-        });
+        return mapValue(pointMap, v -> new BlueprintAnimator(
+                v.name(),
+                InterpolationUtil.buildAnimation(
+                        v.transform(),
+                        v.rotation(),
+                        v.scale(),
+                        floatSet
+                )
+        ));
     }
 
     private AnimationGenerator(
@@ -51,10 +52,7 @@ public final class AnimationGenerator {
     ) {
         this.pointMap = pointMap;
         trees = filterIsInstance(children, BlueprintChildren.BlueprintGroup.class)
-                .map(g -> {
-                    var get = pointMap.get(g.name());
-                    return new AnimationTree(g, get != null ? get.points() : Collections.emptyList());
-                })
+                .map(g -> new AnimationTree(g, pointMap.get(g.name())))
                 .flatMap(AnimationTree::flatten)
                 .toList();
     }
@@ -68,7 +66,7 @@ public final class AnimationGenerator {
             secondTime = iterator.nextFloat();
             if (secondTime - firstTime <= 0) continue;
             var minus = trees.stream()
-                    .mapToDouble(t -> t.tree(firstTime, secondTime, AnimationPoint::rotation))
+                    .mapToDouble(t -> t.tree(firstTime, secondTime, BlueprintAnimator.AnimatorData::rotation))
                     .max()
                     .orElse(0);
             var length = (float) Math.ceil(minus / 90);
@@ -85,25 +83,22 @@ public final class AnimationGenerator {
     private class AnimationTree {
         private final AnimationTree parent;
         private final List<AnimationTree> children;
-        private final List<AnimationPoint> points;
+        private final BlueprintAnimator.AnimatorData data;
         private int searchCache = 0;
         private final Float2ObjectMap<Vector3f> valueCache = new Float2ObjectOpenHashMap<>();
 
-        AnimationTree(@NotNull BlueprintChildren.BlueprintGroup group, @NotNull List<AnimationPoint> points) {
-            this(null, group, points);
+        AnimationTree(@NotNull BlueprintChildren.BlueprintGroup group, @Nullable BlueprintAnimator.AnimatorData data) {
+            this(null, group, data);
         }
         AnimationTree(
                 @Nullable AnimationTree parent,
                 @NotNull BlueprintChildren.BlueprintGroup group,
-                @NotNull List<AnimationPoint> points
+                @Nullable BlueprintAnimator.AnimatorData data
         ) {
             this.parent = parent;
-            this.points = points;
+            this.data = data;
             children = filterIsInstance(group.children(), BlueprintChildren.BlueprintGroup.class)
-                    .map(g -> {
-                        var get = pointMap.get(g.name());
-                        return new AnimationTree(this, g, get != null ? get.points() : Collections.emptyList());
-                    })
+                    .map(g -> new AnimationTree(this, g, pointMap.get(g.name())))
                     .toList();
         }
 
@@ -115,29 +110,30 @@ public final class AnimationGenerator {
             );
         }
 
-        private float tree(float first, float second, @NotNull Function<AnimationPoint, VectorPoint> mapper) {
-            return findTree(first, second, mapper).length();
+        private float tree(float first, float second, @NotNull Function<BlueprintAnimator.AnimatorData, List<VectorPoint>> mapper) {
+            var value = data != null ? mapper.apply(data) : Collections.<VectorPoint>emptyList();
+            return findTree(first, second, value).length();
         }
 
-        private @NotNull Vector3f findTree(float first, float second, @NotNull Function<AnimationPoint, VectorPoint> mapper) {
-            var get = find(first, second, mapper);
-            return parent != null ? parent.findTree(first, second, mapper).add(get) : get;
+        private @NotNull Vector3f findTree(float first, float second, @NotNull List<VectorPoint> target) {
+            var get = find(first, second, target);
+            return parent != null ? parent.findTree(first, second, target).add(get) : get;
         }
-        private @NotNull Vector3f find(float first, float second, @NotNull Function<AnimationPoint, VectorPoint> mapper) {
-            return find(second, mapper).sub(find(first, mapper), new Vector3f());
+        private @NotNull Vector3f find(float first, float second, @NotNull List<VectorPoint> target) {
+            return find(second, target).sub(find(first, target), new Vector3f());
         }
-        private @NotNull Vector3f find(float time, @NotNull Function<AnimationPoint, VectorPoint> mapper) {
+        private @NotNull Vector3f find(float time, @NotNull List<VectorPoint> target) {
             return valueCache.computeIfAbsent(time, f -> {
-                if (points.size() <= 1) return EMPTY;
+                if (target.size() <= 1) return EMPTY;
                 var i = searchCache;
-                for (; i < points.size(); i++) {
-                    if (mapper.apply(points.get(i)).time() >= time) break;
+                for (; i < target.size(); i++) {
+                    if (target.get(i).time() >= time) break;
                 }
                 searchCache = i;
                 if (i == 0) return EMPTY;
-                if (i == points.size()) return EMPTY;
-                var first = mapper.apply(points.get(i - 1));
-                var second = mapper.apply(points.get(i));
+                if (i == target.size()) return EMPTY;
+                var first = target.get(i - 1);
+                var second = target.get(i);
                 return second.time() == time ? second.vector() : InterpolationUtil.lerp(
                         first.vector(),
                         second.vector(),

@@ -57,7 +57,7 @@ public record BlueprintAnimation(
             }
             else map.put(BoneTagRegistry.parse(name), builder.build(name));
         }
-        var animators = AnimationGenerator.createMovements(children, map);
+        var animators = AnimationGenerator.createMovements(animation.length(), children, map);
         return new BlueprintAnimation(
                 animation.name(),
                 animation.loop(),

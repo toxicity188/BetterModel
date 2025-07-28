@@ -2,7 +2,7 @@ package kr.toxicity.model.api.util;
 
 import it.unimi.dsi.fastutil.floats.*;
 import kr.toxicity.model.api.BetterModel;
-import kr.toxicity.model.api.animation.AnimationPoint;
+import kr.toxicity.model.api.animation.AnimationMovement;
 import kr.toxicity.model.api.animation.VectorPoint;
 import kr.toxicity.model.api.tracker.Tracker;
 import org.jetbrains.annotations.ApiStatus;
@@ -10,11 +10,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.IntStream;
 
 import static kr.toxicity.model.api.util.MathUtil.*;
+import static kr.toxicity.model.api.util.FunctionUtil.takeIf;
 
 /**
  * Interpolation util
@@ -32,77 +32,54 @@ public final class InterpolationUtil {
     private static final float FRAME_HASH = (float) Tracker.TRACKER_TICK_INTERVAL / 1000F;
     private static final float FRAME_HASH_REVERT = 1 / FRAME_HASH;
 
-    private static void point(@NotNull FloatSortedSet target, @NotNull List<VectorPoint> points) {
-        for (VectorPoint point : points) {
-            target.add(point.time());
-        }
-    }
-
-    public static @NotNull List<AnimationPoint> putAnimationPoint(@NotNull List<AnimationPoint> animations, @NotNull FloatSortedSet points) {
-        return sum(
-                animations.stream().map(AnimationPoint::position).distinct().toList(),
-                animations.stream().map(AnimationPoint::rotation).distinct().toList(),
-                animations.stream().map(AnimationPoint::scale).distinct().toList(),
-                points
-        );
-    }
-
-    public static @NotNull List<AnimationPoint> sum(float length, @NotNull List<VectorPoint> position, @NotNull List<VectorPoint> rotation, @NotNull List<VectorPoint> scale) {
-        var set = new FloatAVLTreeSet(FloatComparators.NATURAL_COMPARATOR);
-        set.add(0);
-        set.add(length);
-        point(set, position);
-        point(set, scale);
-        point(set, rotation);
-        return sum(position, rotation, scale, set);
-    }
-
-    public static @NotNull List<AnimationPoint> sum(@NotNull List<VectorPoint> position, @NotNull List<VectorPoint> rotation, @NotNull List<VectorPoint> scale, @NotNull FloatSortedSet points) {
-        var pp = putPoint(position, points);
-        var rp = putPoint(rotation, points);
-        var sp = putPoint(scale, points);
-        return IntStream.range(0, pp.size())
-                .mapToObj(i -> new AnimationPoint(
-                        pp.get(i),
-                        rp.get(i),
-                        sp.get(i)
-                ))
-                .toList();
-    }
-
-    public static @NotNull List<VectorPoint> putPoint(@NotNull List<VectorPoint> vectors, @NotNull FloatSortedSet points) {
-        var newVectors = new VectorPoint[points.size()];
-        var index = 0;
+    public static @NotNull List<AnimationMovement> buildAnimation(@NotNull List<VectorPoint> position, @NotNull List<VectorPoint> rotation, @NotNull List<VectorPoint> scale, @NotNull FloatSortedSet points) {
+        var pp = interpolatorFor(position);
+        var sp = interpolatorFor(scale);
+        var rp = interpolatorFor(rotation);
+        var list = new ArrayList<AnimationMovement>(points.size());
+        var before = 0F;
         var iterator = points.iterator();
+        while (iterator.hasNext()) {
+            var f = iterator.nextFloat();
+            list.add(new AnimationMovement(
+                    roundTime(f - before),
+                    takeIf(pp.build(f).vector(), MathUtil::isNotZero),
+                    takeIf(sp.build(f).vector(), MathUtil::isNotZero),
+                    takeIf(rp.build(f).vector(), MathUtil::isNotZero)
+            ));
+            before = f;
+        }
+        return list;
+    }
+
+    public static @NotNull VectorPointBuilder interpolatorFor(@NotNull List<VectorPoint> vectors) {
         if (vectors.size() < 2) {
             var first = vectors.isEmpty() ? VectorPoint.EMPTY : vectors.getFirst();
-            while (iterator.hasNext()) {
-                newVectors[index++] = new VectorPoint(first.vector(), iterator.nextFloat(), first.interpolation());
-            }
-            return Arrays.asList(newVectors);
+            return f -> new VectorPoint(first.vector(), f, first.interpolation());
         }
-        var p1 = VectorPoint.EMPTY;
-        var p2 = vectors.getFirst();
         var last = vectors.getLast();
-        var length = last.time();
-        var i = 0;
-        var t = p2.time();
-        while (iterator.hasNext()) {
-            var point = iterator.nextFloat();
-            while (i < vectors.size() - 1 && t < point) {
-                p1 = p2;
-                t = (p2 = vectors.get(++i)).time();
+        return new VectorPointBuilder() {
+            private VectorPoint p1 = VectorPoint.EMPTY;
+            private VectorPoint p2 = vectors.getFirst();
+            private int i = 0;
+            private float t = p2.time();
+
+            @Override
+            public @NotNull VectorPoint build(float nextFloat) {
+                while (i < vectors.size() - 1 && t < nextFloat) {
+                    p1 = p2;
+                    t = (p2 = vectors.get(++i)).time();
+                }
+                if (nextFloat > last.time()) return new VectorPoint(
+                        last.vector(),
+                        nextFloat,
+                        last.interpolation()
+                );
+                else {
+                    return nextFloat == t ? vectors.get(i) : p1.interpolation().interpolate(vectors, i, nextFloat);
+                }
             }
-            if (point > length) newVectors[index++] = new VectorPoint(
-                    last.vector(),
-                    point,
-                    last.interpolation()
-            );
-            else {
-                newVectors[index++] = point == t ? vectors.get(i) : p1.interpolation().interpolate(vectors, i, point);
-            }
-        }
-        return Arrays.asList(newVectors);
+        };
     }
 
     public static void insertLerpFrame(@NotNull FloatSortedSet frames) {
@@ -231,5 +208,10 @@ public final class InterpolationUtil {
                 fma(t3, fma(-1F, p0.y, fma(3F, p1.y, fma(-3F, p2.y, p3.y))), fma(t2, fma(2F, p0.y, fma(-5F, p1.y, fma(4F, p2.y, -p3.y))), fma(t, -p0.y + p2.y, 2F * p1.y))),
                 fma(t3, fma(-1F, p0.z, fma(3F, p1.z, fma(-3F, p2.z, p3.z))), fma(t2, fma(2F, p0.z, fma(-5F, p1.z, fma(4F, p2.z, -p3.z))), fma(t, -p0.z + p2.z, 2F * p1.z)))
         ).mul(0.5F);
+    }
+
+    @FunctionalInterface
+    public interface VectorPointBuilder {
+        @NotNull VectorPoint build(float nextFloat);
     }
 }
