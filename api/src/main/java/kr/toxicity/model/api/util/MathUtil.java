@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.util;
 
+import it.unimi.dsi.fastutil.floats.FloatComparator;
 import it.unimi.dsi.fastutil.floats.FloatSet;
 import kr.toxicity.model.api.data.raw.Float3;
 import org.jetbrains.annotations.ApiStatus;
@@ -52,10 +53,16 @@ public final class MathUtil {
      * Frame epsilon value
      */
     public static final float FRAME_EPSILON = 0.001F;
+
     /**
      * Float comparison epsilon value
      */
     public static final float FLOAT_COMPARISON_EPSILON = 1E-5F;
+
+    /**
+     * Float comparator
+     */
+    public static final FloatComparator FRAME_COMPARATOR = (a, b) -> abs(a - b) < FRAME_EPSILON ? 0 : Float.compare(a, b);
 
     public static boolean isSimilar(float a, float b) {
         return abs(a - b) < FLOAT_COMPARISON_EPSILON;

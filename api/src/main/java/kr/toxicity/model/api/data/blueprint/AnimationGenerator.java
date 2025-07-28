@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.floats.*;
 import kr.toxicity.model.api.animation.VectorPoint;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.util.InterpolationUtil;
+import kr.toxicity.model.api.util.MathUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
@@ -30,7 +31,7 @@ public final class AnimationGenerator {
 
         var floatSet = mapFloat(pointMap.values()
                 .stream()
-                .flatMap(BlueprintAnimator.AnimatorData::allPoints), VectorPoint::time, FloatAVLTreeSet::new);
+                .flatMap(BlueprintAnimator.AnimatorData::allPoints), VectorPoint::time, () -> new FloatAVLTreeSet(MathUtil.FRAME_COMPARATOR));
         floatSet.add(0F);
         floatSet.add(length);
         InterpolationUtil.insertLerpFrame(floatSet);

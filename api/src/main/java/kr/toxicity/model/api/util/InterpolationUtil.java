@@ -54,7 +54,7 @@ public final class InterpolationUtil {
 
     public static @NotNull VectorPointBuilder interpolatorFor(@NotNull List<VectorPoint> vectors) {
         var last = vectors.isEmpty() ? VectorPoint.EMPTY : vectors.getLast();
-        if (vectors.size() < 2) return f -> new VectorPoint(last.vector(), f, last.interpolation());
+        if (vectors.size() < 2) return last::time;
         else return new VectorPointBuilder() {
             private VectorPoint p1 = VectorPoint.EMPTY;
             private VectorPoint p2 = vectors.getFirst();
@@ -67,11 +67,7 @@ public final class InterpolationUtil {
                     p1 = p2;
                     t = (p2 = vectors.get(++i)).time();
                 }
-                if (nextFloat > last.time()) return new VectorPoint(
-                        last.vector(),
-                        nextFloat,
-                        last.interpolation()
-                );
+                if (nextFloat > last.time()) return last.time(nextFloat);
                 else return nextFloat == t ? p2 : p1.interpolation().interpolate(vectors, i, nextFloat);
             }
         };
