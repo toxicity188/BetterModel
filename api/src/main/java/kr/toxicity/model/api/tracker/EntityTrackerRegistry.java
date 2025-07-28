@@ -13,9 +13,9 @@ import kr.toxicity.model.api.config.DebugConfig;
 import kr.toxicity.model.api.nms.*;
 import kr.toxicity.model.api.util.CollectionUtil;
 import kr.toxicity.model.api.util.LogUtil;
+import kr.toxicity.model.api.util.ThreadUtil;
 import kr.toxicity.model.api.util.lock.DuplexLock;
 import lombok.RequiredArgsConstructor;
-import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -185,7 +185,7 @@ public final class EntityTrackerRegistry {
     }
 
     private void initialLoad() {
-        if (Bukkit.isPrimaryThread() && loaded.compareAndSet(false, true)) {
+        if (ThreadUtil.isFoliaSafe() && loaded.compareAndSet(false, true)) {
             load();
             refreshPlayer();
         }
@@ -276,7 +276,7 @@ public final class EntityTrackerRegistry {
     }
 
     private void runSync(@NotNull Runnable runnable) {
-        if (Bukkit.isPrimaryThread()) {
+        if (ThreadUtil.isTickThread()) {
             runnable.run();
         } else BetterModel.plugin().scheduler().task(entity.getLocation(), runnable);
     }

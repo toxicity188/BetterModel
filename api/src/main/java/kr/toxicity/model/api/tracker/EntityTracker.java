@@ -120,7 +120,6 @@ public class EntityTracker extends Tracker {
         });
         rotation(bodyRotator::bodyRotation);
         preUpdateConsumer.accept(this);
-        update();
         EventUtil.call(new CreateEntityTrackerEvent(this));
     }
 

@@ -219,14 +219,10 @@ public final class MathUtil {
         return Math.fma(a, b, c);
     }
 
-    public static float absMin(float a, float b) {
-        return abs(a) < abs(b) ? a : b;
-    }
-
     public static boolean isNotZero(@NotNull Vector3f vector3f) {
         return !isZero(vector3f);
     }
     public static boolean isZero(@NotNull Vector3f vector3f) {
-        return vector3f.x == 0F && vector3f.y == 0F && vector3f.z == 0F;
+        return isSimilar(vector3f.x, 0F) && isSimilar(vector3f.y, 0F) && isSimilar(vector3f.z, 0F);
     }
 }

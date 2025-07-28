@@ -1,6 +1,6 @@
 package kr.toxicity.model.api.event;
 
-import org.bukkit.Bukkit;
+import kr.toxicity.model.api.util.ThreadUtil;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.ApiStatus;
 
@@ -13,7 +13,7 @@ public abstract class AbstractModelEvent extends Event {
      */
     @ApiStatus.Internal
     public AbstractModelEvent() {
-        this(!Bukkit.isPrimaryThread());
+        this(!ThreadUtil.isTickThread());
     }
 
     /**

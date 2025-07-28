@@ -42,7 +42,6 @@ class MythicMobsCompatibility : Compatibility {
                     "partvisibility", "partvis" -> register(PartVisibilityMechanic(config))
                     "bindhitbox" -> register(BindHitBoxMechanic(config))
                     "changepart" -> register(ChangePartMechanic(config))
-                    "vfx" -> register(VFXMechanic(config))
                     "tint", "color" -> register(TintMechanic(config))
                     "brightness", "light" -> register(BrightnessMechanic(config))
                     "enchant" -> register(EnchantMechanic(config))

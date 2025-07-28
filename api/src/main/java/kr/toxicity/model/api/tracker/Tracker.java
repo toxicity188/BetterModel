@@ -132,6 +132,7 @@ public abstract class Tracker implements AutoCloseable {
         if (isScheduled()) return;
         synchronized (this) {
             if (isScheduled()) return;
+            updater.run();
             task = EXECUTOR.scheduleAtFixedRate(() -> {
                 if (playerCount() == 0 && !forRemoval.get()) {
                     shutdown();

@@ -34,7 +34,6 @@ public final class DummyTracker extends Tracker {
         rotation(() -> new ModelRotation(this.location.getPitch(), this.location.getYaw()));
         pipeline.defaultPosition(FunctionUtil.asSupplier(new Vector3f()));
         preUpdateConsumer.accept(this);
-        update();
         EventUtil.call(new CreateDummyTrackerEvent(this));
     }
 
