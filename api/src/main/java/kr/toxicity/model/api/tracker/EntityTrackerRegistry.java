@@ -45,6 +45,7 @@ public final class EntityTrackerRegistry {
     public static final NamespacedKey TRACKING_ID = Objects.requireNonNull(NamespacedKey.fromString("bettermodel_tracker"));
 
     private final AtomicBoolean closed = new AtomicBoolean();
+    private final AtomicBoolean loaded = new AtomicBoolean();
     private final Entity entity;
     private final int id;
     private final UUID uuid;
@@ -92,8 +93,7 @@ public final class EntityTrackerRegistry {
                 return null;
             });
         }
-        registry.load();
-        registry.refreshPlayer();
+        registry.initialLoad();
         return registry;
     }
 
@@ -184,8 +184,15 @@ public final class EntityTrackerRegistry {
         }
     }
 
+    private void initialLoad() {
+        if (Bukkit.isPrimaryThread() && loaded.compareAndSet(false, true)) {
+            load();
+            refreshPlayer();
+        }
+    }
+
     private void refreshPlayer() {
-        var stream = adapter.trackedPlayer().stream();
+        var stream = entity.getTrackedBy().stream();
         if (entity instanceof Player player) stream = Stream.concat(Stream.of(player), stream);
         stream.map(p -> BetterModel.player(p.getUniqueId()).orElse(null))
                 .filter(Objects::nonNull)
@@ -309,6 +316,7 @@ public final class EntityTrackerRegistry {
      * @return success
      */
     public boolean spawn(@NotNull Player player) {
+        initialLoad();
         return spawn(player, false);
     }
     private boolean spawn(@NotNull Player player, boolean shouldNotSpawned) {

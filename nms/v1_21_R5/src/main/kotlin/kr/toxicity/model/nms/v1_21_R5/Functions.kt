@@ -161,12 +161,6 @@ internal fun LivingEntity.toEquipmentPacket(mapper: (EquipmentSlot) -> ItemStack
 }
 internal fun LivingEntity.toEmptyEquipmentPacket() = toEquipmentPacket { ItemStack.EMPTY }
 
-@Suppress("UNNECESSARY_SAFE_CALL")
-internal fun Entity.trackedEntity() = if (BetterModel.IS_FOLIA) `moonrise$getTrackedEntity`()?.seenBy
-    ?.map {
-        it.player.bukkitEntity
-    } ?: emptyList() else bukkitEntity.trackedBy
-
 internal val Player.hotbarSlot get() = inventory.selectedSlot + 36
 internal fun ClientboundContainerSetSlotPacket.isInHand(player: Player) = containerId == 0 && player.hotbarSlot == slot
 

@@ -203,7 +203,7 @@ class NMSImpl : NMS {
                     val entity = id.toPlayerEntity() ?: return this
                     if (entity is HitBox) return entity.toFakeAddPacket()
                     BetterModel.registry(entity.bukkitEntity).ifPresent {
-                        BetterModel.plugin().scheduler().asyncTaskLater(player.ping.toLong() / 50 + 1) {
+                        BetterModel.plugin().scheduler().taskLater(entity.bukkitEntity, 1) {
                             it.spawn(player)
                         }
                     }
@@ -590,7 +590,6 @@ class NMSImpl : NMS {
             override fun entity(): org.bukkit.entity.Entity = entity
             override fun handle(): Entity = entity.vanillaEntity
             override fun id(): Int = handle().id
-            override fun trackedPlayer(): Collection<Player> = handle().trackedEntity()
             override fun dead(): Boolean = (handle() as? LivingEntity)?.isDeadOrDying == true || handle().removalReason != null || !handle().valid
             override fun invisible(): Boolean = handle().isInvisible || (handle() as? LivingEntity)?.hasEffect(MobEffects.INVISIBILITY) == true
             override fun glow(): Boolean = handle().isCurrentlyGlowing

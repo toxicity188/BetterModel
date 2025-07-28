@@ -3,12 +3,9 @@ package kr.toxicity.model.api.nms;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
 import org.joml.Vector3f;
 
-import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -32,14 +29,6 @@ public interface EntityAdapter {
      * @return entity id
      */
     int id();
-
-    /**
-     * Gets tracked player
-     * @return tracked player
-     */
-    @NotNull
-    @Unmodifiable
-    Collection<Player> trackedPlayer();
 
     /**
      * Checks source entity is dead

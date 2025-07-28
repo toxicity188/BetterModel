@@ -23,6 +23,9 @@ class BukkitScheduler : ModelScheduler {
     override fun task(location: Location, runnable: Runnable) = ifEnabled {
         Bukkit.getScheduler().runTask(PLUGIN, runnable).wrap()
     }
+    override fun taskLater(location: Location, delay: Long, runnable: Runnable) = ifEnabled {
+        Bukkit.getScheduler().runTaskLater(PLUGIN, runnable, delay).wrap()
+    }
     override fun asyncTask(runnable: Runnable) = Bukkit.getScheduler().runTaskAsynchronously(PLUGIN, runnable).wrap()
     override fun asyncTaskLater(delay: Long, runnable: Runnable) = Bukkit.getScheduler().runTaskLaterAsynchronously(PLUGIN, runnable, delay).wrap()
     override fun asyncTaskTimer(delay: Long, period: Long, runnable: Runnable) = Bukkit.getScheduler().runTaskTimerAsynchronously(PLUGIN, runnable, delay, period).wrap()
