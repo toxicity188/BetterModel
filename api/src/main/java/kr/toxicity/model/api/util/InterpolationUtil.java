@@ -53,12 +53,9 @@ public final class InterpolationUtil {
     }
 
     public static @NotNull VectorPointBuilder interpolatorFor(@NotNull List<VectorPoint> vectors) {
-        if (vectors.size() < 2) {
-            var first = vectors.isEmpty() ? VectorPoint.EMPTY : vectors.getFirst();
-            return f -> new VectorPoint(first.vector(), f, first.interpolation());
-        }
-        var last = vectors.getLast();
-        return new VectorPointBuilder() {
+        var last = vectors.isEmpty() ? VectorPoint.EMPTY : vectors.getLast();
+        if (vectors.size() < 2) return f -> new VectorPoint(last.vector(), f, last.interpolation());
+        else return new VectorPointBuilder() {
             private VectorPoint p1 = VectorPoint.EMPTY;
             private VectorPoint p2 = vectors.getFirst();
             private int i = 0;
@@ -75,9 +72,7 @@ public final class InterpolationUtil {
                         nextFloat,
                         last.interpolation()
                 );
-                else {
-                    return nextFloat == t ? vectors.get(i) : p1.interpolation().interpolate(vectors, i, nextFloat);
-                }
+                else return nextFloat == t ? p2 : p1.interpolation().interpolate(vectors, i, nextFloat);
             }
         };
     }
