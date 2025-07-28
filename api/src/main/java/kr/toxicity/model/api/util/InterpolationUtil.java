@@ -1,9 +1,6 @@
 package kr.toxicity.model.api.util;
 
-import it.unimi.dsi.fastutil.floats.FloatAVLTreeSet;
-import it.unimi.dsi.fastutil.floats.FloatCollection;
-import it.unimi.dsi.fastutil.floats.FloatComparators;
-import it.unimi.dsi.fastutil.floats.FloatSet;
+import it.unimi.dsi.fastutil.floats.*;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationPoint;
 import kr.toxicity.model.api.animation.VectorPoint;
@@ -13,8 +10,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import static kr.toxicity.model.api.util.MathUtil.*;
 
@@ -34,13 +32,13 @@ public final class InterpolationUtil {
     private static final float FRAME_HASH = (float) Tracker.TRACKER_TICK_INTERVAL / 1000F;
     private static final float FRAME_HASH_REVERT = 1 / FRAME_HASH;
 
-    private static void point(@NotNull FloatSet target, @NotNull List<VectorPoint> points) {
+    private static void point(@NotNull FloatSortedSet target, @NotNull List<VectorPoint> points) {
         for (VectorPoint point : points) {
             target.add(point.time());
         }
     }
 
-    public static @NotNull List<AnimationPoint> putAnimationPoint(@NotNull List<AnimationPoint> animations, @NotNull FloatSet points) {
+    public static @NotNull List<AnimationPoint> putAnimationPoint(@NotNull List<AnimationPoint> animations, @NotNull FloatSortedSet points) {
         return sum(
                 animations.stream().map(AnimationPoint::position).distinct().toList(),
                 animations.stream().map(AnimationPoint::rotation).distinct().toList(),
@@ -59,27 +57,29 @@ public final class InterpolationUtil {
         return sum(position, rotation, scale, set);
     }
 
-    public static @NotNull List<AnimationPoint> sum(@NotNull List<VectorPoint> position, @NotNull List<VectorPoint> rotation, @NotNull List<VectorPoint> scale, @NotNull FloatSet points) {
-        var list = new ArrayList<AnimationPoint>();
+    public static @NotNull List<AnimationPoint> sum(@NotNull List<VectorPoint> position, @NotNull List<VectorPoint> rotation, @NotNull List<VectorPoint> scale, @NotNull FloatSortedSet points) {
         var pp = putPoint(position, points);
         var rp = putPoint(rotation, points);
         var sp = putPoint(scale, points);
-        for (int i = 0; i < pp.size(); i++) {
-            list.add(new AnimationPoint(
-                    pp.get(i),
-                    rp.get(i),
-                    sp.get(i)
-            ));
-        }
-        return list;
+        return IntStream.range(0, pp.size())
+                .mapToObj(i -> new AnimationPoint(
+                        pp.get(i),
+                        rp.get(i),
+                        sp.get(i)
+                ))
+                .toList();
     }
 
-    public static @NotNull List<VectorPoint> putPoint(@NotNull List<VectorPoint> vectors, @NotNull FloatSet points) {
-        var newVectors = new ArrayList<VectorPoint>();
+    public static @NotNull List<VectorPoint> putPoint(@NotNull List<VectorPoint> vectors, @NotNull FloatSortedSet points) {
+        var newVectors = new VectorPoint[points.size()];
+        var index = 0;
+        var iterator = points.iterator();
         if (vectors.size() < 2) {
             var first = vectors.isEmpty() ? VectorPoint.EMPTY : vectors.getFirst();
-            points.iterator().forEachRemaining(f -> newVectors.add(new VectorPoint(first.vector(), f, first.interpolation())));
-            return newVectors;
+            while (iterator.hasNext()) {
+                newVectors[index++] = new VectorPoint(first.vector(), iterator.nextFloat(), first.interpolation());
+            }
+            return Arrays.asList(newVectors);
         }
         var p1 = VectorPoint.EMPTY;
         var p2 = vectors.getFirst();
@@ -87,25 +87,25 @@ public final class InterpolationUtil {
         var length = last.time();
         var i = 0;
         var t = p2.time();
-        for (float point : points) {
+        while (iterator.hasNext()) {
+            var point = iterator.nextFloat();
             while (i < vectors.size() - 1 && t < point) {
                 p1 = p2;
                 t = (p2 = vectors.get(++i)).time();
             }
-            if (point > length) newVectors.add(new VectorPoint(
+            if (point > length) newVectors[index++] = new VectorPoint(
                     last.vector(),
                     point,
                     last.interpolation()
-            ));
+            );
             else {
-                newVectors.add(point == t ? vectors.get(i) : p1.interpolation().interpolate(vectors, i, point));
+                newVectors[index++] = point == t ? vectors.get(i) : p1.interpolation().interpolate(vectors, i, point);
             }
         }
-        if (t < length) newVectors.addAll(vectors.subList(i, vectors.size()));
-        return newVectors;
+        return Arrays.asList(newVectors);
     }
 
-    public static void insertLerpFrame(@NotNull FloatCollection frames) {
+    public static void insertLerpFrame(@NotNull FloatSortedSet frames) {
         insertLerpFrame(frames, (float) BetterModel.config().lerpFrameTime() / 20F);
     }
 
@@ -113,7 +113,7 @@ public final class InterpolationUtil {
         return (int) fma(time, FRAME_HASH_REVERT, FRAME_EPSILON) * FRAME_HASH;
     }
 
-    public static void insertLerpFrame(@NotNull FloatCollection frames, float frame) {
+    public static void insertLerpFrame(@NotNull FloatSortedSet frames, float frame) {
         if (frame <= 0F) return;
         var first = 0F;
         var second = 0F;

@@ -1,10 +1,7 @@
 package kr.toxicity.model.api.data.blueprint;
 
 import com.google.common.util.concurrent.AtomicDouble;
-import it.unimi.dsi.fastutil.floats.Float2ObjectMap;
-import it.unimi.dsi.fastutil.floats.Float2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.floats.FloatAVLTreeSet;
-import it.unimi.dsi.fastutil.floats.FloatSet;
+import it.unimi.dsi.fastutil.floats.*;
 import kr.toxicity.model.api.animation.AnimationPoint;
 import kr.toxicity.model.api.animation.VectorPoint;
 import kr.toxicity.model.api.bone.BoneName;
@@ -64,17 +61,17 @@ public final class AnimationGenerator {
 
     private float firstTime = 0F;
     private float secondTime = 0F;
-    public void interpolateRotation(@NotNull FloatSet floats) {
+    public void interpolateRotation(@NotNull FloatSortedSet floats) {
         var iterator = new FloatAVLTreeSet(floats).iterator();
         while (iterator.hasNext()) {
             firstTime = secondTime;
             secondTime = iterator.nextFloat();
             if (secondTime - firstTime <= 0) continue;
             var minus = trees.stream()
-                    .mapToDouble(t -> t.addTree(firstTime, secondTime, AnimationPoint::rotation))
+                    .mapToDouble(t -> t.tree(firstTime, secondTime, AnimationPoint::rotation))
                     .max()
                     .orElse(0);
-            var length = (float) Math.ceil(minus / 60);
+            var length = (float) Math.ceil(minus / 90);
             if (length < 2) continue;
             var last = firstTime;
             for (float f = 1; f < length; f++) {
@@ -112,13 +109,14 @@ public final class AnimationGenerator {
 
         @NotNull
         Stream<AnimationTree> flatten() {
-            return children.isEmpty() ? Stream.of(this) : children
-                    .stream()
-                    .flatMap(AnimationTree::flatten);
+            return Stream.concat(
+                    Stream.of(this),
+                    children.stream().flatMap(AnimationTree::flatten)
+            );
         }
 
-        private float addTree(float first, float second, @NotNull Function<AnimationPoint, VectorPoint> mapper) {
-            return max(findTree(first, second, mapper));
+        private float tree(float first, float second, @NotNull Function<AnimationPoint, VectorPoint> mapper) {
+            return findTree(first, second, mapper).length();
         }
 
         private @NotNull Vector3f findTree(float first, float second, @NotNull Function<AnimationPoint, VectorPoint> mapper) {
@@ -147,9 +145,5 @@ public final class AnimationGenerator {
                 );
             });
         }
-    }
-
-    private static float max(@NotNull Vector3f vector3f) {
-        return Math.max(Math.abs(vector3f.x), Math.max(Math.abs(vector3f.y), Math.abs(vector3f.z)));
     }
 }
