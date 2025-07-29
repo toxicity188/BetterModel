@@ -1,9 +1,6 @@
 package kr.toxicity.model.api.animation;
 
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParseException;
+import com.google.gson.annotations.SerializedName;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +32,7 @@ public interface AnimationIterator<T extends Timed> extends Iterator<T> {
         /**
          * Play once
          */
+        @SerializedName("once")
         PLAY_ONCE {
             @Override
             public @NotNull <T extends Timed> AnimationIterator<T> create(@NotNull List<T> keyFrames) {
@@ -44,6 +42,7 @@ public interface AnimationIterator<T extends Timed> extends Iterator<T> {
         /**
          * Loop
          */
+        @SerializedName("loop")
         LOOP {
             @Override
             public @NotNull <T extends Timed> AnimationIterator<T> create(@NotNull List<T> keyFrames) {
@@ -53,6 +52,7 @@ public interface AnimationIterator<T extends Timed> extends Iterator<T> {
         /**
          * Hold on last
          */
+        @SerializedName("hold")
         HOLD_ON_LAST {
             @Override
             public @NotNull <T extends Timed> AnimationIterator<T> create(@NotNull List<T> keyFrames) {
@@ -61,22 +61,6 @@ public interface AnimationIterator<T extends Timed> extends Iterator<T> {
         }
         ;
 
-        /**
-         * Deserializer
-         */
-        public static final JsonDeserializer<Type> DESERIALIZER = new JsonDeserializer<>() {
-            @Override
-            public Type deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-                if (json.isJsonPrimitive()) {
-                    return switch (json.getAsString()) {
-                        case "loop" -> LOOP;
-                        case "hold" -> HOLD_ON_LAST;
-                        default -> PLAY_ONCE;
-                    };
-                }
-                return PLAY_ONCE;
-            }
-        };
         /**
          * Creates iterator by given keyframes
          * @param keyFrames keyframes

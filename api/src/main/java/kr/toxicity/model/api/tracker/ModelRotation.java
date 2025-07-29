@@ -18,8 +18,6 @@ public record ModelRotation(float x, float y) {
      */
     public static final ModelRotation INVALID = new ModelRotation(Float.MAX_VALUE, Float.MAX_VALUE);
 
-    private static final float DEGREES_TO_PACKS = 256F / 360F;
-
     @Override
     public boolean equals(Object o) {
         if (o == this) return true;
@@ -48,10 +46,10 @@ public record ModelRotation(float x, float y) {
     }
 
     public byte packedX() {
-        return (byte) (x * DEGREES_TO_PACKS);
+        return (byte) (x * MathUtil.DEGREES_TO_PACKED_BYTE);
     }
 
     public byte packedY() {
-        return (byte) (y * DEGREES_TO_PACKS);
+        return (byte) (y * MathUtil.DEGREES_TO_PACKED_BYTE);
     }
 }

@@ -38,9 +38,9 @@ public final class RenderPipeline {
     private final RenderSource<?> source;
 
     private final Map<BoneName, RenderedBone> boneMap;
+    private final Map<String, BlueprintAnimation> animationMap;
     private final List<RenderedBone> bones;
     private final int displayAmount;
-    private final Map<String, BlueprintAnimation> animationMap;
     private final Map<UUID, PlayerChannelHandler> playerMap = new ConcurrentHashMap<>();
     private final Set<UUID> hidePlayerSet = ConcurrentHashMap.newKeySet();
 
@@ -78,12 +78,6 @@ public final class RenderPipeline {
         displayAmount = (int) bones.stream()
                 .filter(rb -> rb.getDisplay() != null)
                 .count();
-        animate(
-                ignore -> true,
-                "idle",
-                AnimationModifier.builder().start(6).type(AnimationIterator.Type.LOOP).build(),
-                () -> {}
-        );
     }
 
     public @NotNull PacketBundler createBundler() {
@@ -117,6 +111,10 @@ public final class RenderPipeline {
 
     public boolean isSpawned(@NotNull UUID uuid) {
         return playerMap.containsKey(uuid);
+    }
+
+    public boolean isSpawned(@NotNull Player player) {
+        return isSpawned(player.getUniqueId());
     }
 
     public @Nullable RunningAnimation runningAnimation() {
@@ -303,7 +301,7 @@ public final class RenderPipeline {
 
     public boolean hide(@NotNull Player player) {
         if (hidePlayerSet.add(player.getUniqueId())) {
-            if (playerMap.containsKey(player.getUniqueId())) {
+            if (isSpawned(player)) {
                 var bundler = createBundler();
                 forceUpdate(false, bundler);
                 hidePacketHandler.accept(bundler);
@@ -320,7 +318,7 @@ public final class RenderPipeline {
 
     public boolean show(@NotNull Player player) {
         if (hidePlayerSet.remove(player.getUniqueId())) {
-            if (playerMap.containsKey(player.getUniqueId())) {
+            if (isSpawned(player)) {
                 var bundler = createBundler();
                 forceUpdate(true, bundler);
                 showPacketHandler.accept(bundler);

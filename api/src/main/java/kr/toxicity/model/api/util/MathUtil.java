@@ -27,7 +27,7 @@ public final class MathUtil {
     /**
      * Minecraft tick mills
      */
-    public static int MINECRAFT_TICK_MILLS = 50;
+    public static final int MINECRAFT_TICK_MILLS = 50;
 
     /**
      * Valid rotation degree
@@ -43,6 +43,11 @@ public final class MathUtil {
      * Radians to degrees
      */
     public static final float RADIANS_TO_DEGREES = 1F / DEGREES_TO_RADIANS;
+
+    /**
+     * Degrees to packed byte
+     */
+    public static final float DEGREES_TO_PACKED_BYTE = 256F / 360F;
 
     /**
      * Multiplier value for convert model size to block size
@@ -62,10 +67,14 @@ public final class MathUtil {
     /**
      * Float comparator
      */
-    public static final FloatComparator FRAME_COMPARATOR = (a, b) -> abs(a - b) < FRAME_EPSILON ? 0 : Float.compare(a, b);
+    public static final FloatComparator FRAME_COMPARATOR = (a, b) -> isSimilar(a, b, FRAME_EPSILON) ? 0 : Float.compare(a, b);
 
     public static boolean isSimilar(float a, float b) {
-        return abs(a - b) < FLOAT_COMPARISON_EPSILON;
+        return isSimilar(a, b, FLOAT_COMPARISON_EPSILON);
+    }
+
+    public static boolean isSimilar(float a, float b, float epsilon) {
+        return abs(a - b) < epsilon;
     }
 
     public static int similarHashCode(float a) {

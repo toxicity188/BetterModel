@@ -113,11 +113,12 @@ public abstract class Tracker implements AutoCloseable {
             if (readyForForceUpdate.compareAndSet(true, false)) t.pipeline.forceUpdate(s.dataBundler);
         });
         tick((t, s) -> pipeline.rotate(
-                (t.isRunningSingleAnimation() && config.lockOnPlayAnimation()) ? t.pipeline.getRotation() : t.rotation(),
+                t.isRunningSingleAnimation() && config.lockOnPlayAnimation() ? t.pipeline.getRotation() : t.rotation(),
                 s.tickBundler
         ));
         pipeline.spawnPacketHandler(p -> start());
         LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " tracker created: " + name());
+        animate("idle", AnimationModifier.builder().start(6).type(AnimationIterator.Type.LOOP).build());
     }
 
     /**

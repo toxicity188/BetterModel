@@ -20,12 +20,17 @@ import java.util.Map;
 @ApiStatus.Internal
 public record ModelAnimation(
         @NotNull String name,
-        @NotNull AnimationIterator.Type loop,
+        @Nullable AnimationIterator.Type loop,
         boolean override,
         @NotNull String uuid,
         float length,
         @Nullable Map<String, ModelAnimator> animators
 ) {
+    @Override
+    public @NotNull AnimationIterator.Type loop() {
+        return loop != null ? loop : AnimationIterator.Type.PLAY_ONCE;
+    }
+
     @Override
     @NotNull
     public Map<String, ModelAnimator> animators() {

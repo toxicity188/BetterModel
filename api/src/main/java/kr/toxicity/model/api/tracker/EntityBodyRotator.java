@@ -79,7 +79,7 @@ public final class EntityBodyRotator {
         if (playerMode) return adapter.headYaw();
         if (registry.hasControllingPassenger()) return adapter.bodyYaw();
         var headYaw = adapter.headYaw();
-        if (isSimilar(headYaw, rotation.y())) tick = 0;
+        if (MathUtil.isSimilar(headYaw, rotation.y(), MathUtil.DEGREES_TO_PACKED_BYTE)) tick = 0;
         if (adapter.onWalk()) {
             tick = 0;
             return stableBodyYaw();
@@ -102,10 +102,6 @@ public final class EntityBodyRotator {
     private static float correctYaw(float target) {
         if (target < 0) target += 360;
         return target % 360;
-    }
-
-    private static boolean isSimilar(float a, float b) {
-        return Math.abs(a - b) < MathUtil.FRAME_EPSILON;
     }
 
     @NotNull Vector3f headRotation() {

@@ -6,9 +6,10 @@ import kr.toxicity.model.api.util.interpolation.*;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Vector3f;
 
 import java.util.List;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * A keyframe of model.
@@ -24,7 +25,7 @@ import java.util.List;
 @ApiStatus.Internal
 public record ModelKeyframe(
         @NotNull KeyframeChannel channel,
-        @NotNull @SerializedName("data_points") List<Datapoint> dataPoints,
+        @SerializedName("data_points") @NotNull List<Datapoint> dataPoints,
         @SerializedName("bezier_left_time") @Nullable Float3 bezierLeftTime,
         @SerializedName("bezier_left_value") @Nullable Float3 bezierLeftValue,
         @SerializedName("bezier_right_time") @Nullable Float3 bezierRightTime,
@@ -40,16 +41,12 @@ public record ModelKeyframe(
             case "catmullrom" -> CatmullRomInterpolation.INSTANCE;
             case "step" -> StepInterpolation.INSTANCE;
             case "bezier" -> new BezierInterpolation(
-                    toBezier(bezierLeftTime),
-                    toBezier(bezierLeftValue),
-                    toBezier(bezierRightTime),
-                    toBezier(bezierRightValue)
+                    ofNullable(bezierLeftTime).map(Float3::toVector).orElse(null),
+                    ofNullable(bezierLeftValue).map(Float3::toVector).orElse(null),
+                    ofNullable(bezierRightTime).map(Float3::toVector).orElse(null),
+                    ofNullable(bezierRightValue).map(Float3::toVector).orElse(null)
             );
             default -> VectorInterpolation.defaultInterpolation();
         };
-    }
-
-    private static @Nullable Vector3f toBezier(@Nullable Float3 float3) {
-        return float3 != null ? float3.toVector() : null;
     }
 }
