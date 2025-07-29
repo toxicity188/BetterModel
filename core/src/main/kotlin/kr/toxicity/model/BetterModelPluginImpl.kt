@@ -135,10 +135,14 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
         val latestVersion = HttpUtil.versionList()
         val versionNoticeList = arrayListOf<Component>()
         latestVersion.release?.let {
-            if (semver < it.versionNumber()) versionNoticeList += Component.text("New BetterModel release found: ").append(it.toURLComponent())
+            if (semver < it.versionNumber()) versionNoticeList += componentOf("New BetterModel release found: ") {
+                append(it.toURLComponent())
+            }
         }
         latestVersion.snapshot?.let {
-            if (semver < it.versionNumber()) versionNoticeList += Component.text("New BetterModel snapshot found: ").append(it.toURLComponent())
+            if (semver < it.versionNumber()) versionNoticeList += componentOf("New BetterModel snapshot found: ") {
+                append(it.toURLComponent())
+            }
         }
         if (versionNoticeList.isNotEmpty()) {
             registerListener(object : Listener {

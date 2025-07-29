@@ -57,7 +57,7 @@ public class EntityTracker extends Tracker {
     public EntityTracker(@NotNull EntityTrackerRegistry registry, @NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
         super(pipeline, modifier);
         this.registry = registry;
-        bodyRotator = new EntityBodyRotator(registry.adapter());
+        bodyRotator = new EntityBodyRotator(registry);
 
         var entity = registry.entity();
         var adapter = registry.adapter();

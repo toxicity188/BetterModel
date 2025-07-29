@@ -105,10 +105,9 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         fun EntityDeathEvent.death() { //Death
             entity.forEachTracker {
-                if (!it.animate("death", AnimationModifier.DEFAULT_WITH_PLAY_ONCE) {
-                        it.close()
-                    }) it.close()
-                else it.forRemoval(true)
+                if (it.animate("death", AnimationModifier.DEFAULT_WITH_PLAY_ONCE, it::close)) {
+                    it.forRemoval(true)
+                }
             }
         }
         @EventHandler(priority = EventPriority.MONITOR)

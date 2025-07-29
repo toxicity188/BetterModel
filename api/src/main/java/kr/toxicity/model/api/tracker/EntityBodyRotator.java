@@ -16,6 +16,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public final class EntityBodyRotator {
+    private final EntityTrackerRegistry registry;
     private final EntityAdapter adapter;
     private final LazyFloatProvider provider;
     private final Supplier<Vector3f> headSupplier;
@@ -34,8 +35,9 @@ public final class EntityBodyRotator {
     private volatile int rotationDuration;
     private volatile int rotationDelay;
 
-    EntityBodyRotator(@NotNull EntityAdapter adapter) {
-        this.adapter = adapter;
+    EntityBodyRotator(@NotNull EntityTrackerRegistry registry) {
+        this.registry = registry;
+        this.adapter = registry.adapter();
         this.rotation = new ModelRotation(
                 adapter.pitch(),
                 adapter.bodyYaw()
@@ -75,7 +77,7 @@ public final class EntityBodyRotator {
 
     private float bodyRotation0() {
         if (playerMode) return adapter.headYaw();
-        if (adapter.hasControllingPassenger()) return adapter.bodyYaw();
+        if (registry.hasControllingPassenger()) return adapter.bodyYaw();
         var headYaw = adapter.headYaw();
         if (isSimilar(headYaw, rotation.y())) tick = 0;
         if (adapter.onWalk()) {
@@ -114,15 +116,11 @@ public final class EntityBodyRotator {
         Objects.requireNonNull(consumer);
         var data = createData();
         consumer.accept(data);
-        synchronized (this) {
-            data.set(this);
-        }
+        setValue(data);
     }
 
-    void setValue(@NotNull RotatorData data) {
-        synchronized (this) {
-            data.set(this);
-        }
+    synchronized void setValue(@NotNull RotatorData data) {
+        data.set(this);
     }
 
     public void reset() {
