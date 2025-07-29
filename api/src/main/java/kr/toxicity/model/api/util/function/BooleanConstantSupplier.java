@@ -1,17 +1,17 @@
 package kr.toxicity.model.api.util.function;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.RequiredArgsConstructor;
 
 import java.util.function.BooleanSupplier;
 
-public record BooleanConstantSupplier(boolean value) implements BooleanSupplier {
+@RequiredArgsConstructor
+public enum BooleanConstantSupplier implements BooleanSupplier {
 
-    public static final BooleanConstantSupplier TRUE = of(true);
-    public static final BooleanConstantSupplier FALSE = of(false);
+    TRUE(true),
+    FALSE(false)
+    ;
 
-    public static @NotNull BooleanConstantSupplier of(boolean value) {
-        return new BooleanConstantSupplier(value);
-    }
+    private final boolean value;
 
     @Override
     public boolean getAsBoolean() {

@@ -198,7 +198,7 @@ public final class RenderPipeline {
     }
 
     public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
-        var script = animation.script();
+        var script = animation.script(modifier);
         if (script != null) scriptProcessor.addAnimation(animation.name(), script.iterator(), modifier, () -> {});
         var playOnceTask = FunctionUtil.playOnce(removeTask);
         return matchTree(AnimationPredicate.of(filter), (b, a) -> b.addAnimation(a, animation, modifier, playOnceTask));
@@ -211,7 +211,7 @@ public final class RenderPipeline {
     }
 
     public boolean replace(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier) {
-        var script = animation.script();
+        var script = animation.script(modifier);
         if (script != null) scriptProcessor.replaceAnimation(target, script.iterator(), modifier);
         return matchTree(AnimationPredicate.of(filter), (b, a) -> b.replaceAnimation(a, target, animation, modifier));
     }

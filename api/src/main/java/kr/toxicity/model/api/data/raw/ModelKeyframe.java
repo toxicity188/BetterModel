@@ -1,6 +1,7 @@
 package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.annotations.SerializedName;
+import kr.toxicity.model.api.animation.Timed;
 import kr.toxicity.model.api.util.interpolation.*;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +31,7 @@ public record ModelKeyframe(
         @SerializedName("bezier_right_value") @Nullable Float3 bezierRightValue,
         @Nullable String interpolation,
         float time
-) implements Comparable<ModelKeyframe> {
+) implements Timed {
 
     public @NotNull VectorInterpolation findInterpolation() {
         if (interpolation == null) return VectorInterpolation.defaultInterpolation();
@@ -50,28 +51,5 @@ public record ModelKeyframe(
 
     private static @Nullable Vector3f toBezier(@Nullable Float3 float3) {
         return float3 != null ? float3.toVector() : null;
-    }
-
-    /**
-     * Changes keyframe's type
-     * @param time time
-     * @return new keyframe
-     */
-    public @NotNull ModelKeyframe time(float time) {
-        return new ModelKeyframe(
-                channel,
-                dataPoints,
-                bezierLeftTime,
-                bezierLeftValue,
-                bezierRightTime,
-                bezierRightValue,
-                interpolation,
-                time
-        );
-    }
-
-    @Override
-    public int compareTo(@NotNull ModelKeyframe o) {
-        return Float.compare(time, o.time);
     }
 }

@@ -60,7 +60,7 @@ public final class AnimationGenerator {
     private float firstTime = 0F;
     private float secondTime = 0F;
     public void interpolateRotation(@NotNull FloatSortedSet floats) {
-        var iterator = new FloatAVLTreeSet(floats).iterator();
+        var iterator = new FloatArrayList(floats).iterator();
         while (iterator.hasNext()) {
             firstTime = secondTime;
             secondTime = iterator.nextFloat();

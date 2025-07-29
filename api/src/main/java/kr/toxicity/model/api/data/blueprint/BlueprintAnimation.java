@@ -1,6 +1,7 @@
 package kr.toxicity.model.api.data.blueprint;
 
 import kr.toxicity.model.api.animation.AnimationIterator;
+import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.animation.AnimationMovement;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.BoneTagRegistry;
@@ -42,20 +43,22 @@ public record BlueprintAnimation(
      */
     public static @NotNull BlueprintAnimation from(@NotNull List<BlueprintChildren> children, @NotNull ModelAnimation animation) {
         var map = new HashMap<BoneName, BlueprintAnimator.AnimatorData>();
-        var blueprintScript = animation.override() ? null : BlueprintScript.fromEmpty(animation);
+        var blueprintScript = BlueprintScript.fromEmpty(animation);
         var animator = animation.animators();
         for (Map.Entry<String, ModelAnimator> entry : animator.entrySet()) {
             var name = entry.getValue().name();
             if (name == null) continue;
-            var builder = new BlueprintAnimator.Builder(animation.length());
-            entry.getValue().keyframes()
-                    .stream()
-                    .sorted(Comparator.naturalOrder())
-                    .forEach(builder::addFrame);
             if (entry.getKey().equals("effects")) {
                 blueprintScript = BlueprintScript.from(animation, entry.getValue());
             }
-            else map.put(BoneTagRegistry.parse(name), builder.build(name));
+            else {
+                var builder = new BlueprintAnimator.Builder(animation.length());
+                entry.getValue().keyframes()
+                        .stream()
+                        .sorted(Comparator.naturalOrder())
+                        .forEach(builder::addFrame);
+                map.put(BoneTagRegistry.parse(name), builder.build(name));
+            }
         }
         var animators = AnimationGenerator.createMovements(animation.length(), children, map);
         return new BlueprintAnimation(
@@ -73,6 +76,10 @@ public record BlueprintAnimation(
                         .map(a -> new AnimationMovement(a.time()))
                         .toList()
         );
+    }
+
+    public @Nullable BlueprintScript script(@NotNull AnimationModifier modifier) {
+        return modifier.override(override) ? null : script;
     }
 
     /**

@@ -88,7 +88,7 @@ public final class InterpolationUtil {
         if (frame <= 0F) return;
         var first = 0F;
         var second = 0F;
-        var iterator = new FloatAVLTreeSet(frames).iterator();
+        var iterator = new FloatArrayList(frames).iterator();
         while (iterator.hasNext()) {
             first = second;
             second = iterator.nextFloat();
