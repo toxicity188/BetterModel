@@ -5,6 +5,7 @@ import kr.toxicity.model.api.animation.*;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
+import kr.toxicity.model.api.nms.HitBox;
 import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.script.AnimationScript;
@@ -131,15 +132,10 @@ public final class RenderPipeline {
     }
 
     public void despawn() {
-        iterateTree(b -> {
-            var hb = b.getHitBox();
-            if (hb != null) hb.removeHitBox();
-        });
+        hitboxes().forEach(HitBox::removeHitBox);
         var bundler = createBundler();
         remove0(bundler);
-        if (!bundler.isEmpty()) for (PlayerChannelHandler value : playerMap.values()) {
-            bundler.send(value.player());
-        }
+        if (bundler.isNotEmpty()) allPlayer().forEach(bundler::send);
         playerMap.clear();
     }
 
@@ -154,8 +150,8 @@ public final class RenderPipeline {
     }
 
     public boolean tick(@NotNull PacketBundler bundler) {
-        scriptProcessor.tick();
-        return matchTree(b -> b.tick(bundler));
+        var script = scriptProcessor.tick();
+        return matchTree(b -> b.tick(bundler)) || script;
     }
 
     public void defaultPosition(@NotNull Supplier<Vector3f> movement) {
@@ -181,6 +177,13 @@ public final class RenderPipeline {
 
     public @NotNull @Unmodifiable List<RenderedBone> bones() {
         return bones;
+    }
+
+    public @NotNull Stream<HitBox> hitboxes() {
+        return bones()
+                .stream()
+                .map(RenderedBone::getHitBox)
+                .filter(Objects::nonNull);
     }
 
     public @Nullable RenderedBone boneOf(@NotNull Predicate<RenderedBone> predicate) {
@@ -217,9 +220,8 @@ public final class RenderPipeline {
     }
 
     public boolean stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String target) {
-        var result = scriptProcessor.stopAnimation(target);
-        if (matchTree(b -> b.stopAnimation(filter, target))) result = true;
-        return result;
+        var script = scriptProcessor.stopAnimation(target);
+        return matchTree(b -> b.stopAnimation(filter, target)) || script;
     }
 
     public boolean spawn(@NotNull Player player, @NotNull PacketBundler bundler) {
@@ -305,14 +307,9 @@ public final class RenderPipeline {
                 var bundler = createBundler();
                 forceUpdate(false, bundler);
                 hidePacketHandler.accept(bundler);
-                if (!bundler.isEmpty()) bundler.send(player);
+                if (bundler.isNotEmpty()) bundler.send(player);
             }
-            BetterModel.plugin().scheduler().task(player, () -> {
-                for (RenderedBone bone : bones) {
-                    var hb = bone.getHitBox();
-                    if (hb != null) hb.hide(player);
-                }
-            });
+            BetterModel.plugin().scheduler().task(player, () -> hitboxes().forEach(hb -> hb.hide(player)));
             return true;
         } else return false;
     }
@@ -327,14 +324,9 @@ public final class RenderPipeline {
                 var bundler = createBundler();
                 forceUpdate(true, bundler);
                 showPacketHandler.accept(bundler);
-                if (!bundler.isEmpty()) bundler.send(player);
+                if (bundler.isNotEmpty()) bundler.send(player);
             }
-            BetterModel.plugin().scheduler().task(player, () -> {
-                for (RenderedBone bone : bones) {
-                    var hb = bone.getHitBox();
-                    if (hb != null) hb.show(player);
-                }
-            });
+            BetterModel.plugin().scheduler().task(player, () -> hitboxes().forEach(hb -> hb.show(player)));
             return true;
         } else return false;
     }

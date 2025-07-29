@@ -524,7 +524,7 @@ public abstract class Tracker implements AutoCloseable {
      * @param <T> action type
      */
     public <T extends TrackerUpdateAction> void update(@NotNull T action) {
-        if (tryUpdate(action, BonePredicate.TRUE)) forceUpdate(true);
+        update(action, BonePredicate.TRUE);
     }
 
     /**
@@ -711,15 +711,15 @@ public abstract class Tracker implements AutoCloseable {
         }
 
         private void send() {
-            if (!tickBundler.isEmpty()) {
+            if (tickBundler.isNotEmpty()) {
                 pipeline.allPlayer().forEach(tickBundler::send);
                 tickBundler = pipeline.createBundler();
             }
-            if (!dataBundler.isEmpty()) {
+            if (dataBundler.isNotEmpty()) {
                 pipeline.nonHidePlayer().forEach(dataBundler::send);
                 dataBundler = pipeline.createBundler();
             }
-            if (!viewBundler.isEmpty()) {
+            if (viewBundler.isNotEmpty()) {
                 pipeline.viewedPlayer().forEach(viewBundler::send);
                 viewBundler = pipeline.createParallelBundler();
             }

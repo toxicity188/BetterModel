@@ -46,7 +46,7 @@ public final class DummyTracker extends Tracker {
         this.location = Objects.requireNonNull(location, "location");
         var bundler = pipeline.createBundler();
         pipeline.teleport(location, bundler);
-        if (!bundler.isEmpty()) pipeline.allPlayer()
+        if (bundler.isNotEmpty()) pipeline.allPlayer()
                 .forEach(bundler::send);
     }
 

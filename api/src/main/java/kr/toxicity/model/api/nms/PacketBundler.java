@@ -14,6 +14,14 @@ public interface PacketBundler {
     boolean isEmpty();
 
     /**
+     * Checks this bundler is not empty
+     * @return is not empty
+     */
+    default boolean isNotEmpty() {
+        return !isEmpty();
+    }
+
+    /**
      * Gets bundler's packet size.
      * @return size
      */
