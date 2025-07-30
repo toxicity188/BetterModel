@@ -26,10 +26,6 @@ fun spaceComponentOf() = Component.space()
 fun emptyComponentOf() = Component.empty()
 fun lineComponentOf() = Component.newline()
 fun componentOf(content: String) = componentOf().content(content)
-fun componentOf(content: String, builder: TextComponent.Builder.() -> TextComponent.Builder) = componentOf {
-    content(content).let(builder)
-}
-fun componentOf(builder: TextComponent.Builder.() -> TextComponent.Builder) = componentOf().let(builder).build()
 fun componentOf(vararg like: ComponentLike) = componentOf {
     append(*like)
 }
@@ -40,6 +36,10 @@ fun componentWithLineOf(vararg like: ComponentLike) = componentOf {
     }
     this
 }
+inline fun componentOf(content: String, builder: TextComponent.Builder.() -> TextComponent.Builder) = componentOf {
+    content(content).let(builder)
+}
+inline fun componentOf(builder: TextComponent.Builder.() -> TextComponent.Builder) = componentOf().let(builder).build()
 
 @Suppress("USELESS_IS_CHECK") //For legacy version and Spigot :(
 fun CommandSender.audience() = if (this is Audience) this else PLUGIN.audiences().sender(this)

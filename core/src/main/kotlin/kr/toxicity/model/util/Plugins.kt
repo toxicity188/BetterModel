@@ -17,13 +17,13 @@ val DATA_FOLDER
 
 fun info(vararg message: String) = PLUGIN.logger().info(*message)
 fun warn(vararg message: String) = PLUGIN.logger().warn(*message)
-fun debugPack(lazyMessage: () -> String) {
+inline fun debugPack(lazyMessage: () -> String) {
     if (CONFIG.debug().has(DebugConfig.DebugOption.PACK)) info("[${Thread.currentThread().name}] ${lazyMessage()}")
 }
 
 fun Throwable.handleException(message: String) = LogUtil.handleException(message, this)
 
-fun <T> Result<T>.handleFailure(lazyMessage: () -> String) = onFailure {
+inline fun <T> Result<T>.handleFailure(lazyMessage: () -> String) = onFailure {
     it.handleException(lazyMessage())
 }
 

@@ -3,15 +3,23 @@ package kr.toxicity.model.util
 import java.io.File
 import java.io.OutputStream
 
-fun File.getOrCreateDirectory(name: String, initialConsumer: (File) -> Unit) = File(this, name).also { target ->
+inline fun File.getOrCreateDirectory(name: String, initialConsumer: (File) -> Unit) = File(this, name).also { target ->
     if (!target.exists()) {
         target.mkdirs()
         initialConsumer(target)
     }
 }
 
-fun File.forEach(block: (File) -> Unit) {
+inline fun File.forEach(block: (File) -> Unit) {
     listFiles()?.forEach(block)
+}
+
+inline fun copyResourceAs(name: String, outputCreator: () -> OutputStream) {
+    PLUGIN.getResource(name)?.buffered()?.use { input ->
+        outputCreator().use {
+            input.copyTo(it)
+        }
+    }
 }
 
 fun File.fileTreeList() = mutableListOf<File>().apply {
@@ -38,13 +46,5 @@ fun File.forEachAll(block: (File) -> Unit) {
 fun File.addResource(name: String) {
     copyResourceAs(name) {
         File(this, name).outputStream().buffered()
-    }
-}
-
-fun copyResourceAs(name: String, outputCreator: () -> OutputStream) {
-    PLUGIN.getResource(name)?.buffered()?.use { input ->
-        outputCreator().use {
-            input.copyTo(it)
-        }
     }
 }

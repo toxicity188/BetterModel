@@ -36,14 +36,6 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
                     "Unable to load ${player.name}'s data."
                 }
             }
-//            @EventHandler
-//            fun PlayerChangedWorldEvent.change() {
-//                if (player.isOnline) runCatching {
-//                    player.register().unregisterAll()
-//                }.handleFailure {
-//                    "Unable to refresh ${player.name}'s data."
-//                }
-//            }
             @EventHandler
             fun PlayerQuitEvent.quit() {
                 playerMap.remove(player.uniqueId)?.use {

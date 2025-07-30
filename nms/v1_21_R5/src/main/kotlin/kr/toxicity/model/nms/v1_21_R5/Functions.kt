@@ -71,7 +71,7 @@ private val DATA_ITEMS by lazy(LazyThreadSafetyMode.NONE) {
     }
 }
 
-internal fun SynchedEntityData.pack(
+internal inline fun SynchedEntityData.pack(
     clean: Boolean = false,
     itemFilter: (DataItem<*>) -> Boolean = { true },
     valueFilter: (DataValue<*>) -> Boolean = { true },
@@ -132,7 +132,7 @@ internal val CraftEntity.vanillaEntity: Entity
 internal fun Entity.moveTo(vec: Vec3) = snapTo(vec)
 internal fun Entity.moveTo(x: Double, y: Double, z: Double, yaw: Float, pitch: Float) = snapTo(x, y, z, yaw, pitch)
 
-internal fun <T> useByteBuf(block: (FriendlyByteBuf) -> T): T {
+internal inline fun <T> useByteBuf(block: (FriendlyByteBuf) -> T): T {
     val buffer = FriendlyByteBuf(Unpooled.buffer())
     return try {
         block(buffer)
@@ -153,7 +153,7 @@ internal fun EntityTrackerRegistry.entityFlag(uuid: UUID, byte: Byte): Byte {
 internal fun org.bukkit.util.Vector.toVanilla() = Vec3(x, y, z)
 internal fun Vec3.toBukkit() = org.bukkit.util.Vector(x, y, z)
 
-internal fun LivingEntity.toEquipmentPacket(mapper: (EquipmentSlot) -> ItemStack? = { if (hasItemInSlot(it)) getItemBySlot(it) else null }): ClientboundSetEquipmentPacket? {
+internal inline fun LivingEntity.toEquipmentPacket(mapper: (EquipmentSlot) -> ItemStack? = { if (hasItemInSlot(it)) getItemBySlot(it) else null }): ClientboundSetEquipmentPacket? {
     val equip = EquipmentSlot.entries.mapNotNull {
         mapper(it)?.let { item -> com.mojang.datafixers.util.Pair.of(it, item) }
     }
@@ -162,7 +162,7 @@ internal fun LivingEntity.toEquipmentPacket(mapper: (EquipmentSlot) -> ItemStack
 internal fun LivingEntity.toEmptyEquipmentPacket() = toEquipmentPacket { ItemStack.EMPTY }
 
 internal val Player.hotbarSlot get() = inventory.selectedSlot + 36
-internal fun ClientboundContainerSetSlotPacket.isInHand(player: Player) = containerId == 0 && player.hotbarSlot == slot
+internal fun ClientboundContainerSetSlotPacket.isInHand(player: Player) = containerId == 0 && (slot == 45 || slot == player.hotbarSlot)
 
 internal fun Entity.toFakeAddPacket() = ClientboundAddEntityPacket(
     id,

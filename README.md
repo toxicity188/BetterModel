@@ -91,7 +91,6 @@ This plugin supports **player model with using user's custom skin without textur
 /bettermodel spawn <model> — Summons this model to husk.  
 /bettermodel disguise <model> — disguises self.  
 /bettermodel undisguise [model] — undisguises self  
-/bettermodel limb <true/false> — Shows/Hides player limb.  
 /bettermodel play <model> <animation> — Plays player animation.
 ```
 

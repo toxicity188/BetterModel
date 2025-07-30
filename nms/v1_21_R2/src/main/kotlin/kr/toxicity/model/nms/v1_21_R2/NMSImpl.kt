@@ -247,6 +247,7 @@ class NMSImpl : NMS {
                         containerId,
                         stateId,
                         (items as NonNullList<net.minecraft.world.item.ItemStack>).apply {
+                            set(45, EMPTY_ITEM)
                             set(connection.player.hotbarSlot, EMPTY_ITEM)
                         },
                         carriedItem
