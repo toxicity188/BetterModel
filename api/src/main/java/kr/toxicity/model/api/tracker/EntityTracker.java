@@ -81,8 +81,8 @@ public class EntityTracker extends Tracker {
             }));
             pipeline.spawnPacketHandler(shadow::spawn);
             pipeline.despawnPacketHandler(shadow::remove);
-            pipeline.hidePacketHandler(b -> shadow.sendEntityData(false, b));
-            pipeline.showPacketHandler(shadow::sendEntityData);
+            pipeline.hidePacketHandler(shadow::remove);
+            pipeline.showPacketHandler(shadow::spawn);
         }
 
         pipeline.hideFilter(p -> !p.canSee(registry.entity()));

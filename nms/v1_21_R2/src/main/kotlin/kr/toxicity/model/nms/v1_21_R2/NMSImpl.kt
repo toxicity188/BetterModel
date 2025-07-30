@@ -527,7 +527,7 @@ class NMSImpl : NMS {
                 entityData.pack(
                     valueFilter = { entityDataSet.contains(it.id) }
                 )
-            }?.markVisible(showItem)?.run {
+            }?.markVisible(showItem && !invisible())?.run {
                 bundler += ClientboundSetEntityDataPacket(display.id, this)
             }
         }

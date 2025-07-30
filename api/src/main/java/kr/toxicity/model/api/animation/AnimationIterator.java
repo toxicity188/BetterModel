@@ -107,30 +107,22 @@ public interface AnimationIterator<T extends Timed> extends Iterator<T> {
     final class HoldOnLast<T extends Timed> implements AnimationIterator<T> {
         private final List<T> keyFrame;
         private int index = 0;
-        private boolean finished = false;
 
         @Override
         public void clear() {
             index = 0;
-            finished = false;
         }
 
         @Override
         public boolean hasNext() {
-            return true; // Fixed: Always returns true to keep the animation "alive".
+            return true;
         }
 
         @Override
         @NotNull
         public T next() {
-            if (finished) {
-                return keyFrame.getLast();
-            }
-            var nextFrame = keyFrame.get(index++);
-            if (index >= keyFrame.size()) {
-                finished = true; // Mark as finished entering the "hold" mode.
-            }
-            return nextFrame;
+            if (index >= keyFrame.size()) return keyFrame.getLast();
+            return keyFrame.get(index++);
         }
 
         @NotNull
@@ -161,7 +153,7 @@ public interface AnimationIterator<T extends Timed> extends Iterator<T> {
         @Override
         @NotNull
         public T next() {
-            if (index >= keyFrame.size()) index = 1;
+            if (index >= keyFrame.size()) index = 0;
             return keyFrame.get(index++);
         }
 
