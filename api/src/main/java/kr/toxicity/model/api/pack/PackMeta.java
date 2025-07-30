@@ -3,7 +3,6 @@ package kr.toxicity.model.api.pack;
 import com.google.gson.*;
 import com.google.gson.annotations.SerializedName;
 import kr.toxicity.model.api.BetterModel;
-import kr.toxicity.model.api.nms.NMSVersion;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -50,8 +49,7 @@ public record PackMeta(
 
     public record Pack(
             @SerializedName("pack_format") int packFormat,
-            @SerializedName("description") @NotNull String description,
-            @SerializedName("supported_formats") @Nullable VersionRange supportedFormats
+            @SerializedName("description") @NotNull String description
     ) {
     }
 
@@ -85,10 +83,6 @@ public record PackMeta(
     public static final class Builder {
         private int format = BetterModel.plugin().nms().version().getMetaVersion();
         private String description = "BetterModel's default pack.";
-        private VersionRange supportedFormats = new VersionRange(
-                NMSVersion.first().getMetaVersion(),
-                99
-        );
         private final List<OverlayEntry> entries = new ArrayList<>();
 
         public @NotNull Builder description(@NotNull String description) {
@@ -101,11 +95,6 @@ public record PackMeta(
             return this;
         }
 
-        public @NotNull Builder supportedFormats(@Nullable VersionRange supportedFormats) {
-            this.supportedFormats = supportedFormats;
-            return this;
-        }
-
         public @NotNull Builder overlayEntry(@NotNull OverlayEntry overlayEntry) {
             entries.add(overlayEntry);
             return this;
@@ -115,8 +104,7 @@ public record PackMeta(
             return new PackMeta(
                     new Pack(
                             format,
-                            description,
-                            supportedFormats
+                            description
                     ),
                     entries.isEmpty() ? null : new Overlay(entries)
             );
