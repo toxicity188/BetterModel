@@ -714,11 +714,11 @@ public abstract class Tracker implements AutoCloseable {
         private void send() {
             if (tickBundler.isNotEmpty()) {
                 pipeline.allPlayer().forEach(tickBundler::send);
-                tickBundler = pipeline.createBundler();
+                tickBundler = pipeline.createLazyBundler();
             }
             if (dataBundler.isNotEmpty()) {
                 pipeline.nonHidePlayer().forEach(dataBundler::send);
-                dataBundler = pipeline.createBundler();
+                dataBundler = pipeline.createLazyBundler();
             }
             if (viewBundler.isNotEmpty()) {
                 pipeline.viewedPlayer().forEach(viewBundler::send);

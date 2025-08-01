@@ -81,7 +81,7 @@ public final class RenderPipeline {
     }
 
     public @NotNull PacketBundler createBundler() {
-        return BetterModel.plugin().nms().createBundler(displayAmount);
+        return BetterModel.plugin().nms().createBundler(displayAmount + 1);
     }
 
     public @NotNull PacketBundler createLazyBundler() {
