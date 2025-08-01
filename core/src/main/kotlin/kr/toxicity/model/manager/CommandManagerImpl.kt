@@ -96,11 +96,16 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                         }.getOrDefault(EntityType.HUSK)
                     } ?: EntityType.HUSK
                     val s = args["scale"] as? Double ?: 1.0
-                    ModelManagerImpl.renderer(n)
-                        ?.create(player.world.spawnEntity(player.location, t).apply {
-                            if (PLUGIN.version() >= MinecraftVersion.V1_21 && this is LivingEntity) getAttribute(ATTRIBUTE_SCALE)?.baseValue = s
-                        })
-                        ?: player.audience().warn("Unable to find this renderer: $n")
+                    val e = player.world.spawnEntity(player.location, t).apply {
+                        if (PLUGIN.version() >= MinecraftVersion.V1_21 && this is LivingEntity) getAttribute(ATTRIBUTE_SCALE)?.baseValue = s
+                    }
+                    if (e.isValid) {
+                        ModelManagerImpl.renderer(n)
+                            ?.create(e)
+                            ?: player.audience().warn("Unable to find this renderer: $n")
+                    } else {
+                        player.audience().warn("Entity spawning has been blocked.")
+                    }
                 })
             }
             command("reload") {

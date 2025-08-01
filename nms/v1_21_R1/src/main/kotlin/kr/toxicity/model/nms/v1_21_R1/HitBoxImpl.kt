@@ -24,6 +24,7 @@ import net.minecraft.world.damagesource.DamageSource
 import net.minecraft.world.effect.MobEffectInstance
 import net.minecraft.world.entity.*
 import net.minecraft.world.entity.ai.attributes.Attributes
+import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.entity.projectile.Projectile
 import net.minecraft.world.entity.projectile.ProjectileDeflection
@@ -34,8 +35,10 @@ import org.bukkit.Bukkit
 import org.bukkit.Color
 import org.bukkit.Particle
 import org.bukkit.craftbukkit.CraftServer
+import org.bukkit.craftbukkit.entity.CraftArmorStand
 import org.bukkit.craftbukkit.entity.CraftLivingEntity
 import org.bukkit.craftbukkit.entity.CraftPlayer
+import org.bukkit.event.entity.CreatureSpawnEvent
 import org.bukkit.event.entity.EntityPotionEffectEvent
 import org.bukkit.plugin.Plugin
 import org.bukkit.util.Vector
@@ -50,7 +53,7 @@ internal class HitBoxImpl(
     private val listener: HitBoxListener,
     private val delegate: Entity,
     private var mountController: MountController
-) : LivingEntity(EntityType.SILVERFISH, delegate.level()), HitBox {
+) : ArmorStand(EntityType.ARMOR_STAND, delegate.level()), HitBox {
     private var initialized = false
     private var jumpDelay = 0
     private var mounted = false
@@ -60,7 +63,7 @@ internal class HitBoxImpl(
     private var onFly = false
 
     val craftEntity: HitBox by lazy {
-        object : CraftLivingEntity(Bukkit.getServer() as CraftServer, this), HitBox by this {}
+        object : CraftArmorStand(Bukkit.getServer() as CraftServer, this), HitBox by this {}
     }
     private val _rotatedSource = FunctionUtil.throttleTick(Supplier {
         source.rotate(Quaterniond(bone.hitBoxViewRotation()))
@@ -85,12 +88,10 @@ internal class HitBoxImpl(
         persist = false
         isSilent = true
         initialized = true
-        if (BetterModel.IS_PAPER) `moonrise$setUpdatingSectionStatus`(false)
-        refreshDimensions()
-        level().addFreshEntity(this)
+        level().addFreshEntity(this, CreatureSpawnEvent.SpawnReason.CUSTOM)
         level().addFreshEntity(interaction.apply {
             moveTo(delegate.position())
-        })
+        }, CreatureSpawnEvent.SpawnReason.CUSTOM)
         interaction.startRiding(this)
     }
 
