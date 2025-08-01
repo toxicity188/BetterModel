@@ -321,6 +321,7 @@ class NMSImpl : NMS {
     override fun inject(player: Player): PlayerChannelHandlerImpl = PlayerChannelHandlerImpl(player)
 
     override fun createBundler(initialCapacity: Int): PacketBundler = bundlerOf(initialCapacity)
+    override fun createLazyBundler(): PacketBundler = lazyBundlerOf()
     override fun createParallelBundler(threshold: Int): PacketBundler = parallelBundlerOf(threshold)
 
     override fun create(location: Location, yOffset: Double, initialConsumer: Consumer<ModelDisplay>): ModelDisplay = ModelDisplayImpl(ItemDisplay(EntityType.ITEM_DISPLAY, (location.world as CraftWorld).handle).apply {
