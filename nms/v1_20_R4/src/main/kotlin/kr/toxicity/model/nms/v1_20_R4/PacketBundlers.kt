@@ -32,10 +32,17 @@ internal fun Packet<*>.assumeSize() = when (this) {
     else -> 1
 }
 
+internal interface PluginBundlePacketImpl : PluginBundlePacket<ClientPacket> {
+    val bundlePacket: ClientboundBundlePacket
+    fun size(): Int
+    fun isEmpty(): Boolean
+    fun add(other: ClientPacket)
+}
+
 internal class SimpleBundler(
     private val list: MutableList<ClientPacket>
-) : PacketBundler, PluginBundlePacket<ClientPacket> by PluginBundlePacket.of(KEY, list) {
-    val bundlePacket = ClientboundBundlePacket(this)
+) : PacketBundler, PluginBundlePacketImpl {
+    override val bundlePacket = ClientboundBundlePacket(this)
     override fun send(player: Player, onSuccess: Runnable) {
         if (isEmpty) return
         val connection = (player as CraftPlayer).handle.connection
@@ -43,12 +50,14 @@ internal class SimpleBundler(
     }
     override fun isEmpty(): Boolean = list.isEmpty()
     override fun size(): Int = list.size
-    fun add(other: ClientPacket) {
+    override fun key(): Key = KEY
+    override fun iterator(): MutableIterator<ClientPacket> = list.iterator()
+    override fun add(other: ClientPacket) {
         list += other
     }
 }
 
-internal class LazyBundler : PacketBundler, PluginBundlePacket<ClientPacket> {
+internal class LazyBundler : PacketBundler, PluginBundlePacketImpl {
     private var index = 0
     private var listBuilder: (MutableList<ClientPacket>) -> Unit = {}
     private val list by lazy {
@@ -57,7 +66,7 @@ internal class LazyBundler : PacketBundler, PluginBundlePacket<ClientPacket> {
     }
     private var sent = false
 
-    val bundlePacket = ClientboundBundlePacket(this)
+    override val bundlePacket = ClientboundBundlePacket(this)
     override fun send(player: Player, onSuccess: Runnable) {
         if (isEmpty) return
         val connection = (player as CraftPlayer).handle.connection
@@ -65,35 +74,29 @@ internal class LazyBundler : PacketBundler, PluginBundlePacket<ClientPacket> {
     }
     override fun isEmpty(): Boolean = size() == 0
     override fun size(): Int = index
-    fun add(other: ClientPacket) {
+    override fun key(): Key = KEY
+    override fun iterator(): MutableIterator<ClientPacket> = list.iterator()
+    override fun add(other: ClientPacket) {
         if (sent) throw uoe()
+        if (index++ == 0) {
+            listBuilder = { it += other }
+            return
+        }
         val previous = listBuilder
         listBuilder = {
             previous(it)
             it += other
         }
-        index++
     }
-
-    override fun key(): Key = KEY
-    override fun iterator(): MutableIterator<ClientPacket> = list.iterator()
 }
 
-internal class ParallelBundler(private val threshold: Int) : PacketBundler {
+internal class ParallelBundler(
+    private val threshold: Int
+) : PacketBundler {
+    private val creator: () -> PluginBundlePacketImpl = if (threshold <= 16) { { lazyBundlerOf() } } else { { bundlerOf() } }
     private var sizeAssume = 0
-    private var selectedBundler = lazyBundlerOf()
-    private var listBuilder: (MutableList<LazyBundler>) -> Unit = selectedBundler.run {
-        {
-            it += this
-        }
-    }
-    private var index = 1
-    private var size = 0
-    private val subBundlers by lazy {
-        sent = true
-        ArrayList<LazyBundler>(index).also(listBuilder)
-    }
-    private var sent = false
+    private val subBundlers = mutableListOf(creator())
+    private var selectedBundler = subBundlers.first()
     override fun send(player: Player, onSuccess: Runnable) {
         if (isEmpty) return
         val connection = (player as CraftPlayer).handle.connection
@@ -101,24 +104,17 @@ internal class ParallelBundler(private val threshold: Int) : PacketBundler {
             connection.send(it.bundlePacket)
         }
     }
-    override fun isEmpty(): Boolean = size() == 0
-    override fun size(): Int = size
+    override fun isEmpty(): Boolean = selectedBundler.isEmpty()
+    override fun size(): Int = subBundlers.sumOf(PluginBundlePacketImpl::size)
     fun add(other: ClientPacket) {
-        if (sent) throw uoe()
         sizeAssume += other.assumeSize()
         val bundler = if (sizeAssume > threshold) {
-            val previous = listBuilder
-            lazyBundlerOf().apply {
-                listBuilder = {
-                    previous(it)
-                    it += this
-                }
+            sizeAssume = 0
+            creator().apply {
+                subBundlers += this
                 selectedBundler = this
-                sizeAssume = 0
-                index++
             }
         } else selectedBundler
         bundler.add(other)
-        size++
     }
 }
