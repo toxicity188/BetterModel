@@ -326,7 +326,7 @@ public final class EntityTrackerRegistry {
         if (handler == null) return false;
         var cache = registerPlayer(handler);
         if (trackerMap.isEmpty()) return false;
-        var bundler = BetterModel.plugin().nms().createLazyBundler();
+        var bundler = BetterModel.plugin().nms().createBundler(10);
         for (EntityTracker value : trackers()) {
             if (shouldNotSpawned && value.pipeline.isSpawned(player)) continue;
             if (value.canBeSpawnedAt(player)) value.spawn(player, bundler);

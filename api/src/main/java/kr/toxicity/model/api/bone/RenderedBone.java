@@ -317,18 +317,15 @@ public final class RenderedBone {
             var afterVisible = isVisible();
             var nowVisible = afterVisible && !beforeVisible;
             if (nowVisible) {
-                d.frame(0);
-                d.sendTransformation(bundler);
+                sendTransformation(d, 0, bundler);
                 nextTicker = b -> {
                     nextTicker = EMPTY_TICKER;
-                    d.frame(toInterpolationDuration(frame() - 1));
-                    d.sendTransformation(b);
+                    sendTransformation(d, toInterpolationDuration(frame() - 1), b);
                 };
             }
-            setup(boneMovement);
+            setup(d, boneMovement);
             if (!nowVisible && (afterVisible || beforeVisible)) {
-                d.frame(toInterpolationDuration(frame()));
-                d.sendTransformation(bundler);
+                sendTransformation(d, toInterpolationDuration(frame()), bundler);
             }
             beforeVisible = afterVisible;
             return true;
@@ -392,24 +389,27 @@ public final class RenderedBone {
                 .rotateLocalY(-rotation.radianY());
     }
 
-    private void setup(@NotNull BoneMovement boneMovement) {
-        if (display != null) {
-            var mul = scale.getAsFloat();
-            display.transform(
-                    MathUtil.fma(
-                            itemStack.offset().rotate(boneMovement.rotation(), new Vector3f())
-                                    .add(boneMovement.transform())
-                                    .add(root.group.getPosition()),
-                            mul,
-                            itemStack.position()
-                    ).add(defaultPosition.get()),
-                    boneMovement.scale()
-                            .mul(itemStack.scale(), new Vector3f())
-                            .mul(mul)
-                            .max(EMPTY_VECTOR),
-                    boneMovement.rotation()
-            );
-        }
+    private static void sendTransformation(@NotNull ModelDisplay display, int duration, @NotNull PacketBundler bundler) {
+        display.frame(duration);
+        display.sendTransformation(bundler);
+    }
+
+    private void setup(@NotNull ModelDisplay display, @NotNull BoneMovement boneMovement) {
+        var mul = scale.getAsFloat();
+        display.transform(
+                MathUtil.fma(
+                        itemStack.offset().rotate(boneMovement.rotation(), new Vector3f())
+                                .add(boneMovement.transform())
+                                .add(root.group.getPosition()),
+                        mul,
+                        itemStack.position()
+                ).add(defaultPosition.get()),
+                boneMovement.scale()
+                        .mul(itemStack.scale(), new Vector3f())
+                        .mul(mul)
+                        .max(EMPTY_VECTOR),
+                boneMovement.rotation()
+        );
     }
 
     public void defaultPosition(@NotNull Supplier<Vector3f> movement) {
