@@ -7,9 +7,6 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import java.lang.reflect.Type;
-import java.util.function.Function;
-
 /**
  * A three float value (origin, rotation)
  * @param x x
@@ -42,28 +39,14 @@ public record Float3(
     /**
      * Parser
      */
-    public static final Parser PARSER = new Parser();
-
-    public static final class Parser implements Function<JsonElement, Float3>, JsonDeserializer<Float3> {
-        private Parser() {
-        }
-
-        @Override
-        public Float3 deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-            return apply(json);
-        }
-
-        @Override
-        public Float3 apply(JsonElement element) {
-            if (element == null || element.isJsonNull()) return ZERO;
-            var array = element.getAsJsonArray();
-            return new Float3(
-                    array.get(0).getAsFloat(),
-                    array.get(1).getAsFloat(),
-                    array.get(2).getAsFloat()
-            );
-        }
-    }
+    public static final JsonDeserializer<Float3> PARSER = (json, typeOfT, context) -> {
+        var array = json.getAsJsonArray();
+        return new Float3(
+                array.get(0).getAsFloat(),
+                array.get(1).getAsFloat(),
+                array.get(2).getAsFloat()
+        );
+    };
 
     /**
      * Adds other floats.

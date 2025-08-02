@@ -5,6 +5,7 @@ import kr.toxicity.model.api.animation.AnimationMovement;
 import kr.toxicity.model.api.animation.VectorPoint;
 import kr.toxicity.model.api.data.raw.Datapoint;
 import kr.toxicity.model.api.data.raw.ModelKeyframe;
+import kr.toxicity.model.api.data.raw.ModelPlaceholder;
 import kr.toxicity.model.api.util.MathUtil;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -66,25 +67,26 @@ public record BlueprintAnimator(
          * @param keyframe raw frame
          * @return self
          */
-        public @NotNull Builder addFrame(@NotNull ModelKeyframe keyframe) {
-            if (keyframe.time() > length) return this;
+        public @NotNull Builder addFrame(@NotNull ModelKeyframe keyframe, @NotNull ModelPlaceholder placeholder) {
+            var time = keyframe.time();
+            if (time > length) return this;
             var interpolation = keyframe.findInterpolation();
             for (Datapoint dataPoint : keyframe.dataPoints()) {
-                var vec = dataPoint.toVector();
+                var vec = dataPoint.toVector(time, placeholder);
                 switch (keyframe.channel()) {
                     case POSITION -> transform.add(new VectorPoint(
                             MathUtil.transformToDisplay(vec.div(MathUtil.MODEL_TO_BLOCK_MULTIPLIER)),
-                            keyframe.time(),
+                            time,
                             interpolation
                     ));
                     case ROTATION -> rotation.add(new VectorPoint(
                             MathUtil.animationToDisplay(vec),
-                            keyframe.time(),
+                            time,
                             interpolation
                     ));
                     case SCALE -> scale.add(new VectorPoint(
                             vec.sub(1, 1, 1),
-                            keyframe.time(),
+                            time,
                             interpolation
                     ));
                 }

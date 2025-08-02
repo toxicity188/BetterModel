@@ -11,6 +11,16 @@ import java.io.File
 fun File.toModel(): ModelBlueprint = bufferedReader().use {
     ModelBlueprint.from(nameWithoutExtension.toPackName(), ModelData.GSON.fromJson(it, ModelData::class.java))
 }
+fun File.toTexturedModel(): ModelBlueprint? = bufferedReader().use {
+    ModelData.GSON.fromJson(it, ModelData::class.java)
+        .takeIf(ModelData::isSupported)
+        ?.let { data ->
+            ModelBlueprint.from(
+                nameWithoutExtension.toPackName(),
+                data
+            )
+        }
+}
 
 fun JsonElement.toByteArray(): ByteArray {
     return ModelData.GSON.toJson(this).toByteArray(Charsets.UTF_8)

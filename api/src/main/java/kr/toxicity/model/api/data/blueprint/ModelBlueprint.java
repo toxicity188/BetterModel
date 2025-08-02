@@ -40,6 +40,7 @@ public record ModelBlueprint(
      * @return blueprint
      */
     public static @NotNull ModelBlueprint from(@NotNull String name, @NotNull ModelData data) {
+        var placeholder = data.placeholder();
         var group = mapToList(data.outliner(), children -> BlueprintChildren.from(children, associate(data.elements(), ModelElement::uuid, e -> e)));
         return new ModelBlueprint(
                 name,
@@ -47,7 +48,7 @@ public record ModelBlueprint(
                 data.resolution(),
                 mapToList(data.textures(), BlueprintTexture::from),
                 group,
-                associate(data.animations().stream().map(raw -> BlueprintAnimation.from(group, raw)), BlueprintAnimation::name)
+                associate(data.animations().stream().map(raw -> BlueprintAnimation.from(group, placeholder, raw)), BlueprintAnimation::name)
         );
     }
 

@@ -5,9 +5,6 @@ import kr.toxicity.model.api.util.MathUtil;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Type;
-import java.util.function.Function;
-
 /**
  * A four float values (uv)
  * @param dx from-x
@@ -26,29 +23,15 @@ public record Float4(
     /**
      * Parser
      */
-    public static final Parser PARSER = new Parser();
-
-    public static final class Parser implements Function<JsonElement, Float4>, JsonDeserializer<Float4> {
-
-        private Parser() {
-        }
-
-        @Override
-        public Float4 deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-            return apply(json);
-        }
-
-        @Override
-        public Float4 apply(JsonElement element) {
-            var array = element.getAsJsonArray();
-            return new Float4(
-                    array.get(0).getAsFloat(),
-                    array.get(1).getAsFloat(),
-                    array.get(2).getAsFloat(),
-                    array.get(3).getAsFloat()
-            );
-        }
-    }
+    public static final JsonDeserializer<Float4> PARSER = (json, typeOfT, context) -> {
+        var array = json.getAsJsonArray();
+        return new Float4(
+                array.get(0).getAsFloat(),
+                array.get(1).getAsFloat(),
+                array.get(2).getAsFloat(),
+                array.get(3).getAsFloat()
+        );
+    };
 
     /**
      * Divides floats by resolution.

@@ -360,7 +360,7 @@ public final class RenderedBone {
     }
 
     public @NotNull Vector3f worldPosition(@NotNull Vector3f localOffset, @NotNull Vector3f globalOffset) {
-        var progress = 1F - progress();
+        var progress = 1F - state.progress();
         var after = afterTransform != null ? afterTransform : relativeOffset();
         var before = beforeTransform != null ? beforeTransform : BoneMovement.EMPTY;
         return MathUtil.fma(
@@ -381,7 +381,7 @@ public final class RenderedBone {
     }
 
     public @NotNull Quaternionf worldRotation() {
-        var progress = 1F - progress();
+        var progress = 1F - state.progress();
         var after = afterTransform != null ? afterTransform : relativeOffset();
         var before = beforeTransform != null ? beforeTransform : BoneMovement.EMPTY;
         return MathUtil.toQuaternion(InterpolationUtil.lerp(before.rawRotation(), after.rawRotation(), progress))
@@ -424,11 +424,6 @@ public final class RenderedBone {
     private @NotNull BoneMovement defaultFrame() {
         var keyframe = state.getKeyframe();
         return defaultFrame.plus(keyframe != null ? keyframe : AnimationMovement.EMPTY);
-    }
-
-    private float progress() {
-        var f = frame();
-        return f == 0 ? 0F : (float) state.getDelay() / f;
     }
 
     private @NotNull BoneMovement relativeOffset() {

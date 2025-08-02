@@ -42,7 +42,7 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
         }.fileTreeList()
             .filter { it.extension == "bbmodel" }
             .forEachAsync {
-                val load = it.toModel()
+                val load = it.toTexturedModel() ?: return@forEachAsync warn("This model file has unsupported element type (e.g., mesh): ${it.path}")
                 modelFileMap.compute(load.name) compute@ { _, v ->
                     if (v != null) {
                         // A model with the same name already exists from a different file

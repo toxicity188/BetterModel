@@ -20,6 +20,7 @@ dependencies {
     }
     implementation(libs.bundles.shadedLibrary) {
         exclude("net.kyori")
+        exclude("org.ow2.asm")
     }
 
     compileOnly("net.citizensnpcs:citizens-main:2.0.39-SNAPSHOT") {

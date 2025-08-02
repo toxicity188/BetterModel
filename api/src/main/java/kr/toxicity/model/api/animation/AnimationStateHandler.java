@@ -4,7 +4,6 @@ import kr.toxicity.model.api.tracker.Tracker;
 import kr.toxicity.model.api.util.MathUtil;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,7 +29,6 @@ public final class AnimationStateHandler<T extends Timed> {
     private final AtomicBoolean forceUpdateAnimation = new AtomicBoolean();
 
     @Getter
-    @Setter
     private int delay;
     private volatile TreeIterator currentIterator = null;
     @Getter
@@ -48,6 +46,11 @@ public final class AnimationStateHandler<T extends Timed> {
     public boolean tick() {
         delay--;
         return shouldUpdateAnimation() && updateAnimation();
+    }
+
+    public float progress() {
+        var frame = frame();
+        return frame == 0 ? 0 : (float) delay / frame;
     }
 
     private boolean shouldUpdateAnimation() {

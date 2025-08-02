@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A raw model's element (cube).
  * @param name name
+ * @param type type
  * @param uuid cube's uuid
  * @param from min-position
  * @param to max-position
@@ -20,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
 @ApiStatus.Internal
 public record ModelElement(
         @NotNull String name,
+        @Nullable Type type,
         @NotNull String uuid,
         @NotNull Float3 from,
         @NotNull Float3 to,
@@ -46,11 +48,41 @@ public record ModelElement(
         return rotation != null ? rotation : Float3.ZERO;
     }
 
+    @Override
+    public @NotNull Type type() {
+        return type != null ? type : Type.CUBE;
+    }
+
+
     /**
      * Checks this model has texture
      * @return model has texture
      */
     public boolean hasTexture() {
         return faces.hasTexture();
+    }
+
+    /**
+     * Checks this element is supported in the Minecraft client.
+     * @return supported
+     */
+    public boolean isSupported() {
+        return type() == Type.CUBE;
+    }
+
+    /**
+     * Element type
+     */
+    public enum Type {
+        /**
+         * Cube
+         */
+        @SerializedName("cube")
+        CUBE,
+        /**
+         * Mesh
+         */
+        @SerializedName("mesh")
+        MESH
     }
 }

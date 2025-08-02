@@ -13,6 +13,7 @@ repositories {
     maven("https://repo.codemc.org/repository/maven-public/")
     maven("https://libraries.minecraft.net/")
     maven("https://jitpack.io")
+    maven("https://maven.blamejared.com/")
 }
 
 dependencies {

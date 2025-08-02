@@ -3,6 +3,7 @@ package kr.toxicity.model
 import com.vdurmont.semver4j.Semver
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.BetterModelConfig
+import kr.toxicity.model.api.BetterModelEvaluator
 import kr.toxicity.model.api.BetterModelLogger
 import kr.toxicity.model.api.BetterModelPlugin
 import kr.toxicity.model.api.BetterModelPlugin.ReloadResult
@@ -56,6 +57,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
     }
 
     private val scheduler = if (BetterModel.IS_FOLIA) PaperScheduler() else BukkitScheduler()
+    private val evaluator = BetterModelEvaluatorImpl()
     private val log = object : BetterModelLogger {
         private val internalLogger = logger
         override fun info(vararg message: String) {
@@ -214,6 +216,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
 
     override fun logger(): BetterModelLogger = log
     override fun scheduler(): ModelScheduler = scheduler
+    override fun evaluator(): BetterModelEvaluator = evaluator
     override fun modelManager(): ModelManager = ModelManagerImpl
     override fun playerManager(): PlayerManager = PlayerManagerImpl
     override fun entityManager(): EntityManager = EntityManagerImpl

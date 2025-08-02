@@ -7,6 +7,7 @@ import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.BoneTagRegistry;
 import kr.toxicity.model.api.data.raw.ModelAnimation;
 import kr.toxicity.model.api.data.raw.ModelAnimator;
+import kr.toxicity.model.api.data.raw.ModelPlaceholder;
 import kr.toxicity.model.api.script.BlueprintScript;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,7 +42,7 @@ public record BlueprintAnimation(
      * @param animation raw animation
      * @return converted animation
      */
-    public static @NotNull BlueprintAnimation from(@NotNull List<BlueprintChildren> children, @NotNull ModelAnimation animation) {
+    public static @NotNull BlueprintAnimation from(@NotNull List<BlueprintChildren> children, @NotNull ModelPlaceholder placeholder, @NotNull ModelAnimation animation) {
         var map = new HashMap<BoneName, BlueprintAnimator.AnimatorData>();
         var blueprintScript = BlueprintScript.fromEmpty(animation);
         var animator = animation.animators();
@@ -56,7 +57,7 @@ public record BlueprintAnimation(
                 entry.getValue().keyframes()
                         .stream()
                         .sorted(Comparator.naturalOrder())
-                        .forEach(builder::addFrame);
+                        .forEach(keyframe -> builder.addFrame(keyframe, placeholder));
                 map.put(BoneTagRegistry.parse(name), builder.build(name));
             }
         }

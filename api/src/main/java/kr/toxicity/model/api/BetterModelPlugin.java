@@ -127,6 +127,12 @@ public interface BetterModelPlugin {
     @NotNull BetterModelLogger logger();
 
     /**
+     * Gets evaluator
+     * @return evaluator
+     */
+    @NotNull BetterModelEvaluator evaluator();
+
+    /**
      * Gets bukkit audiences
      * @return bukkit audiences
      */

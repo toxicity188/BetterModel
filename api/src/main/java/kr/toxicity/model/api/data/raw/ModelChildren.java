@@ -11,7 +11,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Type;
 import java.util.List;
-import java.util.function.Function;
 
 /**
  * A raw children of the model.
@@ -27,7 +26,7 @@ public sealed interface ModelChildren {
     /**
      * Parser
      */
-    final class Parser implements Function<JsonElement, ModelChildren>, JsonDeserializer<ModelChildren> {
+    final class Parser implements JsonDeserializer<ModelChildren> {
 
         /**
          * Private initializer.
@@ -36,14 +35,9 @@ public sealed interface ModelChildren {
         }
 
         @Override
-        public ModelChildren deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-            return apply(json);
-        }
-
-        @Override
-        public ModelChildren apply(JsonElement element) {
+        public ModelChildren deserialize(JsonElement element, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
             if (element.isJsonPrimitive()) return new ModelUUID(element.getAsString());
-            else if (element.isJsonObject()) return ModelData.GSON.fromJson(element, ModelGroup.class);
+            else if (element.isJsonObject()) return context.deserialize(element, ModelGroup.class);
             else throw new RuntimeException();
         }
     }
