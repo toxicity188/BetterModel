@@ -93,10 +93,14 @@ internal class LazyBundler : PacketBundler, PluginBundlePacketImpl {
 internal class ParallelBundler(
     private val threshold: Int
 ) : PacketBundler {
-    private val creator: () -> PluginBundlePacketImpl = if (threshold <= 16) { { lazyBundlerOf() } } else { { bundlerOf() } }
+    private val _creator: () -> PluginBundlePacketImpl = if (threshold <= 32) { { lazyBundlerOf() } } else { { bundlerOf() } }
+    private val subBundlers = mutableListOf<PluginBundlePacketImpl>()
     private var sizeAssume = 0
-    private val subBundlers = mutableListOf(creator())
-    private var selectedBundler = subBundlers.first()
+    private val newBundler get() = _creator().apply {
+        sizeAssume = 0
+        subBundlers += this
+    }
+    private var selectedBundler = newBundler
     override fun send(player: Player, onSuccess: Runnable) {
         if (isEmpty) return
         val connection = (player as CraftPlayer).handle.connection
@@ -107,14 +111,9 @@ internal class ParallelBundler(
     override fun isEmpty(): Boolean = selectedBundler.isEmpty()
     override fun size(): Int = subBundlers.sumOf(PluginBundlePacketImpl::size)
     fun add(other: ClientPacket) {
+        (if (sizeAssume > threshold) newBundler else selectedBundler)
+            .apply { selectedBundler = this }
+            .add(other)
         sizeAssume += other.assumeSize()
-        val bundler = if (sizeAssume > threshold) {
-            sizeAssume = 0
-            creator().apply {
-                subBundlers += this
-                selectedBundler = this
-            }
-        } else selectedBundler
-        bundler.add(other)
     }
 }

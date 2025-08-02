@@ -35,6 +35,21 @@ public final class EntityBodyRotator {
     private volatile int rotationDuration;
     private volatile int rotationDelay;
 
+    static @NotNull RotatorData defaultData() {
+        return new RotatorData(
+                false,
+                false,
+                false,
+                -75,
+                75,
+                -75,
+                75,
+                15,
+                10,
+                10
+        );
+    }
+
     EntityBodyRotator(@NotNull EntityTrackerRegistry registry) {
         this.registry = registry;
         this.adapter = registry.adapter();
@@ -120,7 +135,7 @@ public final class EntityBodyRotator {
     }
 
     public void reset() {
-        setValue(RotatorData.defaultData());
+        setValue(defaultData());
     }
 
     synchronized @NotNull RotatorData createData() {
@@ -162,21 +177,6 @@ public final class EntityBodyRotator {
         private int rotationDuration;
         @SerializedName("rotation_delay")
         private int rotationDelay;
-
-        static @NotNull RotatorData defaultData() {
-            return new RotatorData(
-                    false,
-                    false,
-                    false,
-                    -75,
-                    75,
-                    -75,
-                    75,
-                    15,
-                    10,
-                    10
-            );
-        }
 
         private void set(@NotNull EntityBodyRotator rotator) {
             rotator.headUneven = headUneven;

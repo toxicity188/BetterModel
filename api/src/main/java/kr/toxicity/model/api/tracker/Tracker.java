@@ -110,7 +110,7 @@ public abstract class Tracker implements AutoCloseable {
         };
         if (modifier.sightTrace()) pipeline.viewFilter(p -> EntityUtil.canSee(p.getEyeLocation(), location()));
         frame((t, s) -> {
-            if (readyForForceUpdate.compareAndSet(true, false)) t.pipeline.forceUpdate(s.dataBundler);
+            if (readyForForceUpdate.compareAndSet(true, false)) t.pipeline.iterateTree(b -> b.forceUpdate(s.dataBundler));
         });
         tick((t, s) -> pipeline.rotate(
                 t.isRunningSingleAnimation() && config.lockOnPlayAnimation() ? t.pipeline.getRotation() : t.rotation(),

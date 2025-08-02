@@ -38,11 +38,18 @@ public interface HitBoxListener {
      * Builder
      */
     class Builder {
-        private Consumer<HitBox> sync = h -> {};
-        private OnDamage damage = (h, s, d) -> false;
-        private Consumer<HitBox> remove = h -> {};
-        private BiConsumer<HitBox, Entity> mount = (h, e) -> {};
-        private BiConsumer<HitBox, Entity> dismount = (h, e) -> {};
+
+        private static final Consumer<HitBox> DEFAULT_SYNC = h -> {};
+        private static final OnDamage DEFAULT_DAMAGE = (h, s, d) -> false;
+        private static final Consumer<HitBox> DEFAULT_REMOVE = h -> {};
+        private static final BiConsumer<HitBox, Entity> DEFAULT_MOUNT = (h, e) -> {};
+        private static final BiConsumer<HitBox, Entity> DEFAULT_DISMOUNT = (h, e) -> {};
+
+        private Consumer<HitBox> sync = DEFAULT_SYNC;
+        private OnDamage damage = DEFAULT_DAMAGE;
+        private Consumer<HitBox> remove = DEFAULT_REMOVE;
+        private BiConsumer<HitBox, Entity> mount = DEFAULT_MOUNT;
+        private BiConsumer<HitBox, Entity> dismount = DEFAULT_DISMOUNT;
 
         /**
          * Private initializer
@@ -51,32 +58,22 @@ public interface HitBoxListener {
         }
 
         /**
+         * Sets sync listener
+         * @param sync listener
+         * @return self
+         */
+        public @NotNull Builder sync(@NotNull Consumer<HitBox> sync) {
+            this.sync = this.sync == DEFAULT_SYNC ? sync : this.sync.andThen(sync);
+            return this;
+        }
+
+        /**
          * Sets damage listener
          * @param damage listener
          * @return self
          */
         public @NotNull Builder damage(@NotNull OnDamage damage) {
-            this.damage = this.damage.andThen(damage);
-            return this;
-        }
-
-        /**
-         * Sets dismount listener
-         * @param dismount listener
-         * @return self
-         */
-        public @NotNull Builder dismount(@NotNull BiConsumer<HitBox, Entity> dismount) {
-            this.dismount = this.dismount.andThen(dismount);
-            return this;
-        }
-
-        /**
-         * Sets mount listener
-         * @param mount listener
-         * @return self
-         */
-        public @NotNull Builder mount(@NotNull BiConsumer<HitBox, Entity> mount) {
-            this.mount = this.mount.andThen(mount);
+            this.damage = this.damage == DEFAULT_DAMAGE ? damage : this.damage.andThen(damage);
             return this;
         }
 
@@ -86,17 +83,27 @@ public interface HitBoxListener {
          * @return self
          */
         public @NotNull Builder remove(@NotNull Consumer<HitBox> remove) {
-            this.remove = this.remove.andThen(remove);
+            this.remove = this.remove == DEFAULT_REMOVE ? remove : this.remove.andThen(remove);
             return this;
         }
 
         /**
-         * Sets sync listener
-         * @param sync listener
+         * Sets mount listener
+         * @param mount listener
          * @return self
          */
-        public @NotNull Builder sync(@NotNull Consumer<HitBox> sync) {
-            this.sync = this.sync.andThen(sync);
+        public @NotNull Builder mount(@NotNull BiConsumer<HitBox, Entity> mount) {
+            this.mount = this.mount == DEFAULT_MOUNT ? mount : this.mount.andThen(mount);
+            return this;
+        }
+
+        /**
+         * Sets dismount listener
+         * @param dismount listener
+         * @return self
+         */
+        public @NotNull Builder dismount(@NotNull BiConsumer<HitBox, Entity> dismount) {
+            this.dismount = this.dismount == DEFAULT_DISMOUNT ? dismount : this.dismount.andThen(dismount);
             return this;
         }
 

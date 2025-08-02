@@ -45,7 +45,7 @@ public final class DummyTracker extends Tracker {
         if (this.location.equals(location)) return;
         this.location = Objects.requireNonNull(location, "location");
         var bundler = pipeline.createBundler();
-        pipeline.teleport(location, bundler);
+        pipeline.iterateTree(b -> b.teleport(location, bundler));
         if (bundler.isNotEmpty()) pipeline.allPlayer()
                 .forEach(bundler::send);
     }

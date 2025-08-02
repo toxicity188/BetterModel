@@ -67,7 +67,7 @@ public record TrackerData(
                 ModelScaler.entity(),
                 null,
                 TrackerModifier.DEFAULT,
-                EntityBodyRotator.RotatorData.defaultData(),
+                EntityBodyRotator.defaultData(),
                 null,
                 null
         ) : PARSER.fromJson(element, TrackerData.class);
@@ -95,7 +95,7 @@ public record TrackerData(
 
     @Override
     public @NotNull EntityBodyRotator.RotatorData bodyRotator() {
-        return bodyRotator != null ? bodyRotator : EntityBodyRotator.RotatorData.defaultData();
+        return bodyRotator != null ? bodyRotator : EntityBodyRotator.defaultData();
     }
 
     @NotNull

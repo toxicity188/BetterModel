@@ -15,7 +15,6 @@ import kr.toxicity.model.api.util.FunctionUtil;
 import kr.toxicity.model.api.util.function.BonePredicate;
 import kr.toxicity.model.api.util.function.FloatSupplier;
 import lombok.Getter;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -141,10 +140,6 @@ public final class RenderPipeline {
         playerMap.clear();
     }
 
-    public void teleport(@NotNull Location location, @NotNull PacketBundler bundler) {
-        iterateTree(b -> b.teleport(location, bundler));
-    }
-
     public boolean rotate(@NotNull ModelRotation rotation, @NotNull PacketBundler bundler) {
         if (rotation.equals(this.rotation)) return false;
         this.rotation = rotation;
@@ -159,12 +154,7 @@ public final class RenderPipeline {
     public void defaultPosition(@NotNull Supplier<Vector3f> movement) {
         iterateTree(b -> b.defaultPosition(movement));
     }
-    public void forceUpdate(@NotNull PacketBundler bundler) {
-        iterateTree(b -> b.forceUpdate(bundler));
-    }
-    public void forceUpdate(boolean showItem, @NotNull PacketBundler bundler) {
-        iterateTree(b -> b.forceUpdate(showItem, bundler));
-    }
+
     public void scale(@NotNull FloatSupplier scale) {
         iterateTree(b -> b.scale(scale));
     }
@@ -307,7 +297,7 @@ public final class RenderPipeline {
         if (hidePlayerSet.add(player.getUniqueId())) {
             if (isSpawned(player)) {
                 var bundler = createBundler();
-                forceUpdate(false, bundler);
+                iterateTree(b -> b.forceUpdate(false, bundler));
                 hidePacketHandler.accept(bundler);
                 if (bundler.isNotEmpty()) bundler.send(player);
             }
@@ -324,7 +314,7 @@ public final class RenderPipeline {
         if (hidePlayerSet.remove(player.getUniqueId())) {
             if (isSpawned(player)) {
                 var bundler = createBundler();
-                forceUpdate(true, bundler);
+                iterateTree(b -> b.forceUpdate(true, bundler));
                 showPacketHandler.accept(bundler);
                 if (bundler.isNotEmpty()) bundler.send(player);
             }
