@@ -1,6 +1,5 @@
 package kr.toxicity.model.api.script;
 
-import kr.toxicity.model.api.data.renderer.RenderSource;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -10,22 +9,22 @@ import java.util.function.Consumer;
 /**
  * Animation script
  */
-public interface AnimationScript extends Consumer<RenderSource<?>> {
+public interface AnimationScript extends Consumer<ScriptSource> {
 
     boolean isSync();
     @Override
-    void accept(@NotNull RenderSource<?> renderSource);
+    void accept(@NotNull ScriptSource renderSource);
 
     /**
      * Empty script
      */
     AnimationScript EMPTY = of(s -> {});
 
-    static @NotNull AnimationScript of(@NotNull Consumer<RenderSource<?>> source) {
+    static @NotNull AnimationScript of(@NotNull Consumer<ScriptSource> source) {
         return of(false, source);
     }
 
-    static @NotNull AnimationScript of(boolean isSync, @NotNull Consumer<RenderSource<?>> source) {
+    static @NotNull AnimationScript of(boolean isSync, @NotNull Consumer<ScriptSource> source) {
         Objects.requireNonNull(source);
         return new AnimationScript() {
             @Override
@@ -34,7 +33,7 @@ public interface AnimationScript extends Consumer<RenderSource<?>> {
             }
 
             @Override
-            public void accept(@NotNull RenderSource<?> renderSource) {
+            public void accept(@NotNull ScriptSource renderSource) {
                 source.accept(renderSource);
             }
         };
@@ -60,7 +59,7 @@ public interface AnimationScript extends Consumer<RenderSource<?>> {
             case 1 -> scriptList.getFirst();
             default -> {
                 var sync = false;
-                Consumer<RenderSource<?>> consumer = EMPTY;
+                Consumer<ScriptSource> consumer = trigger -> {};
                 for (AnimationScript entityScript : scriptList) {
                     sync = sync || entityScript.isSync();
                     consumer = consumer.andThen(entityScript);

@@ -9,6 +9,7 @@ import kr.toxicity.model.api.nms.HitBox;
 import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.script.AnimationScript;
+import kr.toxicity.model.api.script.ScriptSource;
 import kr.toxicity.model.api.script.TimeScript;
 import kr.toxicity.model.api.tracker.ModelRotation;
 import kr.toxicity.model.api.util.FunctionUtil;
@@ -37,7 +38,6 @@ public final class RenderPipeline {
     private final RenderSource<?> source;
 
     private final Map<BoneName, RenderedBone> boneMap;
-    private final Map<String, BlueprintAnimation> animationMap;
     private final List<RenderedBone> bones;
     private final int displayAmount;
     private final Map<UUID, PlayerChannelHandler> playerMap = new ConcurrentHashMap<>();
@@ -53,16 +53,7 @@ public final class RenderPipeline {
 
     @Getter
     private ModelRotation rotation = ModelRotation.INVALID;
-    private final AnimationStateHandler<TimeScript> scriptProcessor = new AnimationStateHandler<>(
-            TimeScript.EMPTY,
-            (a, s, t) -> s == AnimationStateHandler.MappingState.PROGRESS ? a.time(t) : AnimationScript.EMPTY.time(t),
-            s -> {
-                if (s == null) return;
-                if (s.isSync()) {
-                    BetterModel.plugin().scheduler().task(getSource().location(), () -> s.accept(getSource()));
-                } else s.accept(getSource());
-            }
-    );
+    private final AnimationStateHandler<TimeScript> scriptProcessor;
 
     public RenderPipeline(
             @NotNull ModelRenderer parent,
@@ -72,11 +63,23 @@ public final class RenderPipeline {
         this.parent = parent;
         this.source = source;
         this.boneMap = boneMap;
-        this.animationMap = parent.animationMap();
+        //Bone
         bones = boneMap.values().stream().flatMap(RenderedBone::flatten).toList();
         displayAmount = (int) bones.stream()
                 .filter(rb -> rb.getDisplay() != null)
                 .count();
+        //Script
+        var scriptSource = new ScriptSource(this, source);
+        scriptProcessor = new AnimationStateHandler<>(
+                TimeScript.EMPTY,
+                (a, s, t) -> s == AnimationStateHandler.MappingState.PROGRESS ? a.time(t) : AnimationScript.EMPTY.time(t),
+                s -> {
+                    if (s == null) return;
+                    if (s.isSync()) {
+                        BetterModel.plugin().scheduler().task(source.location(), () -> s.accept(scriptSource));
+                    } else s.accept(scriptSource);
+                }
+        );
     }
 
     public @NotNull PacketBundler createBundler() {
@@ -187,9 +190,9 @@ public final class RenderPipeline {
     }
 
     public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
-        var get = animationMap.get(animation);
-        if (get == null) return false;
-        return animate(filter, get, modifier, removeTask);
+        return parent.animation(animation)
+                .map(get -> animate(filter, get, modifier, removeTask))
+                .orElse(false);
     }
 
     public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
@@ -200,9 +203,9 @@ public final class RenderPipeline {
     }
 
     public boolean replace(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull String animation, @NotNull AnimationModifier modifier) {
-        var get = animationMap.get(animation);
-        if (get == null) return false;
-        return replace(filter, target, get, modifier);
+        return parent.animation(animation)
+                .map(get -> replace(filter, target, get, modifier))
+                .orElse(false);
     }
 
     public boolean replace(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier) {

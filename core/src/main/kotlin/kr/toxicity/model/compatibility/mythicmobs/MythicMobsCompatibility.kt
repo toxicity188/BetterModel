@@ -22,11 +22,12 @@ class MythicMobsCompatibility : Compatibility {
         ScriptManagerImpl.addBuilder("mm") { name ->
             AnimationScript.of script@ { source ->
                 if (!CONFIG.module().model) return@script
-                if (source !is RenderSource.Entity) return@script
+                val render = source.source()
+                if (render !is RenderSource.Entity) return@script
                 if (!MythicBukkit.inst().apiHelper.castSkill(
-                    source.entity(),
+                        render.entity(),
                     name,
-                    MythicBukkit.inst().apiHelper.getMythicMobInstance(source.entity())?.power ?: 1F
+                    MythicBukkit.inst().apiHelper.getMythicMobInstance(render.entity())?.power ?: 1F
                 )) warn("Unknown MythicMobs skill name: $name")
             }
         }

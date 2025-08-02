@@ -1,7 +1,6 @@
 package kr.toxicity.model.api.script;
 
 import kr.toxicity.model.api.animation.Timed;
-import kr.toxicity.model.api.data.renderer.RenderSource;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -19,8 +18,8 @@ public record TimeScript(float time, @NotNull AnimationScript script) implements
     }
 
     @Override
-    public void accept(@NotNull RenderSource<?> renderSource) {
-        script.accept(renderSource);
+    public void accept(@NotNull ScriptSource trigger) {
+        script.accept(trigger);
     }
 
     public @NotNull TimeScript time(float time) {
