@@ -46,7 +46,7 @@ import java.util.stream.Stream;
  */
 public abstract class Tracker implements AutoCloseable {
 
-    private static final ScheduledExecutorService EXECUTOR = Executors.newScheduledThreadPool(256, new ThreadFactory() {
+    private static final ScheduledExecutorService EXECUTOR = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() * 2, new ThreadFactory() {
 
         private final AtomicInteger integer = new AtomicInteger();
 
