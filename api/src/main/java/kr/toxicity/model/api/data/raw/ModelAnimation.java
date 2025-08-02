@@ -1,12 +1,25 @@
 package kr.toxicity.model.api.data.raw;
 
+import com.google.common.util.concurrent.AtomicDouble;
+import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationIterator;
+import kr.toxicity.model.api.animation.AnimationMovement;
+import kr.toxicity.model.api.bone.BoneName;
+import kr.toxicity.model.api.bone.BoneTagRegistry;
+import kr.toxicity.model.api.data.blueprint.AnimationGenerator;
+import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
+import kr.toxicity.model.api.data.blueprint.BlueprintAnimator;
+import kr.toxicity.model.api.data.blueprint.BlueprintChildren;
+import kr.toxicity.model.api.script.AnimationScript;
+import kr.toxicity.model.api.script.BlueprintScript;
+import kr.toxicity.model.api.script.TimeScript;
+import kr.toxicity.model.api.util.InterpolationUtil;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * Raw animation of a model.
@@ -26,6 +39,78 @@ public record ModelAnimation(
         float length,
         @Nullable Map<String, ModelAnimator> animators
 ) {
+    /**
+     * Converts raw animation to blueprint animation
+     * @param children children
+     * @param placeholder placeholder
+     * @return converted animation
+     */
+    public @NotNull BlueprintAnimation toBlueprint(@NotNull List<BlueprintChildren> children, @NotNull ModelPlaceholder placeholder) {
+        var map = new HashMap<BoneName, BlueprintAnimator.AnimatorData>();
+        var blueprintScript = BlueprintScript.fromEmpty(this);
+        var animator = animators();
+        for (Map.Entry<String, ModelAnimator> entry : animator.entrySet()) {
+            var name = entry.getValue().name();
+            if (name == null) continue;
+            if (entry.getKey().equals("effects")) {
+                blueprintScript = toScript(entry.getValue());
+            }
+            else {
+                var builder = new BlueprintAnimator.Builder(length());
+                entry.getValue().keyframes()
+                        .stream()
+                        .sorted(Comparator.naturalOrder())
+                        .forEach(keyframe -> builder.addFrame(keyframe, placeholder));
+                map.put(BoneTagRegistry.parse(name), builder.build(name));
+            }
+        }
+        var animators = AnimationGenerator.createMovements(length(), children, map);
+        return new BlueprintAnimation(
+                name(),
+                loop(),
+                length(),
+                override(),
+                animators,
+                blueprintScript,
+                animators.isEmpty() ? List.of(AnimationMovement.EMPTY, new AnimationMovement(length())) : animators.values()
+                        .iterator()
+                        .next()
+                        .keyFrame()
+                        .stream()
+                        .map(a -> new AnimationMovement(a.time()))
+                        .toList()
+        );
+    }
+
+    private @NotNull BlueprintScript toScript(@NotNull ModelAnimator animator) {
+        var stream = animator.keyframes()
+                .stream()
+                .map(d -> AnimationScript.of(d.dataPoints()
+                        .stream()
+                        .map(Datapoint::script)
+                        .filter(Objects::nonNull)
+                        .map(raw -> BetterModel.plugin().scriptManager().build(raw))
+                        .filter(Objects::nonNull)
+                        .toList()
+                ).time(d.time()));
+        if (animator.keyframes().getFirst().time() > 0) {
+            stream = Stream.concat(Stream.of(TimeScript.EMPTY), stream);
+        }
+        var time = length();
+        if (time > 0) {
+            stream = Stream.concat(stream, Stream.of(AnimationScript.EMPTY.time(time)));
+        }
+        var doubleCache = new AtomicDouble();
+        return new BlueprintScript(
+                name(),
+                loop(),
+                length(),
+                stream.distinct()
+                        .map(t -> t.time(InterpolationUtil.roundTime(t.time() - (float) doubleCache.getAndSet(t.time()))))
+                        .toList()
+        );
+    }
+    
     @Override
     public @NotNull AnimationIterator.Type loop() {
         return loop != null ? loop : AnimationIterator.Type.PLAY_ONCE;

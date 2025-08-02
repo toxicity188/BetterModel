@@ -4,17 +4,11 @@ import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.animation.AnimationMovement;
 import kr.toxicity.model.api.bone.BoneName;
-import kr.toxicity.model.api.bone.BoneTagRegistry;
-import kr.toxicity.model.api.data.raw.ModelAnimation;
-import kr.toxicity.model.api.data.raw.ModelAnimator;
-import kr.toxicity.model.api.data.raw.ModelPlaceholder;
 import kr.toxicity.model.api.script.BlueprintScript;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -37,47 +31,6 @@ public record BlueprintAnimation(
         @Nullable BlueprintScript script,
         @NotNull List<AnimationMovement> emptyAnimator
 ) {
-    /**
-     * Converts from raw animation.
-     * @param animation raw animation
-     * @return converted animation
-     */
-    public static @NotNull BlueprintAnimation from(@NotNull List<BlueprintChildren> children, @NotNull ModelPlaceholder placeholder, @NotNull ModelAnimation animation) {
-        var map = new HashMap<BoneName, BlueprintAnimator.AnimatorData>();
-        var blueprintScript = BlueprintScript.fromEmpty(animation);
-        var animator = animation.animators();
-        for (Map.Entry<String, ModelAnimator> entry : animator.entrySet()) {
-            var name = entry.getValue().name();
-            if (name == null) continue;
-            if (entry.getKey().equals("effects")) {
-                blueprintScript = BlueprintScript.from(animation, entry.getValue());
-            }
-            else {
-                var builder = new BlueprintAnimator.Builder(animation.length());
-                entry.getValue().keyframes()
-                        .stream()
-                        .sorted(Comparator.naturalOrder())
-                        .forEach(keyframe -> builder.addFrame(keyframe, placeholder));
-                map.put(BoneTagRegistry.parse(name), builder.build(name));
-            }
-        }
-        var animators = AnimationGenerator.createMovements(animation.length(), children, map);
-        return new BlueprintAnimation(
-                animation.name(),
-                animation.loop(),
-                animation.length(),
-                animation.override(),
-                animators,
-                blueprintScript,
-                animators.isEmpty() ? List.of(AnimationMovement.EMPTY, new AnimationMovement(animation.length())) : animators.values()
-                        .iterator()
-                        .next()
-                        .keyFrame()
-                        .stream()
-                        .map(a -> new AnimationMovement(a.time()))
-                        .toList()
-        );
-    }
 
     public @Nullable BlueprintScript script(@NotNull AnimationModifier modifier) {
         return modifier.override(override) ? null : script;

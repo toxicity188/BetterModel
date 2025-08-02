@@ -9,17 +9,12 @@ import kr.toxicity.model.api.data.raw.ModelData
 import java.io.File
 
 fun File.toModel(): ModelBlueprint = bufferedReader().use {
-    ModelBlueprint.from(nameWithoutExtension.toPackName(), ModelData.GSON.fromJson(it, ModelData::class.java))
+    ModelData.GSON.fromJson(it, ModelData::class.java).toBlueprint(nameWithoutExtension.toPackName())
 }
 fun File.toTexturedModel(): ModelBlueprint? = bufferedReader().use {
     ModelData.GSON.fromJson(it, ModelData::class.java)
         .takeIf(ModelData::isSupported)
-        ?.let { data ->
-            ModelBlueprint.from(
-                nameWithoutExtension.toPackName(),
-                data
-            )
-        }
+        ?.toBlueprint(nameWithoutExtension.toPackName())
 }
 
 fun JsonElement.toByteArray(): ByteArray {

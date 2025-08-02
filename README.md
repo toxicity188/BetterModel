@@ -103,6 +103,7 @@ This plugin supports **player model with using user's custom skin without textur
 - [stable player display](https://github.com/bradleyq/stable_player_display): player animation
 - [expiringmap](https://github.com/jhalterman/expiringmap): concurrent map cache
 - [DynamicUV](https://github.com/toxicity188/DynamicUV): player model-uv
+- [molang-compiler](https://github.com/Ocelot5836/molang-compiler): compiling and evaluating molang expression
 
 #### Build
 ./gradlew build

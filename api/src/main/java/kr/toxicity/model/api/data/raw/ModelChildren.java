@@ -5,12 +5,20 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import com.google.gson.annotations.SerializedName;
+import kr.toxicity.model.api.bone.BoneTagRegistry;
+import kr.toxicity.model.api.data.blueprint.BlueprintChildren;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.lang.reflect.Type;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import static kr.toxicity.model.api.util.CollectionUtil.filterIsInstance;
+import static kr.toxicity.model.api.util.CollectionUtil.mapToList;
 
 /**
  * A raw children of the model.
@@ -40,6 +48,28 @@ public sealed interface ModelChildren {
             else if (element.isJsonObject()) return context.deserialize(element, ModelGroup.class);
             else throw new RuntimeException();
         }
+    }
+
+    /**
+     * Converts children to blueprint children
+     * @param elementMap element map
+     * @return children
+     */
+    default @NotNull BlueprintChildren toBlueprint(@NotNull @Unmodifiable Map<String, ModelElement> elementMap) {
+        return switch (this) {
+            case ModelChildren.ModelGroup modelGroup -> {
+                var child = mapToList(modelGroup.children(), c -> c.toBlueprint(elementMap));
+                var filtered = filterIsInstance(child, BlueprintChildren.BlueprintElement.class).toList();
+                yield new BlueprintChildren.BlueprintGroup(
+                        BoneTagRegistry.parse(modelGroup.name()),
+                        modelGroup.origin(),
+                        modelGroup.rotation().invertXZ(),
+                        child,
+                        filtered.isEmpty() ? modelGroup.visibility() : filtered.stream().anyMatch(element -> element.element().visibility())
+                );
+            }
+            case ModelChildren.ModelUUID modelUUID -> new BlueprintChildren.BlueprintElement(Objects.requireNonNull(elementMap.get(modelUUID.uuid())));
+        };
     }
 
     /**
