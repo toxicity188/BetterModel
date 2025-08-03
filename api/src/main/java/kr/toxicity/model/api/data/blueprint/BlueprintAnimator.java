@@ -75,17 +75,17 @@ public record BlueprintAnimator(
                 var function = dataPoint.toFunction(placeholder);
                 switch (keyframe.channel()) {
                     case POSITION -> transform.add(new VectorPoint(
-                            function.map(vec -> MathUtil.transformToDisplay(vec.div(MathUtil.MODEL_TO_BLOCK_MULTIPLIER))),
+                            function.map(vec -> MathUtil.transformToDisplay(vec.div(MathUtil.MODEL_TO_BLOCK_MULTIPLIER))).memoize(),
                             time,
                             interpolation
                     ));
                     case ROTATION -> rotation.add(new VectorPoint(
-                            function.map(MathUtil::animationToDisplay),
+                            function.map(MathUtil::animationToDisplay).memoize(),
                             time,
                             interpolation
                     ));
                     case SCALE -> scale.add(new VectorPoint(
-                            function.map(vec -> vec.sub(1, 1, 1)),
+                            function.map(vec -> vec.sub(1, 1, 1)).memoize(),
                             time,
                             interpolation
                     ));

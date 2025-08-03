@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.util.function;
 
+import it.unimi.dsi.fastutil.floats.Float2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -19,5 +20,11 @@ public interface FloatFunction<T> {
         } else {
             return f -> mapper.apply(applyAsFloat(f));
         }
+    }
+
+    default @NotNull FloatFunction<T> memoize() {
+        if (this instanceof FloatConstantFunction<T>) return this;
+        var map = new Float2ObjectOpenHashMap<T>();
+        return f -> map.computeIfAbsent(f, this::applyAsFloat);
     }
 }
