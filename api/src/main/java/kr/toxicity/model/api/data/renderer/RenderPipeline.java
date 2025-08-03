@@ -73,11 +73,11 @@ public final class RenderPipeline {
         scriptProcessor = new AnimationStateHandler<>(
                 TimeScript.EMPTY,
                 (a, s, t) -> s == AnimationStateHandler.MappingState.PROGRESS ? a.time(t) : AnimationScript.EMPTY.time(t),
-                s -> {
-                    if (s == null) return;
-                    if (s.isSync()) {
-                        BetterModel.plugin().scheduler().task(source.location(), () -> s.accept(scriptSource));
-                    } else s.accept(scriptSource);
+                (b, a) -> {
+                    if (b == null) return;
+                    if (b.isSync()) {
+                        BetterModel.plugin().scheduler().task(source.location(), () -> b.accept(scriptSource));
+                    } else b.accept(scriptSource);
                 }
         );
     }

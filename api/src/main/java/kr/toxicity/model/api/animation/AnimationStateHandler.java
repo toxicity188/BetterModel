@@ -13,8 +13,8 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.SequencedMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
-import java.util.function.Consumer;
 
 @RequiredArgsConstructor
 @ApiStatus.Internal
@@ -22,7 +22,7 @@ public final class AnimationStateHandler<T extends Timed> {
     
     private final T initialValue;
     private final AnimationMapper<T> mapper;
-    private final Consumer<T> setConsumer;
+    private final BiConsumer<T, T> setConsumer;
 
     private final SequencedMap<String, TreeIterator> animators = new LinkedHashMap<>();
     private final Collection<TreeIterator> reversedView = animators.sequencedValues().reversed();
@@ -32,7 +32,7 @@ public final class AnimationStateHandler<T extends Timed> {
     private int delay;
     private volatile TreeIterator currentIterator = null;
     @Getter
-    private volatile T keyframe = null;
+    private volatile T beforeKeyframe = null, afterKeyframe = null;
 
     public boolean keyframeFinished() {
         return delay <= 0;
@@ -54,7 +54,7 @@ public final class AnimationStateHandler<T extends Timed> {
     }
 
     private boolean shouldUpdateAnimation() {
-        return forceUpdateAnimation.compareAndSet(true, false) || (keyframe != null && keyframeFinished()) || delay % Tracker.MINECRAFT_TICK_MULTIPLIER == 0;
+        return forceUpdateAnimation.compareAndSet(true, false) || (afterKeyframe != null && keyframeFinished()) || delay % Tracker.MINECRAFT_TICK_MULTIPLIER == 0;
     }
 
     private boolean updateAnimation() {
@@ -83,7 +83,7 @@ public final class AnimationStateHandler<T extends Timed> {
                 }
             }
         }
-        return setKeyframe(null);
+        return setAfterKeyframe(null);
     }
 
     private boolean updateKeyframe(@NotNull Iterator<TreeIterator> iterator, @NotNull TreeIterator next) {
@@ -92,14 +92,17 @@ public final class AnimationStateHandler<T extends Timed> {
             iterator.remove();
             return false;
         } else {
-            return setKeyframe(next.next());
+            return setAfterKeyframe(next.next());
         }
     }
 
 
-    private boolean setKeyframe(@Nullable T next) {
-        if (keyframe == next) return false;
-        setConsumer.accept(keyframe = next);
+    private boolean setAfterKeyframe(@Nullable T next) {
+        if (afterKeyframe == next) return false;
+        setConsumer.accept(
+                beforeKeyframe = afterKeyframe,
+                afterKeyframe = next
+        );
         delay = Math.round(frame());
         return true;
     }
@@ -131,7 +134,7 @@ public final class AnimationStateHandler<T extends Timed> {
     }
 
     public float frame() {
-        return keyframe != null ? 20 * Tracker.MINECRAFT_TICK_MULTIPLIER * (keyframe.time() + MathUtil.FRAME_EPSILON) : 0F;
+        return afterKeyframe != null ? 20 * Tracker.MINECRAFT_TICK_MULTIPLIER * (afterKeyframe.time() + MathUtil.FRAME_EPSILON) : 0F;
     }
     
     @FunctionalInterface
@@ -162,7 +165,7 @@ public final class AnimationStateHandler<T extends Timed> {
             this.modifier = modifier;
             this.removeTask = removeTask;
 
-            previous = keyframe != null ? keyframe : initialValue;
+            previous = afterKeyframe != null ? afterKeyframe : initialValue;
         }
 
         @Override

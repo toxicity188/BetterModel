@@ -64,7 +64,7 @@ public final class RenderedBone {
     private final AnimationStateHandler<AnimationMovement> state = new AnimationStateHandler<>(
             AnimationMovement.EMPTY,
             (a, s, t) -> a.time(t),
-            t -> relativeOffsetCache = null
+            (b, a) -> relativeOffsetCache = null
     );
     private final Int2ObjectMap<ItemStack> tintCacheMap = new Int2ObjectOpenHashMap<>();
     @Getter
@@ -420,7 +420,7 @@ public final class RenderedBone {
     }
 
     private @NotNull BoneMovement defaultFrame() {
-        var keyframe = state.getKeyframe();
+        var keyframe = state.getAfterKeyframe();
         return defaultFrame.plus(keyframe != null ? keyframe : AnimationMovement.EMPTY);
     }
 
