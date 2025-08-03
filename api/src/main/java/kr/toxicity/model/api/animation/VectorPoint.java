@@ -8,7 +8,7 @@ import org.joml.Vector3f;
 public record VectorPoint(@NotNull FloatFunction<Vector3f> vector, float time, @NotNull VectorInterpolation interpolation) implements Timed {
 
     public static final VectorPoint EMPTY = new VectorPoint(
-            f -> new Vector3f(),
+            FloatFunction.of(new Vector3f()),
             0F,
             VectorInterpolation.defaultInterpolation()
     );

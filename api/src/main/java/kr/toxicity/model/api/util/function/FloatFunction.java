@@ -14,8 +14,8 @@ public interface FloatFunction<T> {
     }
 
     default <R> @NotNull FloatFunction<R> map(@NotNull Function<T, R> mapper) {
-        if (this instanceof FloatConstantFunction<T>(T t)) {
-            return new FloatConstantFunction<>(mapper.apply(t));
+        if (this instanceof FloatConstantFunction<T>(T value)) {
+            return of(mapper.apply(value));
         } else {
             return f -> mapper.apply(applyAsFloat(f));
         }
