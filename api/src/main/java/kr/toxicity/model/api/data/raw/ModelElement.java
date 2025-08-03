@@ -23,12 +23,12 @@ public record ModelElement(
         @NotNull String name,
         @Nullable Type type,
         @NotNull String uuid,
-        @NotNull Float3 from,
-        @NotNull Float3 to,
+        @Nullable Float3 from,
+        @Nullable Float3 to,
         float inflate,
         @Nullable Float3 rotation,
         @NotNull Float3 origin,
-        @NotNull ModelFace faces,
+        @Nullable ModelFace faces,
         @SerializedName("visibility") @Nullable Boolean _visibility
 ) {
     /**
@@ -36,7 +36,17 @@ public record ModelElement(
      * @return cube length
      */
     public float max() {
-        return to.minus(from).toVector().length();
+        return to().minus(from()).toVector().length();
+    }
+
+    @Override
+    public @NotNull Float3 from() {
+        return from != null ? from : Float3.ZERO;
+    }
+
+    @Override
+    public @NotNull Float3 to() {
+        return to != null ? to : Float3.ZERO;
     }
 
     public boolean visibility() {
@@ -59,7 +69,7 @@ public record ModelElement(
      * @return model has texture
      */
     public boolean hasTexture() {
-        return faces.hasTexture();
+        return faces != null && faces.hasTexture();
     }
 
     /**

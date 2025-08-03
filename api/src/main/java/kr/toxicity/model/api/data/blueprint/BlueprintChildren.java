@@ -231,7 +231,7 @@ public sealed interface BlueprintChildren {
                             .plus(Float3.CENTER)
                             .plus(inflate)
                             .toJson())
-                    .jsonObject("faces", element.faces().toJson(parent, tint))
+                    .jsonObject("faces", Objects.requireNonNull(element.faces()).toJson(parent, tint))
                     .jsonObject("rotation", Optional.of(element.rotation().minus(identifier))
                             .filter(r -> !Float3.ZERO.equals(r))
                             .map(rot -> {
