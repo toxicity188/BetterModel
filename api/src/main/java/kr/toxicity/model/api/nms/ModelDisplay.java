@@ -12,7 +12,7 @@ import org.joml.Vector3f;
 /**
  * An item-display packet adapter
  */
-public interface ModelDisplay {
+public interface ModelDisplay extends Identifiable {
 
     /**
      * Checks this display is invisible

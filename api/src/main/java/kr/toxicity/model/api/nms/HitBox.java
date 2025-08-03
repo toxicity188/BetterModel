@@ -18,7 +18,7 @@ import java.util.Optional;
  * Gets hit-box
  * @see org.bukkit.entity.LivingEntity
  */
-public interface HitBox {
+public interface HitBox extends Identifiable {
 
     /**
      * Triggers interact with this hitbox

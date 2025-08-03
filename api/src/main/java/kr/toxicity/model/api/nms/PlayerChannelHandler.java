@@ -6,23 +6,15 @@ import kr.toxicity.model.api.tracker.EntityTrackerRegistry;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.UUID;
-
 /**
  * A player channel
  */
-public interface PlayerChannelHandler extends AutoCloseable {
+public interface PlayerChannelHandler extends AutoCloseable, Identifiable {
     /**
      * Gets Bukkit player
      * @return player
      */
     @NotNull Player player();
-
-    /**
-     * Gets player's uuid
-     * @return uuid
-     */
-    @NotNull UUID uuid();
 
     /**
      * Gets player game profile

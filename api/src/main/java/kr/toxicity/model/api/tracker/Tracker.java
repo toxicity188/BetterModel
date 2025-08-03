@@ -1,6 +1,5 @@
 package kr.toxicity.model.api.tracker;
 
-import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.bone.BoneName;
@@ -98,7 +97,6 @@ public abstract class Tracker implements AutoCloseable {
         this.pipeline = pipeline;
         this.modifier = modifier;
         bundlerSet = new BundlerSet();
-        var config = BetterModel.config();
         updater = () -> {
             var isMinecraftTickTime = frame % MINECRAFT_TICK_MULTIPLIER == 0;
             if (isMinecraftTickTime) {
@@ -113,7 +111,7 @@ public abstract class Tracker implements AutoCloseable {
             if (readyForForceUpdate.compareAndSet(true, false)) t.pipeline.iterateTree(b -> b.forceUpdate(s.dataBundler));
         });
         tick((t, s) -> pipeline.rotate(
-                t.isRunningSingleAnimation() && config.lockOnPlayAnimation() ? t.pipeline.getRotation() : t.rotation(),
+                t.rotation(),
                 s.tickBundler
         ));
         pipeline.spawnPacketHandler(p -> start());

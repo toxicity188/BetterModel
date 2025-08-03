@@ -47,6 +47,7 @@ import org.bukkit.plugin.Plugin
 import org.bukkit.util.Vector
 import org.joml.Quaterniond
 import org.joml.Vector3f
+import java.util.UUID
 import java.util.function.Supplier
 
 internal class HitBoxImpl(
@@ -108,6 +109,8 @@ internal class HitBoxImpl(
     }
 
     override fun groupName(): BoneName = name
+    override fun id(): Int = id
+    override fun uuid(): UUID = uuid
     override fun source(): org.bukkit.entity.Entity = delegate.bukkitEntity
     override fun positionSource(): RenderedBone = bone
     override fun forceDismount(): Boolean = forceDismount

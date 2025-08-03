@@ -34,7 +34,6 @@ class BetterModelConfigImpl(yaml: ConfigurationSection) : BetterModelConfig {
         if (this <= 0.0) EntityUtil.RENDER_DISTANCE else this
     }
     private val minSight = yaml.getDouble("min-sight", 5.0)
-    private val lockOnPlayAnimation = yaml.getBoolean("lock-on-play-animation", false)
     private val namespace = yaml.getString("namespace") ?: "bettermodel"
     private val packType = yaml.getString("pack-type")?.let {
         runCatching {
@@ -65,7 +64,6 @@ class BetterModelConfigImpl(yaml: ConfigurationSection) : BetterModelConfig {
     override fun sightTrace(): Boolean = sightTrace
     override fun maxSight(): Double = maxSight
     override fun minSight(): Double = minSight
-    override fun lockOnPlayAnimation(): Boolean = lockOnPlayAnimation
     override fun namespace(): String = namespace
     override fun packType(): BetterModelConfig.PackType = packType
     override fun buildFolderLocation(): String = buildFolderLocation

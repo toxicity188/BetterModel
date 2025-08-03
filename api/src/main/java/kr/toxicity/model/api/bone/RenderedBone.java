@@ -325,7 +325,7 @@ public final class RenderedBone {
             }
             setup(d, boneMovement);
             if (!nowVisible && (afterVisible || beforeVisible)) {
-                sendTransformation(d, toInterpolationDuration(frame()), bundler);
+                sendTransformation(d, interpolationDuration(), bundler);
             }
             beforeVisible = afterVisible;
             return true;
@@ -347,6 +347,14 @@ public final class RenderedBone {
         if (d != null) d.sendEntityData(showItem, bundler);
     }
 
+    public int interpolationDuration() {
+        return toInterpolationDuration(frame());
+    }
+
+    public float progress() {
+        return 1F - state.progress();
+    }
+
     private static int toInterpolationDuration(float delay) {
         return delay <= 0 ? 0 : Math.max(Math.round(delay / (float) Tracker.MINECRAFT_TICK_MULTIPLIER), 1);
     }
@@ -360,7 +368,7 @@ public final class RenderedBone {
     }
 
     public @NotNull Vector3f worldPosition(@NotNull Vector3f localOffset, @NotNull Vector3f globalOffset) {
-        var progress = 1F - state.progress();
+        var progress = progress();
         var after = afterTransform != null ? afterTransform : relativeOffset();
         var before = beforeTransform != null ? beforeTransform : BoneMovement.EMPTY;
         return MathUtil.fma(
@@ -381,7 +389,7 @@ public final class RenderedBone {
     }
 
     public @NotNull Vector3f worldRotation() {
-        var progress = 1F - state.progress();
+        var progress = progress();
         var after = afterTransform != null ? afterTransform : relativeOffset();
         var before = beforeTransform != null ? beforeTransform : BoneMovement.EMPTY;
         return InterpolationUtil.lerp(before.rawRotation(), after.rawRotation(), progress);
@@ -427,7 +435,7 @@ public final class RenderedBone {
     private @NotNull BoneMovement relativeOffset() {
         if (relativeOffsetCache != null) return relativeOffsetCache;
         var def = defaultFrame();
-        var preventModifierUpdate = toInterpolationDuration(frame()) < 1;
+        var preventModifierUpdate = interpolationDuration() < 1;
         if (parent != null) {
             var p = parent.relativeOffset();
             return relativeOffsetCache = new BoneMovement(

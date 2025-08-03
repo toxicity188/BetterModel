@@ -61,12 +61,6 @@ public interface BetterModelConfig {
     double minSight();
 
     /**
-     * Locks rotating model when plays animation by play once
-     * @return lock
-     */
-    boolean lockOnPlayAnimation();
-
-    /**
      * Gets namespace of resource pack
      * @return namespace
      */

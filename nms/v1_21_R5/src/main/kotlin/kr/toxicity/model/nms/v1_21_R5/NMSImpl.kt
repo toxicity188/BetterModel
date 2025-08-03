@@ -156,6 +156,7 @@ class NMSImpl : NMS {
         }
 
         override fun isSlim(): Boolean = slim
+        override fun id(): Int = connection.player.id
         override fun uuid(): UUID = uuid
         override fun close() {
             val channel = getConnection(connection).channel
@@ -351,7 +352,9 @@ class NMSImpl : NMS {
         private val entityDataLock = SingleLock()
         private val forceGlow = AtomicBoolean()
         private val forceInvisibility = AtomicBoolean()
-        
+
+        override fun id(): Int = display.id
+        override fun uuid(): UUID = display.uuid
         override fun rotate(rotation: ModelRotation, bundler: PacketBundler) {
             if (!display.valid) return
             display.xRot = rotation.x
