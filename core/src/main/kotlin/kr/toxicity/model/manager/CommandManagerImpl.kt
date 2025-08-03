@@ -4,6 +4,8 @@ import dev.jorel.commandapi.CommandAPI
 import dev.jorel.commandapi.CommandAPIBukkitConfig
 import dev.jorel.commandapi.arguments.ArgumentSuggestions
 import dev.jorel.commandapi.arguments.DoubleArgument
+import dev.jorel.commandapi.arguments.LocationArgument
+import dev.jorel.commandapi.arguments.PlayerArgument
 import dev.jorel.commandapi.arguments.StringArgument
 import dev.jorel.commandapi.executors.CommandExecutionInfo
 import dev.jorel.commandapi.executors.PlayerCommandExecutor
@@ -21,9 +23,11 @@ import kr.toxicity.model.util.*
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.HoverEvent
 import net.kyori.adventure.text.format.NamedTextColor
+import org.bukkit.Location
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
+import org.bukkit.util.Vector
 import java.util.concurrent.CompletableFuture
 import kotlin.math.pow
 
@@ -197,6 +201,45 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                         loopType,
                         1.0F
                     ))) player.audience().warn("Unable to find this animation($a) or model($n).")
+                })
+            }
+            command("test") {
+                withShortDescription("Tests some model's animation to specific player")
+                withAliases("t")
+                withArguments(
+                    StringArgument("model")
+                        .replaceSuggestions(ArgumentSuggestions.strings {
+                            ModelManagerImpl.keys().toTypedArray()
+                        }),
+                    StringArgument("animation")
+                        .replaceSuggestions { sender, builder ->
+                            ModelManagerImpl.renderer(sender.previousArgs["model"] as String)?.animations()?.forEach(builder::suggest)
+                            CompletableFuture.supplyAsync {
+                                builder.build()
+                            }
+                        }
+                )
+                withOptionalArguments(
+                    PlayerArgument("player"),
+                    LocationArgument("location")
+                )
+                executes(CommandExecutionInfo info@ {
+                    val audience = it.sender().audience()
+                    val model = (it.args()["model"] as String).run {
+                        ModelManagerImpl.renderer(this) ?: return@info audience.warn("Unable to find this model: $this")
+                    }
+                    val animation = (it.args()["animation"] as String).run {
+                        model.animation(this).orElse(null) ?: return@info audience.warn("Unable to find this animation: $this")
+                    }
+                    val player = it.args()["player"] as? Player ?: it.sender() as? Player ?: return@info audience.warn("Unable to find target player.")
+                    val location = it.args()["location"] as? Location ?: player.location.apply {
+                        add(Vector(0, 0, 10).rotateAroundY(-Math.toRadians(player.yaw.toDouble())))
+                        yaw += 180
+                    }
+                    model.create(location).run {
+                        animate({ true }, animation, AnimationModifier.DEFAULT_WITH_PLAY_ONCE, ::close)
+                        spawn(player)
+                    }
                 })
             }
         }.build().register(PLUGIN)
