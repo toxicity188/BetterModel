@@ -1,6 +1,5 @@
 package kr.toxicity.model.api.data.raw;
 
-import com.google.common.util.concurrent.AtomicDouble;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationMovement;
@@ -13,13 +12,11 @@ import kr.toxicity.model.api.data.blueprint.BlueprintChildren;
 import kr.toxicity.model.api.script.AnimationScript;
 import kr.toxicity.model.api.script.BlueprintScript;
 import kr.toxicity.model.api.script.TimeScript;
-import kr.toxicity.model.api.util.InterpolationUtil;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.stream.Stream;
 
 /**
  * Raw animation of a model.
@@ -83,7 +80,7 @@ public record ModelAnimation(
     }
 
     private @NotNull BlueprintScript toScript(@NotNull ModelAnimator animator) {
-        var stream = animator.keyframes()
+        var get = animator.keyframes()
                 .stream()
                 .map(d -> AnimationScript.of(d.dataPoints()
                         .stream()
@@ -92,22 +89,22 @@ public record ModelAnimation(
                         .map(raw -> BetterModel.plugin().scriptManager().build(raw))
                         .filter(Objects::nonNull)
                         .toList()
-                ).time(d.time()));
-        if (animator.keyframes().getFirst().time() > 0) {
-            stream = Stream.concat(Stream.of(TimeScript.EMPTY), stream);
+                ).time(d.time()))
+                .toList();
+        var before = animator.keyframes().getFirst().time();
+        var list = new ArrayList<TimeScript>(get.size() + 2);
+        list.add(AnimationScript.EMPTY.time(before));
+        for (TimeScript timeScript : get) {
+            var t = timeScript.time();
+            list.add(timeScript.time(t - before));
+            before = t;
         }
-        var time = length();
-        if (time > 0) {
-            stream = Stream.concat(stream, Stream.of(AnimationScript.EMPTY.time(time)));
-        }
-        var doubleCache = new AtomicDouble();
+        list.add(AnimationScript.EMPTY.time(length() - before));
         return new BlueprintScript(
                 name(),
                 loop(),
                 length(),
-                stream.distinct()
-                        .map(t -> t.time(InterpolationUtil.roundTime(t.time() - (float) doubleCache.getAndSet(t.time()))))
-                        .toList()
+                list
         );
     }
     

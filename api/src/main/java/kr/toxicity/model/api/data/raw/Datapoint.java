@@ -44,6 +44,7 @@ public record Datapoint(
         if (primitive == null) return 0;
         if (primitive.isNumber()) return primitive.getAsFloat();
         var string = primitive.getAsString().trim();
+        if (string.isEmpty()) return 0;
         if (NUMBER_PATTERN.matcher(string).find()) return Float.parseFloat(string);
         return BetterModel.plugin().evaluator().evaluate(placeholder.parseVariable(string), time);
     }

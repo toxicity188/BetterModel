@@ -380,13 +380,11 @@ public final class RenderedBone {
                 .rotateY(-rotation.radianY());
     }
 
-    public @NotNull Quaternionf worldRotation() {
+    public @NotNull Vector3f worldRotation() {
         var progress = 1F - state.progress();
         var after = afterTransform != null ? afterTransform : relativeOffset();
         var before = beforeTransform != null ? beforeTransform : BoneMovement.EMPTY;
-        return MathUtil.toQuaternion(InterpolationUtil.lerp(before.rawRotation(), after.rawRotation(), progress))
-                .rotateLocalX(-rotation.radianX())
-                .rotateLocalY(-rotation.radianY());
+        return InterpolationUtil.lerp(before.rawRotation(), after.rawRotation(), progress);
     }
 
     private static void sendTransformation(@NotNull ModelDisplay display, int duration, @NotNull PacketBundler bundler) {
@@ -623,7 +621,9 @@ public final class RenderedBone {
 
     @NotNull
     public Quaternionf hitBoxViewRotation() {
-        return worldRotation();
+        return MathUtil.toQuaternion(worldRotation())
+                .rotateLocalX(-rotation.radianX())
+                .rotateLocalY(-rotation.radianY());
     }
 
     public float hitBoxScale() {

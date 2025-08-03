@@ -2,6 +2,7 @@ package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonDeserializer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -10,11 +11,11 @@ import java.util.Map;
 import static kr.toxicity.model.api.util.CollectionUtil.associate;
 
 public record ModelPlaceholder(
-        @NotNull Map<String, String> variables
+        @NotNull @Unmodifiable Map<String, String> variables
 ) {
     public static final ModelPlaceholder EMPTY = new ModelPlaceholder(Collections.emptyMap());
     public static final JsonDeserializer<ModelPlaceholder> PARSER = (json, typeOfT, context) -> new ModelPlaceholder(associate(
-            Arrays.stream(json.getAsString().split("\n"))
+            Arrays.stream(json.getAsString().trim().split("\n"))
                     .map(entry -> entry.split("=", 2))
                     .filter(array -> array.length == 2),
             array -> array[0],
