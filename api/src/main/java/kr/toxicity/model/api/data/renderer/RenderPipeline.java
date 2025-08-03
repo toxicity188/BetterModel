@@ -1,7 +1,10 @@
 package kr.toxicity.model.api.data.renderer;
 
 import kr.toxicity.model.api.BetterModel;
-import kr.toxicity.model.api.animation.*;
+import kr.toxicity.model.api.animation.AnimationModifier;
+import kr.toxicity.model.api.animation.AnimationPredicate;
+import kr.toxicity.model.api.animation.AnimationStateHandler;
+import kr.toxicity.model.api.animation.RunningAnimation;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;

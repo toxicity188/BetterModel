@@ -3,6 +3,7 @@ package kr.toxicity.model
 import gg.moonflower.molangcompiler.api.MolangCompiler
 import gg.moonflower.molangcompiler.api.MolangRuntime
 import kr.toxicity.model.api.BetterModelEvaluator
+import kr.toxicity.model.api.util.function.Float2FloatFunction
 
 class BetterModelEvaluatorImpl : BetterModelEvaluator {
 
@@ -13,7 +14,10 @@ class BetterModelEvaluatorImpl : BetterModelEvaluator {
         .setQuery("anim_time", this)
         .create()
 
-    override fun evaluate(expression: String, time: Float): Float {
-        return time.query().safeResolve(molang.compile(expression))
+    override fun compile(expression: String): Float2FloatFunction {
+        val compiled = molang.compile(expression)
+        return Float2FloatFunction {
+            it.query().safeResolve(compiled)
+        }
     }
 }

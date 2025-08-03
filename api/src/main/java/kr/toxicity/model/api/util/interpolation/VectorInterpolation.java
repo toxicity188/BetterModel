@@ -3,6 +3,7 @@ package kr.toxicity.model.api.util.interpolation;
 import kr.toxicity.model.api.animation.VectorPoint;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Vector3f;
 
 import java.util.List;
 
@@ -16,9 +17,9 @@ public interface VectorInterpolation {
      * @param points points
      * @param p2Index p2 index
      * @param time destination time
-     * @return vector point
+     * @return interpolated vector
      */
-    @NotNull VectorPoint interpolate(@NotNull List<VectorPoint> points, int p2Index, float time);
+    @NotNull Vector3f interpolate(@NotNull List<VectorPoint> points, int p2Index, float time);
 
     /**
      * Gets default interpolator

@@ -21,23 +21,19 @@ public final class BezierInterpolation implements VectorInterpolation {
 
     @NotNull
     @Override
-    public VectorPoint interpolate(@NotNull List<VectorPoint> points, int p2Index, float time) {
+    public Vector3f interpolate(@NotNull List<VectorPoint> points, int p2Index, float time) {
         var p1 = p2Index > 0 ? points.get(p2Index - 1) : VectorPoint.EMPTY;
         var p2 = points.get(p2Index);
-        return new VectorPoint(
-                InterpolationUtil.bezier(
-                        time,
-                        p1.time(),
-                        p2.time(),
-                        p1.vector(),
-                        p2.vector(),
-                        bezierLeftTime,
-                        bezierLeftValue,
-                        bezierRightTime,
-                        bezierRightValue
-                ),
+        return InterpolationUtil.bezier(
                 time,
-                this
+                p1.time(),
+                p2.time(),
+                p1.vector(time),
+                p2.vector(time),
+                bezierLeftTime,
+                bezierLeftValue,
+                bezierRightTime,
+                bezierRightValue
         );
     }
 }

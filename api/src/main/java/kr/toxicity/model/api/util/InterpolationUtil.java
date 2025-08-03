@@ -1,6 +1,7 @@
 package kr.toxicity.model.api.util;
 
-import it.unimi.dsi.fastutil.floats.*;
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
+import it.unimi.dsi.fastutil.floats.FloatSortedSet;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationMovement;
 import kr.toxicity.model.api.animation.VectorPoint;
@@ -13,8 +14,8 @@ import org.joml.Vector3f;
 
 import java.util.List;
 
-import static kr.toxicity.model.api.util.MathUtil.*;
 import static kr.toxicity.model.api.util.FunctionUtil.takeIf;
+import static kr.toxicity.model.api.util.MathUtil.*;
 
 /**
  * Interpolation util
@@ -46,9 +47,9 @@ public final class InterpolationUtil {
             var f = iterator.nextFloat();
             array[i++] = new AnimationMovement(
                     roundTime(f - before),
-                    takeIf(pp.build(f).vector(), MathUtil::isNotZero),
-                    takeIf(sp.build(f).vector(), MathUtil::isNotZero),
-                    takeIf(rp.build(f).vector(), MathUtil::isNotZero)
+                    takeIf(pp.build(f), MathUtil::isNotZero),
+                    takeIf(sp.build(f), MathUtil::isNotZero),
+                    takeIf(rp.build(f), MathUtil::isNotZero)
             );
             before = f;
         }
@@ -57,7 +58,7 @@ public final class InterpolationUtil {
 
     public static @NotNull VectorPointBuilder interpolatorFor(@NotNull List<VectorPoint> vectors) {
         var last = vectors.isEmpty() ? VectorPoint.EMPTY : vectors.getLast();
-        if (vectors.size() < 2) return last::time;
+        if (vectors.size() < 2) return last::vector;
         else return new VectorPointBuilder() {
             private VectorPoint p1 = VectorPoint.EMPTY;
             private VectorPoint p2 = vectors.getFirst();
@@ -65,13 +66,13 @@ public final class InterpolationUtil {
             private float t = p2.time();
 
             @Override
-            public @NotNull VectorPoint build(float nextFloat) {
+            public @NotNull Vector3f build(float nextFloat) {
                 while (i < vectors.size() - 1 && t < nextFloat) {
                     p1 = p2;
                     t = (p2 = vectors.get(++i)).time();
                 }
-                if (nextFloat > last.time()) return last.time(nextFloat);
-                else return nextFloat == t ? p2 : p1.interpolation().interpolate(vectors, i, nextFloat);
+                if (nextFloat > last.time()) return last.vector(nextFloat);
+                else return nextFloat == t ? p2.vector(nextFloat) : p1.interpolation().interpolate(vectors, i, nextFloat);
             }
         };
     }
@@ -206,6 +207,6 @@ public final class InterpolationUtil {
 
     @FunctionalInterface
     public interface VectorPointBuilder {
-        @NotNull VectorPoint build(float nextFloat);
+        @NotNull Vector3f build(float nextFloat);
     }
 }

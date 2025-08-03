@@ -1,7 +1,11 @@
 package kr.toxicity.model.api.data.raw;
 
-import com.google.gson.*;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonPrimitive;
 import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.util.function.Float2FloatConstantFunction;
+import kr.toxicity.model.api.util.function.Float2FloatFunction;
+import kr.toxicity.model.api.util.function.FloatFunction;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,24 +44,35 @@ public record Datapoint(
         );
     };
 
-    private static float parse(@Nullable JsonPrimitive primitive, float time, @NotNull ModelPlaceholder placeholder) {
-        if (primitive == null) return 0;
-        if (primitive.isNumber()) return primitive.getAsFloat();
+    private static @NotNull Float2FloatFunction build(@Nullable JsonPrimitive primitive, @NotNull ModelPlaceholder placeholder) {
+        if (primitive == null) return Float2FloatFunction.ZERO;
+        if (primitive.isNumber()) return Float2FloatFunction.of(primitive.getAsFloat());
         var string = primitive.getAsString().trim();
-        if (string.isEmpty()) return 0;
-        if (NUMBER_PATTERN.matcher(string).find()) return Float.parseFloat(string);
-        return BetterModel.plugin().evaluator().evaluate(placeholder.parseVariable(string), time);
+        if (string.isEmpty()) return Float2FloatFunction.ZERO;
+        if (NUMBER_PATTERN.matcher(string).find()) return Float2FloatFunction.of(Float.parseFloat(string));
+        return BetterModel.plugin().evaluator().compile(placeholder.parseVariable(string));
     }
 
     /**
-     * Converts to vector.
-     * @return vector
+     * Creates vector function
+     * @param placeholder placeholder
+     * @return vector function
      */
-    public @NotNull Vector3f toVector(float time, @NotNull ModelPlaceholder placeholder) {
-        return new Vector3f(
-                parse(x, time, placeholder),
-                parse(y, time, placeholder),
-                parse(z, time, placeholder)
-        );
+    public @NotNull FloatFunction<Vector3f> toFunction(@NotNull ModelPlaceholder placeholder) {
+        var xb = build(x, placeholder);
+        var yb = build(y, placeholder);
+        var zb = build(z, placeholder);
+        if (xb instanceof Float2FloatConstantFunction(float value)
+                && yb instanceof Float2FloatConstantFunction(float value1)
+                && zb instanceof Float2FloatConstantFunction(float value2)
+        ) {
+            return FloatFunction.of(new Vector3f(value, value1, value2));
+        } else {
+            return f -> new Vector3f(
+                    xb.applyAsFloat(f),
+                    yb.applyAsFloat(f),
+                    zb.applyAsFloat(f)
+            );
+        }
     }
 }

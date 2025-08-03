@@ -1,6 +1,7 @@
 package kr.toxicity.model.api.data.raw;
 
-import com.google.gson.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonDeserializer;
 import kr.toxicity.model.api.util.MathUtil;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;

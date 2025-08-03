@@ -72,20 +72,20 @@ public record BlueprintAnimator(
             if (time > length) return this;
             var interpolation = keyframe.findInterpolation();
             for (Datapoint dataPoint : keyframe.dataPoints()) {
-                var vec = dataPoint.toVector(time, placeholder);
+                var function = dataPoint.toFunction(placeholder);
                 switch (keyframe.channel()) {
                     case POSITION -> transform.add(new VectorPoint(
-                            MathUtil.transformToDisplay(vec.div(MathUtil.MODEL_TO_BLOCK_MULTIPLIER)),
+                            function.map(vec -> MathUtil.transformToDisplay(vec.div(MathUtil.MODEL_TO_BLOCK_MULTIPLIER))),
                             time,
                             interpolation
                     ));
                     case ROTATION -> rotation.add(new VectorPoint(
-                            MathUtil.animationToDisplay(vec),
+                            function.map(MathUtil::animationToDisplay),
                             time,
                             interpolation
                     ));
                     case SCALE -> scale.add(new VectorPoint(
-                            vec.sub(1, 1, 1),
+                            function.map(vec -> vec.sub(1, 1, 1)),
                             time,
                             interpolation
                     ));

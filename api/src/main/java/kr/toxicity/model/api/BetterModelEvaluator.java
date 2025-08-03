@@ -1,5 +1,6 @@
 package kr.toxicity.model.api;
 
+import kr.toxicity.model.api.util.function.Float2FloatFunction;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -7,10 +8,9 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface BetterModelEvaluator {
     /**
-     * Evaluates molang expression
+     * Compiles molang expression
      * @param expression expression
-     * @param time frame time
-     * @return evaluated point
+     * @return compiled function
      */
-    float evaluate(@NotNull String expression, float time);
+    @NotNull Float2FloatFunction compile(@NotNull String expression);
 }

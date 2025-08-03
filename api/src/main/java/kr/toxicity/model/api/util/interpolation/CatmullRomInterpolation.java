@@ -4,6 +4,7 @@ import kr.toxicity.model.api.animation.VectorPoint;
 import kr.toxicity.model.api.util.InterpolationUtil;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Vector3f;
 
 import java.util.List;
 
@@ -26,22 +27,17 @@ public enum CatmullRomInterpolation implements VectorInterpolation {
     
     @NotNull
     @Override
-    public VectorPoint interpolate(@NotNull List<VectorPoint> points, int p2Index, float time) {
+    public Vector3f interpolate(@NotNull List<VectorPoint> points, int p2Index, float time) {
         var p0 = indexOf(points, p2Index, -2);
         var p1 = indexOf(points, p2Index, -1);
         var p2 = points.get(p2Index);
         var p3 = indexOf(points, p2Index, 1);
-        //var p3 = next.time() == 0 ? indexOf(points, p2Index, 2) : next;
-        return new VectorPoint(
-                InterpolationUtil.catmull_rom(
-                        p0.vector(),
-                        p1.vector(),
-                        p2.vector(),
-                        p3.vector(),
-                        InterpolationUtil.alpha(p1.time(), p2.time(), time)
-                ),
-                time
-                ,this
+        return InterpolationUtil.catmull_rom(
+                p0.vector(time),
+                p1.vector(time),
+                p2.vector(time),
+                p3.vector(time),
+                InterpolationUtil.alpha(p1.time(), p2.time(), time)
         );
     }
 }
