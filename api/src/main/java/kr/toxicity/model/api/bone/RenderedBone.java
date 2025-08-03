@@ -356,7 +356,7 @@ public final class RenderedBone {
     }
 
     private static int toInterpolationDuration(float delay) {
-        return delay <= 0 ? 0 : Math.max(Math.round(delay / (float) Tracker.MINECRAFT_TICK_MULTIPLIER), 1);
+        return delay < 0.1 + MathUtil.FRAME_EPSILON ? 0 : Math.max(Math.round(delay / (float) Tracker.MINECRAFT_TICK_MULTIPLIER), 1);
     }
 
     public @NotNull Vector3f worldPosition() {

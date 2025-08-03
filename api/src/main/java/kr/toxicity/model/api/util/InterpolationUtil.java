@@ -72,7 +72,7 @@ public final class InterpolationUtil {
                     t = (p2 = vectors.get(++i)).time();
                 }
                 if (nextFloat > last.time()) return last.vector(nextFloat);
-                else return nextFloat == t ? p2.vector(nextFloat) : p1.interpolation().interpolate(vectors, i, nextFloat);
+                else return nextFloat == t ? p2.vector() : p1.interpolation().interpolate(vectors, i, nextFloat);
             }
         };
     }

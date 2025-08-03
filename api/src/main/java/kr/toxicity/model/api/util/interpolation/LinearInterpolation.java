@@ -24,7 +24,7 @@ public enum LinearInterpolation implements VectorInterpolation {
         var p1 = p2Index > 0 ? points.get(p2Index - 1) : VectorPoint.EMPTY;
         var p2 = points.get(p2Index);
         return InterpolationUtil.lerp(
-                p1.vector(time),
+                p1.vector(),
                 p2.vector(time),
                 InterpolationUtil.alpha(p1.time(), p2.time(), time)
         );

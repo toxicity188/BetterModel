@@ -134,8 +134,8 @@ public final class AnimationGenerator {
                 if (i == target.size()) return EMPTY;
                 var first = target.get(i - 1);
                 var second = target.get(i);
-                return second.time() == time ? second.vector(time) : InterpolationUtil.lerp(
-                        first.vector(time),
+                return second.time() == time ? second.vector() : InterpolationUtil.lerp(
+                        first.vector(),
                         second.vector(time),
                         InterpolationUtil.alpha(first.time(), second.time(), time)
                 );

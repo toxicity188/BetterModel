@@ -33,10 +33,10 @@ public enum CatmullRomInterpolation implements VectorInterpolation {
         var p2 = points.get(p2Index);
         var p3 = indexOf(points, p2Index, 1);
         return InterpolationUtil.catmull_rom(
-                p0.vector(time),
-                p1.vector(time),
+                p0.vector(),
+                p1.vector(),
                 p2.vector(time),
-                p3.vector(time),
+                p3.vector(),
                 InterpolationUtil.alpha(p1.time(), p2.time(), time)
         );
     }

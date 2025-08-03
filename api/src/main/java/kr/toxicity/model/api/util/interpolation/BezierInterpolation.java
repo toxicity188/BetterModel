@@ -28,7 +28,7 @@ public final class BezierInterpolation implements VectorInterpolation {
                 time,
                 p1.time(),
                 p2.time(),
-                p1.vector(time),
+                p1.vector(),
                 p2.vector(time),
                 bezierLeftTime,
                 bezierLeftValue,

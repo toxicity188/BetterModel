@@ -5,7 +5,7 @@ import kr.toxicity.model.api.util.interpolation.VectorInterpolation;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
-public record VectorPoint(@NotNull FloatFunction<Vector3f> vector, float time, @NotNull VectorInterpolation interpolation) implements Timed {
+public record VectorPoint(@NotNull FloatFunction<Vector3f> _vector, float time, @NotNull VectorInterpolation interpolation) implements Timed {
 
     public static final VectorPoint EMPTY = new VectorPoint(
             FloatFunction.of(new Vector3f()),
@@ -14,11 +14,14 @@ public record VectorPoint(@NotNull FloatFunction<Vector3f> vector, float time, @
     );
 
     public @NotNull Vector3f vector(float f) {
-        return vector.applyAsFloat(f);
+        return _vector.applyAsFloat(f);
+    }
+    public @NotNull Vector3f vector() {
+        return vector(time);
     }
 
     public @NotNull VectorPoint time(float newTime) {
-        return new VectorPoint(vector, newTime, interpolation);
+        return new VectorPoint(_vector, newTime, interpolation);
     }
 
     @Override
