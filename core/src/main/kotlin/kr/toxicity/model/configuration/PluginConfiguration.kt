@@ -23,11 +23,8 @@ enum class PluginConfiguration(
             if (!newYaml.contains(it)) yaml.set(it, null)
         }
         newYaml.getKeys(true).forEach {
-            if (!yaml.contains(it)) {
-                yaml.set(it, newYaml.get(it))
-                yaml.setComments(it ,newYaml.getComments(it))
-                yaml.setInlineComments(it, newYaml.getComments(it))
-            }
+            if (!yaml.contains(it)) yaml.set(it, newYaml.get(it))
+            yaml.setComments(it ,newYaml.getComments(it))
         }
         return yaml.apply {
             save(file)
