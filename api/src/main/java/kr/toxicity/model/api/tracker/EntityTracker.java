@@ -6,6 +6,8 @@ import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.bone.BoneTags;
 import kr.toxicity.model.api.data.renderer.RenderPipeline;
 import kr.toxicity.model.api.event.CreateEntityTrackerEvent;
+import kr.toxicity.model.api.event.DismountModelEvent;
+import kr.toxicity.model.api.event.MountModelEvent;
 import kr.toxicity.model.api.nms.HitBoxListener;
 import kr.toxicity.model.api.util.EventUtil;
 import kr.toxicity.model.api.util.FunctionUtil;
@@ -163,8 +165,14 @@ public class EntityTracker extends Tracker {
     public boolean createHitBox(@NotNull BonePredicate predicate, @Nullable HitBoxListener listener) {
         var builder = listener != null ? listener.toBuilder() : HitBoxListener.builder();
         return createHitBox(registry.adapter(), predicate, builder
-                .mount((h, e) -> registry.mountedHitBoxCache.put(e.getUniqueId(), new EntityTrackerRegistry.MountedHitBox(e, h)))
-                .dismount((h, e) -> registry.mountedHitBoxCache.remove(e.getUniqueId()))
+                .mount((h, e) -> {
+                    registry.mountedHitBoxCache.put(e.getUniqueId(), new EntityTrackerRegistry.MountedHitBox(e, h));
+                    EventUtil.call(new MountModelEvent(this, h, e));
+                })
+                .dismount((h, e) -> {
+                    registry.mountedHitBoxCache.remove(e.getUniqueId());
+                    EventUtil.call(new DismountModelEvent(this, h, e));
+                })
                 .build());
     }
 
