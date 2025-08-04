@@ -42,7 +42,6 @@ import java.util.stream.Stream;
 public final class RenderedBone {
 
     private static final Vector3f EMPTY_VECTOR = new Vector3f();
-    private static final Consumer<PacketBundler> EMPTY_TICKER = b -> {};
     private static final ItemStack AIR = new ItemStack(Material.AIR);
 
     @Getter
@@ -88,8 +87,6 @@ public final class RenderedBone {
 
     //Animation
     private boolean firstTick = true;
-    private boolean beforeVisible = true;
-    private Consumer<PacketBundler> nextTicker = EMPTY_TICKER;
     private volatile BoneMovement beforeTransform, afterTransform, relativeOffsetCache;
     private volatile ModelRotation rotation = ModelRotation.EMPTY;
 
@@ -307,35 +304,19 @@ public final class RenderedBone {
     }
 
     public boolean tick(@NotNull PacketBundler bundler) {
-        nextTicker.accept(bundler);
         if (state.tick() || firstTick) {
             beforeTransform = afterTransform;
             var boneMovement = afterTransform = relativeOffset();
             var d = display;
             firstTick = false;
             if (d == null) return true;
-            var afterVisible = isVisible();
-            var nowVisible = afterVisible && !beforeVisible;
-            if (nowVisible) {
-                sendTransformation(d, 0, bundler);
-                nextTicker = b -> {
-                    nextTicker = EMPTY_TICKER;
-                    sendTransformation(d, toInterpolationDuration(frame() - 1), b);
-                };
-            }
             setup(d, boneMovement);
-            if (!nowVisible && (afterVisible || beforeVisible)) {
-                sendTransformation(d, interpolationDuration(), bundler);
-            }
-            beforeVisible = afterVisible;
+            sendTransformation(d, interpolationDuration(), bundler);
             return true;
         }
         return false;
     }
 
-    public boolean isVisible() {
-        return afterTransform != null && afterTransform.isVisible();
-    }
 
     public void forceUpdate(@NotNull PacketBundler bundler) {
         var d = display;

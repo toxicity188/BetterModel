@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record FloatConstantFunction<T>(@NotNull T value) implements FloatFunction<T> {
     @Override
-    public @NotNull T applyAsFloat(float value) {
+    public @NotNull T apply(float value) {
         return this.value;
     }
 }

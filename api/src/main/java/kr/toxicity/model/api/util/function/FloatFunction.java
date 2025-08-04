@@ -8,7 +8,7 @@ import java.util.function.Function;
 
 @FunctionalInterface
 public interface FloatFunction<T> {
-    @NotNull T applyAsFloat(float value);
+    @NotNull T apply(float value);
 
     static <T> @NotNull FloatConstantFunction<T> of(@NotNull T t) {
         return new FloatConstantFunction<>(Objects.requireNonNull(t));
@@ -18,13 +18,13 @@ public interface FloatFunction<T> {
         if (this instanceof FloatConstantFunction<T>(T value)) {
             return of(mapper.apply(value));
         } else {
-            return f -> mapper.apply(applyAsFloat(f));
+            return f -> mapper.apply(apply(f));
         }
     }
 
     default @NotNull FloatFunction<T> memoize() {
         if (this instanceof FloatConstantFunction<T>) return this;
         var map = new Float2ObjectOpenHashMap<T>();
-        return f -> map.computeIfAbsent(f, this::applyAsFloat);
+        return f -> map.computeIfAbsent(f, this::apply);
     }
 }

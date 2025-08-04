@@ -14,7 +14,7 @@ public record VectorPoint(@NotNull FloatFunction<Vector3f> _vector, float time, 
     );
 
     public @NotNull Vector3f vector(float f) {
-        return _vector.applyAsFloat(f);
+        return _vector.apply(f);
     }
     public @NotNull Vector3f vector() {
         return vector(time);

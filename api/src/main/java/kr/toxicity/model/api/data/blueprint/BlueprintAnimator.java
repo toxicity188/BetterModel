@@ -65,11 +65,11 @@ public record BlueprintAnimator(
         /**
          * Adds raw model frame.
          * @param keyframe raw frame
-         * @return self
+         * @param placeholder placeholder
          */
-        public @NotNull Builder addFrame(@NotNull ModelKeyframe keyframe, @NotNull ModelPlaceholder placeholder) {
+        public void addFrame(@NotNull ModelKeyframe keyframe, @NotNull ModelPlaceholder placeholder) {
             var time = keyframe.time();
-            if (time > length) return this;
+            if (time > length) return;
             var interpolation = keyframe.findInterpolation();
             for (Datapoint dataPoint : keyframe.dataPoints()) {
                 var function = dataPoint.toFunction(placeholder);
@@ -91,7 +91,6 @@ public record BlueprintAnimator(
                     ));
                 }
             }
-            return this;
         }
 
         /**
