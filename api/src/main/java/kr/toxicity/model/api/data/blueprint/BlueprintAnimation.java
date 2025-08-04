@@ -33,7 +33,7 @@ public record BlueprintAnimation(
 ) {
 
     public @Nullable BlueprintScript script(@NotNull AnimationModifier modifier) {
-        return modifier.override(override) ? null : script;
+        return modifier.override(override) || modifier.player() != null ? null : script;
     }
 
     /**

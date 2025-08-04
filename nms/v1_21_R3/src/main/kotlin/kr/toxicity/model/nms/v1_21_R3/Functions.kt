@@ -72,7 +72,7 @@ private val DATA_ITEMS by lazy(LazyThreadSafetyMode.NONE) {
     }
 }
 
-internal inline fun SynchedEntityData.pack(
+internal fun SynchedEntityData.pack(
     clean: Boolean = false,
     itemFilter: (DataItem<*>) -> Boolean = { true },
     valueFilter: (DataValue<*>) -> Boolean = { true },

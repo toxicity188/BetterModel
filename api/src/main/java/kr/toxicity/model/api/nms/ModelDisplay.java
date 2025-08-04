@@ -100,6 +100,12 @@ public interface ModelDisplay extends Identifiable {
     void transform(@NotNull Vector3f position, @NotNull Vector3f scale, @NotNull Quaternionf rotation);
 
     /**
+     * Sends dirty transformation
+     * @param bundler packet bundler
+     */
+    void sendDirtyTransformation(@NotNull PacketBundler bundler);
+
+    /**
      * Sends transformation
      * @param bundler packet bundler
      */
@@ -109,7 +115,7 @@ public interface ModelDisplay extends Identifiable {
      * Sends entity data
      * @param bundler packet bundler
      */
-    void sendEntityData(@NotNull PacketBundler bundler);
+    void sendDirtyEntityData(@NotNull PacketBundler bundler);
 
     /**
      * Sends entity data

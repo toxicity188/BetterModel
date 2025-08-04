@@ -78,7 +78,7 @@ public class EntityTracker extends Tracker {
             tick(((t, s) -> {
                 shadow.shadowRadius(scale.getAsFloat() * baseScale);
                 shadow.sync(adapter);
-                shadow.sendEntityData(s.getTickBundler());
+                shadow.sendDirtyEntityData(s.getTickBundler());
                 shadow.syncPosition(adapter, s.getTickBundler());
             }));
             pipeline.spawnPacketHandler(shadow::spawn);

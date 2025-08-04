@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.tracker;
 
+import kr.toxicity.model.api.animation.AnimationEventHandler;
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.bone.BoneName;
@@ -10,10 +11,7 @@ import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.data.renderer.ModelRenderer;
 import kr.toxicity.model.api.data.renderer.RenderPipeline;
 import kr.toxicity.model.api.event.*;
-import kr.toxicity.model.api.nms.EntityAdapter;
-import kr.toxicity.model.api.nms.HitBoxListener;
-import kr.toxicity.model.api.nms.ModelDisplay;
-import kr.toxicity.model.api.nms.PacketBundler;
+import kr.toxicity.model.api.nms.*;
 import kr.toxicity.model.api.util.EntityUtil;
 import kr.toxicity.model.api.util.EventUtil;
 import kr.toxicity.model.api.util.LogUtil;
@@ -28,9 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -85,7 +81,7 @@ public abstract class Tracker implements AutoCloseable {
     private BiConsumer<Tracker, CloseReason> closeEventHandler = (t, r) -> EventUtil.call(new CloseTrackerEvent(t, r));
 
     private ScheduledPacketHandler handler = (t, s) -> {
-        if (!tickPause.get()) t.pipeline.tick(s.viewBundler);
+        if (!tickPause.get()) t.pipeline.tick(s.getViewBundler());
     };
 
     /**
@@ -403,7 +399,19 @@ public abstract class Tracker implements AutoCloseable {
      * @return success
      */
     public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
-        return pipeline.animate(filter, animation, modifier, removeTask);
+        return animate(filter, animation, modifier, AnimationEventHandler.start().onAnimationRemove(removeTask));
+    }
+
+    /**
+     * Players this animation by once
+     * @param filter bone predicate
+     * @param animation animation's name
+     * @param modifier modifier
+     * @param eventHandler event handler
+     * @return success
+     */
+    public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, @NotNull AnimationModifier modifier, @NotNull AnimationEventHandler eventHandler) {
+        return pipeline.animate(filter, animation, modifier, injectEvent(eventHandler));
     }
 
     /**
@@ -415,7 +423,19 @@ public abstract class Tracker implements AutoCloseable {
      * @return success
      */
     public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
-        return pipeline.animate(filter, animation, modifier, removeTask);
+        return animate(filter, animation, modifier, AnimationEventHandler.start().onAnimationRemove(removeTask));
+    }
+
+    /**
+     * Players this animation by once
+     * @param filter bone predicate
+     * @param animation animation
+     * @param modifier modifier
+     * @param eventHandler event handler
+     * @return success
+     */
+    public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier, @NotNull AnimationEventHandler eventHandler) {
+        return pipeline.animate(filter, animation, modifier, injectEvent(eventHandler));
     }
 
     /**
@@ -434,7 +454,18 @@ public abstract class Tracker implements AutoCloseable {
      * @return success
      */
     public boolean stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String animation) {
-        return pipeline.stopAnimation(filter, animation);
+        return stopAnimation(filter, animation, null);
+    }
+
+    /**
+     * Stops some animation
+     * @param filter bone predicate
+     * @param animation animation's name
+     * @param player player
+     * @return success
+     */
+    public boolean stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, @Nullable Player player) {
+        return pipeline.stopAnimation(filter, animation, player);
     }
 
     /**
@@ -694,14 +725,32 @@ public abstract class Tracker implements AutoCloseable {
         }
     }
 
+    private @NotNull AnimationEventHandler injectEvent(@NotNull AnimationEventHandler eventHandler) {
+        return eventHandler
+                .onStateCreated(uuid -> {
+                    var get = pipeline.channel(uuid);
+                    if (get != null) bundlerSet.perPlayerViewBundler
+                            .computeIfAbsent(uuid, u -> new PerPlayerCache(get))
+                            .add();
+                })
+                .onStateRemoved(uuid -> {
+                    var get = bundlerSet.perPlayerViewBundler.get(uuid);
+                    if (get != null) get.remove();
+                });
+    }
+
     /**
      * Bundler set
      */
-    @Getter
     public class BundlerSet {
+        @Getter
         private PacketBundler tickBundler = pipeline.createBundler();
+        @Getter
         private PacketBundler dataBundler = pipeline.createLazyBundler();
+        @Getter
         private PacketBundler viewBundler = pipeline.createParallelBundler();
+
+        private final Map<UUID, PerPlayerCache> perPlayerViewBundler = new ConcurrentHashMap<>();
 
         /**
          * Private initializer
@@ -710,6 +759,15 @@ public abstract class Tracker implements AutoCloseable {
         }
 
         private void send() {
+            globalSend();
+            perPlayerSend();
+        }
+
+        private void perPlayerSend() {
+            perPlayerViewBundler.values().forEach(PerPlayerCache::send);
+        }
+
+        private void globalSend() {
             if (tickBundler.isNotEmpty()) {
                 pipeline.allPlayer().forEach(tickBundler::send);
                 tickBundler = pipeline.createBundler();
@@ -719,8 +777,38 @@ public abstract class Tracker implements AutoCloseable {
                 dataBundler = pipeline.createLazyBundler();
             }
             if (viewBundler.isNotEmpty()) {
-                pipeline.viewedPlayer().forEach(viewBundler::send);
+                pipeline.viewedPlayer().filter(p -> !perPlayerViewBundler.containsKey(p.getUniqueId())).forEach(viewBundler::send);
                 viewBundler = pipeline.createParallelBundler();
+            }
+        }
+    }
+
+    @RequiredArgsConstructor
+    private class PerPlayerCache {
+        private final PlayerChannelHandler handler;
+        private final AtomicInteger counter = new AtomicInteger();
+        private PacketBundler bundler = pipeline.createParallelBundler();
+
+        public void add() {
+            if (counter.getAndIncrement() == 0) {
+                EventUtil.call(new PlayerPerAnimationStartEvent(Tracker.this, handler.player()));
+            }
+        }
+
+        public void remove() {
+            if (counter.decrementAndGet() == 0) {
+                bundlerSet.perPlayerViewBundler.remove(handler.uuid());
+                var bundler = pipeline.createBundler();
+                pipeline.iterateTree(bone -> bone.forceTransformation(bundler));
+                bundler.send(handler.player());
+                EventUtil.call(new PlayerPerAnimationEndEvent(Tracker.this, handler.player()));
+            }
+        }
+
+        private void send() {
+            if (pipeline.tick(handler.uuid(), bundler) && bundler.isNotEmpty()) {
+                bundler.send(handler.player());
+                bundler = pipeline.createParallelBundler();
             }
         }
     }

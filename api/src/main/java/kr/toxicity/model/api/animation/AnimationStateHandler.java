@@ -44,7 +44,15 @@ public final class AnimationStateHandler<T extends Timed> {
     }
 
     public boolean tick() {
+        return tick(() -> {});
+    }
+
+    public boolean tick(@NotNull Runnable ifEmpty) {
         delay--;
+        if (animators.isEmpty()) {
+            ifEmpty.run();
+            return false;
+        }
         return shouldUpdateAnimation() && updateAnimation();
     }
 
@@ -83,12 +91,12 @@ public final class AnimationStateHandler<T extends Timed> {
                 }
             }
         }
-        return setAfterKeyframe(null);
+        return setAfterKeyframe(null) && !animators.isEmpty();
     }
 
     private boolean updateKeyframe(@NotNull Iterator<TreeIterator> iterator, @NotNull TreeIterator next) {
         if (!next.hasNext()) {
-            next.run();
+            next.eventHandler.animationRemove();
             iterator.remove();
             return false;
         } else {
@@ -107,9 +115,9 @@ public final class AnimationStateHandler<T extends Timed> {
         return true;
     }
 
-    public void addAnimation(@NotNull String name, @NotNull AnimationIterator<T> iterator, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
+    public void addAnimation(@NotNull String name, @NotNull AnimationIterator<T> iterator, @NotNull AnimationModifier modifier, @NotNull AnimationEventHandler eventHandler) {
         synchronized (animators) {
-            animators.putLast(name, new TreeIterator(name, iterator, modifier, removeTask));
+            animators.putLast(name, new TreeIterator(name, iterator, modifier, eventHandler));
         }
         forceUpdateAnimation.set(true);
     }
@@ -117,8 +125,8 @@ public final class AnimationStateHandler<T extends Timed> {
     public void replaceAnimation(@NotNull String name, @NotNull AnimationIterator<T> iterator, @NotNull AnimationModifier modifier) {
         synchronized (animators) {
             var v = animators.get(name);
-            if (v != null) animators.replace(name, new TreeIterator(name, iterator, v.modifier, v.removeTask));
-            else animators.replace(name, new TreeIterator(name, iterator, modifier, () -> {}));
+            if (v != null) animators.replace(name, new TreeIterator(name, iterator, v.modifier, v.eventHandler));
+            else animators.replace(name, new TreeIterator(name, iterator, modifier, AnimationEventHandler.start()));
         }
         forceUpdateAnimation.set(true);
     }
@@ -148,29 +156,24 @@ public final class AnimationStateHandler<T extends Timed> {
         END
     }
 
-    private class TreeIterator implements BooleanSupplier, Runnable {
+    private class TreeIterator implements BooleanSupplier {
         private final RunningAnimation animation;
         private final AnimationIterator<T> iterator;
         private final AnimationModifier modifier;
-        private final Runnable removeTask;
+        private final AnimationEventHandler eventHandler;
 
         private final T previous;
 
         private boolean started = false;
         private boolean ended = false;
 
-        public TreeIterator(String name, AnimationIterator<T> iterator, AnimationModifier modifier, Runnable removeTask) {
+        public TreeIterator(String name, AnimationIterator<T> iterator, AnimationModifier modifier, AnimationEventHandler eventHandler) {
             animation = new RunningAnimation(name, iterator.type());
             this.iterator = iterator;
             this.modifier = modifier;
-            this.removeTask = removeTask;
+            this.eventHandler = eventHandler;
 
             previous = afterKeyframe != null ? afterKeyframe : initialValue;
-        }
-
-        @Override
-        public void run() {
-            removeTask.run();
         }
 
         @Override

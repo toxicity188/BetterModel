@@ -20,11 +20,13 @@ import kr.toxicity.model.api.util.function.BonePredicate;
 import kr.toxicity.model.api.util.function.FloatConstantSupplier;
 import kr.toxicity.model.api.util.function.FloatSupplier;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Display;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -33,6 +35,8 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.*;
 import java.util.stream.Stream;
 
@@ -60,11 +64,6 @@ public final class RenderedBone {
     @NotNull
     private final Map<BoneName, RenderedBone> children;
 
-    private final AnimationStateHandler<AnimationMovement> state = new AnimationStateHandler<>(
-            AnimationMovement.EMPTY,
-            (a, s, t) -> a.time(t),
-            (b, a) -> relativeOffsetCache = null
-    );
     private final Int2ObjectMap<ItemStack> tintCacheMap = new Int2ObjectOpenHashMap<>();
     @Getter
     private final boolean dummyBone;
@@ -86,8 +85,10 @@ public final class RenderedBone {
     private volatile TransformedItemStack itemStack;
 
     //Animation
+    private final BoneStateHandler globalState = new BoneStateHandler(null, uuid -> {});
+    private final Map<UUID, BoneStateHandler> perPlayerState = new ConcurrentHashMap<>();
     private boolean firstTick = true;
-    private volatile BoneMovement beforeTransform, afterTransform, relativeOffsetCache;
+    private volatile BoneMovement beforeTransform, afterTransform;
     private volatile ModelRotation rotation = ModelRotation.EMPTY;
 
     private Supplier<Vector3f> defaultPosition = FunctionUtil.asSupplier(EMPTY_VECTOR);
@@ -133,8 +134,24 @@ public final class RenderedBone {
         }
     }
 
+    private @NotNull BoneStateHandler state(@Nullable Player player) {
+        return state(player != null ? player.getUniqueId() : null);
+    }
+    private @NotNull BoneStateHandler state(@Nullable UUID uuid) {
+        return uuid == null ? globalState : perPlayerState.getOrDefault(uuid, globalState);
+    }
+    private @NotNull BoneStateHandler getOrCreateState(@Nullable Player player, @NotNull AnimationEventHandler eventHandler) {
+        return getOrCreateState(player != null ? player.getUniqueId() : null, eventHandler);
+    }
+    private @NotNull BoneStateHandler getOrCreateState(@Nullable UUID uuid, @NotNull AnimationEventHandler eventHandler) {
+        return uuid == null ? globalState : perPlayerState.computeIfAbsent(uuid, u -> {
+            eventHandler.stateCreated(u);
+            return new BoneStateHandler(u, eventHandler::stateRemoved);
+        });
+    }
+
     public @Nullable RunningAnimation runningAnimation() {
-        return state.runningAnimation();
+        return globalState.runningAnimation();
     }
 
     public boolean updateItem(@NotNull Predicate<RenderedBone> predicate, @NotNull RenderSource<?> source) {
@@ -303,15 +320,25 @@ public final class RenderedBone {
         return false;
     }
 
-    public boolean tick(@NotNull PacketBundler bundler) {
+    public boolean tick(@NotNull PacketBundler perPlayerBundler) {
+        return tick(globalState, perPlayerBundler);
+    }
+
+    public boolean tick(@NotNull UUID uuid, @NotNull PacketBundler perPlayerBundler) {
+        var get = perPlayerState.get(uuid);
+        return get != null && tick(get, perPlayerBundler);
+    }
+
+    private boolean tick(@NotNull BoneStateHandler state, @NotNull PacketBundler bundler) {
         if (state.tick() || firstTick) {
             beforeTransform = afterTransform;
-            var boneMovement = afterTransform = relativeOffset();
+            var boneMovement = afterTransform = state.relativeOffset();
             var d = display;
             firstTick = false;
             if (d == null) return true;
             setup(d, boneMovement);
-            sendTransformation(d, interpolationDuration(), bundler);
+            d.frame(state.interpolationDuration());
+            d.sendDirtyTransformation(bundler);
             return true;
         }
         return false;
@@ -320,7 +347,7 @@ public final class RenderedBone {
 
     public void forceUpdate(@NotNull PacketBundler bundler) {
         var d = display;
-        if (d != null) d.sendEntityData(bundler);
+        if (d != null) d.sendDirtyEntityData(bundler);
     }
 
     public void forceUpdate(boolean showItem, @NotNull PacketBundler bundler) {
@@ -328,12 +355,13 @@ public final class RenderedBone {
         if (d != null) d.sendEntityData(showItem, bundler);
     }
 
-    public int interpolationDuration() {
-        return toInterpolationDuration(frame());
+    public void forceTransformation(@NotNull PacketBundler bundler) {
+        var d = display;
+        if (d != null) d.sendTransformation(bundler);
     }
 
-    public float progress() {
-        return 1F - state.progress();
+    public int interpolationDuration() {
+        return toInterpolationDuration(globalState.frame());
     }
 
     private static int toInterpolationDuration(float delay) {
@@ -349,8 +377,8 @@ public final class RenderedBone {
     }
 
     public @NotNull Vector3f worldPosition(@NotNull Vector3f localOffset, @NotNull Vector3f globalOffset) {
-        var progress = progress();
-        var after = afterTransform != null ? afterTransform : relativeOffset();
+        var progress = globalState.progress();
+        var after = afterTransform != null ? afterTransform : globalState.relativeOffset();
         var before = beforeTransform != null ? beforeTransform : BoneMovement.EMPTY;
         return MathUtil.fma(
                         InterpolationUtil.lerp(before.transform(), after.transform(), progress)
@@ -370,15 +398,10 @@ public final class RenderedBone {
     }
 
     public @NotNull Vector3f worldRotation() {
-        var progress = progress();
-        var after = afterTransform != null ? afterTransform : relativeOffset();
+        var progress = globalState.progress();
+        var after = afterTransform != null ? afterTransform : globalState.relativeOffset();
         var before = beforeTransform != null ? beforeTransform : BoneMovement.EMPTY;
         return InterpolationUtil.lerp(before.rawRotation(), after.rawRotation(), progress);
-    }
-
-    private static void sendTransformation(@NotNull ModelDisplay display, int duration, @NotNull PacketBundler bundler) {
-        display.frame(duration);
-        display.sendTransformation(bundler);
     }
 
     private void setup(@NotNull ModelDisplay display, @NotNull BoneMovement boneMovement) {
@@ -401,44 +424,6 @@ public final class RenderedBone {
 
     public void defaultPosition(@NotNull Supplier<Vector3f> movement) {
         defaultPosition = movement;
-    }
-
-    private float frame() {
-        var frame = state.frame();
-        return frame == 0 && parent != null ? parent.frame() : frame;
-    }
-
-    private @NotNull BoneMovement defaultFrame() {
-        var keyframe = state.getAfterKeyframe();
-        return defaultFrame.plus(keyframe != null ? keyframe : AnimationMovement.EMPTY);
-    }
-
-    private @NotNull BoneMovement relativeOffset() {
-        if (relativeOffsetCache != null) return relativeOffsetCache;
-        var def = defaultFrame();
-        var preventModifierUpdate = interpolationDuration() < 1;
-        if (parent != null) {
-            var p = parent.relativeOffset();
-            return relativeOffsetCache = new BoneMovement(
-                    MathUtil.fma(
-                            def.transform().rotate(p.rotation()),
-                            p.scale(),
-                            p.transform()
-                    ).sub(parent.lastModifiedPosition)
-                            .add(modifiedPosition(preventModifierUpdate)),
-                    def.scale().mul(p.scale()),
-                    p.rotation().div(parent.lastModifiedRotation, new Quaternionf())
-                            .mul(def.rotation())
-                            .mul(modifiedRotation(preventModifierUpdate)),
-                    def.rawRotation()
-            );
-        }
-        return relativeOffsetCache = new BoneMovement(
-                def.transform().add(modifiedPosition(preventModifierUpdate)),
-                def.scale(),
-                def.rotation().mul(modifiedRotation(preventModifierUpdate)),
-                def.rawRotation()
-        );
     }
 
     private @NotNull Vector3f modifiedPosition(boolean preventModifierUpdate) {
@@ -486,13 +471,13 @@ public final class RenderedBone {
         if (display != null) display.spawn(!hide && !display.invisible(), bundler);
     }
 
-    public boolean addAnimation(@NotNull AnimationPredicate filter, @NotNull BlueprintAnimation animator, @NotNull AnimationModifier modifier, Runnable removeTask) {
+    public boolean addAnimation(@NotNull AnimationPredicate filter, @NotNull BlueprintAnimation animator, @NotNull AnimationModifier modifier, @NotNull AnimationEventHandler eventHandler) {
         if (filter.test(this)) {
             var get = animator.animator().get(getName());
             if (get == null && modifier.override(animator.override()) && !filter.isChildren()) return false;
             var type = modifier.type(animator.loop());
             var iterator = get != null ? get.iterator(type) : animator.emptyIterator(type);
-            state.addAnimation(animator.name(), iterator, modifier, removeTask);
+            getOrCreateState(modifier.player(), eventHandler).state.addAnimation(animator.name(), iterator, modifier, eventHandler);
             return true;
         }
         return false;
@@ -504,7 +489,7 @@ public final class RenderedBone {
             if (get == null && modifier.override(animator.override()) && !filter.isChildren()) return false;
             var type = modifier.type(animator.loop());
             var iterator = get != null ? get.iterator(type) : animator.emptyIterator(type);
-            state.replaceAnimation(target, iterator, modifier);
+            state(modifier.player()).state.replaceAnimation(target, iterator, modifier);
             return true;
         }
         return false;
@@ -514,9 +499,10 @@ public final class RenderedBone {
      * Stops bone's animation
      * @param filter filter
      * @param name animation's name
+     * @param player player
      */
-    public boolean stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String name) {
-        return filter.test(this) && state.stopAnimation(name);
+    public boolean stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String name, @Nullable Player player) {
+        return filter.test(this) && state(player).state.stopAnimation(name);
     }
 
     /**
@@ -622,5 +608,75 @@ public final class RenderedBone {
     @NotNull
     public ModelRotation hitBoxRotation() {
         return rotation;
+    }
+
+    @RequiredArgsConstructor
+    private final class BoneStateHandler {
+        private final @Nullable UUID uuid;
+        private final @NotNull Consumer<UUID> consumer;
+        private final AnimationStateHandler<AnimationMovement> state = new AnimationStateHandler<>(
+                AnimationMovement.EMPTY,
+                (a, s, t) -> a.time(t),
+                (b, a) -> relativeOffsetCache = null
+        );
+        private volatile BoneMovement relativeOffsetCache;
+
+        public boolean tick() {
+            return state.tick(() -> {
+                if (uuid != null) {
+                    perPlayerState.remove(uuid);
+                    consumer.accept(uuid);
+                }
+            });
+        }
+
+        public float progress() {
+            return 1F - state.progress();
+        }
+
+        private float frame() {
+            return state.frame();
+        }
+
+        private @NotNull BoneMovement defaultFrame() {
+            var keyframe = state.getAfterKeyframe();
+            return defaultFrame.plus(keyframe != null ? keyframe : AnimationMovement.EMPTY);
+        }
+
+        private @Nullable RunningAnimation runningAnimation() {
+            return state.runningAnimation();
+        }
+
+        public int interpolationDuration() {
+            return toInterpolationDuration(frame());
+        }
+
+        private @NotNull BoneMovement relativeOffset() {
+            if (relativeOffsetCache != null) return relativeOffsetCache;
+            var def = defaultFrame();
+            var preventModifierUpdate = interpolationDuration() < 1;
+            if (parent != null) {
+                var p = parent.state(uuid).relativeOffset();
+                return relativeOffsetCache = new BoneMovement(
+                        MathUtil.fma(
+                                        def.transform().rotate(p.rotation()),
+                                        p.scale(),
+                                        p.transform()
+                                ).sub(parent.lastModifiedPosition)
+                                .add(modifiedPosition(preventModifierUpdate)),
+                        def.scale().mul(p.scale()),
+                        p.rotation().div(parent.lastModifiedRotation, new Quaternionf())
+                                .mul(def.rotation())
+                                .mul(modifiedRotation(preventModifierUpdate)),
+                        def.rawRotation()
+                );
+            }
+            return relativeOffsetCache = new BoneMovement(
+                    def.transform().add(modifiedPosition(preventModifierUpdate)),
+                    def.scale(),
+                    def.rotation().mul(modifiedRotation(preventModifierUpdate)),
+                    def.rawRotation()
+            );
+        }
     }
 }

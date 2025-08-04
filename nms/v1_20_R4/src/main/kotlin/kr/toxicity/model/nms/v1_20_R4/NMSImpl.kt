@@ -499,7 +499,7 @@ class NMSImpl : NMS {
             }
         }
 
-        override fun sendTransformation(bundler: PacketBundler) {
+        override fun sendDirtyTransformation(bundler: PacketBundler) {
             entityDataLock.accessToLock {
                 entityData.pack(
                     clean = true,
@@ -511,12 +511,22 @@ class NMSImpl : NMS {
                 bundler += ClientboundSetEntityDataPacket(display.id, this)
             }
         }
+        
+        override fun sendTransformation(bundler: PacketBundler) {
+            entityDataLock.accessToLock {
+                entityData.pack(
+                    valueFilter = { interpolationDelay == it.id || transformSet.contains(it.id) },
+                )
+            }?.run {
+                bundler += ClientboundSetEntityDataPacket(display.id, this)
+            }
+        }
 
         override fun invisible(): Boolean = entityDataLock.accessToLock {
             display.isInvisible || forceInvisibility.get() || display.itemStack.`is`(Items.AIR)
         }
 
-        override fun sendEntityData(bundler: PacketBundler) {
+        override fun sendDirtyEntityData(bundler: PacketBundler) {
             entityDataLock.accessToLock {
                 entityData.pack(
                     clean = true,

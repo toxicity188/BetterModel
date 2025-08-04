@@ -8,7 +8,6 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
@@ -46,15 +45,6 @@ public final class FunctionUtil {
      */
     public static <T> @Nullable T takeIf(@NotNull T t, @NotNull Predicate<T> predicate) {
         return predicate.test(t) ? t : null;
-    }
-
-    /**
-     * Makes this function runnable only once.
-     * @param runnable target
-     * @return play once function
-     */
-    public static @NotNull Runnable playOnce(@NotNull Runnable runnable) {
-        return runnable instanceof PlayOnceRunnable playOnceRunnable ? playOnceRunnable : new PlayOnceRunnable(runnable);
     }
 
     /**
@@ -145,17 +135,6 @@ public final class FunctionUtil {
      */
     public static <T, R> @NotNull Function<T, R> throttleTick(long tick, @NotNull Function<T, R> function) {
         return function instanceof TickThrottledFunction<T, R> throttledFunction ? new TickThrottledFunction<>(tick, throttledFunction.delegate) : new TickThrottledFunction<>(tick, function);
-    }
-
-    @RequiredArgsConstructor
-    private static class PlayOnceRunnable implements Runnable {
-        private final @NotNull Runnable delegate;
-        private final AtomicBoolean played = new AtomicBoolean();
-
-        @Override
-        public void run() {
-            if (played.compareAndSet(false, true)) delegate.run();
-        }
     }
 
     private static class TickThrottledSupplier<T> implements Supplier<T> {
