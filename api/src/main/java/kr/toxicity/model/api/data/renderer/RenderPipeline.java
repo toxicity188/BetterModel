@@ -86,10 +86,6 @@ public final class RenderPipeline {
         return BetterModel.plugin().nms().createBundler(displayAmount + 1);
     }
 
-    public @Nullable PlayerChannelHandler channel(@NotNull UUID uuid) {
-        return playerMap.get(uuid);
-    }
-
     public @NotNull PacketBundler createLazyBundler() {
         return BetterModel.plugin().nms().createLazyBundler();
     }

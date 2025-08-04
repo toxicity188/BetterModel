@@ -336,9 +336,12 @@ public final class RenderedBone {
             var d = display;
             firstTick = false;
             if (d == null) return true;
-            setup(d, boneMovement);
-            d.frame(state.interpolationDuration());
-            d.sendDirtyTransformation(bundler);
+            setup(
+                    d,
+                    state.interpolationDuration(),
+                    boneMovement,
+                    bundler
+            );
             return true;
         }
         return false;
@@ -404,9 +407,10 @@ public final class RenderedBone {
         return InterpolationUtil.lerp(before.rawRotation(), after.rawRotation(), progress);
     }
 
-    private void setup(@NotNull ModelDisplay display, @NotNull BoneMovement boneMovement) {
+    private void setup(@NotNull ModelDisplay display, int duration, @NotNull BoneMovement boneMovement, @NotNull PacketBundler bundler) {
         var mul = scale.getAsFloat();
         display.transform(
+                duration,
                 MathUtil.fma(
                         itemStack.offset().rotate(boneMovement.rotation(), new Vector3f())
                                 .add(boneMovement.transform())
@@ -418,7 +422,8 @@ public final class RenderedBone {
                         .mul(itemStack.scale(), new Vector3f())
                         .mul(mul)
                         .max(EMPTY_VECTOR),
-                boneMovement.rotation()
+                boneMovement.rotation(),
+                bundler
         );
     }
 

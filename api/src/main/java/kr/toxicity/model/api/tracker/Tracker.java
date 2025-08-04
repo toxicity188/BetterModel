@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.tracker;
 
+import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationEventHandler;
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationModifier;
@@ -728,7 +729,7 @@ public abstract class Tracker implements AutoCloseable {
     private @NotNull AnimationEventHandler injectEvent(@NotNull AnimationEventHandler eventHandler) {
         return eventHandler
                 .onStateCreated(uuid -> {
-                    var get = pipeline.channel(uuid);
+                    var get = BetterModel.plugin().playerManager().player(uuid);
                     if (get != null) bundlerSet.perPlayerViewBundler
                             .computeIfAbsent(uuid, u -> new PerPlayerCache(get))
                             .add();

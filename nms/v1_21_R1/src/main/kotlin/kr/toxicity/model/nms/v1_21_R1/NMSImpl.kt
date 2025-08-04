@@ -428,12 +428,6 @@ class NMSImpl : NMS {
             }
         }
 
-        override fun frame(frame: Int) {
-            entityDataLock.accessToLock {
-                display.transformationInterpolationDuration = frame
-            }
-        }
-
         override fun moveDuration(duration: Int) {
             entityDataLock.accessToLock {
                 entityData[Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID] = duration
@@ -486,8 +480,15 @@ class NMSImpl : NMS {
             }
         }
 
-        override fun transform(position: Vector3f, scale: Vector3f, rotation: Quaternionf) {
+        override fun transform(
+            duration: Int,
+            position: Vector3f,
+            scale: Vector3f,
+            rotation: Quaternionf,
+            bundler: PacketBundler
+        ) {
             entityDataLock.accessToLock {
+                display.transformationInterpolationDuration = duration
                 display.setTransformation(
                     com.mojang.math.Transformation(
                         position,
@@ -496,11 +497,6 @@ class NMSImpl : NMS {
                         EMPTY_QUATERNION
                     )
                 )
-            }
-        }
-
-        override fun sendDirtyTransformation(bundler: PacketBundler) {
-            entityDataLock.accessToLock {
                 entityData.pack(
                     clean = true,
                     itemFilter = { interpolationDelay == it.accessor.id || it.isDirty },

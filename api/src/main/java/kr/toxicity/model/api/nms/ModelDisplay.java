@@ -40,12 +40,6 @@ public interface ModelDisplay extends Identifiable {
     void sync(@NotNull EntityAdapter entity);
 
     /**
-     * Sets transformation interpolation duration
-     * @param frame frame time
-     */
-    void frame(int frame);
-
-    /**
      * Sets pos-rot movement interpolation duration
      * @param duration duration
      */
@@ -93,17 +87,13 @@ public interface ModelDisplay extends Identifiable {
 
     /**
      * Transforms this display
+     * @param duration duration
      * @param position position
      * @param scale scale
      * @param rotation rotation
+     * @param bundler bundler
      */
-    void transform(@NotNull Vector3f position, @NotNull Vector3f scale, @NotNull Quaternionf rotation);
-
-    /**
-     * Sends dirty transformation
-     * @param bundler packet bundler
-     */
-    void sendDirtyTransformation(@NotNull PacketBundler bundler);
+    void transform(int duration, @NotNull Vector3f position, @NotNull Vector3f scale, @NotNull Quaternionf rotation, @NotNull PacketBundler bundler);
 
     /**
      * Sends transformation
