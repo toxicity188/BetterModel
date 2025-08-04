@@ -20,6 +20,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import static kr.toxicity.model.api.util.CollectionUtil.mapValue;
 
@@ -55,6 +56,10 @@ public record ModelRenderer(
                 .filter(Objects::nonNull)
                 .findFirst()
                 .orElse(null);
+    }
+
+    public @NotNull Stream<RendererGroup> flatten() {
+        return rendererGroupMap.values().stream().flatMap(RendererGroup::flatten);
     }
 
     /**

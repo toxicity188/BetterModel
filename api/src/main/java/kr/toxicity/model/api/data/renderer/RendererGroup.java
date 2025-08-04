@@ -19,6 +19,7 @@ import org.jetbrains.annotations.Unmodifiable;
 import org.joml.Vector3f;
 
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static kr.toxicity.model.api.util.CollectionUtil.mapValue;
 
@@ -83,6 +84,13 @@ public final class RendererGroup {
         } else if (name.tagged(BoneTags.SUB_SEAT)) {
             mountController = MountControllers.NONE;
         } else mountController = MountControllers.INVALID;
+    }
+
+    public @NotNull Stream<RendererGroup> flatten() {
+        return Stream.concat(
+                Stream.of(this),
+                children.values().stream().flatMap(RendererGroup::flatten)
+        );
     }
 
     /**

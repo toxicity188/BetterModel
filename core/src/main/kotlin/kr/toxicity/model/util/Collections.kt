@@ -4,8 +4,13 @@ import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.stream.Collectors
+import java.util.stream.Stream
 
 fun <K, V> MutableMap<K, V>.toImmutableView(): Map<K, V> = Collections.unmodifiableMap(this)
+
+fun <T> Stream<T>.toSet(): Set<T> = collect(Collectors.toUnmodifiableSet())
+fun <T> Stream<T>.any(predicate: (T) -> Boolean): Boolean = anyMatch(predicate)
 
 fun <T> List<T>.forEachAsync(block: (T) -> Unit) {
     if (isNotEmpty()) {

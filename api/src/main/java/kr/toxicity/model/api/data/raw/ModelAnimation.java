@@ -99,7 +99,8 @@ public record ModelAnimation(
             list.add(timeScript.time(t - before));
             before = t;
         }
-        list.add(AnimationScript.EMPTY.time(length() - before));
+        var len = length() - before;
+        if (len > 0) list.add(AnimationScript.EMPTY.time(len));
         return new BlueprintScript(
                 name(),
                 loop(),
