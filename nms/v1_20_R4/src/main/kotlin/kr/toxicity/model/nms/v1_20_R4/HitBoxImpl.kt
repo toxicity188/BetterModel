@@ -45,7 +45,7 @@ import org.bukkit.plugin.Plugin
 import org.bukkit.util.Vector
 import org.joml.Quaterniond
 import org.joml.Vector3f
-import java.util.UUID
+import java.util.*
 import java.util.function.Supplier
 
 internal class HitBoxImpl(

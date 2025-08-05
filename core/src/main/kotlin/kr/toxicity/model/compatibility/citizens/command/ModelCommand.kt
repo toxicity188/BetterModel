@@ -9,7 +9,7 @@ import net.citizensnpcs.api.command.Command
 import net.citizensnpcs.api.command.CommandContext
 import net.citizensnpcs.api.command.CommandMessages
 import net.citizensnpcs.api.npc.NPC
-import org.bukkit.command.CommandException
+import net.citizensnpcs.api.util.Messaging
 import org.bukkit.command.CommandSender
 
 class ModelCommand {
@@ -24,7 +24,7 @@ class ModelCommand {
     )
     @Suppress("UNUSED")
     fun model(args: CommandContext, sender: CommandSender, npc: NPC?, @Arg(1, completionsProvider = TabComplete::class) model: String?) {
-        if (npc == null) throw CommandException(CommandMessages.MUST_HAVE_SELECTED)
+        if (npc == null) return Messaging.sendTr(sender, CommandMessages.MUST_HAVE_SELECTED)
         npc.getOrAddTrait(ModelTrait::class.java).renderer = model?.let {
             ModelManagerImpl.renderer(it)
         }

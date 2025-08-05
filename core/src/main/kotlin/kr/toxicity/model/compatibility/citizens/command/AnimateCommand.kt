@@ -10,8 +10,8 @@ import net.citizensnpcs.api.command.Command
 import net.citizensnpcs.api.command.CommandContext
 import net.citizensnpcs.api.command.CommandMessages
 import net.citizensnpcs.api.npc.NPC
+import net.citizensnpcs.api.util.Messaging
 import org.bukkit.Bukkit
-import org.bukkit.command.CommandException
 import org.bukkit.command.CommandSender
 
 class AnimateCommand {
@@ -33,7 +33,7 @@ class AnimateCommand {
         @Arg(2, completionsProvider = TabComplete2::class) speed: String?,
         @Arg(3, completionsProvider = TabComplete3::class) player: String?
     ) {
-        if (npc == null) throw CommandException(CommandMessages.MUST_HAVE_SELECTED)
+        if (npc == null) return Messaging.sendTr(sender, CommandMessages.MUST_HAVE_SELECTED)
         val spd = speed?.toFloatOrNull() ?: 1F
         val modifier = AnimationModifier.builder()
             .player(player?.let(Bukkit::getPlayer))

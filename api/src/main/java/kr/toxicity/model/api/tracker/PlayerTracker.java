@@ -25,11 +25,6 @@ public final class PlayerTracker extends EntityTracker {
         bodyRotator().setValue(setter -> setter.setPlayerMode(true));
     }
 
-    @Override
-    public boolean isRunningSingleAnimation() {
-        return false;
-    }
-
     @NotNull
     @Override
     public Player sourceEntity() {

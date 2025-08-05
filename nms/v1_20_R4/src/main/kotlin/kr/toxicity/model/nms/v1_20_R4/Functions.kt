@@ -29,7 +29,6 @@ import org.bukkit.Bukkit
 import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.craftbukkit.inventory.CraftItemStack
 import org.bukkit.event.Event
-import org.joml.Quaternionf
 import org.joml.Vector3f
 import java.util.*
 import kotlin.math.max
@@ -45,8 +44,6 @@ internal inline fun <reified T, reified R> createAdaptedFieldGetter(noinline pap
         }
     }
 }
-
-internal val EMPTY_QUATERNION = Quaternionf()
 
 internal val CONFIG get() = BetterModel.config()
 internal val EMPTY_ITEM = VanillaItemStack.EMPTY

@@ -1,6 +1,5 @@
 package kr.toxicity.model.api.tracker;
 
-import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationEventHandler;
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationModifier;
@@ -304,15 +303,6 @@ public abstract class Tracker implements AutoCloseable {
     }
 
     /**
-     * Gets whether this model is playing single animation.
-     * @return whether to playing single.
-     */
-    public boolean isRunningSingleAnimation() {
-        var runningAnimation = pipeline.runningAnimation();
-        return runningAnimation != null && runningAnimation.type() == AnimationIterator.Type.PLAY_ONCE;
-    }
-
-    /**
      * Creates model spawn packet and registers player.
      * @param player target player
      * @param bundler bundler
@@ -593,7 +583,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return bone or null
      */
     public @Nullable RenderedBone bone(@NotNull BoneName name) {
-        return bone(b -> b.getName().equals(name));
+        return pipeline.boneOf(name);
     }
 
     /**
@@ -618,7 +608,7 @@ public abstract class Tracker implements AutoCloseable {
      * Gets all bones
      * @return all bones
      */
-    public @NotNull @Unmodifiable List<RenderedBone> bones() {
+    public @NotNull @Unmodifiable Collection<RenderedBone> bones() {
         return pipeline.bones();
     }
 
@@ -728,12 +718,9 @@ public abstract class Tracker implements AutoCloseable {
 
     private @NotNull AnimationEventHandler injectEvent(@NotNull AnimationEventHandler eventHandler) {
         return eventHandler
-                .onStateCreated(uuid -> {
-                    var get = BetterModel.plugin().playerManager().player(uuid);
-                    if (get != null) bundlerSet.perPlayerViewBundler
-                            .computeIfAbsent(uuid, u -> new PerPlayerCache(get))
-                            .add();
-                })
+                .onStateCreated(uuid -> bundlerSet.perPlayerViewBundler
+                        .computeIfAbsent(uuid, u -> new PerPlayerCache(uuid))
+                        .add())
                 .onStateRemoved(uuid -> {
                     var get = bundlerSet.perPlayerViewBundler.get(uuid);
                     if (get != null) get.remove();
@@ -786,29 +773,35 @@ public abstract class Tracker implements AutoCloseable {
 
     @RequiredArgsConstructor
     private class PerPlayerCache {
-        private final PlayerChannelHandler handler;
+        private final UUID uuid;
         private final AtomicInteger counter = new AtomicInteger();
         private PacketBundler bundler = pipeline.createParallelBundler();
 
+        private @NotNull Optional<PlayerChannelHandler> channel() {
+            return Optional.ofNullable(pipeline.channel(uuid));
+        }
+
         public void add() {
             if (counter.getAndIncrement() == 0) {
-                EventUtil.call(new PlayerPerAnimationStartEvent(Tracker.this, handler.player()));
+                channel().ifPresent(handler -> EventUtil.call(new PlayerPerAnimationStartEvent(Tracker.this, handler.player())));
             }
         }
 
         public void remove() {
             if (counter.decrementAndGet() == 0) {
-                bundlerSet.perPlayerViewBundler.remove(handler.uuid());
-                var bundler = pipeline.createBundler();
-                pipeline.iterateTree(bone -> bone.forceTransformation(bundler));
-                bundler.send(handler.player());
-                EventUtil.call(new PlayerPerAnimationEndEvent(Tracker.this, handler.player()));
+                bundlerSet.perPlayerViewBundler.remove(uuid);
+                channel().ifPresent(handler -> {
+                    var bundler = pipeline.createBundler();
+                    pipeline.iterateTree(bone -> bone.forceTransformation(bundler));
+                    bundler.send(handler.player());
+                    EventUtil.call(new PlayerPerAnimationEndEvent(Tracker.this, handler.player()));
+                });
             }
         }
 
         private void send() {
-            if (pipeline.tick(handler.uuid(), bundler) && bundler.isNotEmpty()) {
-                bundler.send(handler.player());
+            if (pipeline.tick(uuid, bundler) && bundler.isNotEmpty()) {
+                channel().ifPresent(handler -> bundler.send(handler.player()));
                 bundler = pipeline.createParallelBundler();
             }
         }

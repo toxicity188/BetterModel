@@ -54,7 +54,7 @@ class BetterModelConfigImpl(yaml: ConfigurationSection) : BetterModelConfig {
     private val lerpFrameTime = yaml.getInt("lerp-frame-time", 5)
     private val cancelPlayerModelInventory = yaml.getBoolean("cancel-player-model-inventory")
     private val playerHideDelay = yaml.getLong("player-hide-delay", 3L).coerceAtLeast(1L)
-    private val packetBundlingSize = yaml.getInt("packet-bundling-size", 32).coerceAtLeast(4)
+    private val packetBundlingSize = yaml.getInt("packet-bundling-size", 16)
 
     override fun debug(): DebugConfig = debug
     override fun module(): ModuleConfig = module

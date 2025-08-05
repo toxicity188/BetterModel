@@ -72,7 +72,7 @@ public final class RenderedBone {
     //Resource
     @Getter
     @Nullable
-    private ModelDisplay display;
+    private final ModelDisplay display;
     @Getter
     @Nullable
     private HitBox hitBox;
@@ -85,9 +85,8 @@ public final class RenderedBone {
     private volatile TransformedItemStack itemStack;
 
     //Animation
-    private final BoneStateHandler globalState = new BoneStateHandler(null, uuid -> {});
+    private final BoneStateHandler globalState;
     private final Map<UUID, BoneStateHandler> perPlayerState = new ConcurrentHashMap<>();
-    private boolean firstTick = true;
     private volatile BoneMovement beforeTransform, afterTransform;
     private volatile ModelRotation rotation = ModelRotation.EMPTY;
 
@@ -131,7 +130,8 @@ public final class RenderedBone {
                 d.invisible(!group.getParent().visibility());
                 applyItem(d);
             });
-        }
+        } else display = null;
+        globalState = new BoneStateHandler(null, uuid -> {});
     }
 
     private @NotNull BoneStateHandler state(@Nullable Player player) {
@@ -330,14 +330,13 @@ public final class RenderedBone {
     }
 
     private boolean tick(@NotNull BoneStateHandler state, @NotNull PacketBundler bundler) {
-        if (state.tick() || firstTick) {
+        if (state.tick()) {
             beforeTransform = afterTransform;
             var boneMovement = afterTransform = state.relativeOffset();
-            var d = display;
-            firstTick = false;
-            if (d == null) return true;
-            setup(
-                    d,
+            var transformer = state.transformer;
+            if (transformer == null) return true;
+            sendTransformation(
+                    transformer,
                     state.interpolationDuration(),
                     boneMovement,
                     bundler
@@ -359,7 +358,7 @@ public final class RenderedBone {
     }
 
     public void forceTransformation(@NotNull PacketBundler bundler) {
-        var d = display;
+        var d = globalState.transformer;
         if (d != null) d.sendTransformation(bundler);
     }
 
@@ -407,9 +406,9 @@ public final class RenderedBone {
         return InterpolationUtil.lerp(before.rawRotation(), after.rawRotation(), progress);
     }
 
-    private void setup(@NotNull ModelDisplay display, int duration, @NotNull BoneMovement boneMovement, @NotNull PacketBundler bundler) {
+    private void sendTransformation(@NotNull DisplayTransformer transformer, int duration, @NotNull BoneMovement boneMovement, @NotNull PacketBundler bundler) {
         var mul = scale.getAsFloat();
-        display.transform(
+        transformer.transform(
                 duration,
                 MathUtil.fma(
                         itemStack.offset().rotate(boneMovement.rotation(), new Vector3f())
@@ -474,6 +473,8 @@ public final class RenderedBone {
 
     public void spawn(boolean hide, @NotNull PacketBundler bundler) {
         if (display != null) display.spawn(!hide && !display.invisible(), bundler);
+        var transformer = globalState.transformer;
+        if (transformer != null) transformer.sendTransformation(bundler);
     }
 
     public boolean addAnimation(@NotNull AnimationPredicate filter, @NotNull BlueprintAnimation animator, @NotNull AnimationModifier modifier, @NotNull AnimationEventHandler eventHandler) {
@@ -625,14 +626,18 @@ public final class RenderedBone {
                 (b, a) -> relativeOffsetCache = null
         );
         private volatile BoneMovement relativeOffsetCache;
+        private final DisplayTransformer transformer = display != null ? display.createTransformer() : null;
+        private boolean firstTick = true;
 
         public boolean tick() {
-            return state.tick(() -> {
+            var result = state.tick(() -> {
                 if (uuid != null) {
                     perPlayerState.remove(uuid);
                     consumer.accept(uuid);
                 }
-            });
+            }) || firstTick;
+            firstTick = false;
+            return result;
         }
 
         public float progress() {

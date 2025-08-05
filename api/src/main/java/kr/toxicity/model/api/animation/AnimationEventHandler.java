@@ -9,6 +9,8 @@ import java.util.function.Consumer;
 
 public final class AnimationEventHandler {
 
+    private final AtomicBoolean isStateCreated = new AtomicBoolean();
+    private final AtomicBoolean isStateRemoved = new AtomicBoolean();
     private final AtomicBoolean isAnimationRemoved = new AtomicBoolean();
 
     private Consumer<UUID> stateCreated;
@@ -22,13 +24,13 @@ public final class AnimationEventHandler {
     @ApiStatus.Internal
     public void stateCreated(@NotNull UUID uuid) {
         if (stateCreated == null) return;
-        stateCreated.accept(uuid);
+        if (isStateCreated.compareAndSet(false, true)) stateCreated.accept(uuid);
     }
 
     @ApiStatus.Internal
     public void stateRemoved(@NotNull UUID uuid) {
         if (stateRemoved == null) return;
-        stateRemoved.accept(uuid);
+        if (isStateRemoved.compareAndSet(false, true)) stateRemoved.accept(uuid);
     }
 
     @ApiStatus.Internal

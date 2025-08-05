@@ -28,6 +28,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.*;
 import java.util.stream.Stream;
 
+import static kr.toxicity.model.api.util.CollectionUtil.associate;
+
 /**
  * A pipeline class of each tracker.
  */
@@ -38,7 +40,7 @@ public final class RenderPipeline {
     private final RenderSource<?> source;
 
     private final Map<BoneName, RenderedBone> boneMap;
-    private final List<RenderedBone> bones;
+    private final Map<BoneName, RenderedBone> flattenBoneMap;
     private final int displayAmount;
     private final Map<UUID, PlayerChannelHandler> playerMap = new ConcurrentHashMap<>();
     private final Set<UUID> hidePlayerSet = ConcurrentHashMap.newKeySet();
@@ -64,8 +66,8 @@ public final class RenderPipeline {
         this.source = source;
         this.boneMap = boneMap;
         //Bone
-        bones = boneMap.values().stream().flatMap(RenderedBone::flatten).toList();
-        displayAmount = (int) bones.stream()
+        flattenBoneMap = associate(boneMap.values().stream().flatMap(RenderedBone::flatten), RenderedBone::getName);
+        displayAmount = (int) flattenBoneMap.values().stream()
                 .filter(rb -> rb.getDisplay() != null)
                 .count();
         //Script
@@ -86,12 +88,17 @@ public final class RenderPipeline {
         return BetterModel.plugin().nms().createBundler(displayAmount + 1);
     }
 
+    public @Nullable PlayerChannelHandler channel(@NotNull UUID uuid) {
+        return playerMap.get(uuid);
+    }
+
     public @NotNull PacketBundler createLazyBundler() {
         return BetterModel.plugin().nms().createLazyBundler();
     }
 
     public @NotNull PacketBundler createParallelBundler() {
-        return BetterModel.plugin().nms().createParallelBundler(BetterModel.config().packetBundlingSize());
+        var size = BetterModel.config().packetBundlingSize();
+        return size <= 0 ? createBundler() : BetterModel.plugin().nms().createParallelBundler(size);
     }
 
     public void viewFilter(@NotNull Predicate<Player> filter) {
@@ -174,8 +181,8 @@ public final class RenderPipeline {
         return matchTree(predicate, (b, p) -> b.addPositionModifier(p, mapper));
     }
 
-    public @NotNull @Unmodifiable List<RenderedBone> bones() {
-        return bones;
+    public @NotNull @Unmodifiable Collection<RenderedBone> bones() {
+        return flattenBoneMap.values();
     }
 
     public @NotNull Stream<HitBox> hitboxes() {
@@ -183,6 +190,10 @@ public final class RenderPipeline {
                 .stream()
                 .map(RenderedBone::getHitBox)
                 .filter(Objects::nonNull);
+    }
+
+    public @Nullable RenderedBone boneOf(@NotNull BoneName name) {
+        return flattenBoneMap.get(name);
     }
 
     public @Nullable RenderedBone boneOf(@NotNull Predicate<RenderedBone> predicate) {

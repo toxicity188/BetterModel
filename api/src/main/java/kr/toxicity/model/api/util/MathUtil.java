@@ -77,6 +77,28 @@ public final class MathUtil {
         return abs(a - b) < epsilon;
     }
 
+    public static boolean isSimilar(@NotNull Vector3f a, @NotNull Vector3f b) {
+        return isSimilar(a, b, FLOAT_COMPARISON_EPSILON);
+    }
+
+    public static boolean isSimilar(@NotNull Vector3f a, @NotNull Vector3f b, float epsilon) {
+        return isSimilar(a.x, b.x, epsilon)
+                && isSimilar(a.y, b.y, epsilon)
+                && isSimilar(a.z, b.z, epsilon);
+    }
+
+
+    public static boolean isSimilar(@NotNull Quaternionf a, @NotNull Quaternionf b) {
+        return isSimilar(a, b, FLOAT_COMPARISON_EPSILON);
+    }
+
+    public static boolean isSimilar(@NotNull Quaternionf a, @NotNull Quaternionf b, float epsilon) {
+        return isSimilar(a.x, b.x, epsilon)
+                && isSimilar(a.y, b.y, epsilon)
+                && isSimilar(a.z, b.z, epsilon)
+                && isSimilar(a.w, b.w, epsilon);
+    }
+
     public static int similarHashCode(float a) {
         return Float.hashCode((int) (a / FLOAT_COMPARISON_EPSILON) * FLOAT_COMPARISON_EPSILON);
     }

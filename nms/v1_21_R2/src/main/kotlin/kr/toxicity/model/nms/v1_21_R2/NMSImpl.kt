@@ -19,7 +19,6 @@ import net.minecraft.core.component.DataComponents
 import net.minecraft.network.Connection
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.*
-import net.minecraft.network.syncher.EntityDataAccessor
 import net.minecraft.network.syncher.EntityDataSerializers
 import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.server.MinecraftServer
@@ -46,7 +45,6 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.LeatherArmorMeta
 import org.joml.Quaternionf
 import org.joml.Vector3f
-import java.lang.reflect.Field
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Consumer
@@ -88,28 +86,12 @@ class NMSImpl : NMS {
         private fun Int.toEntity(level: ServerLevel) = getEntityById(level.levelGetter, this)
         //Spigot
 
-        private fun Class<*>.serializers() = declaredFields.filter { f ->
-            EntityDataAccessor::class.java.isAssignableFrom(f.type)
-        }.map { 
-            it.toSerializerId()
-        }
-        private fun Field.toSerializerId() = run {
-            isAccessible = true
-            get(null) as EntityDataAccessor<*>
-        }
-
-        private val sharedFlag = Entity::class.java.serializers().first().id
-        private val itemId = ItemDisplay::class.java.serializers().map {
+        private val sharedFlag = Entity::class.java.accessors().first().id
+        private val itemId = ItemDisplay::class.java.accessors().map {
             it.id
         }
-        private val itemSerializer = ItemDisplay::class.java.serializers().first()
-        private val displaySet = Display::class.java.serializers().map { e ->
-            e.id
-        }
-        private val interpolationDelay = displaySet.first()
-        private val animationSet = displaySet.subList(3, 6).toIntSet()
-        private val transformSet = displaySet.subList(0, 6).toIntSet()
-        private val entityDataSet = (mutableListOf(sharedFlag) + itemId + displaySet.subList(transformSet.size, displaySet.size)).toIntSet()
+        private val itemSerializer = ItemDisplay::class.java.accessors().first()
+        private val entityDataSet = (mutableListOf(sharedFlag) + itemId + DISPLAY_SET.subList(7, DISPLAY_SET.size).map { it.id }).toIntSet()
         private val hitBoxData = ItemDisplay(EntityType.ITEM_DISPLAY, MinecraftServer.getServer().overworld()).run {
             entityData[Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID] = 3
             entityData.nonDefaultValues!!
@@ -341,7 +323,7 @@ class NMSImpl : NMS {
         display.entityData.packDirty()
     }
 
-    private inner class ModelDisplayImpl(
+    private class ModelDisplayImpl(
         val display: ItemDisplay,
         val yOffset: Double
     ) : ModelDisplay {
@@ -479,43 +461,7 @@ class NMSImpl : NMS {
             }
         }
 
-        override fun transform(
-            duration: Int,
-            position: Vector3f,
-            scale: Vector3f,
-            rotation: Quaternionf,
-            bundler: PacketBundler
-        ) {
-            entityDataLock.accessToLock {
-                display.transformationInterpolationDuration = duration
-                display.setTransformation(
-                    com.mojang.math.Transformation(
-                        position,
-                        rotation,
-                        scale,
-                        EMPTY_QUATERNION
-                    )
-                )
-                entityData.pack(
-                    clean = true,
-                    itemFilter = { interpolationDelay == it.accessor.id || it.isDirty },
-                    valueFilter = { transformSet.contains(it.id) },
-                    required = { it.any { packed -> animationSet.contains(packed.second.id) } }
-                )
-            }?.run {
-                bundler += ClientboundSetEntityDataPacket(display.id, this)
-            }
-        }
-        
-        override fun sendTransformation(bundler: PacketBundler) {
-            entityDataLock.accessToLock {
-                entityData.pack(
-                    valueFilter = { interpolationDelay == it.id || transformSet.contains(it.id) },
-                )
-            }?.run {
-                bundler += ClientboundSetEntityDataPacket(display.id, this)
-            }
-        }
+        override fun createTransformer(): DisplayTransformer = DisplayTransformerImpl(display)
 
         override fun invisible(): Boolean = entityDataLock.accessToLock {
             display.isInvisible || forceInvisibility.get() || display.itemStack.`is`(Items.AIR)
@@ -568,6 +514,42 @@ class NMSImpl : NMS {
 
         private val removePacket
             get() = ClientboundRemoveEntitiesPacket(display.id)
+    }
+
+    private class DisplayTransformerImpl(
+        source: ItemDisplay
+    ) : DisplayTransformer {
+        private val id = source.id
+        private val entityData = TransformationData()
+        private val entityDataLock = SingleLock()
+
+        override fun transform(
+            duration: Int,
+            position: Vector3f,
+            scale: Vector3f,
+            rotation: Quaternionf,
+            bundler: PacketBundler
+        ) {
+            entityDataLock.accessToLock {
+                entityData.transform(
+                    duration,
+                    position,
+                    scale,
+                    rotation
+                )
+                entityData.packDirty()
+            }?.run {
+                bundler += ClientboundSetEntityDataPacket(id, this)
+            }
+        }
+
+        override fun sendTransformation(bundler: PacketBundler) {
+            entityDataLock.accessToLock {
+                entityData.pack()
+            }?.run {
+                bundler += ClientboundSetEntityDataPacket(id, this)
+            }
+        }
     }
 
     override fun tint(itemStack: ItemStack, rgb: Int): ItemStack = itemStack.clone().apply {

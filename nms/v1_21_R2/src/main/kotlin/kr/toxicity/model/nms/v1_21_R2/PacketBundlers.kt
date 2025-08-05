@@ -93,7 +93,7 @@ internal class LazyBundler : PacketBundler, PluginBundlePacketImpl {
 internal class ParallelBundler(
     private val threshold: Int
 ) : PacketBundler {
-    private val _creator: () -> PluginBundlePacketImpl = if (threshold <= 32) { { lazyBundlerOf() } } else { { bundlerOf() } }
+    private val _creator: () -> PluginBundlePacketImpl = if (threshold < 32) { { lazyBundlerOf() } } else { { bundlerOf() } }
     private val subBundlers = mutableListOf<PluginBundlePacketImpl>()
     private var sizeAssume = 0
     private val newBundler get() = _creator().apply {

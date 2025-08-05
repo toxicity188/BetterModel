@@ -26,7 +26,6 @@ import org.bukkit.Bukkit
 import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.craftbukkit.inventory.CraftItemStack
 import org.bukkit.event.Event
-import org.joml.Quaternionf
 import org.joml.Vector3f
 import java.util.*
 
@@ -51,8 +50,6 @@ internal fun VanillaItemStack.asBukkit() = CraftItemStack.asCraftMirror(this)
 internal val ONLINE_MODE by lazy(LazyThreadSafetyMode.NONE) {
     if (BetterModel.IS_PAPER) GlobalConfiguration.get().proxies.isProxyOnlineMode else Bukkit.getOnlineMode()
 }
-
-internal val EMPTY_QUATERNION = Quaternionf()
 
 internal fun List<Int>.toIntSet(): IntOpenHashSet = IntOpenHashSet(this)
 

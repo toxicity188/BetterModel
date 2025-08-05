@@ -6,8 +6,6 @@ import org.bukkit.entity.Display;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
 
 /**
  * An item-display packet adapter
@@ -86,20 +84,10 @@ public interface ModelDisplay extends Identifiable {
     void item(@NotNull ItemStack itemStack);
 
     /**
-     * Transforms this display
-     * @param duration duration
-     * @param position position
-     * @param scale scale
-     * @param rotation rotation
-     * @param bundler bundler
+     * Creates transformer
+     * @return transformer
      */
-    void transform(int duration, @NotNull Vector3f position, @NotNull Vector3f scale, @NotNull Quaternionf rotation, @NotNull PacketBundler bundler);
-
-    /**
-     * Sends transformation
-     * @param bundler packet bundler
-     */
-    void sendTransformation(@NotNull PacketBundler bundler);
+    @NotNull DisplayTransformer createTransformer();
 
     /**
      * Sends entity data
