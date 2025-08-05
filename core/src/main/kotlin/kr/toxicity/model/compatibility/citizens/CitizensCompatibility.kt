@@ -2,6 +2,7 @@ package kr.toxicity.model.compatibility.citizens
 
 import kr.toxicity.model.compatibility.Compatibility
 import kr.toxicity.model.compatibility.citizens.command.AnimateCommand
+import kr.toxicity.model.compatibility.citizens.command.LimbCommand
 import kr.toxicity.model.compatibility.citizens.command.ModelCommand
 import kr.toxicity.model.compatibility.citizens.trait.ModelTrait
 import net.citizensnpcs.api.CitizensAPI
@@ -14,6 +15,7 @@ class CitizensCompatibility : Compatibility {
         CitizensAPI.getCommandManager().run {
             register(ModelCommand::class.java)
             register(AnimateCommand::class.java)
+            register(LimbCommand::class.java)
         }
     }
 }

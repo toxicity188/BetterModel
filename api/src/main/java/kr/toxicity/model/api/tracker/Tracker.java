@@ -654,6 +654,24 @@ public abstract class Tracker implements AutoCloseable {
     }
 
     /**
+     * Checks this player is spawned in this tracker
+     * @param uuid uuid
+     * @return is spawned
+     */
+    public boolean isSpawned(@NotNull UUID uuid) {
+        return pipeline.isSpawned(uuid);
+    }
+
+    /**
+     * Checks this player is spawned in this tracker
+     * @param player player
+     * @return is spawned
+     */
+    public boolean isSpawned(@NotNull Player player) {
+        return isSpawned(player.getUniqueId());
+    }
+
+    /**
      * Gets the renderer of this tracker
      * @return renderer
      */

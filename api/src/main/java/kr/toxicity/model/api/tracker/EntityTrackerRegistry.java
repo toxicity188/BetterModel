@@ -175,7 +175,7 @@ public final class EntityTrackerRegistry {
     }
 
     private void refreshSpawn() {
-        viewedPlayer().forEach(value -> spawn(value.player(), true));
+        viewedPlayer().forEach(value -> spawnIfNotSpawned(value.player()));
     }
 
     private void refreshRemove() {
@@ -319,6 +319,15 @@ public final class EntityTrackerRegistry {
         initialLoad();
         return spawn(player, false);
     }
+    /**
+     * Spawns not spawned tracker to some player
+     * @param player target player
+     * @return success
+     */
+    public boolean spawnIfNotSpawned(@NotNull Player player) {
+        initialLoad();
+        return spawn(player, true);
+    }
     private boolean spawn(@NotNull Player player, boolean shouldNotSpawned) {
         var handler = BetterModel.plugin()
                 .playerManager()
@@ -328,7 +337,7 @@ public final class EntityTrackerRegistry {
         if (trackerMap.isEmpty()) return false;
         var bundler = BetterModel.plugin().nms().createBundler(10);
         for (EntityTracker value : trackers()) {
-            if (shouldNotSpawned && value.pipeline.isSpawned(player)) continue;
+            if (shouldNotSpawned && value.isSpawned(player)) continue;
             if (value.canBeSpawnedAt(player)) value.spawn(player, bundler);
         }
         if (bundler.isEmpty()) return false;
@@ -351,7 +360,7 @@ public final class EntityTrackerRegistry {
         var handler = cache.channelHandler;
         handler.sendEntityData(this);
         for (EntityTracker value : trackers()) {
-            if (!value.forRemoval() && value.pipeline.isSpawned(player)) value.remove(handler.player());
+            if (!value.forRemoval() && value.isSpawned(player)) value.remove(handler.player());
         }
         return true;
     }

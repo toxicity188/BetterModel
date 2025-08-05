@@ -36,18 +36,18 @@ internal val DISPLAY_ROTATION = DISPLAY_SET[5] as EntityDataAccessor<Quaternionf
 internal class TransformationData {
 
     private val delay = SynchedEntityData.DataValue(DISPLAY_INTERPOLATION_DELAY.id, DISPLAY_INTERPOLATION_DELAY.serializer, 0)
-    private val duration = Item(0, DISPLAY_INTERPOLATION_DURATION) { a, b -> a == b }
+    private var _duration = 0
+    private val duration get() = SynchedEntityData.DataValue(DISPLAY_INTERPOLATION_DURATION.id, DISPLAY_INTERPOLATION_DURATION.serializer, _duration)
     private val translation = Item(Vector3f(), DISPLAY_TRANSLATION, MathUtil::isSimilar)
     private val scale = Item(Vector3f(), DISPLAY_SCALE, MathUtil::isSimilar)
     private val rotation = Item(Quaternionf(), DISPLAY_ROTATION, MathUtil::isSimilar)
 
     fun packDirty(): List<SynchedEntityData.DataValue<*>>? {
-        var i = translation.cleanIndex + scale.cleanIndex + rotation.cleanIndex
+        val i = translation.cleanIndex + scale.cleanIndex + rotation.cleanIndex
         if (i == 0) return null
-        i += duration.cleanIndex
-        return ArrayList<SynchedEntityData.DataValue<*>>(i + 1).apply {
+        return ArrayList<SynchedEntityData.DataValue<*>>(i + 2).apply {
             add(delay)
-            duration.value?.let { add(it) }
+            add(duration)
             translation.value?.let { add(it) }
             scale.value?.let { add(it) }
             rotation.value?.let { add(it) }
@@ -60,7 +60,7 @@ internal class TransformationData {
         scale: Vector3f,
         rotation: Quaternionf
     ) {
-        this.duration.set(duration)
+        _duration = duration
         this.translation.set(translation)
         this.scale.set(scale)
         this.rotation.set(rotation)
@@ -68,7 +68,7 @@ internal class TransformationData {
 
     fun pack() = listOf(
         delay,
-        duration.forceValue,
+        duration,
         translation.forceValue,
         scale.forceValue,
         rotation.forceValue

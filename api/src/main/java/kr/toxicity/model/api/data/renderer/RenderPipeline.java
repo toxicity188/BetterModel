@@ -126,10 +126,6 @@ public final class RenderPipeline {
         return playerMap.containsKey(uuid);
     }
 
-    public boolean isSpawned(@NotNull Player player) {
-        return isSpawned(player.getUniqueId());
-    }
-
     public @Nullable RunningAnimation runningAnimation() {
         for (RenderedBone value : boneMap.values()) {
             var get = value.findNotNullByTree(RenderedBone::runningAnimation);
@@ -320,7 +316,7 @@ public final class RenderPipeline {
 
     public boolean hide(@NotNull Player player) {
         if (hidePlayerSet.add(player.getUniqueId())) {
-            if (isSpawned(player)) {
+            if (isSpawned(player.getUniqueId())) {
                 var bundler = createBundler();
                 iterateTree(b -> b.forceUpdate(false, bundler));
                 hidePacketHandler.accept(bundler);
@@ -337,7 +333,7 @@ public final class RenderPipeline {
 
     public boolean show(@NotNull Player player) {
         if (hidePlayerSet.remove(player.getUniqueId())) {
-            if (isSpawned(player)) {
+            if (isSpawned(player.getUniqueId())) {
                 var bundler = createBundler();
                 iterateTree(b -> b.forceUpdate(true, bundler));
                 showPacketHandler.accept(bundler);

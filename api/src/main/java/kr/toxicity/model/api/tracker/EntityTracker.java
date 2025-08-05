@@ -295,7 +295,6 @@ public class EntityTracker extends Tracker {
         return bodyRotator;
     }
 
-
     /**
      * Checks this model can be spawned at given player
      * @param player target player
