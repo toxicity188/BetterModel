@@ -87,7 +87,6 @@ public final class RenderedBone {
     //Animation
     private final BoneStateHandler globalState;
     private final Map<UUID, BoneStateHandler> perPlayerState = new ConcurrentHashMap<>();
-    private volatile BoneMovement beforeTransform, afterTransform;
     private volatile ModelRotation rotation = ModelRotation.EMPTY;
 
     private Supplier<Vector3f> defaultPosition = FunctionUtil.asSupplier(EMPTY_VECTOR);
@@ -331,8 +330,7 @@ public final class RenderedBone {
 
     private boolean tick(@NotNull BoneStateHandler state, @NotNull PacketBundler bundler) {
         if (state.tick()) {
-            beforeTransform = afterTransform;
-            var boneMovement = afterTransform = state.relativeOffset();
+            var boneMovement = state.nextMovement();
             var transformer = state.transformer;
             if (transformer == null) return true;
             sendTransformation(
@@ -379,9 +377,14 @@ public final class RenderedBone {
     }
 
     public @NotNull Vector3f worldPosition(@NotNull Vector3f localOffset, @NotNull Vector3f globalOffset) {
-        var progress = globalState.progress();
-        var after = afterTransform != null ? afterTransform : globalState.relativeOffset();
-        var before = beforeTransform != null ? beforeTransform : BoneMovement.EMPTY;
+        return worldPosition(localOffset, globalOffset, null);
+    }
+
+    public @NotNull Vector3f worldPosition(@NotNull Vector3f localOffset, @NotNull Vector3f globalOffset, @Nullable UUID uuid) {
+        var state = state(uuid);
+        var progress = state.progress();
+        var after = state.afterTransform != null ? state.afterTransform : globalState.relativeOffset();
+        var before = state.beforeTransform != null ? state.beforeTransform : BoneMovement.EMPTY;
         return MathUtil.fma(
                         InterpolationUtil.lerp(before.transform(), after.transform(), progress)
                                 .add(itemStack.offset())
@@ -400,9 +403,14 @@ public final class RenderedBone {
     }
 
     public @NotNull Vector3f worldRotation() {
-        var progress = globalState.progress();
-        var after = afterTransform != null ? afterTransform : globalState.relativeOffset();
-        var before = beforeTransform != null ? beforeTransform : BoneMovement.EMPTY;
+        return worldRotation(null);
+    }
+
+    public @NotNull Vector3f worldRotation(@Nullable UUID uuid) {
+        var state = state(uuid);
+        var progress = state.progress();
+        var after = state.afterTransform != null ? state.afterTransform : globalState.relativeOffset();
+        var before = state.beforeTransform != null ? state.beforeTransform : BoneMovement.EMPTY;
         return InterpolationUtil.lerp(before.rawRotation(), after.rawRotation(), progress);
     }
 
@@ -625,7 +633,7 @@ public final class RenderedBone {
                 (a, s, t) -> a.time(t),
                 (b, a) -> relativeOffsetCache = null
         );
-        private volatile BoneMovement relativeOffsetCache;
+        private volatile BoneMovement beforeTransform, afterTransform, relativeOffsetCache;
         private final DisplayTransformer transformer = display != null ? display.createTransformer() : null;
         private boolean firstTick = true;
 
@@ -659,6 +667,11 @@ public final class RenderedBone {
 
         public int interpolationDuration() {
             return toInterpolationDuration(frame());
+        }
+
+        private @NotNull BoneMovement nextMovement() {
+            beforeTransform = afterTransform;
+            return afterTransform = relativeOffset();
         }
 
         private @NotNull BoneMovement relativeOffset() {

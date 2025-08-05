@@ -42,8 +42,10 @@ internal class TransformationData {
     private val rotation = Item(Quaternionf(), DISPLAY_ROTATION, MathUtil::isSimilar)
 
     fun packDirty(): List<SynchedEntityData.DataValue<*>>? {
-        if (translation.clean && scale.clean && rotation.clean) return null
-        return ArrayList<SynchedEntityData.DataValue<*>>(5).apply {
+        var i = translation.cleanIndex + scale.cleanIndex + rotation.cleanIndex
+        if (i == 0) return null
+        i += duration.cleanIndex
+        return ArrayList<SynchedEntityData.DataValue<*>>(i + 1).apply {
             add(delay)
             duration.value?.let { add(it) }
             translation.value?.let { add(it) }
@@ -81,7 +83,7 @@ internal class TransformationData {
         private var _dirty = false
 
         val dirty get() = _dirty
-        val clean get() = !dirty
+        val cleanIndex get() = if (dirty) 1 else 0
         val value get() = if (_dirty) {
             _dirty = false
             forceValue
