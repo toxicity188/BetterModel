@@ -4,6 +4,8 @@ import kr.toxicity.model.api.util.MathUtil
 import net.minecraft.network.syncher.EntityDataAccessor
 import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.world.entity.Display
+import net.minecraft.world.entity.Display.ItemDisplay
+import net.minecraft.world.entity.Entity
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import java.lang.reflect.Field
@@ -20,9 +22,17 @@ internal fun Class<*>.accessors() = declaredFields.filter { f ->
 }
 
 internal val DISPLAY_SET = Display::class.java.accessors()
+internal val SHARED_FLAG = Entity::class.java.accessors().first().id
+internal val ITEM_DISPLAY_ID = ItemDisplay::class.java.accessors().map {
+    it.id
+}
+internal val ITEM_SERIALIZER = ItemDisplay::class.java.accessors().first()
+internal val ITEM_ENTITY_DATA = (mutableListOf(SHARED_FLAG) + ITEM_DISPLAY_ID + DISPLAY_SET.subList(7, DISPLAY_SET.size).map { it.id }).toIntSet()
 
 @Suppress("UNCHECKED_CAST")
-internal val DISPLAY_INTERPOLATION_DELAY = DISPLAY_SET.first() as EntityDataAccessor<Int>
+private val DISPLAY_INTERPOLATION_DELAY = (DISPLAY_SET.first() as EntityDataAccessor<Int>).run {
+    SynchedEntityData.DataValue(id, serializer, 0)
+}
 @Suppress("UNCHECKED_CAST")
 internal val DISPLAY_INTERPOLATION_DURATION = DISPLAY_SET[1] as EntityDataAccessor<Int>
 @Suppress("UNCHECKED_CAST")
@@ -35,7 +45,6 @@ internal val DISPLAY_ROTATION = DISPLAY_SET[5] as EntityDataAccessor<Quaternionf
 
 internal class TransformationData {
 
-    private val delay = SynchedEntityData.DataValue(DISPLAY_INTERPOLATION_DELAY.id, DISPLAY_INTERPOLATION_DELAY.serializer, 0)
     private var _duration = 0
     private val duration get() = SynchedEntityData.DataValue(DISPLAY_INTERPOLATION_DURATION.id, DISPLAY_INTERPOLATION_DURATION.serializer, _duration)
     private val translation = Item(Vector3f(), DISPLAY_TRANSLATION, MathUtil::isSimilar)
@@ -46,7 +55,7 @@ internal class TransformationData {
         val i = translation.cleanIndex + scale.cleanIndex + rotation.cleanIndex
         if (i == 0) return null
         return ArrayList<SynchedEntityData.DataValue<*>>(i + 2).apply {
-            add(delay)
+            add(DISPLAY_INTERPOLATION_DELAY)
             add(duration)
             translation.value?.let { add(it) }
             scale.value?.let { add(it) }
@@ -67,7 +76,7 @@ internal class TransformationData {
     }
 
     fun pack() = listOf(
-        delay,
+        DISPLAY_INTERPOLATION_DELAY,
         duration,
         translation.forceValue,
         scale.forceValue,

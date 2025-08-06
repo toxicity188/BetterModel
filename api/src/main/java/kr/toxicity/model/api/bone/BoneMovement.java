@@ -44,8 +44,4 @@ public record BoneMovement(
                 rawRot
         );
     }
-
-    boolean isVisible() {
-        return scale.x > 0F || scale.y > 0F || scale.z > 0F;
-    }
 }

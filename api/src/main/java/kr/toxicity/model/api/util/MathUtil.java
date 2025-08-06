@@ -100,7 +100,7 @@ public final class MathUtil {
     }
 
     public static int similarHashCode(float a) {
-        return Float.hashCode((int) (a / FLOAT_COMPARISON_EPSILON) * FLOAT_COMPARISON_EPSILON);
+        return (int) (a / FLOAT_COMPARISON_EPSILON);
     }
 
     /**

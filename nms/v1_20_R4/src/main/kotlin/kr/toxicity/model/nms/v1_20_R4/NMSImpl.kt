@@ -11,8 +11,6 @@ import kr.toxicity.model.api.data.blueprint.NamedBoundingBox
 import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.nms.*
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
-import kr.toxicity.model.api.tracker.ModelRotation
-import kr.toxicity.model.api.util.lock.SingleLock
 import net.kyori.adventure.key.Keyed
 import net.minecraft.core.NonNullList
 import net.minecraft.core.component.DataComponents
@@ -24,7 +22,6 @@ import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.network.ServerCommonPacketListenerImpl
-import net.minecraft.util.Brightness
 import net.minecraft.world.effect.MobEffects
 import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.Display.ItemDisplay
@@ -46,10 +43,8 @@ import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.LeatherArmorMeta
-import org.joml.Quaternionf
 import org.joml.Vector3f
 import java.util.*
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Consumer
 
 class NMSImpl : NMS {
@@ -88,13 +83,6 @@ class NMSImpl : NMS {
         }
         private fun Int.toEntity(level: ServerLevel) = getEntityById(level.levelGetter, this)
         //Spigot
-
-        private val sharedFlag = Entity::class.java.accessors().first().id
-        private val itemId = ItemDisplay::class.java.accessors().map {
-            it.id
-        }
-        private val itemSerializer = ItemDisplay::class.java.accessors().first()
-        private val entityDataSet = (mutableListOf(sharedFlag) + itemId + DISPLAY_SET.subList(7, DISPLAY_SET.size).map { it.id }).toIntSet()
         private val hitBoxData = ItemDisplay(EntityType.ITEM_DISPLAY, MinecraftServer.getServer().overworld()).run {
             entityData[Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID] = 3
             entityData.nonDefaultValues!!
@@ -105,7 +93,7 @@ class NMSImpl : NMS {
         val target = (registry.entity() as CraftEntity).vanillaEntity
         val list = bundlerOf()
         target.entityData.pack(
-            valueFilter = { it.id == sharedFlag }
+            valueFilter = { it.id == SHARED_FLAG }
         )?.let {
             list += ClientboundSetEntityDataPacket(target.id, it).toRegistryDataPacket(channel.uuid(), registry)
         }
@@ -117,7 +105,7 @@ class NMSImpl : NMS {
     }
     
     private fun ClientboundSetEntityDataPacket.toRegistryDataPacket(uuid: UUID, registry: EntityTrackerRegistry) = ClientboundSetEntityDataPacket(id, packedItems().map {
-        if (it.id == sharedFlag) SynchedEntityData.DataValue(
+        if (it.id == SHARED_FLAG) SynchedEntityData.DataValue(
             it.id,
             EntityDataSerializers.BYTE,
             registry.entityFlag(uuid, it.value() as Byte)
@@ -167,7 +155,7 @@ class NMSImpl : NMS {
                 ClientboundSetPassengersPacket(handle)
             )
             handle.entityData.pack(
-                valueFilter = { it.id == sharedFlag }
+                valueFilter = { it.id == SHARED_FLAG }
             )?.let {
                 list += ClientboundSetEntityDataPacket(handle.id, it)
             }
@@ -323,234 +311,6 @@ class NMSImpl : NMS {
     }, yOffset).apply {
         initialConsumer.accept(this)
         display.entityData.packDirty()
-    }
-
-    private class ModelDisplayImpl(
-        val display: ItemDisplay,
-        val yOffset: Double
-    ) : ModelDisplay {
-
-        private val entityData = display.entityData
-        private val entityDataLock = SingleLock()
-        private val forceGlow = AtomicBoolean()
-        private val forceInvisibility = AtomicBoolean()
-
-        override fun id(): Int = display.id
-        override fun uuid(): UUID = display.uuid
-        override fun rotate(rotation: ModelRotation, bundler: PacketBundler) {
-            if (!display.valid) return
-            display.xRot = rotation.x
-            display.yRot = rotation.y
-            bundler += ClientboundMoveEntityPacket.Rot(
-                display.id,
-                rotation.packedY(),
-                rotation.packedX(),
-                display.onGround
-            )
-        }
-
-        override fun invisible(invisible: Boolean) {
-            if (forceInvisibility.compareAndSet(!invisible, invisible)) {
-                entityDataLock.accessToLock {
-                    entityData.markDirty(itemSerializer)
-                }
-            }
-        }
-
-        override fun sync(entity: EntityAdapter) {
-            display.valid = !entity.dead()
-            display.onGround = entity.ground()
-            display.setOldPosAndRot()
-            display.setPos((entity.handle() as Entity).position())
-            val beforeInvisible = display.isInvisible
-            val afterInvisible = entity.invisible()
-            entityDataLock.accessToLock {
-                display.setGlowingTag(entity.glow() || forceGlow.get())
-                if (CONFIG.followMobInvisibility() && beforeInvisible != afterInvisible) {
-                    display.isInvisible = afterInvisible
-                    entityData.markDirty(itemSerializer)
-                }
-            }
-        }
-
-        override fun spawn(showItem: Boolean, bundler: PacketBundler) {
-            bundler += addPacket
-            bundler += entityDataLock.accessToLock {
-                ClientboundSetEntityDataPacket(display.id, entityData.nonDefaultValues!!.markVisible(showItem))
-            }
-        }        
-        
-        override fun remove(bundler: PacketBundler) {
-            bundler += removePacket
-        }
-
-        override fun teleport(location: Location, bundler: PacketBundler) {
-            display.moveTo(
-                location.x,
-                location.y,
-                location.z,
-                location.yaw,
-                0F
-            )
-            bundler += ClientboundTeleportEntityPacket(display)
-        }
-
-        override fun syncPosition(adapter: EntityAdapter, bundler: PacketBundler) {
-            val handle = adapter.handle() as Entity
-            val pos = handle.position()
-            if (display.position() == pos) return
-            display.setPos(pos)
-            display.onGround = handle.onGround
-            teleport(adapter.entity().location, bundler)
-        }
-
-        override fun display(transform: org.bukkit.entity.ItemDisplay.ItemDisplayTransform) {
-            entityDataLock.accessToLock {
-                display.itemTransform = ItemDisplayContext.BY_ID.apply(transform.ordinal)
-            }
-        }
-
-        override fun moveDuration(duration: Int) {
-            entityDataLock.accessToLock {
-                entityData[Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID] = duration
-            }
-        }
-
-        override fun item(itemStack: ItemStack) {
-            entityDataLock.accessToLock {
-                display.itemStack = itemStack.asVanilla()
-            }
-        }
-
-        override fun brightness(block: Int, sky: Int) {
-            entityDataLock.accessToLock {
-                display.brightnessOverride = if (block < 0 && sky < 0) null else Brightness(
-                    block,
-                    sky
-                )
-            }
-        }
-
-        override fun viewRange(range: Float) {
-            entityDataLock.accessToLock {
-                display.viewRange = range
-            }
-        }
-
-        override fun shadowRadius(radius: Float) {
-            entityDataLock.accessToLock {
-                display.shadowRadius = radius
-            }
-        }
-
-        override fun glow(glow: Boolean) {
-            if (!forceGlow.compareAndSet(!glow, glow)) return
-            entityDataLock.accessToLock {
-                display.setGlowingTag(display.isCurrentlyGlowing || glow)
-            }
-        }
-
-        override fun glowColor(glowColor: Int) {
-            entityDataLock.accessToLock {
-                display.glowColorOverride = glowColor
-            }
-        }
-
-        override fun billboard(billboard: org.bukkit.entity.Display.Billboard) {
-            entityDataLock.accessToLock {
-                display.billboardConstraints = Display.BillboardConstraints.BY_ID.apply(billboard.ordinal)
-            }
-        }
-
-        override fun createTransformer(): DisplayTransformer = DisplayTransformerImpl(display)
-
-        override fun invisible(): Boolean = entityDataLock.accessToLock {
-            display.isInvisible || forceInvisibility.get() || display.itemStack.`is`(Items.AIR)
-        }
-
-        override fun sendDirtyEntityData(bundler: PacketBundler) {
-            entityDataLock.accessToLock {
-                entityData.pack(
-                    clean = true,
-                    itemFilter = { it.isDirty },
-                    valueFilter = { entityDataSet.contains(it.id) }
-                )
-            }?.markVisible(!invisible())?.run {
-                bundler += ClientboundSetEntityDataPacket(display.id, this)
-            }
-        }
-
-        override fun sendEntityData(showItem: Boolean, bundler: PacketBundler) {
-            entityDataLock.accessToLock {
-                entityData.pack(
-                    valueFilter = { entityDataSet.contains(it.id) }
-                )
-            }?.markVisible(showItem && !invisible())?.run {
-                bundler += ClientboundSetEntityDataPacket(display.id, this)
-            }
-        }
-        
-        private fun List<SynchedEntityData.DataValue<*>>.markVisible(showItem: Boolean) = map {
-            if (it.id == itemSerializer.id) SynchedEntityData.DataValue(
-                it.id,
-                EntityDataSerializers.ITEM_STACK,
-                if (showItem) display.itemStack else EMPTY_ITEM
-            ) else it
-        }
-
-        private val addPacket
-            get() = ClientboundAddEntityPacket(
-                display.id,
-                display.uuid,
-                display.x,
-                display.y + yOffset,
-                display.z,
-                display.xRot,
-                display.yRot,
-                display.type,
-                0,
-                display.deltaMovement,
-                display.yHeadRot.toDouble()
-            )
-        
-        private val removePacket
-            get() = ClientboundRemoveEntitiesPacket(display.id)
-    }
-
-    private class DisplayTransformerImpl(
-        source: ItemDisplay
-    ) : DisplayTransformer {
-        private val id = source.id
-        private val entityData = TransformationData()
-        private val entityDataLock = SingleLock()
-
-        override fun transform(
-            duration: Int,
-            position: Vector3f,
-            scale: Vector3f,
-            rotation: Quaternionf,
-            bundler: PacketBundler
-        ) {
-            entityDataLock.accessToLock {
-                entityData.transform(
-                    duration,
-                    position,
-                    scale,
-                    rotation
-                )
-                entityData.packDirty()
-            }?.run {
-                bundler += ClientboundSetEntityDataPacket(id, this)
-            }
-        }
-
-        override fun sendTransformation(bundler: PacketBundler) {
-            entityDataLock.accessToLock {
-                entityData.pack()
-            }?.run {
-                bundler += ClientboundSetEntityDataPacket(id, this)
-            }
-        }
     }
 
     override fun tint(itemStack: ItemStack, rgb: Int): ItemStack = itemStack.clone().apply {
