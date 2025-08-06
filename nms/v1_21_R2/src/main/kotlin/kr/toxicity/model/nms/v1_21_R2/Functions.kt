@@ -1,11 +1,13 @@
 package kr.toxicity.model.nms.v1_21_R2
 
 import io.netty.buffer.Unpooled
+import io.papermc.paper.adventure.PaperAdventure
 import io.papermc.paper.configuration.GlobalConfiguration
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.util.EventUtil
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket
@@ -25,6 +27,7 @@ import net.minecraft.world.phys.Vec3
 import org.bukkit.Bukkit
 import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.craftbukkit.inventory.CraftItemStack
+import org.bukkit.craftbukkit.util.CraftChatMessage
 import org.bukkit.event.Event
 import org.joml.Vector3f
 import java.util.*
@@ -172,3 +175,15 @@ internal fun Entity.toFakeAddPacket() = ClientboundAddEntityPacket(
     deltaMovement,
     yHeadRot.toDouble()
 )
+
+internal fun VanillaComponent.asAdventure() = if (BetterModel.IS_PAPER) {
+    PaperAdventure.asAdventure(this)
+} else {
+    GsonComponentSerializer.gson().deserialize(CraftChatMessage.toJSON(this))
+}
+
+internal fun AdventureComponent.asVanilla() = if (BetterModel.IS_PAPER) {
+    PaperAdventure.asVanilla(this)
+} else {
+    CraftChatMessage.fromJSON(GsonComponentSerializer.gson().serialize(this))
+}

@@ -13,6 +13,7 @@ import org.bukkit.entity.Player
 
 private val KEY = Key.key("bettermodel")
 
+internal fun bundlerOfNotNull(vararg packets: ClientPacket?) = SimpleBundler(if (packets.isEmpty()) arrayListOf() else packets.filterNotNull().toMutableList())
 internal fun bundlerOf(vararg packets: ClientPacket) = SimpleBundler(if (packets.isEmpty()) arrayListOf() else packets.toMutableList())
 internal fun bundlerOf(size: Int) = SimpleBundler(ArrayList(size))
 internal fun lazyBundlerOf() = LazyBundler()

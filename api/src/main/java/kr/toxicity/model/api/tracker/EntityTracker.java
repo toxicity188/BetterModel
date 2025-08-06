@@ -17,6 +17,7 @@ import kr.toxicity.model.api.util.function.FloatConstantSupplier;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,6 +40,7 @@ public class EntityTracker extends Tracker {
     private static final BonePredicate CREATE_HITBOX_PREDICATE = BonePredicate.from(b -> b.getName().name().equals("hitbox")
             || b.getName().tagged(BoneTags.HITBOX)
             || b.getGroup().getMountController().canMount());
+    private static final BonePredicate CREATE_NAMETAG_PREDICATE = BonePredicate.from(b -> b.getName().tagged(BoneTags.TAG));
     private static final BonePredicate HITBOX_REFRESH_PREDICATE = BonePredicate.from(r -> r.getHitBox() != null);
 
     private final EntityTrackerRegistry registry;
@@ -80,7 +82,7 @@ public class EntityTracker extends Tracker {
             tick(((t, s) -> {
                 shadow.shadowRadius(scale.getAsFloat() * baseScale);
                 shadow.sync(adapter);
-                shadow.sendDirtyEntityData(s.getTickBundler());
+                shadow.sendDirtyEntityData(s.getDataBundler());
                 shadow.syncPosition(adapter, s.getTickBundler());
             }));
             pipeline.spawnPacketHandler(shadow::spawn);
@@ -114,6 +116,10 @@ public class EntityTracker extends Tracker {
         animate("idle_fly", new AnimationModifier(adapter::fly, 6, 0, AnimationIterator.Type.LOOP, 1F));
         animate("walk_fly", new AnimationModifier(() -> adapter.fly() && walkSupplier.getAsBoolean(), 6, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
         animate("spawn", AnimationModifier.DEFAULT_WITH_PLAY_ONCE);
+        createNametag(CREATE_NAMETAG_PREDICATE, tag -> {
+            tag.alwaysVisible(entity instanceof Player);
+            tag.component(adapter.customName());
+        });
         BetterModel.plugin().scheduler().task(entity, () -> {
             if (isClosed()) return;
             createHitBox(CREATE_HITBOX_PREDICATE, HitBoxListener.EMPTY);

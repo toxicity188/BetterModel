@@ -41,6 +41,23 @@ public interface NMS {
     @NotNull ModelDisplay create(@NotNull Location location, double yOffset, @NotNull Consumer<ModelDisplay> initialConsumer);
 
     /**
+     * Creates model nametag
+     * @return nametag
+     */
+    @NotNull ModelNametag createNametag(@NotNull RenderedBone bone);
+
+    /**
+     * Creates model nametag
+     * @param consumer consumer
+     * @return nametag
+     */
+    default @NotNull ModelNametag createNametag(@NotNull RenderedBone bone, @NotNull Consumer<ModelNametag> consumer) {
+        var created = createNametag(bone);
+        consumer.accept(created);
+        return created;
+    }
+
+    /**
      * Injects netty channel handler to player
      * @param player player
      * @return channel handler

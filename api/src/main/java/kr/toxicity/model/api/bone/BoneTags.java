@@ -29,6 +29,10 @@ public enum BoneTags implements BoneTag {
      */
     SUB_SEAT(new String[] { "sp" }),
     /**
+     * Nametag
+     */
+    TAG(new String[] { "tag" }),
+    /**
      * Player head
      */
     PLAYER_HEAD(PlayerLimb.HEAD.getItemMapper(), new String[] { "ph" }),

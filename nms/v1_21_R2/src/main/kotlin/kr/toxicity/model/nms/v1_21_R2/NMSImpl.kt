@@ -314,6 +314,8 @@ class NMSImpl : NMS {
         display.entityData.packDirty()
     }
 
+    override fun createNametag(bone: RenderedBone): ModelNametag = ModelNametagImpl(bone)
+
     override fun tint(itemStack: ItemStack, rgb: Int): ItemStack = itemStack.clone().apply {
         val meta = itemMeta
         if (meta is LeatherArmorMeta) {
@@ -343,6 +345,7 @@ class NMSImpl : NMS {
         return object : EntityAdapter {
 
             override fun entity(): org.bukkit.entity.Entity = entity
+            override fun customName(): AdventureComponent? = handle().customName?.asAdventure()
             override fun handle(): Entity = entity.vanillaEntity
             override fun id(): Int = handle().id
             override fun dead(): Boolean = (handle() as? LivingEntity)?.isDeadOrDying == true || handle().removalReason != null || !handle().valid

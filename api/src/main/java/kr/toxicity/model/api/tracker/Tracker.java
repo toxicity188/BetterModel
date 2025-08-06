@@ -10,6 +10,7 @@ import kr.toxicity.model.api.config.DebugConfig;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.data.renderer.ModelRenderer;
 import kr.toxicity.model.api.data.renderer.RenderPipeline;
+import kr.toxicity.model.api.data.renderer.RenderSource;
 import kr.toxicity.model.api.event.*;
 import kr.toxicity.model.api.nms.*;
 import kr.toxicity.model.api.util.EntityUtil;
@@ -30,10 +31,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiConsumer;
-import java.util.function.BiPredicate;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.function.*;
 import java.util.stream.Stream;
 
 /**
@@ -83,6 +81,7 @@ public abstract class Tracker implements AutoCloseable {
     private ScheduledPacketHandler handler = (t, s) -> {
         if (!tickPause.get()) t.pipeline.tick(s.getViewBundler());
     };
+    private BiConsumer<Tracker, Player> perPlayerHandler = null;
 
     /**
      * Creates tracker
@@ -110,6 +109,10 @@ public abstract class Tracker implements AutoCloseable {
                 t.rotation(),
                 s.tickBundler
         ));
+        tick((t, s) -> {
+            var perPlayer = perPlayerHandler;
+            if (perPlayer != null) pipeline.allPlayer().forEach(p -> perPlayer.accept(t, p));
+        });
         pipeline.spawnPacketHandler(p -> start());
         LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " tracker created: " + name());
         animate("idle", AnimationModifier.builder().start(6).type(AnimationIterator.Type.LOOP).build());
@@ -187,7 +190,7 @@ public abstract class Tracker implements AutoCloseable {
      * Runs consumer on frame.
      * @param handler handler
      */
-    public void frame(@NotNull ScheduledPacketHandler handler) {
+    public synchronized void frame(@NotNull ScheduledPacketHandler handler) {
         this.handler = this.handler.then(Objects.requireNonNull(handler));
     }
     /**
@@ -204,6 +207,15 @@ public abstract class Tracker implements AutoCloseable {
      */
     public void tick(long tick, @NotNull ScheduledPacketHandler handler) {
         schedule(MINECRAFT_TICK_MULTIPLIER * tick, handler);
+    }
+
+    /**
+     * Runs consumer on tick per player.
+     * @param perPlayerHandler player
+     */
+    public synchronized void perPlayerTick(@NotNull BiConsumer<Tracker, Player> perPlayerHandler) {
+        var previous = this.perPlayerHandler;
+        this.perPlayerHandler = previous == null ? perPlayerHandler : previous.andThen(perPlayerHandler);
     }
 
     /**
@@ -522,6 +534,23 @@ public abstract class Tracker implements AutoCloseable {
      */
     public boolean createHitBox(@NotNull EntityAdapter entity, @NotNull BonePredicate predicate, @Nullable HitBoxListener listener) {
         return tryUpdate((b, p) -> b.createHitBox(entity, p, listener), predicate);
+    }
+
+    /**
+     * Creates nametag
+     * @param predicate predicate
+     * @param consumer nametag consumer
+     * @return success
+     */
+    public boolean createNametag(@NotNull BonePredicate predicate, @NotNull Consumer<ModelNametag> consumer) {
+        return tryUpdate((b, p) -> b.createNametag(p, tag -> {
+            consumer.accept(tag);
+            perPlayerTick((tracker, player) -> {
+                if (pipeline.getSource() instanceof RenderSource.BasePlayer(Player entity) && entity == player) return;
+                tag.teleport(tracker.location());
+                tag.send(player);
+            });
+        }), predicate);
     }
 
     /**

@@ -283,7 +283,7 @@ internal class HitBoxImpl(
             if (delegate is Mob) delegate.navigation.stop()
             mountControl(controller)
         } else initialSetup()
-        yRot = bone.hitBoxRotation().y
+        yRot = bone.rotation().y
         yHeadRot = yRot
         yBodyRot = yRot
         val pos = relativePosition()

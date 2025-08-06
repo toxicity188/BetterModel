@@ -2,8 +2,10 @@ package kr.toxicity.model.api.nms;
 
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry;
+import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.util.Optional;
@@ -17,6 +19,12 @@ public interface EntityAdapter {
      * @return source entity
      */
     @NotNull Entity entity();
+
+    /**
+     * Gets custom name of this entity
+     * @return custom name
+     */
+    @Nullable Component customName();
 
     /**
      * Gets vanilla entity

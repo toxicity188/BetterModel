@@ -76,6 +76,9 @@ public final class RenderedBone {
     @Getter
     @Nullable
     private HitBox hitBox;
+    @Getter
+    @Nullable
+    private ModelNametag nametag;
 
     //Item
     @Getter
@@ -162,6 +165,7 @@ public final class RenderedBone {
      * @param entity target entity
      * @param predicate predicate
      * @param listener hit box listener
+     * @return success
      */
     public boolean createHitBox(@NotNull EntityAdapter entity, @NotNull Predicate<RenderedBone> predicate, @Nullable HitBoxListener listener) {
         if (predicate.test(this)) {
@@ -178,6 +182,23 @@ public final class RenderedBone {
                 hitBox = BetterModel.plugin().nms().createHitBox(entity, this, h, group.getMountController(), l != null ? l : HitBoxListener.EMPTY);
                 return hitBox != null;
             }
+        }
+        return false;
+    }
+
+    /**
+     * Creates nametag
+     * @param predicate predicate
+     * @param consumer nametag consumer
+     * @return success
+     */
+    public boolean createNametag(@NotNull Predicate<RenderedBone> predicate, @NotNull Consumer<ModelNametag> consumer) {
+        if (nametag == null && predicate.test(this)) {
+            synchronized (this) {
+                if (nametag != null) return false;
+                nametag = BetterModel.plugin().nms().createNametag(this, consumer);
+            }
+            return true;
         }
         return false;
     }
@@ -525,6 +546,7 @@ public final class RenderedBone {
      */
     public void remove(@NotNull PacketBundler bundler) {
         if (display != null) display.remove(bundler);
+        if (nametag != null) nametag.remove(bundler);
     }
 
     /**
@@ -620,7 +642,7 @@ public final class RenderedBone {
     }
 
     @NotNull
-    public ModelRotation hitBoxRotation() {
+    public ModelRotation rotation() {
         return rotation;
     }
 
