@@ -8,6 +8,7 @@
   ],
   "ignoreDeps": [
     "org.jetbrains:annotations",
-    "com.hibiscusmc:hmccosmetics"
+    "com.hibiscusmc:hmccosmetics",
+    "net.kyori:adventure-platform-bukkit"
   ]
 }

@@ -111,7 +111,7 @@ public abstract class Tracker implements AutoCloseable {
         ));
         tick((t, s) -> {
             var perPlayer = perPlayerHandler;
-            if (perPlayer != null) pipeline.allPlayer().forEach(p -> perPlayer.accept(t, p));
+            if (perPlayer != null) pipeline.nonHidePlayer().forEach(p -> perPlayer.accept(t, p));
         });
         pipeline.spawnPacketHandler(p -> start());
         LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " tracker created: " + name());
