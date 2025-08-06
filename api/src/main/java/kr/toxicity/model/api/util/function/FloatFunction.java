@@ -26,6 +26,6 @@ public interface FloatFunction<T> {
     default @NotNull FloatFunction<T> memoize() {
         if (this instanceof FloatConstantFunction<T>) return this;
         var map = new Int2ObjectOpenHashMap<T>();
-        return f -> map.computeIfAbsent(MathUtil.similarHashCode(f), this::apply);
+        return f -> map.computeIfAbsent(MathUtil.similarHashCode(f), i -> apply(f));
     }
 }
