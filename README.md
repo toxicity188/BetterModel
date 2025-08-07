@@ -41,7 +41,7 @@ The main reason I created it is:
 
 Also, you can refer [my document](https://github.com/toxicity188/BetterModel/wiki/Compare-with-ModelEngine) to compare both ModelEnigne and BetterModel.
 
-## 🛞General model/animation
+## 🌎Generic BlockBench model with animation
 ![](https://github.com/user-attachments/assets/b4e69aef-a446-4ac3-b84e-eb42fe4f069d)  
 * * *
 [![](https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=YouTube&logoColor=white)](https://youtu.be/f3U7Lmo3aA8?si=SnglL0YKn20CrR7Y)  
@@ -68,7 +68,7 @@ This plugin provides **custom hitbox** both client and server. (tracking animati
 [![](https://img.shields.io/badge/Wiki-222222?style=for-the-badge&logoColor=white)](https://github.com/toxicity188/BetterModel/wiki/MythicMobs-Script-Compatibility)  
 Like MEG, This plugin supports **MythicMobs**, you can use some MEG's mechanics in BetterModel too.   
 
-## 💡Player model/animation
+## 💡Player model with animation
 ![](https://github.com/user-attachments/assets/0c13bec2-898f-4d9a-a709-10e0571337f3)
 ![](https://github.com/user-attachments/assets/034dd64c-6889-4a01-961d-e69679b1c71b)
 * * *
