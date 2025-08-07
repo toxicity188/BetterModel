@@ -65,7 +65,6 @@ This plugin provides **custom hitbox** both client and server. (tracking animati
 * * *
 ![](https://github.com/user-attachments/assets/eb2d64ef-7b6e-4306-8c31-d92d0266dbac)
 * * *
-[![](https://img.shields.io/badge/Wiki-222222?style=for-the-badge&logoColor=white)](https://github.com/toxicity188/BetterModel/wiki/MythicMobs-Script-Compatibility)  
 Like MEG, This plugin supports **MythicMobs**, you can use some MEG's mechanics in BetterModel too.   
 
 ## 💡Player model with animation
@@ -75,6 +74,7 @@ Like MEG, This plugin supports **MythicMobs**, you can use some MEG's mechanics 
 This plugin supports **player model with using user's custom skin without textures**.
 
 ## 🚀Plugin support
+[![](https://img.shields.io/badge/Wiki-FF6A00?style=for-the-badge&logoColor=white)](https://github.com/toxicity188/BetterModel/wiki/MythicMobs-Script-Compatibility)
 #### Platform
 - [Spigot](https://www.spigotmc.org/)
 - [Paper](https://papermc.io/downloads/paper) or a fork (e.g., [Folia](https://papermc.io/downloads/folia))
