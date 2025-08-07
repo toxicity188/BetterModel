@@ -4,10 +4,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
+import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.config.DebugConfig;
 import kr.toxicity.model.api.nms.*;
@@ -36,8 +36,8 @@ import java.util.stream.Stream;
 
 public final class EntityTrackerRegistry {
 
-    private static final Object2ObjectMap<UUID, EntityTrackerRegistry> UUID_REGISTRY_MAP = new Object2ObjectOpenHashMap<>();
-    private static final Int2ObjectMap<EntityTrackerRegistry> ID_REGISTRY_MAP = new Int2ObjectOpenHashMap<>();
+    private static final Reference2ReferenceMap<UUID, EntityTrackerRegistry> UUID_REGISTRY_MAP = new Reference2ReferenceOpenHashMap<>();
+    private static final Int2ReferenceMap<EntityTrackerRegistry> ID_REGISTRY_MAP = new Int2ReferenceOpenHashMap<>();
     private static final DuplexLock REGISTRY_LOCK = new DuplexLock();
     /**
      * Tracker's namespace.
@@ -70,7 +70,7 @@ public final class EntityTrackerRegistry {
         }
     }
     public static @NotNull @Unmodifiable List<EntityTrackerRegistry> registries() {
-        return REGISTRY_LOCK.accessToReadLock(() -> ImmutableList.copyOf(UUID_REGISTRY_MAP.values()));
+        return REGISTRY_LOCK.accessToWriteLock(() -> ImmutableList.copyOf(UUID_REGISTRY_MAP.values()));
     }
 
     public static @Nullable EntityTrackerRegistry registry(@NotNull Entity entity) {

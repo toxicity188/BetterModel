@@ -62,11 +62,11 @@ public record Datapoint(
         var xb = build(x, placeholder);
         var yb = build(y, placeholder);
         var zb = build(z, placeholder);
-        if (xb instanceof Float2FloatConstantFunction(float value)
-                && yb instanceof Float2FloatConstantFunction(float value1)
-                && zb instanceof Float2FloatConstantFunction(float value2)
+        if (xb instanceof Float2FloatConstantFunction(float xc)
+                && yb instanceof Float2FloatConstantFunction(float yc)
+                && zb instanceof Float2FloatConstantFunction(float zc)
         ) {
-            return FloatFunction.of(new Vector3f(value, value1, value2));
+            return FloatFunction.of(new Vector3f(xc, yc, zc));
         } else {
             return f -> new Vector3f(
                     xb.applyAsFloat(f),

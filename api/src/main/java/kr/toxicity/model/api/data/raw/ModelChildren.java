@@ -1,9 +1,6 @@
 package kr.toxicity.model.api.data.raw;
 
-import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParseException;
 import com.google.gson.annotations.SerializedName;
 import kr.toxicity.model.api.bone.BoneTagRegistry;
 import kr.toxicity.model.api.data.blueprint.BlueprintChildren;
@@ -12,7 +9,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -27,28 +23,13 @@ import static kr.toxicity.model.api.util.CollectionUtil.mapToList;
 public sealed interface ModelChildren {
 
     /**
-     * Singleton parser instance.
-     */
-    Parser PARSER = new Parser();
-
-    /**
      * Parser
      */
-    final class Parser implements JsonDeserializer<ModelChildren> {
-
-        /**
-         * Private initializer.
-         */
-        private Parser() {
-        }
-
-        @Override
-        public ModelChildren deserialize(JsonElement element, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-            if (element.isJsonPrimitive()) return new ModelUUID(element.getAsString());
-            else if (element.isJsonObject()) return context.deserialize(element, ModelGroup.class);
-            else throw new RuntimeException();
-        }
-    }
+    JsonDeserializer<ModelChildren> PARSER = (json, typeOfT, context) -> {
+        if (json.isJsonPrimitive()) return new ModelUUID(json.getAsString());
+        else if (json.isJsonObject()) return context.deserialize(json, ModelGroup.class);
+        else throw new RuntimeException();
+    };
 
     /**
      * Converts children to blueprint children

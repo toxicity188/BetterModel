@@ -8,6 +8,7 @@ import kr.toxicity.model.api.pack.PackZipper;
 import kr.toxicity.model.api.scheduler.ModelScheduler;
 import kr.toxicity.model.api.version.MinecraftVersion;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,7 +21,7 @@ import java.util.function.Consumer;
  * @see org.bukkit.plugin.java.JavaPlugin
  * @see BetterModel
  */
-public interface BetterModelPlugin {
+public interface BetterModelPlugin extends Plugin {
 
     /**
      * Reloads this plugin.

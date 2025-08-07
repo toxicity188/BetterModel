@@ -43,7 +43,6 @@ import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.event.entity.CreatureSpawnEvent
 import org.bukkit.event.entity.EntityPotionEffectEvent
 import org.bukkit.event.entity.EntityRemoveEvent
-import org.bukkit.plugin.Plugin
 import org.bukkit.util.Vector
 import org.joml.Quaterniond
 import org.joml.Vector3f
@@ -347,13 +346,13 @@ internal class HitBoxImpl(
     }
 
     override fun hide(player: org.bukkit.entity.Player) {
-        val plugin = BetterModel.plugin() as Plugin
+        val plugin = BetterModel.plugin()
         player.hideEntity(plugin, bukkitEntity)
         player.hideEntity(plugin, interaction.bukkitEntity)
     }
 
     override fun show(player: org.bukkit.entity.Player) {
-        val plugin = BetterModel.plugin() as Plugin
+        val plugin = BetterModel.plugin()
         player.showEntity(plugin, bukkitEntity)
         player.showEntity(plugin, interaction.bukkitEntity)
     }

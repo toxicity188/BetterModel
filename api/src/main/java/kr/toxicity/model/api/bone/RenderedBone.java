@@ -340,8 +340,8 @@ public final class RenderedBone {
         return false;
     }
 
-    public boolean tick(@NotNull PacketBundler perPlayerBundler) {
-        return tick(globalState, perPlayerBundler);
+    public boolean tick(@NotNull PacketBundler globalBundler) {
+        return tick(globalState, globalBundler);
     }
 
     public boolean tick(@NotNull UUID uuid, @NotNull PacketBundler perPlayerBundler) {
