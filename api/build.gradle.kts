@@ -1,5 +1,6 @@
 import com.vanniktech.maven.publish.JavaLibrary
 import com.vanniktech.maven.publish.JavadocJar
+import kotlin.io.encoding.Base64
 
 plugins {
     alias(libs.plugins.bukkitConvention)
@@ -7,13 +8,25 @@ plugins {
     signing
 }
 
+val artifactBaseId = rootProject.name.lowercase()
+val artifactVersion = project.version.toString().substringBeforeLast('-')
+
 java {
     withSourcesJar()
     withJavadocJar()
 }
 
 signing {
-    useGpgCmd()
+    val key = System.getenv("SIGNING_KEY")?.let {
+        Base64.decode(it.toByteArray(Charsets.UTF_8)).toString(Charsets.UTF_8)
+    }
+    val password = System.getenv("SIGNING_PASSWORD")
+    if (!key.isNullOrEmpty() && !password.isNullOrEmpty()) {
+        useInMemoryPgpKeys(
+            key,
+            password
+        )
+    } else useGpgCmd()
 }
 
 dependencies {
@@ -27,13 +40,13 @@ dependencies {
 mavenPublishing  {
     publishToMavenCentral()
     signAllPublications()
-    coordinates("io.github.toxicity188", rootProject.name, project.version as String)
+    coordinates("io.github.toxicity188", artifactBaseId, artifactVersion)
     configure(JavaLibrary(
         javadocJar = JavadocJar.None(),
         sourcesJar = true,
     ))
     pom {
-        name = rootProject.name
+        name = artifactBaseId
         description = "Lightweight BlockBench model engine for Bukkit"
         inceptionYear = "2024"
         url = "https://github.com/toxicity188/BetterModel/"
@@ -54,6 +67,19 @@ mavenPublishing  {
             url = "https://github.com/toxicity188/BetterModel/"
             connection = "scm:git:git://github.com/toxicity188/BetterModel.git"
             developerConnection = "scm:git:ssh://git@github.com/toxicity188/BetterModel.git"
+        }
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/toxicity188/$artifactBaseId")
+            credentials {
+                username = "toxicity188"
+                password = System.getenv("PACKAGES_API_TOKEN")
+            }
         }
     }
 }
