@@ -13,6 +13,8 @@ jobs:
     if: github.actor == 'toxicity188'
     runs-on: ubuntu-latest
     env:
+      SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+      SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
       PACKAGES_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       BUILD_NUMBER: ${{ github.run_number }}
       COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
