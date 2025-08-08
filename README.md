@@ -1,5 +1,5 @@
 ## ⚡Lightweight BlockBench model engine for Bukkit
-![Maven Central Version](https://img.shields.io/maven-central/v/io.github.toxicity188/BetterModel?style=flat-square&logo=sonatype)
+![Maven Central Version](https://img.shields.io/maven-central/v/io.github.toxicity188/bettermodel?style=flat-square&logo=sonatype)
 [![CodeFactor](https://www.codefactor.io/repository/github/toxicity188/bettermodel/badge?style=flat-square)](https://www.codefactor.io/repository/github/toxicity188/bettermodel)
 [![Total line](https://tokei.rs/b1/github/toxicity188/BetterModel?category=code&style=flat-square)](https://github.com/toxicity188/BetterModel)
 [![Discord](https://img.shields.io/badge/Discord-%235865F2.svg?style=flat-square&logo=discord&logoColor=white)](https://discord.com/invite/rePyFESDbk)
@@ -45,7 +45,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.github.toxicity188:BetterModel:VERSION")
+    compileOnly("io.github.toxicity188:bettermodel:VERSION")
 }
 ```
 * * *
