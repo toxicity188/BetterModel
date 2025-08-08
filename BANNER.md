@@ -48,8 +48,7 @@ BetterModel has been trying many kind of CPU and network cost reduce.
 - parallel packet bundling
 - and much more
 
-> [!NOTE]\
-> You can see the report of network optimization in [here](https://github.com/toxicity188/BetterModel/wiki/Report-about-network-cost-about-two-model-plugin-(ModelEngine,-BetterModel)).
+You can see the report of network optimization in [here](https://github.com/toxicity188/BetterModel/wiki/Report-about-network-cost-about-two-model-plugin-(ModelEngine,-BetterModel)).
 
 #### Custom hitbox
 * * *
