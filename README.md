@@ -25,7 +25,7 @@ Welcome to **BetterModel**!
 
 This plugin implements the **fully server-side 3D model** by using an item-display packet.
 
-- Importing Generic BlockBench model (.bbmodel)
+- Importing Generic BlockBench model `.bbmodel`
 - Auto-generating resource pack
 - Playing animation
 - Syncing with base entity
@@ -34,12 +34,12 @@ This plugin implements the **fully server-side 3D model** by using an item-displ
 
 #### 🔥Why do I create BetterModel even though ModelEngine already exists?
 The main reason I created it is:
-- To reduce traffic usage—MEG’s traffic optimization is outdated and insufficient for modern servers.
+- To reduce network cost usage—MEG’s traffic optimization is outdated and insufficient for modern servers.
 - To enable faster updates—We can’t afford to wait for MEG’s slow update cycle anymore.
 - To provide a more flexible API—MEG is closed-source with a very limited API, which makes extending or integrating difficult.
 - To restore vanilla behavior-MEG breaks several vanilla entity features and physics, which this project aims to fix.
 
-Also, you can refer [my document](https://github.com/toxicity188/BetterModel/wiki/Compare-with-ModelEngine) to compare both ModelEnigne and BetterModel.
+Also, you can refer [my document](https://github.com/toxicity188/BetterModel/wiki/Compare-with-ModelEngine) to compare both ModelEngine and BetterModel.
 
 ## 🌎Generic BlockBench model with animation
 ![](https://github.com/user-attachments/assets/b4e69aef-a446-4ac3-b84e-eb42fe4f069d)  
@@ -47,13 +47,15 @@ Also, you can refer [my document](https://github.com/toxicity188/BetterModel/wik
 [![](https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=YouTube&logoColor=white)](https://youtu.be/f3U7Lmo3aA8?si=SnglL0YKn20CrR7Y)  
 This plugin, of course, implements a Generic BlockBench model with animation.  
 
-#### Network optimization
-- Culling by sight-trace
-- Skip sending a packet if a scale is zero
-- Parallel bundling of an animation packet
-- Keyframe optimization
- 
-You can see the report of network optimization in [here](https://github.com/toxicity188/BetterModel/wiki/Report-about-network-cost-about-two-model-plugin-(ModelEngine,-BetterModel)).
+####  Optimization
+BetterModel has been trying many kind of CPU and network cost reduce.
+- culling by sight
+- async entity spawn/despawn handling
+- parallel packet bundling
+- and much more
+
+> [!NOTE]\
+> You can see the report of network optimization in [here](https://github.com/toxicity188/BetterModel/wiki/Report-about-network-cost-about-two-model-plugin-(ModelEngine,-BetterModel)).
 
 #### Custom hitbox
 * * *
@@ -120,3 +122,5 @@ dependencies {
     compileOnly("io.github.toxicity188:BetterModel:VERSION")
 }
 ```
+## ☕Donation
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/toxicity188)
