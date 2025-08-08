@@ -35,7 +35,15 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github+json" \
             https://api.github.com/repos/${{ github.repository }}/deployments \
-            -d '{"ref":"master","payload": "{ \"timestamp\": \"'$(date +%s)'\" }","auto_merge": false,"environment":"production","transient_environment":false,required_contexts=[],"description":"Publishing to GitHub Packages"}')
+            -d '{
+              "ref": "master",
+              "auto_merge": false,
+              "required_contexts": [],
+              "payload": "{ \"timestamp\": \"'$(date +%s)'\" }",
+              "environment": "production",
+              "transient_environment": false,
+              "description": "Publishing to GitHub Packages"
+            }')
           echo "$response"
           deployment_id=$(echo "$response" | jq -r '.id')
           echo "id=$deployment_id" >> $GITHUB_OUTPUT
