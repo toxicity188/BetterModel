@@ -44,17 +44,19 @@ jobs:
         run: ./gradlew :api:publishAllPublicationToGitHubPackagesRepository --stacktrace
       - name: Set Deployment Status (success)
         if: success()
-        uses: actions/deployment-status@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          deployment_id: ${{ steps.deployment.outputs.id }}
-          state: success
-          environment_url: https://github.com/toxicity188/BetterModel/packages
+        run: |
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/${{ github.repository }}/deployments/${{ steps.deployment.outputs.id }}/statuses \
+            -d '{"state":"success","environment_url":"https://github.com/toxicity188/BetterModel/packages","description":"Deployment succeeded"}'
+        shell: bash
       - name: Set Deployment Status (failure)
         if: failure()
-        uses: actions/deployment-status@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          deployment_id: ${{ steps.deployment.outputs.id }}
-          state: failure
-          environment_url: https://github.com/toxicity188/BetterModel/packages
+        run: |
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/${{ github.repository }}/deployments/${{ steps.deployment.outputs.id }}/statuses \
+            -d '{"state":"failure","environment_url":"https://github.com/toxicity188/BetterModel/packages","description":"Deployment failed"}'
+        shell: bash
