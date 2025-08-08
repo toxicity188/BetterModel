@@ -30,12 +30,16 @@ jobs:
         run: chmod +x gradlew
       - name: Create Deployment
         id: deployment
-        uses: actions/create-deployment@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          environment: production
-          transient_environment: false
-          description: "Publishing to GitHub Packages"
+        run: |
+          response=$(curl -s -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/${{ github.repository }}/deployments \
+            -d '{"ref":"'"${{ github.ref }}"'","environment":"production","transient_environment":false,"description":"Publishing to GitHub Packages"}')
+          echo "$response"
+          deployment_id=$(echo "$response" | jq -r '.id')
+          echo "id=$deployment_id" >> $GITHUB_OUTPUT
+        shell: bash
       - name: Publish package
         run: ./gradlew :api:publishAllPublicationToGitHubPackagesRepository --stacktrace
       - name: Set Deployment Status (success)
