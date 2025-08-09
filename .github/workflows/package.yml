@@ -40,7 +40,7 @@ jobs:
               "auto_merge": false,
               "required_contexts": [],
               "payload": "{ \"timestamp\": \"'$(date +%s)'\" }",
-              "environment": "production",
+              "environment": "github-packages",
               "transient_environment": false,
               "description": "Publishing to GitHub Packages"
             }')

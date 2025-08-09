@@ -29,13 +29,14 @@ public final class BezierInterpolation implements VectorInterpolation {
         var t1 = p1.time();
         var t2 = p2.time();
         var a = alpha(t1, t2, time);
+        var ha = a / 2F;
 
         return bezier(
                 time,
                 t1,
                 t2,
-                p1.vector(lerp(t1, t2, 1 - a)),
-                p2.vector(lerp(t1, t2, a)),
+                p1.vector(lerp(t1, t2, ha)),
+                p2.vector(lerp(t1, t2, 1 - ha)),
                 bezierLeftTime,
                 bezierLeftValue,
                 bezierRightTime,

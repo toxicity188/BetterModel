@@ -28,9 +28,10 @@ public enum LinearInterpolation implements VectorInterpolation {
         var t1 = p1.time();
         var t2 = p2.time();
         var a = alpha(t1, t2, time);
+        var ha = a / 2F;
         return lerp(
-                p1.vector(lerp(t1, t2, 1 - a)),
-                p2.vector(lerp(t1, t2, a)),
+                p1.vector(lerp(t1, t2, ha)),
+                p2.vector(lerp(t1, t2, 1 - ha)),
                 a
         );
     }

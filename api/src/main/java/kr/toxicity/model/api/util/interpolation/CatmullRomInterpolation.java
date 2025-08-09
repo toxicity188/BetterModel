@@ -39,12 +39,13 @@ public enum CatmullRomInterpolation implements VectorInterpolation {
         var t2 = p2.time();
         var t3 = p3.time();
         var a = alpha(t1, t2, time);
+        var ha = a / 2F;
 
         return catmull_rom(
-                p0.vector(lerp(t0, t1, 1 - a)),
-                p1.vector(lerp(t1, t2, 1 - a)),
-                p2.vector(lerp(t1, t2, a)),
-                p3.vector(lerp(t2, t3, a)),
+                p0.vector(lerp(t0, t1, ha)),
+                p1.vector(lerp(t1, t2, ha)),
+                p2.vector(lerp(t1, t2, 1 - ha)),
+                p3.vector(lerp(t2, t3, 1 - ha)),
                 a
         );
     }
