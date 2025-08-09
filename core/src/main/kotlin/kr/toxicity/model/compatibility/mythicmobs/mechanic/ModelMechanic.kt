@@ -22,7 +22,6 @@ class ModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTarg
     private val da = mlc.toPlaceholderBoolean(arrayOf("damageanimation", "da", "animation"), false)
     private val dt = mlc.toPlaceholderBoolean(arrayOf("damagetint", "tint", "dt"), true)
     private val vr = mlc.toPlaceholderFloat(arrayOf("view-range", "vr"), EntityUtil.ENTITY_MODEL_VIEW_RADIUS)
-    private val shadow = mlc.toPlaceholderBoolean(arrayOf("shadow"), false)
     private val r = mlc.toPlaceholderBoolean(arrayOf("remove", "r"), false)
 
     override fun cast(p0: SkillMetadata): SkillResult {
@@ -38,8 +37,7 @@ class ModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTarg
                     st(args),
                     da(args),
                     dt(args),
-                    vr(args),
-                    shadow(args)
+                    vr(args)
                 )) { t ->
                     t.scaler(ModelScaler.entity().multiply(s(args)))
                 }

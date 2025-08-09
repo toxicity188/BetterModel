@@ -10,14 +10,12 @@ import org.jetbrains.annotations.NotNull;
  * @param damageAnimation enables damage animation
  * @param damageTint enables damage tint
  * @param viewRange view range
- * @param shadow create shadow
  */
 public record TrackerModifier(
         @SerializedName("sight-trace") boolean sightTrace,
         @SerializedName("damage-animation") boolean damageAnimation,
         @SerializedName("damage-tint") boolean damageTint,
-        @SerializedName("view-range") float viewRange,
-        boolean shadow
+        @SerializedName("view-range") float viewRange
 ) {
     /**
      * Default modifier
@@ -26,8 +24,7 @@ public record TrackerModifier(
             true,
             true,
             true,
-            EntityUtil.ENTITY_MODEL_VIEW_RADIUS,
-            true
+            EntityUtil.ENTITY_MODEL_VIEW_RADIUS
     );
 
     /**
@@ -54,7 +51,6 @@ public record TrackerModifier(
         private boolean damageAnimation;
         private boolean damageTint;
         private float viewRange;
-        private boolean shadow;
 
         /**
          * Private initializer
@@ -65,7 +61,6 @@ public record TrackerModifier(
             this.damageAnimation = modifier.damageAnimation;
             this.damageTint = modifier.damageTint;
             this.viewRange = modifier.viewRange;
-            this.shadow = modifier.shadow;
         }
 
         /**
@@ -109,16 +104,6 @@ public record TrackerModifier(
         }
 
         /**
-         * Set shadow
-         * @param shadow shadow
-         * @return self
-         */
-        public @NotNull Builder shadow(boolean shadow) {
-            this.shadow = shadow;
-            return this;
-        }
-
-        /**
          * Builds modifier
          * @return modifier
          */
@@ -127,8 +112,7 @@ public record TrackerModifier(
                     sightTrace,
                     damageAnimation,
                     damageTint,
-                    viewRange,
-                    shadow
+                    viewRange
             );
         }
     }

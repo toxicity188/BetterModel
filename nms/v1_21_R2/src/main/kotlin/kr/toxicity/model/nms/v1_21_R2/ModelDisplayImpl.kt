@@ -16,6 +16,7 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.PositionMoveRotation
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.Items
+import net.minecraft.world.phys.Vec3
 import org.bukkit.Location
 import org.bukkit.inventory.ItemStack
 import org.joml.Quaternionf
@@ -55,11 +56,9 @@ internal class ModelDisplayImpl(
         }
     }
 
-    override fun sync(entity: EntityAdapter) {
+    override fun syncEntity(entity: EntityAdapter) {
         display.valid = !entity.dead()
         display.onGround = entity.ground()
-        display.setOldPosAndRot()
-        display.setPos((entity.handle() as Entity).position())
         val beforeInvisible = display.isInvisible
         val afterInvisible = entity.invisible()
         entityDataLock.accessToLock {
@@ -70,6 +69,12 @@ internal class ModelDisplayImpl(
             }
         }
     }
+
+    override fun syncPosition(location: Location) {
+        display.setOldPosAndRot()
+        display.setPos(Vec3(location.x, location.y, location.z))
+    }
+
 
     override fun spawn(showItem: Boolean, bundler: PacketBundler) {
         bundler += addPacket
@@ -93,7 +98,7 @@ internal class ModelDisplayImpl(
         bundler += ClientboundTeleportEntityPacket.teleport(display.id, PositionMoveRotation.of(display), emptySet(), display.onGround)
     }
 
-    override fun syncPosition(adapter: EntityAdapter, bundler: PacketBundler) {
+    override fun sendPosition(adapter: EntityAdapter, bundler: PacketBundler) {
         val handle = adapter.handle() as Entity
         if (display.position() == display.oldPosition()) return
         bundler += ClientboundEntityPositionSyncPacket(

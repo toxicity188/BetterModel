@@ -22,6 +22,10 @@ public sealed interface RenderSource<T extends Tracker> {
         return new ProfiledDummy(location, profile, slim);
     }
     @ApiStatus.Internal
+    static @NotNull RenderSource.Entity of(@NotNull org.bukkit.entity.Entity entity, @NotNull GameProfile profile, boolean slim) {
+        return entity instanceof Player player ? new ProfiledPlayer(player, profile, slim) : new ProfiledEntity(entity, profile, slim);
+    }
+    @ApiStatus.Internal
     static @NotNull RenderSource.Entity of(@NotNull org.bukkit.entity.Entity entity) {
         return entity instanceof Player player ? new BasePlayer(player) : new BaseEntity(entity);
     }
@@ -78,6 +82,25 @@ public sealed interface RenderSource<T extends Tracker> {
         }
     }
 
+    record ProfiledEntity(@NotNull org.bukkit.entity.Entity entity, @NotNull GameProfile profile, boolean slim) implements Entity, Profiled {
+
+        @NotNull
+        @Override
+        public EntityTracker create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
+            return EntityTrackerRegistry.getOrCreate(entity).create(pipeline.name(), r -> new EntityTracker(r, pipeline, modifier, preUpdateConsumer));
+        }
+
+        @Override
+        public @NotNull EntityTracker getOrCreate(@NotNull String name, @NotNull Supplier<RenderPipeline> supplier, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
+            return EntityTrackerRegistry.getOrCreate(entity).getOrCreate(name, r -> new EntityTracker(r, supplier.get(), modifier, preUpdateConsumer));
+        }
+
+        @Override
+        public @NotNull Location location() {
+            return entity.getLocation();
+        }
+    }
+
     record BasePlayer(@NotNull Player entity) implements Entity, Profiled {
 
         @NotNull
@@ -106,6 +129,24 @@ public sealed interface RenderSource<T extends Tracker> {
         public boolean slim() {
             var channel = BetterModel.plugin().playerManager().player(entity.getUniqueId());
             return channel != null && channel.isSlim();
+        }
+    }
+
+    record ProfiledPlayer(@NotNull Player entity, @NotNull GameProfile profile, boolean slim) implements Entity, Profiled {
+        @NotNull
+        @Override
+        public EntityTracker create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
+            return EntityTrackerRegistry.getOrCreate(entity).create(pipeline.name(), r -> new PlayerTracker(r, pipeline, modifier, preUpdateConsumer));
+        }
+
+        @Override
+        public @NotNull EntityTracker getOrCreate(@NotNull String name, @NotNull Supplier<RenderPipeline> supplier, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
+            return EntityTrackerRegistry.getOrCreate(entity).getOrCreate(name, r -> new PlayerTracker(r, supplier.get(), modifier, preUpdateConsumer));
+        }
+
+        @Override
+        public @NotNull Location location() {
+            return entity.getLocation();
         }
     }
 }

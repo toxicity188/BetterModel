@@ -5,6 +5,12 @@ plugins {
 
 dependencies {
     compileOnly(project(":api"))
+
+    compileOnly(libs.lombok)
+    annotationProcessor(libs.lombok)
+
+    testCompileOnly(libs.lombok)
+    testAnnotationProcessor(libs.lombok)
 }
 
 val pluginName = "${rootProject.name}-TestPlugin"
