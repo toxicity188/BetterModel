@@ -3,9 +3,11 @@ package kr.toxicity.model.test;
 import com.google.gson.JsonObject;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.animation.AnimationEventHandler;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.event.PluginStartReloadEvent;
+import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
@@ -36,7 +38,7 @@ public final class FightTester implements ModelTester, Listener {
     @NotNull
     private static final NamespacedKey KNIGHT_SWORD_KEY = Objects.requireNonNull(NamespacedKey.fromString("knight_sword"));
 
-    private final Set<UUID> playerSet = ConcurrentHashMap.newKeySet();
+    private final Map<UUID, PlayerSkillCounter> playerCounterMap = new ConcurrentHashMap<>();
     private ItemStack lineItem;
     private BetterModelTest test;
 
@@ -93,26 +95,11 @@ public final class FightTester implements ModelTester, Listener {
                 return;
             }
         }
-        if (playerSet.contains(uuid)) return;
         if (!player.getInventory().getItemInMainHand().getPersistentDataContainer().has(KNIGHT_SWORD_KEY)) return;
-        BetterModel.limb("knight")
-                .map(limb -> limb.getOrCreate(player))
-                .ifPresent(tracker -> {
-                    var drawer = tracker.bone("sword_point");
-                    if (drawer == null) {
-                        tracker.close();
-                        return;
-                    }
-                    var line = new LineDrawer(player, drawer, 30);
-                    Runnable cancel = () -> {
-                        tracker.close();
-                        line.cancel();
-                        playerSet.remove(player.getUniqueId());
-                    };
-                    if (!tracker.animate("left_attack_1", AnimationModifier.DEFAULT, cancel) || !playerSet.add(uuid)) {
-                        cancel.run();
-                    }
-                });
+        playerCounterMap.computeIfAbsent(uuid, u -> new PlayerSkillCounter(player)
+                .skill("left_attack_1")
+                .skill("left_attack_2")
+                .skill("left_attack_3")).execute();
     }
 
     private void giveKnightSword(@NotNull Player player) {
@@ -142,6 +129,72 @@ public final class FightTester implements ModelTester, Listener {
     private static @NotNull Vector3f toDeltaVector(@NotNull Location before, @NotNull Location after, float yRot) {
         var rd = after.toVector().subtract(before.toVector()).rotateAroundY(yRot);
         return new Vector3f((float) rd.getX(), (float) rd.getY(), (float) rd.getZ());
+    }
+
+    @RequiredArgsConstructor
+    private class PlayerSkillCounter {
+        private final Player player;
+        private final Queue<String> skillQueue = new LinkedList<>();
+        private LineDrawer lineDrawer;
+        private long nextCooldown;
+
+        @NotNull PlayerSkillCounter skill(@NotNull String name) {
+            skillQueue.add(name);
+            return this;
+        }
+
+        void execute() {
+            if (nextCooldown > System.currentTimeMillis()) return;
+            var dequeue = skillQueue.poll();
+            if (dequeue != null) execute(dequeue);
+        }
+        private void execute(@NotNull String target) {
+            BetterModel.limb("knight")
+                    .map(limb -> limb.getOrCreate(player))
+                    .ifPresent(tracker -> {
+                        var drawer = tracker.bone("sword_point");
+                        if (drawer == null) {
+                            tracker.close();
+                            return;
+                        }
+                        lineDrawer = new LineDrawer(player, drawer, 30);
+                        Runnable cancel = () -> {
+                            tracker.close();
+                            cancelDrawer();
+                            playerCounterMap.remove(player.getUniqueId());
+                        };
+                        var animation = tracker.renderer().animation(target).orElse(null);
+                        if (animation == null) cancel.run();
+                        else {
+                            tracker.animate(b -> true, animation, AnimationModifier.DEFAULT, AnimationEventHandler.start().onAnimationRemove(cancel));
+                            nextCooldown = (long) ((animation.length() - 0.25) * 1000) + System.currentTimeMillis();
+                            playSound();
+                        }
+                    });
+        }
+
+        private void playSound() {
+            var loc = player.getLocation();
+            player.playSound(
+                    loc,
+                    Sound.ENTITY_BREEZE_SHOOT,
+                    0.75F,
+                    0.5F
+            );
+            player.playSound(
+                    loc,
+                    Sound.ENTITY_DROWNED_SHOOT,
+                    2.0F,
+                    0.75F
+            );
+        }
+
+        private void cancelDrawer() {
+            if (lineDrawer != null) {
+                lineDrawer.cancel();
+                lineDrawer = null;
+            }
+        }
     }
 
     private record DrawerFrame(
