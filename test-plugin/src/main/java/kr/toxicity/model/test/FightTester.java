@@ -189,6 +189,7 @@ public final class FightTester implements ModelTester, Listener {
 
         void cancel() {
             task.cancel();
+            queuedTask.removeIf(BooleanSupplier::getAsBoolean);
         }
 
         @NotNull Location relativeLocation(@NotNull Location location, @NotNull Vector3f vector3f, float originYaw) {
@@ -227,7 +228,7 @@ public final class FightTester implements ModelTester, Listener {
             players.forEach(bundler::send);
             var displayCounter = new AtomicInteger();
             queuedTask.add(() -> {
-                if (displayCounter.incrementAndGet() >= 20) {
+                if (displayCounter.incrementAndGet() >= 20 || task.isCancelled()) {
                     var removeBundler = BetterModel.plugin().nms().createBundler(1);
                     display.remove(removeBundler);
                     players.forEach(removeBundler::send);
