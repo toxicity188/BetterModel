@@ -257,18 +257,6 @@ public record ModelRenderer(
     }
 
     /**
-     * Gets or creates tracker by entity
-     *
-     * @param entity   entity
-     * @param modifier modifier
-     * @return entity tracker
-     */
-    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull TrackerModifier modifier) {
-        return getOrCreate(entity, modifier, t -> {
-        });
-    }
-
-    /**
      * Creates tracker by entity
      *
      * @param entity            entity
@@ -286,6 +274,62 @@ public record ModelRenderer(
     }
 
     /**
+     * Creates tracker by entity and profile
+     *
+     * @param entity   entity
+     * @param profile  profile
+     * @param slim     slim
+     * @return entity tracker
+     */
+    public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull GameProfile profile, boolean slim) {
+        return create(entity, profile, slim, TrackerModifier.DEFAULT);
+    }
+    /**
+     * Creates tracker by entity and profile
+     *
+     * @param entity   entity
+     * @param profile  profile
+     * @param slim     slim
+     * @param modifier modifier
+     * @return entity tracker
+     */
+    public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull GameProfile profile, boolean slim, @NotNull TrackerModifier modifier) {
+        return create(entity, profile, slim, modifier, t -> {
+        });
+    }
+
+    /**
+     * Creates tracker by entity and profile
+     *
+     * @param entity            entity
+     * @param profile           profile
+     * @param slim              slim
+     * @param modifier          modifier
+     * @param preUpdateConsumer task on pre-update
+     * @return entity tracker
+     */
+    public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull GameProfile profile, boolean slim, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
+        var source = RenderSource.of(entity, profile, slim);
+        return source.create(
+                pipeline(source, modifier),
+                modifier,
+                preUpdateConsumer
+        );
+    }
+
+    /**
+     * Gets or creates tracker by entity
+     *
+     * @param entity   entity
+     * @param modifier modifier
+     * @return entity tracker
+     */
+    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull TrackerModifier modifier) {
+        return getOrCreate(entity, modifier, t -> {
+        });
+    }
+
+    /**
      * Gets or creates tracker by entity
      *
      * @param entity            entity
@@ -295,6 +339,51 @@ public record ModelRenderer(
      */
     public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
         var source = RenderSource.of(entity);
+        return source.getOrCreate(
+                name(),
+                () -> pipeline(source, modifier),
+                modifier,
+                preUpdateConsumer
+        );
+    }
+
+    /**
+     * Gets or creates tracker by entity and profile
+     *
+     * @param entity   entity
+     * @param profile  profile
+     * @param slim     slim
+     * @return entity tracker
+     */
+    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull GameProfile profile, boolean slim) {
+        return getOrCreate(entity, profile, slim, TrackerModifier.DEFAULT);
+    }
+    /**
+     * Gets or creates tracker by entity and profile
+     *
+     * @param entity   entity
+     * @param profile  profile
+     * @param slim     slim
+     * @param modifier modifier
+     * @return entity tracker
+     */
+    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull GameProfile profile, boolean slim, @NotNull TrackerModifier modifier) {
+        return getOrCreate(entity, profile, slim, modifier, t -> {
+        });
+    }
+
+    /**
+     * Gets or creates tracker by entity and profile
+     *
+     * @param entity            entity
+     * @param profile           profile
+     * @param slim              slim
+     * @param modifier          modifier
+     * @param preUpdateConsumer task on pre-update
+     * @return entity tracker
+     */
+    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull GameProfile profile, boolean slim, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
+        var source = RenderSource.of(entity, profile, slim);
         return source.getOrCreate(
                 name(),
                 () -> pipeline(source, modifier),

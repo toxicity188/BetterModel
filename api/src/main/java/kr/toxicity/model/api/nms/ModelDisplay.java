@@ -35,7 +35,13 @@ public interface ModelDisplay extends Identifiable {
      * Syncs entity data of source entity
      * @param entity source
      */
-    void sync(@NotNull EntityAdapter entity);
+    void syncEntity(@NotNull EntityAdapter entity);
+
+    /**
+     * Syncs position of source location
+     * @param location location
+     */
+    void syncPosition(@NotNull Location location);
 
     /**
      * Sets pos-rot movement interpolation duration
@@ -122,11 +128,11 @@ public interface ModelDisplay extends Identifiable {
     void shadowRadius(float radius);
 
     /**
-     * Syncs entity position
+     * Sends entity position
      * @param adapter adapter
      * @param bundler packet bundler
      */
-    void syncPosition(@NotNull EntityAdapter adapter, @NotNull PacketBundler bundler);
+    void sendPosition(@NotNull EntityAdapter adapter, @NotNull PacketBundler bundler);
 
     /**
      * Toggles glow.

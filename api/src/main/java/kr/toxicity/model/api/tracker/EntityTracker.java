@@ -24,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -69,28 +70,25 @@ public class EntityTracker extends Tracker {
         var adapter = registry.adapter();
         var scale = FunctionUtil.throttleTickFloat(() -> scaler().scale(this));
         //Shadow
-        if (modifier.shadow()) {
-            var shadow = BetterModel.plugin().nms().create(entity.getLocation());
-            var baseScale = (float) pipeline.bones()
-                    .stream()
-                    .filter(b -> b.getGroup().getParent().visibility())
-                    .map(b -> b.getGroup().getHitBox())
-                    .filter(Objects::nonNull)
-                    .mapToDouble(b -> Math.max(b.box().x(), b.box().z()))
-                    .max()
-                    .orElse(0D);
-            tick(((t, s) -> {
-                shadow.shadowRadius(scale.getAsFloat() * baseScale);
-                shadow.sync(adapter);
-                shadow.sendDirtyEntityData(s.getDataBundler());
-                shadow.syncPosition(adapter, s.getTickBundler());
-            }));
-            pipeline.spawnPacketHandler(shadow::spawn);
-            pipeline.despawnPacketHandler(shadow::remove);
-            pipeline.hidePacketHandler(shadow::remove);
-            pipeline.showPacketHandler(shadow::spawn);
-        }
-
+        Optional.ofNullable(bone("shadow"))
+                .ifPresent(bone -> {
+                    var box = bone.getGroup().getHitBox();
+                    if (box == null) return;
+                    var shadow = BetterModel.plugin().nms().create(entity.getLocation());
+                    var baseScale = (float) (box.box().x() + box.box().z()) / 4F;
+                    tick(((t, s) -> {
+                        var wPos = bone.hitBoxPosition();
+                        shadow.shadowRadius(scale.getAsFloat() * baseScale);
+                        shadow.syncEntity(adapter);
+                        shadow.syncPosition(location().add(wPos.x, wPos.y, wPos.z));
+                        shadow.sendDirtyEntityData(s.getDataBundler());
+                        shadow.sendPosition(adapter, s.getTickBundler());
+                    }));
+                    pipeline.spawnPacketHandler(shadow::spawn);
+                    pipeline.despawnPacketHandler(shadow::remove);
+                    pipeline.hidePacketHandler(shadow::remove);
+                    pipeline.showPacketHandler(shadow::spawn);
+                });
         pipeline.hideFilter(p -> !p.canSee(registry.entity()));
 
         //Animation
@@ -152,7 +150,11 @@ public class EntityTracker extends Tracker {
      * Updates base entity's data to parent entity
      */
     private void updateBaseEntity0() {
-        displays().forEach(d -> d.sync(registry.adapter()));
+        var loc = location();
+        displays().forEach(d -> {
+            d.syncEntity(registry.adapter());
+            d.syncPosition(loc);
+        });
     }
 
     /**

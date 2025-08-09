@@ -55,11 +55,9 @@ internal class ModelDisplayImpl(
         }
     }
 
-    override fun sync(entity: EntityAdapter) {
+    override fun syncEntity(entity: EntityAdapter) {
         display.valid = !entity.dead()
         display.onGround = entity.ground()
-        display.setOldPosAndRot()
-        display.setPos((entity.handle() as Entity).position())
         val beforeInvisible = display.isInvisible
         val afterInvisible = entity.invisible()
         entityDataLock.accessToLock {
@@ -70,6 +68,12 @@ internal class ModelDisplayImpl(
             }
         }
     }
+
+    override fun syncPosition(location: Location) {
+        display.setOldPosAndRot()
+        display.setPos(Vec3(location.x, location.y, location.z))
+    }
+
 
     override fun spawn(showItem: Boolean, bundler: PacketBundler) {
         bundler += addPacket
@@ -93,7 +97,7 @@ internal class ModelDisplayImpl(
         bundler += ClientboundTeleportEntityPacket(display)
     }
 
-    override fun syncPosition(adapter: EntityAdapter, bundler: PacketBundler) {
+    override fun sendPosition(adapter: EntityAdapter, bundler: PacketBundler) {
         val handle = adapter.handle() as Entity
         if (display.position() == Vec3(handle.xOld, handle.yOld, handle.zOld)) return
         bundler += ClientboundTeleportEntityPacket(display)
