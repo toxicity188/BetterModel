@@ -7,7 +7,7 @@ Welcome to **BetterModel**!
 [![](https://img.shields.io/badge/SpigotMC-ED8106?style=for-the-badge&logo=SpigotMC&logoColor=white)](https://www.spigotmc.org/resources/121561/)
 [![](https://img.shields.io/badge/Modrinth-00AF5C?style=for-the-badge&logo=Modrinth&logoColor=white)](https://modrinth.com/plugin/bettermodel)
 [![](https://img.shields.io/badge/Hangar-185DEB?style=for-the-badge&logo=Hangar&logoColor=white)](https://hangar.papermc.io/toxicity188/BetterModel)
-[![](https://img.shields.io/badge/Github-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/toxicity188/BetterModell)
+[![](https://img.shields.io/badge/Github-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/toxicity188/BetterModel)
 
 </div>
 

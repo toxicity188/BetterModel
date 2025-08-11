@@ -13,13 +13,6 @@ val minecraft = property("minecraft_version").toString()
 
 dependencies {
     implementation(project(":core"))
-    fun searchAll(target: Project) {
-        val sub = target.subprojects
-        if (sub.isNotEmpty()) sub.forEach {
-            searchAll(it)
-        } else dokka(target)
-    }
-    searchAll(rootProject)
 }
 
 val javadocJar by tasks.registering(Jar::class) {
