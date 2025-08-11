@@ -21,6 +21,6 @@ public enum StepInterpolation implements VectorInterpolation {
     @NotNull
     @Override
     public Vector3f interpolate(@NotNull List<VectorPoint> points, int p2Index, float time) {
-        return (p2Index > 0 ? points.get(p2Index - 1) : VectorPoint.EMPTY).vector();
+        return (p2Index > 0 ? points.get(p2Index - 1) : VectorPoint.EMPTY).vector(time);
     }
 }

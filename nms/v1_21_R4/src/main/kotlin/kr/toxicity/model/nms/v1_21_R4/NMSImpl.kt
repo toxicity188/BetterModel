@@ -354,7 +354,9 @@ class NMSImpl : NMS {
             
             override fun entity(): org.bukkit.entity.Entity = entity
             override fun customName(): AdventureComponent? = handle().run {
-                if (this is ServerPlayer) (customName ?: name).asAdventure() else customName?.asAdventure()
+                if (this is ServerPlayer) (customName ?: name).asAdventure() else customName?.asAdventure()?.takeIf { 
+                    isCustomNameVisible
+                }
             }
             override fun handle(): Entity = entity.vanillaEntity
             override fun id(): Int = handle().id
