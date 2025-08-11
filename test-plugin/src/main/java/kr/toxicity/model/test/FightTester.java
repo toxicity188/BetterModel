@@ -7,6 +7,8 @@ import kr.toxicity.model.api.animation.AnimationEventHandler;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.event.PluginStartReloadEvent;
+import kr.toxicity.model.api.pack.PackNamespace;
+import kr.toxicity.model.api.util.LogUtil;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.*;
@@ -23,6 +25,10 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -64,25 +70,34 @@ public final class FightTester implements ModelTester, Listener {
         var path = event.getPackZipper()
                 .modern()
                 .bettermodel();
-        path.models().resolve("class_item").add("knight_sword.json", test.asByte("knight_sword.json"));
-        path.models().resolve("class_item").add("knight_line.json", test.asByte("knight_line.json"));
-        path.textures().add("knight_sword.png", test.asByte("knight_sword.png"));
-        path.textures().add("knight_line.png", test.asByte("knight_line.png"));
+        loadMotion();
+        loadItem(path, "knight_sword");
+        loadItem(path, "knight_line");
+    }
 
+    private void loadMotion() {
+        var dir = new File(BetterModel.plugin().getDataFolder(), "players/knight.bbmodel");
+        if (dir.isFile()) return;
+        dir.getParentFile().mkdirs();
+        try (
+                var stream = new FileOutputStream(dir);
+                var buffered = new BufferedOutputStream(stream)
+        ) {
+            buffered.write(test.asByte("knight.bbmodel").get());
+        } catch (IOException e) {
+            LogUtil.handleException("Unable to load knight.bbmodel", e);
+        }
+    }
+
+    private void loadItem(@NotNull PackNamespace path, @NotNull String itemName) {
+        path.models().resolve("class_item").add(itemName + ".json", test.asByte(itemName + ".json"));
+        path.textures().add(itemName + ".png", test.asByte(itemName + ".png"));
         var model = new JsonObject();
         model.addProperty("type", "minecraft:model");
-        model.addProperty("model", "bettermodel:class_item/knight_sword");
+        model.addProperty("model", "bettermodel:class_item/" + itemName);
         var json = new JsonObject();
         json.add("model", model);
-
-        var line = new JsonObject();
-        line.addProperty("type", "minecraft:model");
-        line.addProperty("model", "bettermodel:class_item/knight_line");
-        var lineBuilder = new JsonObject();
-        lineBuilder.add("model", line);
-
-        path.items().add("knight_sword.json", () -> json.toString().getBytes(StandardCharsets.UTF_8));
-        path.items().add("knight_line.json", () -> lineBuilder.toString().getBytes(StandardCharsets.UTF_8));
+        path.items().add(itemName + ".json", () -> json.toString().getBytes(StandardCharsets.UTF_8));
     }
 
     @EventHandler
