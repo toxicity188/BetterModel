@@ -37,7 +37,7 @@ This plugin implements the **fully server-side 3D model** by using an item-displ
 > It requires Java 21
 
 #### API
-We are using maven central and gradle packages.  
+We are using Maven Central and GitHub Packages.  
 You can see an API examples in [here](https://github.com/toxicity188/BetterModel/wiki/API-example). 
 #### Release
 ```kotlin
