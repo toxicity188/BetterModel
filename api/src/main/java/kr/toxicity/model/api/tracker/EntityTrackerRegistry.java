@@ -165,9 +165,7 @@ public final class EntityTrackerRegistry {
             if (trackerMap.compute(key, (k, v) -> v == created ? null : v) == null) {
                 LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> uuid + "'s tracker " + key + " has been removed. (" + trackerMap.size() + ")");
             }
-            if (trackerMap.isEmpty() && close(r)) {
-                LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> uuid + "'s tracker registry has been removed. (" + UUID_REGISTRY_MAP.size() + ")");
-            } else refreshRemove();
+            if (!close(r)) refreshRemove();
         });
         var previous = trackerMap.put(key, created);
         if (previous != null) previous.close();
@@ -228,6 +226,7 @@ public final class EntityTrackerRegistry {
             if (entity instanceof Player player) player.updateInventory();
             return null;
         });
+        LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> uuid + "'s tracker registry has been removed. (" + UUID_REGISTRY_MAP.size() + ")");
         return true;
     }
 
@@ -307,7 +306,7 @@ public final class EntityTrackerRegistry {
     public boolean isSpawned(@NotNull UUID uuid) {
         return viewedPlayerMap.containsKey(uuid) && trackers()
                 .stream()
-                .anyMatch(t -> t.pipeline.isSpawned(uuid));
+                .anyMatch(t -> t.isSpawned(uuid));
     }
 
     /**
@@ -439,7 +438,7 @@ public final class EntityTrackerRegistry {
         private synchronized void reapplyHideOption() {
             hideOption = EntityHideOption.composite(trackers()
                     .stream()
-                    .filter(t -> t.pipeline.isSpawned(channelHandler.uuid()))
+                    .filter(t -> t.isSpawned(channelHandler.uuid()))
                     .map(EntityTracker::hideOption));
         }
     }

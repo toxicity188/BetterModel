@@ -23,6 +23,7 @@ import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.server.level.ServerPlayer
 import net.minecraft.server.network.ServerCommonPacketListenerImpl
 import net.minecraft.util.ARGB
 import net.minecraft.world.effect.MobEffects
@@ -351,7 +352,9 @@ class NMSImpl : NMS {
         return object : EntityAdapter {
             
             override fun entity(): org.bukkit.entity.Entity = entity
-            override fun customName(): AdventureComponent? = handle().customName?.asAdventure()
+            override fun customName(): AdventureComponent? = handle().run {
+                if (this is ServerPlayer) (customName ?: name).asAdventure() else customName?.asAdventure()
+            }
             override fun handle(): Entity = entity.vanillaEntity
             override fun id(): Int = handle().id
             override fun dead(): Boolean = (handle() as? LivingEntity)?.isDeadOrDying == true || handle().removalReason != null || !handle().valid
