@@ -11,8 +11,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
-import java.util.regex.Pattern;
-
 /**
  * A raw JSON vector.
  * @param x x
@@ -27,8 +25,6 @@ public record Datapoint(
         @Nullable JsonPrimitive z,
         @Nullable String script
 ) {
-
-    private static final Pattern NUMBER_PATTERN = Pattern.compile("^(-?\\d+$|^-?\\d+\\.\\d+)$");
 
     /**
      * Parser instance
@@ -49,8 +45,11 @@ public record Datapoint(
         if (primitive.isNumber()) return Float2FloatFunction.of(primitive.getAsFloat());
         var string = primitive.getAsString().trim();
         if (string.isEmpty()) return Float2FloatFunction.ZERO;
-        if (NUMBER_PATTERN.matcher(string).find()) return Float2FloatFunction.of(Float.parseFloat(string));
-        return BetterModel.plugin().evaluator().compile(placeholder.parseVariable(string));
+        try {
+            return Float2FloatFunction.of(Float.parseFloat(string));
+        } catch (NumberFormatException ignored) {
+            return BetterModel.plugin().evaluator().compile(placeholder.parseVariable(string));
+        }
     }
 
     /**
