@@ -41,6 +41,8 @@ import net.minecraft.world.level.entity.LevelEntityGetter
 import net.minecraft.world.level.entity.LevelEntityGetterAdapter
 import net.minecraft.world.level.entity.PersistentEntitySectionManager
 import org.bukkit.Location
+import org.bukkit.OfflinePlayer
+import org.bukkit.craftbukkit.CraftOfflinePlayer
 import org.bukkit.craftbukkit.CraftWorld
 import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.craftbukkit.entity.CraftPlayer
@@ -57,8 +59,9 @@ class NMSImpl : NMS {
 
         //Spigot
         private val getGameProfile: (net.minecraft.world.entity.player.Player) -> GameProfile = createAdaptedFieldGetter { it.gameProfile }
+        private val getOfflineGameProfile: (CraftOfflinePlayer) -> GameProfile = createAdaptedFieldGetter()
         private val getConnection: (ServerCommonPacketListenerImpl) -> Connection = createAdaptedFieldGetter { it.connection }
-        private val spigotChunkAccess = ServerLevel::class.java.fields.firstOrNull {
+        private val spigotChunkAccess = (ServerLevel)::class.java.fields.firstOrNull {
             it.type == PersistentEntitySectionManager::class.java
         }?.apply {
             isAccessible = true
@@ -405,7 +408,7 @@ class NMSImpl : NMS {
         }
     }
 
-    override fun profile(player: Player): GameProfile = getGameProfile((player as CraftPlayer).handle)
+    override fun profile(player: OfflinePlayer): GameProfile = if (player is CraftOfflinePlayer) getOfflineGameProfile(player) else getGameProfile((player as CraftPlayer).handle)
 
     override fun createPlayerHead(profile: GameProfile): ItemStack = VanillaItemStack(Items.PLAYER_HEAD).apply {
         set(DataComponents.PROFILE, ResolvableProfile(profile))

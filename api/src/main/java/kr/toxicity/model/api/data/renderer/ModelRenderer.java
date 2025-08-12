@@ -9,8 +9,8 @@ import kr.toxicity.model.api.tracker.DummyTracker;
 import kr.toxicity.model.api.tracker.EntityTracker;
 import kr.toxicity.model.api.tracker.TrackerModifier;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
@@ -141,7 +141,7 @@ public record ModelRenderer(
      * @param player   player
      * @return empty tracker
      */
-    public @NotNull DummyTracker create(@NotNull Location location, @NotNull Player player) {
+    public @NotNull DummyTracker create(@NotNull Location location, @NotNull OfflinePlayer player) {
         return create(location, player, TrackerModifier.DEFAULT);
     }
 
@@ -176,7 +176,7 @@ public record ModelRenderer(
      * @param modifier modifier
      * @return empty tracker
      */
-    public @NotNull DummyTracker create(@NotNull Location location, @NotNull Player player, @NotNull TrackerModifier modifier) {
+    public @NotNull DummyTracker create(@NotNull Location location, @NotNull OfflinePlayer player, @NotNull TrackerModifier modifier) {
         var channel = BetterModel.plugin().playerManager().player(player.getUniqueId());
         return channel == null ? create(location, BetterModel.plugin().nms().profile(player), modifier) : create(location, channel.profile(), channel.isSlim(), modifier);
     }

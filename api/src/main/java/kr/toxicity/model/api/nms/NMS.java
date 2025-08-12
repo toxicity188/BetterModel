@@ -8,6 +8,7 @@ import kr.toxicity.model.api.mount.MountController;
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry;
 import kr.toxicity.model.api.util.TransformedItemStack;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -150,7 +151,7 @@ public interface NMS {
      * @param player player
      * @return game profile
      */
-    @NotNull GameProfile profile(@NotNull Player player);
+    @NotNull GameProfile profile(@NotNull OfflinePlayer player);
 
     /**
      * Creates player head from game profile

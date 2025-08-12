@@ -33,7 +33,10 @@ import org.joml.Vector3f
 import java.util.*
 
 internal inline fun <reified T, reified R> createAdaptedFieldGetter(noinline paperGetter: (T) -> R): (T) -> R {
-    return if (BetterModel.IS_PAPER) paperGetter else T::class.java.declaredFields.first {
+    return if (BetterModel.IS_PAPER) paperGetter else createAdaptedFieldGetter()
+}
+internal inline fun <reified T, reified R> createAdaptedFieldGetter(): (T) -> R {
+    return T::class.java.declaredFields.first {
         R::class.java.isAssignableFrom(it.type)
     }.apply {
         isAccessible = true
