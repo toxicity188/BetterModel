@@ -246,6 +246,9 @@ public enum PlayerLimb {
         return TransformedItemStack.of(position, isSlim ? slimOffset : offset, isSlim ? slimScale : scale, BetterModel.plugin().nms().createPlayerHead(profiled.profile()));
     }
 
+    /**
+     * Limb item mapper
+     */
     @RequiredArgsConstructor
     public class LimbItemMapper implements BoneItemMapper {
 

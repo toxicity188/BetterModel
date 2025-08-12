@@ -2,6 +2,11 @@ package kr.toxicity.model.api.util.function;
 
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Float constant function
+ * @param value value
+ * @param <T> type
+ */
 public record FloatConstantFunction<T>(@NotNull T value) implements FloatFunction<T> {
     @Override
     public @NotNull T apply(float value) {

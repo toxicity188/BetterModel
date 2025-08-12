@@ -5,6 +5,9 @@ import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Animation signal event
+ */
 public final class AnimationSignalEvent extends AbstractPlayerModelEvent {
     /**
      * Handler list
@@ -13,6 +16,11 @@ public final class AnimationSignalEvent extends AbstractPlayerModelEvent {
 
     private final String signal;
 
+    /**
+     * Creates signal event
+     * @param player player
+     * @param signal signal
+     */
     @ApiStatus.Internal
     public AnimationSignalEvent(@NotNull Player player, @NotNull String signal) {
         super(player);
@@ -24,6 +32,10 @@ public final class AnimationSignalEvent extends AbstractPlayerModelEvent {
         return HANDLER_LIST;
     }
 
+    /**
+     * Gets signal
+     * @return signal
+     */
     public @NotNull String signal() {
         return signal;
     }

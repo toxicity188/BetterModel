@@ -11,6 +11,10 @@ import java.util.function.Consumer;
  */
 public interface AnimationScript extends Consumer<ScriptSource> {
 
+    /**
+     * Checks this script should be called in tick thread
+     * @return requires tick thread
+     */
     boolean isSync();
     @Override
     void accept(@NotNull ScriptSource renderSource);
@@ -20,10 +24,21 @@ public interface AnimationScript extends Consumer<ScriptSource> {
      */
     AnimationScript EMPTY = of(s -> {});
 
+    /**
+     * Creates script
+     * @param source consumer
+     * @return script
+     */
     static @NotNull AnimationScript of(@NotNull Consumer<ScriptSource> source) {
         return of(false, source);
     }
 
+    /**
+     * Creates script
+     * @param isSync should be called in tick thread
+     * @param source consumer
+     * @return script
+     */
     static @NotNull AnimationScript of(boolean isSync, @NotNull Consumer<ScriptSource> source) {
         Objects.requireNonNull(source);
         return new AnimationScript() {

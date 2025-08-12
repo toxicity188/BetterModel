@@ -77,18 +77,30 @@ public sealed interface ModelChildren {
             @NotNull List<ModelChildren> children,
             @Nullable @SerializedName("visibility") Boolean _visibility
     ) implements ModelChildren {
+        /**
+         * Gets origin
+         * @return origin
+         */
         @Override
         @NotNull
         public Float3 origin() {
             return origin != null ? origin : Float3.ZERO;
         }
 
+        /**
+         * Gets rotation
+         * @return rotation
+         */
         @Override
         @NotNull
         public Float3 rotation() {
             return rotation != null ? rotation : Float3.ZERO;
         }
 
+        /**
+         * Gets visibility
+         * @return visibility
+         */
         public boolean visibility() {
             return !Boolean.FALSE.equals(_visibility);
         }

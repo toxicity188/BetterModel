@@ -29,26 +29,50 @@ public record ModelRotation(float x, float y) {
         return ((Byte.hashCode(packedX()) & 0xFF) << 8) | (Byte.hashCode(packedY()) & 0xFF);
     }
 
+    /**
+     * Gets pitch value
+     * @return pitch
+     */
     public @NotNull ModelRotation pitch() {
         return new ModelRotation(x, 0);
     }
 
+    /**
+     * Gets yaw value
+     * @return yaw value
+     */
     public @NotNull ModelRotation yaw() {
         return new ModelRotation(0, y);
     }
 
+    /**
+     * Gets radian x
+     * @return radian x
+     */
     public float radianX() {
         return x * MathUtil.DEGREES_TO_RADIANS;
     }
 
+    /**
+     * Gets radian y
+     * @return radian y
+     */
     public float radianY() {
         return y * MathUtil.DEGREES_TO_RADIANS;
     }
 
+    /**
+     * Gets packed x
+     * @return packed x
+     */
     public byte packedX() {
         return (byte) (x * MathUtil.DEGREES_TO_PACKED_BYTE);
     }
 
+    /**
+     * Gets packed y
+     * @return packed y
+     */
     public byte packedY() {
         return (byte) (y * MathUtil.DEGREES_TO_PACKED_BYTE);
     }

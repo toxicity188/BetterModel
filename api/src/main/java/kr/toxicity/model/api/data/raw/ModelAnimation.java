@@ -108,12 +108,20 @@ public record ModelAnimation(
                 list
         );
     }
-    
+
+    /**
+     * Gets loop
+     * @return loop
+     */
     @Override
     public @NotNull AnimationIterator.Type loop() {
         return loop != null ? loop : AnimationIterator.Type.PLAY_ONCE;
     }
 
+    /**
+     * Gets animators
+     * @return animators
+     */
     @Override
     @NotNull
     public Map<String, ModelAnimator> animators() {

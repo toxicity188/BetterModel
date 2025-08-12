@@ -6,10 +6,37 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Model nametag
+ */
 public interface ModelNametag {
+    /**
+     * Sets always visible flag
+     * @param alwaysVisible always visible
+     */
     void alwaysVisible(boolean alwaysVisible);
+
+    /**
+     * Sets component
+     * @param component component
+     */
     void component(@Nullable Component component);
+
+    /**
+     * Teleports this nametag
+     * @param location location
+     */
     void teleport(@NotNull Location location);
+
+    /**
+     * Sends nametag to some player
+     * @param player player
+     */
     void send(@NotNull Player player);
+
+    /**
+     * Removes this nametag
+     * @param bundler bundler
+     */
     void remove(@NotNull PacketBundler bundler);
 }

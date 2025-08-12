@@ -39,6 +39,10 @@ public record BlueprintAnimator(
             @NotNull List<VectorPoint> scale,
             @NotNull List<VectorPoint> rotation
     ) {
+        /**
+         * Gets flatten points
+         * @return all points
+         */
         public @NotNull Stream<VectorPoint> allPoints() {
             return Stream.concat(
                     Stream.concat(

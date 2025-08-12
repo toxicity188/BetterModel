@@ -5,6 +5,9 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
+/**
+ * Builtin mount controllers
+ */
 public enum MountControllers implements MountController {
     /**
      * Invalid

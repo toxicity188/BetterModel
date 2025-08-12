@@ -15,7 +15,9 @@ import java.util.UUID;
  * @param scaler scaler
  * @param rotator rotator
  * @param modifier modifier
+ * @param bodyRotator body rotation
  * @param hideOption hide option
+ * @param markForSpawn player uuids that mark for spawning
  */
 public record TrackerData(
         @NotNull String id,

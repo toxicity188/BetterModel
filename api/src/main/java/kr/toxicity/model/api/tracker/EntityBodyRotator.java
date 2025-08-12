@@ -15,6 +15,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+/**
+ * Entity body rotator
+ */
 public final class EntityBodyRotator {
     private final EntityTrackerRegistry registry;
     private final EntityAdapter adapter;
@@ -82,6 +85,11 @@ public final class EntityBodyRotator {
         return Math.clamp(value, compare + (bodyUneven ? minBody : -maxBody), compare + maxBody);
     }
 
+    /**
+     * Locks this rotator
+     * @param lock lock
+     * @return success
+     */
     public boolean lockRotation(boolean lock) {
         return rotationLock.compareAndSet(!lock, lock);
     }
@@ -123,6 +131,10 @@ public final class EntityBodyRotator {
         return headSupplier.get();
     }
 
+    /**
+     * Sets the data of this rotator
+     * @param consumer setter
+     */
     public void setValue(@NotNull Consumer<RotatorData> consumer) {
         Objects.requireNonNull(consumer);
         var data = createData();
@@ -134,6 +146,9 @@ public final class EntityBodyRotator {
         data.set(this);
     }
 
+    /**
+     * Resets rotator
+     */
     public void reset() {
         setValue(defaultData());
     }
@@ -153,6 +168,9 @@ public final class EntityBodyRotator {
         );
     }
 
+    /**
+     * Rotator data
+     */
     @Setter
     @AllArgsConstructor
     public static final class RotatorData {

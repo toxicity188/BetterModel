@@ -58,6 +58,10 @@ public record ModelRenderer(
                 .orElse(null);
     }
 
+    /**
+     * Gets flatten groups.
+     * @return flatten groups
+     */
     public @NotNull Stream<RendererGroup> flatten() {
         return rendererGroupMap.values().stream().flatMap(RendererGroup::flatten);
     }

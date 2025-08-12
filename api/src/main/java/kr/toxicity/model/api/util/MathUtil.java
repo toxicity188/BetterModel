@@ -69,29 +69,67 @@ public final class MathUtil {
      */
     public static final FloatComparator FRAME_COMPARATOR = (a, b) -> isSimilar(a, b, FRAME_EPSILON) ? 0 : Float.compare(a, b);
 
+    /**
+     * Checks two floats are similar.
+     * @param a a
+     * @param b b
+     * @return similar or not
+     */
     public static boolean isSimilar(float a, float b) {
         return isSimilar(a, b, FLOAT_COMPARISON_EPSILON);
     }
 
+    /**
+     * Checks two floats are similar.
+     * @param a a
+     * @param b b
+     * @param epsilon epsilon
+     * @return similar or not
+     */
     public static boolean isSimilar(float a, float b, float epsilon) {
         return abs(a - b) < epsilon;
     }
 
+    /**
+     * Checks two vectors are similar.
+     * @param a a
+     * @param b b
+     * @return similar or not
+     */
     public static boolean isSimilar(@NotNull Vector3f a, @NotNull Vector3f b) {
         return isSimilar(a, b, FLOAT_COMPARISON_EPSILON);
     }
 
+    /**
+     * Checks two vectors are similar.
+     * @param a a
+     * @param b b
+     * @param epsilon epsilon
+     * @return similar or not
+     */
     public static boolean isSimilar(@NotNull Vector3f a, @NotNull Vector3f b, float epsilon) {
         return isSimilar(a.x, b.x, epsilon)
                 && isSimilar(a.y, b.y, epsilon)
                 && isSimilar(a.z, b.z, epsilon);
     }
 
-
+    /**
+     * Checks two quaternion are similar.
+     * @param a a
+     * @param b b
+     * @return similar or not
+     */
     public static boolean isSimilar(@NotNull Quaternionf a, @NotNull Quaternionf b) {
         return isSimilar(a, b, FLOAT_COMPARISON_EPSILON);
     }
 
+    /**
+     * Checks two quaternion are similar.
+     * @param a a
+     * @param b b
+     * @param epsilon epsilon
+     * @return similar or not
+     */
     public static boolean isSimilar(@NotNull Quaternionf a, @NotNull Quaternionf b, float epsilon) {
         return isSimilar(a.x, b.x, epsilon)
                 && isSimilar(a.y, b.y, epsilon)
@@ -99,8 +137,13 @@ public final class MathUtil {
                 && isSimilar(a.w, b.w, epsilon);
     }
 
-    public static int similarHashCode(float a) {
-        return (int) (a / FLOAT_COMPARISON_EPSILON);
+    /**
+     * Creates epsilon-based hashcode of given float
+     * @param value value
+     * @return hashcode
+     */
+    public static int similarHashCode(float value) {
+        return (int) (value / FLOAT_COMPARISON_EPSILON);
     }
 
     /**
@@ -232,6 +275,13 @@ public final class MathUtil {
         return ret.mul(RADIANS_TO_DEGREES);
     }
 
+    /**
+     * Executes fused multiply add (a * b + c)
+     * @param a a vector
+     * @param b b vector
+     * @param c c vector
+     * @return added a
+     */
     public static @NotNull Vector3f fma(@NotNull Vector3f a, @NotNull Vector3f b, @NotNull Vector3f c) {
         a.x = fma(a.x, b.x, c.x);
         a.y = fma(a.y, b.y, c.y);
@@ -239,6 +289,13 @@ public final class MathUtil {
         return a;
     }
 
+    /**
+     * Executes fused multiply add (a * b + c)
+     * @param a a vector
+     * @param b b scala
+     * @param c c vector
+     * @return added a
+     */
     public static @NotNull Vector3f fma(@NotNull Vector3f a, float b, @NotNull Vector3f c) {
         a.x = fma(a.x, b, c.x);
         a.y = fma(a.y, b, c.y);
@@ -246,13 +303,31 @@ public final class MathUtil {
         return a;
     }
 
+    /**
+     * Executes fused multiply add (a * b + c)
+     * @param a a
+     * @param b b
+     * @param c c
+     * @return a * b + c
+     */
     public static float fma(float a, float b, float c) {
         return Math.fma(a, b, c);
     }
 
+    /**
+     * Checks this vector is not zero
+     * @param vector3f vector
+     * @return is not zero
+     */
     public static boolean isNotZero(@NotNull Vector3f vector3f) {
         return !isZero(vector3f);
     }
+
+    /**
+     * Checks this vector is zero
+     * @param vector3f vector
+     * @return is zero
+     */
     public static boolean isZero(@NotNull Vector3f vector3f) {
         return isSimilar(vector3f.x, 0F) && isSimilar(vector3f.y, 0F) && isSimilar(vector3f.z, 0F);
     }

@@ -10,10 +10,21 @@ import java.util.Map;
 
 import static kr.toxicity.model.api.util.CollectionUtil.associate;
 
+/**
+ * Model placeholder
+ * @param variables variables
+ */
 public record ModelPlaceholder(
         @NotNull @Unmodifiable Map<String, String> variables
 ) {
+    /**
+     * Empty placeholder
+     */
     public static final ModelPlaceholder EMPTY = new ModelPlaceholder(Collections.emptyMap());
+
+    /**
+     * Parser
+     */
     public static final JsonDeserializer<ModelPlaceholder> PARSER = (json, typeOfT, context) -> new ModelPlaceholder(associate(
             Arrays.stream(json.getAsString().trim().split("\n"))
                     .map(entry -> entry.split("=", 2))
@@ -22,7 +33,11 @@ public record ModelPlaceholder(
             array -> array[1]
     ));
 
-
+    /**
+     * Parses raw expression
+     * @param expression expression
+     * @return parsed expression
+     */
     public @NotNull String parseVariable(@NotNull String expression) {
         for (var entry : variables.entrySet()) {
             expression = expression.replace(entry.getKey(), entry.getValue());

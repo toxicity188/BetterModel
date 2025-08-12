@@ -60,44 +60,86 @@ public record AnimationModifier(
         private Boolean override = null;
         private Player player;
 
+        /**
+         * Private initializer
+         */
         private Builder() {
         }
 
+        /**
+         * Sets the predicate of this modifier
+         * @param predicate predicate
+         * @return self
+         */
         public @NotNull Builder predicate(@NotNull BooleanSupplier predicate) {
             this.predicate = Objects.requireNonNull(predicate);
             return this;
         }
 
+        /**
+         * Sets the lerp-in time of this modifier
+         * @param start lerp-in time
+         * @return self
+         */
         public @NotNull Builder start(int start) {
             this.start = start;
             return this;
         }
 
+        /**
+         * Sets the lerp-out time of this modifier
+         * @param end lerp-out time
+         * @return self
+         */
         public @NotNull Builder end(int end) {
             this.end = end;
             return this;
         }
 
+        /**
+         * Sets the animation type of this modifier
+         * @param type animation type
+         * @return self
+         */
         public @NotNull Builder type(@Nullable AnimationIterator.Type type) {
             this.type = type;
             return this;
         }
 
+        /**
+         * Sets the speed modifier of this modifier
+         * @param speed speed modifier
+         * @return self
+         */
         public @NotNull Builder speed(@NotNull FloatSupplier speed) {
             this.speed = Objects.requireNonNull(speed);
             return this;
         }
 
+        /**
+         * Sets the override flag of this modifier
+         * @param override override flag
+         * @return self
+         */
         public @NotNull Builder override(@Nullable Boolean override) {
             this.override = override;
             return this;
         }
 
+        /**
+         * Sets the target player of this modifier
+         * @param player target player
+         * @return self
+         */
         public @NotNull Builder player(@Nullable Player player) {
             this.player = player;
             return this;
         }
 
+        /**
+         * Builds animation modifier
+         * @return build
+         */
         public @NotNull AnimationModifier build() {
             return new AnimationModifier(
                     predicate,

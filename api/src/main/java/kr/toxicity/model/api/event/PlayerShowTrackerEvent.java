@@ -34,6 +34,10 @@ public final class PlayerShowTrackerEvent extends AbstractPlayerModelEvent imple
         this.tracker = tracker;
     }
 
+    /**
+     * Gets tracker
+     * @return tracker
+     */
     public @NotNull Tracker tracker() {
         return tracker;
     }

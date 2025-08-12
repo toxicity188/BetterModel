@@ -34,6 +34,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+/**
+ * A registry of each entity's tracker
+ */
 public final class EntityTrackerRegistry {
 
     private static final Reference2ReferenceMap<UUID, EntityTrackerRegistry> UUID_REGISTRY_MAP = new Reference2ReferenceOpenHashMap<>();
@@ -56,27 +59,56 @@ public final class EntityTrackerRegistry {
     final Map<UUID, MountedHitBox> mountedHitBoxCache = new ConcurrentHashMap<>();
     private final Map<UUID, MountedHitBox> mountedHitBox = Collections.unmodifiableMap(mountedHitBoxCache);
 
+    /**
+     * Gets registry by uuid
+     * @param uuid uuid
+     * @return registry or null
+     */
     public static @Nullable EntityTrackerRegistry registry(@NotNull UUID uuid) {
         return REGISTRY_LOCK.accessToReadLock(() -> UUID_REGISTRY_MAP.get(uuid));
     }
 
+    /**
+     * Gets registry by id
+     * @param id id
+     * @return registry or null
+     */
     public static @Nullable EntityTrackerRegistry registry(int id) {
         return REGISTRY_LOCK.accessToReadLock(() -> ID_REGISTRY_MAP.get(id));
     }
 
+    /**
+     * Gets registry by entity
+     * @param entity entity
+     * @return registry or null
+     */
+    public static @Nullable EntityTrackerRegistry registry(@NotNull Entity entity) {
+        return hasModelData(entity) ? getOrCreate(entity) : null;
+    }
+
+    /**
+     * Uses all registries
+     * @param consumer consumer
+     */
     public static void registries(@NotNull Consumer<EntityTrackerRegistry> consumer) {
         for (EntityTrackerRegistry registry : registries()) {
             consumer.accept(registry);
         }
     }
+
+    /**
+     * Gets all registries
+     * @return all registries
+     */
     public static @NotNull @Unmodifiable List<EntityTrackerRegistry> registries() {
         return REGISTRY_LOCK.accessToWriteLock(() -> ImmutableList.copyOf(UUID_REGISTRY_MAP.values()));
     }
 
-    public static @Nullable EntityTrackerRegistry registry(@NotNull Entity entity) {
-        return hasModelData(entity) ? getOrCreate(entity) : null;
-    }
-
+    /**
+     * Gets or creates registry by entity
+     * @param entity entity
+     * @return registry
+     */
     @ApiStatus.Internal
     public static @NotNull EntityTrackerRegistry getOrCreate(@NotNull Entity entity) {
         var uuid = entity.getUniqueId();
@@ -103,6 +135,11 @@ public final class EntityTrackerRegistry {
         return json.isJsonArray() ? json.getAsJsonArray().asList() : Collections.singletonList(json);
     }
 
+    /**
+     * Checks this entity has model data
+     * @param entity entity
+     * @return has model data
+     */
     public static boolean hasModelData(@NotNull Entity entity) {
         return entity.getPersistentDataContainer().has(TRACKING_ID);
     }
@@ -114,35 +151,70 @@ public final class EntityTrackerRegistry {
         this.id = adapter.id();
     }
 
+    /**
+     * Gets source entity
+     * @return entity
+     */
     public @NotNull Entity entity() {
         return entity;
     }
 
+    /**
+     * Gets entity's uuid
+     * @return uuid
+     */
     public @NotNull UUID uuid() {
         return uuid;
     }
 
+    /**
+     * Gets entity's id
+     * @return id
+     */
     public int id() {
         return id;
     }
 
+    /**
+     * Gets entity's adapter
+     * @return adapter
+     */
     public @NotNull EntityAdapter adapter() {
         return adapter;
     }
 
+    /**
+     * Gets all trackers of this registry
+     * @return all trackers
+     */
     public @NotNull @Unmodifiable Collection<EntityTracker> trackers() {
         return trackers;
     }
 
+    /**
+     * Gets some tracker by its name
+     * @param key key
+     * @return tracker or null
+     */
     public @Nullable EntityTracker tracker(@Nullable String key) {
         return key == null ? first() : trackerMap.get(key);
     }
 
+    /**
+     * Gets first tracker of this register
+     * @return first tracker
+     */
     public @Nullable EntityTracker first() {
         var entry = trackerMap.firstEntry();
         return entry != null ? entry.getValue() : null;
     }
 
+    /**
+     * Creates tracker in this registry
+     * @param key key
+     * @param supplier supplier
+     * @return created tracker
+     */
     @ApiStatus.Internal
     public @NotNull EntityTracker create(@NotNull String key, @NotNull Function<EntityTrackerRegistry, EntityTracker> supplier) {
         var created = supplier.apply(this);
@@ -153,6 +225,13 @@ public final class EntityTrackerRegistry {
         return created;
     }
 
+    /**
+     * Gets or creates tracker in this registry
+     * @param key key
+     * @param supplier supplier
+     * @return created tracker
+     */
+    @ApiStatus.Internal
     public @NotNull EntityTracker getOrCreate(@NotNull String key, @NotNull Function<EntityTrackerRegistry, EntityTracker> supplier) {
         var get = trackerMap.get(key);
         return get != null ? get : create(key, supplier);
@@ -197,6 +276,11 @@ public final class EntityTrackerRegistry {
                 .forEach(this::registerPlayer);
     }
 
+    /**
+     * Removes some tracker in this registry
+     * @param key key
+     * @return success
+     */
     public boolean remove(@NotNull String key) {
         try (var removed = trackerMap.remove(key)) {
             save();
@@ -204,10 +288,18 @@ public final class EntityTrackerRegistry {
         }
     }
 
+    /**
+     * Checks this registry is closed
+     * @return is closed
+     */
     public boolean isClosed() {
         return closed.get();
     }
 
+    /**
+     * Closes this registry
+     * @return success
+     */
     public boolean close() {
         return close(Tracker.CloseReason.REMOVE);
     }
@@ -230,6 +322,9 @@ public final class EntityTrackerRegistry {
         return true;
     }
 
+    /**
+     * Reloads this registry
+     */
     public void reload() {
         closed.set(true);
         var data = new ArrayList<TrackerData>(trackerMap.size());
@@ -242,6 +337,9 @@ public final class EntityTrackerRegistry {
         load(data.stream());
     }
 
+    /**
+     * Refreshes this registry
+     */
     public void refresh() {
         if (adapter.dead()) return;
         for (EntityTracker value : trackers()) {
@@ -251,6 +349,9 @@ public final class EntityTrackerRegistry {
         refreshSpawn();
     }
 
+    /**
+     * Despawns this registry to all players
+     */
     public void despawn() {
         for (EntityTracker value : trackers()) {
             if (!value.forRemoval()) value.despawn();
@@ -258,17 +359,27 @@ public final class EntityTrackerRegistry {
         viewedPlayerMap.clear();
     }
 
+    /**
+     * Loads tracker data in this registry
+     * @param stream stream
+     */
     public void load(@NotNull Stream<TrackerData> stream) {
         stream.forEach(parsed -> BetterModel.model(parsed.id()).ifPresent(model -> model.create(entity, parsed.modifier(), parsed::applyAs)));
         save();
     }
 
+    /**
+     * Loads entity's tracker this in this registry
+     */
     public void load() {
         load(deserialize(entity.getPersistentDataContainer().get(TRACKING_ID, PersistentDataType.STRING))
                 .stream()
                 .map(TrackerData::deserialize));
     }
 
+    /**
+     * Saves entity data
+     */
     public void save() {
         var data = serialize().toString();
         runSync(() -> entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, data));
@@ -280,12 +391,20 @@ public final class EntityTrackerRegistry {
         } else BetterModel.plugin().scheduler().task(entity.getLocation(), runnable);
     }
 
+    /**
+     * Gets all displays as stream
+     * @return all displays
+     */
     public @NotNull Stream<ModelDisplay> displays() {
         return trackers()
                 .stream()
                 .flatMap(Tracker::displays);
     }
 
+    /**
+     * Serializes all tracker's data
+     * @return tracker's data
+     */
     public @NotNull JsonArray serialize() {
         return CollectionUtil.mapToJson(trackers(), value -> value.asTrackerData().serialize());
     }
@@ -349,10 +468,19 @@ public final class EntityTrackerRegistry {
         return viewedPlayerMap.computeIfAbsent(handler.uuid(), u -> new PlayerChannelCache(handler));
     }
 
+    /**
+     * Gets all viewed player as stream
+     * @return viewed player
+     */
     public @NotNull Stream<PlayerChannelHandler> viewedPlayer() {
         return viewedPlayerMap.values().stream().map(c -> c.channelHandler);
     }
 
+    /**
+     * Removes player from this registry
+     * @param player player
+     * @return success
+     */
     public boolean remove(@NotNull Player player) {
         var cache = viewedPlayerMap.remove(player.getUniqueId());
         if (cache == null) return false;
@@ -364,6 +492,11 @@ public final class EntityTrackerRegistry {
         return true;
     }
 
+    /**
+     * Gets hide option for some player
+     * @param uuid uuid
+     * @return hide option
+     */
     public @NotNull EntityHideOption hideOption(@NotNull UUID uuid) {
         var cache = viewedPlayerMap.get(uuid);
         return cache != null ? cache.hideOption : EntityHideOption.FALSE;

@@ -19,22 +19,29 @@ import java.util.function.Supplier;
  * Model rotator
  */
 public sealed interface ModelRotator extends BiFunction<Tracker, ModelRotation, ModelRotation> {
+    /**
+     * Deserializer
+     */
     Deserializer DESERIALIZER = new Deserializer();
     /**
      * Default rotator
      */
+    @NotNull
     ModelRotator DEFAULT = Objects.requireNonNull(DESERIALIZER._default.apply());
     /**
      * Empty rotator
      */
+    @NotNull
     ModelRotator EMPTY = Objects.requireNonNull(DESERIALIZER.empty.apply());
     /**
      * Pitch rotator
      */
+    @NotNull
     ModelRotator PITCH = Objects.requireNonNull(DESERIALIZER.pitch.apply());
     /**
      * Yaw rotator
      */
+    @NotNull
     ModelRotator YAW = Objects.requireNonNull(DESERIALIZER.yaw.apply());
 
     static @NotNull ModelRotator deserialize(@NotNull JsonObject object) {

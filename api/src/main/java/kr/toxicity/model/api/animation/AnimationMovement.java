@@ -20,6 +20,10 @@ public record AnimationMovement(
 
     public static final AnimationMovement EMPTY = new AnimationMovement(0);
 
+    /**
+     * Creates empty animation movement
+     * @param time time
+     */
     public AnimationMovement(float time) {
         this(time, null, null, null);
     }

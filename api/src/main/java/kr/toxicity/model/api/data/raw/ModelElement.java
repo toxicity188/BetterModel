@@ -39,25 +39,45 @@ public record ModelElement(
         return to().minus(from()).toVector().length();
     }
 
+    /**
+     * Gets from-position
+     * @return from-position
+     */
     @Override
     public @NotNull Float3 from() {
         return from != null ? from : Float3.ZERO;
     }
 
+    /**
+     * Gets to-position
+     * @return to-position
+     */
     @Override
     public @NotNull Float3 to() {
         return to != null ? to : Float3.ZERO;
     }
 
+    /**
+     * Gets visibility
+     * @return visibility
+     */
     public boolean visibility() {
         return !Boolean.FALSE.equals(_visibility);
     }
 
+    /**
+     * Gets rotation
+     * @return rotation
+     */
     @Override
     public @NotNull Float3 rotation() {
         return rotation != null ? rotation : Float3.ZERO;
     }
 
+    /**
+     * Gets element type
+     * @return element type
+     */
     @Override
     public @NotNull Type type() {
         return type != null ? type : Type.CUBE;

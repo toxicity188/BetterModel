@@ -16,6 +16,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
 
+/**
+ * Animation state handler
+ * @param <T> timed value
+ */
 @RequiredArgsConstructor
 @ApiStatus.Internal
 public final class AnimationStateHandler<T extends Timed> {
@@ -34,19 +38,36 @@ public final class AnimationStateHandler<T extends Timed> {
     @Getter
     private volatile T beforeKeyframe = null, afterKeyframe = null;
 
+    /**
+     * Checks this keyframe has been finished
+     * @return finished
+     */
     public boolean keyframeFinished() {
         return delay <= 0;
     }
 
+    /**
+     * Gets running animation
+     * @return animation
+     */
     public @Nullable RunningAnimation runningAnimation() {
         var iterator = currentIterator;
         return iterator != null ? iterator.animation : null;
     }
 
+    /**
+     * Ticks this state handler
+     * @return keyframe has been shifted or not
+     */
     public boolean tick() {
         return tick(() -> {});
     }
 
+    /**
+     * Ticks this state handler
+     * @param ifEmpty callback if animator is empty
+     * @return keyframe has been shifted or not
+     */
     public boolean tick(@NotNull Runnable ifEmpty) {
         delay--;
         if (animators.isEmpty()) {
@@ -56,6 +77,10 @@ public final class AnimationStateHandler<T extends Timed> {
         return shouldUpdateAnimation() && updateAnimation();
     }
 
+    /**
+     * Gets the progress of current keyframe
+     * @return progress
+     */
     public float progress() {
         var frame = frame();
         return frame == 0 ? 0 : (float) delay / frame;
@@ -115,6 +140,13 @@ public final class AnimationStateHandler<T extends Timed> {
         return true;
     }
 
+    /**
+     * Adds animation
+     * @param name name
+     * @param iterator iterator
+     * @param modifier modifier
+     * @param eventHandler event handler
+     */
     public void addAnimation(@NotNull String name, @NotNull AnimationIterator<T> iterator, @NotNull AnimationModifier modifier, @NotNull AnimationEventHandler eventHandler) {
         synchronized (animators) {
             animators.putLast(name, new TreeIterator(name, iterator, modifier, eventHandler));
@@ -122,6 +154,12 @@ public final class AnimationStateHandler<T extends Timed> {
         forceUpdateAnimation.set(true);
     }
 
+    /**
+     * Replaces animation
+     * @param name name
+     * @param iterator iterator
+     * @param modifier modifier
+     */
     public void replaceAnimation(@NotNull String name, @NotNull AnimationIterator<T> iterator, @NotNull AnimationModifier modifier) {
         synchronized (animators) {
             var v = animators.get(name);
@@ -131,6 +169,11 @@ public final class AnimationStateHandler<T extends Timed> {
         forceUpdateAnimation.set(true);
     }
 
+    /**
+     * Remove animation
+     * @param name name
+     * @return success
+     */
     public boolean stopAnimation(@NotNull String name) {
         synchronized (animators) {
             if (animators.remove(name) != null) {
@@ -141,18 +184,45 @@ public final class AnimationStateHandler<T extends Timed> {
         return false;
     }
 
+    /**
+     * Gets ticking frame of current keyframe
+     * @return ticking frame
+     */
     public float frame() {
         return afterKeyframe != null ? 20 * Tracker.MINECRAFT_TICK_MULTIPLIER * (afterKeyframe.time() + MathUtil.FRAME_EPSILON) : 0F;
     }
-    
+
+    /**
+     * Animation mapper
+     * @param <T> type
+     */
     @FunctionalInterface
     public interface AnimationMapper<T extends Timed> {
-        @NotNull T map(T t, @NotNull MappingState state, float time);
+        /**
+         * Maps keyframe's time
+         * @param keyframe keyframe
+         * @param state state
+         * @param time time
+         * @return keyframe
+         */
+        @NotNull T map(T keyframe, @NotNull MappingState state, float time);
     }
 
+    /**
+     * Mapping state
+     */
     public enum MappingState {
+        /**
+         * Start
+         */
         START,
+        /**
+         * Progress
+         */
         PROGRESS,
+        /**
+         * End
+         */
         END
     }
 

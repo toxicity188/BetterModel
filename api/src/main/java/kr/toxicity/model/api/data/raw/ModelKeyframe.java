@@ -34,6 +34,10 @@ public record ModelKeyframe(
         float time
 ) implements Timed {
 
+    /**
+     * Finds proper interpolator matched by this keyframe
+     * @return interpolator
+     */
     public @NotNull VectorInterpolation findInterpolation() {
         if (interpolation == null) return VectorInterpolation.defaultInterpolation();
         return switch (interpolation.toLowerCase()) {

@@ -32,6 +32,11 @@ public record BlueprintAnimation(
         @NotNull List<AnimationMovement> emptyAnimator
 ) {
 
+    /**
+     * Gets animation script
+     * @param modifier modifier
+     * @return script or null
+     */
     public @Nullable BlueprintScript script(@NotNull AnimationModifier modifier) {
         return modifier.override(override) || modifier.player() != null ? null : script;
     }
