@@ -6,6 +6,9 @@ import lombok.RequiredArgsConstructor;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Plugin reload end event
+ */
 @RequiredArgsConstructor
 @Getter
 public final class PluginEndReloadEvent extends AbstractModelEvent {

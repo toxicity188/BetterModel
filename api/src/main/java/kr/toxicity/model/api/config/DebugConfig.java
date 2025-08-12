@@ -10,7 +10,14 @@ import java.util.EnumSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Debug config
+ * @param options options
+ */
 public record DebugConfig(@NotNull Set<DebugOption> options) {
+    /**
+     * Debug option
+     */
     @RequiredArgsConstructor
     public enum DebugOption {
         /**
@@ -33,6 +40,11 @@ public record DebugConfig(@NotNull Set<DebugOption> options) {
         private final String config;
     }
 
+    /**
+     * Checks this config has this option
+     * @param option option
+     * @return has or not
+     */
     public boolean has(@NotNull DebugOption option) {
         return options.contains(option);
     }

@@ -4,8 +4,12 @@ import com.mojang.authlib.GameProfile;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.event.HandlerList;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Create player skin data event
+ */
 @Getter
 @Setter
 public final class CreatePlayerSkinEvent extends AbstractModelEvent {
@@ -16,6 +20,11 @@ public final class CreatePlayerSkinEvent extends AbstractModelEvent {
 
     private GameProfile gameProfile;
 
+    /**
+     * Creates event
+     * @param gameProfile game profile
+     */
+    @ApiStatus.Internal
     public CreatePlayerSkinEvent(@NotNull GameProfile gameProfile) {
         this.gameProfile = gameProfile;
     }

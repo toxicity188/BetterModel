@@ -22,9 +22,17 @@ public record ModelBoundingBox(
         double maxY,
         double maxZ
 ) {
-
+    /**
+     * Min hitbox size
+     */
     public static final ModelBoundingBox MIN = of(0.1, 0.1, 0.1);
 
+    /**
+     * Creates bounding box
+     * @param min min position
+     * @param max max position
+     * @return bounding box
+     */
     public static @NotNull ModelBoundingBox of(@NotNull Vector3d min, @NotNull Vector3d max) {
         return of(
                 min.x,
@@ -36,6 +44,13 @@ public record ModelBoundingBox(
         );
     }
 
+    /**
+     * Creates bounding box
+     * @param x x
+     * @param y y
+     * @param z z
+     * @return bounding box
+     */
     public static @NotNull ModelBoundingBox of(double x, double y, double z) {
         return of(
                 -x / 2,
@@ -47,6 +62,16 @@ public record ModelBoundingBox(
         );
     }
 
+    /**
+     * Creates bounding box
+     * @param minX min-x
+     * @param minY min-y
+     * @param minZ min-z
+     * @param maxX max-x
+     * @param maxY max-y
+     * @param maxZ max-z
+     * @return bounding box
+     */
     public static @NotNull ModelBoundingBox of(
             double minX,
             double minY,
@@ -150,6 +175,10 @@ public record ModelBoundingBox(
         );
     }
 
+    /**
+     * Inverts xz axis of this bounding box
+     * @return inverted bounding box
+     */
     public @NotNull ModelBoundingBox invert() {
         return of(
                 -minX,
@@ -161,6 +190,11 @@ public record ModelBoundingBox(
         );
     }
 
+    /**
+     * Rotates this bounding box
+     * @param quaterniond rotation
+     * @return rotated bounding box
+     */
     public @NotNull ModelBoundingBox rotate(@NotNull Quaterniond quaterniond) {
         var centerVec = centerPoint();
         return of(
@@ -169,10 +203,18 @@ public record ModelBoundingBox(
         );
     }
 
+    /**
+     * Gets min position as vector
+     * @return min position
+     */
     public @NotNull Vector3d min() {
         return new Vector3d(minX, minY, minZ);
     }
 
+    /**
+     * Gets max position as vector
+     * @return max position
+     */
     public @NotNull Vector3d max() {
         return new Vector3d(maxX, maxY, maxZ);
     }

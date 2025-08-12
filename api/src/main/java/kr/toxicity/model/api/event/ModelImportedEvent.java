@@ -7,6 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Model imported event
+ */
 @RequiredArgsConstructor
 @Getter
 public final class ModelImportedEvent extends AbstractModelEvent {

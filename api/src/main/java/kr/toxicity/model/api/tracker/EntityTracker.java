@@ -169,6 +169,7 @@ public class EntityTracker extends Tracker {
      * Creates hit-box
      * @param predicate predicate
      * @param listener listener
+     * @return success
      */
     public boolean createHitBox(@NotNull BonePredicate predicate, @Nullable HitBoxListener listener) {
         var builder = listener != null ? listener.toBuilder() : HitBoxListener.builder();
@@ -283,6 +284,10 @@ public class EntityTracker extends Tracker {
         return markForSpawn.remove(player.getUniqueId());
     }
 
+    /**
+     * Creates tracker data
+     * @return tracker data
+     */
     public @NotNull TrackerData asTrackerData() {
         return new TrackerData(
                 name(),
@@ -312,10 +317,18 @@ public class EntityTracker extends Tracker {
         return markForSpawn.isEmpty() || markForSpawn.contains(player.getUniqueId());
     }
 
+    /**
+     * Gets hide option of this tracker
+     * @return hide option
+     */
     public @NotNull EntityHideOption hideOption() {
         return hideOption;
     }
 
+    /**
+     * Sets hide option of this tracker
+     * @param hideOption hide option
+     */
     public void hideOption(@NotNull EntityHideOption hideOption) {
         this.hideOption = Objects.requireNonNull(hideOption);
     }

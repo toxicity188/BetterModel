@@ -4,6 +4,9 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+/**
+ * Display transformer
+ */
 public interface DisplayTransformer {
 
     /**

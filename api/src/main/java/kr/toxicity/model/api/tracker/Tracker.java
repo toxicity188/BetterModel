@@ -520,6 +520,7 @@ public abstract class Tracker implements AutoCloseable {
      * Toggles red tint of a model.
      * @param predicate predicate
      * @param rgb toggle
+     * @return success
      */
     public boolean tint(@NotNull BonePredicate predicate, int rgb) {
         return tryUpdate(TrackerUpdateAction.tint(rgb), predicate);
@@ -601,6 +602,7 @@ public abstract class Tracker implements AutoCloseable {
      * Update data of this tracker.
      * @param action action
      * @param predicate predicate
+     * @return success
      */
     public boolean tryUpdate(@NotNull BiPredicate<RenderedBone, BonePredicate> action, @NotNull BonePredicate predicate) {
         return pipeline.matchTree(predicate, action);

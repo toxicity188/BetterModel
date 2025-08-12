@@ -10,6 +10,7 @@ import java.util.List;
 
 /**
  * A keyframe iterator of animation.
+ * @param <T> keyframe type
  */
 public interface AnimationIterator<T extends Timed> extends Iterator<T> {
 
@@ -65,12 +66,14 @@ public interface AnimationIterator<T extends Timed> extends Iterator<T> {
          * Creates iterator by given keyframes
          * @param keyFrames keyframes
          * @return iterator
+         * @param <T> keyframe type
          */
         public abstract <T extends Timed> @NotNull AnimationIterator<T> create(@NotNull List<T> keyFrames);
     }
 
     /**
      * Play once
+     * @param <T> keyframe time
      */
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     final class PlayOnce<T extends Timed> implements AnimationIterator<T> {
@@ -102,6 +105,7 @@ public interface AnimationIterator<T extends Timed> extends Iterator<T> {
 
     /**
      * Hold on last
+     * @param <T> keyframe time
      */
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     final class HoldOnLast<T extends Timed> implements AnimationIterator<T> {
@@ -134,6 +138,7 @@ public interface AnimationIterator<T extends Timed> extends Iterator<T> {
 
     /**
      * Loop
+     * @param <T> keyframe time
      */
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     final class Loop<T extends Timed> implements AnimationIterator<T> {

@@ -22,6 +22,7 @@ import static kr.toxicity.model.api.util.CollectionUtil.mapToList;
  * @param outliner children
  * @param textures textures
  * @param animations animations
+ * @param placeholder placeholder
  */
 @ApiStatus.Internal
 public record ModelData(
@@ -82,11 +83,19 @@ public record ModelData(
                 .orElse(16F) / 16F;
     }
 
+    /**
+     * Gets placeholder
+     * @return placeholder
+     */
     @Override
     public @NotNull ModelPlaceholder placeholder() {
         return placeholder != null ? placeholder : ModelPlaceholder.EMPTY;
     }
 
+    /**
+     * Gets animation
+     * @return animation
+     */
     @Override
     @NotNull
     public List<ModelAnimation> animations() {

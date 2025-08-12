@@ -18,13 +18,17 @@ public interface HitBoxListener {
     HitBoxListener EMPTY = builder().build();
 
     /**
-     * Creates build of hit-box listener
+     * Creates builder of hitbox listener
      * @return listener builder
      */
     static @NotNull Builder builder() {
         return new Builder();
     }
 
+    /**
+     * Creates builder by original hitbox listener
+     * @return listener builder
+     */
     default @NotNull Builder toBuilder() {
         return new Builder()
                 .sync(this::sync)

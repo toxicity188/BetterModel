@@ -22,6 +22,7 @@ public final class PlayerPerAnimationStartEvent extends AbstractPlayerModelEvent
     /**
      * Creates event
      * @param tracker tracker
+     * @param player player
      */
     @ApiStatus.Internal
     public PlayerPerAnimationStartEvent(@NotNull Tracker tracker, @NotNull Player player) {

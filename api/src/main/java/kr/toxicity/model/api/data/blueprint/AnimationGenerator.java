@@ -5,6 +5,7 @@ import kr.toxicity.model.api.animation.VectorPoint;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.util.InterpolationUtil;
 import kr.toxicity.model.api.util.MathUtil;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
@@ -17,12 +18,23 @@ import java.util.stream.Stream;
 
 import static kr.toxicity.model.api.util.CollectionUtil.*;
 
+/**
+ * Animation generator
+ */
+@ApiStatus.Internal
 public final class AnimationGenerator {
 
     private static final Vector3f EMPTY = new Vector3f();
     private final Map<BoneName, BlueprintAnimator.AnimatorData> pointMap;
     private final List<AnimationTree> trees;
 
+    /**
+     * Creates animator from data
+     * @param length animation length
+     * @param children childrens
+     * @param pointMap point map
+     * @return geneated map
+     */
     public static @NotNull Map<BoneName, BlueprintAnimator> createMovements(
             float length,
             @NotNull List<BlueprintChildren> children,
@@ -59,6 +71,11 @@ public final class AnimationGenerator {
 
     private float firstTime = 0F;
     private float secondTime = 0F;
+
+    /**
+     * Puts rotation-interpolated keyframe time to given set
+     * @param floats target set
+     */
     public void interpolateRotation(@NotNull FloatSortedSet floats) {
         var iterator = new FloatArrayList(floats).iterator();
         while (iterator.hasNext()) {
