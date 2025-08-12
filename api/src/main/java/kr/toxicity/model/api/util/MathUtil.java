@@ -311,7 +311,18 @@ public final class MathUtil {
      * @return a * b + c
      */
     public static float fma(float a, float b, float c) {
-        return Math.fma(a, b, c);
+        return org.joml.Math.fma(a, b, c);
+    }
+
+    /**
+     * Executes fused multiply add (a * b + c)
+     * @param a a
+     * @param b b
+     * @param c c
+     * @return a * b + c
+     */
+    public static double fma(double a, double b, double c) {
+        return org.joml.Math.fma(a, b, c);
     }
 
     /**

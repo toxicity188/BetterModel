@@ -94,9 +94,7 @@ public final class EntityUtil {
         var dy = target.getY() - player.getY();
         var dx = target.getX() - player.getX();
 
-        var r = cos(playerYaw) * dz - sin(playerYaw) * dx;
-
-        var ry = abs(atan2(dy, abs(r)) - playerPitch);
+        var ry = abs(atan2(dy, sqrt(MathUtil.fma(dz, dz, dx * dx))) - playerPitch);
         var rz = abs(atan2(-dx, dz) - playerYaw);
         return (ry <= ty || ry >= PI * 2 - ty) && (rz <= tz || rz >= PI * 2 - tz);
     }
