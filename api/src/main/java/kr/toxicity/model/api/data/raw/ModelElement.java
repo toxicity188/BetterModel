@@ -36,7 +36,16 @@ public record ModelElement(
      * @return cube length
      */
     public float max() {
-        return to().minus(from()).toVector().length();
+        var f = from();
+        var t = to();
+        var max = 0F;
+        max = Math.max(max, Math.abs(f.x()));
+        max = Math.max(max, Math.abs(f.y()));
+        max = Math.max(max, Math.abs(f.z()));
+        max = Math.max(max, Math.abs(t.x()));
+        max = Math.max(max, Math.abs(t.y()));
+        max = Math.max(max, Math.abs(t.z()));
+        return max;
     }
 
     /**
