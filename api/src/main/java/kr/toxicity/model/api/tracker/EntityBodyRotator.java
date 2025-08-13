@@ -203,7 +203,7 @@ public final class EntityBodyRotator {
             rotator.minBody = Math.min(minBody, maxBody);
             rotator.maxBody = Math.max(minBody, maxBody);
             rotator.minHead = Math.min(minHead, maxHead);
-            rotator.maxHead = Math.max(minBody, maxHead);
+            rotator.maxHead = Math.max(minHead, maxHead);
             rotator.stable = Math.max(stable, 0);
             rotator.rotationDuration = Math.max(rotationDuration, 0);
             rotator.rotationDelay = Math.max(rotationDelay, 0);

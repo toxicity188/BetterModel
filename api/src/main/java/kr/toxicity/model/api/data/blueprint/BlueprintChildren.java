@@ -3,9 +3,7 @@ package kr.toxicity.model.api.data.blueprint;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import kr.toxicity.model.api.bone.BoneName;
-import kr.toxicity.model.api.bone.BoneTagRegistry;
 import kr.toxicity.model.api.data.raw.Float3;
-import kr.toxicity.model.api.data.raw.ModelChildren;
 import kr.toxicity.model.api.data.raw.ModelElement;
 import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.PackUtil;
@@ -25,29 +23,6 @@ import static kr.toxicity.model.api.util.CollectionUtil.*;
  * A children of blueprint (group, element).
  */
 public sealed interface BlueprintChildren {
-
-    /**
-     * Gets children from raw children
-     * @param children raw children
-     * @param elementMap element map
-     * @return children
-     */
-    static @NotNull BlueprintChildren from(@NotNull ModelChildren children, @NotNull @Unmodifiable Map<String, ModelElement> elementMap) {
-        return switch (children) {
-            case ModelChildren.ModelGroup modelGroup -> {
-                var child = mapToList(modelGroup.children(), c -> from(c, elementMap));
-                var filtered = filterIsInstance(child, BlueprintElement.class).toList();
-                yield new BlueprintGroup(
-                        BoneTagRegistry.parse(modelGroup.name()),
-                        modelGroup.origin(),
-                        modelGroup.rotation().invertXZ(),
-                        child,
-                        filtered.isEmpty() ? modelGroup.visibility() : filtered.stream().anyMatch(element -> element.element.visibility())
-                );
-            }
-            case ModelChildren.ModelUUID modelUUID -> new BlueprintElement(Objects.requireNonNull(elementMap.get(modelUUID.uuid())));
-        };
-    }
 
     /**
      * Blueprint group
