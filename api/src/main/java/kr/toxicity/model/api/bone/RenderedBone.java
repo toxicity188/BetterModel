@@ -341,30 +341,13 @@ public final class RenderedBone {
     }
 
     public boolean tick(@NotNull PacketBundler globalBundler) {
-        return tick(globalState, globalBundler);
+        return globalState.tick(globalBundler);
     }
 
     public boolean tick(@NotNull UUID uuid, @NotNull PacketBundler perPlayerBundler) {
         var get = perPlayerState.get(uuid);
-        return get != null && tick(get, perPlayerBundler);
+        return get != null && get.tick(perPlayerBundler);
     }
-
-    private boolean tick(@NotNull BoneStateHandler state, @NotNull PacketBundler bundler) {
-        if (state.tick()) {
-            var boneMovement = state.nextMovement();
-            var transformer = state.transformer;
-            if (transformer == null) return true;
-            sendTransformation(
-                    transformer,
-                    state.interpolationDuration(),
-                    boneMovement,
-                    bundler
-            );
-            return true;
-        }
-        return false;
-    }
-
 
     public void forceUpdate(@NotNull PacketBundler bundler) {
         var d = display;
@@ -433,26 +416,6 @@ public final class RenderedBone {
         var after = state.afterTransform != null ? state.afterTransform : globalState.relativeOffset();
         var before = state.beforeTransform != null ? state.beforeTransform : BoneMovement.EMPTY;
         return InterpolationUtil.lerp(before.rawRotation(), after.rawRotation(), progress);
-    }
-
-    private void sendTransformation(@NotNull DisplayTransformer transformer, int duration, @NotNull BoneMovement boneMovement, @NotNull PacketBundler bundler) {
-        var mul = scale.getAsFloat();
-        transformer.transform(
-                duration,
-                MathUtil.fma(
-                        itemStack.offset().rotate(boneMovement.rotation(), new Vector3f())
-                                .add(boneMovement.transform())
-                                .add(root.group.getPosition()),
-                        mul,
-                        itemStack.position()
-                ).add(defaultPosition.get()),
-                boneMovement.scale()
-                        .mul(itemStack.scale(), new Vector3f())
-                        .mul(mul)
-                        .max(EMPTY_VECTOR),
-                boneMovement.rotation(),
-                bundler
-        );
     }
 
     public void defaultPosition(@NotNull Supplier<Vector3f> movement) {
@@ -659,13 +622,14 @@ public final class RenderedBone {
         private final DisplayTransformer transformer = display != null ? display.createTransformer() : null;
         private boolean firstTick = true;
 
-        public boolean tick() {
+        public boolean tick(@NotNull PacketBundler bundler) {
             var result = state.tick(() -> {
                 if (uuid != null) {
                     perPlayerState.remove(uuid);
                     consumer.accept(uuid);
                 }
             }) || firstTick;
+            if (result) sendTransformation(bundler);
             firstTick = false;
             return result;
         }
@@ -721,6 +685,28 @@ public final class RenderedBone {
                     def.scale(),
                     def.rotation().mul(modifiedRotation(preventModifierUpdate)),
                     def.rawRotation()
+            );
+        }
+
+        private void sendTransformation(@NotNull PacketBundler bundler) {
+            var boneMovement = nextMovement();
+            if (transformer == null) return;
+            var mul = scale.getAsFloat();
+            transformer.transform(
+                    interpolationDuration(),
+                    MathUtil.fma(
+                            itemStack.offset().rotate(boneMovement.rotation(), new Vector3f())
+                                    .add(boneMovement.transform())
+                                    .add(root.group.getPosition()),
+                            mul,
+                            itemStack.position()
+                    ).add(defaultPosition.get()),
+                    boneMovement.scale()
+                            .mul(itemStack.scale(), new Vector3f())
+                            .mul(mul)
+                            .max(EMPTY_VECTOR),
+                    boneMovement.rotation(),
+                    bundler
             );
         }
     }
