@@ -404,7 +404,7 @@ public final class RenderedBone {
     public @NotNull Vector3f worldPosition(@NotNull Vector3f localOffset, @NotNull Vector3f globalOffset, @Nullable UUID uuid) {
         var state = state(uuid);
         var progress = state.progress();
-        var after = state.afterTransform != null ? state.afterTransform : globalState.relativeOffset();
+        var after = state.afterTransform != null ? state.afterTransform : state.relativeOffset();
         var before = state.beforeTransform != null ? state.beforeTransform : BoneMovement.EMPTY;
         return MathUtil.fma(
                         InterpolationUtil.lerp(before.transform(), after.transform(), progress)

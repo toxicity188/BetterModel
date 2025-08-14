@@ -10,11 +10,15 @@ import kr.toxicity.model.compatibility.mythicmobs.MythicMobsCompatibility
 import kr.toxicity.model.compatibility.skinsrestorer.SkinsRestorerCompatibility
 import kr.toxicity.model.purpur.PurpurHook
 import kr.toxicity.model.util.info
+import kr.toxicity.model.util.registerListener
 import org.bukkit.Bukkit
+import org.bukkit.event.EventHandler
+import org.bukkit.event.Listener
+import org.bukkit.event.server.PluginEnableEvent
 
 object CompatibilityManagerImpl : CompatibilityManager, GlobalManagerImpl {
 
-    private val compatibilities = mapOf(
+    private val compatibilities = mutableMapOf(
         "MythicMobs" to {
             MythicMobsCompatibility()
         },
@@ -32,13 +36,24 @@ object CompatibilityManagerImpl : CompatibilityManager, GlobalManagerImpl {
     override fun start() {
         if (BetterModel.IS_PURPUR) PurpurHook.start()
         Bukkit.getPluginManager().run {
-            compatibilities.forEach { (k, v) ->
+            compatibilities.entries.removeIf { (k, v) ->
                 if (isPluginEnabled(k)) {
                     v().start()
                     info("Plugin hooks $k")
-                }
+                    true
+                } else false
             }
         }
+        registerListener(object : Listener {
+            @EventHandler
+            fun PluginEnableEvent.enable() {
+                val name = plugin.name
+                compatibilities.remove(name)?.let {
+                    it().start()
+                    info("Plugin hooks $name")
+                }
+            }
+        })
     }
 
     override fun reload(info: ReloadInfo, zipper: PackZipper) {

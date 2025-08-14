@@ -4,6 +4,7 @@ import io.lumine.mythic.bukkit.MythicBukkit
 import io.lumine.mythic.bukkit.events.MythicConditionLoadEvent
 import io.lumine.mythic.bukkit.events.MythicMechanicLoadEvent
 import io.lumine.mythic.bukkit.events.MythicTargeterLoadEvent
+import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.data.renderer.RenderSource
 import kr.toxicity.model.api.script.AnimationScript
 import kr.toxicity.model.compatibility.Compatibility
@@ -20,7 +21,7 @@ import org.bukkit.event.Listener
 class MythicMobsCompatibility : Compatibility {
     override fun start() {
         ScriptManagerImpl.addBuilder("mm") { name ->
-            AnimationScript.of script@ { source ->
+            AnimationScript.of(BetterModel.IS_FOLIA) script@ { source ->
                 if (!CONFIG.module().model) return@script
                 val render = source.source()
                 if (render !is RenderSource.Entity) return@script
