@@ -123,7 +123,7 @@ public final class InterpolationUtil {
             var max = (int) ((second - first) / frame);
             for (int i = 0; i < max; i++) {
                 var add = fma(frame, i + 1, first);
-                if (second - add < frame) continue;
+                if (second - add < frame + FRAME_EPSILON) continue;
                 frames.add(add);
             }
         }
