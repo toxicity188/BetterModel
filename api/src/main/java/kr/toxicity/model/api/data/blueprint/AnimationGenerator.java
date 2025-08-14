@@ -13,6 +13,7 @@ import org.joml.Vector3f;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -46,11 +47,13 @@ public final class AnimationGenerator {
         floatSet.add(0F);
         floatSet.add(length);
         InterpolationUtil.insertLerpFrame(floatSet);
-        new AnimationGenerator(pointMap, children).interpolateRotation(floatSet);
+        var generator = new AnimationGenerator(pointMap, children);
+        generator.interpolateRotation(floatSet);
+        generator.interpolateStep(floatSet);
         return mapValue(pointMap, v -> new BlueprintAnimator(
                 v.name(),
                 InterpolationUtil.buildAnimation(
-                        v.transform(),
+                        v.position(),
                         v.rotation(),
                         v.scale(),
                         floatSet
@@ -91,9 +94,30 @@ public final class AnimationGenerator {
             var last = firstTime;
             for (float f = 1; f < length; f++) {
                 var addTime = InterpolationUtil.lerp(firstTime, secondTime, f / length);
-                if (addTime - last < 0.01 || secondTime - addTime < 0.01) continue;
+                if (addTime - last < 0.021 || secondTime - addTime < 0.021) continue;
                 floats.add(last = addTime);
             }
+        }
+    }
+
+    public void interpolateStep(@NotNull FloatSortedSet floats) {
+        trees.stream()
+                .flatMap(AnimationTree::flatten)
+                .map(tree -> tree.data)
+                .filter(Objects::nonNull)
+                .forEach(data -> {
+                    interpolateStep(floats, data.position());
+                    interpolateStep(floats, data.rotation());
+                    interpolateStep(floats, data.scale());
+                });
+    }
+
+    private void interpolateStep(@NotNull FloatSortedSet floats, @NotNull List<VectorPoint> points) {
+        if (points.size() < 2) return;
+        for (int i = 1; i < points.size(); i++) {
+            var before = points.get(i - 1);
+            if (before.interpolator().isContinuous()) continue;
+            floats.add(points.get(i).time() - 0.021F);
         }
     }
 

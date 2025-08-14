@@ -29,13 +29,13 @@ public record BlueprintAnimator(
     /**
      * Animation data
      * @param name name
-     * @param transform transform
+     * @param position position
      * @param scale scale
      * @param rotation rotation
      */
     public record AnimatorData(
             @NotNull String name,
-            @NotNull List<VectorPoint> transform,
+            @NotNull List<VectorPoint> position,
             @NotNull List<VectorPoint> scale,
             @NotNull List<VectorPoint> rotation
     ) {
@@ -46,7 +46,7 @@ public record BlueprintAnimator(
         public @NotNull Stream<VectorPoint> allPoints() {
             return Stream.concat(
                     Stream.concat(
-                            transform.stream(),
+                            position.stream(),
                             scale.stream()
                     ),
                     rotation.stream()
@@ -74,7 +74,7 @@ public record BlueprintAnimator(
         public void addFrame(@NotNull ModelKeyframe keyframe, @NotNull ModelPlaceholder placeholder) {
             var time = keyframe.time();
             if (time > length) return;
-            var interpolation = keyframe.findInterpolation();
+            var interpolation = keyframe.findInterpolator();
             for (Datapoint dataPoint : keyframe.dataPoints()) {
                 var function = dataPoint.toFunction(placeholder);
                 switch (keyframe.channel()) {

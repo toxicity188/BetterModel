@@ -1,4 +1,4 @@
-package kr.toxicity.model.api.util.interpolation;
+package kr.toxicity.model.api.util.interpolator;
 
 import kr.toxicity.model.api.animation.VectorPoint;
 import org.jetbrains.annotations.ApiStatus;
@@ -11,7 +11,7 @@ import java.util.List;
  * Step interpolator
  */
 @ApiStatus.Internal
-public enum StepInterpolation implements VectorInterpolation {
+public enum StepInterpolator implements VectorInterpolator {
     /**
      * Singleton
      */
@@ -22,5 +22,10 @@ public enum StepInterpolation implements VectorInterpolation {
     @Override
     public Vector3f interpolate(@NotNull List<VectorPoint> points, int p2Index, float time) {
         return (p2Index > 0 ? points.get(p2Index - 1) : VectorPoint.EMPTY).vector(time);
+    }
+
+    @Override
+    public boolean isContinuous() {
+        return false;
     }
 }

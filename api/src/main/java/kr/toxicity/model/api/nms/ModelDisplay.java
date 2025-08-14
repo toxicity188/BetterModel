@@ -44,7 +44,7 @@ public interface ModelDisplay extends Identifiable {
     void syncPosition(@NotNull Location location);
 
     /**
-     * Sets pos-rot movement interpolation duration
+     * Sets pos-rot movement interpolator duration
      * @param duration duration
      */
     void moveDuration(int duration);

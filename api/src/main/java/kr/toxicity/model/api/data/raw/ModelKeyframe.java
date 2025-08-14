@@ -2,7 +2,7 @@ package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.annotations.SerializedName;
 import kr.toxicity.model.api.animation.Timed;
-import kr.toxicity.model.api.util.interpolation.*;
+import kr.toxicity.model.api.util.interpolator.*;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -19,7 +19,7 @@ import static java.util.Optional.ofNullable;
  * @param bezierLeftValue bezier left value
  * @param bezierRightTime bezier right time
  * @param bezierRightValue bezier right value
- * @param interpolation interpolation type
+ * @param interpolation interpolator type
  * @param time keyframe time
  */
 @ApiStatus.Internal
@@ -38,19 +38,19 @@ public record ModelKeyframe(
      * Finds proper interpolator matched by this keyframe
      * @return interpolator
      */
-    public @NotNull VectorInterpolation findInterpolation() {
-        if (interpolation == null) return VectorInterpolation.defaultInterpolation();
+    public @NotNull VectorInterpolator findInterpolator() {
+        if (interpolation == null) return VectorInterpolator.defaultInterpolator();
         return switch (interpolation.toLowerCase()) {
-            case "linear" -> LinearInterpolation.INSTANCE;
-            case "catmullrom" -> CatmullRomInterpolation.INSTANCE;
-            case "step" -> StepInterpolation.INSTANCE;
-            case "bezier" -> new BezierInterpolation(
+            case "linear" -> LinearInterpolator.INSTANCE;
+            case "catmullrom" -> CatmullRomInterpolator.INSTANCE;
+            case "step" -> StepInterpolator.INSTANCE;
+            case "bezier" -> new BezierInterpolator(
                     ofNullable(bezierLeftTime).map(Float3::toVector).orElse(null),
                     ofNullable(bezierLeftValue).map(Float3::toVector).orElse(null),
                     ofNullable(bezierRightTime).map(Float3::toVector).orElse(null),
                     ofNullable(bezierRightValue).map(Float3::toVector).orElse(null)
             );
-            default -> VectorInterpolation.defaultInterpolation();
+            default -> VectorInterpolator.defaultInterpolator();
         };
     }
 }

@@ -7,13 +7,13 @@ import org.joml.Vector3f;
 /**
  * A movement of animation.
  * @param time keyframe time
- * @param transform position
+ * @param position position
  * @param scale scale
  * @param rotation rotation
  */
 public record AnimationMovement(
         float time,
-        @Nullable Vector3f transform,
+        @Nullable Vector3f position,
         @Nullable Vector3f scale,
         @Nullable Vector3f rotation
 ) implements Timed {
@@ -36,7 +36,7 @@ public record AnimationMovement(
     public @NotNull AnimationMovement time(float newTime) {
         return new AnimationMovement(
                 newTime,
-                transform,
+                position,
                 scale,
                 rotation
         );
@@ -50,7 +50,7 @@ public record AnimationMovement(
     public @NotNull AnimationMovement plus(@NotNull AnimationMovement other) {
         return new AnimationMovement(
                 time + other.time,
-                plus(transform, other.transform),
+                plus(position, other.position),
                 plus(scale, other.scale),
                 plus(rotation, other.rotation)
         );
@@ -64,7 +64,7 @@ public record AnimationMovement(
     public @NotNull AnimationMovement minus(@NotNull AnimationMovement other) {
         return new AnimationMovement(
                 time - other.time(),
-                minus(transform, other.transform),
+                minus(position, other.position),
                 minus(scale, other.scale),
                 minus(rotation, other.rotation)
         );

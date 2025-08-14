@@ -33,7 +33,7 @@ public record BoneMovement(
      * @return animated movement
      */
     public @NotNull BoneMovement plus(@NotNull AnimationMovement movement) {
-        var mov = movement.transform();
+        var mov = movement.position();
         var scl = movement.scale();
         var rot = movement.rotation();
         var rawRot = rot == null ? new Vector3f(rawRotation) : new Vector3f(rot).add(rawRotation);

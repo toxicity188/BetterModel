@@ -1,4 +1,4 @@
-package kr.toxicity.model.api.util.interpolation;
+package kr.toxicity.model.api.util.interpolator;
 
 import kr.toxicity.model.api.animation.VectorPoint;
 import org.jetbrains.annotations.ApiStatus;
@@ -13,7 +13,7 @@ import static kr.toxicity.model.api.util.InterpolationUtil.*;
  * Catmull-rom interpolator
  */
 @ApiStatus.Internal
-public enum CatmullRomInterpolation implements VectorInterpolation {
+public enum CatmullRomInterpolator implements VectorInterpolator {
     /**
      * Singleton
      */

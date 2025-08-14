@@ -1,16 +1,16 @@
 package kr.toxicity.model.api.animation;
 
 import kr.toxicity.model.api.util.function.FloatFunction;
-import kr.toxicity.model.api.util.interpolation.VectorInterpolation;
+import kr.toxicity.model.api.util.interpolator.VectorInterpolator;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
-public record VectorPoint(@NotNull FloatFunction<Vector3f> _vector, float time, @NotNull VectorInterpolation interpolation) implements Timed {
+public record VectorPoint(@NotNull FloatFunction<Vector3f> _vector, float time, @NotNull VectorInterpolator interpolator) implements Timed {
 
     public static final VectorPoint EMPTY = new VectorPoint(
             FloatFunction.of(new Vector3f()),
             0F,
-            VectorInterpolation.defaultInterpolation()
+            VectorInterpolator.defaultInterpolator()
     );
 
     public @NotNull Vector3f vector(float f) {
@@ -21,7 +21,7 @@ public record VectorPoint(@NotNull FloatFunction<Vector3f> _vector, float time, 
     }
 
     public @NotNull VectorPoint time(float newTime) {
-        return new VectorPoint(_vector, newTime, interpolation);
+        return new VectorPoint(_vector, newTime, interpolator);
     }
 
     @Override
