@@ -153,7 +153,7 @@ public final class RenderedBone {
     }
 
     public @Nullable RunningAnimation runningAnimation() {
-        return globalState.runningAnimation();
+        return globalState.state.runningAnimation();
     }
 
     public boolean updateItem(@NotNull Predicate<RenderedBone> predicate, @NotNull RenderSource<?> source) {
@@ -365,11 +365,7 @@ public final class RenderedBone {
     }
 
     public int interpolationDuration() {
-        return toInterpolationDuration(globalState.frame());
-    }
-
-    private static int toInterpolationDuration(float delay) {
-        return Math.round(delay / (float) Tracker.MINECRAFT_TICK_MULTIPLIER);
+        return globalState.interpolationDuration();
     }
 
     public @NotNull Vector3f worldPosition() {
@@ -638,21 +634,14 @@ public final class RenderedBone {
             return 1F - state.progress();
         }
 
-        private float frame() {
-            return state.frame();
-        }
-
         private @NotNull BoneMovement defaultFrame() {
             var keyframe = state.getAfterKeyframe();
             return defaultFrame.plus(keyframe != null ? keyframe : AnimationMovement.EMPTY);
         }
 
-        private @Nullable RunningAnimation runningAnimation() {
-            return state.runningAnimation();
-        }
-
         public int interpolationDuration() {
-            return toInterpolationDuration(frame());
+            var frame = state.frame() / (float) Tracker.MINECRAFT_TICK_MULTIPLIER;
+            return frame <= 0.25F + MathUtil.FRAME_EPSILON ? 0 : Math.max(Math.round(frame), 1);
         }
 
         private @NotNull BoneMovement nextMovement() {
