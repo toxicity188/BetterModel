@@ -41,45 +41,4 @@ public record AnimationMovement(
                 rotation
         );
     }
-
-    /**
-     * Adds other movement.
-     * @param other other movement
-     * @return new movement
-     */
-    public @NotNull AnimationMovement plus(@NotNull AnimationMovement other) {
-        return new AnimationMovement(
-                time + other.time,
-                plus(position, other.position),
-                plus(scale, other.scale),
-                plus(rotation, other.rotation)
-        );
-    }
-
-    /**
-     * Subtracts other movement.
-     * @param other other movement
-     * @return new movement
-     */
-    public @NotNull AnimationMovement minus(@NotNull AnimationMovement other) {
-        return new AnimationMovement(
-                time - other.time(),
-                minus(position, other.position),
-                minus(scale, other.scale),
-                minus(rotation, other.rotation)
-        );
-    }
-
-    private @Nullable Vector3f plus(@Nullable Vector3f one, @Nullable Vector3f two) {
-        if (one != null && two != null) {
-            return new Vector3f(one).add(two);
-        } else if (one != null) return one;
-        else return two;
-    }
-    private @Nullable Vector3f minus(@Nullable Vector3f one, @Nullable Vector3f two) {
-        if (one != null && two != null) {
-            return new Vector3f(one).sub(two);
-        } else if (one != null) return one;
-        else return two;
-    }
 }

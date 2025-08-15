@@ -81,6 +81,7 @@ public final class AnimationGenerator {
      */
     public void interpolateRotation(@NotNull FloatSortedSet floats) {
         var iterator = new FloatArrayList(floats).iterator();
+        var time = 0.03F;
         while (iterator.hasNext()) {
             firstTime = secondTime;
             secondTime = iterator.nextFloat();
@@ -91,11 +92,13 @@ public final class AnimationGenerator {
                     .orElse(0);
             var length = (float) Math.ceil(minus / 90);
             if (length < 2) continue;
-            var last = firstTime;
+            var addTime = Math.max(
+                    InterpolationUtil.lerp(0, secondTime - firstTime, 1F / length),
+                    time
+            );
             for (float f = 1; f < length; f++) {
-                var addTime = InterpolationUtil.lerp(firstTime, secondTime, f / length);
-                if (addTime - last < 0.021 || secondTime - addTime < 0.021) continue;
-                floats.add(last = addTime);
+                if (secondTime - addTime < time + MathUtil.FRAME_EPSILON) continue;
+                floats.add(firstTime + f * addTime);
             }
         }
     }
