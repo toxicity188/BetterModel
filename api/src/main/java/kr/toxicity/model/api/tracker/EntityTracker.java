@@ -13,7 +13,6 @@ import kr.toxicity.model.api.util.EventUtil;
 import kr.toxicity.model.api.util.FunctionUtil;
 import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.function.BonePredicate;
-import kr.toxicity.model.api.util.function.FloatConstantSupplier;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Entity;
@@ -109,9 +108,9 @@ public class EntityTracker extends Tracker {
             var hitBox = e.getHitBox();
             return hitBox != null && hitBox.onWalk();
         }));
-        var walkSpeedSupplier = modifier.damageAnimation() ? FunctionUtil.throttleTickFloat(() -> adapter.walkSpeed() + 4F * (float) Math.sqrt(damageTickProvider.getAsFloat())) : FloatConstantSupplier.ONE;
+        var walkSpeedSupplier = modifier.damageAnimation() ? FunctionUtil.throttleTickFloat(() -> adapter.walkSpeed() + 4F * (float) Math.sqrt(damageTickProvider.getAsFloat())) : null;
         animate("walk", new AnimationModifier(walkSupplier, 6, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
-        animate("idle_fly", new AnimationModifier(adapter::fly, 6, 0, AnimationIterator.Type.LOOP, 1F));
+        animate("idle_fly", new AnimationModifier(adapter::fly, 6, 0, AnimationIterator.Type.LOOP, null));
         animate("walk_fly", new AnimationModifier(() -> adapter.fly() && walkSupplier.getAsBoolean(), 6, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
         animate("spawn", AnimationModifier.DEFAULT_WITH_PLAY_ONCE);
         createNametag(CREATE_NAMETAG_PREDICATE, tag -> {

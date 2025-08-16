@@ -195,11 +195,9 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                         }.getOrNull()
                     }
                     if (!PlayerManagerImpl.animate(player, n, a, AnimationModifier(
-                        { true },
                         1,
                         0,
-                        loopType,
-                        1.0F
+                        loopType
                     ))) player.audience().warn("Unable to find this animation($a) or model($n).")
                 })
             }

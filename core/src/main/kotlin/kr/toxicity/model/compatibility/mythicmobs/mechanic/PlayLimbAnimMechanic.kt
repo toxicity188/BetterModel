@@ -9,6 +9,7 @@ import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.animation.AnimationIterator
 import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
+import kr.toxicity.model.api.util.function.FloatConstantSupplier
 import kr.toxicity.model.compatibility.mythicmobs.*
 import kr.toxicity.model.util.warn
 import org.bukkit.entity.Player
@@ -17,7 +18,7 @@ class PlayLimbAnimMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), 
 
     private val modelId = mlc.modelPlaceholder
     private val animationId = mlc.toPlaceholderString(arrayOf("animation", "anim", "a"))
-    private val speed = mlc.toPlaceholderFloat(arrayOf("speed", "sp"), 1.0F)
+    private val speed = mlc.toNullablePlaceholderFloat(arrayOf("speed", "sp"))
     private val remove = mlc.toPlaceholderBoolean(arrayOf("remove", "r"), false)
     private val mode = mlc.toPlaceholderString(arrayOf("mode", "loop"), "once") {
         when (it?.lowercase()) {
@@ -42,7 +43,7 @@ class PlayLimbAnimMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), 
                 warn("Error: Player not found '$currentModelId'")
             }
             val loopType = mode(args)
-            val modifier = AnimationModifier({ true }, 0, 0, loopType, speed(args))
+            val modifier = AnimationModifier(0, 0, loopType, speed(args)?.let(FloatConstantSupplier::of))
             renderer.getOrCreate(targetPlayer).run {
                 if (!animate(
                         currentAnimationId,

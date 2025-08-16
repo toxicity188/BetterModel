@@ -1,6 +1,6 @@
 package kr.toxicity.model.api.animation;
 
-import kr.toxicity.model.api.util.function.BooleanConstantSupplier;
+import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.function.FloatConstantSupplier;
 import kr.toxicity.model.api.util.function.FloatSupplier;
 import org.bukkit.entity.Player;
@@ -21,11 +21,11 @@ import java.util.function.BooleanSupplier;
  * @param player player
  */
 public record AnimationModifier(
-        @NotNull BooleanSupplier predicate,
+        @Nullable BooleanSupplier predicate,
         int start,
         int end,
         @Nullable AnimationIterator.Type type,
-        @NotNull FloatSupplier speed,
+        @Nullable FloatSupplier speed,
         @Nullable Boolean override,
         @Nullable Player player
 ) {
@@ -33,6 +33,7 @@ public record AnimationModifier(
     /**
      * Default modifier
      */
+    @NotNull
     public static final AnimationModifier DEFAULT = builder().build();
 
     /**
@@ -49,16 +50,31 @@ public record AnimationModifier(
     }
 
     /**
+     * Makes this modifier as builder
+     * @return builder
+     */
+    public @NotNull Builder toBuilder() {
+        return builder()
+                .predicate(predicate)
+                .start(start)
+                .end(end)
+                .type(type)
+                .speed(speed)
+                .override(override)
+                .player(player);
+    }
+
+    /**
      * Builder
      */
     public static final class Builder {
-        private BooleanSupplier predicate = BooleanConstantSupplier.TRUE;
+        private BooleanSupplier predicate = null;
         private int start = 1;
         private int end = 0;
         private AnimationIterator.Type type = null;
-        private FloatSupplier speed = FloatConstantSupplier.ONE;
+        private FloatSupplier speed = null;
         private Boolean override = null;
-        private Player player;
+        private Player player = null;
 
         /**
          * Private initializer
@@ -71,7 +87,7 @@ public record AnimationModifier(
          * @param predicate predicate
          * @return self
          */
-        public @NotNull Builder predicate(@NotNull BooleanSupplier predicate) {
+        public @NotNull Builder predicate(@Nullable BooleanSupplier predicate) {
             this.predicate = Objects.requireNonNull(predicate);
             return this;
         }
@@ -108,11 +124,21 @@ public record AnimationModifier(
 
         /**
          * Sets the speed modifier of this modifier
+         * @param speed speed
+         * @return self
+         */
+        public @NotNull Builder speed(float speed) {
+            this.speed = toSupplier(speed);
+            return this;
+        }
+
+        /**
+         * Sets the speed modifier of this modifier
          * @param speed speed modifier
          * @return self
          */
-        public @NotNull Builder speed(@NotNull FloatSupplier speed) {
-            this.speed = Objects.requireNonNull(speed);
+        public @NotNull Builder speed(@Nullable FloatSupplier speed) {
+            this.speed = speed;
             return this;
         }
 
@@ -133,6 +159,22 @@ public record AnimationModifier(
          */
         public @NotNull Builder player(@Nullable Player player) {
             this.player = player;
+            return this;
+        }
+
+        /**
+         * Merges non-default value with other modifier
+         * @param modifier modifier
+         * @return self
+         */
+        public @NotNull Builder mergeNotDefault(@NotNull AnimationModifier modifier) {
+            if (modifier.predicate != null) predicate(modifier.predicate);
+            if (modifier.start >= 0) start(modifier.start);
+            if (modifier.end >= 0) end(modifier.end);
+            if (modifier.type != null) type(modifier.type);
+            if (modifier.speed != null) speed(modifier.speed);
+            if (modifier.override != null) override(modifier.override);
+            if (modifier.player != null) player(modifier.player);
             return this;
         }
 
@@ -159,34 +201,43 @@ public record AnimationModifier(
      *
      * @param start     start time
      * @param end       end time
-     * @param speed     speed
      */
-    public AnimationModifier(int start, int end, float speed) {
-        this(BooleanConstantSupplier.TRUE, start, end, null, FloatConstantSupplier.of(speed));
+    public AnimationModifier(int start, int end) {
+        this(start, end, null, null);
     }
 
     /**
      * Creates modifier
      *
-     * @param predicate animation predicate
      * @param start     start time
      * @param end       end time
-     * @param speed     speed
+     * @param supplier  speed supplier
      */
-    public AnimationModifier(@NotNull BooleanSupplier predicate, int start, int end, float speed) {
-        this(predicate, start, end, null, FloatConstantSupplier.of(speed));
+    public AnimationModifier(int start, int end, @Nullable FloatSupplier supplier) {
+        this(start, end, null, supplier);
     }
 
     /**
      * Creates modifier
      *
-     * @param predicate animation predicate
      * @param start     start time
      * @param end       end time
-     * @param supplier     speed supplier
+     * @param type      type
      */
-    public AnimationModifier(@NotNull BooleanSupplier predicate, int start, int end, @NotNull FloatSupplier supplier) {
-        this(predicate, start, end, null, supplier);
+    public AnimationModifier(int start, int end, @Nullable AnimationIterator.Type type) {
+        this(start, end, type, null);
+    }
+
+    /**
+     * Creates modifier
+     *
+     * @param start     start time
+     * @param end       end time
+     * @param type type
+     * @param speed     speed
+     */
+    public AnimationModifier(int start, int end, @Nullable AnimationIterator.Type type, @Nullable FloatSupplier speed) {
+        this(null, start, end, type, speed);
     }
 
     /**
@@ -198,20 +249,7 @@ public record AnimationModifier(
      * @param type type
      * @param speed     speed
      */
-    public AnimationModifier(@NotNull BooleanSupplier predicate, int start, int end, @Nullable AnimationIterator.Type type, float speed) {
-        this(predicate, start, end, type, FloatConstantSupplier.of(speed), null, null);
-    }
-
-    /**
-     * Creates modifier
-     *
-     * @param predicate animation predicate
-     * @param start     start time
-     * @param end       end time
-     * @param type type
-     * @param speed     speed
-     */
-    public AnimationModifier(@NotNull BooleanSupplier predicate, int start, int end, @Nullable AnimationIterator.Type type, @NotNull FloatSupplier speed) {
+    public AnimationModifier(@Nullable BooleanSupplier predicate, int start, int end, @Nullable AnimationIterator.Type type, @Nullable FloatSupplier speed) {
         this(predicate, start, end, type, speed, null, null);
     }
 
@@ -229,7 +267,15 @@ public record AnimationModifier(
      * @return speed value
      */
     public float speedValue() {
-        return speed.getAsFloat();
+        return speed != null ? speed.getAsFloat() : 1F;
+    }
+
+    /**
+     * Gets predicate value
+     * @return predicate value
+     */
+    public boolean predicateValue() {
+        return predicate == null || predicate.getAsBoolean();
     }
 
     /**
@@ -239,5 +285,9 @@ public record AnimationModifier(
      */
     public boolean override(boolean original) {
         return override != null ? override : original;
+    }
+
+    private static @Nullable FloatConstantSupplier toSupplier(float speed) {
+        return MathUtil.isSimilar(speed, 1F) ? null : FloatConstantSupplier.of(speed);
     }
 }

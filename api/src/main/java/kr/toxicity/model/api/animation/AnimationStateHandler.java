@@ -162,13 +162,8 @@ public final class AnimationStateHandler<T extends Timed> {
      */
     public void replaceAnimation(@NotNull String name, @NotNull AnimationIterator<T> iterator, @NotNull AnimationModifier modifier) {
         synchronized (animators) {
-            animators.computeIfPresent(name, (k, v) -> new TreeIterator(k, iterator, AnimationModifier.builder()
-                    .predicate(v.modifier.predicate())
-                    .type(v.modifier.type())
-                    .override(modifier.override())
-                    .start(modifier.start())
-                    .end(modifier.end())
-                    .speed(modifier.speed())
+            animators.computeIfPresent(name, (k, v) -> new TreeIterator(k, iterator, v.modifier.toBuilder()
+                    .mergeNotDefault(modifier)
                     .build(), v.eventHandler));
         }
         forceUpdateAnimation.set(true);
@@ -253,7 +248,7 @@ public final class AnimationStateHandler<T extends Timed> {
 
         @Override
         public boolean getAsBoolean() {
-            return modifier.predicate().getAsBoolean();
+            return modifier.predicateValue();
         }
 
         public boolean hasNext() {

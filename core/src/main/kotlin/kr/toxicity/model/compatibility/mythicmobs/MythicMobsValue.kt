@@ -41,9 +41,9 @@ fun <T> MythicLineConfig.toPlaceholderString(array: Array<String>, defaultValue:
     }
 }
 fun MythicLineConfig.toPlaceholderInteger(array: Array<String>, defaultValue: Int = 0) = toPlaceholderInteger(array, defaultValue) { it ?: defaultValue }
-fun MythicLineConfig.toNullablePlaceholderInteger(array: Array<String>, defaultValue: Int = 0) = toPlaceholderInteger(array, defaultValue) { it }
-fun <T> MythicLineConfig.toPlaceholderInteger(array: Array<String>, defaultValue: Int = 0, mapper: (Int?) -> T): (PlaceholderArgument) -> T {
-    return getPlaceholderInteger(array, defaultValue)?.let {
+fun MythicLineConfig.toNullablePlaceholderInteger(array: Array<String>) = toPlaceholderInteger(array, null) { it }
+fun <T> MythicLineConfig.toPlaceholderInteger(array: Array<String>, defaultValue: Int? = null, mapper: (Int?) -> T): (PlaceholderArgument) -> T {
+    return getPlaceholderInteger(array, defaultValue?.toString())?.let {
         { meta ->
             mapper(when (meta) {
                 is PlaceholderArgument.None -> it.get()
@@ -59,9 +59,9 @@ fun <T> MythicLineConfig.toPlaceholderInteger(array: Array<String>, defaultValue
     }
 }
 fun MythicLineConfig.toPlaceholderFloat(array: Array<String>, defaultValue: Float = 0F) = toPlaceholderFloat(array, defaultValue) { it ?: defaultValue }
-fun MythicLineConfig.toNullablePlaceholderFloat(array: Array<String>, defaultValue: Float = 0F) = toPlaceholderFloat(array, defaultValue) { it }
-fun <T> MythicLineConfig.toPlaceholderFloat(array: Array<String>, defaultValue: Float = 0F, mapper: (Float?) -> T): (PlaceholderArgument) -> T {
-    return getPlaceholderFloat(array, defaultValue)?.let {
+fun MythicLineConfig.toNullablePlaceholderFloat(array: Array<String>) = toPlaceholderFloat(array, null) { it }
+fun <T> MythicLineConfig.toPlaceholderFloat(array: Array<String>, defaultValue: Float? = null, mapper: (Float?) -> T): (PlaceholderArgument) -> T {
+    return getPlaceholderFloat(array, defaultValue?.toString())?.let {
         { meta ->
             mapper(when (meta) {
                 is PlaceholderArgument.None -> it.get()
