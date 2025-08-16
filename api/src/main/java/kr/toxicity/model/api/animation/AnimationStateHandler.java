@@ -162,9 +162,14 @@ public final class AnimationStateHandler<T extends Timed> {
      */
     public void replaceAnimation(@NotNull String name, @NotNull AnimationIterator<T> iterator, @NotNull AnimationModifier modifier) {
         synchronized (animators) {
-            var v = animators.get(name);
-            if (v != null) animators.replace(name, new TreeIterator(name, iterator, v.modifier, v.eventHandler));
-            else animators.replace(name, new TreeIterator(name, iterator, modifier, AnimationEventHandler.start()));
+            animators.computeIfPresent(name, (k, v) -> new TreeIterator(k, iterator, AnimationModifier.builder()
+                    .predicate(v.modifier.predicate())
+                    .type(v.modifier.type())
+                    .override(modifier.override())
+                    .start(modifier.start())
+                    .end(modifier.end())
+                    .speed(modifier.speed())
+                    .build(), v.eventHandler));
         }
         forceUpdateAnimation.set(true);
     }

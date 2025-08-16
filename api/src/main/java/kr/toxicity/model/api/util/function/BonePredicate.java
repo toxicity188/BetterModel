@@ -22,6 +22,21 @@ public interface BonePredicate extends Predicate<RenderedBone> {
      */
     BonePredicate FALSE = of(State.FALSE, b -> false);
 
+    @Override
+    boolean test(@NotNull RenderedBone bone);
+
+    @Override
+    @NotNull
+    BonePredicate and(@NotNull Predicate<? super RenderedBone> other);
+
+    @Override
+    @NotNull
+    BonePredicate or(@NotNull Predicate<? super RenderedBone> other);
+
+    @Override
+    @NotNull
+    BonePredicate negate();
+
     /**
      * Should apply at children bone too
      * @return apply at children
@@ -45,17 +60,39 @@ public interface BonePredicate extends Predicate<RenderedBone> {
      */
     static @NotNull BonePredicate of(@NotNull State applyAtChildren, @NotNull Predicate<RenderedBone> predicate) {
         Objects.requireNonNull(predicate, "predicate cannot be null.");
-        return new BonePredicate() {
-            @Override
-            public @NotNull State applyAtChildren() {
-                return applyAtChildren;
-            }
+        return new Packed(applyAtChildren, predicate);
+    }
 
-            @Override
-            public boolean test(RenderedBone renderedBone) {
-                return predicate.test(renderedBone);
-            }
-        };
+    /**
+     * Packed value
+     * @param applyAtChildren apply at children
+     * @param predicate predicate
+     */
+    record Packed(@NotNull State applyAtChildren, @NotNull Predicate<RenderedBone> predicate) implements BonePredicate {
+        @Override
+        public boolean test(@NotNull RenderedBone bone) {
+            return predicate.test(bone);
+        }
+
+        @Override
+        @NotNull
+        public BonePredicate and(@NotNull Predicate<? super RenderedBone> other) {
+            Objects.requireNonNull(other);
+            return of(applyAtChildren, t -> predicate.test(t) && other.test(t));
+        }
+
+        @Override
+        @NotNull
+        public BonePredicate or(@NotNull Predicate<? super RenderedBone> other) {
+            Objects.requireNonNull(other);
+            return of(applyAtChildren, t -> predicate.test(t) || other.test(t));
+        }
+
+        @Override
+        @NotNull
+        public BonePredicate negate() {
+            return of(applyAtChildren, t -> !predicate.test(t));
+        }
     }
 
     /**

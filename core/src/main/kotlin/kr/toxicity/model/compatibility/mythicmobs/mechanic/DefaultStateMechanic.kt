@@ -12,7 +12,7 @@ class DefaultStateMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), 
     private val model = mlc.modelPlaceholder
     private val type = mlc.toPlaceholderString(arrayOf("t", "type"))
     private val state = mlc.toPlaceholderString(arrayOf("state", "s"))
-    private val li = mlc.toPlaceholderInteger(arrayOf("li"))
+    private val li = mlc.toPlaceholderInteger(arrayOf("li"), 1)
     private val lo = mlc.toPlaceholderInteger(arrayOf("lo"))
     private val sp = mlc.toPlaceholderFloat(arrayOf("speed", "sp"), 1F)
 
