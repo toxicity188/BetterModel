@@ -19,6 +19,7 @@ import org.bukkit.inventory.ItemStack
 import java.io.File
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.io.path.extension
 
 object PlayerManagerImpl : PlayerManager, GlobalManager {
 
@@ -58,6 +59,8 @@ object PlayerManagerImpl : PlayerManager, GlobalManager {
                 folder.addResource("steve.bbmodel")
             }.fileTreeList()
                 .filter { it.extension == "bbmodel" }
+                .map { it.toFile() }
+                .toList()
             pipeline.status = "Importing player model..."
             pipeline goal target.size
             pipeline.forEachParallel(target, File::length) {

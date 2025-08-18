@@ -17,6 +17,7 @@ import org.bukkit.NamespacedKey
 import org.bukkit.inventory.ItemStack
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.io.path.extension
 
 object ModelManagerImpl : ModelManager, GlobalManager {
 
@@ -40,6 +41,8 @@ object ModelManagerImpl : ModelManager, GlobalManager {
             if (PLUGIN.version().useModernResource()) folder.addResource("demon_knight.bbmodel")
         }.fileTreeList()
             .filter { it.extension == "bbmodel" }
+            .map { it.toFile() }
+            .toList()
         pipeline.status = "Importing models..."
         pipeline goal targetFolder.size
         pipeline.forEachParallel(targetFolder,File::length) {

@@ -9,12 +9,15 @@ import kr.toxicity.model.api.pack.PackResource
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.manager.ReloadPipeline
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Path
 import java.security.DigestOutputStream
 import java.security.MessageDigest
 import java.util.concurrent.ConcurrentHashMap
 import java.util.zip.Deflater
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+import kotlin.io.path.pathString
 
 fun JsonElement.estimatedSize(): Long {
     when (this) {
@@ -43,12 +46,14 @@ interface PackGenerator {
 
 class FolderGenerator : PackGenerator {
     private val time = System.currentTimeMillis()
-    private val file = File(DATA_FOLDER.parent, CONFIG.buildFolderLocation())
-    private val fileTree = sortedMapOf<String, File>(Comparator.reverseOrder()).apply {
-        val l = file.path.length + 1
-        file.forEach { sub ->
-            sub.forEachAll {
-                put(it.path.substring(l), it)
+    private val file = File(DATA_FOLDER.parent, CONFIG.buildFolderLocation()).apply {
+        mkdirs()
+    }
+    private val fileTree = sortedMapOf<String, Path>(Comparator.reverseOrder()).apply {
+        val after = CONFIG.buildFolderLocation() + File.separatorChar
+        Files.walk(file.toPath()).use { stream ->
+            stream.forEach {
+                put(it.pathString.substringAfter(after), it)
             }
         }
     }
@@ -56,11 +61,10 @@ class FolderGenerator : PackGenerator {
     private fun PackPath.toFile(): File {
         val replaced = path.replace('/', File.separatorChar)
         return synchronized(fileTree) {
-            fileTree.remove(replaced)
+            fileTree.remove(replaced)?.toFile()
         } ?: File(file, replaced).apply {
             parentFile.mkdirs()
         }
-
     }
 
     override fun create(zipper: PackZipper, pipeline: ReloadPipeline): PackData {
@@ -68,15 +72,18 @@ class FolderGenerator : PackGenerator {
         pipeline.forEachParallel(zipper.build(), PackResource::estimatedSize) {
             val bytes = it.get()
             map[it.path()] = bytes
-            it.path().toFile().outputStream().buffered().use { output ->
-                output.write(bytes)
+            val file = it.path().toFile()
+            if (file.length() != bytes.size.toLong()) {
+                file.writeBytes(bytes)
+                debugPack {
+                    "This file was successfully generated: ${it.path()}"
+                }
             }
             pipeline.progress()
-            debugPack {
-                "This file was successfully zipped: ${it.path()}"
-            }
         }
-        fileTree.values.forEach(File::delete)
+        fileTree.values.forEach {
+            it.toFile().delete()
+        }
         return PackData(map.toImmutableView(), System.currentTimeMillis() - time)
     }
 }
