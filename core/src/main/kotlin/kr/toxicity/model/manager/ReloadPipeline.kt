@@ -10,7 +10,7 @@ class ReloadPipeline(
     val indicators: List<ReloadIndicator>
 ) : AutoCloseable {
 
-    var status = "Starting"
+    var status = "Starting..."
     private val pool = parallelIOThreadPool()
 
     private val current = AtomicInteger()
@@ -34,7 +34,7 @@ class ReloadPipeline(
         if (closed.get()) return@asyncTaskTimer handleClose()
         val status = current.get().run {
             Status(
-                toFloat() / goal,
+                if (goal > 0) toFloat() / goal.toFloat() else 0F,
                 this,
                 goal,
                 status

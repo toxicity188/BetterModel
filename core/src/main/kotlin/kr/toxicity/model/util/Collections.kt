@@ -37,7 +37,6 @@ class ParallelIOThreadPool : AutoCloseable {
 
     fun <T> forEachParallel(list: List<T>, sizeAssume: (T) -> Long, block: (T) -> Unit) {
         if (list.isEmpty()) return
-        val sorted = list.sortedBy(sizeAssume)
         val size = list.size
         val lastIndex = list.lastIndex
         val tasks = if (available >= size) {
@@ -47,6 +46,7 @@ class ParallelIOThreadPool : AutoCloseable {
                 }
             }
         } else {
+            val sorted = list.sortedBy(sizeAssume)
             val queue = arrayListOf<() -> Unit>()
             var i = 0
             val add = (size.toDouble() / available).toInt()

@@ -193,7 +193,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
                     it.reload(pipeline, zipper)
                 }
                 val generator = if (info.firstReload) BetterModelConfig.PackType.NONE else CONFIG.packType()
-                pipeline.status = "Generating file..."
+                pipeline.status = "Generating files..."
                 pipeline goal zipper.size()
                 Success(System.currentTimeMillis() - time, generator.toGenerator().create(zipper, pipeline))
             }
@@ -206,12 +206,18 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
 
     fun loadAssets(pipeline: ReloadPipeline, prefix: String, consumer: (String, InputStream) -> Unit) {
         JarFile(file).use {
-            pipeline.forEachParallel(it.entries().toList(), JarEntry::getSize) { entry ->
-                if (!entry.name.startsWith(prefix)) return@forEachParallel
-                if (entry.name.length <= prefix.length + 1) return@forEachParallel
-                val name = entry.name.substring(prefix.length + 1)
-                if (!entry.isDirectory) it.getInputStream(entry).buffered().use { stream ->
-                    consumer(name, stream)
+            pipeline.forEachParallel(it.entries()
+                .asSequence()
+                .filter { entry ->
+                    entry.name.startsWith(prefix)
+                            && entry.name.length > prefix.length + 1
+                            && !entry.isDirectory
+                }
+                .toList(),
+                JarEntry::getSize
+            ) { entry ->
+                it.getInputStream(entry).buffered().use { stream ->
+                    consumer(entry.name.substring(prefix.length + 1), stream)
                 }
             }
         }
