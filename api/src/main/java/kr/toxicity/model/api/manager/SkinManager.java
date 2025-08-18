@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Skin manager
  */
-public interface SkinManager extends GlobalManager {
+public interface SkinManager {
     boolean supported();
     @NotNull SkinData getOrRequest(@NotNull GameProfile profile);
     boolean isSlim(@NotNull GameProfile profile);

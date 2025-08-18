@@ -1,6 +1,7 @@
 package kr.toxicity.model.api;
 
 import kr.toxicity.model.api.config.DebugConfig;
+import kr.toxicity.model.api.config.IndicatorConfig;
 import kr.toxicity.model.api.config.ModuleConfig;
 import kr.toxicity.model.api.mount.MountController;
 import kr.toxicity.model.api.pack.PackConfig;
@@ -17,6 +18,12 @@ public interface BetterModelConfig {
      * @return debug config
      */
     @NotNull DebugConfig debug();
+
+    /**
+     * Gets indicator config
+     * @return indicator config
+     */
+    @NotNull IndicatorConfig indicator();
 
     /**
      * Gets module config

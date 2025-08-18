@@ -11,14 +11,14 @@ class BodyRotationMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), 
     private val model = mlc.modelPlaceholder
     private val headUneven = mlc.toNullablePlaceholderBoolean(arrayOf("headuneven", "hu", "head"))
     private val maxHead = mlc.toNullablePlaceholderFloat(arrayOf("maxhead", "mh", "mxh"))
-    private val minhead = mlc.toNullablePlaceholderFloat(arrayOf("minhead", "mnh"))
+    private val minHead = mlc.toNullablePlaceholderFloat(arrayOf("minhead", "mnh"))
     private val bodyUneven = mlc.toNullablePlaceholderBoolean(arrayOf("bodyuneven", "bu", "body"))
-    private val maxbody = mlc.toNullablePlaceholderFloat(arrayOf("maxbody", "mb", "mxb"))
-    private val minbody = mlc.toNullablePlaceholderFloat(arrayOf("minbody", "mnb"))
-    private val playermode = mlc.toNullablePlaceholderBoolean(arrayOf("playermode", "m", "mode", "player"))
+    private val maxBody = mlc.toNullablePlaceholderFloat(arrayOf("maxbody", "mb", "mxb"))
+    private val minBody = mlc.toNullablePlaceholderFloat(arrayOf("minbody", "mnb"))
+    private val playerMode = mlc.toNullablePlaceholderBoolean(arrayOf("playermode", "m", "mode", "player"))
     private val stable = mlc.toNullablePlaceholderFloat(arrayOf("stable", "s"))
-    private val rdelay = mlc.toNullablePlaceholderInteger(arrayOf("rdelay", "rde"))
-    private val rduration = mlc.toNullablePlaceholderInteger(arrayOf("rduration", "rdu"))
+    private val rDelay = mlc.toNullablePlaceholderInteger(arrayOf("rdelay", "rde"))
+    private val rDuration = mlc.toNullablePlaceholderInteger(arrayOf("rduration", "rdu"))
 
     override fun cast(p0: SkillMetadata): SkillResult {
         val args = p0.toPlaceholderArgs()
@@ -26,14 +26,14 @@ class BodyRotationMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), 
             setValue { setter ->
                 headUneven(args)?.let { setter.setHeadUneven(it) }
                 maxHead(args)?.let { setter.setMaxHead(it) }
-                minhead(args)?.let { setter.setMinHead(it) }
+                minHead(args)?.let { setter.setMinHead(it) }
                 bodyUneven(args)?.let { setter.setBodyUneven(it) }
-                maxbody(args)?.let { setter.setMaxBody(it) }
-                minbody(args)?.let { setter.setMinBody(it) }
-                playermode(args)?.let { setter.setPlayerMode(it) }
+                maxBody(args)?.let { setter.setMaxBody(it) }
+                minBody(args)?.let { setter.setMinBody(it) }
+                playerMode(args)?.let { setter.setPlayerMode(it) }
                 stable(args)?.let { setter.setStable(it) }
-                rdelay(args)?.let { setter.setRotationDelay(it) }
-                rduration(args)?.let { setter.setRotationDuration(it) }
+                rDelay(args)?.let { setter.setRotationDelay(it) }
+                rDuration(args)?.let { setter.setRotationDuration(it) }
             }
             SkillResult.SUCCESS
         } ?: SkillResult.CONDITION_FAILED

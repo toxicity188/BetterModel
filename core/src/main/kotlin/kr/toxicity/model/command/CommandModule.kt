@@ -5,14 +5,7 @@ import dev.jorel.commandapi.arguments.Argument
 import dev.jorel.commandapi.commandsenders.BukkitCommandSender
 import dev.jorel.commandapi.executors.CommandExecutionInfo
 import dev.jorel.commandapi.executors.ExecutionInfo
-import kr.toxicity.model.util.audience
-import kr.toxicity.model.util.componentOf
-import kr.toxicity.model.util.componentWithLineOf
-import kr.toxicity.model.util.emptyComponentOf
-import kr.toxicity.model.util.info
-import kr.toxicity.model.util.lineComponentOf
-import kr.toxicity.model.util.spaceComponentOf
-import kr.toxicity.model.util.toComponent
+import kr.toxicity.model.util.*
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.HoverEvent

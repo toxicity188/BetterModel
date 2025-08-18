@@ -5,7 +5,10 @@ import io.lumine.mythic.api.config.MythicLineConfig
 import io.lumine.mythic.api.skills.ITargetedEntitySkill
 import io.lumine.mythic.api.skills.SkillMetadata
 import io.lumine.mythic.api.skills.SkillResult
-import kr.toxicity.model.compatibility.mythicmobs.*
+import kr.toxicity.model.compatibility.mythicmobs.MM_SEAT
+import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderArgs
+import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderStringList
+import kr.toxicity.model.compatibility.mythicmobs.toRegistry
 import kr.toxicity.model.util.boneName
 
 class DismountAllModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), ITargetedEntitySkill {

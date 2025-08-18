@@ -2,11 +2,7 @@ package kr.toxicity.model.manager
 
 import dev.jorel.commandapi.CommandAPI
 import dev.jorel.commandapi.CommandAPIBukkitConfig
-import dev.jorel.commandapi.arguments.ArgumentSuggestions
-import dev.jorel.commandapi.arguments.DoubleArgument
-import dev.jorel.commandapi.arguments.LocationArgument
-import dev.jorel.commandapi.arguments.PlayerArgument
-import dev.jorel.commandapi.arguments.StringArgument
+import dev.jorel.commandapi.arguments.*
 import dev.jorel.commandapi.executors.CommandExecutionInfo
 import dev.jorel.commandapi.executors.PlayerCommandExecutor
 import kr.toxicity.model.api.BetterModel
@@ -14,7 +10,6 @@ import kr.toxicity.model.api.BetterModelPlugin.ReloadResult.*
 import kr.toxicity.model.api.animation.AnimationIterator
 import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.manager.CommandManager
-import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.version.MinecraftVersion
@@ -31,7 +26,7 @@ import org.bukkit.util.Vector
 import java.util.concurrent.CompletableFuture
 import kotlin.math.pow
 
-object CommandManagerImpl : CommandManager, GlobalManagerImpl {
+object CommandManagerImpl : CommandManager, GlobalManager {
 
     override fun start() {
         CommandAPI.onLoad(CommandAPIBukkitConfig(PLUGIN).silentLogs(true))
@@ -119,7 +114,7 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
                     PLUGIN.scheduler().asyncTask {
                         val audience = it.sender().audience()
                         audience.info("Start reloading. please wait...")
-                        when (val result = PLUGIN.reload()) {
+                        when (val result = PLUGIN.reload(it.sender())) {
                             is OnReload -> audience.warn("This plugin is still on reload!")
                             is Success -> {
                                 audience.info(
@@ -244,7 +239,7 @@ object CommandManagerImpl : CommandManager, GlobalManagerImpl {
         CommandAPI.onEnable()
     }
 
-    override fun reload(info: ReloadInfo, zipper: PackZipper) {
+    override fun reload(pipeline: ReloadPipeline, zipper: PackZipper) {
 
     }
 

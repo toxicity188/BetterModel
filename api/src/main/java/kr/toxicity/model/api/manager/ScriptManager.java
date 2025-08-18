@@ -8,7 +8,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Script manager
  */
-public interface ScriptManager extends GlobalManager {
+public interface ScriptManager {
     /**
      * Creates a script for line
      * @param script raw script

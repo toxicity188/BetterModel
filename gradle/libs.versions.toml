@@ -13,7 +13,7 @@ adventurePlatformBukkit = "net.kyori:adventure-platform-bukkit:4.4.0"
 commandApi = "dev.jorel:commandapi-bukkit-shade:10.1.2"
 lombok = "org.projectlombok:lombok:1.18.38"
 bStats = "org.bstats:bstats-bukkit:3.1.0"
-dynamicUV = "com.github.toxicity188:DynamicUV:1.0.3"
+dynamicUV = "io.github.toxicity188:dynamicuv:1.0.5"
 sharedPackets = "com.github.toxicity188:SharedPackets:1.0.0"
 molangCompiler = "gg.moonflower:molang-compiler:3.1.1.19"
 

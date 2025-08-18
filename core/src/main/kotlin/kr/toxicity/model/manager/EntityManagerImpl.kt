@@ -7,7 +7,6 @@ import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.manager.EntityManager
-import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.ModelInteractionHand
 import kr.toxicity.model.api.pack.PackZipper
@@ -30,7 +29,7 @@ import org.bukkit.event.world.EntitiesUnloadEvent
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.potion.PotionEffectType
 
-object EntityManagerImpl : EntityManager, GlobalManagerImpl {
+object EntityManagerImpl : EntityManager, GlobalManager {
 
     private val effectMap = ReferenceOpenHashSet<PotionEffectType>().apply {
         add(PotionEffectType.GLOWING)
@@ -168,7 +167,7 @@ object EntityManagerImpl : EntityManager, GlobalManagerImpl {
         registerListener(platformListener)
     }
 
-    override fun reload(info: ReloadInfo, zipper: PackZipper) {
+    override fun reload(pipeline: ReloadPipeline, zipper: PackZipper) {
         EntityTrackerRegistry.registries(EntityTrackerRegistry::reload)
     }
 

@@ -48,7 +48,7 @@ public final class PackZipper {
     @ApiStatus.Internal
     public @NotNull List<PackResource> build() {
         var config = BetterModel.config().pack();
-        var resources = new ArrayList<PackResource>(assets.size() + legacy.size() + modern.size() + 2);
+        var resources = new ArrayList<PackResource>(size());
         resources.addAll(assets.resourceMap.values());
         if (config.generateLegacyModel() && legacy.dirty()) {
             resources.addAll(legacy.resourceMap.values());
@@ -70,13 +70,17 @@ public final class PackZipper {
         return resources;
     }
 
+    public int size() {
+        return assets.size() + legacy.size() + modern.size() + 2;
+    }
+
     private static @Nullable PackResource loadIcon() {
         try (
                 var icon = BetterModel.plugin().getResource("icon.png")
         ) {
             if (icon == null) return null;
             var read = icon.readAllBytes();
-            return PackResource.of(PACK_ICON, () -> read);
+            return PackResource.of(PACK_ICON, read.length, () -> read);
         } catch (IOException e) {
             LogUtil.handleException("Unable to get icon.png", e);
             return null;

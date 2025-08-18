@@ -6,7 +6,6 @@ import kr.toxicity.model.api.data.blueprint.ModelBlueprint
 import kr.toxicity.model.api.data.renderer.ModelRenderer
 import kr.toxicity.model.api.data.renderer.RendererGroup
 import kr.toxicity.model.api.manager.PlayerManager
-import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.api.nms.PlayerChannelHandler
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.util.*
@@ -17,10 +16,11 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.inventory.ItemStack
+import java.io.File
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
-object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
+object PlayerManagerImpl : PlayerManager, GlobalManager {
 
     private val playerMap = ConcurrentHashMap<UUID, PlayerChannelHandler>()
     private val renderMap = hashMapOf<String, ModelRenderer>()
@@ -51,16 +51,18 @@ object PlayerManagerImpl : PlayerManager, GlobalManagerImpl {
         if (SkinManagerImpl.supported()) SkinManagerImpl.getOrRequest(profile())
     }
 
-    override fun reload(info: ReloadInfo, zipper: PackZipper) {
+    override fun reload(pipeline: ReloadPipeline, zipper: PackZipper) {
         renderMap.clear()
         if (CONFIG.module().playerAnimation()) {
-            DATA_FOLDER.getOrCreateDirectory("players") { folder ->
+            val target = DATA_FOLDER.getOrCreateDirectory("players") { folder ->
                 folder.addResource("steve.bbmodel")
-            }.forEachAllFolder {
-                if (it.extension == "bbmodel") {
-                    val load = it.toModel()
-                    renderMap[load.name] = load.toRenderer()
-                }
+            }.fileTreeList()
+                .filter { it.extension == "bbmodel" }
+            pipeline.status = "Importing player model..."
+            pipeline goal target.size
+            pipeline.forEachParallel(target, File::length) {
+                val load = it.toModel()
+                renderMap[load.name] = load.toRenderer()
             }
         }
     }

@@ -15,7 +15,7 @@ import java.util.UUID;
 /**
  * Player manager
  */
-public interface PlayerManager extends GlobalManager {
+public interface PlayerManager {
     /**
      * Gets player channel handler
      * @param uuid player's uuid

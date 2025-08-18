@@ -2,6 +2,7 @@ package kr.toxicity.model
 
 import kr.toxicity.model.api.BetterModelConfig
 import kr.toxicity.model.api.config.DebugConfig
+import kr.toxicity.model.api.config.IndicatorConfig
 import kr.toxicity.model.api.config.ModuleConfig
 import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.mount.MountControllers
@@ -17,6 +18,9 @@ class BetterModelConfigImpl(yaml: ConfigurationSection) : BetterModelConfig {
     private val debug = yaml.getConfigurationSection("debug")?.let {
         DebugConfig.from(it)
     } ?: DebugConfig.DEFAULT
+    private val indicator = yaml.getConfigurationSection("indicator")?.let {
+        IndicatorConfig.from(it)
+    } ?: IndicatorConfig.DEFAULT
     private val module = yaml.getConfigurationSection("module")?.let {
         ModuleConfig.from(it)
     } ?: ModuleConfig.DEFAULT
@@ -57,6 +61,7 @@ class BetterModelConfigImpl(yaml: ConfigurationSection) : BetterModelConfig {
     private val packetBundlingSize = yaml.getInt("packet-bundling-size", 16)
 
     override fun debug(): DebugConfig = debug
+    override fun indicator(): IndicatorConfig = indicator
     override fun module(): ModuleConfig = module
     override fun pack(): PackConfig = pack
     override fun item(): Material = item

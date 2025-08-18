@@ -11,7 +11,7 @@ import java.util.Set;
 /**
  * Model Manager
  */
-public interface ModelManager extends GlobalManager {
+public interface ModelManager {
 
     /**
      * Gets renderer by name

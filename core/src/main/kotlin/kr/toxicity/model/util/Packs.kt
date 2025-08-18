@@ -1,10 +1,13 @@
 package kr.toxicity.model.util
 
+import com.google.gson.*
 import kr.toxicity.model.api.BetterModelConfig
 import kr.toxicity.model.api.BetterModelConfig.PackType.*
 import kr.toxicity.model.api.pack.PackData
 import kr.toxicity.model.api.pack.PackPath
+import kr.toxicity.model.api.pack.PackResource
 import kr.toxicity.model.api.pack.PackZipper
+import kr.toxicity.model.manager.ReloadPipeline
 import java.io.File
 import java.security.DigestOutputStream
 import java.security.MessageDigest
@@ -13,6 +16,21 @@ import java.util.zip.Deflater
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
+fun JsonElement.estimatedSize(): Long {
+    when (this) {
+        is JsonObject -> return entrySet().sumOf { it.value.estimatedSize() }
+        is JsonArray -> return asList().sumOf { it.estimatedSize() }
+        is JsonNull -> return 8L
+        is JsonPrimitive -> {
+            if (isNumber) return asInt / 5L + 6L
+            if (isBoolean) return if (asBoolean) 8L else 10L
+            if (isString) return 2L * asString.length
+        }
+        else -> {}
+    }
+    return 0L
+}
+
 fun BetterModelConfig.PackType.toGenerator() = when (this) {
     FOLDER -> FolderGenerator()
     ZIP -> ZipGenerator()
@@ -20,7 +38,7 @@ fun BetterModelConfig.PackType.toGenerator() = when (this) {
 }
 
 interface PackGenerator {
-    fun create(zipper: PackZipper): PackData
+    fun create(zipper: PackZipper, pipeline: ReloadPipeline): PackData
 }
 
 class FolderGenerator : PackGenerator {
@@ -45,14 +63,15 @@ class FolderGenerator : PackGenerator {
 
     }
 
-    override fun create(zipper: PackZipper): PackData {
+    override fun create(zipper: PackZipper, pipeline: ReloadPipeline): PackData {
         val map = ConcurrentHashMap<PackPath, ByteArray>()
-        zipper.build().forEachAsync {
+        pipeline.forEachParallel(zipper.build(), PackResource::estimatedSize) {
             val bytes = it.get()
             map[it.path()] = bytes
             it.path().toFile().outputStream().buffered().use { output ->
                 output.write(bytes)
             }
+            pipeline.progress()
             debugPack {
                 "This file was successfully zipped: ${it.path()}"
             }
@@ -66,7 +85,7 @@ class ZipGenerator : PackGenerator {
     private val time = System.currentTimeMillis()
     private val file = File(DATA_FOLDER.parent, "${CONFIG.buildFolderLocation()}.zip")
 
-    override fun create(zipper: PackZipper): PackData {
+    override fun create(zipper: PackZipper, pipeline: ReloadPipeline): PackData {
         val map = ConcurrentHashMap<PackPath, ByteArray>()
         ZipOutputStream(runCatching {
             MessageDigest.getInstance("SHA-1")
@@ -77,7 +96,7 @@ class ZipGenerator : PackGenerator {
         }).use { zip ->
             zip.setLevel(Deflater.BEST_COMPRESSION)
             zip.setComment("BetterModel's generated resource pack.")
-            zipper.build().forEachAsync {
+            pipeline.forEachParallel(zipper.build(), PackResource::estimatedSize) {
                 val result = it.get()
                 map[it.path()] = result
                 synchronized(zip) {
@@ -85,6 +104,7 @@ class ZipGenerator : PackGenerator {
                     zip.write(result)
                     zip.closeEntry()
                 }
+                pipeline.progress()
                 debugPack {
                     "This file was successfully zipped: ${it.path()}"
                 }
@@ -97,10 +117,11 @@ class ZipGenerator : PackGenerator {
 class NoneGenerator : PackGenerator {
     private val time = System.currentTimeMillis()
 
-    override fun create(zipper: PackZipper): PackData {
+    override fun create(zipper: PackZipper, pipeline: ReloadPipeline): PackData {
         val map = ConcurrentHashMap<PackPath, ByteArray>()
-        zipper.build().forEachAsync {
+        pipeline.forEachParallel(zipper.build(), PackResource::estimatedSize) {
             map[it.path()] = it.get()
+            pipeline.progress()
         }
         return PackData(map.toImmutableView(), System.currentTimeMillis() - time)
     }

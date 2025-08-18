@@ -11,7 +11,6 @@ import kr.toxicity.model.api.data.renderer.ModelRenderer
 import kr.toxicity.model.api.data.renderer.RendererGroup
 import kr.toxicity.model.api.event.ModelImportedEvent
 import kr.toxicity.model.api.manager.ModelManager
-import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.util.*
 import org.bukkit.NamespacedKey
@@ -19,7 +18,7 @@ import org.bukkit.inventory.ItemStack
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
-object ModelManagerImpl : ModelManager, GlobalManagerImpl {
+object ModelManagerImpl : ModelManager, GlobalManager {
 
     private const val MODERN_MODEL_ITEM_NAME = "bm_models"
 
@@ -34,42 +33,45 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
         }
     }
 
-    private fun importModels(zipper: PackZipper): List<ModelBlueprint> {
+    private fun importModels(pipeline: ReloadPipeline, zipper: PackZipper): List<ModelBlueprint> {
         val modelFileMap = ConcurrentHashMap<String, Pair<File, ModelBlueprint>>()
         val textures = zipper.assets().bettermodel().textures()
-        DATA_FOLDER.getOrCreateDirectory("models") { folder ->
+        val targetFolder = DATA_FOLDER.getOrCreateDirectory("models") { folder ->
             if (PLUGIN.version().useModernResource()) folder.addResource("demon_knight.bbmodel")
         }.fileTreeList()
             .filter { it.extension == "bbmodel" }
-            .forEachAsync {
-                val load = it.toTexturedModel() ?: return@forEachAsync warn("This model file has unsupported element type (e.g., mesh): ${it.path}")
-                modelFileMap.compute(load.name) compute@ { _, v ->
-                    if (v != null) {
-                        // A model with the same name already exists from a different file
-                        warn(
-                            "Duplicate model name '${load.name}'.",
-                            "Duplicated file: ${it.path}",
-                            "And: ${v.first.path}"
-                        )
-                        return@compute v
-                    }
-                    debugPack {
-                        "Model file successfully loaded: ${it.path}"
-                    }
-                    it to load.apply {
-                        buildImage().forEach { image ->
-                            textures.add("${image.name}.png") {
-                                image.image.toByteArray()
-                            }
-                            image.mcmeta()?.let { meta ->
-                                textures.add("${image.name}.png.mcmeta") {
-                                    meta.toByteArray()
-                                }
+        pipeline.status = "Importing models..."
+        pipeline goal targetFolder.size
+        pipeline.forEachParallel(targetFolder,File::length) {
+            val load = it.toTexturedModel() ?: return@forEachParallel warn("This model file has unsupported element type (e.g., mesh): ${it.path}")
+            modelFileMap.compute(load.name) compute@ { _, v ->
+                pipeline.progress()
+                if (v != null) {
+                    // A model with the same name already exists from a different file
+                    warn(
+                        "Duplicate model name '${load.name}'.",
+                        "Duplicated file: ${it.path}",
+                        "And: ${v.first.path}"
+                    )
+                    return@compute v
+                }
+                debugPack {
+                    "Model file successfully loaded: ${it.path}"
+                }
+                it to load.apply {
+                    buildImage().forEach { image ->
+                        textures.add("${image.name}.png", image.estimatedSize()) {
+                            image.image.toByteArray()
+                        }
+                        image.mcmeta()?.let { meta ->
+                            textures.add("${image.name}.png.mcmeta", meta.estimatedSize()) {
+                                meta.toByteArray()
                             }
                         }
                     }
                 }
             }
+        }
         return modelFileMap.values
             .asSequence()
             .sortedBy { it.first }
@@ -77,11 +79,11 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
             .toList()
     }
 
-    private fun loadModels(zipper: PackZipper) {
+    private fun loadModels(pipeline: ReloadPipeline, zipper: PackZipper) {
         val legacyModel = zipper.legacy().bettermodel().models().resolve("item")
         val modernModel = zipper.modern().bettermodel().models().resolve("modern_item")
         val itemName = CONFIG.item().name.lowercase()
-        val model = importModels(zipper)
+        val model = importModels(pipeline, zipper)
 
         val maxScale = model.maxOfOrNull {
             it.scale()
@@ -101,8 +103,8 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                         "model" to modernBlueprint.toModernJson()
                     ))
                     modernBlueprint.forEach { json ->
-                        modernModel.add("${json.name}.json") {
-                            json.element.get().toByteArray()
+                        modernModel.add("${json.name}.json", json.element.estimatedSize()) {
+                            json.element.toByteArray()
                         }
                     }
                     success = true
@@ -113,8 +115,8 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                         "predicate" to jsonObjectOf("custom_model_data" to index),
                         "model" to "${CONFIG.namespace()}:item/${blueprint.name}"
                     ))
-                    legacyModel.add("${blueprint.name}.json") {
-                        blueprint.element.get().toByteArray()
+                    legacyModel.add("${blueprint.name}.json", blueprint.element.estimatedSize()) {
+                        blueprint.element.toByteArray()
                     }
                     success = true
                 }
@@ -126,43 +128,34 @@ object ModelManagerImpl : ModelManager, GlobalManagerImpl {
                 ModelImportedEvent(this).call()
             }
         }
-        zipper.modern().bettermodel().items().add("$MODERN_MODEL_ITEM_NAME.json") {
-            jsonObjectOf("model" to jsonObjectOf(
-                "type" to "range_dispatch",
-                "property" to "custom_model_data",
-                "fallback" to jsonObjectOf(
-                    "type" to "minecraft:model",
-                    "model" to "minecraft:item/$itemName"
-                ),
-                "entries" to modernEntries
-            )).toByteArray()
+        jsonObjectOf("model" to jsonObjectOf(
+            "type" to "range_dispatch",
+            "property" to "custom_model_data",
+            "fallback" to jsonObjectOf(
+                "type" to "minecraft:model",
+                "model" to "minecraft:item/$itemName"
+            ),
+            "entries" to modernEntries
+        )).run {
+            zipper.modern().bettermodel().items().add("$MODERN_MODEL_ITEM_NAME.json", estimatedSize()) {
+                toByteArray()
+            }
         }
-        val legacySupplier = jsonObjectOf(
+        jsonObjectOf(
             "parent" to "minecraft:item/generated",
             "textures" to jsonObjectOf("layer0" to "minecraft:item/$itemName"),
             "overrides" to legacyEntries
-        ).toByteArray()
-        legacyModel.add("$MODERN_MODEL_ITEM_NAME.json") { legacySupplier }
-        zipper.legacy().minecraft().models().resolve("item").add("$itemName.json")  { legacySupplier }
-    }
-
-    private fun loadPlayerModels(zipper: PackZipper) {
-        if (SkinManagerImpl.supported()) SkinManagerImpl.write { path, supplier ->
-            zipper.modern().add(path, supplier)
-        }
-        PLUGIN.loadAssets("pack") { s, i ->
-            val read = i.readAllBytes()
-            zipper.legacy().add(s) {
-                read
-            }
+        ).run {
+            val byteArray = toByteArray()
+            legacyModel.add("$MODERN_MODEL_ITEM_NAME.json", byteArray.size.toLong()) { byteArray }
+            zipper.legacy().minecraft().models().resolve("item").add("$itemName.json", byteArray.size.toLong()) { byteArray }
         }
     }
 
-    override fun reload(info: ReloadInfo, zipper: PackZipper) {
+    override fun reload(pipeline: ReloadPipeline, zipper: PackZipper) {
         itemModelNamespace = NamespacedKey(CONFIG.namespace(), MODERN_MODEL_ITEM_NAME)
         renderMap.clear()
-        if (CONFIG.module().model()) loadModels(zipper)
-        if (CONFIG.module().playerAnimation()) loadPlayerModels(zipper)
+        if (CONFIG.module().model()) loadModels(pipeline, zipper)
     }
 
     private fun List<BlueprintJson>.toModernJson() = if (size == 1) get(0).toModernJson() else jsonObjectOf(

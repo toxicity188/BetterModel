@@ -1,11 +1,7 @@
 package kr.toxicity.model
 
 import com.vdurmont.semver4j.Semver
-import kr.toxicity.model.api.BetterModel
-import kr.toxicity.model.api.BetterModelConfig
-import kr.toxicity.model.api.BetterModelEvaluator
-import kr.toxicity.model.api.BetterModelLogger
-import kr.toxicity.model.api.BetterModelPlugin
+import kr.toxicity.model.api.*
 import kr.toxicity.model.api.BetterModelPlugin.ReloadResult
 import kr.toxicity.model.api.BetterModelPlugin.ReloadResult.*
 import kr.toxicity.model.api.manager.*
@@ -33,6 +29,7 @@ import org.bukkit.plugin.java.JavaPlugin
 import java.io.InputStream
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Consumer
+import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import java.util.jar.Manifest
 import java.util.zip.ZipEntry
@@ -133,7 +130,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
                 return
             }
         }
-        managers.forEach(GlobalManagerImpl::start)
+        managers.forEach(GlobalManager::start)
         val latestVersion = HttpUtil.versionList()
         val versionNoticeList = arrayListOf<Component>()
         latestVersion.release?.let {
@@ -161,7 +158,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
             "This build is dev version: be careful to use it!",
             "Build number: $snapshot"
         )
-        when (val result = reload(ReloadInfo(DATA_FOLDER.exists()))) {
+        when (val result = reload(ReloadInfo(DATA_FOLDER.exists(), Bukkit.getConsoleSender()))) {
             is Failure -> result.throwable.handleException("Unable to load plugin properly.")
             is OnReload -> throw RuntimeException("Plugin load failed.")
             is Success -> info(
@@ -180,32 +177,38 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
     override fun onDisable() {
         Bukkit.getOnlinePlayers().forEach { EntityTrackerRegistry.registry(it.uniqueId)?.close() }
         audiences.close()
-        managers.forEach(GlobalManagerImpl::end)
+        managers.forEach(GlobalManager::end)
     }
 
     override fun reload(info: ReloadInfo): ReloadResult {
         if (!onReload.compareAndSet(false, true)) return ON_RELOAD
         config = BetterModelConfigImpl(PluginConfiguration.CONFIG.create())
         val zipper = PackZipper.zipper().also(reloadStartTask)
-        val result = runCatching {
-            val time = System.currentTimeMillis()
-            managers.forEach {
-                it.reload(info, zipper)
+        return runCatching {
+            ReloadPipeline(
+                config.indicator().options.toIndicator(info)
+            ).use { pipeline ->
+                val time = System.currentTimeMillis()
+                managers.forEach {
+                    it.reload(pipeline, zipper)
+                }
+                val generator = if (info.firstReload) BetterModelConfig.PackType.NONE else CONFIG.packType()
+                pipeline.status = "Generating file..."
+                pipeline goal zipper.size()
+                Success(System.currentTimeMillis() - time, generator.toGenerator().create(zipper, pipeline))
             }
-            val generator = if (info.firstReload) BetterModelConfig.PackType.NONE else CONFIG.packType()
-            Success(System.currentTimeMillis() - time, generator.toGenerator().create(zipper))
         }.getOrElse {
             Failure(it)
+        }.apply {
+            onReload.set(false)
         }.also(reloadEndTask)
-        onReload.set(false)
-        return result
     }
 
-    fun loadAssets(prefix: String, consumer: (String, InputStream) -> Unit) {
+    fun loadAssets(pipeline: ReloadPipeline, prefix: String, consumer: (String, InputStream) -> Unit) {
         JarFile(file).use {
-            it.entries().toList().forEachAsync { entry ->
-                if (!entry.name.startsWith(prefix)) return@forEachAsync
-                if (entry.name.length <= prefix.length + 1) return@forEachAsync
+            pipeline.forEachParallel(it.entries().toList(), JarEntry::getSize) { entry ->
+                if (!entry.name.startsWith(prefix)) return@forEachParallel
+                if (entry.name.length <= prefix.length + 1) return@forEachParallel
                 val name = entry.name.substring(prefix.length + 1)
                 if (!entry.isDirectory) it.getInputStream(entry).buffered().use { stream ->
                     consumer(name, stream)

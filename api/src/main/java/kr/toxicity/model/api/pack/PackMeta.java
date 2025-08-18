@@ -44,7 +44,8 @@ public record PackMeta(
     }
 
     public @NotNull PackResource toResource() {
-        return PackResource.of(PATH, () -> GSON.toJson(this).getBytes(StandardCharsets.UTF_8));
+        var json = GSON.toJson(this);
+        return PackResource.of(PATH, 2L * json.length(), () -> json.getBytes(StandardCharsets.UTF_8));
     }
 
     public record Pack(

@@ -8,6 +8,10 @@ debug:
   pack: false
   #tracker
   tracker: false
+#toggles indicator option.
+indicator:
+  #progress bar
+  progress_bar: true
 #toggle BetterModel's feature you want
 module:
   #general entity model

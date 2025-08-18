@@ -5,7 +5,6 @@ import com.mojang.authlib.GameProfile
 import kr.toxicity.library.dynamicuv.*
 import kr.toxicity.model.api.event.CreatePlayerSkinEvent
 import kr.toxicity.model.api.event.RemovePlayerSkinEvent
-import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.api.manager.SkinManager
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.player.PlayerLimb
@@ -28,7 +27,7 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import javax.imageio.ImageIO
 
-object SkinManagerImpl : SkinManager, GlobalManagerImpl {
+object SkinManagerImpl : SkinManager, GlobalManager {
 
     private const val DIV_FACTOR = 16F / 0.9375F
 
@@ -559,35 +558,30 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         )
     }
 
-    fun write(block: (String, () -> ByteArray) -> Unit) {
-        fun UVModel.write(block: (String, () -> ByteArray) -> Unit) {
+    fun write(block: (UVByteBuilder) -> Unit) {
+        fun UVModel.write() {
             asJson("one_pixel").forEach {
-                block(it.path()) {
-                    it.build()
-                }
+                block(it)
             }
         }
-        HEAD.write(block)
-        CHEST.write(block)
-        WAIST.write(block)
-        HIP.write(block)
-        LEFT_LEG.write(block)
-        LEFT_FORELEG.write(block)
-        RIGHT_LEG.write(block)
-        RIGHT_FORELEG.write(block)
-        LEFT_ARM.write(block)
-        LEFT_FOREARM.write(block)
-        RIGHT_ARM.write(block)
-        RIGHT_FOREARM.write(block)
-        SLIM_LEFT_ARM.write(block)
-        SLIM_LEFT_FOREARM.write(block)
-        SLIM_RIGHT_ARM.write(block)
-        SLIM_RIGHT_FOREARM.write(block)
+        HEAD.write()
+        CHEST.write()
+        WAIST.write()
+        HIP.write()
+        LEFT_LEG.write()
+        LEFT_FORELEG.write()
+        RIGHT_LEG.write()
+        RIGHT_FORELEG.write()
+        LEFT_ARM.write()
+        LEFT_FOREARM.write()
+        RIGHT_ARM.write()
+        RIGHT_FOREARM.write()
+        SLIM_LEFT_ARM.write()
+        SLIM_LEFT_FOREARM.write()
+        SLIM_RIGHT_ARM.write()
+        SLIM_RIGHT_FOREARM.write()
 
-        val builder = UVByteBuilder.emptyImage(uvNamespace, "one_pixel")
-        block(builder.path()) {
-            builder.build()
-        }
+        block(UVByteBuilder.emptyImage(uvNamespace, "one_pixel"))
     }
 
     private val profileMap = ExpiringMap.builder()
@@ -743,10 +737,22 @@ object SkinManagerImpl : SkinManager, GlobalManagerImpl {
         override fun rightForeLeg(): TransformedItemStack = rightForeLeg
     }
 
-    override fun reload(info: ReloadInfo, zipper: PackZipper) {
+    override fun reload(pipeline: ReloadPipeline, zipper: PackZipper) {
         uvNamespace = UVNamespace(
             CONFIG.namespace(),
             "player_limb"
         )
+        if (!CONFIG.module().playerAnimation) return
+        if (supported()) write { resource ->
+            zipper.modern().add(resource.path(), resource.estimatedSize()) {
+                resource.build()
+            }
+        }
+        PLUGIN.loadAssets(pipeline, "pack") { s, i ->
+            val read = i.readAllBytes()
+            zipper.legacy().add(s) {
+                read
+            }
+        }
     }
 }

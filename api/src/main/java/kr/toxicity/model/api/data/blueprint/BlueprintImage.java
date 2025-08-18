@@ -13,4 +13,11 @@ import java.awt.image.BufferedImage;
  * @param mcmeta mcmeta
  */
 public record BlueprintImage(@NotNull String name, @NotNull BufferedImage image, @Nullable JsonObject mcmeta) {
+    /**
+     * Gets estimated size
+     * @return estimated size
+     */
+    public long estimatedSize() {
+        return 4L * image.getWidth() * image.getHeight();
+    }
 }

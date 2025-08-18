@@ -13,7 +13,10 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 import org.joml.Quaternionf;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -123,7 +126,7 @@ public sealed interface BlueprintChildren {
                     .filter(c -> c.element.hasTexture())
                     .toList();
             if (cubeElement.isEmpty()) return null;
-            return new BlueprintJson(jsonName(parent) + "_" + number, () -> JsonObjectBuilder.builder()
+            return new BlueprintJson(jsonName(parent) + "_" + number, JsonObjectBuilder.builder()
                     .jsonObject("textures", textures -> {
                         var index = 0;
                         for (BlueprintTexture texture : parent.textures()) {

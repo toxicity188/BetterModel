@@ -12,13 +12,36 @@ fun <K, V> MutableMap<K, V>.toImmutableView(): Map<K, V> = Collections.unmodifia
 fun <T> Stream<T>.toSet(): Set<T> = collect(Collectors.toUnmodifiableSet())
 fun <T> Stream<T>.any(predicate: (T) -> Boolean): Boolean = anyMatch(predicate)
 
-fun <T> List<T>.forEachAsync(block: (T) -> Unit) {
-    if (isNotEmpty()) {
-        val available = Runtime.getRuntime().availableProcessors()
-            .coerceAtLeast(4)
-            .coerceAtMost(256)
+fun parallelIOThreadPool() = try {
+    ParallelIOThreadPool()
+} catch (error: OutOfMemoryError) {
+    throw RuntimeException("You have to set your Linux max thread limit!", error)
+}
+
+class ParallelIOThreadPool : AutoCloseable {
+    private val available = Runtime.getRuntime().availableProcessors() * 2
+    private val integer = AtomicInteger()
+    private val pool = Executors.newFixedThreadPool(available) {
+        Thread(it).apply {
+            isDaemon = true
+            name = "BetterModel-Worker-${integer.andIncrement}"
+            uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { thread, exception ->
+                exception.handleException("A error has been occurred in ${thread.name}")
+            }
+        }
+    }
+
+    override fun close() {
+        pool.close()
+    }
+
+    fun <T> forEachParallel(list: List<T>, sizeAssume: (T) -> Long, block: (T) -> Unit) {
+        if (list.isEmpty()) return
+        val sorted = list.sortedBy(sizeAssume)
+        val size = list.size
+        val lastIndex = list.lastIndex
         val tasks = if (available >= size) {
-            map {
+            list.map {
                 {
                     block(it)
                 }
@@ -28,41 +51,24 @@ fun <T> List<T>.forEachAsync(block: (T) -> Unit) {
             var i = 0
             val add = (size.toDouble() / available).toInt()
             while (i <= size) {
-                val get = subList(i, (i + add).coerceAtMost(size))
+                val list = ArrayList<T>(add)
+                for (t in i..<(i + add).coerceAtMost(size)) {
+                    val ht = t / 2
+                    list += sorted[if (t % 2 == 0) ht else lastIndex - ht]
+                }
                 queue += {
-                    get.forEach(block)
+                    list.forEach(block)
                 }
                 i += add
             }
             queue
         }
-        try {
-            val integer = AtomicInteger()
-            Executors.newFixedThreadPool(tasks.size) {
-                Thread(it).apply {
-                    isDaemon = true
-                    name = "BetterModel-Worker-${integer.andIncrement}"
-                    uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { thread, exception ->
-                        exception.handleException("A error has been occurred in ${thread.name}")
-                    }
-                }
-            }.use { pool ->
-                CompletableFuture.allOf(
-                    *tasks.map {
-                        CompletableFuture.runAsync({
-                            it()
-                        }, pool)
-                    }.toTypedArray()
-                ).join()
-            }
-        } catch (error: OutOfMemoryError) {
-            warn(
-                "Async task failed!",
-                "You have to set your Linux max thread limit!",
-                "",
-                "Stack trace:",
-                error.stackTraceToString()
-            )
-        }
+        CompletableFuture.allOf(
+            *tasks.map {
+                CompletableFuture.runAsync({
+                    it()
+                }, pool)
+            }.toTypedArray()
+        ).join()
     }
 }
