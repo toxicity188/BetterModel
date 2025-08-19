@@ -58,9 +58,9 @@ object PlayerManagerImpl : PlayerManager, GlobalManager {
         if (CONFIG.module().playerAnimation()) {
             val target = DATA_FOLDER.getOrCreateDirectory("players") { folder ->
                 folder.addResource("steve.bbmodel")
-            }.fileTreeList()
-                .filter { it.extension == "bbmodel" }
-                .toList()
+            }.fileTreeList().use { stream ->
+                stream.filter { it.extension == "bbmodel" }.toList()
+            }
             pipeline.status = "Importing player model..."
             pipeline goal target.size
             pipeline.forEachParallel(target, Path::fileSize) {

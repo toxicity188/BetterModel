@@ -40,9 +40,9 @@ object ModelManagerImpl : ModelManager, GlobalManager {
         val textures = zipper.assets().bettermodel().textures()
         val targetFolder = DATA_FOLDER.getOrCreateDirectory("models") { folder ->
             if (PLUGIN.version().useModernResource()) folder.addResource("demon_knight.bbmodel")
-        }.fileTreeList()
-            .filter { it.extension == "bbmodel" }
-            .toList()
+        }.fileTreeList().use { stream ->
+            stream.filter { it.extension == "bbmodel" }.toList()
+        }
         pipeline.status = "Importing models..."
         pipeline goal targetFolder.size
         pipeline.forEachParallel(targetFolder, Path::fileSize) {
