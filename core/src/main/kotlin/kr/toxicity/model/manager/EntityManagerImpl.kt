@@ -3,7 +3,7 @@ package kr.toxicity.model.manager
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent
 import com.destroystokyo.paper.event.entity.EntityJumpEvent
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent
-import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet
+import it.unimi.dsi.fastutil.objects.ReferenceSet
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.manager.EntityManager
@@ -31,10 +31,10 @@ import org.bukkit.potion.PotionEffectType
 
 object EntityManagerImpl : EntityManager, GlobalManager {
 
-    private val effectMap = ReferenceOpenHashSet<PotionEffectType>().apply {
-        add(PotionEffectType.GLOWING)
-        add(PotionEffectType.INVISIBILITY)
-    }
+    private val effectSet = ReferenceSet.of(
+        PotionEffectType.GLOWING,
+        PotionEffectType.INVISIBILITY
+    )
 
     private class PaperListener : Listener { //More accurate world change event for Paper
         @EventHandler(priority = EventPriority.MONITOR)
@@ -74,7 +74,7 @@ object EntityManagerImpl : EntityManager, GlobalManager {
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         fun EntityPotionEffectEvent.potion() { //Apply potion effect
             if (action == EntityPotionEffectEvent.Action.CHANGED) return
-            if (oldEffect?.let { effectMap.contains(it.type) } == true || newEffect?.let { effectMap.contains(it.type) } == true) entity.forEachTracker { it.updateBaseEntity() }
+            if (oldEffect?.let { effectSet.contains(it.type) } == true || newEffect?.let { effectSet.contains(it.type) } == true) entity.forEachTracker { it.updateBaseEntity() }
         }
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         fun EntityDismountEvent.dismount() { //Dismount

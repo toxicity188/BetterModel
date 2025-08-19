@@ -182,9 +182,9 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
 
     override fun reload(info: ReloadInfo): ReloadResult {
         if (!onReload.compareAndSet(false, true)) return ON_RELOAD
-        config = BetterModelConfigImpl(PluginConfiguration.CONFIG.create())
-        val zipper = PackZipper.zipper().also(reloadStartTask)
         return runCatching {
+            config = BetterModelConfigImpl(PluginConfiguration.CONFIG.create())
+            val zipper = PackZipper.zipper().also(reloadStartTask)
             ReloadPipeline(
                 config.indicator().options.toIndicator(info)
             ).use { pipeline ->
