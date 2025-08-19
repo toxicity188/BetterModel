@@ -16,10 +16,11 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.inventory.ItemStack
-import java.io.File
+import java.nio.file.Path
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.extension
+import kotlin.io.path.fileSize
 
 object PlayerManagerImpl : PlayerManager, GlobalManager {
 
@@ -59,12 +60,11 @@ object PlayerManagerImpl : PlayerManager, GlobalManager {
                 folder.addResource("steve.bbmodel")
             }.fileTreeList()
                 .filter { it.extension == "bbmodel" }
-                .map { it.toFile() }
                 .toList()
             pipeline.status = "Importing player model..."
             pipeline goal target.size
-            pipeline.forEachParallel(target, File::length) {
-                val load = it.toModel()
+            pipeline.forEachParallel(target, Path::fileSize) {
+                val load = it.toFile().toModel()
                 renderMap[load.name] = load.toRenderer()
             }
         }

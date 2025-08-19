@@ -11,13 +11,18 @@ import net.kyori.adventure.text.format.NamedTextColor
 class BossBarIndicator(
     private val audience: Audience
 ) : ReloadIndicator {
-    private val bossBar = BossBar.bossBar(
-        emptyComponentOf(),
-        0F,
-        BossBar.Color.GREEN,
-        BossBar.Overlay.PROGRESS
-    ).apply {
-        audience.showBossBar(this)
+
+    private var showed = false
+    private val bossBar by lazy {
+        BossBar.bossBar(
+            emptyComponentOf(),
+            0F,
+            BossBar.Color.GREEN,
+            BossBar.Overlay.PROGRESS
+        ).apply {
+            showed = true
+            audience.showBossBar(this)
+        }
     }
 
     override fun status(status: ReloadPipeline.Status) {
@@ -32,6 +37,6 @@ class BossBarIndicator(
     }
 
     override fun close() {
-        audience.hideBossBar(bossBar)
+        if (showed) audience.hideBossBar(bossBar)
     }
 }

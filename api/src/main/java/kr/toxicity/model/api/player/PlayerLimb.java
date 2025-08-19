@@ -9,7 +9,6 @@ import kr.toxicity.model.api.util.TransformedItemStack;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.ItemDisplay;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
@@ -166,42 +165,6 @@ public enum PlayerLimb {
             SkinData::leftForeLeg,
             ItemDisplay.ItemDisplayTransform.FIXED
     ),
-    /**
-     * Left item
-     */
-    LEFT_ITEM(
-            new Vector3f(),
-            new Vector3f(1),
-            new Vector3f(1),
-            new Vector3f(),
-            new Vector3f(),
-            null,
-            ItemDisplay.ItemDisplayTransform.THIRDPERSON_LEFTHAND
-    ) {
-        @NotNull
-        @Override
-        public TransformedItemStack createItem(@NotNull RenderSource.Profiled profiled) {
-            return profiled instanceof RenderSource.BasePlayer(Player entity) ? TransformedItemStack.of(entity.getInventory().getItemInOffHand()) : TransformedItemStack.empty();
-        }
-    },
-    /**
-     * Right item
-     */
-    RIGHT_ITEM(
-            new Vector3f(),
-            new Vector3f(1),
-            new Vector3f(1),
-            new Vector3f(),
-            new Vector3f(),
-            null,
-            ItemDisplay.ItemDisplayTransform.THIRDPERSON_RIGHTHAND
-    ) {
-        @NotNull
-        @Override
-        public TransformedItemStack createItem(@NotNull RenderSource.Profiled profiled) {
-            return profiled instanceof RenderSource.BasePlayer(Player entity) ? TransformedItemStack.of(entity.getInventory().getItemInMainHand()) : TransformedItemStack.empty();
-        }
-    },
     ;
 
     private static @NotNull Vector3f position(int mul) {

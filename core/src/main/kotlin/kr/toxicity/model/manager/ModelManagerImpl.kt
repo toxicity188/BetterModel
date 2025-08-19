@@ -15,9 +15,10 @@ import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.util.*
 import org.bukkit.NamespacedKey
 import org.bukkit.inventory.ItemStack
-import java.io.File
+import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.extension
+import kotlin.io.path.fileSize
 
 object ModelManagerImpl : ModelManager, GlobalManager {
 
@@ -35,31 +36,30 @@ object ModelManagerImpl : ModelManager, GlobalManager {
     }
 
     private fun importModels(pipeline: ReloadPipeline, zipper: PackZipper): List<ModelBlueprint> {
-        val modelFileMap = ConcurrentHashMap<String, Pair<File, ModelBlueprint>>()
+        val modelFileMap = ConcurrentHashMap<String, Pair<Path, ModelBlueprint>>()
         val textures = zipper.assets().bettermodel().textures()
         val targetFolder = DATA_FOLDER.getOrCreateDirectory("models") { folder ->
             if (PLUGIN.version().useModernResource()) folder.addResource("demon_knight.bbmodel")
         }.fileTreeList()
             .filter { it.extension == "bbmodel" }
-            .map { it.toFile() }
             .toList()
         pipeline.status = "Importing models..."
         pipeline goal targetFolder.size
-        pipeline.forEachParallel(targetFolder,File::length) {
-            val load = it.toTexturedModel() ?: return@forEachParallel warn("This model file has unsupported element type (e.g., mesh): ${it.path}")
+        pipeline.forEachParallel(targetFolder, Path::fileSize) {
+            val load = it.toFile().toTexturedModel() ?: return@forEachParallel warn("This model file has unsupported element type (e.g., mesh): $it")
             modelFileMap.compute(load.name) compute@ { _, v ->
                 pipeline.progress()
                 if (v != null) {
                     // A model with the same name already exists from a different file
                     warn(
                         "Duplicate model name '${load.name}'.",
-                        "Duplicated file: ${it.path}",
-                        "And: ${v.first.path}"
+                        "Duplicated file: $it",
+                        "And: ${v.first}"
                     )
                     return@compute v
                 }
                 debugPack {
-                    "Model file successfully loaded: ${it.path}"
+                    "Model file successfully loaded: $it"
                 }
                 it to load.apply {
                     buildImage().forEach { image ->
