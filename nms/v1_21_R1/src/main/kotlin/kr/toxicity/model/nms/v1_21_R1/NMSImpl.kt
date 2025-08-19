@@ -216,7 +216,7 @@ class NMSImpl : NMS {
                 is ClientboundRespawnPacket -> playerModel?.let {
                     bundlerOf(it.mountPacket()).send(player)
                 }
-                is ClientboundContainerSetSlotPacket if isInHand(connection.player) && playerModel?.hideOption(uuid)?.equipment() == true -> {
+                is ClientboundContainerSetSlotPacket if isEquipment(connection.player) && playerModel?.hideOption(uuid)?.equipment() == true -> {
                     return ClientboundContainerSetSlotPacket(containerId, stateId, slot, EMPTY_ITEM)
                 }
                 is ClientboundContainerSetContentPacket if containerId == 0 && playerModel?.hideOption(uuid)?.equipment() == true -> {
@@ -224,7 +224,7 @@ class NMSImpl : NMS {
                         containerId,
                         stateId,
                         (items as NonNullList<net.minecraft.world.item.ItemStack>).apply {
-                            set(45, EMPTY_ITEM)
+                            PLAYER_EQUIPMENT_SLOT.forEach { set(it, EMPTY_ITEM) }
                             set(connection.player.hotbarSlot, EMPTY_ITEM)
                         },
                         carriedItem

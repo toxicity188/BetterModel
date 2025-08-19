@@ -34,7 +34,6 @@ public record TransformedItemStack(@NotNull Vector3f position, @NotNull Vector3f
         return of(new Vector3f(), new Vector3f(), new Vector3f(1), itemStack);
     }
 
-
     /**
      * Creates transformed item
      * @param position position

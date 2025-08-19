@@ -36,6 +36,32 @@ public enum BoneTags implements BoneTag {
      */
     TAG(new String[] { "tag" }),
     /**
+     * Entity's item in left hand
+     */
+    LEFT_ITEM(BoneItemMapper.entity(
+            ItemDisplay.ItemDisplayTransform.THIRDPERSON_LEFTHAND,
+            e -> {
+                if (e instanceof LivingEntity entity) {
+                    var equipment = entity.getEquipment();
+                    if (equipment != null) return TransformedItemStack.of(equipment.getItemInOffHand());
+                }
+                return TransformedItemStack.empty();
+            }
+    ), new String[] { "pli", "li" }),
+    /**
+     * Entity's item in right hand
+     */
+    RIGHT_ITEM(BoneItemMapper.entity(
+            ItemDisplay.ItemDisplayTransform.THIRDPERSON_RIGHTHAND,
+            e -> {
+                if (e instanceof LivingEntity entity) {
+                    var equipment = entity.getEquipment();
+                    if (equipment != null) return TransformedItemStack.of(equipment.getItemInMainHand());
+                }
+                return TransformedItemStack.empty();
+            }
+    ), new String[] { "pri", "ri" }),
+    /**
      * Player head
      */
     PLAYER_HEAD(PlayerLimb.HEAD.getItemMapper(), new String[] { "ph" }),
@@ -83,32 +109,6 @@ public enum BoneTags implements BoneTag {
      * Player left foreleg
      */
     PLAYER_LEFT_FORELEG(PlayerLimb.LEFT_FORELEG.getItemMapper(), new String[] { "plfl" }),
-    /**
-     * Player's item in left hand
-     */
-    LEFT_ITEM(BoneItemMapper.entity(
-            ItemDisplay.ItemDisplayTransform.THIRDPERSON_LEFTHAND,
-            e -> {
-                if (e instanceof LivingEntity entity) {
-                    var equipment = entity.getEquipment();
-                    if (equipment != null) return TransformedItemStack.of(equipment.getItemInOffHand());
-                }
-                return TransformedItemStack.empty();
-            }
-    ), new String[] { "pli", "li" }),
-    /**
-     * Player's item in right hand
-     */
-    RIGHT_ITEM(BoneItemMapper.entity(
-            ItemDisplay.ItemDisplayTransform.THIRDPERSON_LEFTHAND,
-            e -> {
-                if (e instanceof LivingEntity entity) {
-                    var equipment = entity.getEquipment();
-                    if (equipment != null) return TransformedItemStack.of(equipment.getItemInMainHand());
-                }
-                return TransformedItemStack.empty();
-            }
-    ), new String[] { "pri", "ri" })
     ;
 
     BoneTags(@NotNull String[] tags) {

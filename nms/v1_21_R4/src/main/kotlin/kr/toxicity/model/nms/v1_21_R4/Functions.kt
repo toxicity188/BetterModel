@@ -166,7 +166,8 @@ internal inline fun LivingEntity.toEquipmentPacket(mapper: (EquipmentSlot) -> It
 internal fun LivingEntity.toEmptyEquipmentPacket() = toEquipmentPacket { ItemStack.EMPTY }
 
 internal val Player.hotbarSlot get() = inventory.selectedSlot + 36
-internal fun ClientboundContainerSetSlotPacket.isInHand(player: Player) = containerId == 0 && (slot == 45 || slot == player.hotbarSlot)
+internal val PLAYER_EQUIPMENT_SLOT = IntOpenHashSet(intArrayOf(45, 5, 6, 7, 8))
+internal fun ClientboundContainerSetSlotPacket.isEquipment(player: Player) = containerId == 0 && (PLAYER_EQUIPMENT_SLOT.contains(slot) || slot == player.hotbarSlot)
 
 internal fun Entity.toFakeAddPacket() = ClientboundAddEntityPacket(
     id,
