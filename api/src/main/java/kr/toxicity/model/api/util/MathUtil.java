@@ -195,11 +195,9 @@ public final class MathUtil {
      * @return vector
      */
     public static @NotNull Vector3f animationToDisplay(@NotNull Vector3f vector) {
-        return new Vector3f(
-                vector.x,
-                -vector.y,
-                -vector.z
-        );
+        vector.y = -vector.y;
+        vector.z = -vector.z;
+        return vector;
     }
 
     /**
@@ -208,11 +206,8 @@ public final class MathUtil {
      * @return vector
      */
     public static @NotNull Vector3f transformToDisplay(@NotNull Vector3f vector) {
-        return new Vector3f(
-                vector.x,
-                vector.y,
-                -vector.z
-        );
+        vector.z = -vector.z;
+        return vector;
     }
 
     /**
