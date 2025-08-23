@@ -32,9 +32,9 @@ public final class AnimationGenerator {
     /**
      * Creates animator from data
      * @param length animation length
-     * @param children childrens
+     * @param children children
      * @param pointMap point map
-     * @return geneated map
+     * @return generated map
      */
     public static @NotNull Map<BoneName, BlueprintAnimator> createMovements(
             float length,

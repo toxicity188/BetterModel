@@ -21,7 +21,7 @@ public final class PackBuilder {
 
     public void add(@NotNull String[] paths, long size, @NotNull Supplier<byte[]> supplier) {
         var resolve = path.resolve(paths);
-        assets.resourceMap.putIfAbsent(resolve, PackResource.of(resolve, size, supplier));
+        assets.resourceMap.putIfAbsent(resolve, PackResource.of(assets.overlay, resolve, size, supplier));
     }
 
     public void add(@NotNull String path, @NotNull Supplier<byte[]> supplier) {

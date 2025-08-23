@@ -3,7 +3,7 @@ package kr.toxicity.model.api;
 import com.vdurmont.semver4j.Semver;
 import kr.toxicity.model.api.manager.*;
 import kr.toxicity.model.api.nms.NMS;
-import kr.toxicity.model.api.pack.PackData;
+import kr.toxicity.model.api.pack.PackResult;
 import kr.toxicity.model.api.pack.PackZipper;
 import kr.toxicity.model.api.scheduler.ModelScheduler;
 import kr.toxicity.model.api.version.MinecraftVersion;
@@ -163,16 +163,16 @@ public interface BetterModelPlugin extends Plugin {
         /**
          * Reload success.
          * @param assetsTime assets reloading time
-         * @param packData pack data
+         * @param packResult pack result
          */
-        record Success(long assetsTime, @NotNull PackData packData) implements ReloadResult {
+        record Success(long assetsTime, @NotNull PackResult packResult) implements ReloadResult {
 
             /**
              * Gets packing time
              * @return packing time
              */
             public long packingTime() {
-                return packData().time();
+                return packResult().time();
             }
 
             /**
@@ -187,17 +187,11 @@ public interface BetterModelPlugin extends Plugin {
         /**
          * Still on reload.
          */
-        OnReload ON_RELOAD = new OnReload();
-
-        /**
-         * Still on reload.
-         */
-        final class OnReload implements ReloadResult {
+        enum OnReload implements ReloadResult {
             /**
-             * Private initializer for singleton.
+             * Singleton instance
              */
-            private OnReload() {
-            }
+            INSTANCE
         }
 
         /**

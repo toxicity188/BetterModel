@@ -10,35 +10,37 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PackZipper {
 
-    private static final PackPath OVERLAY_LEGACY = new PackPath("bettermodel_legacy");
-    private static final PackPath OVERLAY_MODERN = new PackPath("bettermodel_modern");
     private static final PackPath PACK_ICON = new PackPath("pack.png");
 
-    private static final PackMeta.VersionRange LEGACY_FORMATS = new PackMeta.VersionRange(22, 45);
-    private static final PackMeta.VersionRange MODERN_FORMATS = new PackMeta.VersionRange(46, 99);
 
     public static @NotNull PackZipper zipper() {
         return new PackZipper();
     }
 
     private final PackMeta.Builder metaBuilder = PackMeta.builder();
-    private final PackAssets assets = new PackAssets(PackPath.EMPTY);
-    private final PackAssets legacy = new PackAssets(OVERLAY_LEGACY);
-    private final PackAssets modern = new PackAssets(OVERLAY_MODERN);
+    private final Map<PackOverlay, PackAssets> overlayMap = new EnumMap<>(PackOverlay.class);
 
     public @NotNull PackAssets assets() {
-        return assets;
+        return getOrCreate(PackOverlay.DEFAULT);
     }
     public @NotNull PackAssets legacy() {
-        return legacy;
+        return getOrCreate(PackOverlay.LEGACY);
     }
     public @NotNull PackAssets modern() {
-        return modern;
+        return getOrCreate(PackOverlay.MODERN);
+    }
+
+    public @NotNull PackAssets getOrCreate(@NotNull PackOverlay overlay) {
+        synchronized (overlayMap) {
+            return overlayMap.computeIfAbsent(overlay, o -> new PackAssets(o.path(BetterModel.config().namespace()), o));
+        }
     }
 
     public @NotNull PackMeta.Builder metaBuilder() {
@@ -46,32 +48,26 @@ public final class PackZipper {
     }
 
     @ApiStatus.Internal
-    public @NotNull List<PackResource> build() {
-        var config = BetterModel.config().pack();
+    public @NotNull BuildData build() {
         var resources = new ArrayList<PackResource>(size());
-        resources.addAll(assets.resourceMap.values());
-        if (config.generateLegacyModel() && legacy.dirty()) {
-            resources.addAll(legacy.resourceMap.values());
-            metaBuilder.overlayEntry(new PackMeta.OverlayEntry(LEGACY_FORMATS, OVERLAY_LEGACY.path()));
+        for (Map.Entry<PackOverlay, PackAssets> entry : overlayMap.entrySet()) {
+            var overlay = entry.getKey();
+            var value = entry.getValue();
+            if (overlay.test() && value.dirty()) {
+                resources.addAll(value.resourceMap.values());
+                overlay.range().ifPresent(range -> metaBuilder.overlayEntry(new PackMeta.OverlayEntry(range, value.path.path())));
+            }
+            value.resourceMap.clear();
         }
-        if (config.generateModernModel() && modern.dirty()) {
-            resources.addAll(modern.resourceMap.values());
-            metaBuilder.overlayEntry(new PackMeta.OverlayEntry(MODERN_FORMATS, OVERLAY_MODERN.path()));
-        }
-
-        resources.add(metaBuilder.build().toResource());
+        var meta = metaBuilder.build();
+        resources.add(meta.toResource());
         var icon = loadIcon();
         if (icon != null) resources.add(icon);
-
-        assets.resourceMap.clear();
-        legacy.resourceMap.clear();
-        modern.resourceMap.clear();
-
-        return resources;
+        return new BuildData(meta, resources);
     }
 
     public int size() {
-        return assets.size() + legacy.size() + modern.size() + 2;
+        return overlayMap.values().stream().mapToInt(PackAssets::size).sum() + 2;
     }
 
     private static @Nullable PackResource loadIcon() {
@@ -85,5 +81,9 @@ public final class PackZipper {
             LogUtil.handleException("Unable to get icon.png", e);
             return null;
         }
+    }
+
+    public record BuildData(@NotNull PackMeta meta, @NotNull List<PackResource> resources) {
+
     }
 }

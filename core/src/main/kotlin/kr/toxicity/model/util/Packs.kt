@@ -3,17 +3,13 @@ package kr.toxicity.model.util
 import com.google.gson.*
 import kr.toxicity.model.api.BetterModelConfig
 import kr.toxicity.model.api.BetterModelConfig.PackType.*
-import kr.toxicity.model.api.pack.PackData
-import kr.toxicity.model.api.pack.PackPath
-import kr.toxicity.model.api.pack.PackResource
-import kr.toxicity.model.api.pack.PackZipper
+import kr.toxicity.model.api.pack.*
 import kr.toxicity.model.manager.ReloadPipeline
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.security.DigestOutputStream
 import java.security.MessageDigest
-import java.util.concurrent.ConcurrentHashMap
 import java.util.zip.Deflater
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
@@ -41,19 +37,22 @@ fun BetterModelConfig.PackType.toGenerator() = when (this) {
 }
 
 interface PackGenerator {
-    fun create(zipper: PackZipper, pipeline: ReloadPipeline): PackData
+    val exists: Boolean
+    fun create(zipper: PackZipper, pipeline: ReloadPipeline): PackResult
 }
 
 class FolderGenerator : PackGenerator {
-    private val time = System.currentTimeMillis()
-    private val file = File(DATA_FOLDER.parent, CONFIG.buildFolderLocation()).apply {
-        mkdirs()
-    }
-    private val fileTree = sortedMapOf<String, Path>(Comparator.reverseOrder()).apply {
-        val after = CONFIG.buildFolderLocation() + File.separatorChar
-        Files.walk(file.toPath()).use { stream ->
-            stream.forEach {
-                put(it.pathString.substringAfter(after), it)
+    private val file = File(DATA_FOLDER.parent, CONFIG.buildFolderLocation())
+    override val exists: Boolean = file.exists()
+    private val fileTree by lazy {
+        sortedMapOf<String, Path>(Comparator.reverseOrder()).apply {
+            val after = CONFIG.buildFolderLocation() + File.separatorChar
+            Files.walk(file.apply {
+                mkdirs()
+            }.toPath()).use { stream ->
+                stream.forEach {
+                    put(it.pathString.substringAfter(after), it)
+                }
             }
         }
     }
@@ -67,11 +66,12 @@ class FolderGenerator : PackGenerator {
         }
     }
 
-    override fun create(zipper: PackZipper, pipeline: ReloadPipeline): PackData {
-        val map = ConcurrentHashMap<PackPath, ByteArray>()
-        pipeline.forEachParallel(zipper.build(), PackResource::estimatedSize) {
+    override fun create(zipper: PackZipper, pipeline: ReloadPipeline): PackResult {
+        val build = zipper.build()
+        val pack = PackResult(build.meta(), file)
+        pipeline.forEachParallel(build.resources(), PackResource::estimatedSize) {
             val bytes = it.get()
-            map[it.path()] = bytes
+            pack[it.overlay()] = PackByte(it.path(), bytes)
             val file = it.path().toFile()
             if (file.length() != bytes.size.toLong()) {
                 file.writeBytes(bytes)
@@ -84,16 +84,19 @@ class FolderGenerator : PackGenerator {
         fileTree.values.forEach {
             it.toFile().delete()
         }
-        return PackData(map.toImmutableView(), System.currentTimeMillis() - time)
+        return pack.apply {
+            freeze()
+        }
     }
 }
 
 class ZipGenerator : PackGenerator {
-    private val time = System.currentTimeMillis()
     private val file = File(DATA_FOLDER.parent, "${CONFIG.buildFolderLocation()}.zip")
+    override val exists: Boolean = file.exists()
 
-    override fun create(zipper: PackZipper, pipeline: ReloadPipeline): PackData {
-        val map = ConcurrentHashMap<PackPath, ByteArray>()
+    override fun create(zipper: PackZipper, pipeline: ReloadPipeline): PackResult {
+        val build = zipper.build()
+        val pack = PackResult(build.meta(), file)
         ZipOutputStream(runCatching {
             MessageDigest.getInstance("SHA-1")
         }.map {
@@ -103,12 +106,12 @@ class ZipGenerator : PackGenerator {
         }).use { zip ->
             zip.setLevel(Deflater.BEST_COMPRESSION)
             zip.setComment("BetterModel's generated resource pack.")
-            pipeline.forEachParallel(zipper.build(), PackResource::estimatedSize) {
-                val result = it.get()
-                map[it.path()] = result
+            pipeline.forEachParallel(build.resources(), PackResource::estimatedSize) {
+                val bytes = it.get()
+                pack[it.overlay()] = PackByte(it.path(), bytes)
                 synchronized(zip) {
                     zip.putNextEntry(ZipEntry(it.path().path()))
-                    zip.write(result)
+                    zip.write(bytes)
                     zip.closeEntry()
                 }
                 pipeline.progress()
@@ -117,19 +120,23 @@ class ZipGenerator : PackGenerator {
                 }
             }
         }
-        return PackData(map.toImmutableView(), System.currentTimeMillis() - time)
+        return pack.apply {
+            freeze()
+        }
     }
 }
 
 class NoneGenerator : PackGenerator {
-    private val time = System.currentTimeMillis()
-
-    override fun create(zipper: PackZipper, pipeline: ReloadPipeline): PackData {
-        val map = ConcurrentHashMap<PackPath, ByteArray>()
-        pipeline.forEachParallel(zipper.build(), PackResource::estimatedSize) {
-            map[it.path()] = it.get()
+    override val exists: Boolean = false
+    override fun create(zipper: PackZipper, pipeline: ReloadPipeline): PackResult {
+        val build = zipper.build()
+        val pack = PackResult(build.meta(), null)
+        pipeline.forEachParallel(build.resources(), PackResource::estimatedSize) {
+            pack[it.overlay()] = PackByte(it.path(), it.get())
             pipeline.progress()
         }
-        return PackData(map.toImmutableView(), System.currentTimeMillis() - time)
+        return pack.apply {
+            freeze()
+        }
     }
 }

@@ -9,12 +9,14 @@ import java.util.function.Supplier;
 
 public final class PackAssets {
     final PackPath path;
+    final PackOverlay overlay;
     final Map<PackPath, PackResource> resourceMap = new ConcurrentHashMap<>();
 
     private final PackNamespace bettermodel, minecraft;
 
-    PackAssets(@NotNull PackPath path) {
+    PackAssets(@NotNull PackPath path, @NotNull PackOverlay overlay) {
         this.path = path;
+        this.overlay = overlay;
         bettermodel = new PackNamespace(this, BetterModel.config().namespace());
         minecraft = new PackNamespace(this, "minecraft");
     }
@@ -41,7 +43,7 @@ public final class PackAssets {
 
     public void add(@NotNull String[] paths, long size, @NotNull Supplier<byte[]> supplier) {
         var resolve = path.resolve(paths);
-        resourceMap.putIfAbsent(resolve, PackResource.of(resolve, size, supplier));
+        resourceMap.putIfAbsent(resolve, PackResource.of(overlay, resolve, size, supplier));
     }
 
     public void add(@NotNull String path, @NotNull Supplier<byte[]> supplier) {

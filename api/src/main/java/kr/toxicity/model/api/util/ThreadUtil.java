@@ -8,7 +8,7 @@ import org.jetbrains.annotations.ApiStatus;
  * Thread util
  */
 @ApiStatus.Internal
-public class ThreadUtil {
+public final class ThreadUtil {
     /**
      * No initializer
      */

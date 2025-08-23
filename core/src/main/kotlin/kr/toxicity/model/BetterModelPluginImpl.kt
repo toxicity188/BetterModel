@@ -6,6 +6,7 @@ import kr.toxicity.model.api.BetterModelPlugin.ReloadResult
 import kr.toxicity.model.api.BetterModelPlugin.ReloadResult.*
 import kr.toxicity.model.api.manager.*
 import kr.toxicity.model.api.nms.NMS
+import kr.toxicity.model.api.pack.PackResult
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.scheduler.ModelScheduler
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
@@ -110,6 +111,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
 
     override fun onLoad() {
         BetterModel.register(this)
+        config = BetterModelConfigImpl(PluginConfiguration.CONFIG.create())
     }
 
     override fun onEnable() {
@@ -158,7 +160,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
             "This build is dev version: be careful to use it!",
             "Build number: $snapshot"
         )
-        when (val result = reload(ReloadInfo(DATA_FOLDER.exists(), Bukkit.getConsoleSender()))) {
+        when (val result = reload(ReloadInfo(true, Bukkit.getConsoleSender()))) {
             is Failure -> result.throwable.handleException("Unable to load plugin properly.")
             is OnReload -> throw RuntimeException("Plugin load failed.")
             is Success -> info(
@@ -181,9 +183,9 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
     }
 
     override fun reload(info: ReloadInfo): ReloadResult {
-        if (!onReload.compareAndSet(false, true)) return ON_RELOAD
+        if (!onReload.compareAndSet(false, true)) return OnReload.INSTANCE
         return runCatching {
-            config = BetterModelConfigImpl(PluginConfiguration.CONFIG.create())
+            if (!info.firstReload) config = BetterModelConfigImpl(PluginConfiguration.CONFIG.create())
             val zipper = PackZipper.zipper().also(reloadStartTask)
             ReloadPipeline(
                 config.indicator().options.toIndicator(info)
@@ -192,10 +194,16 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
                 managers.forEach {
                     it.reload(pipeline, zipper)
                 }
-                val generator = if (info.firstReload) BetterModelConfig.PackType.NONE else CONFIG.packType()
                 pipeline.status = "Generating files..."
                 pipeline goal zipper.size()
-                Success(System.currentTimeMillis() - time, generator.toGenerator().create(zipper, pipeline))
+                CONFIG.packType().toGenerator().run {
+                    Success(
+                        System.currentTimeMillis() - time,
+                        if (exists && info.firstReload) PackResult(zipper.build().meta(), null).apply {
+                            freeze()
+                        } else create(zipper, pipeline)
+                    )
+                }
             }
         }.getOrElse {
             Failure(it)
