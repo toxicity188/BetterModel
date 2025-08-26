@@ -12,17 +12,27 @@ import java.util.function.Consumer;
 public interface AnimationScript extends Consumer<ScriptSource> {
 
     /**
-     * Checks this script should be called in tick thread
-     * @return requires tick thread
+     * Empty script
      */
-    boolean isSync();
+    AnimationScript EMPTY = of(s -> {});
+
     @Override
     void accept(@NotNull ScriptSource renderSource);
 
     /**
-     * Empty script
+     * Checks this script should be called in tick thread
+     * @return requires tick thread
      */
-    AnimationScript EMPTY = of(s -> {});
+    boolean isSync();
+
+    /**
+     * Creates a timed script
+     * @param time time
+     * @return timed script
+     */
+    default @NotNull TimeScript time(float time) {
+        return new TimeScript(time, this);
+    }
 
     /**
      * Creates script
@@ -52,15 +62,6 @@ public interface AnimationScript extends Consumer<ScriptSource> {
                 source.accept(renderSource);
             }
         };
-    }
-
-    /**
-     * Creates a timed script
-     * @param time time
-     * @return timed script
-     */
-    default @NotNull TimeScript time(float time) {
-        return new TimeScript(time, this);
     }
 
     /**

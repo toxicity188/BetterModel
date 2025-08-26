@@ -29,6 +29,8 @@ import static kr.toxicity.model.api.util.CollectionUtil.mapValue;
 @RequiredArgsConstructor
 public final class RendererGroup {
 
+    private static final Vector3f DEFAULT_SCALE = new Vector3f(1);
+
     @Getter
     private final BoneName name;
     @Getter
@@ -108,7 +110,7 @@ public final class RendererGroup {
                 source,
                 new BoneMovement(
                         parentBone != null ? position.sub(parentBone.getGroup().position, new Vector3f()) : new Vector3f(),
-                        new Vector3f(1),
+                        DEFAULT_SCALE,
                         MathUtil.toQuaternion(rotation),
                         rotation
                 ),

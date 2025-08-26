@@ -17,14 +17,17 @@ public sealed interface RenderSource<T extends Tracker> {
     static @NotNull RenderSource.Dummy of(@NotNull Location location) {
         return new BaseDummy(location);
     }
+
     @ApiStatus.Internal
     static @NotNull RenderSource.Dummy of(@NotNull Location location, @NotNull GameProfile profile, boolean slim) {
         return new ProfiledDummy(location, profile, slim);
     }
+
     @ApiStatus.Internal
     static @NotNull RenderSource.Entity of(@NotNull org.bukkit.entity.Entity entity, @NotNull GameProfile profile, boolean slim) {
         return entity instanceof Player player ? new ProfiledPlayer(player, profile, slim) : new ProfiledEntity(entity, profile, slim);
     }
+
     @ApiStatus.Internal
     static @NotNull RenderSource.Entity of(@NotNull org.bukkit.entity.Entity entity) {
         return entity instanceof Player player ? new BasePlayer(player) : new BaseEntity(entity);

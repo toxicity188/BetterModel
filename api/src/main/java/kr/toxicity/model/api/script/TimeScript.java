@@ -22,8 +22,9 @@ public record TimeScript(float time, @NotNull AnimationScript script) implements
         script.accept(trigger);
     }
 
-    public @NotNull TimeScript time(float time) {
-        return new TimeScript(time, script);
+    public @NotNull TimeScript time(float newTime) {
+        if (time == newTime) return this;
+        return new TimeScript(newTime, script);
     }
 
     @Override

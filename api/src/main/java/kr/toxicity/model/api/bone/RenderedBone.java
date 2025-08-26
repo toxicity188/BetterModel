@@ -47,6 +47,12 @@ public final class RenderedBone {
 
     private static final Vector3f EMPTY_VECTOR = new Vector3f();
     private static final ItemStack AIR = new ItemStack(Material.AIR);
+    private static final BoneMovement EMPTY_MOVEMENT = new BoneMovement(
+            new Vector3f(),
+            new Vector3f(1),
+            new Quaternionf(),
+            new Vector3f()
+    );
 
     @Getter
     @NotNull
@@ -384,7 +390,7 @@ public final class RenderedBone {
         var state = state(uuid);
         var progress = state.progress();
         var after = state.afterTransform != null ? state.afterTransform : state.relativeOffset();
-        var before = state.beforeTransform != null ? state.beforeTransform : BoneMovement.EMPTY;
+        var before = state.beforeTransform != null ? state.beforeTransform : EMPTY_MOVEMENT;
         return MathUtil.fma(
                         InterpolationUtil.lerp(before.transform(), after.transform(), progress)
                                 .add(itemStack.offset())
@@ -410,7 +416,7 @@ public final class RenderedBone {
         var state = state(uuid);
         var progress = state.progress();
         var after = state.afterTransform != null ? state.afterTransform : globalState.relativeOffset();
-        var before = state.beforeTransform != null ? state.beforeTransform : BoneMovement.EMPTY;
+        var before = state.beforeTransform != null ? state.beforeTransform : EMPTY_MOVEMENT;
         return InterpolationUtil.lerp(before.rawRotation(), after.rawRotation(), progress);
     }
 

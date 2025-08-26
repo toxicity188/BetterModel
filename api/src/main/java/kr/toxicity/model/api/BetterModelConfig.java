@@ -4,7 +4,7 @@ import kr.toxicity.model.api.config.DebugConfig;
 import kr.toxicity.model.api.config.IndicatorConfig;
 import kr.toxicity.model.api.config.ModuleConfig;
 import kr.toxicity.model.api.mount.MountController;
-import kr.toxicity.model.api.pack.PackConfig;
+import kr.toxicity.model.api.config.PackConfig;
 import org.bukkit.Material;
 import org.jetbrains.annotations.NotNull;
 

@@ -153,8 +153,8 @@ public final class RenderPipeline {
     }
 
     public boolean tick(@NotNull PacketBundler bundler) {
-        var script = scriptProcessor.tick();
-        return matchTree(b -> b.tick(bundler)) || script;
+        scriptProcessor.tick();
+        return matchTree(b -> b.tick(bundler));
     }
 
     public boolean tick(@NotNull UUID uuid, @NotNull PacketBundler bundler) {

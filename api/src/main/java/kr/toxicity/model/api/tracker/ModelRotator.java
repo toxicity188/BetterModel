@@ -54,7 +54,9 @@ public sealed interface ModelRotator extends BiFunction<Tracker, ModelRotation, 
     }
 
     @NotNull String name();
+
     @Nullable ModelRotator source();
+
     @Nullable JsonElement data();
 
     default @NotNull ModelRotator root() {

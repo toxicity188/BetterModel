@@ -1,4 +1,4 @@
-package kr.toxicity.model.api.pack;
+package kr.toxicity.model.api.config;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;

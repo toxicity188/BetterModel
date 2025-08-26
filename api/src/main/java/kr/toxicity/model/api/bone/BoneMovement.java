@@ -19,14 +19,6 @@ public record BoneMovement(
         @NotNull Quaternionf rotation,
         @NotNull Vector3f rawRotation
 ) {
-
-    public static final BoneMovement EMPTY = new BoneMovement(
-            new Vector3f(),
-            new Vector3f(1),
-            new Quaternionf(),
-            new Vector3f()
-    );
-
     /**
      * Animates this movement.
      * @param movement animation

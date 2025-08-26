@@ -34,6 +34,7 @@ public record AnimationMovement(
      * @return new movement
      */
     public @NotNull AnimationMovement time(float newTime) {
+        if (time == newTime) return this;
         return new AnimationMovement(
                 newTime,
                 position,
