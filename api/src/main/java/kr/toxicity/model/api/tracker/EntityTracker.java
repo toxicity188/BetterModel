@@ -37,10 +37,10 @@ import java.util.function.Function;
  */
 public class EntityTracker extends Tracker {
 
-    private static final BonePredicate CREATE_HITBOX_PREDICATE = BonePredicate.from(b -> b.getName().name().equals("hitbox")
-            || b.getName().tagged(BoneTags.HITBOX)
+    private static final BonePredicate CREATE_HITBOX_PREDICATE = BonePredicate.from(b -> b.name().name().equals("hitbox")
+            || b.name().tagged(BoneTags.HITBOX)
             || b.getGroup().getMountController().canMount());
-    private static final BonePredicate CREATE_NAMETAG_PREDICATE = BonePredicate.from(b -> b.getName().tagged(BoneTags.TAG));
+    private static final BonePredicate CREATE_NAMETAG_PREDICATE = BonePredicate.from(b -> b.name().tagged(BoneTags.TAG, BoneTags.MOB_TAG, BoneTags.PLAYER_TAG));
     private static final BonePredicate HITBOX_REFRESH_PREDICATE = BonePredicate.from(r -> r.getHitBox() != null);
 
     private final EntityTrackerRegistry registry;
@@ -95,11 +95,11 @@ public class EntityTracker extends Tracker {
         pipeline.scale(scale);
         Function<Quaternionf, Quaternionf> headRotator = r -> r.mul(MathUtil.toQuaternion(bodyRotator.headRotation()));
         pipeline.addRotationModifier(
-                BonePredicate.of(BonePredicate.State.NOT_SET, r -> r.getName().tagged(BoneTags.HEAD)),
+                BonePredicate.of(BonePredicate.State.NOT_SET, r -> r.name().tagged(BoneTags.HEAD)),
                 headRotator
         );
         pipeline.addRotationModifier(
-                BonePredicate.of(BonePredicate.State.TRUE, r -> r.getName().tagged(BoneTags.HEAD_WITH_CHILDREN)),
+                BonePredicate.of(BonePredicate.State.TRUE, r -> r.name().tagged(BoneTags.HEAD_WITH_CHILDREN)),
                 headRotator
         );
 
@@ -113,8 +113,12 @@ public class EntityTracker extends Tracker {
         animate("idle_fly", new AnimationModifier(adapter::fly, 6, 0, AnimationIterator.Type.LOOP, null));
         animate("walk_fly", new AnimationModifier(() -> adapter.fly() && walkSupplier.getAsBoolean(), 6, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
         animate("spawn", AnimationModifier.DEFAULT_WITH_PLAY_ONCE);
-        createNametag(CREATE_NAMETAG_PREDICATE, tag -> {
-            tag.alwaysVisible(entity instanceof Player);
+        createNametag(CREATE_NAMETAG_PREDICATE, (bone, tag) -> {
+            if (bone.name().tagged(BoneTags.PLAYER_TAG)) {
+                tag.alwaysVisible(true);
+            } else if (bone.name().tagged(BoneTags.MOB_TAG)) {
+                tag.alwaysVisible(false);
+            } else tag.alwaysVisible(entity instanceof Player);
             tag.component(adapter.customName());
         });
         BetterModel.plugin().scheduler().task(entity, () -> {

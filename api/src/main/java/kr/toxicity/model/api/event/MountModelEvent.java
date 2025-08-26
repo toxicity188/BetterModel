@@ -13,8 +13,6 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Mounts to some model's hitbox event
  */
-@Getter
-@Setter
 public final class MountModelEvent extends AbstractModelEvent implements Cancellable {
     /**
      * Handler list
@@ -24,6 +22,8 @@ public final class MountModelEvent extends AbstractModelEvent implements Cancell
     private final EntityTracker tracker;
     private final HitBox hitBox;
     private final Entity entity;
+    @Getter
+    @Setter
     private boolean cancelled;
 
     /**

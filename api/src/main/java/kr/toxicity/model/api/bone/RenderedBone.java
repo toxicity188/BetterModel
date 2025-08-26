@@ -173,7 +173,7 @@ public final class RenderedBone {
             synchronized (this) {
                 if (previous != hitBox) return false;
                 var h = group.getHitBox();
-                if (h == null) h = ModelBoundingBox.MIN.named(group.getName());
+                if (h == null) h = ModelBoundingBox.MIN.named(name());
                 var l = listener;
                 if (hitBox != null) {
                     hitBox.removeHitBox();
@@ -450,7 +450,7 @@ public final class RenderedBone {
         targetDisplay.item(itemStack.isAir() ? AIR : tintCacheMap.computeIfAbsent(tint, i -> BetterModel.plugin().nms().tint(itemStack.itemStack(), i)));
     }
 
-    public @NotNull BoneName getName() {
+    public @NotNull BoneName name() {
         return getGroup().getName();
     }
 
@@ -467,7 +467,7 @@ public final class RenderedBone {
 
     public boolean addAnimation(@NotNull AnimationPredicate filter, @NotNull BlueprintAnimation animator, @NotNull AnimationModifier modifier, @NotNull AnimationEventHandler eventHandler) {
         if (filter.test(this)) {
-            var get = animator.animator().get(getName());
+            var get = animator.animator().get(name());
             if (get == null && modifier.override(animator.override()) && !filter.isChildren()) return false;
             var type = modifier.type(animator.loop());
             var iterator = get != null ? get.iterator(type) : animator.emptyIterator(type);
@@ -479,7 +479,7 @@ public final class RenderedBone {
 
     public boolean replaceAnimation(@NotNull AnimationPredicate filter, @NotNull String target, @NotNull BlueprintAnimation animator, @NotNull AnimationModifier modifier) {
         if (filter.test(this)) {
-            var get = animator.animator().get(getName());
+            var get = animator.animator().get(name());
             if (get == null && modifier.override(animator.override()) && !filter.isChildren()) return false;
             var type = modifier.type(animator.loop());
             var iterator = get != null ? get.iterator(type) : animator.emptyIterator(type);

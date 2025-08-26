@@ -66,7 +66,7 @@ public final class RenderPipeline {
         this.source = source;
         this.boneMap = boneMap;
         //Bone
-        flattenBoneMap = associate(boneMap.values().stream().flatMap(RenderedBone::flatten), RenderedBone::getName);
+        flattenBoneMap = associate(boneMap.values().stream().flatMap(RenderedBone::flatten), RenderedBone::name);
         displayAmount = (int) flattenBoneMap.values().stream()
                 .filter(rb -> rb.getDisplay() != null)
                 .count();

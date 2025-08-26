@@ -25,7 +25,7 @@ class DismountModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc),
             val set = seat(args)
             val d = driver(args)
             registry.mountedHitBox()[p1.bukkitEntity.uniqueId]?.takeIf {
-                set.isEmpty() || (set.contains(it.hitBox.positionSource().name.name) && (!d || it.hitBox.mountController().canControl()))
+                set.isEmpty() || (set.contains(it.hitBox.positionSource().name().name) && (!d || it.hitBox.mountController().canControl()))
             }?.dismount()
             SkillResult.SUCCESS
         } ?: SkillResult.CONDITION_FAILED

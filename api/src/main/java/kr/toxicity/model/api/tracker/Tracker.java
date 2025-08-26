@@ -250,7 +250,7 @@ public abstract class Tracker implements AutoCloseable {
     public double height() {
         return bones()
                 .stream()
-                .filter(bone -> bone.getName().tagged(BoneTags.HEAD, BoneTags.HEAD_WITH_CHILDREN))
+                .filter(bone -> bone.name().tagged(BoneTags.HEAD, BoneTags.HEAD_WITH_CHILDREN))
                 .mapToDouble(bone -> bone.hitBoxPosition().y)
                 .max()
                 .orElse(0F);
@@ -543,9 +543,9 @@ public abstract class Tracker implements AutoCloseable {
      * @param consumer nametag consumer
      * @return success
      */
-    public boolean createNametag(@NotNull BonePredicate predicate, @NotNull Consumer<ModelNametag> consumer) {
+    public boolean createNametag(@NotNull BonePredicate predicate, @NotNull BiConsumer<RenderedBone, ModelNametag> consumer) {
         return tryUpdate((b, p) -> b.createNametag(p, tag -> {
-            consumer.accept(tag);
+            consumer.accept(b, tag);
             perPlayerTick((tracker, player) -> {
                 if (pipeline.getSource() instanceof RenderSource.BasePlayer(Player entity) && entity == player) return;
                 tag.teleport(tracker.location());
@@ -623,7 +623,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return bone or null
      */
     public @Nullable RenderedBone bone(@NotNull String name) {
-        return bone(b -> b.getName().name().equals(name));
+        return bone(b -> b.name().name().equals(name));
     }
 
     /**

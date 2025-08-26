@@ -12,6 +12,7 @@ import kr.toxicity.model.api.data.blueprint.BlueprintChildren;
 import kr.toxicity.model.api.script.AnimationScript;
 import kr.toxicity.model.api.script.BlueprintScript;
 import kr.toxicity.model.api.script.TimeScript;
+import kr.toxicity.model.api.util.InterpolationUtil;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -91,12 +92,12 @@ public record ModelAnimation(
                         .toList()
                 ).time(d.time()))
                 .toList();
-        var before = animator.keyframes().getFirst().time();
         var list = new ArrayList<TimeScript>(get.size() + 2);
-        list.add(AnimationScript.EMPTY.time(before));
+        if (get.getFirst().time() > 0) list.add(TimeScript.EMPTY);
+        var before = 0F;
         for (TimeScript timeScript : get) {
             var t = timeScript.time();
-            list.add(timeScript.time(t - before));
+            list.add(timeScript.time(InterpolationUtil.roundTime(t - before)));
             before = t;
         }
         var len = length() - before;

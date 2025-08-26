@@ -211,6 +211,17 @@ public record AnimationModifier(
      *
      * @param start     start time
      * @param end       end time
+     * @param speedValue  speed value
+     */
+    public AnimationModifier(int start, int end, float speedValue) {
+        this(start, end, null, FloatConstantSupplier.of(speedValue));
+    }
+
+    /**
+     * Creates modifier
+     *
+     * @param start     start time
+     * @param end       end time
      * @param supplier  speed supplier
      */
     public AnimationModifier(int start, int end, @Nullable FloatSupplier supplier) {

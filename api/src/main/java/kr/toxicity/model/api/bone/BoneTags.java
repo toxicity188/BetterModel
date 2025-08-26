@@ -36,6 +36,14 @@ public enum BoneTags implements BoneTag {
      */
     TAG(new String[] { "tag" }),
     /**
+     * Mob's nametag
+     */
+    MOB_TAG(new String[] { "mtag" }),
+    /**
+     * Player's nametag
+     */
+    PLAYER_TAG(new String[] { "ptag" }),
+    /**
      * Entity's item in left hand
      */
     LEFT_ITEM(BoneItemMapper.entity(

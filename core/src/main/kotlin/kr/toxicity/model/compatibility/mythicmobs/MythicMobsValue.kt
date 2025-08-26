@@ -122,11 +122,11 @@ fun MythicLineConfig.toBonePredicate(defaultPredicate: BonePredicate): (Placehol
         if (part == null) defaultPredicate else {
             BonePredicate.of(if (children(meta)) BonePredicate.State.TRUE else BonePredicate.State.FALSE, if (match(meta)) {
                 { b ->
-                    b.name.name == part
+                    b.name().name == part
                 }
             } else {
                 { b ->
-                    b.name.name.contains(part, ignoreCase = true)
+                    b.name().name.contains(part, ignoreCase = true)
                 }
             })
         }

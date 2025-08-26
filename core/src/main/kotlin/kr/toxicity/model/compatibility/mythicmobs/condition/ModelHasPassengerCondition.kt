@@ -21,7 +21,7 @@ class ModelHasPassengerCondition(mlc: MythicLineConfig) : IEntityCondition {
         return p0.toRegistry()?.let {
             if (set.isEmpty()) it.hasPassenger() else set.any { seat ->
                 it.mountedHitBox().values.any { box ->
-                    box.hitBox().positionSource().name.name == seat
+                    box.hitBox().positionSource().name().name == seat
                 }
             }
         } == true

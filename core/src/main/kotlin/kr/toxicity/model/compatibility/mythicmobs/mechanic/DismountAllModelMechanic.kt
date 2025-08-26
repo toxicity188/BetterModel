@@ -29,7 +29,7 @@ class DismountAllModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(ml
                 .values
                 .asSequence()
                 .filter {
-                    set.isEmpty() || set.contains(it.hitBox.positionSource().name.name)
+                    set.isEmpty() || set.contains(it.hitBox.positionSource().name().name)
                 }
                 .forEach {
                     it.dismountAll()
