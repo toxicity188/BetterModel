@@ -19,7 +19,7 @@ dependencies {
         implementation(project(":nms:${it.name}", configuration = "reobf"))
     }
     implementation(libs.bundles.shadedLibrary) {
-        exclude("net.kyori")
+        //exclude("net.kyori")
         exclude("org.ow2.asm")
     }
 

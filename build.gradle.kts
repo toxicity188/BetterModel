@@ -66,6 +66,8 @@ tasks {
         prefix("kr.toxicity.library")
         prefix("dev.jorel.commandapi")
         prefix("org.bstats")
+        relocate("net.kyori.adventure", "$groupString.shaded.net.kyori.adventure")
+        relocate("net.kyori.examination", "$groupString.shaded.net.kyori.examination")
     }
     build {
         finalizedBy(

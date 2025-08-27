@@ -33,6 +33,8 @@ dependencies {
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
 
+    compileOnly(libs.adventurePlatformBukkit)
+
     testCompileOnly(libs.lombok)
     testAnnotationProcessor(libs.lombok)
 }

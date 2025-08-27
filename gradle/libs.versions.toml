@@ -20,8 +20,7 @@ molangCompiler = "gg.moonflower:molang-compiler:3.1.1.19"
 [bundles]
 library = [
     "semver4j",
-    "expiringMap",
-    "adventurePlatformBukkit"
+    "expiringMap"
 ]
 
 shadedLibrary = [
@@ -29,7 +28,8 @@ shadedLibrary = [
     "bStats",
     "dynamicUV",
     "sharedPackets",
-    "molangCompiler"
+    "molangCompiler",
+    "adventurePlatformBukkit"
 ]
 
 [plugins]
