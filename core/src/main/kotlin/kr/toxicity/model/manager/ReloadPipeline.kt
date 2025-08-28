@@ -29,16 +29,17 @@ class ReloadPipeline(
     }
 
     private val task = PLUGIN.scheduler().asyncTaskTimer(1, 1) {
-        val status = current.get().run {
+        current.get().run {
             Status(
                 if (goal > 0) toFloat() / goal.toFloat() else 0F,
                 this,
                 goal,
                 status
             )
-        }
-        indicators.forEach {
-            it.status(status)
+        }.run {
+            indicators.forEach {
+                it status this
+            }
         }
     }
 

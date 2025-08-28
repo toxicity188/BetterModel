@@ -249,6 +249,30 @@ public record ModelRenderer(
     }
 
     /**
+     * Creates tracker by entity and profile
+     *
+     * @param entity entity
+     * @param player   player
+     * @return entity tracker
+     */
+    public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull OfflinePlayer player) {
+        return create(entity, player, TrackerModifier.DEFAULT);
+    }
+
+    /**
+     * Creates tracker by entity and player
+     *
+     * @param entity entity
+     * @param player  player
+     * @param modifier modifier
+     * @return entity tracker
+     */
+    public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull OfflinePlayer player, @NotNull TrackerModifier modifier) {
+        var channel = BetterModel.plugin().playerManager().player(player.getUniqueId());
+        return channel == null ? create(entity, BetterModel.plugin().nms().profile(player), modifier) : create(entity, channel.profile(), channel.isSlim(), modifier);
+    }
+
+    /**
      * Creates tracker by entity
      *
      * @param entity   entity
@@ -288,6 +312,19 @@ public record ModelRenderer(
     public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull GameProfile profile, boolean slim) {
         return create(entity, profile, slim, TrackerModifier.DEFAULT);
     }
+
+    /**
+     * Creates tracker by entity and profile
+     *
+     * @param entity   entity
+     * @param profile  profile
+     * @param modifier modifier
+     * @return entity tracker
+     */
+    public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull GameProfile profile, @NotNull TrackerModifier modifier) {
+        return create(entity, profile, BetterModel.plugin().skinManager().isSlim(profile), modifier);
+    }
+
     /**
      * Creates tracker by entity and profile
      *
@@ -354,6 +391,30 @@ public record ModelRenderer(
     /**
      * Gets or creates tracker by entity and profile
      *
+     * @param entity entity
+     * @param player   player
+     * @return entity tracker
+     */
+    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull OfflinePlayer player) {
+        return getOrCreate(entity, player, TrackerModifier.DEFAULT);
+    }
+
+    /**
+     * Gets or creates tracker by entity and player
+     *
+     * @param entity entity
+     * @param player  player
+     * @param modifier modifier
+     * @return entity tracker
+     */
+    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull OfflinePlayer player, @NotNull TrackerModifier modifier) {
+        var channel = BetterModel.plugin().playerManager().player(player.getUniqueId());
+        return channel == null ? getOrCreate(entity, BetterModel.plugin().nms().profile(player), modifier) : getOrCreate(entity, channel.profile(), channel.isSlim(), modifier);
+    }
+
+    /**
+     * Gets or creates tracker by entity and profile
+     *
      * @param entity   entity
      * @param profile  profile
      * @param slim     slim
@@ -362,6 +423,19 @@ public record ModelRenderer(
     public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull GameProfile profile, boolean slim) {
         return getOrCreate(entity, profile, slim, TrackerModifier.DEFAULT);
     }
+
+    /**
+     * Gets or creates tracker by entity and profile
+     *
+     * @param entity   entity
+     * @param profile  profile
+     * @param modifier modifier
+     * @return entity tracker
+     */
+    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull GameProfile profile, @NotNull TrackerModifier modifier) {
+        return getOrCreate(entity, profile, BetterModel.plugin().skinManager().isSlim(profile), modifier);
+    }
+
     /**
      * Gets or creates tracker by entity and profile
      *

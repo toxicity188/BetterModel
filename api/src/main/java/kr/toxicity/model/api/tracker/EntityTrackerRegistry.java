@@ -101,7 +101,7 @@ public final class EntityTrackerRegistry {
      * @return all registries
      */
     public static @NotNull @Unmodifiable List<EntityTrackerRegistry> registries() {
-        return REGISTRY_LOCK.accessToWriteLock(() -> ImmutableList.copyOf(UUID_REGISTRY_MAP.values()));
+        return REGISTRY_LOCK.accessToReadLock(() -> ImmutableList.copyOf(UUID_REGISTRY_MAP.values()));
     }
 
     /**
