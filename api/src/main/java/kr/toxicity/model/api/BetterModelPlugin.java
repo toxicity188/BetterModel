@@ -7,7 +7,6 @@ import kr.toxicity.model.api.pack.PackResult;
 import kr.toxicity.model.api.pack.PackZipper;
 import kr.toxicity.model.api.scheduler.ModelScheduler;
 import kr.toxicity.model.api.version.MinecraftVersion;
-import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
@@ -142,12 +141,6 @@ public interface BetterModelPlugin extends Plugin {
      * @return evaluator
      */
     @NotNull BetterModelEvaluator evaluator();
-
-    /**
-     * Gets bukkit audiences
-     * @return bukkit audiences
-     */
-    @NotNull BukkitAudiences audiences();
 
     /**
      * Gets plugin resource from a path

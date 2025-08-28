@@ -42,7 +42,7 @@ tasks {
     }
     shadowJar {
         manifest {
-            attributes(
+            attributes(mapOf(
                 "paperweight-mappings-namespace" to "spigot",
                 "Dev-Build" to (BUILD_NUMBER ?: -1),
                 "Version" to versionString,
@@ -52,7 +52,9 @@ tasks {
                 "Build-Jdk" to "${System.getProperty("java.vendor")} ${System.getProperty("java.version")}",
                 "Build-OS" to "${System.getProperty("os.arch")} ${System.getProperty("os.name")}",
                 "Build-Date" to LocalDateTime.now().toString()
-            )
+            ) + libs.bundles.manifestLibrary.get().associate {
+                "library-${it.name}" to it.version
+            })
         }
         archiveClassifier = ""
         dependencies {
@@ -66,6 +68,7 @@ tasks {
         prefix("kr.toxicity.library")
         prefix("dev.jorel.commandapi")
         prefix("org.bstats")
+        prefix("net.byteflux.libby")
     }
     build {
         finalizedBy(

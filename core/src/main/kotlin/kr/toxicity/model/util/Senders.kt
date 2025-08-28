@@ -1,6 +1,8 @@
 package kr.toxicity.model.util
 
+import kr.toxicity.model.BetterModelLibrary
 import net.kyori.adventure.audience.Audience
+import net.kyori.adventure.platform.bukkit.BukkitAudiences
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.TextComponent
@@ -8,15 +10,13 @@ import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextDecoration
 import org.bukkit.command.CommandSender
 
-val INFO by lazy {
-    componentOf(" [!] ") {
-        decorate(TextDecoration.BOLD).color(NamedTextColor.GREEN)
-    }
+val ADVENTURE_PLATFORM = if (BetterModelLibrary.adventurePlatform.isLoaded) BukkitAudiences.create(PLUGIN) else null
+
+val INFO = componentOf(" [!] ") {
+    decorate(TextDecoration.BOLD).color(NamedTextColor.GREEN)
 }
-val WARN by lazy {
-    componentOf(" [!] ") {
-        decorate(TextDecoration.BOLD).color(NamedTextColor.RED)
-    }
+val WARN = componentOf(" [!] ") {
+    decorate(TextDecoration.BOLD).color(NamedTextColor.RED)
 }
 
 fun String.toComponent() = componentOf(this)
@@ -41,8 +41,7 @@ inline fun componentOf(content: String, builder: TextComponent.Builder.() -> Tex
 }
 inline fun componentOf(builder: TextComponent.Builder.() -> TextComponent.Builder) = componentOf().let(builder).build()
 
-@Suppress("USELESS_IS_CHECK") //For legacy version and Spigot :(
-fun CommandSender.audience() = if (this is Audience) this else PLUGIN.audiences().sender(this)
+fun CommandSender.audience() = ADVENTURE_PLATFORM?.sender(this) ?: this
 fun Audience.info(message: String) = info(componentOf(message))
 fun Audience.warn(message: String) = warn(componentOf(message))
 fun Audience.info(vararg messages: ComponentLike) = sendMessage(componentWithLineOf(*messages.map { componentOf(INFO, it) }.toTypedArray()))

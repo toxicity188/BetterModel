@@ -18,7 +18,6 @@ import kr.toxicity.model.manager.*
 import kr.toxicity.model.scheduler.BukkitScheduler
 import kr.toxicity.model.scheduler.PaperScheduler
 import kr.toxicity.model.util.*
-import net.kyori.adventure.platform.bukkit.BukkitAudiences
 import net.kyori.adventure.text.Component
 import org.bstats.bukkit.Metrics
 import org.bukkit.Bukkit
@@ -30,6 +29,7 @@ import org.bukkit.plugin.java.JavaPlugin
 import java.io.InputStream
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Consumer
+import java.util.jar.Attributes
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import java.util.jar.Manifest
@@ -55,7 +55,9 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
     }
 
     private val scheduler = if (BetterModel.IS_FOLIA) PaperScheduler() else BukkitScheduler()
-    private val evaluator = BetterModelEvaluatorImpl()
+    private val evaluator by lazy {
+        BetterModelEvaluatorImpl()
+    }
     private val log = object : BetterModelLogger {
         private val internalLogger = logger
         override fun info(vararg message: String) {
@@ -75,18 +77,18 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
     }
     @Suppress("DEPRECATION") //To support Spigot :(
     private val semver = Semver(description.version, Semver.SemverType.LOOSE)
-    private val audiences by lazy {
-        BukkitAudiences.create(this)
+    val attributes: Attributes by lazy {
+        JarFile(file).use {
+            it.getInputStream(ZipEntry("META-INF/MANIFEST.MF")).use { stream ->
+                Manifest(stream).mainAttributes
+            }
+        }
     }
     private val snapshot by lazy {
         runCatching {
-            JarFile(file).use {
-                it.getInputStream(ZipEntry("META-INF/MANIFEST.MF")).use { stream ->
-                    Manifest(stream).mainAttributes.getValue("Dev-Build").toInt()
-                }
-            }
+            attributes.getValue("Dev-Build").toInt()
         }.getOrElse {
-            it.handleException("Unable to parse manifest.")
+            it.handleException("Unable to parse manifest's build data")
             -1
         }
     }
@@ -110,12 +112,12 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
     private var reloadEndTask: (ReloadResult) -> Unit = {}
 
     override fun onLoad() {
+        BetterModelLibrary.load(this)
         BetterModel.register(this)
         config = BetterModelConfigImpl(PluginConfiguration.CONFIG.create())
     }
 
     override fun onEnable() {
-        audiences()
         nms = when (version) {
             V1_21_6, V1_21_7, V1_21_8 -> kr.toxicity.model.nms.v1_21_R5.NMSImpl()
             V1_21_5 -> kr.toxicity.model.nms.v1_21_R4.NMSImpl()
@@ -178,7 +180,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
 
     override fun onDisable() {
         Bukkit.getOnlinePlayers().forEach { EntityTrackerRegistry.registry(it.uniqueId)?.close() }
-        audiences.close()
+        ADVENTURE_PLATFORM?.close()
         managers.forEach(GlobalManager::end)
     }
 
@@ -246,7 +248,6 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
     override fun version(): MinecraftVersion = version
     override fun semver(): Semver = semver
     override fun nms(): NMS = nms
-    override fun audiences(): BukkitAudiences = audiences
     override fun isSnapshot(): Boolean = snapshot > 0
 
     @Synchronized
