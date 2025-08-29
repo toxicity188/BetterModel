@@ -244,7 +244,8 @@ public final class EntityTrackerRegistry {
             if (trackerMap.compute(key, (k, v) -> v == created ? null : v) == null) {
                 LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> uuid + "'s tracker " + key + " has been removed. (" + trackerMap.size() + ")");
             }
-            if (trackerMap.isEmpty() && !close(r)) refreshRemove();
+            if (trackerMap.isEmpty()) close(r);
+            else refreshRemove();
         });
         var previous = trackerMap.put(key, created);
         if (previous != null) previous.close();
