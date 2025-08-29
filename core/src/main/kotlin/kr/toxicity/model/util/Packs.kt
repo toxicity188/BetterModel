@@ -1,6 +1,5 @@
 package kr.toxicity.model.util
 
-import com.google.gson.*
 import kr.toxicity.model.api.BetterModelConfig
 import kr.toxicity.model.api.BetterModelConfig.PackType.*
 import kr.toxicity.model.api.pack.*
@@ -14,21 +13,6 @@ import java.util.zip.Deflater
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import kotlin.io.path.pathString
-
-fun JsonElement.estimatedSize(): Long {
-    when (this) {
-        is JsonObject -> return entrySet().sumOf { it.value.estimatedSize() }
-        is JsonArray -> return asList().sumOf { it.estimatedSize() }
-        is JsonNull -> return 8L
-        is JsonPrimitive -> {
-            if (isNumber) return asInt / 5L + 6L
-            if (isBoolean) return if (asBoolean) 8L else 10L
-            if (isString) return 2L * asString.length
-        }
-        else -> {}
-    }
-    return 0L
-}
 
 fun BetterModelConfig.PackType.toGenerator() = when (this) {
     FOLDER -> FolderGenerator()

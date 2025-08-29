@@ -35,7 +35,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
         }
     }
 
-    private fun importModels(pipeline: ReloadPipeline, zipper: PackZipper): List<ModelBlueprint> {
+    private fun importModels(pipeline: ReloadPipeline, zipper: PackZipper): List<ImportedModel> {
         val modelFileMap = ConcurrentHashMap<String, Pair<Path, ModelBlueprint>>()
         val textures = zipper.assets().bettermodel().textures()
         val targetFolder = DATA_FOLDER.getOrCreateDirectory("models") { folder ->
@@ -67,7 +67,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                             image.image.toByteArray()
                         }
                         image.mcmeta()?.let { meta ->
-                            textures.add("${image.name}.png.mcmeta", meta.estimatedSize()) {
+                            textures.add("${image.name}.png.mcmeta", -1) {
                                 meta.toByteArray()
                             }
                         }
@@ -78,8 +78,17 @@ object ModelManagerImpl : ModelManager, GlobalManager {
         return modelFileMap.values
             .asSequence()
             .sortedBy { it.first }
-            .map { it.second }
+            .map { ImportedModel(it.first.fileSize(), it.second) }
             .toList()
+    }
+
+    private data class ImportedModel(
+        val size: Long,
+        val blueprint: ModelBlueprint
+    ) {
+        val jsonSize = size - blueprint.textures.sumOf {
+            it.image.height * it.image.width * 4
+        }
     }
 
     private fun loadModels(pipeline: ReloadPipeline, zipper: PackZipper) {
@@ -89,14 +98,16 @@ object ModelManagerImpl : ModelManager, GlobalManager {
         val model = importModels(pipeline, zipper)
 
         val maxScale = model.maxOfOrNull {
-            it.scale()
+            it.blueprint.scale()
         } ?: 1F
         var index = 1
 
         val legacyEntries = jsonArrayOf()
         val modernEntries = jsonArrayOf()
 
-        model.forEach { load ->
+        model.forEach { importedModel ->
+            val size = importedModel.jsonSize
+            val load = importedModel.blueprint
             renderMap[load.name] = load.toRenderer(maxScale) render@ { blueprintGroup ->
                 var success = false
                 //Modern
@@ -106,7 +117,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                         "model" to modernBlueprint.toModernJson()
                     ))
                     modernBlueprint.forEach { json ->
-                        modernModel.add("${json.name}.json", json.element.estimatedSize()) {
+                        modernModel.add("${json.name}.json", size / modernBlueprint.size) {
                             json.element.toByteArray()
                         }
                     }
@@ -118,7 +129,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                         "predicate" to jsonObjectOf("custom_model_data" to index),
                         "model" to "${CONFIG.namespace()}:item/${blueprint.name}"
                     ))
-                    legacyModel.add("${blueprint.name}.json", blueprint.element.estimatedSize()) {
+                    legacyModel.add("${blueprint.name}.json", size) {
                         blueprint.element.toByteArray()
                     }
                     success = true
@@ -140,7 +151,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
             ),
             "entries" to modernEntries
         )).run {
-            zipper.modern().bettermodel().items().add("$MODERN_MODEL_ITEM_NAME.json", estimatedSize()) {
+            zipper.modern().bettermodel().items().add("$MODERN_MODEL_ITEM_NAME.json", model.sumOf { it.jsonSize }) {
                 toByteArray()
             }
         }
@@ -150,8 +161,9 @@ object ModelManagerImpl : ModelManager, GlobalManager {
             "overrides" to legacyEntries
         ).run {
             val byteArray = toByteArray()
-            legacyModel.add("$MODERN_MODEL_ITEM_NAME.json", byteArray.size.toLong()) { byteArray }
-            zipper.legacy().minecraft().models().resolve("item").add("$itemName.json", byteArray.size.toLong()) { byteArray }
+            val estimatedSize = byteArray.size.toLong()
+            legacyModel.add("$MODERN_MODEL_ITEM_NAME.json", estimatedSize) { byteArray }
+            zipper.legacy().minecraft().models().resolve("item").add("$itemName.json", estimatedSize) { byteArray }
         }
     }
 
