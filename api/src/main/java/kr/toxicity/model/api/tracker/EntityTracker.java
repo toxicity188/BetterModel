@@ -335,4 +335,12 @@ public class EntityTracker extends Tracker {
     public void hideOption(@NotNull EntityHideOption hideOption) {
         this.hideOption = Objects.requireNonNull(hideOption);
     }
+
+    /**
+     * Checks this tracker's data can be saved
+     * @return can be saved
+     */
+    public boolean canBeSaved() {
+        return pipeline.getParent().type().isCanBeSaved();
+    }
 }

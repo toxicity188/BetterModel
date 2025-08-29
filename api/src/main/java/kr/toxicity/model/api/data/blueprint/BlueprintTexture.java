@@ -37,6 +37,14 @@ public record BlueprintTexture(
     }
 
     /**
+     * Checks this textures can be rendered.
+     * @return can be rendered.
+     */
+    public boolean canBeRendered() {
+        return !name.startsWith("-");
+    }
+
+    /**
      * Generates mcmeta of this image
      * @return mcmeta
      */

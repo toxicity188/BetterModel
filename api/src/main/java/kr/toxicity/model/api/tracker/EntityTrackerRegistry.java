@@ -329,6 +329,7 @@ public final class EntityTrackerRegistry {
         closed.set(true);
         var data = new ArrayList<TrackerData>(trackerMap.size());
         for (EntityTracker value : trackers()) {
+            if (!value.canBeSaved()) continue;
             data.add(value.asTrackerData());
             value.close();
         }
@@ -406,7 +407,7 @@ public final class EntityTrackerRegistry {
      * @return tracker's data
      */
     public @NotNull JsonArray serialize() {
-        return CollectionUtil.mapToJson(trackers(), value -> value.asTrackerData().serialize());
+        return CollectionUtil.mapToJson(trackers().stream().filter(EntityTracker::canBeSaved), value -> value.asTrackerData().serialize());
     }
 
     /**

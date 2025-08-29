@@ -87,6 +87,19 @@ public final class CollectionUtil {
 
     /**
      * Maps stream to JSON
+     * @param stream stream
+     * @param mapper mapper
+     * @return JSON array
+     * @param <E> element
+     * @param <R> return value
+     */
+    @NotNull
+    public static <E, R extends JsonElement> JsonArray mapToJson(@NotNull Stream<E> stream, @NotNull Function<E, R> mapper) {
+        return mapToJson(10, stream, mapper);
+    }
+
+    /**
+     * Maps stream to JSON
      * @param capacity initial capacity
      * @param stream stream
      * @param mapper mapper

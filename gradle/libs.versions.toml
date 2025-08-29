@@ -29,6 +29,7 @@ library = [
 ]
 
 manifestLibrary = [
+    "dynamicUV",
     "molangCompiler",
     "adventureApi",
     "adventureExamination",
@@ -37,7 +38,6 @@ manifestLibrary = [
 ]
 
 shadedLibrary = [
-    "dynamicUV",
     "sharedPackets",
     "commandApi",
     "bStats",

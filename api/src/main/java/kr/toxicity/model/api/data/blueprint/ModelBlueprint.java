@@ -8,8 +8,7 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 import java.util.Map;
-
-import static kr.toxicity.model.api.util.CollectionUtil.mapToList;
+import java.util.stream.Stream;
 
 /**
  * Parsed BlockBench model
@@ -31,16 +30,26 @@ public record ModelBlueprint(
 ) {
 
     /**
+     * Checks this blueprint has textures.
+     * @return has textures
+     */
+    public boolean hasTexture() {
+        return textures.stream().anyMatch(BlueprintTexture::canBeRendered);
+    }
+
+    /**
      * Builds blueprint image
      * @return images
      */
     @NotNull
     @Unmodifiable
-    public List<BlueprintImage> buildImage() {
-        return mapToList(textures, texture -> new BlueprintImage(
-                PackUtil.toPackName(name + "_" + texture.name()),
-                texture.image(),
-                texture.isAnimatedTexture() ? texture.toMcmeta() : null)
-        );
+    public Stream<BlueprintImage> buildImage() {
+        return textures.stream()
+                .filter(BlueprintTexture::canBeRendered)
+                .map(texture -> new BlueprintImage(
+                        PackUtil.toPackName(name + "_" + texture.name()),
+                        texture.image(),
+                        texture.isAnimatedTexture() ? texture.toMcmeta() : null)
+                );
     }
 }

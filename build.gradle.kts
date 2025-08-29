@@ -65,7 +65,7 @@ tasks {
         }
         exclude("LICENSE")
         prefix("kotlin")
-        prefix("kr.toxicity.library")
+        prefix("kr.toxicity.library.sharedpackets")
         prefix("dev.jorel.commandapi")
         prefix("org.bstats")
         prefix("net.byteflux.libby")

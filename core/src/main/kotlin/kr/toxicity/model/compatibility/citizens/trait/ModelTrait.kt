@@ -1,8 +1,8 @@
 package kr.toxicity.model.compatibility.citizens.trait
 
+import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.data.renderer.ModelRenderer
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
-import kr.toxicity.model.manager.ModelManagerImpl
 import net.citizensnpcs.api.event.DespawnReason
 import net.citizensnpcs.api.trait.Trait
 import net.citizensnpcs.api.trait.TraitName
@@ -23,7 +23,7 @@ class ModelTrait : Trait("model") {
 
     override fun load(key: DataKey) {
         key.getString("")?.let {
-            ModelManagerImpl.renderer(it)?.let { model ->
+            BetterModel.modelOrNull(it)?.let { model ->
                 renderer = model
             }
         }

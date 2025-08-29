@@ -38,12 +38,12 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                 withAliases("d")
                 withArguments(StringArgument("name")
                     .replaceSuggestions(ArgumentSuggestions.strings {
-                        ModelManagerImpl.keys().toTypedArray()
+                        ModelManagerImpl.modelKeys().toTypedArray()
                     })
                 )
                 executesPlayer(PlayerCommandExecutor { player, args ->
                     val name = args.get("name") as String
-                    ModelManagerImpl.renderer(name)
+                    BetterModel.modelOrNull(name)
                         ?.getOrCreate(player) ?: player.audience().warn("This model doesn't exist: $name")
                 })
             }
@@ -71,7 +71,7 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                 withAliases("s")
                 withArguments(StringArgument("name")
                     .replaceSuggestions(ArgumentSuggestions.strings {
-                        ModelManagerImpl.keys().toTypedArray()
+                        ModelManagerImpl.modelKeys().toTypedArray()
                     })
                 )
                 withOptionalArguments(StringArgument("type")
@@ -99,7 +99,7 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                         if (PLUGIN.version() >= MinecraftVersion.V1_21 && this is LivingEntity) getAttribute(ATTRIBUTE_SCALE)?.baseValue = s
                     }
                     if (e.isValid) {
-                        ModelManagerImpl.renderer(n)
+                        BetterModel.modelOrNull(n)
                             ?.create(e)
                             ?: player.audience().warn("Unable to find this renderer: $n")
                     } else {
@@ -159,13 +159,11 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                 withArguments(
                     StringArgument("name")
                         .replaceSuggestions(ArgumentSuggestions.strings {
-                            PlayerManagerImpl.limbs().map {
-                                it.name()
-                            }.toTypedArray()
+                            ModelManagerImpl.limbKeys().toTypedArray()
                         }),
                     StringArgument("animation")
                         .replaceSuggestions { sender, builder ->
-                            PlayerManagerImpl.limb(sender.previousArgs["name"] as String)?.animations()?.forEach(builder::suggest)
+                            BetterModel.limbOrNull(sender.previousArgs["name"] as String)?.animations()?.forEach(builder::suggest)
                             CompletableFuture.supplyAsync {
                                 builder.build()
                             }
@@ -189,7 +187,7 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                             player.audience().warn("Invalid loop type: '$loopTypeStr'. Using default.")
                         }.getOrNull()
                     }
-                    if (!PlayerManagerImpl.animate(player, n, a, AnimationModifier(
+                    if (!ModelManagerImpl.animate(player, n, a, AnimationModifier(
                         1,
                         0,
                         loopType
@@ -202,11 +200,11 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                 withArguments(
                     StringArgument("model")
                         .replaceSuggestions(ArgumentSuggestions.strings {
-                            ModelManagerImpl.keys().toTypedArray()
+                            ModelManagerImpl.modelKeys().toTypedArray()
                         }),
                     StringArgument("animation")
                         .replaceSuggestions { sender, builder ->
-                            ModelManagerImpl.renderer(sender.previousArgs["model"] as String)?.animations()?.forEach(builder::suggest)
+                            BetterModel.modelOrNull(sender.previousArgs["model"] as String)?.animations()?.forEach(builder::suggest)
                             CompletableFuture.supplyAsync {
                                 builder.build()
                             }
@@ -219,7 +217,7 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                 executes(CommandExecutionInfo info@ {
                     val audience = it.sender().audience()
                     val model = (it.args()["model"] as String).run {
-                        ModelManagerImpl.renderer(this) ?: return@info audience.warn("Unable to find this model: $this")
+                        BetterModel.modelOrNull(this) ?: return@info audience.warn("Unable to find this model: $this")
                     }
                     val animation = (it.args()["animation"] as String).run {
                         model.animation(this).orElse(null) ?: return@info audience.warn("Unable to find this animation: $this")

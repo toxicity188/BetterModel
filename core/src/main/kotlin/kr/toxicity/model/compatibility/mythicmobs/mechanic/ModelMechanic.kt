@@ -4,6 +4,7 @@ import io.lumine.mythic.api.config.MythicLineConfig
 import io.lumine.mythic.api.skills.INoTargetSkill
 import io.lumine.mythic.api.skills.SkillMetadata
 import io.lumine.mythic.api.skills.SkillResult
+import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.tracker.ModelScaler
 import kr.toxicity.model.api.tracker.TrackerModifier
@@ -12,7 +13,6 @@ import kr.toxicity.model.compatibility.mythicmobs.modelPlaceholder
 import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderArgs
 import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderBoolean
 import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderFloat
-import kr.toxicity.model.manager.ModelManagerImpl
 
 class ModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
 
@@ -32,7 +32,7 @@ class ModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTarg
                 EntityTrackerRegistry.registry(e.uniqueId)?.remove(it)
             } == true) SkillResult.SUCCESS else SkillResult.CONDITION_FAILED
         } else {
-            ModelManagerImpl.renderer(mid(args) ?: return SkillResult.CONDITION_FAILED)?.let {
+            BetterModel.modelOrNull(mid(args) ?: return SkillResult.CONDITION_FAILED)?.let {
                 it.create(e, TrackerModifier(
                     st(args),
                     da(args),

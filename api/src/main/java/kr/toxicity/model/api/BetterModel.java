@@ -9,6 +9,7 @@ import kr.toxicity.model.api.util.EventUtil;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Collection;
@@ -57,21 +58,41 @@ public final class BetterModel {
     }
 
     /**
-     * Gets model render by name
+     * Gets model renderer by name
      * @param name name
      * @return optional renderer
      */
     public static @NotNull Optional<ModelRenderer> model(@NotNull String name) {
-        return Optional.ofNullable(plugin().modelManager().renderer(name));
+        return Optional.ofNullable(modelOrNull(name));
     }
+
     /**
-     * Gets player animation render by name
+     * Gets model renderer or null by name
+     * @param name name
+     * @return nullable renderer
+     */
+    public static @Nullable ModelRenderer modelOrNull(@NotNull String name) {
+        return plugin().modelManager().model(name);
+    }
+
+    /**
+     * Gets player animation renderer by name
      * @param name name
      * @return optional renderer
      */
     public static @NotNull Optional<ModelRenderer> limb(@NotNull String name) {
-        return Optional.ofNullable(plugin().playerManager().limb(name));
+        return Optional.ofNullable(limbOrNull(name));
     }
+
+    /**
+     * Gets player animation renderer or null by name
+     * @param name name
+     * @return nullable renderer
+     */
+    public static @Nullable ModelRenderer limbOrNull(@NotNull String name) {
+        return plugin().modelManager().limb(name);
+    }
+
     /**
      * Gets player channel by uuid.
      * @param uuid uuid
@@ -104,14 +125,15 @@ public final class BetterModel {
      * @return all models
      */
     public static @NotNull @Unmodifiable Collection<ModelRenderer> models() {
-        return plugin().modelManager().renderers();
+        return plugin().modelManager().models();
     }
+
     /**
      * Gets all limbs
      * @return all limbs
      */
     public static @NotNull @Unmodifiable Collection<ModelRenderer> limbs() {
-        return plugin().playerManager().limbs();
+        return plugin().modelManager().limbs();
     }
 
     /**

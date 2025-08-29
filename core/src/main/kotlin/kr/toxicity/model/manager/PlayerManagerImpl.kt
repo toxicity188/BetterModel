@@ -1,32 +1,22 @@
 package kr.toxicity.model.manager
 
-import kr.toxicity.model.api.animation.AnimationModifier
-import kr.toxicity.model.api.data.blueprint.BlueprintChildren.BlueprintGroup
-import kr.toxicity.model.api.data.blueprint.ModelBlueprint
-import kr.toxicity.model.api.data.renderer.ModelRenderer
-import kr.toxicity.model.api.data.renderer.RendererGroup
 import kr.toxicity.model.api.manager.PlayerManager
 import kr.toxicity.model.api.nms.PlayerChannelHandler
 import kr.toxicity.model.api.pack.PackZipper
-import kr.toxicity.model.util.*
-import org.bukkit.Material
+import kr.toxicity.model.util.PLUGIN
+import kr.toxicity.model.util.handleFailure
+import kr.toxicity.model.util.registerListener
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
-import org.bukkit.inventory.ItemStack
-import java.nio.file.Path
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.io.path.extension
-import kotlin.io.path.fileSize
 
 object PlayerManagerImpl : PlayerManager, GlobalManager {
 
     private val playerMap = ConcurrentHashMap<UUID, PlayerChannelHandler>()
-    private val renderMap = hashMapOf<String, ModelRenderer>()
-    private val rendererView = renderMap.toImmutableView()
 
     override fun start() {
         registerListener(object : Listener {
@@ -54,56 +44,8 @@ object PlayerManagerImpl : PlayerManager, GlobalManager {
     }
 
     override fun reload(pipeline: ReloadPipeline, zipper: PackZipper) {
-        renderMap.clear()
-        if (CONFIG.module().playerAnimation()) {
-            val target = DATA_FOLDER.getOrCreateDirectory("players") { folder ->
-                folder.addResource("steve.bbmodel")
-            }.fileTreeList().use { stream ->
-                stream.filter { it.extension == "bbmodel" }.toList()
-            }
-            pipeline.status = "Importing player model..."
-            pipeline goal target.size
-            pipeline.forEachParallel(target, Path::fileSize) {
-                val load = it.toFile().toModel()
-                renderMap[load.name] = load.toRenderer()
-            }
-        }
     }
 
-    override fun limbs(): Collection<ModelRenderer> = rendererView.values
-    override fun limb(name: String): ModelRenderer? = rendererView[name]
-    override fun keys(): Set<String> = rendererView.keys
-
-    override fun animate(player: Player, model: String, animation: String, modifier: AnimationModifier): Boolean {
-        return renderMap[model]?.let {
-            val create = it.getOrCreate(player)
-            val success = create.animate(animation, modifier) {
-                create.close()
-            }
-            if (!success) create.close()
-            success
-        } == true
-    }
-
-    private fun ModelBlueprint.toRenderer(): ModelRenderer {
-        fun BlueprintGroup.parse(): RendererGroup {
-            return RendererGroup(
-                name,
-                scale,
-                ItemStack(Material.AIR),
-                this,
-                children.filterIsInstance<BlueprintGroup>()
-                    .associate { it.name to it.parse() },
-                hitBox()
-            )
-        }
-        return ModelRenderer(
-            this,
-            group.filterIsInstance<BlueprintGroup>()
-                .associate { it.name to it.parse() },
-            animations
-        )
-    }
 
     override fun player(uuid: UUID): PlayerChannelHandler? = playerMap[uuid]
     override fun player(player: Player): PlayerChannelHandler = player.register()

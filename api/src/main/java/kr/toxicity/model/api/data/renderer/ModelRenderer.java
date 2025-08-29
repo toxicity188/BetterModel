@@ -8,6 +8,8 @@ import kr.toxicity.model.api.data.blueprint.ModelBlueprint;
 import kr.toxicity.model.api.tracker.DummyTracker;
 import kr.toxicity.model.api.tracker.EntityTracker;
 import kr.toxicity.model.api.tracker.TrackerModifier;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Entity;
@@ -27,11 +29,13 @@ import static kr.toxicity.model.api.util.CollectionUtil.mapValue;
 /**
  * A blueprint renderer.
  *
+ * @param type type
  * @param parent parent blueprint
  * @param rendererGroupMap group map
  * @param animationMap animation map
  */
 public record ModelRenderer(
+        @NotNull Type type,
         @NotNull ModelBlueprint parent,
         @NotNull @Unmodifiable Map<BoneName, RendererGroup> rendererGroupMap,
         @NotNull @Unmodifiable Map<String, BlueprintAnimation> animationMap
@@ -494,5 +498,14 @@ public record ModelRenderer(
 
     private @NotNull RenderPipeline pipeline(@NotNull RenderSource<?> source, @NotNull TrackerModifier modifier) {
         return new RenderPipeline(this, source, mapValue(rendererGroupMap, value -> value.create(source, modifier)));
+    }
+
+    @RequiredArgsConstructor
+    @Getter
+    public enum Type {
+        GENERAL(true),
+        PLAYER(false)
+        ;
+        private final boolean canBeSaved;
     }
 }

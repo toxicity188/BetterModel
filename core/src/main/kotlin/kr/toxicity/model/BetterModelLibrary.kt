@@ -10,6 +10,10 @@ object BetterModelLibrary {
         "gg{}moonflower",
         "molang-compiler"
     )
+    val dynamicUV = LibraryData(
+        "io{}github{}toxicity188",
+        "dynamicuv"
+    )
 
     val adventureApi = LibraryData(
         "net{}kyori",
@@ -56,6 +60,7 @@ object BetterModelLibrary {
 
     private val libraries = listOf(
         molangCompiler,
+        dynamicUV,
         adventureApi,
         examinationApi,
         option,

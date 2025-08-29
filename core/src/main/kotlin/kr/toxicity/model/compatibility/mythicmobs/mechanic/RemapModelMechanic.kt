@@ -4,11 +4,11 @@ import io.lumine.mythic.api.config.MythicLineConfig
 import io.lumine.mythic.api.skills.INoTargetSkill
 import io.lumine.mythic.api.skills.SkillMetadata
 import io.lumine.mythic.api.skills.SkillResult
+import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.compatibility.mythicmobs.modelPlaceholder
 import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderArgs
 import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderString
 import kr.toxicity.model.compatibility.mythicmobs.toTracker
-import kr.toxicity.model.manager.ModelManagerImpl
 import kr.toxicity.model.util.any
 import kr.toxicity.model.util.toPackName
 import kr.toxicity.model.util.toSet
@@ -18,12 +18,12 @@ class RemapModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), IN
     private val modelId = mlc.modelPlaceholder
     private val newModelId = mlc.toPlaceholderString(arrayOf("newmodelid", "n", "nid", "newmodel")) {
         it?.toPackName()?.let { name ->
-            ModelManagerImpl.renderer(name)
+            BetterModel.modelOrNull(name)
         }
     }
     private val map = mlc.toPlaceholderString(arrayOf("map")) {
         it?.toPackName()?.let { name ->
-            ModelManagerImpl.renderer(name)?.flatten()?.map { group ->
+            BetterModel.modelOrNull(name)?.flatten()?.map { group ->
                 group.name
             }?.toSet()
         }
