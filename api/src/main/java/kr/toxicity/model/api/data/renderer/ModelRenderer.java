@@ -500,10 +500,19 @@ public record ModelRenderer(
         return new RenderPipeline(this, source, mapValue(rendererGroupMap, value -> value.create(source, modifier)));
     }
 
+    /**
+     * Renderer type
+     */
     @RequiredArgsConstructor
     @Getter
     public enum Type {
+        /**
+         * General
+         */
         GENERAL(true),
+        /**
+         * Player
+         */
         PLAYER(false)
         ;
         private final boolean canBeSaved;
