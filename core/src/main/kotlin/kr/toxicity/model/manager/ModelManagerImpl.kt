@@ -92,9 +92,10 @@ object ModelManagerImpl : ModelManager, GlobalManager {
         pipeline: ModelPipeline,
         model: List<ImportedModel>
     ) {
-        val maxScale = model.maxOfOrNull {
+        if (model.isEmpty()) return
+        val maxScale = model.maxOf {
             it.blueprint.scale()
-        } ?: 1F
+        }
         model.forEach { importedModel ->
             val size = importedModel.jsonSize
             val load = importedModel.blueprint
