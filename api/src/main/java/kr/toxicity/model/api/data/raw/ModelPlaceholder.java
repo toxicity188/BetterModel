@@ -27,7 +27,7 @@ public record ModelPlaceholder(
      */
     public static final JsonDeserializer<ModelPlaceholder> PARSER = (json, typeOfT, context) -> new ModelPlaceholder(associate(
             Arrays.stream(json.getAsString().trim().split("\n"))
-                    .map(entry -> entry.split("=", 2))
+                    .map(line -> line.split("=", 2))
                     .filter(array -> array.length == 2),
             array -> array[0],
             array -> array[1]

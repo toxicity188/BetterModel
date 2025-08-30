@@ -22,6 +22,18 @@ public interface ModelManager {
      */
     @Nullable ModelRenderer model(@NotNull String name);
 
+
+    /**
+     * @deprecated Use ModelManager#model instead.
+     * @param name name
+     * @return renderer or null
+     */
+    @Deprecated
+    @Nullable
+    default ModelRenderer renderer(@NotNull String name) {
+        return model(name);
+    }
+
     /**
      * Gets all renderers
      * @return all renderers

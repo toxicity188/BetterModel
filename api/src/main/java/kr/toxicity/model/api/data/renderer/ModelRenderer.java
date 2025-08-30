@@ -29,14 +29,14 @@ import static kr.toxicity.model.api.util.CollectionUtil.mapValue;
 /**
  * A blueprint renderer.
  *
- * @param type type
  * @param parent parent blueprint
+ * @param type type
  * @param rendererGroupMap group map
  * @param animationMap animation map
  */
 public record ModelRenderer(
-        @NotNull Type type,
         @NotNull ModelBlueprint parent,
+        @NotNull Type type,
         @NotNull @Unmodifiable Map<BoneName, RendererGroup> rendererGroupMap,
         @NotNull @Unmodifiable Map<String, BlueprintAnimation> animationMap
 ) {

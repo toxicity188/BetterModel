@@ -1,5 +1,8 @@
 package kr.toxicity.model.api.manager;
 
+import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.animation.AnimationModifier;
+import kr.toxicity.model.api.data.renderer.ModelRenderer;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -25,4 +28,20 @@ public interface PlayerManager {
      * @return channel handler
      */
     @NotNull PlayerChannelHandler player(@NotNull Player player);
+
+    @Deprecated(forRemoval = true)
+    @Nullable
+    default ModelRenderer limb(@NotNull String name) {
+        return BetterModel.limbOrNull(name);
+    }
+
+    @Deprecated(forRemoval = true)
+    default boolean animate(@NotNull Player player, @NotNull String model, @NotNull String animation) {
+        return BetterModel.plugin().modelManager().animate(player, model, animation);
+    }
+
+    @Deprecated(forRemoval = true)
+    default boolean animate(@NotNull Player player, @NotNull String model, @NotNull String animation, @NotNull AnimationModifier modifier) {
+        return BetterModel.plugin().modelManager().animate(player, model, animation, modifier);
+    }
 }

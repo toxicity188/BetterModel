@@ -10,11 +10,6 @@ object BetterModelLibrary {
         "gg{}moonflower",
         "molang-compiler"
     )
-    val dynamicUV = LibraryData(
-        "io{}github{}toxicity188",
-        "dynamicuv"
-    )
-
     val adventureApi = LibraryData(
         "net{}kyori",
         "adventure-api",
@@ -60,7 +55,6 @@ object BetterModelLibrary {
 
     private val libraries = listOf(
         molangCompiler,
-        dynamicUV,
         adventureApi,
         examinationApi,
         option,
@@ -75,7 +69,7 @@ object BetterModelLibrary {
             libraries
                 .asSequence()
                 .filter { it.isLoaded }
-                .flatMap { it.toLibby(plugin) }
+                .flatMap { it toLibby plugin }
                 .forEach { loadLibrary(it) }
         }
     }
@@ -87,7 +81,7 @@ object BetterModelLibrary {
         private val predicate: () -> Boolean = { true }
     ) {
         val isLoaded get() = predicate()
-        fun toLibby(plugin: BetterModelPluginImpl): List<Library> = (subModules + artifact).map {
+        infix fun toLibby(plugin: BetterModelPluginImpl): List<Library> = (subModules + artifact).map {
             Library.builder()
                 .groupId(group)
                 .artifactId(it)

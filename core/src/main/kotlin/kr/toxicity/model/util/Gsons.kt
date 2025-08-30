@@ -8,9 +8,6 @@ import kr.toxicity.model.api.data.blueprint.ModelBlueprint
 import kr.toxicity.model.api.data.raw.ModelData
 import java.io.File
 
-fun File.toModel(): ModelBlueprint = bufferedReader().use {
-    ModelData.GSON.fromJson(it, ModelData::class.java).toBlueprint(nameWithoutExtension.toPackName())
-}
 fun File.toTexturedModel(): ModelBlueprint? = bufferedReader().use {
     ModelData.GSON.fromJson(it, ModelData::class.java)
         .takeIf(ModelData::isSupported)

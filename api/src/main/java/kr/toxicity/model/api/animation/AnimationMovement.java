@@ -18,6 +18,9 @@ public record AnimationMovement(
         @Nullable Vector3f rotation
 ) implements Timed {
 
+    /**
+     * Empty movement
+     */
     public static final AnimationMovement EMPTY = new AnimationMovement(0);
 
     /**
