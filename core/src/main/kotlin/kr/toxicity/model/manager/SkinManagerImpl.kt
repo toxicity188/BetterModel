@@ -1,5 +1,7 @@
 package kr.toxicity.model.manager
 
+import com.github.benmanes.caffeine.cache.Caffeine
+import com.github.benmanes.caffeine.cache.RemovalCause
 import com.google.gson.JsonParser
 import com.mojang.authlib.GameProfile
 import kr.toxicity.library.dynamicuv.*
@@ -15,8 +17,6 @@ import kr.toxicity.model.api.util.TransformedItemStack
 import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.player.HttpPlayerSkinProvider
 import kr.toxicity.model.util.*
-import net.jodah.expiringmap.ExpirationPolicy
-import net.jodah.expiringmap.ExpiringMap
 import org.bukkit.Bukkit
 import java.awt.image.BufferedImage
 import java.net.URI
@@ -584,10 +584,13 @@ object SkinManagerImpl : SkinManager, GlobalManager {
         block(UVByteBuilder.emptyImage(uvNamespace, "one_pixel"))
     }
 
-    private val profileMap = ExpiringMap.builder()
-        .expirationPolicy(ExpirationPolicy.ACCESSED)
-        .expiration(1, TimeUnit.MINUTES)
-        .expirationListener(::handleExpiration)
+    private val profileCache = Caffeine.newBuilder()
+        .expireAfterAccess(5, TimeUnit.MINUTES)
+        .removalListener<UUID, SkinDataImpl> { key, value, cause ->
+            if (cause == RemovalCause.EXPIRED && key != null && value != null) {
+                handleExpiration(key, value)
+            }
+        }
         .build<UUID, SkinDataImpl>()
 
     private val fallback by lazy {
@@ -602,7 +605,7 @@ object SkinManagerImpl : SkinManager, GlobalManager {
 
     private fun handleExpiration(key: UUID, skin: SkinDataImpl) {
         skin.original?.let {
-            if (!RemovePlayerSkinEvent(it).call() || it.playerEquals()) profileMap[key] = skin
+            if (!RemovePlayerSkinEvent(it).call() || it.playerEquals()) profileCache.put(key, skin)
         }
     }
 
@@ -623,7 +626,7 @@ object SkinManagerImpl : SkinManager, GlobalManager {
     }
 
     override fun getOrRequest(profile: GameProfile): SkinData {
-        return profileMap.computeIfAbsent(profile.id) { id ->
+        return profileCache.get(profile.id) { id ->
             skinProvider.provide(profile).thenApply { provided ->
                 CreatePlayerSkinEvent(provided ?: profile).run {
                     call()
@@ -646,11 +649,11 @@ object SkinManagerImpl : SkinManager, GlobalManager {
                         HttpResponse.BodyHandlers.ofInputStream()
                     ).thenAccept {
                         it.body().use { stream ->
-                            profileMap[id] = SkinDataImpl(
+                            profileCache.put(id, SkinDataImpl(
                                 isSlim(selected),
                                 ImageIO.read(stream).convertLegacy(),
                                 selected
-                            )
+                            ))
                             EntityTrackerRegistry.registry(id)?.trackers()?.forEach { tracker ->
                                 tracker.updateDisplay { bone ->
                                     bone.itemMapper is PlayerLimb.LimbItemMapper
@@ -664,14 +667,14 @@ object SkinManagerImpl : SkinManager, GlobalManager {
                 }
             }.exceptionally {
                 it.handleException("unable to read this skin: ${profile.name}")
-                profileMap.remove(id)
+                profileCache.invalidate(id)
                 null
             }
             fallback
         }
     }
 
-    override fun removeCache(profile: GameProfile): Boolean = profileMap.remove(profile.id) != null
+    override fun removeCache(profile: GameProfile) = profileCache.invalidate(profile.id)
 
     override fun setSkinProvider(provider: PlayerSkinProvider) {
         skinProvider = provider
@@ -705,8 +708,8 @@ object SkinManagerImpl : SkinManager, GlobalManager {
     }
 
     private class SkinDataImpl(
-        isSlim: Boolean,
-        image: BufferedImage,
+        private val isSlim: Boolean,
+        private val image: BufferedImage,
         val original: GameProfile? = null
     ) : SkinData {
 
@@ -735,6 +738,8 @@ object SkinManagerImpl : SkinManager, GlobalManager {
         override fun leftForeLeg(): TransformedItemStack = leftForeLeg
         override fun rightLeg(): TransformedItemStack = rightLeg
         override fun rightForeLeg(): TransformedItemStack = rightForeLeg
+
+        fun refresh() = SkinDataImpl(isSlim, image, original)
     }
 
     override fun reload(pipeline: ReloadPipeline, zipper: PackZipper) {
@@ -742,6 +747,9 @@ object SkinManagerImpl : SkinManager, GlobalManager {
             CONFIG.namespace(),
             "player_limb"
         )
+        profileCache.asMap().entries.forEach {
+            it.setValue(it.value.refresh())
+        }
         if (!CONFIG.module().playerAnimation) return
         if (supported()) write { resource ->
             zipper.modern().add(resource.path(), resource.estimatedSize()) {

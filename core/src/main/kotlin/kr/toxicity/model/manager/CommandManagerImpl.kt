@@ -153,6 +153,23 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                     }
                 })
             }
+            command("version") {
+                withShortDescription("checks BetterModel's version.")
+                withAliases("v")
+                executes(CommandExecutionInfo {
+                    val audience = it.sender().audience()
+                    audience.info("Searching version, please wait...")
+                    PLUGIN.scheduler().asyncTask {
+                        val version = LATEST_VERSION
+                        audience.infoNotNull(
+                            emptyComponentOf(),
+                            "Current: ${PLUGIN.semver()}".toComponent(),
+                            version.release?.let { version -> componentOf("Latest release: ") { append(version.toURLComponent()) } },
+                            version.snapshot?.let { version -> componentOf("Latest snapshot: ") { append(version.toURLComponent()) } }
+                        )
+                    }
+                })
+            }
             command("play") {
                 withShortDescription("plays player animation.")
                 withAliases("p")

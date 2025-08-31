@@ -1,5 +1,6 @@
 package kr.toxicity.model.util
 
+import com.github.benmanes.caffeine.cache.Caffeine
 import kr.toxicity.model.BetterModelPluginImpl
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.config.DebugConfig
@@ -7,6 +8,7 @@ import kr.toxicity.model.api.util.HttpUtil
 import kr.toxicity.model.api.util.LogUtil
 import kr.toxicity.model.api.util.PackUtil
 import java.net.http.HttpClient
+import java.util.concurrent.TimeUnit
 
 val PLUGIN
     get() = BetterModel.plugin() as BetterModelPluginImpl
@@ -14,6 +16,12 @@ val CONFIG
     get() = BetterModel.config()
 val DATA_FOLDER
     get() = PLUGIN.dataFolder
+
+private val LATEST_VERSION_CACHE = Caffeine.newBuilder()
+    .expireAfterWrite(5, TimeUnit.MINUTES)
+    .build<Any, HttpUtil.LatestVersion> { HttpUtil.versionList() }
+
+val LATEST_VERSION: HttpUtil.LatestVersion get() = LATEST_VERSION_CACHE.get(Unit)
 
 fun info(vararg message: String) = PLUGIN.logger().info(*message)
 fun warn(vararg message: String) = PLUGIN.logger().warn(*message)

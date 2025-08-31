@@ -44,6 +44,9 @@ inline fun componentOf(builder: TextComponent.Builder.() -> TextComponent.Builde
 fun CommandSender.audience() = ADVENTURE_PLATFORM?.sender(this) ?: this
 fun Audience.info(message: String) = info(componentOf(message))
 fun Audience.warn(message: String) = warn(componentOf(message))
+fun Audience.infoNotNull(vararg messages: ComponentLike?) = info(*messages.filterNotNull().ifEmpty {
+    return
+}.toTypedArray())
 fun Audience.info(vararg messages: ComponentLike) = sendMessage(componentWithLineOf(*messages.map { componentOf(INFO, it) }.toTypedArray()))
 fun Audience.warn(vararg messages: ComponentLike) = sendMessage(componentWithLineOf(*messages.map { componentOf(WARN, it) }.toTypedArray()))
 fun Audience.info(message: ComponentLike) = sendMessage(componentOf(INFO, message))

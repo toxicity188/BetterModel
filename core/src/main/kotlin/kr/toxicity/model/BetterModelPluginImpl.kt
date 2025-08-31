@@ -10,7 +10,6 @@ import kr.toxicity.model.api.pack.PackResult
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.scheduler.ModelScheduler
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
-import kr.toxicity.model.api.util.HttpUtil
 import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.api.version.MinecraftVersion.*
 import kr.toxicity.model.configuration.PluginConfiguration
@@ -18,7 +17,6 @@ import kr.toxicity.model.manager.*
 import kr.toxicity.model.scheduler.BukkitScheduler
 import kr.toxicity.model.scheduler.PaperScheduler
 import kr.toxicity.model.util.*
-import net.kyori.adventure.text.Component
 import org.bstats.bukkit.Metrics
 import org.bukkit.Bukkit
 import org.bukkit.configuration.MemoryConfiguration
@@ -135,29 +133,23 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
             }
         }
         managers.forEach(GlobalManager::start)
-        val latestVersion = HttpUtil.versionList()
-        val versionNoticeList = arrayListOf<Component>()
-        latestVersion.release?.let {
-            if (semver < it.versionNumber()) versionNoticeList += componentOf("New BetterModel release found: ") {
-                append(it.toURLComponent())
-            }
-        }
-        latestVersion.snapshot?.let {
-            if (semver < it.versionNumber()) versionNoticeList += componentOf("New BetterModel snapshot found: ") {
-                append(it.toURLComponent())
-            }
-        }
-        if (versionNoticeList.isNotEmpty()) {
-            registerListener(object : Listener {
-                @EventHandler
-                fun PlayerJoinEvent.join() {
-                    if (!player.isOp || !config.versionCheck()) return
-                    player.audience().run {
-                        versionNoticeList.forEach(::info)
-                    }
+        registerListener(object : Listener {
+            @EventHandler
+            fun PlayerJoinEvent.join() {
+                if (!player.isOp || !config.versionCheck()) return
+                scheduler.asyncTask {
+                    val result = LATEST_VERSION
+                    player.audience().infoNotNull(
+                        result.release
+                            ?.takeIf { semver < it.versionNumber() }
+                            ?.let { version -> componentOf("New BetterModel release found: ") { append(version.toURLComponent()) } },
+                        result.snapshot
+                            ?.takeIf { semver < it.versionNumber() }
+                            ?.let { version -> componentOf("New BetterModel snapshot found: ") { append(version.toURLComponent()) } }
+                    )
                 }
-            })
-        }
+            }
+        })
         if (isSnapshot) warn(
             "This build is dev version: be careful to use it!",
             "Build number: $snapshot"

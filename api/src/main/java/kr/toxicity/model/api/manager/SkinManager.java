@@ -12,6 +12,6 @@ public interface SkinManager {
     boolean supported();
     @NotNull SkinData getOrRequest(@NotNull GameProfile profile);
     boolean isSlim(@NotNull GameProfile profile);
-    boolean removeCache(@NotNull GameProfile profile);
+    void removeCache(@NotNull GameProfile profile);
     void setSkinProvider(@NotNull PlayerSkinProvider provider);
 }
