@@ -35,7 +35,7 @@ import java.util.zip.ZipEntry
 
 @Suppress("UNUSED")
 class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
-    private val version = MinecraftVersion(Bukkit.getBukkitVersion().substringBefore('-'))
+    private val version = parse(Bukkit.getBukkitVersion().substringBefore('-'))
     private lateinit var nms: NMS
 
     private val onReload = AtomicBoolean()

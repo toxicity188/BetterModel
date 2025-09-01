@@ -51,7 +51,7 @@ version-check: true
 #default mount controller (walk, fly)
 default-mount-controller: walk
 #keyframe insertion tick time
-lerp-frame-time: 5
+lerp-frame-time: 3
 #toggles canceling player hotbar swap if target player is disguised or in player animation
 cancel-player-model-inventory: false
 #delay of applying hiding player entity

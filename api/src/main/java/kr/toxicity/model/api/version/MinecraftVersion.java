@@ -6,80 +6,85 @@ import java.util.Comparator;
 
 /**
  * Minecraft version.
- * @param first title
- * @param second main update
- * @param third minor update
+ * @param major title
+ * @param minor main update
+ * @param patch minor update
  */
-public record MinecraftVersion(int first, int second, int third) implements Comparable<MinecraftVersion> {
+public record MinecraftVersion(int major, int minor, int patch) implements Comparable<MinecraftVersion> {
     /**
      * 1.21.8
      */
-    public static final MinecraftVersion V1_21_8 = new MinecraftVersion(1, 21, 8);
+    public static final MinecraftVersion V1_21_8 = of(1, 21, 8);
     /**
      * 1.21.7
      */
-    public static final MinecraftVersion V1_21_7 = new MinecraftVersion(1, 21, 7);
+    public static final MinecraftVersion V1_21_7 = of(1, 21, 7);
     /**
      * 1.21.6
      */
-    public static final MinecraftVersion V1_21_6 = new MinecraftVersion(1, 21, 6);
+    public static final MinecraftVersion V1_21_6 = of(1, 21, 6);
     /**
      * 1.21.5
      */
-    public static final MinecraftVersion V1_21_5 = new MinecraftVersion(1, 21, 5);
+    public static final MinecraftVersion V1_21_5 = of(1, 21, 5);
     /**
      * 1.21.4
      */
-    public static final MinecraftVersion V1_21_4 = new MinecraftVersion(1, 21, 4);
+    public static final MinecraftVersion V1_21_4 = of(1, 21, 4);
     /**
      * 1.21.3
      */
-    public static final MinecraftVersion V1_21_3 = new MinecraftVersion(1, 21, 3);
+    public static final MinecraftVersion V1_21_3 = of(1, 21, 3);
     /**
      * 1.21.2
      */
-    public static final MinecraftVersion V1_21_2 = new MinecraftVersion(1, 21, 2);
+    public static final MinecraftVersion V1_21_2 = of(1, 21, 2);
     /**
      * 1.21.1
      */
-    public static final MinecraftVersion V1_21_1 = new MinecraftVersion(1, 21, 1);
+    public static final MinecraftVersion V1_21_1 = of(1, 21, 1);
     /**
      * 1.21
      */
-    public static final MinecraftVersion V1_21 = new MinecraftVersion(1, 21, 0);
+    public static final MinecraftVersion V1_21 = of(1, 21, 0);
     /**
      * 1.20.6
      */
-    public static final MinecraftVersion V1_20_6 = new MinecraftVersion(1, 20, 6);
+    public static final MinecraftVersion V1_20_6 = of(1, 20, 6);
     /**
      * 1.20.5
      */
-    public static final MinecraftVersion V1_20_5 = new MinecraftVersion(1, 20, 5);
+    public static final MinecraftVersion V1_20_5 = of(1, 20, 5);
 
     /**
      * Comparator
      */
-    private static final Comparator<MinecraftVersion> COMPARATOR = Comparator.comparing(MinecraftVersion::first)
-            .thenComparing(MinecraftVersion::second)
-            .thenComparing(MinecraftVersion::third);
+    private static final Comparator<MinecraftVersion> COMPARATOR = Comparator.comparing(MinecraftVersion::major)
+            .thenComparing(MinecraftVersion::minor)
+            .thenComparing(MinecraftVersion::patch);
 
     /**
      * Parses version from string
      * @param version version like "1.21.8"
      */
-    public MinecraftVersion(@NotNull String version) {
-        this(version.split("\\."));
-    }
-    /**
-     * Parses version from a string array
-     * @param version version array like ["1", "21", "8"]
-     */
-    public MinecraftVersion(@NotNull String[] version) {
-        this(
-                version.length > 0 ? Integer.parseInt(version[0]) : 0,
-                version.length > 1 ? Integer.parseInt(version[1]) : 0,
-                version.length > 2 ? Integer.parseInt(version[2]) : 0
+    public static @NotNull MinecraftVersion parse(@NotNull String version) {
+        var split = version.split("\\.");
+        return of(
+                split.length > 0 ? Integer.parseInt(split[0]) : 0,
+                split.length > 1 ? Integer.parseInt(split[1]) : 0,
+                split.length > 2 ? Integer.parseInt(split[2]) : 0
         );
+    }
+
+    /**
+     * Creates version
+     * @param major major
+     * @param minor minor
+     * @param patch patch
+     * @return Minecraft version
+     */
+    public static @NotNull MinecraftVersion of(int major, int minor, int patch) {
+        return new MinecraftVersion(major, minor, patch);
     }
 
     /**
@@ -115,6 +120,6 @@ public record MinecraftVersion(int first, int second, int third) implements Comp
     @NotNull
     @Override
     public String toString() {
-        return first + "." + second + "." + third;
+        return major + "." + minor + "." + patch;
     }
 }

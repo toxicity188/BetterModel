@@ -40,7 +40,7 @@ public final class HttpUtil {
             .executor(Executors.newVirtualThreadPerTaskExecutor())
             .build();
     private static final Gson GSON = new GsonBuilder()
-            .registerTypeAdapter(MinecraftVersion.class, (JsonDeserializer<MinecraftVersion>) (json, typeOfT, context) -> new MinecraftVersion(json.getAsString()))
+            .registerTypeAdapter(MinecraftVersion.class, (JsonDeserializer<MinecraftVersion>) (json, typeOfT, context) -> MinecraftVersion.parse(json.getAsString()))
             .registerTypeAdapter(Semver.class, (JsonDeserializer<Semver>) (json, typeOfT, context) -> new Semver(json.getAsString(), Semver.SemverType.LOOSE))
             .create();
 

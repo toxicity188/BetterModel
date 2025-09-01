@@ -104,7 +104,7 @@ public final class RollTester implements ModelTester, Listener {
                     audience.sendMessage(Component.text()
                             .append(Component.text("Loop mode: " + animation.loop()))
                             .appendNewline()
-                            .append(Component.text("Length: " + animation.length() + " second")));
+                            .append(Component.text("Length: " + animation.length() + " minor")));
                     return audience;
                 })
                 .isPresent();
