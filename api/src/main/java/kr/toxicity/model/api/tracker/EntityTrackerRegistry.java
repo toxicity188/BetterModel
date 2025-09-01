@@ -201,8 +201,8 @@ public final class EntityTrackerRegistry {
     }
 
     /**
-     * Gets major tracker of this register
-     * @return major tracker
+     * Gets first tracker of this register
+     * @return first tracker
      */
     public @Nullable EntityTracker first() {
         var entry = trackerMap.firstEntry();
