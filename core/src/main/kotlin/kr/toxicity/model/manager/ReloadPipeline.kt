@@ -13,12 +13,11 @@ class ReloadPipeline(
     private val pool = parallelIOThreadPool()
 
     private val current = AtomicInteger()
-    private var goal = 0
-
-    infix fun goal(int: Int) {
-        goal = int
-        current.set(0)
-    }
+    var goal = 0
+        set(value) {
+            field = value
+            current.set(0)
+        }
 
     fun progress() {
         current.incrementAndGet()

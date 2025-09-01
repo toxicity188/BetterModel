@@ -2,6 +2,8 @@ package kr.toxicity.model.api.manager;
 
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.ModelRenderer;
+import kr.toxicity.model.api.tracker.EntityTracker;
+import kr.toxicity.model.api.tracker.TrackerModifier;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -9,6 +11,7 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Collection;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * Model Manager
@@ -89,5 +92,27 @@ public interface ModelManager {
      * @param modifier modifier
      * @return whether to success
      */
-    boolean animate(@NotNull Player player, @NotNull String model, @NotNull String animation, @NotNull AnimationModifier modifier);
+    default boolean animate(@NotNull Player player, @NotNull String model, @NotNull String animation, @NotNull AnimationModifier modifier) {
+        return animate(player, model, animation, modifier, t -> {});
+    }
+
+    /**
+     * Play's animation to this player with a specific loop type.
+     * @param player player
+     * @param model model name
+     * @param animation animation name
+     * @param modifier modifier
+     * @param consumer consumer
+     * @return whether to success
+     */
+    default boolean animate(@NotNull Player player, @NotNull String model, @NotNull String animation, @NotNull AnimationModifier modifier, @NotNull Consumer<EntityTracker> consumer) {
+        var get = limb(model);
+        if (get == null) return false;
+        var create = get.getOrCreate(player, TrackerModifier.DEFAULT, consumer);
+        if (!create.animate(animation, modifier, create::close)) {
+            create.close();
+            return false;
+        }
+        return true;
+    }
 }

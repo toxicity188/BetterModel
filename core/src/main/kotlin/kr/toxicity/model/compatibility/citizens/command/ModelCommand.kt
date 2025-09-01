@@ -31,6 +31,6 @@ class ModelCommand {
     }
 
     private class TabComplete : CompletionsProvider {
-        override fun getCompletions(p0: CommandContext?, p1: CommandSender?, p2: NPC?): MutableCollection<String> = BetterModel.plugin().modelManager().modelKeys()
+        override fun getCompletions(p0: CommandContext?, p1: CommandSender?, p2: NPC?): MutableCollection<String> = BetterModel.modelKeys()
     }
 }

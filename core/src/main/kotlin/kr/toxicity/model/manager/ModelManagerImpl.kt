@@ -1,7 +1,6 @@
 package kr.toxicity.model.manager
 
 import com.google.gson.JsonArray
-import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.bone.BoneItemMapper
 import kr.toxicity.model.api.bone.BoneTagRegistry
 import kr.toxicity.model.api.bone.BoneTags
@@ -16,7 +15,6 @@ import kr.toxicity.model.api.pack.PackBuilder
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.util.*
 import org.bukkit.NamespacedKey
-import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import java.io.File
 import java.nio.file.Path
@@ -48,9 +46,10 @@ object ModelManagerImpl : ModelManager, GlobalManager {
             return emptyList()
         }
         val typeName = type.name.lowercase()
-        pipeline.status = "Importing $typeName models..."
-        pipeline goal targetFolder.size
-        pipeline.forEachParallel(targetFolder, Path::fileSize) {
+        pipeline.apply {
+            status = "Importing $typeName models..."
+            goal = targetFolder.size
+        }.forEachParallel(targetFolder, Path::fileSize) {
             val load = it.toFile().toTexturedModel() ?: return@forEachParallel warn("This model file has unsupported element type (e.g., mesh): $it")
             modelFileMap.compute(load.name) compute@ { _, v ->
                 pipeline.progress()
@@ -87,69 +86,16 @@ object ModelManagerImpl : ModelManager, GlobalManager {
             .toList()
     }
 
-    private fun addModelTo(
-        targetMap: MutableMap<String, ModelRenderer>,
-        pipeline: ModelPipeline,
-        model: List<ImportedModel>
-    ) {
-        if (model.isEmpty()) return
-        val maxScale = model.maxOf {
-            it.blueprint.scale()
-        }
-        model.forEach { importedModel ->
-            val size = importedModel.jsonSize
-            val load = importedModel.blueprint
-            targetMap[load.name] = load.toRenderer(importedModel.type, maxScale) render@ { group ->
-                if (!load.hasTexture()) return@render null
-                var success = false
-                val index = pipeline.indexer
-                //Modern
-                group.buildModernJson(maxScale, load)?.let { modernBlueprint ->
-                    pipeline.modernModel.entries += jsonObjectOf(
-                        "threshold" to index,
-                        "model" to modernBlueprint.toModernJson()
-                    )
-                    modernBlueprint.forEach { json ->
-                        pipeline.modernModel.pack.add("${json.name}.json", size / modernBlueprint.size) {
-                            json.element.toByteArray()
-                        }
-                    }
-                    success = true
-                }
-                //Legacy
-                group.buildLegacyJson(PLUGIN.version().useModernResource(), maxScale, load)?.let { blueprint ->
-                    pipeline.legacyModel.entries += jsonObjectOf(
-                        "predicate" to jsonObjectOf("custom_model_data" to index),
-                        "model" to "${CONFIG.namespace()}:item/${blueprint.name}"
-                    )
-                    pipeline.legacyModel.pack.add("${blueprint.name}.json", size) {
-                        blueprint.element.toByteArray()
-                    }
-                    success = true
-                }
-                if (success) pipeline.indexer++ else null
-            }.apply {
-                debugPack {
-                    "This model was successfully imported: ${load.name}"
-                }
-                ModelImportedEvent(this).call()
-            }
-        }
-        pipeline.estimatedSize += model.sumOf { it.jsonSize }
-    }
-
     private fun loadModels(pipeline: ReloadPipeline, zipper: PackZipper) {
         ModelPipeline(zipper).use {
-            if (CONFIG.module().model) addModelTo(
+            if (CONFIG.module().model) it.addModelTo(
                 generalModelMap,
-                it,
                 importModels(ModelRenderer.Type.GENERAL, pipeline, zipper, DATA_FOLDER.getOrCreateDirectory("models") { folder ->
                     if (PLUGIN.version().useModernResource()) folder.addResource("demon_knight.bbmodel")
                 })
             )
-            if (CONFIG.module().playerAnimation) addModelTo(
+            if (CONFIG.module().playerAnimation) it.addModelTo(
                 playerModelMap,
-                it,
                 importModels(ModelRenderer.Type.PLAYER, pipeline, zipper, DATA_FOLDER.getOrCreateDirectory("players") { folder ->
                     folder.addResource("steve.bbmodel")
                 })
@@ -170,31 +116,35 @@ object ModelManagerImpl : ModelManager, GlobalManager {
     private class ModelPipeline(
         private val zipper: PackZipper
     ) : AutoCloseable {
-        var indexer = 1
-        val legacyModel = ModelBuilder(zipper.legacy().bettermodel().models().resolve("item"))
-        val modernModel = ModelBuilder(zipper.modern().bettermodel().models().resolve("modern_item"))
-        var estimatedSize = 0L
+        private var indexer = 1
+        private val legacyModel = ModelBuilder(zipper.legacy().bettermodel().models().resolve("item"))
+        private val modernModel = ModelBuilder(zipper.modern().bettermodel().models().resolve("modern_item"))
+        private var estimatedSize = 0L
 
         override fun close() {
             val itemName = CONFIG.item().name.lowercase()
-            jsonObjectOf("model" to jsonObjectOf(
-                "type" to "range_dispatch",
-                "property" to "custom_model_data",
-                "fallback" to jsonObjectOf(
-                    "type" to "minecraft:model",
-                    "model" to "minecraft:item/$itemName"
-                ),
-                "entries" to modernModel.entries
-            )).run {
+            modernModel.ifNotEmpty {
+                jsonObjectOf("model" to jsonObjectOf(
+                    "type" to "range_dispatch",
+                    "property" to "custom_model_data",
+                    "fallback" to jsonObjectOf(
+                        "type" to "minecraft:model",
+                        "model" to "minecraft:item/$itemName"
+                    ),
+                    "entries" to it
+                ))
+            }?.run {
                 zipper.modern().bettermodel().items().add("$MODERN_MODEL_ITEM_NAME.json", estimatedSize) {
                     toByteArray()
                 }
             }
-            jsonObjectOf(
-                "parent" to "minecraft:item/generated",
-                "textures" to jsonObjectOf("layer0" to "minecraft:item/$itemName"),
-                "overrides" to legacyModel.entries
-            ).run {
+            legacyModel.ifNotEmpty {
+                jsonObjectOf(
+                    "parent" to "minecraft:item/generated",
+                    "textures" to jsonObjectOf("layer0" to "minecraft:item/$itemName"),
+                    "overrides" to it
+                )
+            }?.run {
                 val byteArray = toByteArray()
                 val estimatedSize = byteArray.size.toLong()
                 legacyModel.pack.add("$MODERN_MODEL_ITEM_NAME.json", estimatedSize) { byteArray }
@@ -202,10 +152,63 @@ object ModelManagerImpl : ModelManager, GlobalManager {
             }
         }
 
+        fun addModelTo(
+            targetMap: MutableMap<String, ModelRenderer>,
+            model: List<ImportedModel>
+        ) {
+            if (model.isEmpty()) return
+            val maxScale = model.maxOf {
+                it.blueprint.scale()
+            }
+            model.forEach { importedModel ->
+                val size = importedModel.jsonSize
+                val load = importedModel.blueprint
+                targetMap[load.name] = load.toRenderer(importedModel.type, maxScale) render@ { group ->
+                    if (!load.hasTexture()) return@render null
+                    var success = false
+                    //Modern
+                    group.buildModernJson(maxScale, load)?.let { modernBlueprint ->
+                        modernModel.entries += jsonObjectOf(
+                            "threshold" to indexer,
+                            "model" to modernBlueprint.toModernJson()
+                        )
+                        modernBlueprint.forEach { json ->
+                            modernModel.pack.add("${json.name}.json", size / modernBlueprint.size) {
+                                json.element.toByteArray()
+                            }
+                        }
+                        success = true
+                    }
+                    //Legacy
+                    group.buildLegacyJson(PLUGIN.version().useModernResource(), maxScale, load)?.let { blueprint ->
+                        legacyModel.entries += jsonObjectOf(
+                            "predicate" to jsonObjectOf("custom_model_data" to indexer),
+                            "model" to "${CONFIG.namespace()}:item/${blueprint.name}"
+                        )
+                        legacyModel.pack.add("${blueprint.name}.json", size) {
+                            blueprint.element.toByteArray()
+                        }
+                        success = true
+                    }
+                    if (success) indexer++ else null
+                }.apply {
+                    debugPack {
+                        "This model was successfully imported: ${load.name}"
+                    }
+                    ModelImportedEvent(this).call()
+                }
+                estimatedSize += size
+            }
+        }
+
         data class ModelBuilder(
             val pack: PackBuilder
         ) {
             val entries = jsonArrayOf()
+
+            inline fun <T> ifNotEmpty(block: (JsonArray) -> T): T? {
+                return if (!entries.isEmpty) block(entries) else null
+            }
         }
     }
 
@@ -273,15 +276,4 @@ object ModelManagerImpl : ModelManager, GlobalManager {
     override fun limb(name: String): ModelRenderer? = playerModelView[name]
     override fun limbs(): Collection<ModelRenderer> = playerModelView.values
     override fun limbKeys(): Set<String> = playerModelView.keys
-
-    override fun animate(player: Player, model: String, animation: String, modifier: AnimationModifier): Boolean {
-        return playerModelView[model]?.let {
-            val create = it.getOrCreate(player)
-            val success = create.animate(animation, modifier) {
-                create.close()
-            }
-            if (!success) create.close()
-            success
-        } == true
-    }
 }

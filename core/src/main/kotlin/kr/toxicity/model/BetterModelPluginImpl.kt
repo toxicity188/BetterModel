@@ -188,14 +188,15 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
                 managers.forEach {
                     it.reload(pipeline, zipper)
                 }
-                pipeline.status = "Generating files..."
-                pipeline goal zipper.size()
                 CONFIG.packType().toGenerator().run {
                     Success(
                         System.currentTimeMillis() - time,
                         if (exists && info.firstReload) PackResult(zipper.build().meta(), null).apply {
                             freeze()
-                        } else create(zipper, pipeline)
+                        } else create(zipper, pipeline.apply {
+                            status = "Generating files..."
+                            goal = zipper.size()
+                        })
                     )
                 }
             }

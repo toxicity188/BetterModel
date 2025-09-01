@@ -12,10 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static kr.toxicity.model.api.util.ReflectionUtil.classExists;
 
@@ -134,6 +131,22 @@ public final class BetterModel {
      */
     public static @NotNull @Unmodifiable Collection<ModelRenderer> limbs() {
         return plugin().modelManager().limbs();
+    }
+
+    /**
+     * Gets all keys of model
+     * @return all model keys
+     */
+    public static @NotNull @Unmodifiable Set<String> modelKeys() {
+        return plugin().modelManager().modelKeys();
+    }
+
+    /**
+     * Gets all keys of limb
+     * @return all limb keys
+     */
+    public static @NotNull @Unmodifiable Set<String> limbKeys() {
+        return plugin().modelManager().limbKeys();
     }
 
     /**

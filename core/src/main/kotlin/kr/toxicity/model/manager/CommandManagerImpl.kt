@@ -11,6 +11,7 @@ import kr.toxicity.model.api.animation.AnimationIterator
 import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.manager.CommandManager
 import kr.toxicity.model.api.pack.PackZipper
+import kr.toxicity.model.api.tracker.EntityHideOption
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.command.commandModule
@@ -38,11 +39,11 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                 withAliases("d")
                 withArguments(StringArgument("name")
                     .replaceSuggestions(ArgumentSuggestions.strings {
-                        ModelManagerImpl.modelKeys().toTypedArray()
+                        BetterModel.modelKeys().toTypedArray()
                     })
                 )
                 executesPlayer(PlayerCommandExecutor { player, args ->
-                    val name = args.get("name") as String
+                    val name = args["name"] as String
                     BetterModel.modelOrNull(name)
                         ?.getOrCreate(player) ?: player.audience().warn("This model doesn't exist: $name")
                 })
@@ -71,7 +72,7 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                 withAliases("s")
                 withArguments(StringArgument("name")
                     .replaceSuggestions(ArgumentSuggestions.strings {
-                        ModelManagerImpl.modelKeys().toTypedArray()
+                        BetterModel.modelKeys().toTypedArray()
                     })
                 )
                 withOptionalArguments(StringArgument("type")
@@ -176,7 +177,7 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                 withArguments(
                     StringArgument("name")
                         .replaceSuggestions(ArgumentSuggestions.strings {
-                            ModelManagerImpl.limbKeys().toTypedArray()
+                            BetterModel.limbKeys().toTypedArray()
                         }),
                     StringArgument("animation")
                         .replaceSuggestions { sender, builder ->
@@ -190,12 +191,14 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                     StringArgument("loop_type")
                         .replaceSuggestions(ArgumentSuggestions.strings(
                             *AnimationIterator.Type.entries.map { it.name.lowercase() }.toTypedArray()
-                        ))
+                        )),
+                    BooleanArgument("hide")
                 )
                 executesPlayer(PlayerCommandExecutor { player, args ->
                     val n = args["name"] as String
                     val a = args["animation"] as String
-                    val loopTypeStr = args.get("loop_type") as? String
+                    val loopTypeStr = args["loop_type"] as? String
+                    val hide = args["hide"] as? Boolean != false
 
                     val loopType = loopTypeStr?.let {
                         runCatching {
@@ -208,7 +211,9 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                         1,
                         0,
                         loopType
-                    ))) player.audience().warn("Unable to find this animation($a) or model($n).")
+                    )) {
+                        it.hideOption(if (hide) EntityHideOption.DEFAULT else EntityHideOption.FALSE)
+                    }) player.audience().warn("Unable to find this animation($a) or model($n).")
                 })
             }
             command("test") {
@@ -217,7 +222,7 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                 withArguments(
                     StringArgument("model")
                         .replaceSuggestions(ArgumentSuggestions.strings {
-                            ModelManagerImpl.modelKeys().toTypedArray()
+                            BetterModel.modelKeys().toTypedArray()
                         }),
                     StringArgument("animation")
                         .replaceSuggestions { sender, builder ->
