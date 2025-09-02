@@ -134,7 +134,7 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                                     componentOf("${BetterModel.models().size.withComma()} of models are loaded successfully.") {
                                         color(NamedTextColor.YELLOW)
                                     },
-                                    componentOf("${result.packResult.size().withComma()} of files are zipped.") {
+                                    componentOf(if (result.packResult.changed()) "${result.packResult.size().withComma()} of files are zipped." else "Zipping is skipped due to the same result.") {
                                         color(NamedTextColor.YELLOW)
                                     },
                                     emptyComponentOf()

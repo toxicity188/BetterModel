@@ -22,6 +22,7 @@ public final class PackResult {
 
     private final long creationTime = System.currentTimeMillis();
     private boolean frozen = false;
+    private boolean changed = false;
     private long time;
     private volatile UUID uuid;
 
@@ -38,8 +39,17 @@ public final class PackResult {
     }
 
     public void freeze() {
+        freeze(false);
+    }
+
+    public boolean changed() {
+        return changed;
+    }
+
+    public void freeze(boolean changed) {
         if (frozen) throw new IllegalStateException("result is frozen.");
         frozen = true;
+        this.changed = changed;
         time = System.currentTimeMillis() - creationTime;
     }
 
@@ -85,7 +95,7 @@ public final class PackResult {
         return get != null ? Collections.unmodifiableSet(get) : Collections.emptySet();
     }
 
-    public Stream<PackByte> bytes() {
+    public Stream<PackByte> stream() {
         return Stream.concat(
                 overlays.values().stream().flatMap(Collection::stream),
                 assets.stream()

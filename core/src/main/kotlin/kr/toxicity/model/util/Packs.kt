@@ -9,6 +9,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.security.DigestOutputStream
 import java.security.MessageDigest
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.zip.Deflater
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
@@ -62,12 +63,14 @@ class FolderGenerator : PackGenerator {
     override fun create(zipper: PackZipper, pipeline: ReloadPipeline): PackResult {
         val build = zipper.build()
         val pack = PackResult(build.meta(), file)
+        val changed = AtomicBoolean()
         pipeline.forEachParallel(build.resources(), PackResource::estimatedSize) {
             val bytes = it.get()
             pack[it.overlay()] = PackByte(it.path(), bytes)
             val file = it.path().toFile()
             if (file.length() != bytes.size.toLong()) {
                 file.writeBytes(bytes)
+                changed.set(true)
                 debugPack {
                     "This file was successfully generated: ${it.path()}"
                 }
@@ -78,7 +81,7 @@ class FolderGenerator : PackGenerator {
             it.toFile().delete()
         }
         return pack.apply {
-            freeze()
+            freeze(changed.get())
         }
     }
 }
@@ -88,26 +91,26 @@ class ZipGenerator : PackGenerator {
     override val exists: Boolean = file.exists()
 
     override fun create(zipper: PackZipper, pipeline: ReloadPipeline): PackResult {
-        val pack = zipper.writeToResult(pipeline, file)
-        if (hashEquals(pack)) {
-            ZipOutputStream(runCatching {
-                MessageDigest.getInstance("SHA-1")
-            }.map {
-                DigestOutputStream(file.outputStream().buffered(), it)
-            }.getOrElse {
-                file.outputStream().buffered()
-            }).use { zip ->
-                zip.setLevel(Deflater.BEST_COMPRESSION)
-                zip.setComment("BetterModel's generated resource pack.")
-                pack.bytes().forEach {
-                    zip.putNextEntry(ZipEntry(it.path().path()))
-                    zip.write(it.bytes())
-                    zip.closeEntry()
+        return zipper.writeToResult(pipeline, file).apply {
+            freeze(hashEquals(this))
+        }.apply {
+            if (changed()) {
+                ZipOutputStream(runCatching {
+                    MessageDigest.getInstance("SHA-1")
+                }.map {
+                    DigestOutputStream(file.outputStream().buffered(), it)
+                }.getOrElse {
+                    file.outputStream().buffered()
+                }).use { zip ->
+                    zip.setLevel(Deflater.BEST_COMPRESSION)
+                    zip.setComment("BetterModel's generated resource pack.")
+                    stream().forEach {
+                        zip.putNextEntry(ZipEntry(it.path().path()))
+                        zip.write(it.bytes())
+                        zip.closeEntry()
+                    }
                 }
             }
-        }
-        return pack.apply {
-            freeze()
         }
     }
 }
