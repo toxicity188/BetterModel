@@ -32,12 +32,18 @@ This plugin implements the **fully server-side 3D model** by using an item-displ
 - [molang-compiler](https://github.com/Ocelot5836/molang-compiler): compiling and evaluating molang expression
 
 #### Build
+[![](https://img.shields.io/github/actions/workflow/status/toxicity188/BetterModel/publish.yml?style=flat-square)](https://modrinth.com/plugin/bettermodel/versions)
+
 `./gradlew build`: Builds all jars  
 `./gradlew shadowJar`: Builds plugin jar  
 `./gradlew javadocJar`: Builds javadoc jar
 
 > [!NOTE]\
 > It requires Java 21
+
+## Wiki
+[![](https://img.shields.io/badge/Github%20Wiki-181717?logo=github&logoColor=white)](https://github.com/toxicity188/BetterModel/wiki)
+[![](https://deepwiki.com/badge.svg)](https://deepwiki.com/toxicity188/BetterModel)
 
 ## API
 We are using Maven Central and GitHub Packages.  
