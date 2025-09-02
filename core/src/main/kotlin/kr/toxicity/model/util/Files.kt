@@ -6,7 +6,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.stream.Stream
 
-inline fun File.getOrCreateDirectory(name: String, initialConsumer: (File) -> Unit) = File(this, name).also { target ->
+inline fun File.getOrCreateDirectory(name: String, initialConsumer: (File) -> Unit = {}) = File(this, name).also { target ->
     if (!target.exists()) {
         target.mkdirs()
         initialConsumer(target)

@@ -78,29 +78,32 @@ class ZipGenerator : PackGenerator {
     private val file = File(DATA_FOLDER.parent, "${CONFIG.buildFolderLocation()}.zip")
     override val exists: Boolean = file.exists()
 
+    private fun hashEquals(result: PackResult): Boolean {
+        val hash = result.hash().toString()
+        return File(DATA_FOLDER.getOrCreateDirectory(".cache"), "zip-hash.txt").run {
+            if (!exists || !exists() || readText() != hash) {
+                writeText(hash)
+                true
+            } else false
+        }
+    }
+
     override fun create(zipper: PackZipper, pipeline: ReloadPipeline): PackResult {
-        val build = zipper.build()
-        val pack = PackResult(build.meta(), file)
-        ZipOutputStream(runCatching {
-            MessageDigest.getInstance("SHA-1")
-        }.map {
-            DigestOutputStream(file.outputStream().buffered(), it)
-        }.getOrElse {
-            file.outputStream().buffered()
-        }).use { zip ->
-            zip.setLevel(Deflater.BEST_COMPRESSION)
-            zip.setComment("BetterModel's generated resource pack.")
-            pipeline.forEachParallel(build.resources(), PackResource::estimatedSize) {
-                val bytes = it.get()
-                pack[it.overlay()] = PackByte(it.path(), bytes)
-                synchronized(zip) {
+        val pack = zipper.writeToResult(pipeline, file)
+        if (hashEquals(pack)) {
+            ZipOutputStream(runCatching {
+                MessageDigest.getInstance("SHA-1")
+            }.map {
+                DigestOutputStream(file.outputStream().buffered(), it)
+            }.getOrElse {
+                file.outputStream().buffered()
+            }).use { zip ->
+                zip.setLevel(Deflater.BEST_COMPRESSION)
+                zip.setComment("BetterModel's generated resource pack.")
+                pack.bytes().forEach {
                     zip.putNextEntry(ZipEntry(it.path().path()))
-                    zip.write(bytes)
+                    zip.write(it.bytes())
                     zip.closeEntry()
-                }
-                pipeline.progress()
-                debugPack {
-                    "This file was successfully zipped: ${it.path()}"
                 }
             }
         }
@@ -113,14 +116,21 @@ class ZipGenerator : PackGenerator {
 class NoneGenerator : PackGenerator {
     override val exists: Boolean = false
     override fun create(zipper: PackZipper, pipeline: ReloadPipeline): PackResult {
-        val build = zipper.build()
-        val pack = PackResult(build.meta(), null)
-        pipeline.forEachParallel(build.resources(), PackResource::estimatedSize) {
-            pack[it.overlay()] = PackByte(it.path(), it.get())
-            pipeline.progress()
-        }
-        return pack.apply {
+        return zipper.writeToResult(pipeline).apply {
             freeze()
+        }
+    }
+}
+
+fun PackZipper.writeToResult(pipeline: ReloadPipeline, dir: File? = null): PackResult {
+    val build = build()
+    return PackResult(build.meta(), dir).apply {
+        pipeline.forEachParallel(build.resources(), PackResource::estimatedSize) {
+            set(it.overlay(), PackByte(it.path(), it.get()))
+            pipeline.progress()
+            debugPack {
+                "This file was successfully zipped: ${it.path()}"
+            }
         }
     }
 }

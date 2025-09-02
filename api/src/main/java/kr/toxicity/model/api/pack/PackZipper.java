@@ -28,13 +28,13 @@ public final class PackZipper {
     private final Map<PackOverlay, PackAssets> overlayMap = new ConcurrentHashMap<>();
 
     public @NotNull PackAssets assets() {
-        return overlay(PackOverlays.DEFAULT);
+        return overlay(PackOverlay.DEFAULT);
     }
     public @NotNull PackAssets legacy() {
-        return overlay(PackOverlays.LEGACY);
+        return overlay(PackOverlay.LEGACY);
     }
     public @NotNull PackAssets modern() {
-        return overlay(PackOverlays.MODERN);
+        return overlay(PackOverlay.MODERN);
     }
 
     public @NotNull PackAssets overlay(@NotNull PackOverlay overlay) {
