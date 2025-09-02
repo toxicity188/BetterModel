@@ -27,7 +27,7 @@ This plugin implements the **fully server-side 3D model** by using an item-displ
 - [CommandAPI](https://github.com/CommandAPI/CommandAPI): command
 - [adventure](https://github.com/KyoriPowered/adventure): component
 - [stable player display](https://github.com/bradleyq/stable_player_display): player animation
-- [expiringmap](https://github.com/jhalterman/expiringmap): concurrent map cache
+- [caffeine](https://github.com/ben-manes/caffeine): concurrent map cache
 - [DynamicUV](https://github.com/toxicity188/DynamicUV): player model-uv
 - [molang-compiler](https://github.com/Ocelot5836/molang-compiler): compiling and evaluating molang expression
 
