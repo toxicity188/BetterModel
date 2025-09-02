@@ -34,7 +34,7 @@ tasks {
         downloadPlugins {
             hangar("ViaVersion", "5.4.2")
             hangar("ViaBackwards", "5.4.2")
-            hangar("Skript", "2.12.1")
+            hangar("Skript", "2.12.2")
         }
     }
     jar {

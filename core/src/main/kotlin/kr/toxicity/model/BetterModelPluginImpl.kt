@@ -188,7 +188,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
                 managers.forEach {
                     it.reload(pipeline, zipper)
                 }
-                CONFIG.packType().toGenerator().run {
+                config.packType().toGenerator().run {
                     Success(
                         System.currentTimeMillis() - time,
                         if (exists && info.firstReload) PackResult(zipper.build().meta(), null).apply {

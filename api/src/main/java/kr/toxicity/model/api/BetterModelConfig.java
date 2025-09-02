@@ -56,6 +56,12 @@ public interface BetterModelConfig {
     @NotNull Material item();
 
     /**
+     * Gets item namespace
+     * @return item namespace
+     */
+    @NotNull String itemNamespace();
+
+    /**
      * Gets max range of sight trace
      * @return max
      */

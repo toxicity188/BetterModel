@@ -9,6 +9,7 @@ import kr.toxicity.model.api.mount.MountControllers
 import kr.toxicity.model.api.config.PackConfig
 import kr.toxicity.model.api.util.EntityUtil
 import kr.toxicity.model.util.ifNull
+import kr.toxicity.model.util.toPackName
 import org.bukkit.Material
 import org.bukkit.configuration.ConfigurationSection
 import java.io.File
@@ -34,6 +35,7 @@ class BetterModelConfigImpl(yaml: ConfigurationSection) : BetterModelConfig {
             Material.getMaterial(it.uppercase()).ifNull { "This item doesn't exist: $it" }
         }.getOrDefault(Material.LEATHER_HORSE_ARMOR)
     } ?: Material.LEATHER_HORSE_ARMOR
+    private val itemNamespace = yaml.getString("item-namespace")?.toPackName() ?: "bm_models"
     private val maxSight = yaml.getDouble("max-sight", -1.0).run {
         if (this <= 0.0) EntityUtil.RENDER_DISTANCE else this
     }
@@ -65,6 +67,7 @@ class BetterModelConfigImpl(yaml: ConfigurationSection) : BetterModelConfig {
     override fun module(): ModuleConfig = module
     override fun pack(): PackConfig = pack
     override fun item(): Material = item
+    override fun itemNamespace(): String = itemNamespace
     override fun metrics(): Boolean = metrics
     override fun sightTrace(): Boolean = sightTrace
     override fun maxSight(): Double = maxSight

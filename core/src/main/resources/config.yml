@@ -30,6 +30,8 @@ metrics: true
 sight-trace: true
 #target item material about resource pack
 item: leather_horse_armor
+#item namespace
+item-namespace: bm_models
 #max distance about sending an animation packet
 max-sight: -1
 #min distance about sending an animation packet

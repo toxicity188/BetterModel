@@ -755,8 +755,7 @@ object SkinManagerImpl : SkinManager, GlobalManager {
             zipper.modern().add(resource.path(), resource.estimatedSize()) {
                 resource.build()
             }
-        }
-        PLUGIN.loadAssets(pipeline, "pack") { s, i ->
+        } else PLUGIN.loadAssets(pipeline, "pack") { s, i ->
             val read = i.readAllBytes()
             zipper.legacy().add(s) {
                 read
