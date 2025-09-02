@@ -39,6 +39,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
     private lateinit var nms: NMS
 
     private val onReload = AtomicBoolean()
+    var skipInitialReload = false
 
     private val managers by lazy {
         listOf(
@@ -154,7 +155,7 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
             "This build is dev version: be careful to use it!",
             "Build number: $snapshot"
         )
-        when (val result = reload(ReloadInfo(true, Bukkit.getConsoleSender()))) {
+        if (!skipInitialReload) when (val result = reload(ReloadInfo(true, Bukkit.getConsoleSender()))) {
             is Failure -> result.throwable.handleException("Unable to load plugin properly.")
             is OnReload -> throw RuntimeException("Plugin load failed.")
             is Success -> info(

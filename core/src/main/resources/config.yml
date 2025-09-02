@@ -28,6 +28,8 @@ pack:
 metrics: true
 #enables sight-trace culling
 sight-trace: true
+#should merging resource pack with external plugin.
+merge-with-external-resources: true
 #target item material about resource pack
 item: leather_horse_armor
 #item namespace

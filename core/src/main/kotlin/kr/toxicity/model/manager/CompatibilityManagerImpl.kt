@@ -6,6 +6,7 @@ import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.compatibility.citizens.CitizensCompatibility
 import kr.toxicity.model.compatibility.hmccosmetics.HMCCosmeticsCompatibility
 import kr.toxicity.model.compatibility.mythicmobs.MythicMobsCompatibility
+import kr.toxicity.model.compatibility.nexo.NexoCompatibility
 import kr.toxicity.model.compatibility.skinsrestorer.SkinsRestorerCompatibility
 import kr.toxicity.model.purpur.PurpurHook
 import kr.toxicity.model.util.info
@@ -29,6 +30,9 @@ object CompatibilityManagerImpl : CompatibilityManager, GlobalManager {
         },
         "SkinsRestorer" to {
             SkinsRestorerCompatibility()
+        },
+        "Nexo" to {
+            NexoCompatibility()
         }
     )
 

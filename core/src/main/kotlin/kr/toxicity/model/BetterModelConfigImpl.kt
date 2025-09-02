@@ -30,6 +30,7 @@ class BetterModelConfigImpl(yaml: ConfigurationSection) : BetterModelConfig {
     } ?: PackConfig.DEFAULT
     private val metrics = yaml.getBoolean("metrics", true)
     private val sightTrace = yaml.getBoolean("sight-trace", true)
+    private val mergeWithExternalResources = yaml.getBoolean("merge-with-external-resources", true)
     private val item = yaml.getString("item")?.let {
         runCatching {
             Material.getMaterial(it.uppercase()).ifNull { "This item doesn't exist: $it" }
@@ -70,6 +71,7 @@ class BetterModelConfigImpl(yaml: ConfigurationSection) : BetterModelConfig {
     override fun itemNamespace(): String = itemNamespace
     override fun metrics(): Boolean = metrics
     override fun sightTrace(): Boolean = sightTrace
+    override fun mergeWithExternalResources(): Boolean = mergeWithExternalResources
     override fun maxSight(): Double = maxSight
     override fun minSight(): Double = minSight
     override fun namespace(): String = namespace

@@ -50,6 +50,12 @@ public interface BetterModelConfig {
     boolean sightTrace();
 
     /**
+     * Checks BetterModel should try merging resource pack with external plugin.
+     * @return merge with external resources.
+     */
+    boolean mergeWithExternalResources();
+
+    /**
      * Checks resource pack target item type
      * @return material
      */

@@ -23,6 +23,15 @@ fun BetterModelConfig.PackType.toGenerator() = when (this) {
 interface PackGenerator {
     val exists: Boolean
     fun create(zipper: PackZipper, pipeline: ReloadPipeline): PackResult
+    fun hashEquals(result: PackResult): Boolean {
+        val hash = result.hash().toString()
+        return File(DATA_FOLDER.getOrCreateDirectory(".cache"), "zip-hash.txt").run {
+            if (!exists || !exists() || readText() != hash) {
+                writeText(hash)
+                true
+            } else false
+        }
+    }
 }
 
 class FolderGenerator : PackGenerator {
@@ -77,16 +86,6 @@ class FolderGenerator : PackGenerator {
 class ZipGenerator : PackGenerator {
     private val file = File(DATA_FOLDER.parent, "${CONFIG.buildFolderLocation()}.zip")
     override val exists: Boolean = file.exists()
-
-    private fun hashEquals(result: PackResult): Boolean {
-        val hash = result.hash().toString()
-        return File(DATA_FOLDER.getOrCreateDirectory(".cache"), "zip-hash.txt").run {
-            if (!exists || !exists() || readText() != hash) {
-                writeText(hash)
-                true
-            } else false
-        }
-    }
 
     override fun create(zipper: PackZipper, pipeline: ReloadPipeline): PackResult {
         val pack = zipper.writeToResult(pipeline, file)
