@@ -555,21 +555,6 @@ public abstract class Tracker implements AutoCloseable {
     }
 
     /**
-     * Updates item
-     * @param predicate predicate
-     */
-    public void updateDisplay(@NotNull Predicate<RenderedBone> predicate) {
-        updateDisplay(BonePredicate.from(predicate));
-    }
-    /**
-     * Updates item
-     * @param predicate predicate
-     */
-    public void updateDisplay(@NotNull BonePredicate predicate) {
-        if (tryUpdate((b, p) -> b.updateItem(p, pipeline.getSource()), predicate)) forceUpdate(true);
-    }
-
-    /**
      * Forces update of this tracker.
      * @param action action
      * @param <T> action type

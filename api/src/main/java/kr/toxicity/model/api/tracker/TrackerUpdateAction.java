@@ -19,64 +19,73 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
     boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate);
 
     /**
-     * Creates brightness data
+     * Creates brightness action
      * @param block block brightness
      * @param sky sky brightness
-     * @return brightness data
+     * @return brightness action
      */
     static @NotNull Brightness brightness(int block, int sky) {
         return new Brightness(block, sky);
     }
 
     /**
-     * Creates glow data
+     * Creates glow action
      * @param glow should be applying a glow
-     * @return glow data
+     * @return glow action
      */
     static @NotNull Glow glow(boolean glow) {
         return glow ? Glow.TRUE : Glow.FALSE;
     }
 
     /**
-     * Creates glow color data
+     * Creates glow color action
      * @param glowColor glow color
-     * @return glow color data
+     * @return glow color action
      */
     static @NotNull GlowColor glowColor(int glowColor) {
         return new GlowColor(glowColor);
     }
 
     /**
-     * Creates tint data
+     * Creates view range action
+     * @param viewRange view range
+     * @return view range action
+     */
+    static @NotNull ViewRange viewRange(float viewRange) {
+        return new ViewRange(viewRange);
+    }
+
+    /**
+     * Creates tint action
      * @param rgb rgb
-     * @return tint data
+     * @return tint action
      */
     static @NotNull Tint tint(int rgb) {
         return new Tint(rgb);
     }
 
     /**
-     * Gets enchant data
+     * Gets enchant action
      * @param enchant should be enchanted
-     * @return enchant data
+     * @return enchant action
      */
     static @NotNull Enchant enchant(boolean enchant) {
         return enchant ? Enchant.TRUE : Enchant.FALSE;
     }
 
     /**
-     * Gets toggle part data
+     * Gets toggle part action
      * @param toggle should be visible
-     * @return toggle part data
+     * @return toggle part action
      */
     static @NotNull TogglePart togglePart(boolean toggle) {
         return toggle ? TogglePart.TRUE : TogglePart.FALSE;
     }
 
     /**
-     * Creates item stack data
+     * Creates item stack action
      * @param itemStack item stack
-     * @return item stack data
+     * @return item stack action
      */
     static @NotNull ItemStack itemStack(@NotNull TransformedItemStack itemStack) {
         Objects.requireNonNull(itemStack);
@@ -84,13 +93,21 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
     }
 
     /**
-     * Creates billboard data
+     * Creates billboard action
      * @param billboard billboard
-     * @return billboard data
+     * @return billboard action
      */
     static @NotNull Billboard billboard(@NotNull Display.Billboard billboard) {
         Objects.requireNonNull(billboard);
         return new Billboard(billboard);
+    }
+
+    /**
+     * Gets item mapping action
+     * @return item mapping action
+     */
+    static @NotNull ItemMapping itemMapping() {
+        return ItemMapping.INSTANCE;
     }
 
     /**
@@ -135,6 +152,17 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
         @Override
         public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
             return bone.glowColor(predicate, glowColor);
+        }
+    }
+
+    /**
+     * View range
+     * @param viewRange view range
+     */
+    record ViewRange(float viewRange) implements TrackerUpdateAction {
+        @Override
+        public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
+            return bone.viewRange(predicate, viewRange);
         }
     }
 
@@ -212,6 +240,22 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
         @Override
         public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
             return bone.billboard(predicate, billboard);
+        }
+    }
+
+    /**
+     * Item mapping
+     */
+    enum ItemMapping implements TrackerUpdateAction {
+        /**
+         * Instance
+         */
+        INSTANCE
+        ;
+
+        @Override
+        public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
+            return bone.updateItem(predicate);
         }
     }
 }

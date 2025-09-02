@@ -1,7 +1,6 @@
 package kr.toxicity.model.api.tracker;
 
 import com.google.gson.annotations.SerializedName;
-import kr.toxicity.model.api.util.EntityUtil;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -9,13 +8,11 @@ import org.jetbrains.annotations.NotNull;
  * @param sightTrace use sight-trace
  * @param damageAnimation enables damage animation
  * @param damageTint enables damage tint
- * @param viewRange view range
  */
 public record TrackerModifier(
         @SerializedName("sight-trace") boolean sightTrace,
         @SerializedName("damage-animation") boolean damageAnimation,
-        @SerializedName("damage-tint") boolean damageTint,
-        @SerializedName("view-range") float viewRange
+        @SerializedName("damage-tint") boolean damageTint
 ) {
     /**
      * Default modifier
@@ -23,8 +20,7 @@ public record TrackerModifier(
     public static final TrackerModifier DEFAULT = new TrackerModifier(
             true,
             true,
-            true,
-            EntityUtil.ENTITY_MODEL_VIEW_RADIUS
+            true
     );
 
     /**
@@ -50,7 +46,6 @@ public record TrackerModifier(
         private boolean sightTrace;
         private boolean damageAnimation;
         private boolean damageTint;
-        private float viewRange;
 
         /**
          * Private initializer
@@ -60,7 +55,6 @@ public record TrackerModifier(
             this.sightTrace = modifier.sightTrace;
             this.damageAnimation = modifier.damageAnimation;
             this.damageTint = modifier.damageTint;
-            this.viewRange = modifier.viewRange;
         }
 
         /**
@@ -94,16 +88,6 @@ public record TrackerModifier(
         }
 
         /**
-         * Sets view range
-         * @param viewRange view range
-         * @return self
-         */
-        public @NotNull Builder viewRange(float viewRange) {
-            this.viewRange = viewRange;
-            return this;
-        }
-
-        /**
          * Builds modifier
          * @return modifier
          */
@@ -111,8 +95,7 @@ public record TrackerModifier(
             return new TrackerModifier(
                     sightTrace,
                     damageAnimation,
-                    damageTint,
-                    viewRange
+                    damageTint
             );
         }
     }

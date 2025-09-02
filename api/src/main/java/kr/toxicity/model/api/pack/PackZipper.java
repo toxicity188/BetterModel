@@ -10,9 +10,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PackZipper {
@@ -25,22 +25,20 @@ public final class PackZipper {
     }
 
     private final PackMeta.Builder metaBuilder = PackMeta.builder();
-    private final Map<PackOverlay, PackAssets> overlayMap = new EnumMap<>(PackOverlay.class);
+    private final Map<PackOverlay, PackAssets> overlayMap = new ConcurrentHashMap<>();
 
     public @NotNull PackAssets assets() {
-        return getOrCreate(PackOverlay.DEFAULT);
+        return overlay(PackOverlays.DEFAULT);
     }
     public @NotNull PackAssets legacy() {
-        return getOrCreate(PackOverlay.LEGACY);
+        return overlay(PackOverlays.LEGACY);
     }
     public @NotNull PackAssets modern() {
-        return getOrCreate(PackOverlay.MODERN);
+        return overlay(PackOverlays.MODERN);
     }
 
-    public @NotNull PackAssets getOrCreate(@NotNull PackOverlay overlay) {
-        synchronized (overlayMap) {
-            return overlayMap.computeIfAbsent(overlay, o -> new PackAssets(o.path(BetterModel.config().namespace()), o));
-        }
+    public @NotNull PackAssets overlay(@NotNull PackOverlay overlay) {
+        return overlayMap.computeIfAbsent(overlay, PackAssets::new);
     }
 
     public @NotNull PackMeta.Builder metaBuilder() {

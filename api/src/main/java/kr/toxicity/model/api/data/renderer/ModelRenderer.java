@@ -132,7 +132,7 @@ public record ModelRenderer(
     public @NotNull DummyTracker create(@NotNull Location location, @NotNull TrackerModifier modifier, @NotNull Consumer<DummyTracker> preUpdateConsumer) {
         var source = RenderSource.of(location);
         return source.create(
-                pipeline(source, modifier),
+                pipeline(source),
                 modifier,
                 preUpdateConsumer
         );
@@ -224,7 +224,7 @@ public record ModelRenderer(
     public @NotNull DummyTracker create(@NotNull Location location, @NotNull GameProfile profile, boolean slim, @NotNull TrackerModifier modifier, @NotNull Consumer<DummyTracker> preUpdateConsumer) {
         var source = RenderSource.of(location, profile, slim);
         return source.create(
-                pipeline(source, modifier),
+                pipeline(source),
                 modifier,
                 preUpdateConsumer
         );
@@ -289,7 +289,7 @@ public record ModelRenderer(
     public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
         var source = RenderSource.of(entity);
         return source.create(
-                pipeline(source, modifier),
+                pipeline(source),
                 modifier,
                 preUpdateConsumer
         );
@@ -357,7 +357,7 @@ public record ModelRenderer(
     public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull GameProfile profile, boolean slim, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
         var source = RenderSource.of(entity, profile, slim);
         return source.create(
-                pipeline(source, modifier),
+                pipeline(source),
                 modifier,
                 preUpdateConsumer
         );
@@ -397,7 +397,7 @@ public record ModelRenderer(
         var source = RenderSource.of(entity);
         return source.getOrCreate(
                 name(),
-                () -> pipeline(source, modifier),
+                () -> pipeline(source),
                 modifier,
                 preUpdateConsumer
         );
@@ -490,14 +490,14 @@ public record ModelRenderer(
         var source = RenderSource.of(entity, profile, slim);
         return source.getOrCreate(
                 name(),
-                () -> pipeline(source, modifier),
+                () -> pipeline(source),
                 modifier,
                 preUpdateConsumer
         );
     }
 
-    private @NotNull RenderPipeline pipeline(@NotNull RenderSource<?> source, @NotNull TrackerModifier modifier) {
-        return new RenderPipeline(this, source, mapValue(rendererGroupMap, value -> value.create(source, modifier)));
+    private @NotNull RenderPipeline pipeline(@NotNull RenderSource<?> source) {
+        return new RenderPipeline(this, source, mapValue(rendererGroupMap, value -> value.create(source)));
     }
 
     /**

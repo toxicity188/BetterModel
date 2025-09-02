@@ -13,6 +13,7 @@ import kr.toxicity.model.api.player.PlayerLimb
 import kr.toxicity.model.api.player.PlayerSkinProvider
 import kr.toxicity.model.api.skin.SkinData
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
+import kr.toxicity.model.api.tracker.TrackerUpdateAction
 import kr.toxicity.model.api.util.TransformedItemStack
 import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.player.HttpPlayerSkinProvider
@@ -655,7 +656,7 @@ object SkinManagerImpl : SkinManager, GlobalManager {
                                 selected
                             ))
                             EntityTrackerRegistry.registry(id)?.trackers()?.forEach { tracker ->
-                                tracker.updateDisplay { bone ->
+                                tracker.update(TrackerUpdateAction.itemMapping()) { bone ->
                                     bone.itemMapper is PlayerLimb.LimbItemMapper
                                 }
                             }

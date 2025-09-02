@@ -8,7 +8,6 @@ import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.tracker.ModelScaler
 import kr.toxicity.model.api.tracker.TrackerModifier
-import kr.toxicity.model.api.util.EntityUtil
 import kr.toxicity.model.compatibility.mythicmobs.modelPlaceholder
 import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderArgs
 import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderBoolean
@@ -21,7 +20,6 @@ class ModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTarg
     private val st = mlc.toPlaceholderBoolean(arrayOf("sight-trace", "st"), true)
     private val da = mlc.toPlaceholderBoolean(arrayOf("damageanimation", "da", "animation"), false)
     private val dt = mlc.toPlaceholderBoolean(arrayOf("damagetint", "tint", "dt"), true)
-    private val vr = mlc.toPlaceholderFloat(arrayOf("view-range", "vr"), EntityUtil.ENTITY_MODEL_VIEW_RADIUS)
     private val r = mlc.toPlaceholderBoolean(arrayOf("remove", "r"), false)
 
     override fun cast(p0: SkillMetadata): SkillResult {
@@ -36,8 +34,7 @@ class ModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTarg
                 it.create(e, TrackerModifier(
                     st(args),
                     da(args),
-                    dt(args),
-                    vr(args)
+                    dt(args)
                 )) { t ->
                     t.scaler(ModelScaler.entity().multiply(s(args)))
                 }

@@ -11,6 +11,7 @@ import kr.toxicity.model.api.data.blueprint.NamedBoundingBox
 import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.nms.*
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
+import kr.toxicity.model.api.tracker.TrackerUpdateAction
 import net.kyori.adventure.key.Keyed
 import net.minecraft.core.NonNullList
 import net.minecraft.core.component.DataComponents
@@ -243,7 +244,7 @@ class NMSImpl : NMS {
                 if (isClosed) return@asyncTaskLater
                 player.updateInventory()
                 trackers().forEach { tracker ->
-                    tracker.updateDisplay { bone ->
+                    tracker.update(TrackerUpdateAction.itemMapping()) { bone ->
                         !bone.itemMapper.fixed()
                     }
                 }

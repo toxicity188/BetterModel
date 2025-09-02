@@ -11,11 +11,7 @@ import kr.toxicity.model.api.data.renderer.RendererGroup;
 import kr.toxicity.model.api.nms.*;
 import kr.toxicity.model.api.tracker.ModelRotation;
 import kr.toxicity.model.api.tracker.Tracker;
-import kr.toxicity.model.api.tracker.TrackerModifier;
-import kr.toxicity.model.api.util.FunctionUtil;
-import kr.toxicity.model.api.util.InterpolationUtil;
-import kr.toxicity.model.api.util.MathUtil;
-import kr.toxicity.model.api.util.TransformedItemStack;
+import kr.toxicity.model.api.util.*;
 import kr.toxicity.model.api.util.function.BonePredicate;
 import kr.toxicity.model.api.util.function.FloatConstantSupplier;
 import kr.toxicity.model.api.util.function.FloatSupplier;
@@ -58,6 +54,7 @@ public final class RenderedBone {
     @NotNull
     private final RendererGroup group;
     private final BoneMovement defaultFrame;
+    private final RenderSource<?> renderSource;
 
     @NotNull
     @Getter
@@ -110,7 +107,7 @@ public final class RenderedBone {
      * Creates entity.
      * @param group group
      * @param parent parent entity
-     * @param source source
+     * @param renderSource render source
      * @param movement spawn movement
      * @param childrenMapper mapper
      */
@@ -118,24 +115,24 @@ public final class RenderedBone {
     public RenderedBone(
             @NotNull RendererGroup group,
             @Nullable RenderedBone parent,
-            @NotNull RenderSource<?> source,
+            @NotNull RenderSource<?> renderSource,
             @NotNull BoneMovement movement,
-            @NotNull TrackerModifier modifier,
             @NotNull Function<RenderedBone, Map<BoneName, RenderedBone>> childrenMapper
     ) {
         this.group = group;
         this.parent = parent;
+        this.renderSource = renderSource;
         itemMapper = group.getItemMapper();
         root = parent != null ? parent.root : this;
-        this.itemStack = itemMapper.apply(source, group.getItemStack());
+        this.itemStack = itemMapper.apply(renderSource, group.getItemStack());
         this.dummyBone = group.getItemStack().isAir() && itemMapper == BoneItemMapper.EMPTY;
         defaultFrame = movement;
         children = childrenMapper.apply(this);
         if (!dummyBone) {
-            display = BetterModel.plugin().nms().create(source.location(), source instanceof RenderSource.Entity ? -4096 : 0, d -> {
+            display = BetterModel.plugin().nms().create(renderSource.location(), renderSource instanceof RenderSource.Entity ? -4096 : 0, d -> {
                 d.display(itemMapper.transform());
-                d.viewRange(modifier.viewRange());
                 d.invisible(!group.getParent().visibility());
+                d.viewRange(EntityUtil.ENTITY_MODEL_VIEW_RADIUS);
                 applyItem(d);
             });
         } else display = null;
@@ -162,8 +159,8 @@ public final class RenderedBone {
         return globalState.state.runningAnimation();
     }
 
-    public boolean updateItem(@NotNull Predicate<RenderedBone> predicate, @NotNull RenderSource<?> source) {
-        return itemStack(predicate, itemMapper.apply(source, itemStack));
+    public boolean updateItem(@NotNull Predicate<RenderedBone> predicate) {
+        return itemStack(predicate, itemMapper.apply(renderSource, itemStack));
     }
 
     /**
@@ -252,6 +249,18 @@ public final class RenderedBone {
     public boolean glow(@NotNull Predicate<RenderedBone> predicate, boolean glow) {
         if (display != null && predicate.test(this)) {
             display.glow(glow);
+            return true;
+        }
+        return false;
+    }
+    /**
+     * Sets a view range of this model.
+     * @param viewRange view range
+     * @return success or not
+     */
+    public boolean viewRange(@NotNull Predicate<RenderedBone> predicate, float viewRange) {
+        if (display != null && predicate.test(this)) {
+            display.viewRange(viewRange);
             return true;
         }
         return false;

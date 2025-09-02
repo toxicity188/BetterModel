@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class PackResult {
     private final PackMeta meta;
     private final File directory;
-    private final Map<PackOverlay, Set<PackByte>> overlays = new EnumMap<>(PackOverlay.class);
+    private final Map<PackOverlay, Set<PackByte>> overlays = new ConcurrentHashMap<>();
     private final Set<PackByte> assets = ConcurrentHashMap.newKeySet();
     private final Set<PackByte> assetsView = Collections.unmodifiableSet(assets);
 
@@ -29,9 +29,7 @@ public final class PackResult {
             assets.add(packByte);
             return;
         }
-        synchronized (overlays) {
-            overlays.computeIfAbsent(overlay, o -> new HashSet<>()).add(packByte);
-        }
+        overlays.computeIfAbsent(overlay, o -> new HashSet<>()).add(packByte);
     }
 
     public void freeze() {

@@ -6,7 +6,6 @@ import kr.toxicity.model.api.data.blueprint.BlueprintChildren;
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox;
 import kr.toxicity.model.api.mount.MountController;
 import kr.toxicity.model.api.mount.MountControllers;
-import kr.toxicity.model.api.tracker.TrackerModifier;
 import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.TransformedItemStack;
 import lombok.Getter;
@@ -100,10 +99,10 @@ public final class RendererGroup {
      * @param source source
      * @return entity
      */
-    public @NotNull RenderedBone create(@NotNull RenderSource<?> source, @NotNull TrackerModifier modifier) {
-        return create(source, modifier, null);
+    public @NotNull RenderedBone create(@NotNull RenderSource<?> source) {
+        return create(source, null);
     }
-    private @NotNull RenderedBone create(@NotNull RenderSource<?> source, @NotNull TrackerModifier modifier, @Nullable RenderedBone parentBone) {
+    private @NotNull RenderedBone create(@NotNull RenderSource<?> source, @Nullable RenderedBone parentBone) {
         return new RenderedBone(
                 this,
                 parentBone,
@@ -114,8 +113,7 @@ public final class RendererGroup {
                         MathUtil.toQuaternion(rotation),
                         rotation
                 ),
-                modifier,
-                parent -> mapValue(children, value -> value.create(source, modifier, parent))
+                parent -> mapValue(children, value -> value.create(source, parent))
         );
     }
 

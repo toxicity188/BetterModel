@@ -14,9 +14,9 @@ public final class PackAssets {
 
     private final PackNamespace bettermodel, minecraft;
 
-    PackAssets(@NotNull PackPath path, @NotNull PackOverlay overlay) {
-        this.path = path;
+    PackAssets(@NotNull PackOverlay overlay) {
         this.overlay = overlay;
+        this.path = overlay.path(BetterModel.config().namespace());
         bettermodel = new PackNamespace(this, BetterModel.config().namespace());
         minecraft = new PackNamespace(this, "minecraft");
     }
