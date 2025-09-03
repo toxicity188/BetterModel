@@ -94,7 +94,7 @@ class ZipGenerator : PackGenerator {
         return zipper.writeToResult(pipeline, file).apply {
             freeze(hashEquals(this))
         }.apply {
-            if (!changed())
+            if (!changed()) return this
             ZipOutputStream(runCatching {
                 MessageDigest.getInstance("SHA-1")
             }.map {
