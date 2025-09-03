@@ -81,7 +81,7 @@ public final class AnimationGenerator {
      */
     public void interpolateRotation(@NotNull FloatSortedSet floats) {
         var iterator = new FloatArrayList(floats).iterator();
-        var time = 0.03F;
+        var time = 0.05F;
         while (iterator.hasNext()) {
             firstTime = secondTime;
             secondTime = iterator.nextFloat();
