@@ -656,7 +656,7 @@ public final class RenderedBone {
 
         public int interpolationDuration() {
             var frame = state.frame() / (float) Tracker.MINECRAFT_TICK_MULTIPLIER;
-            return frame <= 0.25F + MathUtil.FRAME_EPSILON ? 0 : Math.max(Math.round(frame), 1);
+            return Math.round(frame + MathUtil.FLOAT_COMPARISON_EPSILON);
         }
 
         private @NotNull BoneMovement nextMovement() {

@@ -16,7 +16,6 @@ import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.command.commandModule
 import kr.toxicity.model.util.*
-import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.HoverEvent
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Location
@@ -125,11 +124,11 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                                     },
                                     componentOf("Assets reload time - ${result.assetsTime().withComma()}ms") {
                                         color(NamedTextColor.GRAY)
-                                        hoverEvent(HoverEvent.showText(Component.text("Reading all config and model.")))
+                                        hoverEvent(HoverEvent.showText(componentOf("Reading all config and model.")))
                                     },
                                     componentOf("Packing time - ${result.packingTime().withComma()}ms") {
                                         color(NamedTextColor.GRAY)
-                                        hoverEvent(HoverEvent.showText(Component.text("Packing all model to resource pack.")))
+                                        hoverEvent(HoverEvent.showText(componentOf("Packing all model to resource pack.")))
                                     },
                                     componentOf("${BetterModel.models().size.withComma()} of models are loaded successfully.") {
                                         color(NamedTextColor.YELLOW)
