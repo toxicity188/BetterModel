@@ -6,7 +6,6 @@ import kr.toxicity.model.api.BetterModelPlugin.ReloadResult
 import kr.toxicity.model.api.BetterModelPlugin.ReloadResult.*
 import kr.toxicity.model.api.manager.*
 import kr.toxicity.model.api.nms.NMS
-import kr.toxicity.model.api.pack.PackResult
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.scheduler.ModelScheduler
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
@@ -23,6 +22,7 @@ import org.bukkit.configuration.MemoryConfiguration
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
+import org.bukkit.event.server.ServerLoadEvent
 import org.bukkit.plugin.java.JavaPlugin
 import java.io.InputStream
 import java.util.concurrent.atomic.AtomicBoolean
@@ -134,6 +134,10 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
             }
         }
         managers.forEach(GlobalManager::start)
+        if (isSnapshot) warn(
+            "This build is dev version: be careful to use it!",
+            "Build number: $snapshot"
+        )
         registerListener(object : Listener {
             @EventHandler
             fun PlayerJoinEvent.join() {
@@ -150,25 +154,25 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
                     )
                 }
             }
+            @EventHandler
+            fun ServerLoadEvent.load() {
+                if (skipInitialReload || type != ServerLoadEvent.LoadType.STARTUP) return
+                when (val result = reload(ReloadInfo(true, Bukkit.getConsoleSender()))) {
+                    is Failure -> result.throwable.handleException("Unable to load plugin properly.")
+                    is OnReload -> throw RuntimeException("Plugin load failed.")
+                    is Success -> info(
+                        "Plugin is loaded. (${result.totalTime().withComma()} ms)",
+                        "Minecraft version: $version, NMS version: ${nms.version()}",
+                        "Platform: ${when {
+                            BetterModel.IS_FOLIA -> "Folia"
+                            BetterModel.IS_PURPUR -> "Purpur"
+                            BetterModel.IS_PAPER -> "Paper"
+                            else -> "Bukkit"
+                        }}"
+                    )
+                }
+            }
         })
-        if (isSnapshot) warn(
-            "This build is dev version: be careful to use it!",
-            "Build number: $snapshot"
-        )
-        if (!skipInitialReload) when (val result = reload(ReloadInfo(true, Bukkit.getConsoleSender()))) {
-            is Failure -> result.throwable.handleException("Unable to load plugin properly.")
-            is OnReload -> throw RuntimeException("Plugin load failed.")
-            is Success -> info(
-                "Plugin is loaded. (${result.totalTime().withComma()} ms)",
-                "Minecraft version: $version, NMS version: ${nms.version()}",
-                "Platform: ${when {
-                    BetterModel.IS_FOLIA -> "Folia"
-                    BetterModel.IS_PURPUR -> "Purpur"
-                    BetterModel.IS_PAPER -> "Paper"
-                    else -> "Bukkit"
-                }}"
-            )
-        }
     }
 
     override fun onDisable() {
@@ -189,17 +193,13 @@ class BetterModelPluginImpl : JavaPlugin(), BetterModelPlugin {
                 managers.forEach {
                     it.reload(pipeline, zipper)
                 }
-                config.packType().toGenerator().run {
-                    Success(
-                        System.currentTimeMillis() - time,
-                        if (exists && info.firstReload) PackResult(zipper.build().meta(), null).apply {
-                            freeze()
-                        } else create(zipper, pipeline.apply {
-                            status = "Generating files..."
-                            goal = zipper.size()
-                        })
-                    )
-                }
+                Success(
+                    System.currentTimeMillis() - time,
+                    config.packType().toGenerator().create(zipper, pipeline.apply {
+                        status = "Generating files..."
+                        goal = zipper.size()
+                    })
+                )
             }
         }.getOrElse {
             Failure(it)

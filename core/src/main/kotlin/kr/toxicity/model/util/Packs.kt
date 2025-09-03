@@ -94,21 +94,20 @@ class ZipGenerator : PackGenerator {
         return zipper.writeToResult(pipeline, file).apply {
             freeze(hashEquals(this))
         }.apply {
-            if (changed()) {
-                ZipOutputStream(runCatching {
-                    MessageDigest.getInstance("SHA-1")
-                }.map {
-                    DigestOutputStream(file.outputStream().buffered(), it)
-                }.getOrElse {
-                    file.outputStream().buffered()
-                }).use { zip ->
-                    zip.setLevel(Deflater.BEST_COMPRESSION)
-                    zip.setComment("BetterModel's generated resource pack.")
-                    stream().forEach {
-                        zip.putNextEntry(ZipEntry(it.path().path()))
-                        zip.write(it.bytes())
-                        zip.closeEntry()
-                    }
+            if (!changed())
+            ZipOutputStream(runCatching {
+                MessageDigest.getInstance("SHA-1")
+            }.map {
+                DigestOutputStream(file.outputStream().buffered(), it)
+            }.getOrElse {
+                file.outputStream().buffered()
+            }).use { zip ->
+                zip.setLevel(Deflater.BEST_COMPRESSION)
+                zip.setComment("BetterModel's generated resource pack.")
+                stream().forEach {
+                    zip.putNextEntry(ZipEntry(it.path().path()))
+                    zip.write(it.bytes())
+                    zip.closeEntry()
                 }
             }
         }

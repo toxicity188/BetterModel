@@ -9,7 +9,6 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.io.File;
 import java.security.MessageDigest;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 @RequiredArgsConstructor
@@ -17,20 +16,21 @@ public final class PackResult {
     private final PackMeta meta;
     private final File directory;
     private final Map<PackOverlay, Set<PackByte>> overlays = new TreeMap<>();
-    private final Set<PackByte> assets = ConcurrentHashMap.newKeySet();
+    private final Set<PackByte> assets = new TreeSet<>();
     private final Set<PackByte> assetsView = Collections.unmodifiableSet(assets);
 
     private final long creationTime = System.currentTimeMillis();
     private boolean frozen = false;
     private boolean changed = false;
-    private long time;
     private volatile UUID uuid;
 
     @ApiStatus.Internal
     public void set(@Nullable PackOverlay overlay, @NotNull PackByte packByte) {
         if (frozen) throw new IllegalStateException("result is frozen.");
         if (overlay == null) {
-            assets.add(packByte);
+            synchronized (assets) {
+                assets.add(packByte);
+            }
             return;
         }
         synchronized (overlays) {
@@ -50,7 +50,6 @@ public final class PackResult {
         if (frozen) throw new IllegalStateException("result is frozen.");
         frozen = true;
         this.changed = changed;
-        time = System.currentTimeMillis() - creationTime;
     }
 
     @NotNull
@@ -68,11 +67,7 @@ public final class PackResult {
             if (uuid != null) return uuid;
             try {
                 var sha = MessageDigest.getInstance("SHA-256");
-                for (Set<PackByte> value : overlays.values()) {
-                    for (PackByte packByte : value) {
-                        sha.update(packByte.bytes());
-                    }
-                }
+                stream().map(PackByte::bytes).forEach(sha::update);
                 return uuid = UUID.nameUUIDFromBytes(sha.digest());
             } catch (Exception e) {
                 return uuid = UUID.randomUUID();
@@ -85,7 +80,7 @@ public final class PackResult {
     }
 
     public long time() {
-        return time;
+        return System.currentTimeMillis() - creationTime;
     }
 
     @NotNull
