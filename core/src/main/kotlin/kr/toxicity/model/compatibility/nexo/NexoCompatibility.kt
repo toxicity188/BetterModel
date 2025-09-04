@@ -9,7 +9,7 @@ import org.bukkit.event.Listener
 
 class NexoCompatibility : Compatibility {
     override fun start() {
-        if (CONFIG.mergeWithExternalResources()) PLUGIN.skipInitialReload = true
+        if (CONFIG.mergeWithExternalResources()) PLUGIN.skipInitialReload()
         registerListener(object : Listener {
             @EventHandler
             fun NexoPrePackGenerateEvent.generate() {

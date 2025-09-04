@@ -7,6 +7,12 @@ plugins {
 group = "kr.toxicity.model"
 version = property("plugin_version").toString() + (BUILD_NUMBER?.let { "-SNAPSHOT-$it" } ?: "")
 
+val shade = configurations.create("shade")
+
+configurations.implementation {
+    extendsFrom(shade)
+}
+
 repositories {
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")

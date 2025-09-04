@@ -22,7 +22,7 @@ public final class PackResult {
     private final long creationTime = System.currentTimeMillis();
     private boolean frozen = false;
     private boolean changed = false;
-    private volatile UUID uuid;
+    private UUID uuid;
 
     @ApiStatus.Internal
     public void set(@Nullable PackOverlay overlay, @NotNull PackByte packByte) {

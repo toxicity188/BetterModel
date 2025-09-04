@@ -116,7 +116,7 @@ public final class AnimationStateHandler<T extends Timed> {
                 }
             }
         }
-        return setAfterKeyframe(null) && !animators.isEmpty();
+        return setAfterKeyframe(null);
     }
 
     private boolean updateKeyframe(@NotNull Iterator<TreeIterator> iterator, @NotNull TreeIterator next) {

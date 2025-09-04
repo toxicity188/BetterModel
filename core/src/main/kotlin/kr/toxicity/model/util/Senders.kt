@@ -10,7 +10,7 @@ import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextDecoration
 import org.bukkit.command.CommandSender
 
-val ADVENTURE_PLATFORM = if (BetterModelLibrary.adventurePlatform.isLoaded) BukkitAudiences.create(PLUGIN) else null
+val ADVENTURE_PLATFORM = if (BetterModelLibrary.ADVENTURE_PLATFORM.isLoaded) BukkitAudiences.create(PLUGIN) else null
 
 val INFO = componentOf(" [!] ") {
     decorate(TextDecoration.BOLD).color(NamedTextColor.GREEN)

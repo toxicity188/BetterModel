@@ -14,12 +14,12 @@ repositories {
 }
 
 dependencies {
-    implementation(project(":api"))
-    implementation(project(":purpur"))
+    shade(project(":api"))
+    shade(project(":purpur"))
     rootProject.project("nms").subprojects.forEach {
-        implementation(project(":nms:${it.name}", configuration = "reobf"))
+        shade(project(":nms:${it.name}", configuration = "reobf"))
     }
-    implementation(libs.bundles.shadedLibrary) {
+    shade(libs.bundles.shadedLibrary) {
         exclude("net.kyori")
         exclude("org.ow2.asm")
     }
@@ -31,7 +31,7 @@ dependencies {
     compileOnly("io.lumine:Mythic-Dist:5.9.5")
     compileOnly("com.hibiscusmc:HMCCosmetics:2.7.8")
     compileOnly("com.nexomc:nexo:1.11.0-dev")
-    implementation(fileTree("libs"))
+    shade(fileTree("libs"))
 }
 
 bukkitPluginYaml {

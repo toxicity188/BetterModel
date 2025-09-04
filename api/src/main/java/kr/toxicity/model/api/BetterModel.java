@@ -1,11 +1,8 @@
 package kr.toxicity.model.api;
 
 import kr.toxicity.model.api.data.renderer.ModelRenderer;
-import kr.toxicity.model.api.event.PluginEndReloadEvent;
-import kr.toxicity.model.api.event.PluginStartReloadEvent;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry;
-import kr.toxicity.model.api.util.EventUtil;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -171,8 +168,6 @@ public final class BetterModel {
     public static void register(@NotNull BetterModelPlugin instance) {
         Objects.requireNonNull(instance, "instance cannot be null.");
         if (BetterModel.instance == instance) throw new RuntimeException("Duplicated instance.");
-        instance.addReloadStartHandler(zipper -> EventUtil.call(new PluginStartReloadEvent(zipper)));
-        instance.addReloadEndHandler(t -> EventUtil.call(new PluginEndReloadEvent(t)));
         BetterModel.instance = instance;
     }
 }

@@ -10,9 +10,12 @@ plugins {
 }
 
 val minecraft = property("minecraft_version").toString()
+val shadeConfig = configurations.shade
 
 dependencies {
-    implementation(project(":core"))
+    shade(project(":core")) {
+        exclude("org.jetbrains.kotlin")
+    }
 }
 
 val javadocJar by tasks.registering(Jar::class) {
@@ -41,6 +44,7 @@ tasks {
         finalizedBy(shadowJar)
     }
     shadowJar {
+        configurations.set(listOf(shadeConfig.get()))
         manifest {
             attributes(mapOf(
                 "paperweight-mappings-namespace" to "spigot",
@@ -129,9 +133,9 @@ modrinth {
         versionType = "release"
         changelog = rootProject.file("changelog/$versionString.md").readText()
     }
-    uploadFile = tasks.shadowJar.get()
+    uploadFile.set(tasks.shadowJar)
     additionalFiles = listOf(
-        javadocJar.get()
+        javadocJar
     )
     versionName = "BetterModel $versionString"
     versionNumber = versionString
