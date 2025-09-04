@@ -69,7 +69,8 @@ Like MEG, This plugin supports **MythicMobs**, you can use some MEG's mechanics 
 This plugin supports **player model with using user's custom skin without textures**.
 
 ## 🚀Plugin support
-[![](https://img.shields.io/badge/Wiki-FF6A00?style=for-the-badge&logoColor=white)](https://github.com/toxicity188/BetterModel/wiki/MythicMobs-Script-Compatibility)
+[![](https://img.shields.io/badge/Github%20Wiki-181717?logo=github&logoColor=white)](https://github.com/toxicity188/BetterModel/wiki)
+[![](https://deepwiki.com/badge.svg)](https://deepwiki.com/toxicity188/BetterModel)
 #### Platform
 - [Spigot](https://www.spigotmc.org/)
 - [Paper](https://papermc.io/downloads/paper) or a fork (e.g., [Folia](https://papermc.io/downloads/folia))

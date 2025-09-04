@@ -127,7 +127,7 @@ public final class BetterModelLibrary {
                 @NotNull String group,
                 @NotNull String artifact,
                 @Nullable String relocation,
-                @NotNull Set<String> subModules
+                @NotNull @Unmodifiable Set<String> subModules
         ) {
             this(group, artifact, relocation, subModules, BooleanConstantSupplier.TRUE);
         }
