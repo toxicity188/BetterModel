@@ -26,16 +26,4 @@ public record TimeScript(float time, @NotNull AnimationScript script) implements
         if (time == newTime) return this;
         return new TimeScript(newTime, script);
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof TimeScript that)) return false;
-        return Float.compare(time, that.time) == 0;
-    }
-
-    @Override
-    public int hashCode() {
-        return Float.hashCode(time);
-    }
 }

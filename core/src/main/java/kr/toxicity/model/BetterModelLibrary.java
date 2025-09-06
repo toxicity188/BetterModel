@@ -50,7 +50,7 @@ public final class BetterModelLibrary {
                     "adventure-text-serializer-json",
                     "adventure-text-serializer-json-legacy-impl"
             ),
-            () -> !BetterModel.IS_PAPER
+            BooleanConstantSupplier.of(!BetterModel.IS_PAPER)
     );
     public static final LibraryData EXAMINATION_API = new LibraryData(
             "net{}kyori",
@@ -59,13 +59,13 @@ public final class BetterModelLibrary {
             Set.of(
                     "examination-string"
             ),
-            () -> !BetterModel.IS_PAPER
+            BooleanConstantSupplier.of(!BetterModel.IS_PAPER)
     );
     public static final LibraryData OPTION = new LibraryData(
             "net{}kyori",
             "option",
             null,
-            () -> !BetterModel.IS_PAPER
+            BooleanConstantSupplier.of(!BetterModel.IS_PAPER)
     );
     public static final LibraryData ADVENTURE_PLATFORM = new LibraryData(
             "net{}kyori",
@@ -77,7 +77,7 @@ public final class BetterModelLibrary {
                     "adventure-platform-viaversion",
                     "adventure-text-serializer-bungeecord"
             ),
-            () -> !BetterModel.IS_PAPER
+            BooleanConstantSupplier.of(!BetterModel.IS_PAPER)
     );
 
     private static final List<LibraryData> LIBRARY_DATA = List.of(

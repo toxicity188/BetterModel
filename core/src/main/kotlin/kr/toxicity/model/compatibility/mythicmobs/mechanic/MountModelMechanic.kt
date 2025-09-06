@@ -46,19 +46,15 @@ class MountModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), IT
         val args = toPlaceholderArgs(p0, p1)
         return p0.toTracker(model(args))?.let { tracker ->
             val set = seat(args)
-            tracker.bone {
-                (set.isEmpty() || set.contains(it.name().name))
-                        && it.hitBox?.hasMountDriver() != true
-                        && (it.hitBox != null || it.createHitBox(tracker.registry().adapter(), { true }, dismountListener))
-            }?.let {
-                it.hitBox?.let { hitBox ->
-                    hitBox.mountController(interact(args)
-                        ?.canControl(driver(args))
-                        ?.canBeDamagedByRider(damagemount(args))
-                        ?.build()
-                        ?: MountControllers.WALK)
-                    hitBox.mount(p1.bukkitEntity)
-                }
+            tracker.hitbox(dismountListener) {
+                (set.isEmpty() || set.contains(it.name().name)) && it.hitBox?.hasMountDriver() != true
+            }?.let { hitBox ->
+                hitBox.mountController(interact(args)
+                    ?.canControl(driver(args))
+                    ?.canBeDamagedByRider(damagemount(args))
+                    ?.build()
+                    ?: MountControllers.WALK)
+                hitBox.mount(p1.bukkitEntity)
                 SkillResult.SUCCESS
             }
         } ?: SkillResult.CONDITION_FAILED

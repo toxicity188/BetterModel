@@ -32,6 +32,23 @@ public record AnimationMovement(
     }
 
     /**
+     * Gets empty movement
+     * @return empty movement
+     */
+    public @NotNull AnimationMovement empty() {
+        if (!hasKeyframe()) return this;
+        return time <= 0F ? EMPTY : new AnimationMovement(time);
+    }
+
+    /**
+     * Checks this movement has some keyframe
+     * @return has keyframe
+     */
+    public boolean hasKeyframe() {
+        return position != null || scale != null || rotation != null;
+    }
+
+    /**
      * Sets keyframe time.
      * @param newTime new time
      * @return new movement

@@ -127,11 +127,7 @@ public final class RenderPipeline {
     }
 
     public @Nullable RunningAnimation runningAnimation() {
-        for (RenderedBone value : boneMap.values()) {
-            var get = value.findNotNullByTree(RenderedBone::runningAnimation);
-            if (get != null) return get;
-        }
-        return null;
+        return firstNotNull(RenderedBone::runningAnimation);
     }
 
     public @NotNull String name() {
@@ -193,11 +189,11 @@ public final class RenderPipeline {
     }
 
     public @Nullable RenderedBone boneOf(@NotNull Predicate<RenderedBone> predicate) {
-        for (RenderedBone value : boneMap.values()) {
-            var get = value.boneOf(predicate);
-            if (get != null) return get;
-        }
-        return null;
+        return flattenBoneMap.values()
+                .stream()
+                .filter(predicate)
+                .findFirst()
+                .orElse(null);
     }
 
     @ApiStatus.Internal
@@ -294,6 +290,15 @@ public final class RenderPipeline {
         for (RenderedBone value : boneMap.values()) {
             value.iterateTree(consumer);
         }
+    }
+
+    public <T> @Nullable T firstNotNull(@NotNull Function<RenderedBone, T> mapper) {
+        return flattenBoneMap.values()
+                .stream()
+                .map(mapper)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
     }
 
     public int playerCount() {

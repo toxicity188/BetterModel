@@ -30,7 +30,7 @@ class BindHitBoxMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), IN
                 setParent(p0.caster)
                 setOwnerUUID(p0.caster.entity.uniqueId)
             }.entity.bukkitEntity
-            it.createHitBox(predicate(args), HitBoxListener.builder()
+            it.createHitBox(HitBoxListener.builder()
                 .sync { hitBox ->
                     if (!spawned.isValid) hitBox.removeHitBox()
                     else spawned.teleportAsync((hitBox as Entity).location)
@@ -41,10 +41,10 @@ class BindHitBoxMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), IN
                         true
                     } else false
                 }
-                .remove { hitBox ->
+                .remove {
                     spawned.remove()
                 }
-                .build())
+                .build(), predicate(args))
             SkillResult.SUCCESS
         } ?: SkillResult.CONDITION_FAILED
     }

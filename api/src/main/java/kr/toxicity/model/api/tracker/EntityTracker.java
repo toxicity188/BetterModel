@@ -4,10 +4,12 @@ import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.bone.BoneTags;
+import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.data.renderer.RenderPipeline;
 import kr.toxicity.model.api.event.CreateEntityTrackerEvent;
 import kr.toxicity.model.api.event.DismountModelEvent;
 import kr.toxicity.model.api.event.MountModelEvent;
+import kr.toxicity.model.api.nms.HitBox;
 import kr.toxicity.model.api.nms.HitBoxListener;
 import kr.toxicity.model.api.util.EventUtil;
 import kr.toxicity.model.api.util.FunctionUtil;
@@ -31,6 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Entity tracker
@@ -123,7 +126,7 @@ public class EntityTracker extends Tracker {
         });
         BetterModel.plugin().scheduler().task(entity, () -> {
             if (isClosed()) return;
-            createHitBox(CREATE_HITBOX_PREDICATE, HitBoxListener.EMPTY);
+            createHitBox(null, CREATE_HITBOX_PREDICATE);
         });
         tick((t, s) -> updateBaseEntity0());
         tick((t, s) -> {
@@ -170,13 +173,27 @@ public class EntityTracker extends Tracker {
 
     /**
      * Creates hit-box
-     * @param predicate predicate
      * @param listener listener
+     * @param predicate predicate
      * @return success
      */
-    public boolean createHitBox(@NotNull BonePredicate predicate, @Nullable HitBoxListener listener) {
-        var builder = listener != null ? listener.toBuilder() : HitBoxListener.builder();
-        return createHitBox(registry.adapter(), predicate, builder
+    public boolean createHitBox(@Nullable HitBoxListener listener, @NotNull BonePredicate predicate) {
+        return createHitBox(registry.adapter(), listenerOf(listener), predicate);
+    }
+
+    /**
+     * Gets or creates model's hitbox
+     * @param listener listener
+     * @param predicate predicate
+     * @return hitbox or null
+     */
+    public @Nullable HitBox hitbox(@Nullable HitBoxListener listener, @NotNull Predicate<RenderedBone> predicate) {
+        return hitbox(registry.adapter(), listenerOf(listener), predicate);
+    }
+
+    private @NotNull HitBoxListener listenerOf(@Nullable HitBoxListener source) {
+        var builder = source != null ? source.toBuilder() : HitBoxListener.builder();
+        return builder
                 .mount((h, e) -> {
                     registry.mountedHitBoxCache.put(e.getUniqueId(), new EntityTrackerRegistry.MountedHitBox(e, h));
                     EventUtil.call(new MountModelEvent(this, h, e));
@@ -185,7 +202,7 @@ public class EntityTracker extends Tracker {
                     registry.mountedHitBoxCache.remove(e.getUniqueId());
                     EventUtil.call(new DismountModelEvent(this, h, e));
                 })
-                .build());
+                .build();
     }
 
     /**
@@ -257,7 +274,7 @@ public class EntityTracker extends Tracker {
     @ApiStatus.Internal
     public void refresh() {
         updateBaseEntity0();
-        BetterModel.plugin().scheduler().task(registry.entity(), () -> createHitBox(HITBOX_REFRESH_PREDICATE, null));
+        BetterModel.plugin().scheduler().task(registry.entity(), () -> createHitBox(null, HITBOX_REFRESH_PREDICATE));
     }
 
     /**

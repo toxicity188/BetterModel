@@ -537,30 +537,11 @@ public final class RenderedBone {
         return false;
     }
 
-    /**
-     * Gets bone
-     * @param predicate predicate
-     * @return matched bone
-     */
-    public @Nullable RenderedBone boneOf(@NotNull Predicate<RenderedBone> predicate) {
-        return findNotNullByTree(b -> predicate.test(b) ? b : null);
-    }
-
     public @NotNull Stream<RenderedBone> flatten() {
         return Stream.concat(
                 Stream.of(this),
                 children.values().stream().flatMap(RenderedBone::flatten)
         );
-    }
-
-    public <T> @Nullable T findNotNullByTree(@NotNull Function<RenderedBone, T> mapper) {
-        var value = mapper.apply(this);
-        if (value != null) return value;
-        for (RenderedBone renderedBone : children.values()) {
-            var childValue = renderedBone.findNotNullByTree(mapper);
-            if (childValue != null) return childValue;
-        }
-        return null;
     }
 
     public void iterateTree(@NotNull Consumer<RenderedBone> boneConsumer) {

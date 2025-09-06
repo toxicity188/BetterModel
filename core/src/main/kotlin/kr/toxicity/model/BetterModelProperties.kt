@@ -23,7 +23,7 @@ import kr.toxicity.model.util.handleException
 import org.bstats.bukkit.Metrics
 import org.bukkit.Bukkit
 
-class BetterModelProperties(
+internal class BetterModelProperties(
     private val plugin: AbstractBetterModelPlugin
 ) {
     private var _config = BetterModelConfigImpl(PluginConfiguration.CONFIG.create())

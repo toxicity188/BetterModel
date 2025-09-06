@@ -529,12 +529,28 @@ public abstract class Tracker implements AutoCloseable {
     /**
      * Creates hitbox based on some entity
      * @param entity entity base
-     * @param predicate predicate
      * @param listener listener
+     * @param predicate predicate
      * @return success
      */
-    public boolean createHitBox(@NotNull EntityAdapter entity, @NotNull BonePredicate predicate, @Nullable HitBoxListener listener) {
+    public boolean createHitBox(@NotNull EntityAdapter entity, @Nullable HitBoxListener listener, @NotNull BonePredicate predicate) {
         return tryUpdate((b, p) -> b.createHitBox(entity, p, listener), predicate);
+    }
+
+    /**
+     * Get or creates model's hitbox
+     * @param entity entity
+     * @param predicate predicate
+     * @param listener listener
+     * @return hitbox or null
+     */
+    public @Nullable HitBox hitbox(@NotNull EntityAdapter entity, @Nullable HitBoxListener listener, @NotNull Predicate<RenderedBone> predicate) {
+        return pipeline.firstNotNull(bone -> {
+            if (predicate.test(bone)) {
+                if (bone.getHitBox() == null) bone.createHitBox(entity, BonePredicate.TRUE, listener);
+                return bone.getHitBox();
+            } else return null;
+        });
     }
 
     /**

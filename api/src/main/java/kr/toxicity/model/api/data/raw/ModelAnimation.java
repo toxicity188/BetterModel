@@ -75,7 +75,7 @@ public record ModelAnimation(
                         .next()
                         .keyFrame()
                         .stream()
-                        .map(a -> new AnimationMovement(a.time()))
+                        .map(AnimationMovement::empty)
                         .toList()
         );
     }

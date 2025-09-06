@@ -3,7 +3,6 @@ package kr.toxicity.model.api.data.blueprint;
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationMovement;
 import kr.toxicity.model.api.animation.VectorPoint;
-import kr.toxicity.model.api.data.raw.Datapoint;
 import kr.toxicity.model.api.data.raw.ModelKeyframe;
 import kr.toxicity.model.api.data.raw.ModelPlaceholder;
 import kr.toxicity.model.api.util.MathUtil;
@@ -75,25 +74,23 @@ public record BlueprintAnimator(
             var time = keyframe.time();
             if (time > length) return;
             var interpolation = keyframe.findInterpolator();
-            for (Datapoint dataPoint : keyframe.dataPoints()) {
-                var function = dataPoint.toFunction(placeholder);
-                switch (keyframe.channel()) {
-                    case POSITION -> transform.add(new VectorPoint(
-                            function.map(vec -> MathUtil.transformToDisplay(vec.div(MathUtil.MODEL_TO_BLOCK_MULTIPLIER))).memoize(),
-                            time,
-                            interpolation
-                    ));
-                    case ROTATION -> rotation.add(new VectorPoint(
-                            function.map(MathUtil::animationToDisplay).memoize(),
-                            time,
-                            interpolation
-                    ));
-                    case SCALE -> scale.add(new VectorPoint(
-                            function.map(vec -> vec.sub(1, 1, 1)).memoize(),
-                            time,
-                            interpolation
-                    ));
-                }
+            var function = keyframe.dataPoints().getFirst().toFunction(placeholder);
+            switch (keyframe.channel()) {
+                case POSITION -> transform.add(new VectorPoint(
+                        function.map(vec -> MathUtil.transformToDisplay(vec).div(MathUtil.MODEL_TO_BLOCK_MULTIPLIER)).memoize(),
+                        time,
+                        interpolation
+                ));
+                case ROTATION -> rotation.add(new VectorPoint(
+                        function.map(MathUtil::animationToDisplay).memoize(),
+                        time,
+                        interpolation
+                ));
+                case SCALE -> scale.add(new VectorPoint(
+                        function.map(vec -> vec.sub(1, 1, 1)).memoize(),
+                        time,
+                        interpolation
+                ));
             }
         }
 
