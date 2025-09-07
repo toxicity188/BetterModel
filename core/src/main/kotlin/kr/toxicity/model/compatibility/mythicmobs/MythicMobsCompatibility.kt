@@ -47,6 +47,7 @@ class MythicMobsCompatibility : Compatibility {
                     "tint", "color" -> register(TintMechanic(config))
                     "brightness", "light" -> register(BrightnessMechanic(config))
                     "enchant" -> register(EnchantMechanic(config))
+                    "billboard" -> register(BillboardMechanic(config))
                     "glow", "glowbone" -> register(GlowMechanic(config))
                     "mountmodel" -> register(MountModelMechanic(config))
                     "dismountmodel" -> register(DismountModelMechanic(config))

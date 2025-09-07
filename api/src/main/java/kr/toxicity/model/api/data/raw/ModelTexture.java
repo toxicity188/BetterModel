@@ -39,7 +39,7 @@ public record ModelTexture(
         ) {
             image = ImageIO.read(input);
         } catch (Exception e) {
-            throw new RuntimeException("image");
+            throw new RuntimeException(e);
         }
         return new BlueprintTexture(
                 name().split("\\.")[0],

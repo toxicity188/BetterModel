@@ -136,7 +136,7 @@ public final class BetterModelLibrary {
             return predicate.getAsBoolean();
         }
 
-        public @NotNull Stream<Library> toLibby(AbstractBetterModelPlugin plugin) {
+        private @NotNull Stream<Library> toLibby(@NotNull AbstractBetterModelPlugin plugin) {
             var version = plugin.attributes().getValue("library-" + artifact);
             return Stream.concat(
                     Stream.of(artifact),
