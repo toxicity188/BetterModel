@@ -1,7 +1,7 @@
 package kr.toxicity.model.api.manager;
 
 import kr.toxicity.model.api.script.AnimationScript;
-import kr.toxicity.model.api.script.EntityScriptBuilder;
+import kr.toxicity.model.api.script.ScriptBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,5 +21,5 @@ public interface ScriptManager {
      * @param name parser name
      * @param script script builder
      */
-    void addBuilder(@NotNull String name, @NotNull EntityScriptBuilder script);
+    void addBuilder(@NotNull String name, @NotNull ScriptBuilder script);
 }

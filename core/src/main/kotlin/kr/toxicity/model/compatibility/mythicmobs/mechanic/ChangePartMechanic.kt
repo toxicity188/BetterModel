@@ -4,9 +4,8 @@ import io.lumine.mythic.api.config.MythicLineConfig
 import io.lumine.mythic.api.skills.INoTargetSkill
 import io.lumine.mythic.api.skills.SkillMetadata
 import io.lumine.mythic.api.skills.SkillResult
-import kr.toxicity.model.api.BetterModel
-import kr.toxicity.model.api.tracker.TrackerUpdateAction
 import kr.toxicity.model.compatibility.mythicmobs.*
+import kr.toxicity.model.script.ChangePartScript
 import kr.toxicity.model.util.boneName
 
 class ChangePartMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
@@ -20,14 +19,12 @@ class ChangePartMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), IN
 
     override fun cast(p0: SkillMetadata): SkillResult {
         val args = p0.toPlaceholderArgs()
-        val n1 = nmid(args) ?: return SkillResult.CONDITION_FAILED
-        val n2 = newPart(args) ?: return SkillResult.CONDITION_FAILED
-        val model = BetterModel.modelOrNull(n1)?.groupByTree(n2)?.itemStack ?: return SkillResult.CONDITION_FAILED
         return p0.toTracker(model(args))?.let {
-            it.update(
-                TrackerUpdateAction.itemStack(model),
-                predicate(args)
-            )
+            ChangePartScript(
+                predicate(args),
+                nmid(args) ?: return SkillResult.CONDITION_FAILED,
+                newPart(args) ?: return SkillResult.CONDITION_FAILED
+            ).accept(it)
             SkillResult.SUCCESS
         } ?: SkillResult.CONDITION_FAILED
     }

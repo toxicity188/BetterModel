@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.script;
 
+import kr.toxicity.model.api.tracker.Tracker;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -9,7 +10,7 @@ import java.util.function.Consumer;
 /**
  * Animation script
  */
-public interface AnimationScript extends Consumer<ScriptSource> {
+public interface AnimationScript extends Consumer<Tracker> {
 
     /**
      * Empty script
@@ -17,7 +18,7 @@ public interface AnimationScript extends Consumer<ScriptSource> {
     AnimationScript EMPTY = of(s -> {});
 
     @Override
-    void accept(@NotNull ScriptSource renderSource);
+    void accept(@NotNull Tracker tracker);
 
     /**
      * Checks this script should be called in tick thread
@@ -39,7 +40,7 @@ public interface AnimationScript extends Consumer<ScriptSource> {
      * @param source consumer
      * @return script
      */
-    static @NotNull AnimationScript of(@NotNull Consumer<ScriptSource> source) {
+    static @NotNull AnimationScript of(@NotNull Consumer<Tracker> source) {
         return of(false, source);
     }
 
@@ -49,7 +50,7 @@ public interface AnimationScript extends Consumer<ScriptSource> {
      * @param source consumer
      * @return script
      */
-    static @NotNull AnimationScript of(boolean isSync, @NotNull Consumer<ScriptSource> source) {
+    static @NotNull AnimationScript of(boolean isSync, @NotNull Consumer<Tracker> source) {
         Objects.requireNonNull(source);
         return new AnimationScript() {
             @Override
@@ -58,8 +59,8 @@ public interface AnimationScript extends Consumer<ScriptSource> {
             }
 
             @Override
-            public void accept(@NotNull ScriptSource renderSource) {
-                source.accept(renderSource);
+            public void accept(@NotNull Tracker tracker) {
+                source.accept(tracker);
             }
         };
     }
@@ -75,7 +76,7 @@ public interface AnimationScript extends Consumer<ScriptSource> {
             case 1 -> scriptList.getFirst();
             default -> {
                 var sync = false;
-                Consumer<ScriptSource> consumer = trigger -> {};
+                Consumer<Tracker> consumer = trigger -> {};
                 for (AnimationScript entityScript : scriptList) {
                     sync = sync || entityScript.isSync();
                     consumer = consumer.andThen(entityScript);

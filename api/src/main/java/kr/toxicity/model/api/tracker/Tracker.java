@@ -1,8 +1,10 @@
 package kr.toxicity.model.api.tracker;
 
+import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationEventHandler;
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationModifier;
+import kr.toxicity.model.api.animation.AnimationStateHandler;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.BoneTags;
 import kr.toxicity.model.api.bone.RenderedBone;
@@ -13,6 +15,8 @@ import kr.toxicity.model.api.data.renderer.RenderPipeline;
 import kr.toxicity.model.api.data.renderer.RenderSource;
 import kr.toxicity.model.api.event.*;
 import kr.toxicity.model.api.nms.*;
+import kr.toxicity.model.api.script.AnimationScript;
+import kr.toxicity.model.api.script.TimeScript;
 import kr.toxicity.model.api.util.EntityUtil;
 import kr.toxicity.model.api.util.EventUtil;
 import kr.toxicity.model.api.util.LogUtil;
@@ -73,13 +77,26 @@ public abstract class Tracker implements AutoCloseable {
     protected final TrackerModifier modifier;
     private final Runnable updater;
     private final BundlerSet bundlerSet;
+    private final AnimationStateHandler<TimeScript> scriptProcessor = new AnimationStateHandler<>(
+            TimeScript.EMPTY,
+            (a, s, t) -> s == AnimationStateHandler.MappingState.PROGRESS ? a.time(t) : AnimationScript.EMPTY.time(t),
+            (b, a) -> {
+                if (b == null) return;
+                if (b.isSync()) {
+                    BetterModel.plugin().scheduler().task(location(), () -> b.accept(this));
+                } else b.accept(this);
+            }
+    );
     protected ModelRotator rotator = ModelRotator.YAW;
     protected ModelScaler scaler = ModelScaler.entity();
     private Supplier<ModelRotation> rotationSupplier = () -> ModelRotation.EMPTY;
     private BiConsumer<Tracker, CloseReason> closeEventHandler = (t, r) -> EventUtil.call(new CloseTrackerEvent(t, r));
 
     private ScheduledPacketHandler handler = (t, s) -> {
-        if (!tickPause.get()) t.pipeline.tick(s.getViewBundler());
+        if (!tickPause.get()) {
+            scriptProcessor.tick();
+            t.pipeline.tick(s.getViewBundler());
+        }
     };
     private BiConsumer<Tracker, Player> perPlayerHandler = null;
 
@@ -414,7 +431,9 @@ public abstract class Tracker implements AutoCloseable {
      * @return success
      */
     public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, @NotNull AnimationModifier modifier, @NotNull AnimationEventHandler eventHandler) {
-        return pipeline.animate(filter, animation, modifier, injectEvent(eventHandler));
+        return pipeline.getParent().animation(animation)
+                .map(get -> animate(filter, get, modifier, eventHandler))
+                .orElse(false);
     }
 
     /**
@@ -438,6 +457,8 @@ public abstract class Tracker implements AutoCloseable {
      * @return success
      */
     public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier, @NotNull AnimationEventHandler eventHandler) {
+        var script = animation.script(modifier);
+        if (script != null) scriptProcessor.addAnimation(animation.name(), script.iterator(), modifier, AnimationEventHandler.start());
         return pipeline.animate(filter, animation, modifier, injectEvent(eventHandler));
     }
 
@@ -468,7 +489,8 @@ public abstract class Tracker implements AutoCloseable {
      * @return success
      */
     public boolean stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, @Nullable Player player) {
-        return pipeline.stopAnimation(filter, animation, player);
+        var script = scriptProcessor.stopAnimation(animation);
+        return pipeline.stopAnimation(filter, animation, player) || script;
     }
 
     /**
@@ -491,7 +513,9 @@ public abstract class Tracker implements AutoCloseable {
      * @return success
      */
     public boolean replace(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull String animation, @NotNull AnimationModifier modifier) {
-        return pipeline.replace(filter, target, animation, modifier);
+        return pipeline.getParent().animation(animation)
+                .map(get -> replace(filter, target, get, modifier))
+                .orElse(false);
     }
 
     /**
@@ -503,6 +527,8 @@ public abstract class Tracker implements AutoCloseable {
      * @return success
      */
     public boolean replace(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier) {
+        var script = animation.script(modifier);
+        if (script != null) scriptProcessor.replaceAnimation(target, script.iterator(), modifier);
         return pipeline.replace(filter, target, animation, modifier);
     }
 

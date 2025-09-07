@@ -5,8 +5,8 @@ import io.lumine.mythic.bukkit.events.MythicConditionLoadEvent
 import io.lumine.mythic.bukkit.events.MythicMechanicLoadEvent
 import io.lumine.mythic.bukkit.events.MythicTargeterLoadEvent
 import kr.toxicity.model.api.BetterModel
-import kr.toxicity.model.api.data.renderer.RenderSource
 import kr.toxicity.model.api.script.AnimationScript
+import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.compatibility.Compatibility
 import kr.toxicity.model.compatibility.mythicmobs.condition.ModelHasPassengerCondition
 import kr.toxicity.model.compatibility.mythicmobs.mechanic.*
@@ -21,15 +21,19 @@ import org.bukkit.event.Listener
 class MythicMobsCompatibility : Compatibility {
     override fun start() {
         ScriptManagerImpl.addBuilder("mm") { name ->
-            AnimationScript.of(BetterModel.IS_FOLIA) script@ { source ->
+            val args = name.args() ?: return@addBuilder AnimationScript.EMPTY
+            AnimationScript.of(BetterModel.IS_FOLIA) script@ { tracker ->
                 if (!CONFIG.module().model) return@script
-                val render = source.source()
-                if (render !is RenderSource.Entity) return@script
+                if (tracker !is EntityTracker) return@script
                 if (!MythicBukkit.inst().apiHelper.castSkill(
-                        render.entity(),
-                    name,
-                    MythicBukkit.inst().apiHelper.getMythicMobInstance(render.entity())?.power ?: 1F
-                )) warn("Unknown MythicMobs skill name: $name")
+                        tracker.registry().entity(),
+                        args,
+                    MythicBukkit.inst().apiHelper.getMythicMobInstance(tracker.registry().entity())?.power ?: 1F
+                ) {
+                    name.metadata.toMap().forEach { (key, value) ->
+                        it.parameters[key] = value.toString()
+                    }
+                }) warn("Unknown MythicMobs skill name: $args")
             }
         }
         registerListener(object : Listener {

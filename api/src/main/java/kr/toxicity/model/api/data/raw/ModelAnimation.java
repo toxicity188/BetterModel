@@ -51,7 +51,7 @@ public record ModelAnimation(
             var name = entry.getValue().name();
             if (name == null) continue;
             if (entry.getKey().equals("effects")) {
-                blueprintScript = toScript(entry.getValue());
+                blueprintScript = toScript(entry.getValue(), placeholder);
             }
             else {
                 var builder = new BlueprintAnimator.Builder(length());
@@ -80,14 +80,15 @@ public record ModelAnimation(
         );
     }
 
-    private @NotNull BlueprintScript toScript(@NotNull ModelAnimator animator) {
+    private @NotNull BlueprintScript toScript(@NotNull ModelAnimator animator, @NotNull ModelPlaceholder placeholder) {
         var get = animator.keyframes()
                 .stream()
                 .map(d -> AnimationScript.of(d.dataPoints()
                         .stream()
                         .map(Datapoint::script)
                         .filter(Objects::nonNull)
-                        .map(raw -> BetterModel.plugin().scriptManager().build(raw))
+                        .flatMap(raw -> Arrays.stream(placeholder.parseVariable(raw).split("\n")))
+                        .map(line -> BetterModel.plugin().scriptManager().build(line))
                         .filter(Objects::nonNull)
                         .toList()
                 ).time(d.time()))

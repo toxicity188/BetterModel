@@ -20,7 +20,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -215,11 +214,8 @@ public final class RenderedBone {
     public boolean enchant(@NotNull Predicate<RenderedBone> predicate, boolean enchant) {
         return itemStack(predicate, itemStack.modify(i -> {
             var meta = i.getItemMeta();
-            if (enchant) {
-                meta.addEnchant(Enchantment.UNBREAKING, 0, true);
-            } else {
-                meta.removeEnchant(Enchantment.UNBREAKING);
-            }
+            if (meta == null) return i;
+            meta.setEnchantmentGlintOverride(enchant);
             i.setItemMeta(meta);
             return i;
         }));

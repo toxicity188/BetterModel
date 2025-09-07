@@ -8,9 +8,6 @@ import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.nms.HitBox;
 import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
-import kr.toxicity.model.api.script.AnimationScript;
-import kr.toxicity.model.api.script.ScriptSource;
-import kr.toxicity.model.api.script.TimeScript;
 import kr.toxicity.model.api.tracker.ModelRotation;
 import kr.toxicity.model.api.util.function.BonePredicate;
 import kr.toxicity.model.api.util.function.FloatSupplier;
@@ -55,7 +52,6 @@ public final class RenderPipeline {
 
     @Getter
     private ModelRotation rotation = ModelRotation.INVALID;
-    private final AnimationStateHandler<TimeScript> scriptProcessor;
 
     public RenderPipeline(
             @NotNull ModelRenderer parent,
@@ -70,18 +66,6 @@ public final class RenderPipeline {
         displayAmount = (int) flattenBoneMap.values().stream()
                 .filter(rb -> rb.getDisplay() != null)
                 .count();
-        //Script
-        var scriptSource = new ScriptSource(this, source);
-        scriptProcessor = new AnimationStateHandler<>(
-                TimeScript.EMPTY,
-                (a, s, t) -> s == AnimationStateHandler.MappingState.PROGRESS ? a.time(t) : AnimationScript.EMPTY.time(t),
-                (b, a) -> {
-                    if (b == null) return;
-                    if (b.isSync()) {
-                        BetterModel.plugin().scheduler().task(source.location(), () -> b.accept(scriptSource));
-                    } else b.accept(scriptSource);
-                }
-        );
     }
 
     public @NotNull PacketBundler createBundler() {
@@ -149,7 +133,6 @@ public final class RenderPipeline {
     }
 
     public boolean tick(@NotNull PacketBundler bundler) {
-        scriptProcessor.tick();
         return matchTree(b -> b.tick(bundler));
     }
 
@@ -197,37 +180,18 @@ public final class RenderPipeline {
     }
 
     @ApiStatus.Internal
-    public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, @NotNull AnimationModifier modifier, @NotNull AnimationEventHandler eventHandler) {
-        return parent.animation(animation)
-                .map(get -> animate(filter, get, modifier, eventHandler))
-                .orElse(false);
-    }
-
-    @ApiStatus.Internal
     public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier, @NotNull AnimationEventHandler eventHandler) {
-        var script = animation.script(modifier);
-        if (script != null) scriptProcessor.addAnimation(animation.name(), script.iterator(), modifier, AnimationEventHandler.start());
         return matchTree(AnimationPredicate.of(filter), (b, a) -> b.addAnimation(a, animation, modifier, eventHandler));
     }
 
     @ApiStatus.Internal
-    public boolean replace(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull String animation, @NotNull AnimationModifier modifier) {
-        return parent.animation(animation)
-                .map(get -> replace(filter, target, get, modifier))
-                .orElse(false);
-    }
-
-    @ApiStatus.Internal
     public boolean replace(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier) {
-        var script = animation.script(modifier);
-        if (script != null) scriptProcessor.replaceAnimation(target, script.iterator(), modifier);
         return matchTree(AnimationPredicate.of(filter), (b, a) -> b.replaceAnimation(a, target, animation, modifier));
     }
 
     @ApiStatus.Internal
     public boolean stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @Nullable Player player) {
-        var script = scriptProcessor.stopAnimation(target);
-        return matchTree(b -> b.stopAnimation(filter, target, player)) || script;
+        return matchTree(b -> b.stopAnimation(filter, target, player));
     }
 
     @ApiStatus.Internal
