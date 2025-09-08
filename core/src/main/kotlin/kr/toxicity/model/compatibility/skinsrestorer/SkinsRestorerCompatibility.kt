@@ -14,33 +14,34 @@ import java.util.concurrent.CompletableFuture
 
 class SkinsRestorerCompatibility : Compatibility {
     override fun start() {
-        SkinsRestorerProvider.get().eventBus.subscribe(
-            PLUGIN,
-            SkinApplyEvent::class.java
-        ) {
-            val player = it.getPlayer(Player::class.java)
-            SkinManagerImpl.refresh(GameProfile(
-                player.uniqueId,
-                player.name
-            ).apply {
-                properties.put("textures", it.property.toProperty())
-            })
-        }
-        SkinManagerImpl.setSkinProvider {
-            CompletableFuture.completedFuture(SkinsRestorerProvider.get()
-                .playerStorage
-                .getSkinForPlayer(
-                    it.id,
-                    it.name,
-                    Bukkit.getOnlineMode()
-                ).map { skin ->
-                    GameProfile(
+        SkinsRestorerProvider.get().run {
+            eventBus.subscribe(
+                PLUGIN,
+                SkinApplyEvent::class.java
+            ) {
+                val player = it.getPlayer(Player::class.java)
+                SkinManagerImpl.refresh(GameProfile(
+                    player.uniqueId,
+                    player.name
+                ).apply {
+                    properties.put("textures", it.property.toProperty())
+                })
+            }
+            SkinManagerImpl.setSkinProvider {
+                CompletableFuture.completedFuture(playerStorage
+                    .getSkinForPlayer(
                         it.id,
-                        it.name
-                    ).apply {
-                        properties.put("textures", skin.toProperty())
-                    }
-                }.orElse(null))
+                        it.name,
+                        Bukkit.getOnlineMode()
+                    ).map { skin ->
+                        GameProfile(
+                            it.id,
+                            it.name
+                        ).apply {
+                            properties.put("textures", skin.toProperty())
+                        }
+                    }.orElse(null))
+            }
         }
     }
 

@@ -76,7 +76,14 @@ object ModelManagerImpl : ModelManager, GlobalManager {
             if (CONFIG.module().model) it.addModelTo(
                 generalModelMap,
                 importModels(ModelRenderer.Type.GENERAL, pipeline, DATA_FOLDER.getOrCreateDirectory("models") { folder ->
-                    if (PLUGIN.version().useModernResource()) folder.addResource("demon_knight.bbmodel")
+                    File(DATA_FOLDER.parent, "ModelEngine/blueprints")
+                        .takeIf(File::isDirectory)
+                        ?.run {
+                            copyRecursively(folder, overwrite = true)
+                            info("ModelEngine's models are successfully migrated.")
+                        } ?: run {
+                        if (PLUGIN.version().useModernResource()) folder.addResource("demon_knight.bbmodel")
+                    }
                 })
             )
             if (CONFIG.module().playerAnimation) it.addModelTo(
