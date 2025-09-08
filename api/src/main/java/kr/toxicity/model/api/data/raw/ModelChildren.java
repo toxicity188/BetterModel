@@ -36,28 +36,17 @@ public sealed interface ModelChildren {
      * @param elementMap element map
      * @return children
      */
-    default @NotNull BlueprintChildren toBlueprint(@NotNull @Unmodifiable Map<String, ModelElement> elementMap) {
-        return switch (this) {
-            case ModelChildren.ModelGroup modelGroup -> {
-                var child = mapToList(modelGroup.children(), c -> c.toBlueprint(elementMap));
-                var filtered = filterIsInstance(child, BlueprintChildren.BlueprintElement.class).toList();
-                yield new BlueprintChildren.BlueprintGroup(
-                        BoneTagRegistry.parse(modelGroup.name()),
-                        modelGroup.origin(),
-                        modelGroup.rotation().invertXZ(),
-                        child,
-                        filtered.isEmpty() ? modelGroup.visibility() : filtered.stream().anyMatch(element -> element.element().visibility())
-                );
-            }
-            case ModelChildren.ModelUUID modelUUID -> new BlueprintChildren.BlueprintElement(Objects.requireNonNull(elementMap.get(modelUUID.uuid())));
-        };
-    }
+    @NotNull BlueprintChildren toBlueprint(@NotNull @Unmodifiable Map<String, ModelElement> elementMap);
 
     /**
      * A raw element's uuid.
      * @param uuid uuid
      */
     record ModelUUID(@NotNull String uuid) implements ModelChildren {
+        @Override
+        public @NotNull BlueprintChildren toBlueprint(@NotNull @Unmodifiable Map<String, ModelElement> elementMap) {
+            return new BlueprintChildren.BlueprintElement(Objects.requireNonNull(elementMap.get(uuid())));
+        }
     }
 
     /**
@@ -103,6 +92,19 @@ public sealed interface ModelChildren {
          */
         public boolean visibility() {
             return !Boolean.FALSE.equals(_visibility);
+        }
+
+        @Override
+        public @NotNull BlueprintChildren toBlueprint(@NotNull @Unmodifiable Map<String, ModelElement> elementMap) {
+            var child = mapToList(children, c -> c.toBlueprint(elementMap));
+            var filtered = filterIsInstance(child, BlueprintChildren.BlueprintElement.class).toList();
+            return new BlueprintChildren.BlueprintGroup(
+                    BoneTagRegistry.parse(name()),
+                    origin(),
+                    rotation().invertXZ(),
+                    child,
+                    filtered.isEmpty() ? visibility() : filtered.stream().anyMatch(element -> element.element().visibility())
+            );
         }
     }
 }

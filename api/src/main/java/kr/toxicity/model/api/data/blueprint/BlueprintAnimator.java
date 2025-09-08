@@ -74,7 +74,7 @@ public record BlueprintAnimator(
             var time = keyframe.time();
             if (time > length) return;
             var interpolation = keyframe.findInterpolator();
-            var function = keyframe.dataPoints().getFirst().toFunction(placeholder);
+            var function = keyframe.point().toFunction(placeholder);
             switch (keyframe.channel()) {
                 case POSITION -> transform.add(new VectorPoint(
                         function.map(vec -> MathUtil.transformToDisplay(vec).div(MathUtil.MODEL_TO_BLOCK_MULTIPLIER)).memoize(),

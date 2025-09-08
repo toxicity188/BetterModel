@@ -35,6 +35,14 @@ public record ModelKeyframe(
 ) implements Timed {
 
     /**
+     * Gets first data point
+     * @return point
+     */
+    public @NotNull Datapoint point() {
+        return dataPoints.getFirst();
+    }
+
+    /**
      * Finds proper interpolator matched by this keyframe
      * @return interpolator
      */

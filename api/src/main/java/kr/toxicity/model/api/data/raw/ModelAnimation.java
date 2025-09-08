@@ -3,7 +3,6 @@ package kr.toxicity.model.api.data.raw;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationMovement;
-import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.BoneTagRegistry;
 import kr.toxicity.model.api.data.blueprint.AnimationGenerator;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
@@ -18,6 +17,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+
+import static kr.toxicity.model.api.util.CollectionUtil.associate;
 
 /**
  * Raw animation of a model.
@@ -44,33 +45,30 @@ public record ModelAnimation(
      * @return converted animation
      */
     public @NotNull BlueprintAnimation toBlueprint(@NotNull List<BlueprintChildren> children, @NotNull ModelPlaceholder placeholder) {
-        var map = new HashMap<BoneName, BlueprintAnimator.AnimatorData>();
-        var blueprintScript = BlueprintScript.fromEmpty(this);
-        var animator = animators();
-        for (Map.Entry<String, ModelAnimator> entry : animator.entrySet()) {
-            var name = entry.getValue().name();
-            if (name == null) continue;
-            if (entry.getKey().equals("effects")) {
-                blueprintScript = toScript(entry.getValue(), placeholder);
-            }
-            else {
-                var builder = new BlueprintAnimator.Builder(length());
-                entry.getValue().keyframes()
-                        .stream()
-                        .sorted(Comparator.naturalOrder())
-                        .forEach(keyframe -> builder.addFrame(keyframe, placeholder));
-                map.put(BoneTagRegistry.parse(name), builder.build(name));
-            }
-        }
-        var animators = AnimationGenerator.createMovements(length(), children, map);
+        var map = new HashMap<>(animators());
+        var script = Optional.ofNullable(map.remove("effects"))
+                .map(a -> toScript(a, placeholder))
+                .orElseGet(() -> BlueprintScript.fromEmpty(this));
+        var animators = AnimationGenerator.createMovements(length(), children, associate(
+                map.values().stream().filter(ModelAnimator::hasName),
+                e -> BoneTagRegistry.parse(e.name()),
+                e -> {
+                    var builder = new BlueprintAnimator.Builder(length());
+                    e.keyframes()
+                            .stream()
+                            .sorted(Comparator.naturalOrder())
+                            .forEach(keyframe -> builder.addFrame(keyframe, placeholder));
+                    return builder.build(name());
+                }
+        ));
         return new BlueprintAnimation(
                 name(),
                 loop(),
                 length(),
                 override(),
                 animators,
-                blueprintScript,
-                animators.isEmpty() ? List.of(AnimationMovement.EMPTY, new AnimationMovement(length())) : animators.values()
+                script,
+                animators.isEmpty() ? AnimationMovement.withEmpty(length()) : animators.values()
                         .iterator()
                         .next()
                         .keyFrame()
@@ -83,15 +81,14 @@ public record ModelAnimation(
     private @NotNull BlueprintScript toScript(@NotNull ModelAnimator animator, @NotNull ModelPlaceholder placeholder) {
         var get = animator.keyframes()
                 .stream()
-                .map(d -> AnimationScript.of(d.dataPoints()
-                        .stream()
-                        .map(Datapoint::script)
-                        .filter(Objects::nonNull)
-                        .flatMap(raw -> Arrays.stream(placeholder.parseVariable(raw).split("\n")))
-                        .map(line -> BetterModel.plugin().scriptManager().build(line))
-                        .filter(Objects::nonNull)
-                        .toList()
-                ).time(d.time()))
+                .map(d -> {
+                    var script = d.point().script();
+                    if (script == null) return AnimationScript.EMPTY.time(d.time());
+                    return AnimationScript.of(Arrays.stream(placeholder.parseVariable(script).split("\n"))
+                            .map(BetterModel.plugin().scriptManager()::build)
+                            .toList())
+                            .time(d.time());
+                })
                 .toList();
         var list = new ArrayList<TimeScript>(get.size() + 2);
         if (get.getFirst().time() > 0) list.add(TimeScript.EMPTY);

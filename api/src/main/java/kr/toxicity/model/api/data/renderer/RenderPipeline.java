@@ -172,7 +172,7 @@ public final class RenderPipeline {
     }
 
     public @Nullable RenderedBone boneOf(@NotNull Predicate<RenderedBone> predicate) {
-        return flattenBoneMap.values()
+        return bones()
                 .stream()
                 .filter(predicate)
                 .findFirst()
@@ -257,7 +257,7 @@ public final class RenderPipeline {
     }
 
     public <T> @Nullable T firstNotNull(@NotNull Function<RenderedBone, T> mapper) {
-        return flattenBoneMap.values()
+        return bones()
                 .stream()
                 .map(mapper)
                 .filter(Objects::nonNull)

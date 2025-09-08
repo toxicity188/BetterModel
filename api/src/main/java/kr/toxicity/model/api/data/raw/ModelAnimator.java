@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A raw model animator.
@@ -16,4 +17,21 @@ public record ModelAnimator(
         @Nullable String name,
         @NotNull List<ModelKeyframe> keyframes
 ) {
+
+    /**
+     * Checks this animator has a name
+     * @return has a name
+     */
+    public boolean hasName() {
+        return name != null;
+    }
+
+    /**
+     * Gets name
+     * @return name
+     */
+    @Override
+    public @NotNull String name() {
+        return Objects.requireNonNull(name);
+    }
 }

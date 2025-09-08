@@ -78,6 +78,16 @@ public record TrackerModifier(
         }
 
         /**
+         * @deprecated no longer use. you have to follow {@link TrackerUpdateAction#viewRange(float)}
+         * @param viewRange range
+         * @return self
+         */
+        @Deprecated(forRemoval = true)
+        public @NotNull Builder viewRange(float viewRange) {
+            return this;
+        }
+
+        /**
          * Sets damage tint
          * @param damageTint damage tint
          * @return self

@@ -2,7 +2,10 @@ package kr.toxicity.model.api.animation;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 import org.joml.Vector3f;
+
+import java.util.List;
 
 /**
  * A movement of animation.
@@ -22,6 +25,17 @@ public record AnimationMovement(
      * Empty movement
      */
     public static final AnimationMovement EMPTY = new AnimationMovement(0);
+
+    /**
+     * Gets empty movement list
+     * @param length length
+     * @return empty keyframes
+     */
+    @NotNull
+    @Unmodifiable
+    public static List<AnimationMovement> withEmpty(float length) {
+        return List.of(EMPTY, new AnimationMovement(length));
+    }
 
     /**
      * Creates empty animation movement

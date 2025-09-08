@@ -6,17 +6,18 @@ import kr.toxicity.model.api.util.function.BonePredicate;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.Display;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.BiPredicate;
+import java.util.stream.Stream;
 
 /**
  * Tracker update action
  */
 public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, BonePredicate> {
-
-    @Override
-    boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate);
 
     /**
      * Creates brightness action
@@ -108,6 +109,34 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
      */
     static @NotNull ItemMapping itemMapping() {
         return ItemMapping.INSTANCE;
+    }
+
+    /**
+     * Gets composited action
+     * @return composited action
+     */
+    static @NotNull Composite composite(@NotNull TrackerUpdateAction... actions) {
+        return new Composite(Arrays.stream(actions).flatMap(TrackerUpdateAction::stream).toList());
+    }
+
+    @Override
+    boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate);
+
+    /**
+     * Adds other actions to this update action
+     * @param action action
+     * @return merged action
+     */
+    default @NotNull TrackerUpdateAction then(@NotNull TrackerUpdateAction action) {
+        return composite(this, action);
+    }
+
+    /**
+     * Gets action stream
+     * @return stream
+     */
+    default @NotNull Stream<TrackerUpdateAction> stream() {
+        return this instanceof Composite(List<TrackerUpdateAction> actions) ? actions.stream().flatMap(TrackerUpdateAction::stream) : Stream.of(this);
     }
 
     /**
@@ -256,6 +285,17 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
         @Override
         public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
             return bone.updateItem(predicate);
+        }
+    }
+
+    /**
+     * Composited action
+     * @param actions actions
+     */
+    record Composite(@NotNull @Unmodifiable List<TrackerUpdateAction> actions) implements TrackerUpdateAction {
+        @Override
+        public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
+            return actions.stream().anyMatch(action -> action.test(bone, predicate));
         }
     }
 }
