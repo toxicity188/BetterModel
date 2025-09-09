@@ -442,7 +442,7 @@ internal class HitBoxImpl(
             }
         }
     }
-    override fun getDefaultDimensions(pose: Pose): EntityDimensions = dimensions
+    override fun getDefaultDimensions(pose: Pose): EntityDimensions = if (initialized) dimensions else super.getDefaultDimensions(pose)
 
     override fun removeHitBox() {
         BetterModel.plugin().scheduler().task(bukkitEntity) {
