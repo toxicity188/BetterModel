@@ -295,7 +295,11 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
     record Composite(@NotNull @Unmodifiable List<TrackerUpdateAction> actions) implements TrackerUpdateAction {
         @Override
         public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
-            return actions.stream().anyMatch(action -> action.test(bone, predicate));
+            var result = false;
+            for (TrackerUpdateAction action : actions) {
+                if (action.test(bone, predicate)) result = true;
+            }
+            return result;
         }
     }
 }
