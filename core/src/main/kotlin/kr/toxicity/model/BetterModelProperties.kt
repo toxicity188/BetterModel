@@ -2,6 +2,7 @@ package kr.toxicity.model
 
 import com.vdurmont.semver4j.Semver
 import kr.toxicity.model.api.BetterModel
+import kr.toxicity.model.api.BetterModelConfig
 import kr.toxicity.model.api.BetterModelLogger
 import kr.toxicity.model.api.BetterModelPlugin.ReloadResult
 import kr.toxicity.model.api.event.PluginEndReloadEvent
@@ -26,8 +27,8 @@ import org.bukkit.Bukkit
 internal class BetterModelProperties(
     private val plugin: AbstractBetterModelPlugin
 ) {
-    private var _config = BetterModelConfigImpl(PluginConfiguration.CONFIG.create())
-    private var _metrics: Metrics? = if (_config.metrics()) Metrics(plugin, 24237) else null
+    private lateinit var _config: BetterModelConfig
+    private var _metrics: Metrics? = null
 
     val version = parse(Bukkit.getBukkitVersion().substringBefore('-'))
     val nms = when (version) {
@@ -92,4 +93,8 @@ internal class BetterModelProperties(
 
     var reloadStartTask: (PackZipper) -> Unit = { PluginStartReloadEvent(it).call() }
     var reloadEndTask: (ReloadResult) -> Unit = { PluginEndReloadEvent(it).call() }
+
+    init {
+        config = BetterModelConfigImpl(PluginConfiguration.CONFIG.create())
+    }
 }
