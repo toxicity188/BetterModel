@@ -24,7 +24,7 @@ import static java.util.Optional.ofNullable;
  */
 @ApiStatus.Internal
 public record ModelKeyframe(
-        @NotNull KeyframeChannel channel,
+        @Nullable KeyframeChannel channel,
         @SerializedName("data_points") @NotNull List<Datapoint> dataPoints,
         @SerializedName("bezier_left_time") @Nullable Float3 bezierLeftTime,
         @SerializedName("bezier_left_value") @Nullable Float3 bezierLeftValue,
@@ -60,5 +60,14 @@ public record ModelKeyframe(
             );
             default -> VectorInterpolator.defaultInterpolator();
         };
+    }
+
+    /**
+     * Gets channel
+     * @return channel
+     */
+    @Override
+    public @NotNull KeyframeChannel channel() {
+        return channel != null ? channel : KeyframeChannel.NOT_FOUND;
     }
 }

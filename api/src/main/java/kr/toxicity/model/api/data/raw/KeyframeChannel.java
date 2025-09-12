@@ -37,5 +37,9 @@ public enum KeyframeChannel {
      * Particle
      */
     @SerializedName("particle")
-    PARTICLE
+    PARTICLE,
+    /**
+     * Not found
+     */
+    NOT_FOUND
 }

@@ -130,7 +130,7 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                                         color(NamedTextColor.GRAY)
                                         hoverEvent(HoverEvent.showText(componentOf("Packing all model to resource pack.")))
                                     },
-                                    componentOf("${BetterModel.models().size.withComma()} of models are loaded successfully.") {
+                                    componentOf("${BetterModel.models().size.withComma()} of models are loaded successfully. (${result.length().toByteFormat()})") {
                                         color(NamedTextColor.YELLOW)
                                     },
                                     componentOf(if (result.packResult.changed()) "${result.packResult.size().withComma()} of files are zipped." else "Zipping is skipped due to the same result.") {

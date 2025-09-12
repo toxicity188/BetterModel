@@ -175,6 +175,15 @@ public interface BetterModelPlugin extends Plugin {
             public long totalTime() {
                 return assetsTime + packingTime();
             }
+
+            /**
+             * Gets pack length
+             * @return length
+             */
+            public long length() {
+                var dir = packResult.directory();
+                return dir != null && dir.isFile() ? dir.length() : packResult.stream().mapToLong(b -> b.bytes().length).sum();
+            }
         }
 
         /**

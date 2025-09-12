@@ -67,7 +67,6 @@ public abstract class Tracker implements AutoCloseable {
 
     @Getter
     protected final RenderPipeline pipeline;
-    private volatile ScheduledFuture<?> task;
     private long frame = 0;
     private final Queue<Runnable> queuedTask = new ConcurrentLinkedQueue<>();
     private final AtomicBoolean tickPause = new AtomicBoolean();
@@ -87,6 +86,7 @@ public abstract class Tracker implements AutoCloseable {
                 } else b.accept(this);
             }
     );
+    private ScheduledFuture<?> task;
     protected ModelRotator rotator = ModelRotator.YAW;
     protected ModelScaler scaler = ModelScaler.entity();
     private Supplier<ModelRotation> rotationSupplier = () -> ModelRotation.EMPTY;
@@ -110,8 +110,7 @@ public abstract class Tracker implements AutoCloseable {
         this.modifier = modifier;
         bundlerSet = new BundlerSet();
         updater = () -> {
-            var isMinecraftTickTime = frame % MINECRAFT_TICK_MULTIPLIER == 0;
-            if (isMinecraftTickTime) {
+            if (frame % MINECRAFT_TICK_MULTIPLIER == 0) {
                 Runnable task;
                 while ((task = queuedTask.poll()) != null) task.run();
             }

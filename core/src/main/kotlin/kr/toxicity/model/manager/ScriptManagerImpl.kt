@@ -20,6 +20,7 @@ object ScriptManagerImpl : ScriptManager, GlobalManager {
 
     private val scriptMap = hashMapOf<String, ScriptBuilder>()
     private val scriptPattern = Pattern.compile("^(?<name>[a-zA-Z]+)(:(?<argument>(\\w|_|-)+))?(\\{(?<metadata>(\\w|\\W)+)})?$")
+    private val validatePattern = Pattern.compile("^[a-z]+$")
 
     init {
         addBuilder("signal") {
@@ -68,6 +69,7 @@ object ScriptManagerImpl : ScriptManager, GlobalManager {
     override fun build(script: String): AnimationScript? = script.toScript()
 
     override fun addBuilder(name: String, script: ScriptBuilder) {
+        if (!validatePattern.matcher(name).find()) throw RuntimeException("name must be in [a-z]")
         scriptMap[name] = script
     }
 
@@ -77,7 +79,7 @@ object ScriptManagerImpl : ScriptManager, GlobalManager {
     private fun String.toScript(): AnimationScript? = scriptPattern.matcher(this)
         .takeIf(Matcher::find)
         ?.let {
-            scriptMap[it.group("name")]?.build(ScriptBuilder.ScriptData(it.group("argument"),
+            scriptMap[it.group("name").lowercase()]?.build(ScriptBuilder.ScriptData(it.group("argument"),
                 ScriptMetaDataImpl(it.group("metadata")
                     ?.split(';')
                     ?.associate { pair ->

@@ -136,7 +136,7 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
      * @return stream
      */
     default @NotNull Stream<TrackerUpdateAction> stream() {
-        return this instanceof Composite(List<TrackerUpdateAction> actions) ? actions.stream().flatMap(TrackerUpdateAction::stream) : Stream.of(this);
+        return Stream.of(this);
     }
 
     /**
@@ -300,6 +300,11 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
                 if (action.test(bone, predicate)) result = true;
             }
             return result;
+        }
+
+        @Override
+        public @NotNull Stream<TrackerUpdateAction> stream() {
+            return actions.stream().flatMap(TrackerUpdateAction::stream);
         }
     }
 }
