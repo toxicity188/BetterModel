@@ -145,17 +145,13 @@ public final class RenderedBone implements BoneEventHandler {
     private @NotNull BoneStateHandler state(@Nullable UUID uuid) {
         return uuid == null ? globalState : perPlayerState.getOrDefault(uuid, globalState);
     }
-    private @NotNull BoneStateHandler getOrCreateState(@Nullable Player player, @NotNull AnimationEventHandler eventHandler) {
-        return getOrCreateState(player != null ? player.getUniqueId() : null, eventHandler);
+    private @NotNull BoneStateHandler getOrCreateState(@Nullable Player player) {
+        return getOrCreateState(player != null ? player.getUniqueId() : null);
     }
-    private @NotNull BoneStateHandler getOrCreateState(@Nullable UUID uuid, @NotNull AnimationEventHandler eventHandler) {
+    private @NotNull BoneStateHandler getOrCreateState(@Nullable UUID uuid) {
         return uuid == null ? globalState : perPlayerState.computeIfAbsent(uuid, u -> {
             eventDispatcher.onStateCreated(this, u);
-            eventHandler.stateCreated(u);
-            return new BoneStateHandler(u, targetUUID -> {
-                eventDispatcher.onStateRemoved(this, targetUUID);
-                eventHandler.stateRemoved(targetUUID);
-            });
+            return new BoneStateHandler(u, targetUUID -> eventDispatcher.onStateRemoved(this, targetUUID));
         });
     }
 
@@ -489,7 +485,7 @@ public final class RenderedBone implements BoneEventHandler {
             if (get == null && modifier.override(animator.override()) && !filter.isChildren()) return false;
             var type = modifier.type(animator.loop());
             var iterator = get != null ? get.iterator(type) : animator.emptyIterator(type);
-            getOrCreateState(modifier.player(), eventHandler).state.addAnimation(animator.name(), iterator, modifier, eventHandler);
+            getOrCreateState(modifier.player()).state.addAnimation(animator.name(), iterator, modifier, eventHandler);
             return true;
         }
         return false;

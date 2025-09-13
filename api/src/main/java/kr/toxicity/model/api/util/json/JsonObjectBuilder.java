@@ -47,6 +47,7 @@ public final class JsonObjectBuilder {
     public @NotNull JsonObjectBuilder jsonObject(@NotNull String name, @NotNull Consumer<JsonObjectBuilder> consumer) {
         var builder = builder();
         Objects.requireNonNull(consumer).accept(builder);
+        if (builder.object.isEmpty()) return this;
         object.add(name, builder.build());
         return this;
     }
