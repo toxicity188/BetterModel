@@ -86,8 +86,9 @@ public record ModelAnimation(
                     if (script == null) return AnimationScript.EMPTY.time(d.time());
                     return AnimationScript.of(Arrays.stream(placeholder.parseVariable(script).split("\n"))
                             .map(BetterModel.plugin().scriptManager()::build)
-                            .toList())
-                            .time(d.time());
+                            .filter(Objects::nonNull)
+                            .toList()
+                    ).time(d.time());
                 })
                 .toList();
         var list = new ArrayList<TimeScript>(get.size() + 2);
