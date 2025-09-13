@@ -9,6 +9,7 @@ import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
 import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.config.DebugConfig;
 import kr.toxicity.model.api.nms.*;
 import kr.toxicity.model.api.util.CollectionUtil;
@@ -537,10 +538,11 @@ public final class EntityTrackerRegistry {
 
     /**
      * Hitbox with mount info
+     * @param bone bone
      * @param entity entity
      * @param hitBox hitbox
      */
-    public record MountedHitBox(@NotNull Entity entity, @NotNull HitBox hitBox) {
+    public record MountedHitBox(@NotNull RenderedBone bone, @NotNull Entity entity, @NotNull HitBox hitBox) {
         /**
          * Dismount this entity from hitbox.
          */

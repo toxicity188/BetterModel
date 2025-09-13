@@ -17,7 +17,7 @@ public final class BoneEventDispatcher {
         applier = EventFunction.concat(dispatcher.applier, builder);
     }
 
-    public synchronized void handleCreateHitBox(@NotNull BiFunction<RenderedBone, HitBoxListener, HitBoxListener> function) {
+    public synchronized void handleCreateHitBox(@NotNull BiFunction<RenderedBone, HitBoxListener.Builder, HitBoxListener.Builder> function) {
         var before = builder.createHitBox;
         builder.createHitBox = (b, l) -> function.apply(b, before.apply(b, l));
     }
@@ -30,8 +30,8 @@ public final class BoneEventDispatcher {
         builder.stateRemove = builder.stateRemove.andThen(function);
     }
 
-    @NotNull HitBoxListener onCreateHitBox(@NotNull RenderedBone bone, @NotNull HitBoxListener hitBoxListener) {
-        return applier.createHitBox.apply(bone, hitBoxListener);
+    @NotNull HitBoxListener.Builder onCreateHitBox(@NotNull RenderedBone bone, @NotNull HitBoxListener.Builder builder) {
+        return applier.createHitBox.apply(bone, builder);
     }
 
     void onStateCreated(@NotNull RenderedBone bone, @NotNull UUID uuid) {
@@ -44,7 +44,7 @@ public final class BoneEventDispatcher {
 
     @AllArgsConstructor
     private static class EventFunction {
-        private BiFunction<RenderedBone, HitBoxListener, HitBoxListener> createHitBox;
+        private BiFunction<RenderedBone, HitBoxListener.Builder, HitBoxListener.Builder> createHitBox;
         private BiConsumer<RenderedBone, UUID> stateCreate;
         private BiConsumer<RenderedBone, UUID> stateRemove;
 

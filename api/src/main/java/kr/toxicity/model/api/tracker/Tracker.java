@@ -541,24 +541,6 @@ public abstract class Tracker implements AutoCloseable {
     //--- Update action ---
 
     /**
-     * Toggles red tint of a model.
-     * @param rgb toggle
-     */
-    public void tint(int rgb) {
-        if (tint(BonePredicate.TRUE, rgb)) forceUpdate(true);
-    }
-
-    /**
-     * Toggles red tint of a model.
-     * @param predicate predicate
-     * @param rgb toggle
-     * @return success
-     */
-    public boolean tint(@NotNull BonePredicate predicate, int rgb) {
-        return tryUpdate(TrackerUpdateAction.tint(rgb), predicate);
-    }
-
-    /**
      * Creates hitbox based on some entity
      * @param entity entity base
      * @param listener listener
@@ -665,7 +647,10 @@ public abstract class Tracker implements AutoCloseable {
      * @return bone or null
      */
     public @Nullable RenderedBone bone(@NotNull Predicate<RenderedBone> predicate) {
-        return pipeline.boneOf(predicate);
+        return bones().stream()
+                .filter(predicate)
+                .findFirst()
+                .orElse(null);
     }
 
     /**

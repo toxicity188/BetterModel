@@ -70,7 +70,6 @@ public class EntityTracker extends Tracker {
 
         var entity = registry.entity();
         var adapter = registry.adapter();
-        pipeline.eventDispatcher().handleCreateHitBox((b, l) -> injectListener(l));
         var scale = FunctionUtil.throttleTickFloat(() -> scaler().scale(this));
         //Shadow
         Optional.ofNullable(bone("shadow"))
@@ -125,31 +124,25 @@ public class EntityTracker extends Tracker {
             } else tag.alwaysVisible(entity instanceof Player);
             tag.component(adapter.customName());
         });
+        pipeline.eventDispatcher().handleCreateHitBox((b, l) -> l.mount((h, e) -> {
+                    registry.mountedHitBoxCache.put(e.getUniqueId(), new EntityTrackerRegistry.MountedHitBox(b, e, h));
+                    EventUtil.call(new MountModelEvent(this, b, h, e));
+                })
+                .dismount((h, e) -> {
+                    registry.mountedHitBoxCache.remove(e.getUniqueId());
+                    EventUtil.call(new DismountModelEvent(this, b, h, e));
+                }));
         BetterModel.plugin().scheduler().task(entity, () -> {
             if (isClosed()) return;
             createHitBox(null, CREATE_HITBOX_PREDICATE);
         });
         tick((t, s) -> updateBaseEntity0());
         tick((t, s) -> {
-            if (damageTint.getAndDecrement() == 0) tint(-1);
+            if (damageTint.getAndDecrement() == 0) update(TrackerUpdateAction.previousTint());
         });
         rotation(bodyRotator::bodyRotation);
         preUpdateConsumer.accept(this);
         EventUtil.call(new CreateEntityTrackerEvent(this));
-    }
-
-    private @NotNull HitBoxListener injectListener(@Nullable HitBoxListener source) {
-        var builder = source != null ? source.toBuilder() : HitBoxListener.builder();
-        return builder
-                .mount((h, e) -> {
-                    registry.mountedHitBoxCache.put(e.getUniqueId(), new EntityTrackerRegistry.MountedHitBox(e, h));
-                    EventUtil.call(new MountModelEvent(this, h, e));
-                })
-                .dismount((h, e) -> {
-                    registry.mountedHitBoxCache.remove(e.getUniqueId());
-                    EventUtil.call(new DismountModelEvent(this, h, e));
-                })
-                .build();
     }
 
     @Override
@@ -228,7 +221,7 @@ public class EntityTracker extends Tracker {
     public void damageTint() {
         if (!modifier().damageTint()) return;
         var get = damageTint.get();
-        if (get <= 0 && damageTint.compareAndSet(get, 10)) task(() -> tint(damageTintValue()));
+        if (get <= 0 && damageTint.compareAndSet(get, 10)) task(() -> update(TrackerUpdateAction.tint(damageTintValue())));
     }
 
     @Override

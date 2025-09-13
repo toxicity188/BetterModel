@@ -185,14 +185,6 @@ public final class RenderPipeline implements BoneEventHandler {
         return flattenBoneMap.get(name);
     }
 
-    public @Nullable RenderedBone boneOf(@NotNull Predicate<RenderedBone> predicate) {
-        return bones()
-                .stream()
-                .filter(predicate)
-                .findFirst()
-                .orElse(null);
-    }
-
     @ApiStatus.Internal
     public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier, @NotNull AnimationEventHandler eventHandler) {
         return matchTree(AnimationPredicate.of(filter), (b, a) -> b.addAnimation(a, animation, modifier, eventHandler));

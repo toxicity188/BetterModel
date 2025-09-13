@@ -37,15 +37,11 @@ public record BoneName(@NotNull Set<BoneTag> tags, @NotNull String name, @NotNul
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof BoneName boneName)) return false;
-        return name.equals(boneName.name) && tags.equals(boneName.tags);
+        return rawName.equals(boneName.rawName);
     }
 
     @Override
     public int hashCode() {
-        var hash = 31;
-        var value = 1;
-        value = value * hash + tags.hashCode();
-        value = value * hash + name.hashCode();
-        return value;
+        return rawName.hashCode();
     }
 }

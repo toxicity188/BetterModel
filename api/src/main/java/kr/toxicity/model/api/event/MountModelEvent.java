@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.event;
 
+import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.nms.HitBox;
 import kr.toxicity.model.api.tracker.EntityTracker;
 import lombok.Getter;
@@ -20,6 +21,7 @@ public final class MountModelEvent extends AbstractModelEvent implements Cancell
     public static final HandlerList HANDLER_LIST = new HandlerList();
 
     private final EntityTracker tracker;
+    private final RenderedBone bone;
     private final HitBox hitBox;
     private final Entity entity;
     @Getter
@@ -29,12 +31,14 @@ public final class MountModelEvent extends AbstractModelEvent implements Cancell
     /**
      * Creates event
      * @param tracker tracker
+     * @param bone bone
      * @param hitBox hitbox
      * @param entity entity
      */
     @ApiStatus.Internal
-    public MountModelEvent(@NotNull EntityTracker tracker, @NotNull HitBox hitBox, @NotNull Entity entity) {
+    public MountModelEvent(@NotNull EntityTracker tracker, @NotNull RenderedBone bone, @NotNull HitBox hitBox, @NotNull Entity entity) {
         this.tracker = tracker;
+        this.bone = bone;
         this.hitBox = hitBox;
         this.entity = entity;
     }
@@ -45,6 +49,14 @@ public final class MountModelEvent extends AbstractModelEvent implements Cancell
      */
     public @NotNull EntityTracker tracker() {
         return tracker;
+    }
+
+    /**
+     * Gets source bone
+     * @return bone
+     */
+    public @NotNull RenderedBone bone() {
+        return bone;
     }
 
     /**

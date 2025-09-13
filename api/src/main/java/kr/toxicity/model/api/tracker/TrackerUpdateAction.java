@@ -66,6 +66,14 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
     }
 
     /**
+     * Gets previous tint action
+     * @return previous tint action
+     */
+    static @NotNull PreviousTint previousTint() {
+        return PreviousTint.INSTANCE;
+    }
+
+    /**
      * Gets enchant action
      * @param enchant should be enchanted
      * @return enchant action
@@ -225,6 +233,21 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
         @Override
         public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
             return bone.tint(predicate, rgb);
+        }
+    }
+
+    /**
+     * Previous tint
+     */
+    enum PreviousTint implements TrackerUpdateAction {
+        /**
+         * Instance
+         */
+        INSTANCE
+        ;
+        @Override
+        public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
+            return bone.tint(predicate);
         }
     }
 

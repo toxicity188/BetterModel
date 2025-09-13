@@ -40,6 +40,7 @@ import java.util.stream.Stream;
  */
 public final class RenderedBone implements BoneEventHandler {
 
+    private static final int INITIAL_TINT_VALUE = 0xFFFFFF;
     private static final Vector3f EMPTY_VECTOR = new Vector3f();
     private static final ItemStack AIR = new ItemStack(Material.AIR);
     private static final BoneMovement EMPTY_MOVEMENT = new BoneMovement(
@@ -87,7 +88,7 @@ public final class RenderedBone implements BoneEventHandler {
     @Getter
     @Setter
     private BoneItemMapper itemMapper;
-    private volatile int previousTint, tint = 0xFFFFFF;
+    private volatile int previousTint = INITIAL_TINT_VALUE, tint = INITIAL_TINT_VALUE;
     private volatile TransformedItemStack itemStack;
 
     //Animation
@@ -182,7 +183,7 @@ public final class RenderedBone implements BoneEventHandler {
                 if (previous != hitBox) return false;
                 var h = group.getHitBox();
                 if (h == null) h = ModelBoundingBox.MIN.named(name());
-                var l = eventDispatcher.onCreateHitBox(this, listener != null ? listener : HitBoxListener.EMPTY);
+                var l = eventDispatcher.onCreateHitBox(this, (listener != null ? listener : HitBoxListener.EMPTY).toBuilder()).build();
                 if (hitBox != null) hitBox.removeHitBox();
                 hitBox = BetterModel.plugin().nms().createHitBox(entity, this, h, group.getMountController(), l);
                 return hitBox != null;
@@ -440,8 +441,11 @@ public final class RenderedBone implements BoneEventHandler {
         return preventModifierUpdate ? lastModifiedRotation : (lastModifiedRotation = rotationModifier.apply(new Quaternionf()));
     }
 
+    public boolean tint(@NotNull Predicate<RenderedBone> predicate) {
+        return tint(predicate, previousTint);
+    }
+
     public boolean tint(@NotNull Predicate<RenderedBone> predicate, int tint) {
-        if (tint == -1) tint = previousTint;
         if (this.tint != tint && predicate.test(this)) {
             synchronized (itemLock) {
                 if (this.tint == tint) return false;
