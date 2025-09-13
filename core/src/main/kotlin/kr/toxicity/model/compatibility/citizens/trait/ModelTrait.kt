@@ -30,11 +30,9 @@ class ModelTrait : Trait("model") {
     }
 
     override fun save(key: DataKey) {
-        npc.entity?.uniqueId?.let { uuid ->
-            EntityTrackerRegistry.registry(uuid)?.first()?.name()?.let {
-                key.setString("", it)
-            }
-        }
+        key.setString("", npc.entity?.uniqueId?.let { uuid ->
+            EntityTrackerRegistry.registry(uuid)?.first()?.name()
+        })
     }
 
     override fun onSpawn() {
