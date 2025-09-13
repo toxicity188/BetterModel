@@ -1,6 +1,5 @@
 package kr.toxicity.model.api.data.blueprint;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.data.raw.Float3;
@@ -43,14 +42,6 @@ public sealed interface BlueprintChildren {
             boolean visibility
     ) implements BlueprintChildren {
 
-        private static final JsonArray MAX_SCALE_ARRAY = new JsonArray(3);
-
-        static {
-            MAX_SCALE_ARRAY.add(4);
-            MAX_SCALE_ARRAY.add(4);
-            MAX_SCALE_ARRAY.add(4);
-        }
-
         /**
          * Gets origin
          * @return origin
@@ -73,13 +64,11 @@ public sealed interface BlueprintChildren {
         /**
          * Gets blueprint legacy json
          * @param skipLog skip log
-         * @param scale scale
          * @param parent parent
          * @return json
          */
         public @Nullable BlueprintJson buildLegacyJson(
                 boolean skipLog,
-                float scale,
                 @NotNull ModelBlueprint parent
         ) {
             Predicate<BlueprintElement> filter = element -> MathUtil.checkValidDegree(element.identifierDegree());
@@ -87,21 +76,20 @@ public sealed interface BlueprintChildren {
                     filter,
                     element -> "The model " + parent.name() + "'s cube \"" + element.element.name() + "\" has an invalid rotation which does not supported in legacy client (<=1.21.3) " + element.element.rotation()
             );
-            return buildJson(-2, 1, scale, parent, Float3.ZERO, filterIsInstance(children, BlueprintElement.class).filter(filter));
+            return buildJson(-2, 1, scale(), parent, Float3.ZERO, filterIsInstance(children, BlueprintElement.class).filter(filter));
         }
 
         /**
          * Gets blueprint modern json
-         * @param scale scale
          * @param parent parent
          * @return json
          */
         @Nullable
         @Unmodifiable
         public List<BlueprintJson> buildModernJson(
-                float scale,
                 @NotNull ModelBlueprint parent
         ) {
+            var scale = scale();
             var list = mapIndexed(
                     group(
                             filterIsInstance(children, BlueprintElement.class),
@@ -136,12 +124,22 @@ public sealed interface BlueprintChildren {
                     })
                     .jsonArray("elements", mapToJson(cubeElement, cube -> cube.buildJson(tint, scale, parent, this, identifier)))
                     .jsonObject("display", display -> display.jsonObject("fixed", fixed -> {
-                        fixed.jsonArray("scale", MAX_SCALE_ARRAY);
                         if (!identifier.equals(Float3.ZERO)) {
                             fixed.jsonArray("rotation", identifier.convertToMinecraftDegree().toJson());
                         }
                     }))
                     .build());
+        }
+
+        /**
+         * Gets cube scale of this model
+         * @return scale
+         */
+        public float scale() {
+            return (float) filterIsInstance(children, BlueprintElement.class)
+                    .mapToDouble(e -> e.element.max(origin) / 16F)
+                    .max()
+                    .orElse(1F);
         }
 
         /**

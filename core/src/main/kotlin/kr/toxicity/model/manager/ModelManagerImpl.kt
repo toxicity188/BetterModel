@@ -182,26 +182,23 @@ object ModelManagerImpl : ModelManager, GlobalManager {
             model: List<ImportedModel>
         ) {
             if (model.isEmpty()) return
-            val maxScale = model.maxOf {
-                it.blueprint.scale()
-            }
             model.forEach { importedModel ->
                 val size = importedModel.jsonSize
                 val load = importedModel.blueprint
                 val hasTexture = load.hasTexture()
-                targetMap[load.name] = load.toRenderer(importedModel.type, maxScale) render@ { group ->
+                targetMap[load.name] = load.toRenderer(importedModel.type) render@ { group ->
                     if (!hasTexture) return@render null
                     var success = false
                     //Modern
                     modernModel.ifAvailable {
-                        group.buildModernJson(maxScale, load)
+                        group.buildModernJson(load)
                     }?.let {
                         modernModel.build(it, size)
                         success = true
                     }
                     //Legacy
                     legacyModel.ifAvailable {
-                        group.buildLegacyJson(PLUGIN.version().useModernResource(), maxScale, load)
+                        group.buildLegacyJson(PLUGIN.version().useModernResource(),load)
                     }?.let {
                         legacyModel.build(listOf(it), size)
                         success = true
@@ -266,11 +263,11 @@ object ModelManagerImpl : ModelManager, GlobalManager {
             )
         )
 
-        private fun ModelBlueprint.toRenderer(type: ModelRenderer.Type, scale: Float, consumer: (BlueprintGroup) -> Int?): ModelRenderer {
+        private fun ModelBlueprint.toRenderer(type: ModelRenderer.Type, consumer: (BlueprintGroup) -> Int?): ModelRenderer {
             fun BlueprintGroup.parse(): RendererGroup {
                 return RendererGroup(
                     name,
-                    scale,
+                    scale(),
                     if (name.toItemMapper() !== BoneItemMapper.EMPTY) null else consumer(this)?.let { i ->
                         ItemStack(CONFIG.item()).apply {
                             itemMeta = itemMeta.apply {

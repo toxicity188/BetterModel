@@ -74,7 +74,7 @@ public final class RendererGroup {
         this.itemStack = TransformedItemStack.of(
                 new Vector3f(),
                 new Vector3f(),
-                new Vector3f(scale).div(4),
+                new Vector3f(scale),
                 itemStack != null ? itemStack : new ItemStack(Material.AIR)
         );
         position = group.origin().toBlockScale().toVector();

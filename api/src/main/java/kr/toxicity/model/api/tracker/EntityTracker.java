@@ -70,6 +70,7 @@ public class EntityTracker extends Tracker {
 
         var entity = registry.entity();
         var adapter = registry.adapter();
+        pipeline.eventDispatcher().handleCreateHitBox((b, l) -> injectListener(l));
         var scale = FunctionUtil.throttleTickFloat(() -> scaler().scale(this));
         //Shadow
         Optional.ofNullable(bone("shadow"))
@@ -137,6 +138,20 @@ public class EntityTracker extends Tracker {
         EventUtil.call(new CreateEntityTrackerEvent(this));
     }
 
+    private @NotNull HitBoxListener injectListener(@Nullable HitBoxListener source) {
+        var builder = source != null ? source.toBuilder() : HitBoxListener.builder();
+        return builder
+                .mount((h, e) -> {
+                    registry.mountedHitBoxCache.put(e.getUniqueId(), new EntityTrackerRegistry.MountedHitBox(e, h));
+                    EventUtil.call(new MountModelEvent(this, h, e));
+                })
+                .dismount((h, e) -> {
+                    registry.mountedHitBoxCache.remove(e.getUniqueId());
+                    EventUtil.call(new DismountModelEvent(this, h, e));
+                })
+                .build();
+    }
+
     @Override
     public @NotNull ModelRotation rotation() {
         return registry.adapter().dead() ? pipeline.getRotation() : super.rotation();
@@ -178,7 +193,7 @@ public class EntityTracker extends Tracker {
      * @return success
      */
     public boolean createHitBox(@Nullable HitBoxListener listener, @NotNull BonePredicate predicate) {
-        return createHitBox(registry.adapter(), listenerOf(listener), predicate);
+        return createHitBox(registry.adapter(), listener, predicate);
     }
 
     /**
@@ -188,21 +203,7 @@ public class EntityTracker extends Tracker {
      * @return hitbox or null
      */
     public @Nullable HitBox hitbox(@Nullable HitBoxListener listener, @NotNull Predicate<RenderedBone> predicate) {
-        return hitbox(registry.adapter(), listenerOf(listener), predicate);
-    }
-
-    private @NotNull HitBoxListener listenerOf(@Nullable HitBoxListener source) {
-        var builder = source != null ? source.toBuilder() : HitBoxListener.builder();
-        return builder
-                .mount((h, e) -> {
-                    registry.mountedHitBoxCache.put(e.getUniqueId(), new EntityTrackerRegistry.MountedHitBox(e, h));
-                    EventUtil.call(new MountModelEvent(this, h, e));
-                })
-                .dismount((h, e) -> {
-                    registry.mountedHitBoxCache.remove(e.getUniqueId());
-                    EventUtil.call(new DismountModelEvent(this, h, e));
-                })
-                .build();
+        return hitbox(registry.adapter(), listener, predicate);
     }
 
     /**

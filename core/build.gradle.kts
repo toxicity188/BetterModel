@@ -40,8 +40,8 @@ bukkitPluginYaml {
     name = rootProject.name
     foliaSupported = true
     apiVersion = "1.20"
-    author = "toxicity"
-    description = "Lightweight BlockBench model engine for Bukkit"
+    author = "toxicity188"
+    description = "Modern Bedrock model engine for Bukkit"
     website = "https://modrinth.com/plugin/bettermodel"
     softDepend = listOf(
         "MythicMobs",

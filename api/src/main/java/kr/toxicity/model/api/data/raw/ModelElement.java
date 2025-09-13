@@ -33,11 +33,12 @@ public record ModelElement(
 ) {
     /**
      * Gets max length of this cube
+     * @param origin origin
      * @return cube length
      */
-    public float max() {
-        var f = from();
-        var t = to();
+    public float max(@NotNull Float3 origin) {
+        var f = from().minus(origin);
+        var t = to().minus(origin);
         var max = 0F;
         max = Math.max(max, Math.abs(f.x()));
         max = Math.max(max, Math.abs(f.y()));

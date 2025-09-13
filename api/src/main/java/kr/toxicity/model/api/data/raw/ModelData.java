@@ -55,7 +55,6 @@ public record ModelData(
         var group = mapToList(outliner(), children -> children.toBlueprint(elementMap));
         return new ModelBlueprint(
                 name,
-                scale(),
                 resolution(),
                 mapToList(textures(), ModelTexture::toBlueprint),
                 group,
@@ -71,17 +70,6 @@ public record ModelData(
         return elements().stream().allMatch(ModelElement::isSupported);
     }
 
-    /**
-     * Gets cube scale of this model
-     * @return scale
-     */
-    public float scale() {
-        return (float) elements()
-                .stream()
-                .mapToDouble(ModelElement::max)
-                .max()
-                .orElse(16F) / 16F;
-    }
 
     /**
      * Gets placeholder

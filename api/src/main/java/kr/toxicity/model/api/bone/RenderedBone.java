@@ -38,7 +38,7 @@ import java.util.stream.Stream;
 /**
  * A rendered item-display.
  */
-public final class RenderedBone {
+public final class RenderedBone implements BoneEventHandler {
 
     private static final Vector3f EMPTY_VECTOR = new Vector3f();
     private static final ItemStack AIR = new ItemStack(Material.AIR);
@@ -54,6 +54,7 @@ public final class RenderedBone {
     private final RendererGroup group;
     private final BoneMovement defaultFrame;
     private final RenderSource<?> renderSource;
+    private final BoneEventDispatcher eventDispatcher = new BoneEventDispatcher();
 
     @NotNull
     @Getter
@@ -149,13 +150,22 @@ public final class RenderedBone {
     }
     private @NotNull BoneStateHandler getOrCreateState(@Nullable UUID uuid, @NotNull AnimationEventHandler eventHandler) {
         return uuid == null ? globalState : perPlayerState.computeIfAbsent(uuid, u -> {
+            eventDispatcher.onStateCreated(this, u);
             eventHandler.stateCreated(u);
-            return new BoneStateHandler(u, eventHandler::stateRemoved);
+            return new BoneStateHandler(u, targetUUID -> {
+                eventDispatcher.onStateRemoved(this, targetUUID);
+                eventHandler.stateRemoved(targetUUID);
+            });
         });
     }
 
     public @Nullable RunningAnimation runningAnimation() {
         return globalState.state.runningAnimation();
+    }
+
+    @Override
+    public @NotNull BoneEventDispatcher eventDispatcher() {
+        return eventDispatcher;
     }
 
     public boolean updateItem(@NotNull Predicate<RenderedBone> predicate) {
@@ -176,12 +186,9 @@ public final class RenderedBone {
                 if (previous != hitBox) return false;
                 var h = group.getHitBox();
                 if (h == null) h = ModelBoundingBox.MIN.named(name());
-                var l = listener;
-                if (hitBox != null) {
-                    hitBox.removeHitBox();
-                    if (l == null) l = hitBox.listener();
-                }
-                hitBox = BetterModel.plugin().nms().createHitBox(entity, this, h, group.getMountController(), l != null ? l : HitBoxListener.EMPTY);
+                var l = eventDispatcher.onCreateHitBox(this, listener != null ? listener : HitBoxListener.EMPTY);
+                if (hitBox != null) hitBox.removeHitBox();
+                hitBox = BetterModel.plugin().nms().createHitBox(entity, this, h, group.getMountController(), l);
                 return hitBox != null;
             }
         }
@@ -420,7 +427,7 @@ public final class RenderedBone {
     public @NotNull Vector3f worldRotation(@Nullable UUID uuid) {
         var state = state(uuid);
         var progress = state.progress();
-        var after = state.afterTransform != null ? state.afterTransform : globalState.relativeOffset();
+        var after = state.afterTransform != null ? state.afterTransform : state.relativeOffset();
         var before = state.beforeTransform != null ? state.beforeTransform : EMPTY_MOVEMENT;
         return InterpolationUtil.lerp(before.rawRotation(), after.rawRotation(), progress);
     }

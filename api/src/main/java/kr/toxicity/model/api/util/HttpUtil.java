@@ -136,7 +136,7 @@ public final class HttpUtil {
                             HoverEvent.showText(Component.text()
                                     .append(Component.text(url).color(NamedTextColor.DARK_AQUA))
                                     .appendNewline()
-                                    .append(Component.text("Click to download link.")))
+                                    .append(Component.text("Click to open link.")))
                     )
                     .clickEvent(ClickEvent.openUrl(url))
                     .build();

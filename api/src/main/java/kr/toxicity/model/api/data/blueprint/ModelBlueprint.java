@@ -13,7 +13,6 @@ import java.util.stream.Stream;
 /**
  * Parsed BlockBench model
  * @param name model name
- * @param scale model cube scale
  * @param resolution resolution
  * @param textures textures
  * @param group children group
@@ -22,7 +21,6 @@ import java.util.stream.Stream;
 @ApiStatus.Internal
 public record ModelBlueprint(
         @NotNull String name,
-        float scale,
         @NotNull ModelResolution resolution,
         @NotNull List<BlueprintTexture> textures,
         @NotNull List<BlueprintChildren> group,

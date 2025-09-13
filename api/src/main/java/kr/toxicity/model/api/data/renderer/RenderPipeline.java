@@ -2,6 +2,8 @@ package kr.toxicity.model.api.data.renderer;
 
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.*;
+import kr.toxicity.model.api.bone.BoneEventDispatcher;
+import kr.toxicity.model.api.bone.BoneEventHandler;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
@@ -30,7 +32,7 @@ import static kr.toxicity.model.api.util.CollectionUtil.associate;
 /**
  * A pipeline class of each tracker.
  */
-public final class RenderPipeline {
+public final class RenderPipeline implements BoneEventHandler {
     @Getter
     private final ModelRenderer parent;
     @Getter
@@ -41,6 +43,7 @@ public final class RenderPipeline {
     private final int displayAmount;
     private final Map<UUID, PlayerChannelHandler> playerMap = new ConcurrentHashMap<>();
     private final Set<UUID> hidePlayerSet = ConcurrentHashMap.newKeySet();
+    private final BoneEventDispatcher eventDispatcher = new BoneEventDispatcher();
 
     private Predicate<Player> viewFilter = p -> true;
     private Predicate<Player> hideFilter = p -> hidePlayerSet.contains(p.getUniqueId());
@@ -62,7 +65,13 @@ public final class RenderPipeline {
         this.source = source;
         this.boneMap = boneMap;
         //Bone
-        flattenBoneMap = associate(boneMap.values().stream().flatMap(RenderedBone::flatten), RenderedBone::name);
+        flattenBoneMap = associate(
+                boneMap.values()
+                        .stream()
+                        .flatMap(RenderedBone::flatten)
+                        .peek(bone -> bone.extend(this)),
+                RenderedBone::name
+        );
         displayAmount = (int) flattenBoneMap.values().stream()
                 .filter(rb -> rb.getDisplay() != null)
                 .count();
@@ -83,6 +92,11 @@ public final class RenderPipeline {
     public @NotNull PacketBundler createParallelBundler() {
         var size = BetterModel.config().packetBundlingSize();
         return size <= 0 ? createBundler() : BetterModel.plugin().nms().createParallelBundler(size);
+    }
+
+    @Override
+    public @NotNull BoneEventDispatcher eventDispatcher() {
+        return eventDispatcher;
     }
 
     public void viewFilter(@NotNull Predicate<Player> filter) {

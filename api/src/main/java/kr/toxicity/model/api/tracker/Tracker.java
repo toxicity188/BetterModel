@@ -130,6 +130,13 @@ public abstract class Tracker implements AutoCloseable {
             if (perPlayer != null) pipeline.nonHidePlayer().forEach(p -> perPlayer.accept(t, p));
         });
         pipeline.spawnPacketHandler(p -> start());
+        pipeline.eventDispatcher().handleStateCreate((bone, uuid) -> bundlerSet.perPlayerViewBundler
+                .computeIfAbsent(uuid, PerPlayerCache::new)
+                .add());
+        pipeline.eventDispatcher().handleStateRemove((bone, uuid) -> {
+            var get = bundlerSet.perPlayerViewBundler.get(uuid);
+            if (get != null) get.remove();
+        });
         LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " tracker created: " + name());
         animate("idle", AnimationModifier.builder().start(6).type(AnimationIterator.Type.LOOP).build());
     }
@@ -458,7 +465,7 @@ public abstract class Tracker implements AutoCloseable {
     public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier, @NotNull AnimationEventHandler eventHandler) {
         var script = animation.script(modifier);
         if (script != null) scriptProcessor.addAnimation(animation.name(), script.iterator(), modifier, AnimationEventHandler.start());
-        return pipeline.animate(filter, animation, modifier, injectEvent(eventHandler));
+        return pipeline.animate(filter, animation, modifier, eventHandler);
     }
 
     /**
@@ -789,17 +796,6 @@ public abstract class Tracker implements AutoCloseable {
                 other.handle(t, s);
             };
         }
-    }
-
-    private @NotNull AnimationEventHandler injectEvent(@NotNull AnimationEventHandler eventHandler) {
-        return eventHandler
-                .onStateCreated(uuid -> bundlerSet.perPlayerViewBundler
-                        .computeIfAbsent(uuid, u -> new PerPlayerCache(uuid))
-                        .add())
-                .onStateRemoved(uuid -> {
-                    var get = bundlerSet.perPlayerViewBundler.get(uuid);
-                    if (get != null) get.remove();
-                });
     }
 
     /**

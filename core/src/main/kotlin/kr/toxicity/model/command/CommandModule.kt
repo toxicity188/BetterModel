@@ -7,9 +7,11 @@ import dev.jorel.commandapi.executors.CommandExecutionInfo
 import dev.jorel.commandapi.executors.ExecutionInfo
 import kr.toxicity.model.util.*
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.HoverEvent
 import net.kyori.adventure.text.format.NamedTextColor
+import net.kyori.adventure.text.format.TextDecoration
 import org.bukkit.command.CommandSender
 
 fun commandModule(name: String, block: CommandAPICommand.() -> Unit) = CommandModule(null, CommandAPICommand(name).apply(block))
@@ -19,37 +21,67 @@ class CommandModule(
     private val delegate: CommandAPICommand
 ) : CommandExecutionInfo {
     companion object {
-        private val lineMessage by lazy {
-            componentOf("----------------------------------------") {
-                color(NamedTextColor.GRAY)
-            }
+        private val upperLineMessage = componentOf("------ BetterModel ${PLUGIN.semver()} ------") {
+            color(NamedTextColor.GRAY)
         }
-        private val requiredMessage by lazy {
-            componentOf {
-                append(componentOf("    <argument>") {
-                    color(NamedTextColor.RED)
-                })
-                append(spaceComponentOf())
-                append(componentOf(" - required"))
-            }
+        private val underLineMessage = componentOf("----------------------------------") {
+            color(NamedTextColor.GRAY)
         }
-        private val optionalMessage by lazy {
-            componentOf {
-                append(componentOf("    [argument]") {
-                    color(NamedTextColor.DARK_AQUA)
-                })
-                append(spaceComponentOf())
-                append(componentOf(" - optional"))
-            }
+        private val requiredMessage = componentOf {
+            append(componentOf("    <arg>") {
+                color(NamedTextColor.RED)
+            })
+            append(spaceComponentOf())
+            append(componentOf(" - required"))
         }
+        private val optionalMessage = componentOf {
+            append(componentOf("    [arg]") {
+                color(NamedTextColor.DARK_AQUA)
+            })
+            append(spaceComponentOf())
+            append(componentOf(" - optional"))
+        }
+        private val usefulLinks = componentOf {
+            decorate(TextDecoration.BOLD)
+            append(spaceComponentOf())
+            append(componentOf("[Wiki]") {
+                color(NamedTextColor.AQUA)
+                toURLComponent("https://github.com/toxicity188/BetterModel/wiki")
+            })
+            append(spaceComponentOf())
+            append(componentOf("[Download]") {
+                color(NamedTextColor.GREEN)
+                toURLComponent("https://modrinth.com/plugin/bettermodel/versions")
+            })
+            append(spaceComponentOf())
+            append(componentOf("[Discord]") {
+                color(NamedTextColor.BLUE)
+                toURLComponent("https://discord.com/invite/rePyFESDbk")
+            })
+        }
+
+        private fun TextComponent.Builder.toURLComponent(url: String) = hoverEvent(HoverEvent.showText(componentOf {
+            append(componentOf(url) {
+                color(NamedTextColor.AQUA)
+            })
+            append(lineComponentOf())
+            append(lineComponentOf())
+            append(componentOf("Click to open link."))
+        })).clickEvent(ClickEvent.openUrl(url))
+
+        private val CommandAPICommand.shortName get() = if (aliases.isNotEmpty()) aliases.first() else name
+
+        private fun String.toTypeName() = lowercase().replace('_', ' ')
     }
 
-    private val rootName: String = parent?.let { "${it.rootName} ${delegate.name}" } ?: delegate.name
+    private val rootName: String = parent?.let { "${it.rootName} ${delegate.name}" } ?: delegate.shortName
     private val rootPermission: String = parent?.let { "${it.rootPermission}.${delegate.name}" } ?: delegate.name
     private val helpComponents by lazy {
         mutableListOf(
             emptyComponentOf(),
-            lineMessage,
+            upperLineMessage,
+            emptyComponentOf(),
+            usefulLinks,
             emptyComponentOf(),
             requiredMessage,
             optionalMessage,
@@ -60,7 +92,7 @@ class CommandModule(
             }.forEach {
                 add(it.toComponent())
             }
-            add(lineMessage)
+            add(underLineMessage)
             add(emptyComponentOf())
         }.toTypedArray()
     }
@@ -126,12 +158,12 @@ class CommandModule(
                 append("Click to suggest command.".toComponent())
             }
         ))
-        clickEvent(ClickEvent.suggestCommand("/$rootName $name"))
+        clickEvent(ClickEvent.suggestCommand("/$rootName $shortName"))
     }
 
     private fun Argument<*>.toComponent() = componentOf {
-        content(if (isOptional) "[$nodeName]" else "<$nodeName>")
+        content(if (isOptional) "[${nodeName.toTypeName()}]" else "<${nodeName.toTypeName()}>")
         color(if (isOptional) NamedTextColor.DARK_AQUA else NamedTextColor.RED)
-        hoverEvent(HoverEvent.showText(Component.text(argumentType.name)))
+        hoverEvent(HoverEvent.showText(Component.text(argumentType.name.toTypeName())))
     }
 }
