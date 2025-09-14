@@ -1,9 +1,10 @@
 package kr.toxicity.model.util
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.newFixedThreadPoolContext
+import kotlinx.coroutines.runBlocking
 import java.util.*
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Executors
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.stream.Collectors
 import java.util.stream.Stream
 
@@ -20,16 +21,7 @@ fun parallelIOThreadPool() = try {
 
 class ParallelIOThreadPool : AutoCloseable {
     private val available = Runtime.getRuntime().availableProcessors() * 2
-    private val integer = AtomicInteger()
-    private val pool = Executors.newFixedThreadPool(available) {
-        Thread(it).apply {
-            isDaemon = true
-            name = "BetterModel-Worker-${integer.andIncrement}"
-            uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { thread, exception ->
-                exception.handleException("A error has been occurred in ${thread.name}")
-            }
-        }
-    }
+    private val pool = newFixedThreadPoolContext(available, "BetterModel-Worker-Dispatcher")
 
     override fun close() {
         pool.close()
@@ -63,12 +55,8 @@ class ParallelIOThreadPool : AutoCloseable {
             }
             queue
         }
-        CompletableFuture.allOf(
-            *tasks.map {
-                CompletableFuture.runAsync({
-                    it()
-                }, pool)
-            }.toTypedArray()
-        ).join()
+        runBlocking {
+            tasks.map { async(pool) { it() } }.awaitAll()
+        }
     }
 }

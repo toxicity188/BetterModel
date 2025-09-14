@@ -1,11 +1,13 @@
 [versions]
 kotlin = "2.2.20"
+kotlinxCoroutines = "1.10.2"
 paperweight = "2.0.0-beta.18"
 resourceFactory = "1.3.1"
 
 [libraries]
 kotlinJvm = { group = "org.jetbrains.kotlin.jvm", name = "org.jetbrains.kotlin.jvm.gradle.plugin", version.ref = "kotlin" }
 kotlin = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
+kotlinxCoroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 
 semver4j = "com.vdurmont:semver4j:3.1.0"
 caffeine = "com.github.ben-manes.caffeine:caffeine:3.2.2"
@@ -43,7 +45,8 @@ manifestLibrary = [
 shadedLibrary = [
     "sharedPackets",
     "commandApi",
-    "libby"
+    "libby",
+    "kotlinxCoroutines",
 ]
 
 [plugins]
