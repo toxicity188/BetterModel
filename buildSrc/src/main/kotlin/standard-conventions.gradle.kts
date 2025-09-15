@@ -2,6 +2,7 @@ plugins {
     java
     kotlin("jvm")
     id("org.jetbrains.dokka")
+    id("com.github.hierynomus.license")
 }
 
 group = "kr.toxicity.model"
@@ -39,6 +40,15 @@ tasks {
     compileJava {
         options.encoding = Charsets.UTF_8.name()
     }
+}
+
+license {
+    header = rootProject.file("LICENSE_HEADER")
+    includes(setOf(
+        "**/*.java",
+        "**/*.kt"
+    ))
+    strictCheck = true
 }
 
 java {
