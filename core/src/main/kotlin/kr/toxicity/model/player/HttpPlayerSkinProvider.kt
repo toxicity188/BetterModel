@@ -8,6 +8,7 @@ import com.mojang.util.UUIDTypeAdapter
 import kr.toxicity.model.api.player.PlayerSkinProvider
 import kr.toxicity.model.util.handleException
 import kr.toxicity.model.util.httpClient
+import java.io.Reader
 import java.net.URI
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
@@ -27,6 +28,8 @@ class HttpPlayerSkinProvider : PlayerSkinProvider {
         .registerTypeAdapter(PropertyMap::class.java, PropertyMap.Serializer())
         .create()
 
+    private fun read(reader: Reader) = serializer.fromJson(reader, Profile::class.java)
+
     override fun provide(profile: GameProfile): CompletableFuture<GameProfile> {
         return httpClient {
             sendAsync(HttpRequest.newBuilder()
@@ -34,12 +37,9 @@ class HttpPlayerSkinProvider : PlayerSkinProvider {
                 .uri(URI.create("https://api.minecraftservices.com/minecraft/profile/lookup/name/${profile.name}"))
                 .build(), HttpResponse.BodyHandlers.ofInputStream()
             ).thenCompose {
-                val uuid = it.body()
-                    .bufferedReader()
-                    .use { stream ->
-                        JsonParser.parseReader(stream)
-                    }
-                    .asJsonObject
+                val uuid = it.body().use { body ->
+                    body.bufferedReader().use(JsonParser::parseReader)
+                }.asJsonObject
                     .getAsJsonPrimitive("id")
                     .asString
                 sendAsync(HttpRequest.newBuilder()
@@ -47,14 +47,11 @@ class HttpPlayerSkinProvider : PlayerSkinProvider {
                     .uri(URI.create("https://sessionserver.mojang.com/session/minecraft/profile/$uuid"))
                     .build(), HttpResponse.BodyHandlers.ofInputStream())
             }.thenApply {
-                it.body().bufferedReader().use { stream ->
-                    serializer.fromJson(stream, Profile::class.java).let { p ->
-                        GameProfile(
-                            p.id,
-                            p.name
-                        ).apply {
-                            properties.putAll(p.properties)
-                        }
+                it.body().use { body ->
+                    body.bufferedReader().use(::read)
+                }.let { p ->
+                    GameProfile(p.id, p.name).apply {
+                        properties.putAll(p.properties)
                     }
                 }
             }.exceptionally {

@@ -595,7 +595,7 @@ object SkinManagerImpl : SkinManager, GlobalManager {
         .build<UUID, SkinDataImpl>()
 
     private val fallback by lazy {
-        PLUGIN.getResource("fallback_skin.png")!!.buffered().use {
+        PLUGIN.getResource("fallback_skin.png")!!.use {
             SkinDataImpl(false, ImageIO.read(it))
         }
     }

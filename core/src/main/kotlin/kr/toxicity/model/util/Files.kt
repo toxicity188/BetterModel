@@ -14,9 +14,11 @@ inline fun File.getOrCreateDirectory(name: String, initialConsumer: (File) -> Un
 }
 
 inline fun copyResourceAs(name: String, outputCreator: () -> OutputStream) {
-    PLUGIN.getResource(name)?.buffered()?.use { input ->
+    PLUGIN.getResource(name)?.use { input ->
         outputCreator().use {
-            input.copyTo(it)
+            it.buffered().use { buffered ->
+                input.copyTo(buffered)
+            }
         }
     }
 }
@@ -31,6 +33,6 @@ fun File.fileTreeList(): Stream<Path> = Files.find(
 
 fun File.addResource(name: String) {
     copyResourceAs(name) {
-        File(this, name).outputStream().buffered()
+        File(this, name).outputStream()
     }
 }

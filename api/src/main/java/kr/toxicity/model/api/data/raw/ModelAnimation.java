@@ -71,7 +71,7 @@ public record ModelAnimation(
                 animators.isEmpty() ? AnimationMovement.withEmpty(length()) : animators.values()
                         .iterator()
                         .next()
-                        .keyFrame()
+                        .keyframe()
                         .stream()
                         .map(AnimationMovement::empty)
                         .toList()

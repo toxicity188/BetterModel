@@ -134,7 +134,7 @@ class BetterModelPluginImpl : AbstractBetterModelPlugin() {
                 .toList(),
                 JarEntry::getSize
             ) { entry ->
-                it.getInputStream(entry).buffered().use { stream ->
+                it.getInputStream(entry).use { stream ->
                     consumer(entry.name.substring(prefix.length + 1), stream)
                 }
             }

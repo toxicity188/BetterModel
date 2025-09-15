@@ -18,7 +18,9 @@ enum class PluginConfiguration(
         val exists = file.exists()
         if (!exists) PLUGIN.saveResource(dir, false)
         val yaml = file.toYaml()
-        val newYaml = PLUGIN.getResource(dir).ifNull { "Resource '$dir' not found." }.toYaml()
+        val newYaml = PLUGIN.getResource(dir).ifNull { "Resource '$dir' not found." }.use {
+            it.toYaml()
+        }
         yaml.getKeys(true).forEach {
             if (!newYaml.contains(it)) yaml.set(it, null)
         }

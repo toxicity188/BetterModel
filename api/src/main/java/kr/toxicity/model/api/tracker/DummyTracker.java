@@ -17,7 +17,7 @@ import java.util.function.Consumer;
  * No tracking tracker.
  */
 public final class DummyTracker extends Tracker {
-    private Location location;
+    private volatile Location location;
 
     /**
      * Dummy tracker.
@@ -41,7 +41,7 @@ public final class DummyTracker extends Tracker {
      * Moves model to another location.
      * @param location location
      */
-    public void location(@NotNull Location location) {
+    public synchronized void location(@NotNull Location location) {
         if (this.location.equals(location)) return;
         this.location = Objects.requireNonNull(location, "location");
         var bundler = pipeline.createBundler();

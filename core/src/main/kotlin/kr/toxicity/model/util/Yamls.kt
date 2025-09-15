@@ -7,6 +7,6 @@ import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
 
 fun File.toYaml() = YamlConfiguration.loadConfiguration(this)
-fun InputStream.toYaml() = InputStreamReader(this, StandardCharsets.UTF_8).buffered().use {
-    YamlConfiguration.loadConfiguration(it)
+fun InputStream.toYaml() = InputStreamReader(this, StandardCharsets.UTF_8).use { reader ->
+    reader.buffered().use(YamlConfiguration::loadConfiguration)
 }

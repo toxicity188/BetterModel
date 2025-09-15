@@ -95,19 +95,26 @@ class ZipGenerator : PackGenerator {
             freeze(hashEquals(this))
         }.apply {
             if (!changed()) return this
-            ZipOutputStream(runCatching {
-                MessageDigest.getInstance("SHA-1")
-            }.map {
-                DigestOutputStream(file.outputStream().buffered(), it)
-            }.getOrElse {
-                file.outputStream().buffered()
-            }).use { zip ->
+            fun zip(zip: ZipOutputStream) {
                 zip.setLevel(Deflater.BEST_COMPRESSION)
                 zip.setComment("BetterModel's generated resource pack.")
                 stream().forEach {
                     zip.putNextEntry(ZipEntry(it.path().path()))
                     zip.write(it.bytes())
                     zip.closeEntry()
+                }
+            }
+            file.outputStream().use {
+                it.buffered().use { buffered ->
+                    runCatching {
+                        MessageDigest.getInstance("SHA-1")
+                    }.map { digest ->
+                        DigestOutputStream(buffered, digest).use { digest ->
+                            ZipOutputStream(digest).use(::zip)
+                        }
+                    }.getOrElse {
+                        ZipOutputStream(buffered).use(::zip)
+                    }
                 }
             }
         }

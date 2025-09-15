@@ -17,11 +17,11 @@ import java.util.stream.Stream;
 /**
  * A movement of each group.
  * @param name group name
- * @param keyFrame keyframes
+ * @param keyframe keyframes
  */
 public record BlueprintAnimator(
         @NotNull String name,
-        @NotNull @Unmodifiable List<AnimationMovement> keyFrame
+        @NotNull @Unmodifiable List<AnimationMovement> keyframe
 ) {
 
 
@@ -115,6 +115,6 @@ public record BlueprintAnimator(
      * @return iterator
      */
     public @NotNull AnimationIterator<AnimationMovement> iterator(@NotNull AnimationIterator.Type type) {
-        return type.create(keyFrame);
+        return type.create(keyframe);
     }
 }

@@ -249,7 +249,7 @@ public abstract class Tracker implements AutoCloseable {
     public void schedule(long period, @NotNull ScheduledPacketHandler handler) {
         Objects.requireNonNull(handler);
         if (period <= 0) throw new RuntimeException("period cannot be <= 0");
-        frame((t, s) -> {
+        frame(period == 1 ? handler : (t, s) -> {
             if (frame % period == 0) handler.handle(t, s);
         });
     }
@@ -437,7 +437,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return success
      */
     public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, @NotNull AnimationModifier modifier, @NotNull AnimationEventHandler eventHandler) {
-        return pipeline.getParent().animation(animation)
+        return renderer().animation(animation)
                 .map(get -> animate(filter, get, modifier, eventHandler))
                 .orElse(false);
     }
@@ -519,7 +519,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return success
      */
     public boolean replace(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull String animation, @NotNull AnimationModifier modifier) {
-        return pipeline.getParent().animation(animation)
+        return renderer().animation(animation)
                 .map(get -> replace(filter, target, get, modifier))
                 .orElse(false);
     }
