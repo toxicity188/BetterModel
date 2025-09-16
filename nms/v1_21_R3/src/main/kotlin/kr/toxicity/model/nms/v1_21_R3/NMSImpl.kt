@@ -97,9 +97,11 @@ class NMSImpl : NMS {
         }
         private fun Int.toEntity(level: ServerLevel) = getEntityById(level.levelGetter, this)
         //Spigot
-        private val hitBoxData = ItemDisplay(EntityType.ITEM_DISPLAY, MinecraftServer.getServer().overworld()).run {
-            entityData[Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID] = 3
-            entityData.nonDefaultValues!!
+        private val hitBoxData by lazy {
+            ItemDisplay(EntityType.ITEM_DISPLAY, MinecraftServer.getServer().overworld()).run {
+                entityData[Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID] = 3
+                entityData.nonDefaultValues!!
+            }
         }
     }
 

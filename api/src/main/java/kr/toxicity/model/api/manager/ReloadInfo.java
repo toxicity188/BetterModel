@@ -12,9 +12,9 @@ import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
 @Builder
-public record ReloadInfo(boolean firstReload, @NotNull CommandSender sender) {
+public record ReloadInfo(boolean skipConfig, @NotNull CommandSender sender) {
     public static final ReloadInfo DEFAULT = ReloadInfo.builder()
-            .firstReload(false)
+            .skipConfig(false)
             .sender(Bukkit.getConsoleSender())
             .build();
 }

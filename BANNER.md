@@ -17,7 +17,7 @@ Welcome to **BetterModel**!
 ![](https://github.com/user-attachments/assets/ff515577-6a72-48ba-9943-81f00dddb375)
 * * *
 
-This plugin implements the **fully server-side 3D model** by using an item-display packet.
+This plugin implements **fully server-side 3D model** by using an item-display packet.
 
 - Importing Generic BlockBench model `.bbmodel`
 - Auto-generating resource pack
@@ -28,7 +28,7 @@ This plugin implements the **fully server-side 3D model** by using an item-displ
 
 #### 🔥Why do I create BetterModel even though ModelEngine already exists?
 The main reason I created it is:
-- To reduce network cost usage—MEG’s traffic optimization is outdated and insufficient for modern servers.
+- To reduce network cost—MEG’s network optimization is outdated and insufficient for modern servers.
 - To enable faster updates—We can’t afford to wait for MEG’s slow update cycle anymore.
 - To provide a more flexible API—MEG is closed-source with a very limited API, which makes extending or integrating difficult.
 - To restore vanilla behavior-MEG breaks several vanilla entity features and physics, which this project aims to fix.

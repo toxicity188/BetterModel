@@ -11,7 +11,7 @@
 ![](https://github.com/user-attachments/assets/ff515577-6a72-48ba-9943-81f00dddb375)
 * * *
 
-This plugin implements the **fully server-side 3D model** by using an item-display packet.
+This plugin implements **fully server-side 3D model** by using an item-display packet.
 
 - Importing Generic BlockBench model `.bbmodel`
 - Auto-generating resource pack

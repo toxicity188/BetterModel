@@ -161,10 +161,11 @@ public interface BetterModelPlugin extends Plugin {
 
         /**
          * Reload success.
+         * @param firstLoad first load
          * @param assetsTime assets reloading time
          * @param packResult pack result
          */
-        record Success(long assetsTime, @NotNull PackResult packResult) implements ReloadResult {
+        record Success(boolean firstLoad, long assetsTime, @NotNull PackResult packResult) implements ReloadResult {
 
             /**
              * Gets packing time

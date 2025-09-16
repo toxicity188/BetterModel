@@ -45,10 +45,10 @@ class BetterModelPluginImpl : AbstractBetterModelPlugin() {
             warn(
                 "Unable to start this plugin.",
                 "Reason: ${it.message ?: "Unknown"}",
+                "Stack trace: ${it.stackTraceToString()}",
                 "Plugin will be automatically disabled."
             )
-            Bukkit.getPluginManager().disablePlugin(this)
-            return
+            return Bukkit.getPluginManager().disablePlugin(this)
         }
     }
 
@@ -96,6 +96,7 @@ class BetterModelPluginImpl : AbstractBetterModelPlugin() {
     }
 
     override fun onDisable() {
+        if (!firstLoad.get()) return
         Bukkit.getOnlinePlayers().forEach { EntityTrackerRegistry.registry(it.uniqueId)?.close() }
         ADVENTURE_PLATFORM?.close()
         props.managers.forEach(GlobalManager::end)
@@ -104,7 +105,7 @@ class BetterModelPluginImpl : AbstractBetterModelPlugin() {
     override fun reload(info: ReloadInfo): ReloadResult {
         if (!onReload.compareAndSet(false, true)) return OnReload.INSTANCE
         return runCatching {
-            if (!info.firstReload) props.config = BetterModelConfigImpl(PluginConfiguration.CONFIG.create())
+            if (!info.skipConfig) props.config = BetterModelConfigImpl(PluginConfiguration.CONFIG.create())
             val zipper = PackZipper.zipper().also(props.reloadStartTask)
             ReloadPipeline(
                 config().indicator().options.toIndicator(info)
@@ -114,6 +115,7 @@ class BetterModelPluginImpl : AbstractBetterModelPlugin() {
                     it.reload(pipeline, zipper)
                 }
                 Success(
+                    firstLoad.compareAndSet(false, true),
                     System.currentTimeMillis() - time,
                     config().packType().toGenerator().create(zipper, pipeline.apply {
                         status = "Generating files..."
@@ -147,7 +149,7 @@ class BetterModelPluginImpl : AbstractBetterModelPlugin() {
         }
     }
 
-    override fun logger(): BetterModelLogger = props.logger
+    override fun logger(): BetterModelLogger = logger
     override fun scheduler(): ModelScheduler = props.scheduler
     override fun evaluator(): BetterModelEvaluator = props.evaluator
     override fun modelManager(): ModelManager = ModelManagerImpl

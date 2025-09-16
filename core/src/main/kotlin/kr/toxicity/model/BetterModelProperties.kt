@@ -9,7 +9,6 @@ package kr.toxicity.model
 import com.vdurmont.semver4j.Semver
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.BetterModelConfig
-import kr.toxicity.model.api.BetterModelLogger
 import kr.toxicity.model.api.BetterModelPlugin.ReloadResult
 import kr.toxicity.model.api.event.PluginEndReloadEvent
 import kr.toxicity.model.api.event.PluginStartReloadEvent
@@ -48,23 +47,6 @@ internal class BetterModelProperties(
     }
     val scheduler = if (BetterModel.IS_FOLIA) PaperScheduler() else BukkitScheduler()
     val evaluator = BetterModelEvaluatorImpl()
-    val logger = object : BetterModelLogger {
-        private val internalLogger = plugin.logger
-        override fun info(vararg message: String) {
-            synchronized(internalLogger) {
-                for (s in message) {
-                    internalLogger.info(s)
-                }
-            }
-        }
-        override fun warn(vararg message: String) {
-            synchronized(internalLogger) {
-                for (s in message) {
-                    internalLogger.warning(s)
-                }
-            }
-        }
-    }
     @Suppress("DEPRECATION") //To support Spigot :(
     val semver = Semver(plugin.description.version, Semver.SemverType.LOOSE)
     val snapshot = runCatching {
