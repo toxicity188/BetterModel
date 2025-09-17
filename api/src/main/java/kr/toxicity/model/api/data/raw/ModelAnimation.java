@@ -87,15 +87,13 @@ public record ModelAnimation(
     private @NotNull BlueprintScript toScript(@NotNull ModelAnimator animator, @NotNull ModelPlaceholder placeholder) {
         var get = animator.keyframes()
                 .stream()
-                .map(d -> {
-                    var script = d.point().script();
-                    if (script == null) return AnimationScript.EMPTY.time(d.time());
-                    return AnimationScript.of(Arrays.stream(placeholder.parseVariable(script).split("\n"))
-                            .map(BetterModel.plugin().scriptManager()::build)
-                            .filter(Objects::nonNull)
-                            .toList()
-                    ).time(d.time());
-                })
+                .filter(f -> f.point().hasScript())
+                .map(d -> AnimationScript.of(Arrays.stream(placeholder.parseVariable(d.point().script()).split("\n"))
+                        .map(BetterModel.plugin().scriptManager()::build)
+                        .filter(Objects::nonNull)
+                        .toList()
+                ).time(d.time()))
+                .sorted()
                 .toList();
         var list = new ArrayList<TimeScript>(get.size() + 2);
         if (get.getFirst().time() > 0) list.add(TimeScript.EMPTY);
@@ -105,7 +103,7 @@ public record ModelAnimation(
             list.add(timeScript.time(InterpolationUtil.roundTime(t - before)));
             before = t;
         }
-        var len = length() - before;
+        var len = InterpolationUtil.roundTime(length() - before);
         if (len > 0) list.add(AnimationScript.EMPTY.time(len));
         return new BlueprintScript(
                 name(),

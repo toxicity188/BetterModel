@@ -17,6 +17,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
+import java.util.Objects;
+
 /**
  * A raw JSON vector.
  * @param x x
@@ -45,6 +47,23 @@ public record Datapoint(
                 script != null ? script.getAsString() : null
         );
     };
+
+    /**
+     * Checks this datapoint has script
+     * @return has script
+     */
+    public boolean hasScript() {
+        return script != null;
+    }
+
+    /**
+     * Gets script
+     * @return script
+     */
+    @Override
+    public @NotNull String script() {
+        return Objects.requireNonNull(script);
+    }
 
     private static @NotNull Float2FloatFunction build(@Nullable JsonPrimitive primitive, @NotNull ModelPlaceholder placeholder) {
         if (primitive == null) return Float2FloatFunction.ZERO;

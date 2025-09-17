@@ -7,6 +7,7 @@
 package kr.toxicity.model.api.script;
 
 import kr.toxicity.model.api.animation.AnimationIterator;
+import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.data.raw.ModelAnimation;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +42,7 @@ public record BlueprintScript(@NotNull String name, @NotNull AnimationIterator.T
      * Creates animation iterator of this script
      * @return animation iterator
      */
-    public @NotNull AnimationIterator<TimeScript> iterator() {
-        return type.create(scripts);
+    public @NotNull AnimationIterator<TimeScript> iterator(@NotNull AnimationModifier modifier) {
+        return modifier.type(type).create(scripts);
     }
 }
