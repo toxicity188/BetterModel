@@ -3,11 +3,19 @@
   "extends": [
     "config:recommended"
   ],
+  "ignoreDeps": [
+    "org.jetbrains:annotations"
+  ],
   "baseBranches": [
     "dev"
   ],
-  "ignoreDeps": [
-    "org.jetbrains:annotations",
-    "com.hibiscusmc:hmccosmetics"
+  "packageRules": [
+    {
+      "matchDepNames": [
+        "com.hibiscusmc:hmccosmetics"
+      ],
+      "versioning": "semver",
+      "allowedVersions": "/^(?<major>\\\\d+)(?:\\\\.(?<minor>\\\\d+)(?:\\\\.(?<patch>\\\\d+))?)?$/"
+    }
   ]
 }
