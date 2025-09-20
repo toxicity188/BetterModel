@@ -19,6 +19,9 @@ dependencies {
     rootProject.project("nms").subprojects.forEach {
         shade(project(":nms:${it.name}", configuration = "reobf"))
     }
+    rootProject.project("authlib").subprojects.forEach {
+        shade(it)
+    }
     shade(libs.bundles.shadedLibrary) {
         exclude("net.kyori")
         exclude("org.ow2.asm")

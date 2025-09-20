@@ -6,7 +6,7 @@
  */
 package kr.toxicity.model.api.player;
 
-import com.mojang.authlib.GameProfile;
+import kr.toxicity.model.api.skin.SkinProfile;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
@@ -25,5 +25,5 @@ public interface PlayerSkinProvider {
      * @param profile original profile
      * @return provided profile
      */
-    @NotNull CompletableFuture<GameProfile> provide(@NotNull GameProfile profile);
+    @NotNull CompletableFuture<SkinProfile> provide(@NotNull SkinProfile profile);
 }

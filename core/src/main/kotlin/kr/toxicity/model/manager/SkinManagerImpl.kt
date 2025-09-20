@@ -9,7 +9,6 @@ package kr.toxicity.model.manager
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.benmanes.caffeine.cache.RemovalCause
 import com.google.gson.JsonParser
-import com.mojang.authlib.GameProfile
 import kr.toxicity.library.dynamicuv.*
 import kr.toxicity.model.api.event.CreatePlayerSkinEvent
 import kr.toxicity.model.api.event.RemovePlayerSkinEvent
@@ -17,11 +16,15 @@ import kr.toxicity.model.api.manager.SkinManager
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.player.PlayerLimb
 import kr.toxicity.model.api.player.PlayerSkinProvider
+import kr.toxicity.model.api.skin.AuthLibAdapter
 import kr.toxicity.model.api.skin.SkinData
+import kr.toxicity.model.api.skin.SkinProfile
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.tracker.TrackerUpdateAction
 import kr.toxicity.model.api.util.TransformedItemStack
 import kr.toxicity.model.api.version.MinecraftVersion
+import kr.toxicity.model.authlib.V6AuthLibAdapter
+import kr.toxicity.model.authlib.V7AuthLibAdapter
 import kr.toxicity.model.player.HttpPlayerSkinProvider
 import kr.toxicity.model.util.*
 import org.bukkit.Bukkit
@@ -606,6 +609,8 @@ object SkinManagerImpl : SkinManager, GlobalManager {
         }
     }
 
+    private val authlib = if (PLUGIN.version().useV7AuthLib()) V7AuthLibAdapter() else V6AuthLibAdapter()
+
     private var skinProvider = if (PLUGIN.nms().isProxyOnlineMode) PlayerSkinProvider.DEFAULT else HttpPlayerSkinProvider()
 
     override fun supported(): Boolean = PLUGIN.version() >= MinecraftVersion.V1_21_4
@@ -616,12 +621,14 @@ object SkinManagerImpl : SkinManager, GlobalManager {
         }
     }
 
-    private fun GameProfile.playerEquals() = Bukkit.getPlayer(id)?.let { player ->
-        PLUGIN.nms().profile(player)
+    private fun SkinProfile.playerEquals() = Bukkit.getPlayer(id)?.let { player ->
+        authlib.adapt(PLUGIN.nms().profile(player))
     } === this
 
-    override fun isSlim(profile: GameProfile): Boolean {
-        val encodedValue = profile.properties["textures"]
+    override fun authlib(): AuthLibAdapter = authlib
+
+    override fun isSlim(profile: SkinProfile): Boolean {
+        val encodedValue = profile.textures
         return runCatching {
             encodedValue.isNotEmpty() && JsonParser.parseString(String(Base64.getDecoder().decode(encodedValue.first().value)))
                 .asJsonObject
@@ -632,19 +639,19 @@ object SkinManagerImpl : SkinManager, GlobalManager {
         }.getOrDefault(false)
     }
 
-    override fun getOrRequest(profile: GameProfile): SkinData {
+    override fun getOrRequest(profile: SkinProfile): SkinData {
         return profileCache.get(profile.id) { id ->
             skinProvider.provide(profile).thenApply { provided ->
                 CreatePlayerSkinEvent(provided ?: profile).run {
                     call()
-                    gameProfile
+                    skinProfile
                 }
             }.thenCompose { selected ->
                 httpClient {
                     sendAsync(HttpRequest.newBuilder()
                         .uri(
                             URI.create(
-                                JsonParser.parseString(String(Base64.getDecoder().decode(selected.properties["textures"].first().value)))
+                                JsonParser.parseString(String(Base64.getDecoder().decode(selected.textures.first().value)))
                                     .asJsonObject
                                     .getAsJsonObject("textures")
                                     .getAsJsonObject("SKIN")
@@ -681,7 +688,7 @@ object SkinManagerImpl : SkinManager, GlobalManager {
         }
     }
 
-    override fun removeCache(profile: GameProfile) = profileCache.invalidate(profile.id)
+    override fun removeCache(profile: SkinProfile) = profileCache.invalidate(profile.id)
 
     override fun setSkinProvider(provider: PlayerSkinProvider) {
         skinProvider = provider
@@ -717,7 +724,7 @@ object SkinManagerImpl : SkinManager, GlobalManager {
     private class SkinDataImpl(
         private val isSlim: Boolean,
         private val image: BufferedImage,
-        val original: GameProfile? = null
+        val original: SkinProfile? = null
     ) : SkinData {
 
         private val head = HEAD.asItem(image)

@@ -6,7 +6,7 @@
  */
 package kr.toxicity.model.api.event;
 
-import com.mojang.authlib.GameProfile;
+import kr.toxicity.model.api.skin.SkinProfile;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.event.HandlerList;
@@ -24,15 +24,15 @@ public final class CreatePlayerSkinEvent extends AbstractModelEvent {
      */
     public static final HandlerList HANDLER_LIST = new HandlerList();
 
-    private GameProfile gameProfile;
+    private SkinProfile skinProfile;
 
     /**
      * Creates event
-     * @param gameProfile game profile
+     * @param skinProfile game profile
      */
     @ApiStatus.Internal
-    public CreatePlayerSkinEvent(@NotNull GameProfile gameProfile) {
-        this.gameProfile = gameProfile;
+    public CreatePlayerSkinEvent(@NotNull SkinProfile skinProfile) {
+        this.skinProfile = skinProfile;
     }
 
     @Override

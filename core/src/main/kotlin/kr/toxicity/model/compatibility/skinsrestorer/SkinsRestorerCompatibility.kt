@@ -8,6 +8,7 @@ package kr.toxicity.model.compatibility.skinsrestorer
 
 import com.mojang.authlib.GameProfile
 import com.mojang.authlib.properties.Property
+import kr.toxicity.model.api.skin.SkinProfile
 import kr.toxicity.model.compatibility.Compatibility
 import kr.toxicity.model.manager.SkinManagerImpl
 import kr.toxicity.model.util.PLUGIN
@@ -40,12 +41,11 @@ class SkinsRestorerCompatibility : Compatibility {
                         it.name,
                         Bukkit.getOnlineMode()
                     ).map { skin ->
-                        GameProfile(
+                        SkinProfile(
                             it.id,
-                            it.name
-                        ).apply {
-                            properties.put("textures", skin.toProperty())
-                        }
+                            it.name,
+                            listOf(skin.toProperty())
+                        )
                     }.orElse(null))
             }
         }

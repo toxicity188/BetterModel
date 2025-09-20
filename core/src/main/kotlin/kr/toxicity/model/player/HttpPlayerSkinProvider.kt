@@ -8,10 +8,10 @@ package kr.toxicity.model.player
 
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonParser
-import com.mojang.authlib.GameProfile
 import com.mojang.authlib.properties.PropertyMap
 import com.mojang.util.UUIDTypeAdapter
 import kr.toxicity.model.api.player.PlayerSkinProvider
+import kr.toxicity.model.api.skin.SkinProfile
 import kr.toxicity.model.util.handleException
 import kr.toxicity.model.util.httpClient
 import java.io.Reader
@@ -36,7 +36,7 @@ class HttpPlayerSkinProvider : PlayerSkinProvider {
 
     private fun read(reader: Reader) = serializer.fromJson(reader, Profile::class.java)
 
-    override fun provide(profile: GameProfile): CompletableFuture<GameProfile> {
+    override fun provide(profile: SkinProfile): CompletableFuture<SkinProfile> {
         return httpClient {
             sendAsync(HttpRequest.newBuilder()
                 .GET()
@@ -56,9 +56,7 @@ class HttpPlayerSkinProvider : PlayerSkinProvider {
                 it.body().use { body ->
                     body.bufferedReader().use(::read)
                 }.let { p ->
-                    GameProfile(p.id, p.name).apply {
-                        properties.putAll(p.properties)
-                    }
+                    SkinProfile(p.id, p.name, p.properties["textures"])
                 }
             }.exceptionally {
                 it.handleException("Unable to get ${profile.name}'s skin data.")

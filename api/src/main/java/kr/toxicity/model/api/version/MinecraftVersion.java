@@ -107,6 +107,14 @@ public record MinecraftVersion(int major, int minor, int patch) implements Compa
     }
 
     /**
+     * Checks this version should be use v7 authlib.
+     * @return use v7 authlib
+     */
+    public boolean useV7AuthLib() {
+        return isGreaterOrEquals(V1_21_9);
+    }
+
+    /**
      * Checks this version should be use modern resource.
      * @return use modern resource
      */
