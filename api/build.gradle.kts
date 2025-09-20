@@ -18,7 +18,7 @@ java {
 
 signing {
     val key = System.getenv("SIGNING_KEY")?.let {
-        Base64.decode(it.toByteArray(Charsets.UTF_8)).toString(Charsets.UTF_8)
+        Base64.decode(it.toByteArray()).toString(Charsets.UTF_8)
     }
     val password = System.getenv("SIGNING_PASSWORD")
     if (!key.isNullOrEmpty() && !password.isNullOrEmpty()) {
@@ -37,7 +37,7 @@ dependencies {
     testAnnotationProcessor(libs.lombok)
 }
 
-mavenPublishing  {
+mavenPublishing {
     publishToMavenCentral()
     signAllPublications()
     coordinates("io.github.toxicity188", artifactBaseId, artifactVersion)
@@ -47,7 +47,7 @@ mavenPublishing  {
     ))
     pom {
         name = artifactBaseId
-        description = "Lightweight BlockBench model engine for Bukkit"
+        description = "Modern Bedrock model engine for Bukkit"
         inceptionYear = "2024"
         url = "https://github.com/toxicity188/BetterModel/"
         licenses {

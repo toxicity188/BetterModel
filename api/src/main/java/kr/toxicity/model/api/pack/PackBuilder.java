@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
 
-@RequiredArgsConstructor(access = AccessLevel.MODULE)
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public final class PackBuilder {
     private final PackAssets assets;
     private final PackPath path;

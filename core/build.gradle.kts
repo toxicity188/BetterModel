@@ -24,6 +24,9 @@ dependencies {
         exclude("org.ow2.asm")
     }
 
+    compileOnly(libs.bundles.manifestLibrary)
+    testImplementation(libs.bundles.manifestLibrary)
+
     compileOnly("net.citizensnpcs:citizens-main:2.0.39-SNAPSHOT") {
         exclude("net.byteflux")
     }

@@ -12,6 +12,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 /**
  * A raw model animator.
@@ -39,5 +40,13 @@ public record ModelAnimator(
     @Override
     public @NotNull String name() {
         return Objects.requireNonNull(name);
+    }
+
+    /**
+     * Gets keyframe stream
+     * @return stream
+     */
+    public @NotNull Stream<ModelKeyframe> stream() {
+        return keyframes.stream();
     }
 }

@@ -60,9 +60,8 @@ public record ModelAnimation(
                 e -> BoneTagRegistry.parse(e.name()),
                 e -> {
                     var builder = new BlueprintAnimator.Builder(length());
-                    e.keyframes()
-                            .stream()
-                            .sorted(Comparator.naturalOrder())
+                    e.stream()
+                            .sorted()
                             .forEach(keyframe -> builder.addFrame(keyframe, placeholder));
                     return builder.build(name());
                 }
@@ -85,8 +84,7 @@ public record ModelAnimation(
     }
 
     private @NotNull BlueprintScript toScript(@NotNull ModelAnimator animator, @NotNull ModelPlaceholder placeholder) {
-        var get = animator.keyframes()
-                .stream()
+        var get = animator.stream()
                 .filter(f -> f.point().hasScript())
                 .map(d -> AnimationScript.of(Arrays.stream(placeholder.parseVariable(d.point().script()).split("\n"))
                         .map(BetterModel.plugin().scriptManager()::build)

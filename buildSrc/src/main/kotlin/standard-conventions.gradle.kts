@@ -18,7 +18,6 @@ repositories {
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
     maven("https://repo.codemc.org/repository/maven-public/")
-    maven("https://libraries.minecraft.net/")
     maven("https://jitpack.io")
     maven("https://repo.alessiodp.com/releases/")
     maven("https://maven.blamejared.com/")
@@ -29,8 +28,6 @@ dependencies {
 
     compileOnly(libs.bundles.library)
     testImplementation(libs.bundles.library)
-    compileOnly(libs.bundles.manifestLibrary)
-    testImplementation(libs.bundles.manifestLibrary)
 }
 
 tasks {
