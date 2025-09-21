@@ -150,7 +150,7 @@ public final class AnimationStateHandler<T extends Timed> {
     }
 
     private boolean setAfterKeyframe(@Nullable KeyframeData next) {
-        if (afterKeyframe == next) return false;
+        if (value(afterKeyframe) == value(next)) return false;
         setConsumer.accept(
                 value(beforeKeyframe = afterKeyframe),
                 value(afterKeyframe = next)
