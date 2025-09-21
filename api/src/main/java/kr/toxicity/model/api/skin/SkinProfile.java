@@ -16,4 +16,15 @@ public record SkinProfile(
         @NotNull UUID id,
         @NotNull String name,
         @NotNull Collection<Property> textures
-) {}
+) {
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof SkinProfile that)) return false;
+        return id.equals(that.id) && name.equals(that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return 31 * id.hashCode() + name.hashCode();
+    }
+}

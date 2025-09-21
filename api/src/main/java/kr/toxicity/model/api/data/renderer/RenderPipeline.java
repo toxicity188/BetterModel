@@ -296,16 +296,16 @@ public final class RenderPipeline implements BoneEventHandler {
     }
 
     public boolean hide(@NotNull Player player) {
-        if (hidePlayerSet.add(player.getUniqueId())) {
-            if (isSpawned(player.getUniqueId())) {
-                var bundler = createBundler();
-                iterateTree(b -> b.forceUpdate(false, bundler));
-                hidePacketHandler.accept(bundler);
-                if (bundler.isNotEmpty()) bundler.send(player);
-            }
-            BetterModel.plugin().scheduler().task(player, () -> hitboxes().forEach(hb -> hb.hide(player)));
-            return true;
-        } else return false;
+        if (isHide(player)) return false;
+        hidePlayerSet.add(player.getUniqueId());
+        if (isSpawned(player.getUniqueId())) {
+            var bundler = createBundler();
+            iterateTree(b -> b.forceUpdate(false, bundler));
+            hidePacketHandler.accept(bundler);
+            if (bundler.isNotEmpty()) bundler.send(player);
+        }
+        BetterModel.plugin().scheduler().task(player, () -> hitboxes().forEach(hb -> hb.hide(player)));
+        return true;
     }
 
     public boolean isHide(@NotNull Player player) {
@@ -313,15 +313,15 @@ public final class RenderPipeline implements BoneEventHandler {
     }
 
     public boolean show(@NotNull Player player) {
-        if (hidePlayerSet.remove(player.getUniqueId())) {
-            if (isSpawned(player.getUniqueId())) {
-                var bundler = createBundler();
-                iterateTree(b -> b.forceUpdate(true, bundler));
-                showPacketHandler.accept(bundler);
-                if (bundler.isNotEmpty()) bundler.send(player);
-            }
-            BetterModel.plugin().scheduler().task(player, () -> hitboxes().forEach(hb -> hb.show(player)));
-            return true;
-        } else return false;
+        if (!isHide(player)) return false;
+        hidePlayerSet.remove(player.getUniqueId());
+        if (isSpawned(player.getUniqueId())) {
+            var bundler = createBundler();
+            iterateTree(b -> b.forceUpdate(true, bundler));
+            showPacketHandler.accept(bundler);
+            if (bundler.isNotEmpty()) bundler.send(player);
+        }
+        BetterModel.plugin().scheduler().task(player, () -> hitboxes().forEach(hb -> hb.show(player)));
+        return true;
     }
 }

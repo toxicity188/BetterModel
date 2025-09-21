@@ -623,7 +623,7 @@ object SkinManagerImpl : SkinManager, GlobalManager {
 
     private fun SkinProfile.playerEquals() = Bukkit.getPlayer(id)?.let { player ->
         authlib.adapt(PLUGIN.nms().profile(player))
-    } === this
+    } == this
 
     override fun authlib(): AuthLibAdapter = authlib
 
