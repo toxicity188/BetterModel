@@ -48,8 +48,6 @@ public interface SkinManager {
     }
 
     default void refresh(@NotNull GameProfile profile) {
-        var adapt = authlib().adapt(profile);
-        removeCache(adapt);
-        getOrRequest(adapt);
+        refresh(authlib().adapt(profile));
     }
 }

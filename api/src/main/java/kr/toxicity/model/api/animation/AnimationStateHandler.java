@@ -105,17 +105,17 @@ public final class AnimationStateHandler<T extends Timed> {
                 if (currentIterator == null) {
                     if (updateKeyframe(iterator, next)) {
                         currentIterator = next;
-                        return true;
+                        return setAfterKeyframe(next.next());
                     }
                 } else if (currentIterator != next) {
                     if (updateKeyframe(iterator, next)) {
                         currentIterator.clear();
                         currentIterator = next;
-                        return true;
+                        return setAfterKeyframe(next.next());
                     }
                 } else if (keyframeFinished()) {
                     if (updateKeyframe(iterator, next)) {
-                        return true;
+                        return setAfterKeyframe(next.next());
                     }
                 } else {
                     return false;
@@ -131,7 +131,7 @@ public final class AnimationStateHandler<T extends Timed> {
             iterator.remove();
             return false;
         } else {
-            return setAfterKeyframe(next.next());
+            return true;
         }
     }
 
