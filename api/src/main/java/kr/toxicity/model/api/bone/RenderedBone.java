@@ -616,7 +616,6 @@ public final class RenderedBone implements BoneEventHandler {
         private final @NotNull Consumer<UUID> consumer;
         private final AnimationStateHandler<AnimationMovement> state = new AnimationStateHandler<>(
                 AnimationMovement.EMPTY,
-                (a, s, t) -> a.time(t),
                 (b, a) -> relativeOffsetCache = null
         );
         private volatile BoneMovement beforeTransform, afterTransform, relativeOffsetCache;
@@ -640,7 +639,7 @@ public final class RenderedBone implements BoneEventHandler {
         }
 
         private @NotNull BoneMovement defaultFrame() {
-            var keyframe = state.getAfterKeyframe();
+            var keyframe = state.afterKeyframe();
             return defaultFrame.plus(keyframe != null ? keyframe : AnimationMovement.EMPTY);
         }
 

@@ -31,7 +31,6 @@ import java.util.function.BooleanSupplier;
 public final class AnimationStateHandler<T extends Timed> {
     
     private final T initialValue;
-    private final AnimationMapper<T> mapper;
     private final BiConsumer<T, T> setConsumer;
 
     private final SequencedMap<String, TreeIterator> animators = new LinkedHashMap<>();
@@ -41,8 +40,7 @@ public final class AnimationStateHandler<T extends Timed> {
     @Getter
     private int delay;
     private volatile TreeIterator currentIterator = null;
-    @Getter
-    private volatile T beforeKeyframe = null, afterKeyframe = null;
+    private volatile KeyframeData beforeKeyframe = null, afterKeyframe = null;
 
     /**
      * Checks this keyframe has been finished
@@ -50,6 +48,22 @@ public final class AnimationStateHandler<T extends Timed> {
      */
     public boolean keyframeFinished() {
         return delay <= 0;
+    }
+
+    /**
+     * Gets before keyframe
+     * @return before keyframe
+     */
+    public T beforeKeyframe() {
+        return value(beforeKeyframe);
+    }
+
+    /**
+     * Gets after keyframe
+     * @return after keyframe
+     */
+    public T afterKeyframe() {
+        return value(afterKeyframe);
     }
 
     /**
@@ -135,15 +149,18 @@ public final class AnimationStateHandler<T extends Timed> {
         }
     }
 
-
-    private boolean setAfterKeyframe(@Nullable T next) {
+    private boolean setAfterKeyframe(@Nullable KeyframeData next) {
         if (afterKeyframe == next) return false;
         setConsumer.accept(
-                beforeKeyframe = afterKeyframe,
-                afterKeyframe = next
+                value(beforeKeyframe = afterKeyframe),
+                value(afterKeyframe = next)
         );
         delay = Math.round(frame());
         return true;
+    }
+
+    private @Nullable T value(@Nullable KeyframeData data) {
+        return data == null ? null : data.value;
     }
 
     /**
@@ -195,41 +212,7 @@ public final class AnimationStateHandler<T extends Timed> {
      * @return ticking frame
      */
     public float frame() {
-        return afterKeyframe != null ? 20 * Tracker.MINECRAFT_TICK_MULTIPLIER * (afterKeyframe.time() + MathUtil.FRAME_EPSILON) : 0F;
-    }
-
-    /**
-     * Animation mapper
-     * @param <T> type
-     */
-    @FunctionalInterface
-    public interface AnimationMapper<T extends Timed> {
-        /**
-         * Maps keyframe's time
-         * @param keyframe keyframe
-         * @param state state
-         * @param time time
-         * @return keyframe
-         */
-        @NotNull T map(T keyframe, @NotNull MappingState state, float time);
-    }
-
-    /**
-     * Mapping state
-     */
-    public enum MappingState {
-        /**
-         * Start
-         */
-        START,
-        /**
-         * Progress
-         */
-        PROGRESS,
-        /**
-         * End
-         */
-        END
+        return afterKeyframe != null ? 20 * Tracker.MINECRAFT_TICK_MULTIPLIER * (afterKeyframe.realTime + MathUtil.FRAME_EPSILON) : 0F;
     }
 
     private class TreeIterator implements BooleanSupplier {
@@ -249,7 +232,7 @@ public final class AnimationStateHandler<T extends Timed> {
             this.modifier = modifier;
             this.eventHandler = eventHandler;
 
-            previous = afterKeyframe != null ? afterKeyframe : initialValue;
+            previous = afterKeyframe != null ? afterKeyframe.value : initialValue;
         }
 
         @Override
@@ -261,22 +244,28 @@ public final class AnimationStateHandler<T extends Timed> {
             return iterator.hasNext() || (modifier.end() > 0 && !ended);
         }
 
-        public @NotNull T next() {
+        public @NotNull KeyframeData next() {
             if (!started) {
                 started = true;
-                return mapper.map(iterator.next(), MappingState.START, (float) modifier.start() / 20);
+                return new KeyframeData(iterator.next(), (float) modifier.start() / 20);
             }
             if (!iterator.hasNext()) {
                 ended = true;
-                return mapper.map(previous, MappingState.END, (float) modifier.end() / 20);
+                return new KeyframeData(previous, (float) modifier.end() / 20);
             }
             var nxt = iterator.next();
-            return mapper.map(nxt, MappingState.PROGRESS, nxt.time() / modifier.speedValue());
+            return new KeyframeData(nxt, nxt.time() / modifier.speedValue());
         }
 
         public void clear() {
             iterator.clear();
             started = ended = !iterator.hasNext();
         }
+    }
+
+    @RequiredArgsConstructor
+    private class KeyframeData {
+        private final T value;
+        private final float realTime;
     }
 }

@@ -21,7 +21,6 @@ import kr.toxicity.model.api.data.renderer.RenderPipeline;
 import kr.toxicity.model.api.data.renderer.RenderSource;
 import kr.toxicity.model.api.event.*;
 import kr.toxicity.model.api.nms.*;
-import kr.toxicity.model.api.script.AnimationScript;
 import kr.toxicity.model.api.script.TimeScript;
 import kr.toxicity.model.api.util.EntityUtil;
 import kr.toxicity.model.api.util.EventUtil;
@@ -84,7 +83,6 @@ public abstract class Tracker implements AutoCloseable {
     private final BundlerSet bundlerSet;
     private final AnimationStateHandler<TimeScript> scriptProcessor = new AnimationStateHandler<>(
             TimeScript.EMPTY,
-            (a, s, t) -> s == AnimationStateHandler.MappingState.PROGRESS ? a.time(t) : AnimationScript.EMPTY.time(t),
             (b, a) -> {
                 if (b == null) return;
                 if (b.isSync()) {

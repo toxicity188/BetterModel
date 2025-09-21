@@ -67,19 +67,4 @@ public record AnimationMovement(
     public boolean hasKeyframe() {
         return position != null || scale != null || rotation != null;
     }
-
-    /**
-     * Sets keyframe time.
-     * @param newTime new time
-     * @return new movement
-     */
-    public @NotNull AnimationMovement time(float newTime) {
-        if (time == newTime) return this;
-        return new AnimationMovement(
-                newTime,
-                position,
-                scale,
-                rotation
-        );
-    }
 }
