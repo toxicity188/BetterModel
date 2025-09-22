@@ -9,6 +9,7 @@ package kr.toxicity.model.api.config;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -20,7 +21,7 @@ import java.util.stream.Collectors;
  * Debug config
  * @param options options
  */
-public record DebugConfig(@NotNull Set<DebugOption> options) {
+public record DebugConfig(@NotNull @Unmodifiable Set<DebugOption> options) {
     /**
      * Debug option
      */
@@ -66,8 +67,8 @@ public record DebugConfig(@NotNull Set<DebugOption> options) {
      * @return config
      */
     public static @NotNull DebugConfig from(@NotNull ConfigurationSection section) {
-        return new DebugConfig(Arrays.stream(DebugOption.values())
+        return new DebugConfig(Collections.unmodifiableSet(Arrays.stream(DebugOption.values())
                 .filter(o -> section.getBoolean(o.config))
-                .collect(Collectors.toCollection(() -> EnumSet.noneOf(DebugOption.class))));
+                .collect(Collectors.toCollection(() -> EnumSet.noneOf(DebugOption.class)))));
     }
 }

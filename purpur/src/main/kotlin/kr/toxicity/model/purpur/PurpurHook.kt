@@ -11,7 +11,6 @@ import kr.toxicity.model.api.event.CreateTrackerEvent
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
-import org.bukkit.plugin.Plugin
 
 object PurpurHook {
     fun start() {
@@ -28,6 +27,6 @@ object PurpurHook {
                     !config.usePurpurAfk() || !it.isAfk
                 }
             }
-        }, plugin as Plugin)
+        }, plugin)
     }
 }

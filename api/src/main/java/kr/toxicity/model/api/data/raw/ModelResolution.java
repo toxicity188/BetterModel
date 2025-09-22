@@ -26,8 +26,8 @@ public record ModelResolution(
      */
     public @NotNull ModelResolution then(@NotNull ModelResolution other) {
         return new ModelResolution(
-                other.width > 0 ? other.width : width,
-                other.height > 0 ? other.height : height
+                Math.max(width, other.width),
+                Math.max(height, other.height)
         );
     }
 }

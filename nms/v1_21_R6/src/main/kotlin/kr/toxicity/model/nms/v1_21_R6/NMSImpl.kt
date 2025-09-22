@@ -358,7 +358,7 @@ class NMSImpl : NMS {
             mountController
         ).craftEntity
     }
-    override fun version(): NMSVersion = NMSVersion.V1_21_R5
+    override fun version(): NMSVersion = NMSVersion.V1_21_R6
 
     override fun adapt(entity: org.bukkit.entity.Entity): EntityAdapter {
         entity as CraftEntity

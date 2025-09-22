@@ -77,8 +77,7 @@ public final class InterpolationUtil {
      */
     public static @NotNull VectorPointBuilder interpolatorFor(@NotNull List<VectorPoint> vectors) {
         var last = vectors.isEmpty() ? VectorPoint.EMPTY : vectors.getLast();
-        if (vectors.size() < 2) return last::vector;
-        else return new VectorPointBuilder() {
+        return vectors.size() < 2 ? last::vector : new VectorPointBuilder() {
             private VectorPoint p1 = VectorPoint.EMPTY;
             private VectorPoint p2 = vectors.getFirst();
             private int i = 0;

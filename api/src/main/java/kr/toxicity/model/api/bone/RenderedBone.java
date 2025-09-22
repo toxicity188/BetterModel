@@ -25,7 +25,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -48,12 +47,11 @@ public final class RenderedBone implements BoneEventHandler {
 
     private static final int INITIAL_TINT_VALUE = 0xFFFFFF;
     private static final Vector3f EMPTY_VECTOR = new Vector3f();
-    private static final ItemStack AIR = new ItemStack(Material.AIR);
     private static final BoneMovement EMPTY_MOVEMENT = new BoneMovement(
-            new Vector3f(),
+            EMPTY_VECTOR,
             new Vector3f(1),
             new Quaternionf(),
-            new Vector3f()
+            EMPTY_VECTOR
     );
 
     @Getter
@@ -471,13 +469,12 @@ public final class RenderedBone implements BoneEventHandler {
         return false;
     }
     private void applyItem(@NotNull ModelDisplay targetDisplay) {
-        targetDisplay.item(itemStack.isAir() ? AIR : tintCacheMap.computeIfAbsent(tint, i -> BetterModel.plugin().nms().tint(itemStack.itemStack(), i)));
+        targetDisplay.item(itemStack.isAir() ? itemStack.itemStack() : tintCacheMap.computeIfAbsent(tint, i -> BetterModel.plugin().nms().tint(itemStack.itemStack(), i)));
     }
 
     public @NotNull BoneName name() {
         return getGroup().getName();
     }
-
 
     public void teleport(@NotNull Location location, @NotNull PacketBundler bundler) {
         if (display != null) display.teleport(location, bundler);

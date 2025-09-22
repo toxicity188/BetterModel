@@ -9,6 +9,7 @@ package kr.toxicity.model.api.config;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -20,7 +21,7 @@ import java.util.stream.Collectors;
  * Indicator config
  * @param options options
  */
-public record IndicatorConfig(@NotNull Set<IndicatorOption> options) {
+public record IndicatorConfig(@NotNull @Unmodifiable Set<IndicatorOption> options) {
     /**
      * Indicator option
      */
@@ -45,8 +46,8 @@ public record IndicatorConfig(@NotNull Set<IndicatorOption> options) {
      * @return config
      */
     public static @NotNull IndicatorConfig from(@NotNull ConfigurationSection section) {
-        return new IndicatorConfig(Arrays.stream(IndicatorOption.values())
+        return new IndicatorConfig(Collections.unmodifiableSet(Arrays.stream(IndicatorOption.values())
                 .filter(o -> section.getBoolean(o.config))
-                .collect(Collectors.toCollection(() -> EnumSet.noneOf(IndicatorOption.class))));
+                .collect(Collectors.toCollection(() -> EnumSet.noneOf(IndicatorOption.class)))));
     }
 }
