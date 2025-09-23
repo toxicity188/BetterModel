@@ -1,17 +1,16 @@
-## ⚡Lightweight BlockBench model engine for Bukkit
+# ⚡ BetterModel
 ![Maven Central Version](https://img.shields.io/maven-central/v/io.github.toxicity188/bettermodel?style=flat-square&logo=sonatype)
 [![CodeFactor](https://www.codefactor.io/repository/github/toxicity188/bettermodel/badge?style=flat-square)](https://www.codefactor.io/repository/github/toxicity188/bettermodel)
 [![Total line](https://tokei.rs/b1/github/toxicity188/BetterModel?category=code&style=flat-square)](https://github.com/toxicity188/BetterModel)
-[![Discord](https://img.shields.io/badge/Discord-%235865F2.svg?style=flat-square&logo=discord&logoColor=white)](https://discord.com/invite/rePyFESDbk)
 [![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/toxicity188/BetterModel?style=flat-square&logo=github)](https://github.com/toxicity188/BetterModel/issues)
-[![bStats Servers](https://img.shields.io/bstats/servers/24237?style=flat-square&logo=minecraft&label=bStats&color=0%2C150%2C136%2C0)](https://bstats.org/plugin/bukkit/BetterModel/24237)
+[![](https://img.shields.io/github/actions/workflow/status/toxicity188/BetterModel/publish.yml?style=flat-square)](https://modrinth.com/plugin/bettermodel/versions)
 
 * * *
 ![](https://github.com/user-attachments/assets/5a6c1a8c-6fe2-4a67-a10e-e63e40825d35)
 ![](https://github.com/user-attachments/assets/ff515577-6a72-48ba-9943-81f00dddb375)
 * * *
 
-This plugin implements **fully server-side 3D model** by using an item-display packet.
+This plugin implements **fully server-side 3D model** by using an item display entity packet.
 
 - Importing Generic BlockBench model `.bbmodel`
 - Auto-generating resource pack
@@ -21,6 +20,17 @@ This plugin implements **fully server-side 3D model** by using an item-display p
 - Supports 12-limb player animation
 
 ## 🔧Build info
+
+#### Build
+[![](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/built-with/gradle_vector.svg)](https://gradle.org/)
+
+`./gradlew build`: Builds all jars  
+`./gradlew shadowJar`: Builds plugin jar  
+`./gradlew javadocJar`: Builds javadoc jar
+
+> [!NOTE]\
+> It requires Java 21
+
 #### Library
 - [Kotlin stdlib](https://github.com/JetBrains/kotlin): modern functional programming
 - [semver4j](https://github.com/vdurmont/semver4j): semver parser
@@ -32,23 +42,17 @@ This plugin implements **fully server-side 3D model** by using an item-display p
 - [molang-compiler](https://github.com/Ocelot5836/molang-compiler): compiling and evaluating molang expression
 - [libby](https://github.com/AlessioDP/libby): runtime library downloader
 
-#### Build
-[![](https://img.shields.io/github/actions/workflow/status/toxicity188/BetterModel/publish.yml?style=flat-square)](https://modrinth.com/plugin/bettermodel/versions)
 
-`./gradlew build`: Builds all jars  
-`./gradlew shadowJar`: Builds plugin jar  
-`./gradlew javadocJar`: Builds javadoc jar
-
-> [!NOTE]\
-> It requires Java 21
-
-## Wiki
+## 📗 Wiki
 [![](https://img.shields.io/badge/Github%20Wiki-181717?logo=github&logoColor=white)](https://github.com/toxicity188/BetterModel/wiki)
 [![](https://deepwiki.com/badge.svg)](https://deepwiki.com/toxicity188/BetterModel)
 
-## API
-We are using Maven Central and GitHub Packages.  
+## 💻 API
+
+![](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/available/maven-central_vector.svg)
+
 You can see an API examples in [here](https://github.com/toxicity188/BetterModel/wiki/API-example). 
+
 #### Release
 ```kotlin
 repositories {
@@ -74,5 +78,11 @@ dependencies {
     compileOnly("io.github.toxicity188:bettermodel:VERSION-SNAPSHOT")
 }
 ```
-* * *
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/toxicity188)
+
+## 🌈 Community
+[![](https://discord.com/api/guilds/1012718460297551943/widget.png?style=banner2)](https://discord.com/invite/rePyFESDbk)
+
+## 💖 Support
+[![](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/donate/buymeacoffee-singular_vector.svg)](https://buymeacoffee.com/toxicity188)
+[![](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/donate/ghsponsors-singular_vector.svg)](https://github.com/sponsors/toxicity188)
+[![](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/donate/paypal-singular_vector.svg)](https://www.paypal.com/paypalme/toxicity188?country.x=KR&locale.x=en_US)

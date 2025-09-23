@@ -146,6 +146,9 @@ modrinth {
     gameVersions = supportedVersion
     loaders = listOf("bukkit", "spigot", "paper", "purpur", "folia")
     dependencies {
-        optional.project("skinsrestorer")
+        optional.project(
+            "mythicmobs",
+            "skinsrestorer"
+        )
     }
 }
