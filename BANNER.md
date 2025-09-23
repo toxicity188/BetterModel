@@ -78,5 +78,5 @@ This plugin supports **player model with using user's custom skin without textur
 ⚠️**Paper is highly recommended.**
 
 #### Version
-- Java **21**
+- Java **21** or higher
 - Minecraft server **1.20.5-1.21.8**

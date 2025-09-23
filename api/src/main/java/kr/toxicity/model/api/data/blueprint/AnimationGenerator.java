@@ -111,7 +111,6 @@ public final class AnimationGenerator {
 
     public void interpolateStep(@NotNull FloatSortedSet floats) {
         trees.stream()
-                .flatMap(AnimationTree::flatten)
                 .map(tree -> tree.data)
                 .filter(Objects::nonNull)
                 .forEach(data -> {
@@ -126,7 +125,9 @@ public final class AnimationGenerator {
         for (int i = 1; i < points.size(); i++) {
             var before = points.get(i - 1);
             if (before.interpolator().isContinuous()) continue;
-            floats.add(points.get(i).time() - 0.02F);
+            var time = points.get(i).time() - 0.02F;
+            if (time < 0 || time - before.time() < 0) continue;
+            floats.add(time);
         }
     }
 

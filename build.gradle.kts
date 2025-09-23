@@ -117,6 +117,9 @@ hangarPublish {
             register(Platforms.PAPER) {
                 jar = tasks.shadowJar.flatMap { it.archiveFile }
                 platformVersions = supportedVersion
+                dependencies {
+                    hangar("SkinsRestorer") { required = false }
+                }
             }
         }
     }
@@ -142,4 +145,7 @@ modrinth {
     versionNumber = versionString
     gameVersions = supportedVersion
     loaders = listOf("bukkit", "spigot", "paper", "purpur", "folia")
+    dependencies {
+        optional.project("skinsrestorer")
+    }
 }

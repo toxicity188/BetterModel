@@ -30,6 +30,7 @@ This plugin implements **fully server-side 3D model** by using an item-display p
 - [caffeine](https://github.com/ben-manes/caffeine): concurrent map cache
 - [DynamicUV](https://github.com/toxicity188/DynamicUV): player model-uv
 - [molang-compiler](https://github.com/Ocelot5836/molang-compiler): compiling and evaluating molang expression
+- [libby](https://github.com/AlessioDP/libby): runtime library downloader
 
 #### Build
 [![](https://img.shields.io/github/actions/workflow/status/toxicity188/BetterModel/publish.yml?style=flat-square)](https://modrinth.com/plugin/bettermodel/versions)
@@ -61,7 +62,12 @@ dependencies {
 #### Snapshot
 ```kotlin
 repositories {
-    maven("https://maven.pkg.github.com/toxicity188/BetterModel")
+    maven("https://maven.pkg.github.com/toxicity188/BetterModel") {
+        credentials {
+            username = YOUR_GITHUB_USERNAME
+            password = YOUR_GITHUB_TOKEN
+        }
+    }
 }
 
 dependencies {
