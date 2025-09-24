@@ -32,7 +32,7 @@ The main reason I created it is:
 
 Also, you can refer [my document](https://github.com/toxicity188/BetterModel/wiki/Compare-with-ModelEngine) to compare both ModelEngine and BetterModel.
 
-## 🌎Generic BlockBench model with animation
+## 🌎 Generic BlockBench model with animation
 ![](https://github.com/user-attachments/assets/b4e69aef-a446-4ac3-b84e-eb42fe4f069d)
 * * *
 [![](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/social/youtube-singular_vector.svg)](https://youtu.be/f3U7Lmo3aA8?si=SnglL0YKn20CrR7Y)  
@@ -56,14 +56,16 @@ Like MEG, This plugin supports **MythicMobs**, you can use some MEG's mechanics 
 * * *
 This plugin supports **player model with using user's custom skin without textures**.
 
-## 🚀 Supported environment
+## 📗 Official wiki
 [![](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/documentation/ghpages_vector.svg)](https://github.com/toxicity188/BetterModel/wiki)
+
+## 🚀 Supported environment
 
 #### Platform
 - [Spigot](https://www.spigotmc.org/)
 - [Paper](https://papermc.io/downloads/paper) or a fork (e.g., [Folia](https://papermc.io/downloads/folia))
 
-⚠️**Paper is highly recommended.**
+⚠️ **Paper is highly recommended.**
 
 #### Version
 - Java **21** or higher

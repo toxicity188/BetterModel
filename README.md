@@ -19,7 +19,7 @@ This plugin implements **fully server-side 3D model** by using an item display e
 - Custom hit box
 - Supports 12-limb player animation
 
-## 🔧Build info
+## 🔧 Build info
 
 #### Build
 [![](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/built-with/gradle_vector.svg)](https://gradle.org/)
