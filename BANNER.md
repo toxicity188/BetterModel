@@ -61,15 +61,14 @@ This plugin supports **player model with using user's custom skin without textur
 
 ## 🚀 Supported environment
 
-#### Platform
-- [Spigot](https://www.spigotmc.org/)
-- [Paper](https://papermc.io/downloads/paper) or a fork (e.g., [Folia](https://papermc.io/downloads/folia))
+[![](https://img.shields.io/badge/minecraft-1.20.5%7E1.21.8-8FCA5C?style=for-the-badge)](https://www.minecraft.net/en-us/download/server)
+[![](https://img.shields.io/badge/java-21%7E-ED8B00?style=for-the-badge)](https://adoptium.net/)
 
-⚠️ **Paper is highly recommended.**
+[![](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/supported/paper_vector.svg)](https://papermc.io/downloads/paper)
+[![](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/supported/purpur_vector.svg)](https://purpurmc.org/)
+[![](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/supported/spigot_vector.svg)](https://www.spigotmc.org/)
 
-#### Version
-- Java **21** or higher
-- Minecraft server **1.20.5-1.21.8**
+[![](https://img.shields.io/badge/folia-supported-blue?style=for-the-badge)](https://papermc.io/downloads/folia)
 
 ## 🌈 My plugin community
 [![](https://discord.com/api/guilds/1012718460297551943/widget.png?style=banner2)](https://discord.com/invite/rePyFESDbk)
