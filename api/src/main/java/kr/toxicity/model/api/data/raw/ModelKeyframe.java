@@ -41,6 +41,14 @@ public record ModelKeyframe(
 ) implements Timed {
 
     /**
+     * Checks this keyframe has data point
+     * @return has point
+     */
+    public boolean hasPoint() {
+        return !dataPoints.isEmpty();
+    }
+
+    /**
      * Gets first data point
      * @return point
      */

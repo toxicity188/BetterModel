@@ -47,6 +47,8 @@ public record ModelAnimator(
      * @return stream
      */
     public @NotNull Stream<ModelKeyframe> stream() {
-        return keyframes.stream();
+        return keyframes.stream()
+                .filter(ModelKeyframe::hasPoint)
+                .sorted();
     }
 }

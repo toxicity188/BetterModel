@@ -60,9 +60,7 @@ public record ModelAnimation(
                 e -> BoneTagRegistry.parse(e.name()),
                 e -> {
                     var builder = new BlueprintAnimator.Builder(length());
-                    e.stream()
-                            .sorted()
-                            .forEach(keyframe -> builder.addFrame(keyframe, placeholder));
+                    e.stream().forEach(keyframe -> builder.addFrame(keyframe, placeholder));
                     return builder.build(name());
                 }
         ));
@@ -91,7 +89,6 @@ public record ModelAnimation(
                         .filter(Objects::nonNull)
                         .toList()
                 ).time(d.time()))
-                .sorted()
                 .toList();
         var list = new ArrayList<TimeScript>(get.size() + 2);
         if (get.getFirst().time() > 0) list.add(TimeScript.EMPTY);
