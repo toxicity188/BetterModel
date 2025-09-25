@@ -18,6 +18,7 @@ repositories {
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
     maven("https://repo.codemc.org/repository/maven-public/")
+    maven("https://repo.spongepowered.org/maven/")
     maven("https://jitpack.io")
     maven("https://repo.alessiodp.com/releases/")
     maven("https://maven.blamejared.com/")
