@@ -9,8 +9,6 @@ val versionString = version.toString()
 val groupString = group.toString()
 val classifier = project.name
 
-val javadoc = rootProject.layout.buildDirectory.file("libs/${rootProject.name}-javadoc.jar")
-
 dependencies {
     shade(project(":core")) {
         exclude("org.jetbrains.kotlin")
@@ -67,7 +65,9 @@ modrinth {
         changelog = rootProject.file("changelog/$versionString.md").readText()
     }
     uploadFile.set(tasks.shadowJar)
-    additionalFiles = listOf(javadoc)
+    additionalFiles = listOf(
+        rootProject.layout.buildDirectory.file("libs/${rootProject.name}-$versionString-javadoc.jar")
+    )
     versionName = "BetterModel $versionString for ${classifier.replaceFirstChar { it.uppercase() }}"
     versionNumber = versionString
     gameVersions = SUPPORTED_VERSIONS
