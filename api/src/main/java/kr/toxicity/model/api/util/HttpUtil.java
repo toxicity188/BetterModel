@@ -32,6 +32,7 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
 
@@ -84,6 +85,7 @@ public final class HttpUtil {
                         .asList()
                         .stream()
                         .map(e -> GSON.fromJson(e, PluginVersion.class))
+                        .filter(PluginVersion::isSamePlatform)
                         .filter(v -> v.versions.contains(version))
                         .sorted(Comparator.comparing((PluginVersion v) -> v.versionNumber))
                         .toList()
@@ -125,16 +127,18 @@ public final class HttpUtil {
      * @param versions game versions
      */
     public record PluginVersion(
+            @NotNull String id,
             @NotNull @SerializedName("version_number") Semver versionNumber,
             @NotNull @SerializedName("version_type") String versionType,
-            @NotNull @SerializedName("game_versions") List<MinecraftVersion> versions
+            @NotNull @SerializedName("game_versions") Set<MinecraftVersion> versions,
+            @NotNull Set<String> loaders
     ) {
         /**
          * Creates a text component with URL
          * @return text component
          */
         public @NotNull Component toURLComponent() {
-            var url = "https://modrinth.com/plugin/bettermodel/version/" + versionNumber.getOriginalValue();
+            var url = "https://modrinth.com/plugin/bettermodel/version/" + id;
             return Component.text()
                     .content(versionNumber.getOriginalValue())
                     .color(NamedTextColor.AQUA)
@@ -146,6 +150,14 @@ public final class HttpUtil {
                     )
                     .clickEvent(ClickEvent.openUrl(url))
                     .build();
+        }
+
+        /**
+         * Checks this version is same platform with running platform
+         * @return is same platform
+         */
+        public boolean isSamePlatform() {
+            return BetterModel.IS_PAPER != loaders.contains("bukkit");
         }
     }
 

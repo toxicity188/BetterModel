@@ -68,7 +68,7 @@ class CommandModule(
 
         private fun TextComponent.Builder.toURLComponent(url: String) = hoverEvent(HoverEvent.showText(componentOf {
             append(componentOf(url) {
-                color(NamedTextColor.AQUA)
+                color(NamedTextColor.DARK_AQUA)
             })
             append(lineComponentOf())
             append(lineComponentOf())
