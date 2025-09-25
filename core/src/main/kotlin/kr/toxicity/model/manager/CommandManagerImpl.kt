@@ -18,7 +18,6 @@ import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.manager.CommandManager
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.tracker.EntityHideOption
-import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.command.commandModule
 import kr.toxicity.model.util.*
@@ -35,7 +34,7 @@ import kotlin.math.pow
 object CommandManagerImpl : CommandManager, GlobalManager {
 
     override fun start() {
-        CommandAPI.onLoad(CommandAPIBukkitConfig(PLUGIN).silentLogs(true))
+        CommandAPI.onLoad(CommandAPIBukkitConfig(PLUGIN).beLenientForMinorVersions(true).silentLogs(true))
         commandModule("bettermodel") {
             withAliases("bm")
         }.apply {
@@ -59,7 +58,7 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                 withOptionalArguments(StringArgument("model")
                     .replaceSuggestions(ArgumentSuggestions.strings {
                         (it.sender as? Player)?.uniqueId?.let { u ->
-                            EntityTrackerRegistry.registry(u)?.trackers()?.map { t ->
+                            BetterModel.registryOrNull(u)?.trackers()?.map { t ->
                                 t.name()
                             }
                         }?.toTypedArray() ?: emptyArray()
@@ -69,7 +68,7 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                     val model = args.get("model") as? String
                     if (model != null) {
                         player.toTracker(model)?.close() ?: player.audience().warn("Cannot find this model to undisguise: $model")
-                    } else EntityTrackerRegistry.registry(player.uniqueId)?.close() ?: player.audience().warn("Cannot find any model to undisguise")
+                    } else BetterModel.registryOrNull(player.uniqueId)?.close() ?: player.audience().warn("Cannot find any model to undisguise")
                 })
             }
             command("spawn") {

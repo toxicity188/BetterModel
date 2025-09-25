@@ -1,6 +1,6 @@
 plugins {
-    alias(libs.plugins.bukkitConvention)
-    alias(libs.plugins.resourceFactoryBukkit)
+    alias(libs.plugins.convention.bukkit)
+    alias(libs.plugins.resourcefactory.bukkit)
 }
 
 dependencies {

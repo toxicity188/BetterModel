@@ -11,7 +11,6 @@ import io.lumine.mythic.api.skills.INoTargetSkill
 import io.lumine.mythic.api.skills.SkillMetadata
 import io.lumine.mythic.api.skills.SkillResult
 import kr.toxicity.model.api.BetterModel
-import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.tracker.ModelScaler
 import kr.toxicity.model.api.tracker.TrackerModifier
 import kr.toxicity.model.compatibility.mythicmobs.modelPlaceholder
@@ -33,7 +32,7 @@ class ModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTarg
         val e = p0.caster.entity.bukkitEntity
         return if (r(args)) {
             if (mid(args)?.let {
-                EntityTrackerRegistry.registry(e.uniqueId)?.remove(it)
+                BetterModel.registryOrNull(e.uniqueId)?.remove(it)
             } == true) SkillResult.SUCCESS else SkillResult.CONDITION_FAILED
         } else {
             BetterModel.modelOrNull(mid(args) ?: return SkillResult.CONDITION_FAILED)?.let {

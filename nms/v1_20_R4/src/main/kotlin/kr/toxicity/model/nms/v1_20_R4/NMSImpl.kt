@@ -152,7 +152,7 @@ class NMSImpl : NMS {
         private val playerModel get() = connection.player.id.toRegistry()
 
         private fun Int.toPlayerEntity() = toEntity(connection.player.serverLevel())
-        private fun Entity.toRegistry() = EntityTrackerRegistry.registry(uuid)
+        private fun Entity.toRegistry() = BetterModel.registryOrNull(uuid)
         private inline fun Int.toRegistry(
             ifHitBox: (Entity) -> Unit = {}
         ) = (EntityTrackerRegistry.registry(this) ?: toPlayerEntity()?.let {

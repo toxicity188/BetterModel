@@ -6,8 +6,8 @@
  */
 package kr.toxicity.model.util
 
+import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.nms.NMSVersion
-import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import org.bukkit.NamespacedKey
 import org.bukkit.Registry
 import org.bukkit.entity.Entity
@@ -17,4 +17,4 @@ val ATTRIBUTE_SCALE by lazy {
 }
 
 fun Entity.toTracker(model: String?) = toRegistry()?.tracker(model)
-fun Entity.toRegistry() = EntityTrackerRegistry.registry(uniqueId)
+fun Entity.toRegistry() = BetterModel.registryOrNull(uniqueId)

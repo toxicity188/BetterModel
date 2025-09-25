@@ -108,7 +108,7 @@ public final class BetterModel {
      * @return optional registry
      */
     public static @NotNull Optional<EntityTrackerRegistry> registry(@NotNull UUID uuid) {
-        return Optional.ofNullable(EntityTrackerRegistry.registry(uuid));
+        return Optional.ofNullable(registryOrNull(uuid));
     }
 
     /**
@@ -117,7 +117,25 @@ public final class BetterModel {
      * @return optional registry
      */
     public static @NotNull Optional<EntityTrackerRegistry> registry(@NotNull Entity entity) {
-        return Optional.ofNullable(EntityTrackerRegistry.registry(entity));
+        return Optional.ofNullable(registryOrNull(entity));
+    }
+
+    /**
+     * Gets entity registry by entity's uuid.
+     * @param uuid uuid
+     * @return registry or null
+     */
+    public static @Nullable EntityTrackerRegistry registryOrNull(@NotNull UUID uuid) {
+        return EntityTrackerRegistry.registry(uuid);
+    }
+
+    /**
+     * Gets entity registry by entity.
+     * @param entity entity
+     * @return registry or null
+     */
+    public static @Nullable EntityTrackerRegistry registryOrNull(@NotNull Entity entity) {
+        return EntityTrackerRegistry.registry(entity);
     }
 
     /**

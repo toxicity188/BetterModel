@@ -7,7 +7,7 @@
 package kr.toxicity.model.util
 
 import java.io.File
-import java.io.OutputStream
+import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.stream.Stream
@@ -19,14 +19,8 @@ inline fun File.getOrCreateDirectory(name: String, initialConsumer: (File) -> Un
     }
 }
 
-inline fun copyResourceAs(name: String, outputCreator: () -> OutputStream) {
-    PLUGIN.getResource(name)?.use { input ->
-        outputCreator().use {
-            it.buffered().use { buffered ->
-                input.copyTo(buffered)
-            }
-        }
-    }
+inline fun copyResourceAs(name: String, block: (InputStream) -> Unit) {
+    PLUGIN.getResource(name)?.use(block)
 }
 
 fun File.fileTreeList(): Stream<Path> = Files.find(
@@ -38,7 +32,9 @@ fun File.fileTreeList(): Stream<Path> = Files.find(
 )
 
 fun File.addResource(name: String) {
-    copyResourceAs(name) {
-        File(this, name).outputStream()
+    copyResourceAs(name) { input ->
+        File(this, name).outputStream().use {
+            it.buffered().use { output -> input.copyTo(output) }
+        }
     }
 }

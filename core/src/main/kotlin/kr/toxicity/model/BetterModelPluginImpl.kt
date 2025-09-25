@@ -17,7 +17,6 @@ import kr.toxicity.model.api.manager.*
 import kr.toxicity.model.api.nms.NMS
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.scheduler.ModelScheduler
-import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.configuration.PluginConfiguration
 import kr.toxicity.model.manager.*
@@ -97,7 +96,7 @@ class BetterModelPluginImpl : AbstractBetterModelPlugin() {
 
     override fun onDisable() {
         if (!firstLoad.get()) return
-        Bukkit.getOnlinePlayers().forEach { EntityTrackerRegistry.registry(it.uniqueId)?.close() }
+        Bukkit.getOnlinePlayers().forEach { BetterModel.registryOrNull(it.uniqueId)?.close() }
         ADVENTURE_PLATFORM?.close()
         props.managers.forEach(GlobalManager::end)
     }

@@ -14,7 +14,6 @@ import io.lumine.mythic.api.skills.SkillResult
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.animation.AnimationIterator
 import kr.toxicity.model.api.animation.AnimationModifier
-import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.util.function.FloatConstantSupplier
 import kr.toxicity.model.compatibility.mythicmobs.*
 import kr.toxicity.model.util.warn
@@ -43,7 +42,7 @@ class PlayLimbAnimMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), 
         val currentAnimationId = animationId(args) ?: if (!removal) return SkillResult.INVALID_CONFIG else ""
 
         if (removal) {
-            EntityTrackerRegistry.registry(targetPlayer.uniqueId)?.remove(currentModelId)
+            BetterModel.registryOrNull(targetPlayer.uniqueId)?.remove(currentModelId)
         } else {
             val renderer = BetterModel.limb(currentModelId).orElse(null) ?: return SkillResult.CONDITION_FAILED.apply {
                 warn("Error: Player not found '$currentModelId'")

@@ -6,9 +6,9 @@
  */
 package kr.toxicity.model.compatibility.citizens.command
 
+import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.animation.AnimationIterator
 import kr.toxicity.model.api.animation.AnimationModifier
-import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import net.citizensnpcs.api.CitizensAPI
 import net.citizensnpcs.api.command.Arg
 import net.citizensnpcs.api.command.Command
@@ -46,7 +46,7 @@ class AnimateCommand {
             .speed { spd }
             .type(AnimationIterator.Type.PLAY_ONCE)
             .build()
-        EntityTrackerRegistry.registry(targetNpc.entity.uniqueId)?.trackers()?.forEach {
+        BetterModel.registryOrNull(targetNpc.entity.uniqueId)?.trackers()?.forEach {
             it.animate(animation, modifier)
         }
     }

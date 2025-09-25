@@ -1,9 +1,9 @@
 import xyz.jpenilla.resourcefactory.bukkit.Permission
 
 plugins {
-    alias(libs.plugins.bukkitConvention)
+    alias(libs.plugins.convention.bukkit)
     alias(libs.plugins.paperweight) apply false
-    alias(libs.plugins.resourceFactoryBukkit)
+    alias(libs.plugins.resourcefactory.bukkit)
 }
 
 repositories {
@@ -17,7 +17,7 @@ dependencies {
     shade(project(":api"))
     shade(project(":purpur"))
     rootProject.project("nms").subprojects.forEach {
-        shade(project(":nms:${it.name}", configuration = "reobf"))
+        compileOnly(it)
     }
     rootProject.project("authlib").subprojects.forEach {
         shade(it)
@@ -26,6 +26,7 @@ dependencies {
         exclude("net.kyori")
         exclude("org.ow2.asm")
     }
+    compileOnly(libs.commandapi.bukkit)
 
     compileOnly(libs.bundles.manifestLibrary)
     testImplementation(libs.bundles.manifestLibrary)
@@ -37,7 +38,6 @@ dependencies {
     compileOnly("io.lumine:Mythic-Dist:5.9.5")
     compileOnly("com.hibiscusmc:HMCCosmetics:2.7.8")
     compileOnly("com.nexomc:nexo:1.12.0-dev")
-    shade(fileTree("libs"))
 }
 
 bukkitPluginYaml {
@@ -53,8 +53,7 @@ bukkitPluginYaml {
         "MythicMobs",
         "Citizens",
         "HMCCosmetics",
-        "SkinsRestorer",
-        "Nexo"
+        "SkinsRestorer"
     )
     libraries = libs.bundles.library.map {
         it.map(Any::toString)

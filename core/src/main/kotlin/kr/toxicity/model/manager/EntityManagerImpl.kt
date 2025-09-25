@@ -45,11 +45,11 @@ object EntityManagerImpl : EntityManager, GlobalManager {
     private class PaperListener : Listener { //More accurate world change event for Paper
         @EventHandler(priority = EventPriority.MONITOR)
         fun EntityRemoveFromWorldEvent.remove() {
-            EntityTrackerRegistry.registry(entity.uniqueId)?.despawn()
+            BetterModel.registryOrNull(entity.uniqueId)?.despawn()
         }
         @EventHandler(priority = EventPriority.MONITOR)
         fun EntityAddToWorldEvent.add() {
-            EntityTrackerRegistry.registry(entity)?.refresh()
+            BetterModel.registryOrNull(entity)?.refresh()
         }
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         fun EntityJumpEvent.jump() {
@@ -60,15 +60,15 @@ object EntityManagerImpl : EntityManager, GlobalManager {
     private class SpigotListener : Listener { //Portal event for Spigot
         @EventHandler(priority = EventPriority.MONITOR)
         fun EntityRemoveEvent.remove() {
-            EntityTrackerRegistry.registry(entity.uniqueId)?.despawn()
+            BetterModel.registryOrNull(entity.uniqueId)?.despawn()
         }
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         fun EntitySpawnEvent.spawn() {
-            EntityTrackerRegistry.registry(entity)?.refresh()
+            BetterModel.registryOrNull(entity)?.refresh()
         }
         @EventHandler(priority = EventPriority.MONITOR)
         fun PlayerChangedWorldEvent.change() {
-            EntityTrackerRegistry.registry(player.uniqueId)?.let {
+            BetterModel.registryOrNull(player.uniqueId)?.let {
                 it.despawn()
                 it.refresh()
             }
@@ -89,7 +89,7 @@ object EntityManagerImpl : EntityManager, GlobalManager {
         }
         @EventHandler(priority = EventPriority.MONITOR)
         fun PlayerQuitEvent.quit() { //Quit
-            EntityTrackerRegistry.registry(player.uniqueId)?.close()
+            BetterModel.registryOrNull(player.uniqueId)?.close()
             PLUGIN.scheduler().asyncTask {
                 EntityTrackerRegistry.registries { registry -> registry.remove(player) }
             }
@@ -98,13 +98,13 @@ object EntityManagerImpl : EntityManager, GlobalManager {
         @EventHandler(priority = EventPriority.MONITOR)
         fun EntitiesLoadEvent.load() { //Chunk load
             entities.forEach { entity ->
-                EntityTrackerRegistry.registry(entity.uniqueId)?.refresh()
+                BetterModel.registryOrNull(entity.uniqueId)?.refresh()
             }
         }
         @EventHandler(priority = EventPriority.MONITOR)
         fun EntitiesUnloadEvent.unload() { //Chunk unload
             entities.forEach { entity ->
-                EntityTrackerRegistry.registry(entity.uniqueId)?.despawn()
+                BetterModel.registryOrNull(entity.uniqueId)?.despawn()
             }
         }
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -183,7 +183,7 @@ object EntityManagerImpl : EntityManager, GlobalManager {
 
     //Extension
     private fun Entity.forEachTracker(block: (EntityTracker) -> Unit) {
-        EntityTrackerRegistry.registry(uniqueId)?.trackers()?.forEach(block)
+        BetterModel.registryOrNull(uniqueId)?.trackers()?.forEach(block)
     }
 
     private fun Player.triggerDismount(e: Entity): Boolean {

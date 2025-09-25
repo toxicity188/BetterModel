@@ -1,23 +1,14 @@
 import io.papermc.hangarpublishplugin.model.Platforms
-import java.time.LocalDateTime
 
 plugins {
-    alias(libs.plugins.standardConvention)
+    alias(libs.plugins.convention.standard)
+    alias(libs.plugins.minotaur) apply false
+    alias(libs.plugins.shadow)
+    alias(libs.plugins.hangar)
     id("xyz.jpenilla.run-paper") version "3.0.0"
-    id("com.modrinth.minotaur") version "2.+"
-    id("io.papermc.hangar-publish-plugin") version "0.1.3"
-    id("com.gradleup.shadow") version "9.2.1"
 }
 
 val minecraft = property("minecraft_version").toString()
-val shadeConfig = configurations.shade
-
-dependencies {
-    shade(project(":core")) {
-        exclude("org.jetbrains.kotlin")
-    }
-}
-
 val javadocJar by tasks.registering(Jar::class) {
     dependsOn(tasks.dokkaGenerate)
     archiveClassifier = "javadoc"
@@ -27,10 +18,17 @@ val javadocJar by tasks.registering(Jar::class) {
 val versionString = version.toString()
 val groupString = group.toString()
 
+runPaper {
+    disablePluginJarDetection()
+}
+
 tasks {
     runServer {
         pluginJars(fileTree("plugins"))
-        pluginJars(project("test-plugin").tasks.jar.flatMap {
+        pluginJars(project(":plugin:paper").tasks.shadowJar.flatMap {
+            it.archiveFile
+        })
+        pluginJars(project(":test-plugin").tasks.jar.flatMap {
             it.archiveFile
         })
         version(minecraft)
@@ -40,65 +38,12 @@ tasks {
             hangar("Skript", "2.12.2")
         }
     }
-    jar {
-        finalizedBy(shadowJar)
-    }
-    shadowJar {
-        configurations.set(listOf(shadeConfig.get()))
-        manifest {
-            attributes(mapOf(
-                "paperweight-mappings-namespace" to "spigot",
-                "Dev-Build" to (BUILD_NUMBER ?: -1),
-                "Version" to versionString,
-                "Author" to "toxicity188",
-                "Url" to "https://github.com/toxicity188/BetterModel",
-                "Created-By" to "Gradle $gradle",
-                "Build-Jdk" to "${System.getProperty("java.vendor")} ${System.getProperty("java.version")}",
-                "Build-OS" to "${System.getProperty("os.arch")} ${System.getProperty("os.name")}",
-                "Build-Date" to LocalDateTime.now().toString()
-            ) + libs.bundles.manifestLibrary.get().associate {
-                "library-${it.name}" to it.version
-            })
-        }
-        archiveClassifier = ""
-        dependencies {
-            exclude(dependency("org.jetbrains:annotations:26.0.2"))
-        }
-        fun prefix(pattern: String) {
-            relocate(pattern, "$groupString.shaded.$pattern")
-        }
-        exclude("LICENSE")
-        prefix("kotlin")
-        prefix("kr.toxicity.library.sharedpackets")
-        prefix("dev.jorel.commandapi")
-        prefix("org.bstats")
-        prefix("net.byteflux.libby")
-    }
     build {
         finalizedBy(
             javadocJar
         )
     }
 }
-
-tasks.modrinth {
-    dependsOn(tasks.modrinthSyncBody)
-}
-
-val supportedVersion = listOf(
-    "1.20.5",
-    "1.20.6",
-    "1.21",
-    "1.21.1",
-    "1.21.2",
-    "1.21.3",
-    "1.21.4",
-    "1.21.5",
-    "1.21.6",
-    "1.21.7",
-    "1.21.8",
-    //"1.21.9"
-)
 
 hangarPublish {
     publications.register("plugin") {
@@ -115,40 +60,14 @@ hangarPublish {
         }
         platforms {
             register(Platforms.PAPER) {
-                jar = tasks.shadowJar.flatMap { it.archiveFile }
-                platformVersions = supportedVersion
+                jar = project(":plugin:paper").tasks.shadowJar.flatMap {
+                    it.archiveFile
+                }
+                platformVersions = SUPPORTED_VERSIONS
                 dependencies {
                     hangar("SkinsRestorer") { required = false }
                 }
             }
         }
-    }
-}
-
-modrinth {
-    token = System.getenv("MODRINTH_API_TOKEN")
-    projectId = "bettermodel"
-    syncBodyFrom = rootProject.file("BANNER.md").readText()
-    val log = System.getenv("COMMIT_MESSAGE")
-    if (log != null) {
-        versionType = "beta"
-        changelog = log
-    } else {
-        versionType = "release"
-        changelog = rootProject.file("changelog/$versionString.md").readText()
-    }
-    uploadFile.set(tasks.shadowJar)
-    additionalFiles = listOf(
-        javadocJar
-    )
-    versionName = "BetterModel $versionString"
-    versionNumber = versionString
-    gameVersions = supportedVersion
-    loaders = listOf("bukkit", "spigot", "paper", "purpur", "folia")
-    dependencies {
-        optional.project(
-            "mythicmobs",
-            "skinsrestorer"
-        )
     }
 }

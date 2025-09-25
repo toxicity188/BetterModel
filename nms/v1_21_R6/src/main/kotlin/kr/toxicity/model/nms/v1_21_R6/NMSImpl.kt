@@ -31,6 +31,7 @@ import net.minecraft.server.MinecraftServer
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.server.network.ServerCommonPacketListenerImpl
+import net.minecraft.server.players.NameAndId
 import net.minecraft.util.ARGB
 import net.minecraft.world.effect.MobEffects
 import net.minecraft.world.entity.Display
@@ -66,7 +67,7 @@ class NMSImpl : NMS {
 
         //Spigot
         private val getGameProfile: (net.minecraft.world.entity.player.Player) -> GameProfile = createAdaptedFieldGetter { it.gameProfile }
-        private val getOfflineGameProfile: (CraftOfflinePlayer) -> GameProfile = createAdaptedFieldGetter()
+        private val getOfflineGameProfile: (CraftOfflinePlayer) -> NameAndId = createAdaptedFieldGetter()
         private val getConnection: (ServerCommonPacketListenerImpl) -> Connection = createAdaptedFieldGetter { it.connection }
         private val spigotChunkAccess = ServerLevel::class.java.fields.firstOrNull {
             it.type == PersistentEntitySectionManager::class.java
@@ -155,7 +156,7 @@ class NMSImpl : NMS {
         private val playerModel get() = connection.player.id.toRegistry()
 
         private fun Int.toPlayerEntity() = toEntity(connection.player.level())
-        private fun Entity.toRegistry() = EntityTrackerRegistry.registry(uuid)
+        private fun Entity.toRegistry() = BetterModel.registryOrNull(uuid)
         private inline fun Int.toRegistry(
             ifHitBox: (Entity) -> Unit = {}
         ) = (EntityTrackerRegistry.registry(this) ?: toPlayerEntity()?.let {
@@ -417,7 +418,7 @@ class NMSImpl : NMS {
         }
     }
 
-    override fun profile(player: OfflinePlayer): GameProfile = if (player is CraftOfflinePlayer) getOfflineGameProfile(player) else getGameProfile((player as CraftPlayer).handle)
+    override fun profile(player: OfflinePlayer): GameProfile = if (player is CraftOfflinePlayer) getOfflineGameProfile(player).toUncompletedGameProfile() else getGameProfile((player as CraftPlayer).handle)
 
     override fun createPlayerHead(profile: GameProfile): ItemStack = VanillaItemStack(Items.PLAYER_HEAD).apply {
         set(DataComponents.PROFILE, ResolvableProfile.createResolved(profile))

@@ -3,7 +3,7 @@ import com.vanniktech.maven.publish.JavadocJar
 import kotlin.io.encoding.Base64
 
 plugins {
-    alias(libs.plugins.bukkitConvention)
+    alias(libs.plugins.convention.bukkit)
     id("com.vanniktech.maven.publish") version "0.34.0"
     signing
 }

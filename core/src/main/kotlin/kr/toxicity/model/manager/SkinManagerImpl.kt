@@ -10,6 +10,7 @@ import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.benmanes.caffeine.cache.RemovalCause
 import com.google.gson.JsonParser
 import kr.toxicity.library.dynamicuv.*
+import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.event.CreatePlayerSkinEvent
 import kr.toxicity.model.api.event.RemovePlayerSkinEvent
 import kr.toxicity.model.api.manager.SkinManager
@@ -19,7 +20,6 @@ import kr.toxicity.model.api.player.PlayerSkinProvider
 import kr.toxicity.model.api.skin.AuthLibAdapter
 import kr.toxicity.model.api.skin.SkinData
 import kr.toxicity.model.api.skin.SkinProfile
-import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.tracker.TrackerUpdateAction
 import kr.toxicity.model.api.util.TransformedItemStack
 import kr.toxicity.model.api.version.MinecraftVersion
@@ -668,7 +668,7 @@ object SkinManagerImpl : SkinManager, GlobalManager {
                                 ImageIO.read(stream).convertLegacy(),
                                 selected
                             ))
-                            EntityTrackerRegistry.registry(id)?.trackers()?.forEach { tracker ->
+                            BetterModel.registryOrNull(id)?.trackers()?.forEach { tracker ->
                                 tracker.update(TrackerUpdateAction.itemMapping()) { bone ->
                                     bone.itemMapper is PlayerLimb.LimbItemMapper
                                 }
