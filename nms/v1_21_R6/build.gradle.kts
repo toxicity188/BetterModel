@@ -4,6 +4,6 @@ plugins {
 }
 
 dependencies {
-    paperweight.paperDevBundle("1.21.9-pre4-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("1.21.9-rc1-R0.1-SNAPSHOT")
 }
 

@@ -55,7 +55,7 @@ class BetterModelPluginImpl : AbstractBetterModelPlugin() {
         props.managers.forEach(GlobalManager::start)
         if (isSnapshot) warn(
             "This build is dev version: be careful to use it!",
-            "Build number: $props.snapshot"
+            "Build number: ${props.snapshot}"
         )
         registerListener(object : Listener {
             @EventHandler
