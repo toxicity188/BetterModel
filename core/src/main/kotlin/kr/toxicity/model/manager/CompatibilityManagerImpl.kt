@@ -10,7 +10,6 @@ import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.manager.CompatibilityManager
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.compatibility.citizens.CitizensCompatibility
-import kr.toxicity.model.compatibility.hmccosmetics.HMCCosmeticsCompatibility
 import kr.toxicity.model.compatibility.mythicmobs.MythicMobsCompatibility
 import kr.toxicity.model.compatibility.nexo.NexoCompatibility
 import kr.toxicity.model.compatibility.skinsrestorer.SkinsRestorerCompatibility
@@ -32,9 +31,6 @@ object CompatibilityManagerImpl : CompatibilityManager, GlobalManager {
         },
         "Citizens" to {
             CitizensCompatibility()
-        },
-        "HMCCosmetics" to {
-            HMCCosmeticsCompatibility()
         },
         "SkinsRestorer" to {
             SkinsRestorerCompatibility()

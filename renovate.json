@@ -8,14 +8,5 @@
   ],
   "baseBranches": [
     "dev"
-  ],
-  "packageRules": [
-    {
-      "matchDepNames": [
-        "com.hibiscusmc:hmccosmetics"
-      ],
-      "versioning": "semver",
-      "allowedVersions": "/^(?<major>\\\\d+)(?:\\\\.(?<minor>\\\\d+)(?:\\\\.(?<patch>\\\\d+))?)?$/"
-    }
   ]
 }
