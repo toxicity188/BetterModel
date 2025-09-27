@@ -16,7 +16,10 @@ import kr.toxicity.model.api.animation.AnimationIterator
 import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.util.function.FloatConstantSupplier
 import kr.toxicity.model.compatibility.mythicmobs.*
+import kr.toxicity.model.util.componentOf
+import kr.toxicity.model.util.toComponent
 import kr.toxicity.model.util.warn
+import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.entity.Player
 
 class PlayLimbAnimMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), ITargetedEntitySkill {
@@ -45,7 +48,10 @@ class PlayLimbAnimMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), 
             BetterModel.registryOrNull(targetPlayer.uniqueId)?.remove(currentModelId)
         } else {
             val renderer = BetterModel.limb(currentModelId).orElse(null) ?: return SkillResult.CONDITION_FAILED.apply {
-                warn("Error: Player not found '$currentModelId'")
+                warn(componentOf(
+                    "Error: Player not found: ".toComponent(),
+                    currentModelId.toComponent(NamedTextColor.RED)
+                ))
             }
             val loopType = mode(args)
             val modifier = AnimationModifier(0, 0, loopType, speed(args)?.let(FloatConstantSupplier::of))

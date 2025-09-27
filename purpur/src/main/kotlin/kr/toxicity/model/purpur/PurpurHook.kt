@@ -8,6 +8,8 @@ package kr.toxicity.model.purpur
 
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.event.CreateTrackerEvent
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -17,8 +19,8 @@ object PurpurHook {
         val plugin = BetterModel.plugin()
         val config = BetterModel.config()
         plugin.logger().info(
-            "BetterModel is currently running in Purpur.",
-            "Some Purpur features will be enabled."
+            Component.text("BetterModel is currently running in Purpur.").color(NamedTextColor.LIGHT_PURPLE),
+            Component.text("Some Purpur features will be enabled.").color(NamedTextColor.LIGHT_PURPLE)
         )
         Bukkit.getPluginManager().registerEvents(object : Listener {
             @EventHandler

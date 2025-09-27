@@ -10,6 +10,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import it.unimi.dsi.fastutil.floats.FloatCollection;
 import kr.toxicity.model.api.BetterModel;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
@@ -248,7 +249,7 @@ public final class CollectionUtil {
         var logger = BetterModel.plugin().logger();
         return t -> {
             var testedValue = predicate.test(t);
-            if (!testedValue) logger.warn(lazyLogFunction.apply(t));
+            if (!testedValue) logger.warn(LogUtil.toLog(lazyLogFunction.apply(t), NamedTextColor.YELLOW));
             return testedValue;
         };
     }

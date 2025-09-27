@@ -19,8 +19,11 @@ import kr.toxicity.model.compatibility.mythicmobs.mechanic.*
 import kr.toxicity.model.compatibility.mythicmobs.targeter.ModelPartTargeter
 import kr.toxicity.model.manager.ScriptManagerImpl
 import kr.toxicity.model.util.CONFIG
+import kr.toxicity.model.util.componentOf
 import kr.toxicity.model.util.registerListener
+import kr.toxicity.model.util.toComponent
 import kr.toxicity.model.util.warn
+import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 
@@ -39,7 +42,10 @@ class MythicMobsCompatibility : Compatibility {
                     name.metadata.toMap().forEach { (key, value) ->
                         it.parameters[key] = value.toString()
                     }
-                }) warn("Unknown MythicMobs skill name: $args")
+                }) warn(componentOf(
+                    "Unknown MythicMobs skill name: ".toComponent(),
+                    args.toComponent(NamedTextColor.RED)
+                ))
             }
         }
         registerListener(object : Listener {

@@ -47,13 +47,15 @@ public final class DummyTracker extends Tracker {
      * Moves model to another location.
      * @param location location
      */
-    public synchronized void location(@NotNull Location location) {
+    public void location(@NotNull Location location) {
+        Objects.requireNonNull(location, "location");
         if (this.location.equals(location)) return;
-        this.location = Objects.requireNonNull(location, "location");
-        var bundler = pipeline.createBundler();
-        pipeline.iterateTree(b -> b.teleport(location, bundler));
-        if (bundler.isNotEmpty()) pipeline.allPlayer()
-                .forEach(bundler::send);
+        synchronized (this) {
+            this.location = location;
+            var bundler = pipeline.createBundler();
+            pipeline.iterateTree(b -> b.teleport(location, bundler));
+            if (bundler.isNotEmpty()) pipeline.allPlayer().forEach(bundler::send);
+        }
     }
 
     /**

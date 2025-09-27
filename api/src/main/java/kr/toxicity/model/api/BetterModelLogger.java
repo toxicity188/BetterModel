@@ -6,6 +6,7 @@
  */
 package kr.toxicity.model.api;
 
+import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -16,11 +17,11 @@ public interface BetterModelLogger {
      * Infos messages
      * @param message message
      */
-    void info(@NotNull String... message);
+    void info(@NotNull Component... message);
 
     /**
      * Warns message
      * @param message message
      */
-    void warn(@NotNull String... message);
+    void warn(@NotNull Component... message);
 }

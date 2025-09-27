@@ -10,6 +10,7 @@ import com.nexomc.nexo.api.events.resourcepack.NexoPrePackGenerateEvent
 import kr.toxicity.model.api.BetterModelPlugin
 import kr.toxicity.model.compatibility.Compatibility
 import kr.toxicity.model.util.*
+import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 
@@ -24,11 +25,15 @@ class NexoCompatibility : Compatibility {
                     is BetterModelPlugin.ReloadResult.Success -> {
                         result.packResult().directory()?.let {
                             addResourcePack(it)
-                            info("Successfully merged with Nexo.")
+                            info(componentOf("Successfully merged with Nexo.") {
+                                color(NamedTextColor.GREEN)
+                            })
                         }
                     }
                     is BetterModelPlugin.ReloadResult.OnReload -> {
-                        warn("BetterModel is still on reload!")
+                        warn(componentOf("BetterModel is still on reload!") {
+                            color(NamedTextColor.RED)
+                        })
                     }
                     is BetterModelPlugin.ReloadResult.Failure -> {
                         result.throwable.handleException("Unable to merge with Nexo.")

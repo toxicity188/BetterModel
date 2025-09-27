@@ -25,9 +25,7 @@ class ReloadPipeline(
             current.set(0)
         }
 
-    fun progress() {
-        current.incrementAndGet()
-    }
+    fun progress() = current.incrementAndGet()
 
     fun <T> forEachParallel(list: List<T>, sizeAssume: (T) -> Long, block: (T) -> Unit) {
         pool.forEachParallel(list, sizeAssume, block)

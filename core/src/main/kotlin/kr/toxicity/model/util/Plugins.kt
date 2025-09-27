@@ -13,6 +13,8 @@ import kr.toxicity.model.api.config.DebugConfig
 import kr.toxicity.model.api.util.HttpUtil
 import kr.toxicity.model.api.util.LogUtil
 import kr.toxicity.model.api.util.PackUtil
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor
 import java.net.http.HttpClient
 import java.util.concurrent.TimeUnit
 
@@ -29,10 +31,13 @@ private val LATEST_VERSION_CACHE = Caffeine.newBuilder()
 
 val LATEST_VERSION: HttpUtil.LatestVersion get() = LATEST_VERSION_CACHE.get(Unit)
 
-fun info(vararg message: String) = PLUGIN.logger().info(*message)
-fun warn(vararg message: String) = PLUGIN.logger().warn(*message)
-inline fun debugPack(lazyMessage: () -> String) {
-    if (CONFIG.debug().has(DebugConfig.DebugOption.PACK)) info("[${Thread.currentThread().name}] ${lazyMessage()}")
+fun info(vararg message: Component) = PLUGIN.logger().info(*message)
+fun warn(vararg message: Component) = PLUGIN.logger().warn(*message)
+inline fun debugPack(lazyMessage: () -> Component) {
+    if (CONFIG.debug().has(DebugConfig.DebugOption.PACK)) info(componentOf(
+        "[${Thread.currentThread().name}] ".toComponent(NamedTextColor.YELLOW),
+        lazyMessage()
+    ))
 }
 
 fun Throwable.handleException(message: String) = LogUtil.handleException(message, this)

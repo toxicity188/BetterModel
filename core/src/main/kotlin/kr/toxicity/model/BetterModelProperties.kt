@@ -15,17 +15,12 @@ import kr.toxicity.model.api.event.PluginStartReloadEvent
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.version.MinecraftVersion.*
 import kr.toxicity.model.configuration.PluginConfiguration
-import kr.toxicity.model.manager.CommandManagerImpl
-import kr.toxicity.model.manager.CompatibilityManagerImpl
-import kr.toxicity.model.manager.EntityManagerImpl
-import kr.toxicity.model.manager.ModelManagerImpl
-import kr.toxicity.model.manager.PlayerManagerImpl
-import kr.toxicity.model.manager.ScriptManagerImpl
-import kr.toxicity.model.manager.SkinManagerImpl
+import kr.toxicity.model.manager.*
 import kr.toxicity.model.scheduler.BukkitScheduler
 import kr.toxicity.model.scheduler.PaperScheduler
 import kr.toxicity.model.util.call
 import kr.toxicity.model.util.handleException
+import kr.toxicity.model.util.toComponent
 import kr.toxicity.model.util.warn
 import org.bstats.bukkit.Metrics
 import org.bukkit.Bukkit
@@ -49,8 +44,8 @@ internal class BetterModelProperties(
         V1_20_5, V1_20_6 -> kr.toxicity.model.nms.v1_20_R4.NMSImpl()
         else if BetterModel.IS_PAPER -> {
             warn(
-                "Note: this version is officially untested.",
-                "So be careful to use!"
+                "Note: this version is officially untested.".toComponent(),
+                "So be careful to use!".toComponent()
             )
             Latest()
         }

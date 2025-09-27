@@ -13,6 +13,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.format.NamedTextColor
+import net.kyori.adventure.text.format.TextColor
 import net.kyori.adventure.text.format.TextDecoration
 import org.bukkit.command.CommandSender
 
@@ -25,7 +26,8 @@ val WARN = componentOf(" [!] ") {
     decorate(TextDecoration.BOLD).color(NamedTextColor.RED)
 }
 
-fun String.toComponent() = componentOf(this)
+fun String.toComponent() = componentOf(this).build()
+fun String.toComponent(color: TextColor) = componentOf(this).color(color).build()
 
 fun componentOf() = Component.text()
 fun spaceComponentOf() = Component.space()

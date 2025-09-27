@@ -10,6 +10,7 @@ import kr.toxicity.model.api.BetterModelConfig
 import kr.toxicity.model.api.BetterModelConfig.PackType.*
 import kr.toxicity.model.api.pack.*
 import kr.toxicity.model.manager.ReloadPipeline
+import net.kyori.adventure.text.format.NamedTextColor
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -74,14 +75,18 @@ class FolderGenerator : PackGenerator {
             val bytes = it.get()
             pack[it.overlay()] = PackByte(it.path(), bytes)
             val file = it.path().toFile()
+            val index = pipeline.progress()
             if (file.length() != bytes.size.toLong()) {
                 file.writeBytes(bytes)
                 changed.set(true)
                 debugPack {
-                    "This file was successfully generated: ${it.path()}"
+                    componentOf(
+                        "This file was successfully generated: ".toComponent(),
+                        it.path().path.toComponent(NamedTextColor.GREEN),
+                        " ($index/${pipeline.goal})".toComponent(NamedTextColor.DARK_GRAY)
+                    )
                 }
             }
-            pipeline.progress()
         }
         fileTree.values.forEach {
             it.toFile().delete()
@@ -141,9 +146,13 @@ fun PackZipper.writeToResult(pipeline: ReloadPipeline, dir: File? = null): PackR
     return PackResult(build.meta(), dir).apply {
         pipeline.forEachParallel(build.resources(), PackResource::estimatedSize) {
             set(it.overlay(), PackByte(it.path(), it.get()))
-            pipeline.progress()
+            val index = pipeline.progress()
             debugPack {
-                "This file was successfully zipped: ${it.path()}"
+                componentOf(
+                    "This file was successfully zipped: ".toComponent(),
+                    it.path().path.toComponent(NamedTextColor.GREEN),
+                    " ($index/${pipeline.goal})".toComponent(NamedTextColor.DARK_GRAY)
+                )
             }
         }
     }

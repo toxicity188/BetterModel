@@ -33,20 +33,16 @@ class CommandModule(
         private val underLineMessage = componentOf("----------------------------------") {
             color(NamedTextColor.GRAY)
         }
-        private val requiredMessage = componentOf {
-            append(componentOf("    <arg>") {
-                color(NamedTextColor.RED)
-            })
-            append(spaceComponentOf())
-            append(componentOf(" - required"))
-        }
-        private val optionalMessage = componentOf {
-            append(componentOf("    [arg]") {
-                color(NamedTextColor.DARK_AQUA)
-            })
-            append(spaceComponentOf())
-            append(componentOf(" - optional"))
-        }
+        private val requiredMessage = componentOf(
+            "    <arg>".toComponent(NamedTextColor.RED),
+            spaceComponentOf(),
+            " - required".toComponent()
+        )
+        private val optionalMessage = componentOf(
+            "    [arg]".toComponent(NamedTextColor.DARK_AQUA),
+            spaceComponentOf(),
+            " - optional".toComponent()
+        )
         private val usefulLinks = componentOf {
             decorate(TextDecoration.BOLD)
             append(spaceComponentOf())
@@ -66,14 +62,12 @@ class CommandModule(
             })
         }
 
-        private fun TextComponent.Builder.toURLComponent(url: String) = hoverEvent(HoverEvent.showText(componentOf {
-            append(componentOf(url) {
-                color(NamedTextColor.DARK_AQUA)
-            })
-            append(lineComponentOf())
-            append(lineComponentOf())
-            append(componentOf("Click to open link."))
-        })).clickEvent(ClickEvent.openUrl(url))
+        private fun TextComponent.Builder.toURLComponent(url: String) = hoverEvent(HoverEvent.showText(componentOf(
+            url.toComponent(NamedTextColor.DARK_AQUA),
+            lineComponentOf(),
+            lineComponentOf(),
+            "Click to open link.".toComponent()
+        ))).clickEvent(ClickEvent.openUrl(url))
 
         private val CommandAPICommand.shortName get() = if (aliases.isNotEmpty()) aliases.first() else name
 
@@ -136,33 +130,25 @@ class CommandModule(
     }
 
     private fun CommandAPICommand.toComponent() = componentOf {
-        append(componentOf("/$rootName") {
-            color(NamedTextColor.YELLOW)
-        })
+        append("/$rootName".toComponent(NamedTextColor.YELLOW))
         append(spaceComponentOf())
         append(name.toComponent())
         append(arguments.map {
             spaceComponentOf().append(it.toComponent())
         })
-        append(componentOf(" - ") {
-            color(NamedTextColor.DARK_GRAY)
-        })
-        append(componentOf(shortDescription) {
-            color(NamedTextColor.GRAY)
-        })
+        append(" - ".toComponent(NamedTextColor.DARK_GRAY))
+        append(shortDescription.toComponent(NamedTextColor.GRAY))
         hoverEvent(
-            HoverEvent.showText(componentOf {
-                append(if (aliases.isNotEmpty()) componentOf {
-                    append(componentOf("Aliases:") {
-                        color(NamedTextColor.DARK_AQUA)
-                    })
-                    append(lineComponentOf())
-                    append(componentWithLineOf(*aliases.map(String::toComponent).toTypedArray()))
-                } else emptyComponentOf())
-                append(lineComponentOf())
-                append(lineComponentOf())
-                append("Click to suggest command.".toComponent())
-            }
+            HoverEvent.showText(componentOf(
+                if (aliases.isNotEmpty()) componentOf(
+                    "Aliases:".toComponent(NamedTextColor.DARK_AQUA),
+                    lineComponentOf(),
+                    componentWithLineOf(*aliases.map(String::toComponent).toTypedArray())
+                ) else emptyComponentOf(),
+                lineComponentOf(),
+                lineComponentOf(),
+                "Click to suggest command.".toComponent()
+            )
         ))
         clickEvent(ClickEvent.suggestCommand("/$rootName $shortName"))
     }

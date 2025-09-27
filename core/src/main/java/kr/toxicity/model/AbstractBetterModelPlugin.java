@@ -9,6 +9,8 @@ package kr.toxicity.model;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.BetterModelLogger;
 import kr.toxicity.model.api.BetterModelPlugin;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -19,7 +21,6 @@ import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
-import java.util.logging.Logger;
 
 public abstract class AbstractBetterModelPlugin extends JavaPlugin implements BetterModelPlugin {
 
@@ -28,22 +29,22 @@ public abstract class AbstractBetterModelPlugin extends JavaPlugin implements Be
     protected final AtomicBoolean firstLoad = new AtomicBoolean();
     protected final BetterModelLogger logger = new BetterModelLogger() {
 
-        private final Logger internalLogger = getLogger();
+        private final ComponentLogger internalLogger = ComponentLogger.logger(getLogger().getName());
 
         @Override
-        public void info(@NotNull String... message) {
+        public void info(@NotNull Component... message) {
             synchronized (internalLogger) {
-                for (String s : message) {
+                for (Component s : message) {
                     internalLogger.info(s);
                 }
             }
         }
 
         @Override
-        public void warn(@NotNull String... message) {
+        public void warn(@NotNull Component... message) {
             synchronized (internalLogger) {
-                for (String s : message) {
-                    internalLogger.warning(s);
+                for (Component s : message) {
+                    internalLogger.warn(s);
                 }
             }
         }

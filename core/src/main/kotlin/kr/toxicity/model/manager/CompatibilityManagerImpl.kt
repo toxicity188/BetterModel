@@ -17,6 +17,8 @@ import kr.toxicity.model.compatibility.skinsrestorer.SkinsRestorerCompatibility
 import kr.toxicity.model.purpur.PurpurHook
 import kr.toxicity.model.util.info
 import kr.toxicity.model.util.registerListener
+import kr.toxicity.model.util.toComponent
+import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -48,7 +50,7 @@ object CompatibilityManagerImpl : CompatibilityManager, GlobalManager {
             compatibilities.entries.removeIf { (k, v) ->
                 if (isPluginEnabled(k)) {
                     v().start()
-                    info("Plugin hooks $k")
+                    k.hookMessage()
                     true
                 } else false
             }
@@ -59,11 +61,13 @@ object CompatibilityManagerImpl : CompatibilityManager, GlobalManager {
                 val name = plugin.name
                 compatibilities.remove(name)?.let {
                     it().start()
-                    info("Plugin hooks $name")
+                    name.hookMessage()
                 }
             }
         })
     }
+
+    private fun String.hookMessage() = info("Plugin hooks $this".toComponent(NamedTextColor.AQUA))
 
     override fun reload(pipeline: ReloadPipeline, zipper: PackZipper) {
     }

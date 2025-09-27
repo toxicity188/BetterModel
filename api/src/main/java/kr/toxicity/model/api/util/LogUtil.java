@@ -8,6 +8,9 @@ package kr.toxicity.model.api.util;
 
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.config.DebugConfig;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,22 +39,32 @@ public final class LogUtil {
      * @param throwable exception
      */
     public static void handleException(@NotNull String message, @NotNull Throwable throwable) {
-        var list = new ArrayList<String>();
-        list.add(message);
-        list.add("Reason: " + throwable.getMessage());
+        var list = new ArrayList<Component>();
+        list.add(Component.text(message));
+        list.add(toLog("Reason: " + throwable.getMessage(), NamedTextColor.DARK_AQUA));
         if (BetterModel.config().debug().has(DebugConfig.DebugOption.EXCEPTION)) {
-            list.add("Stack trace:");
+            list.add(toLog("Stack trace:", NamedTextColor.RED));
             try (
                     var byteArray = new ByteArrayOutputStream();
                     var print = new PrintStream(byteArray)
             ) {
                 throwable.printStackTrace(print);
-                list.add(byteArray.toString(StandardCharsets.UTF_8));
+                list.add(toLog(byteArray.toString(StandardCharsets.UTF_8), NamedTextColor.RED));
             } catch (IOException e) {
-                list.add("Unknown");
+                list.add(toLog("Unknown", NamedTextColor.RED));
             }
-        } else list.add("If you want to see the stack trace, set debug.exception to true in config.yml");
-        BetterModel.plugin().logger().warn(list.toArray(String[]::new));
+        } else list.add(toLog("If you want to see the stack trace, set debug.exception to true in config.yml", NamedTextColor.LIGHT_PURPLE));
+        BetterModel.plugin().logger().warn(list.toArray(Component[]::new));
+    }
+
+    /**
+     * Gets log component
+     * @param message message
+     * @param color color
+     * @return component
+     */
+    public static @NotNull Component toLog(@NotNull String message, @NotNull TextColor color) {
+        return Component.text().content(message).color(color).build();
     }
 
     /**
@@ -60,7 +73,11 @@ public final class LogUtil {
      * @param log log
      */
     public static void debug(@NotNull DebugConfig.DebugOption option, @NotNull Supplier<String> log) {
-        debug(option, () -> BetterModel.plugin().logger().info("DEBUG-" + option + ": " + log.get()));
+        debug(option, () -> BetterModel.plugin().logger().info(Component.text()
+                .append(toLog("[DEBUG-" + option + "] ", NamedTextColor.YELLOW))
+                .append(Component.text(log.get()))
+                .build())
+        );
     }
 
     /**
