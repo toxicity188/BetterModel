@@ -321,7 +321,6 @@ class NMSImpl : NMS {
             0F
         )
         itemTransform = ItemDisplayContext.FIXED
-        entityData[Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID] = 3
     }, yOffset).apply {
         initialConsumer.accept(this)
         display.entityData.packDirty()

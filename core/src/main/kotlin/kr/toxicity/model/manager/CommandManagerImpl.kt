@@ -254,8 +254,11 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                         yaw += 180
                     }
                     model.create(location).run {
-                        animate({ true }, animation, AnimationModifier.DEFAULT_WITH_PLAY_ONCE, ::close)
                         spawn(player)
+                        animate({ true }, animation, AnimationModifier.builder()
+                            .start(0)
+                            .type(AnimationIterator.Type.PLAY_ONCE)
+                            .build(), ::close)
                     }
                 })
             }

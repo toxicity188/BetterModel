@@ -124,8 +124,8 @@ public final class AnimationGenerator {
         if (points.size() < 2) return;
         for (int i = 1; i < points.size(); i++) {
             var before = points.get(i - 1);
-            if (before.interpolator().isContinuous()) continue;
-            var time = points.get(i).time() - 0.02F;
+            if (before.isContinuous()) continue;
+            var time = points.get(i).time() - 0.05F;
             if (time < 0 || time - before.time() < 0) continue;
             floats.add(time);
         }

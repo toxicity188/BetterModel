@@ -50,7 +50,6 @@ bukkitPluginYaml {
     softDepend = listOf(
         "MythicMobs",
         "Citizens",
-        "HMCCosmetics",
         "SkinsRestorer"
     )
     libraries = libs.bundles.library.map {

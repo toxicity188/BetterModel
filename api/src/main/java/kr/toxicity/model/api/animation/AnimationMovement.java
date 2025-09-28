@@ -24,7 +24,8 @@ public record AnimationMovement(
         float time,
         @Nullable Vector3f position,
         @Nullable Vector3f scale,
-        @Nullable Vector3f rotation
+        @Nullable Vector3f rotation,
+        boolean skipInterpolation
 ) implements Timed {
 
     /**
@@ -48,7 +49,7 @@ public record AnimationMovement(
      * @param time time
      */
     public AnimationMovement(float time) {
-        this(time, null, null, null);
+        this(time, null, null, null, false);
     }
 
     /**

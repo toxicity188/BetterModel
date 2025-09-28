@@ -29,7 +29,7 @@ public final class BezierInterpolator implements VectorInterpolator {
     @NotNull
     @Override
     public Vector3f interpolate(@NotNull List<VectorPoint> points, int p2Index, float time) {
-        var p1 = p2Index > 0 ? points.get(p2Index - 1) : VectorPoint.EMPTY;
+        var p1 = p2Index > 0 ? points.get(p2Index - 1) : points.getFirst();
         var p2 = points.get(p2Index);
 
         var t1 = p1.time();

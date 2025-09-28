@@ -292,6 +292,7 @@ public final class FightTester implements ModelTester, Listener {
             var transformer = display.createTransformer();
             var bundler = BetterModel.plugin().nms().createBundler(2);
             display.spawn(bundler);
+            display.sendEntityData(true, bundler);
             transformer.transform(
                     0,
                     new Vector3f(),

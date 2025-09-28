@@ -22,7 +22,6 @@ import kr.toxicity.model.api.util.function.BonePredicate;
 import kr.toxicity.model.api.util.function.FloatConstantSupplier;
 import kr.toxicity.model.api.util.function.FloatSupplier;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.bukkit.Location;
 import org.bukkit.entity.Display;
@@ -368,7 +367,7 @@ public final class RenderedBone implements BoneEventHandler {
         return get != null && get.tick(perPlayerBundler);
     }
 
-    public void forceUpdate(@NotNull PacketBundler bundler) {
+    public void dirtyUpdate(@NotNull PacketBundler bundler) {
         var d = display;
         if (d != null) d.sendDirtyEntityData(bundler);
     }
@@ -376,6 +375,11 @@ public final class RenderedBone implements BoneEventHandler {
     public void forceUpdate(boolean showItem, @NotNull PacketBundler bundler) {
         var d = display;
         if (d != null) d.sendEntityData(showItem, bundler);
+    }
+
+    public void forceUpdate(@NotNull PacketBundler bundler) {
+        var d = display;
+        if (d != null) d.sendEntityData(!d.invisible(), bundler);
     }
 
     public void forceTransformation(@NotNull PacketBundler bundler) {
@@ -607,17 +611,27 @@ public final class RenderedBone implements BoneEventHandler {
         return rotation;
     }
 
-    @RequiredArgsConstructor
     private final class BoneStateHandler {
+        private boolean firstTick = true;
+        private boolean skipInterpolation = false;
         private final @Nullable UUID uuid;
         private final @NotNull Consumer<UUID> consumer;
-        private final AnimationStateHandler<AnimationMovement> state = new AnimationStateHandler<>(
-                AnimationMovement.EMPTY,
-                (b, a) -> relativeOffsetCache = null
-        );
+        private final AnimationStateHandler<AnimationMovement> state;
         private volatile BoneMovement beforeTransform, afterTransform, relativeOffsetCache;
         private final DisplayTransformer transformer = display != null ? display.createTransformer() : null;
-        private boolean firstTick = true;
+
+        private BoneStateHandler(@Nullable UUID uuid, @NotNull Consumer<UUID> consumer) {
+            this.uuid = uuid;
+            this.consumer = consumer;
+            state = new AnimationStateHandler<>(
+                    AnimationMovement.EMPTY,
+                    (b, a) -> {
+                        skipInterpolation = false;
+                        if (a.skipInterpolation()) root.state(uuid).skipInterpolation = true;
+                        relativeOffsetCache = null;
+                    }
+            );
+        }
 
         public boolean tick(@NotNull PacketBundler bundler) {
             var result = state.tick(() -> {
@@ -641,6 +655,7 @@ public final class RenderedBone implements BoneEventHandler {
         }
 
         public int interpolationDuration() {
+            if (root.state(uuid).skipInterpolation) return 0;
             var frame = state.frame() / (float) Tracker.MINECRAFT_TICK_MULTIPLIER;
             return Math.round(frame + MathUtil.FLOAT_COMPARISON_EPSILON);
         }

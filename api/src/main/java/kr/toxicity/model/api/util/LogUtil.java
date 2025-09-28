@@ -41,7 +41,7 @@ public final class LogUtil {
     public static void handleException(@NotNull String message, @NotNull Throwable throwable) {
         var list = new ArrayList<Component>();
         list.add(Component.text(message));
-        list.add(toLog("Reason: " + throwable.getMessage(), NamedTextColor.DARK_AQUA));
+        list.add(toLog("Reason: " + throwable.getMessage(), NamedTextColor.YELLOW));
         if (BetterModel.config().debug().has(DebugConfig.DebugOption.EXCEPTION)) {
             list.add(toLog("Stack trace:", NamedTextColor.RED));
             try (

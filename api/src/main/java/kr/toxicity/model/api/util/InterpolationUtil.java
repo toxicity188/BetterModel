@@ -59,11 +59,15 @@ public final class InterpolationUtil {
         var i = 0;
         while (iterator.hasNext()) {
             var f = iterator.nextFloat();
+            var pr = pp.build(f);
+            var sr = sp.build(f);
+            var rr = rp.build(f);
             array[i++] = new AnimationMovement(
                     roundTime(f - before),
-                    takeIf(pp.build(f), MathUtil::isNotZero),
-                    takeIf(sp.build(f), MathUtil::isNotZero),
-                    takeIf(rp.build(f), MathUtil::isNotZero)
+                    takeIf(pr.vector, MathUtil::isNotZero),
+                    takeIf(sr.vector, MathUtil::isNotZero),
+                    takeIf(rr.vector, MathUtil::isNotZero),
+                    pr.skipInterpolation || sr.skipInterpolation || rr.skipInterpolation
             );
             before = f;
         }
@@ -77,20 +81,20 @@ public final class InterpolationUtil {
      */
     public static @NotNull VectorPointBuilder interpolatorFor(@NotNull List<VectorPoint> vectors) {
         var last = vectors.isEmpty() ? VectorPoint.EMPTY : vectors.getLast();
-        return vectors.size() < 2 ? last::vector : new VectorPointBuilder() {
+        return vectors.size() < 2 ? f -> new VectorResult(last.vector(f)) : new VectorPointBuilder() {
             private VectorPoint p1 = VectorPoint.EMPTY;
             private VectorPoint p2 = vectors.getFirst();
             private int i = 0;
             private float t = p2.time();
 
             @Override
-            public @NotNull Vector3f build(float nextFloat) {
+            public @NotNull VectorResult build(float nextFloat) {
                 while (i < vectors.size() - 1 && t < nextFloat) {
                     p1 = p2;
                     t = (p2 = vectors.get(++i)).time();
                 }
-                if (nextFloat > last.time()) return last.vector(nextFloat);
-                else return nextFloat == t ? p2.vector() : p1.interpolator().interpolate(vectors, i, nextFloat);
+                if (nextFloat > last.time()) return new VectorResult(last.vector(nextFloat));
+                else return nextFloat == t ? new VectorResult(p2.vector(), !p1.isContinuous()) : new VectorResult(p1.interpolator().interpolate(vectors, i, nextFloat));
             }
         };
     }
@@ -290,6 +294,21 @@ public final class InterpolationUtil {
          * @param nextFloat next float value
          * @return interpolated vector
          */
-        @NotNull Vector3f build(float nextFloat);
+        @NotNull VectorResult build(float nextFloat);
+    }
+
+    /**
+     * Vector result
+     * @param vector vector
+     * @param skipInterpolation skip interpolation
+     */
+    public record VectorResult(@NotNull Vector3f vector, boolean skipInterpolation) {
+        /**
+         * Vector result
+         * @param vector vector
+         */
+        public VectorResult(@NotNull Vector3f vector) {
+            this(vector, false);
+        }
     }
 }

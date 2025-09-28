@@ -6,6 +6,7 @@
  */
 package kr.toxicity.model.api.animation;
 
+import kr.toxicity.model.api.util.function.FloatConstantFunction;
 import kr.toxicity.model.api.util.function.FloatFunction;
 import kr.toxicity.model.api.util.interpolator.VectorInterpolator;
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +36,14 @@ public record VectorPoint(@NotNull FloatFunction<Vector3f> function, float time,
      */
     public @NotNull Vector3f vector(float time) {
         return function.apply(time);
+    }
+
+    /**
+     * Checks this vector point is continuous
+     * @return is continuous
+     */
+    public boolean isContinuous() {
+        return function instanceof FloatConstantFunction && interpolator.isContinuous();
     }
 
     /**

@@ -30,7 +30,7 @@ class ParallelIOThreadPool : AutoCloseable {
     private val pool = Executors.newFixedThreadPool(available) {
         Thread(it).apply {
             isDaemon = true
-            name = "BetterModel-Worker-${integer.andIncrement}"
+            name = "BetterModel-IO-Worker-${integer.andIncrement}"
             uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { thread, exception ->
                 exception.handleException("A error has been occurred in ${thread.name}")
             }

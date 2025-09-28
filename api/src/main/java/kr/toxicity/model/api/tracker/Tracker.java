@@ -123,7 +123,7 @@ public abstract class Tracker implements AutoCloseable {
         };
         if (modifier.sightTrace()) pipeline.viewFilter(p -> EntityUtil.canSee(p.getEyeLocation(), location()));
         frame((t, s) -> {
-            if (readyForForceUpdate.compareAndSet(true, false)) t.pipeline.iterateTree(b -> b.forceUpdate(s.dataBundler));
+            if (readyForForceUpdate.compareAndSet(true, false)) t.pipeline.iterateTree(b -> b.dirtyUpdate(s.dataBundler));
         });
         tick((t, s) -> pipeline.rotate(
                 t.rotation(),
@@ -163,8 +163,8 @@ public abstract class Tracker implements AutoCloseable {
                     shutdown();
                     return;
                 }
-                updater.run();
                 frame++;
+                updater.run();
             }, TRACKER_TICK_INTERVAL, TRACKER_TICK_INTERVAL, TimeUnit.MILLISECONDS);
             LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " scheduler started: " + name());
         }
@@ -351,7 +351,14 @@ public abstract class Tracker implements AutoCloseable {
         if (isClosed()) return false;
         if (!EventUtil.call(new ModelSpawnAtPlayerEvent(player, this))) return false;
         var result = pipeline.spawn(player, bundler);
-        if (result) LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " is spawned at player " + player.getName() + ": " + name());
+        if (result) {
+            LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " is spawned at player " + player.getName() + ": " + name());
+            task(() -> {
+                var b = pipeline.createBundler();
+                pipeline.iterateTree(bone -> bone.forceUpdate(b));
+                if (b.isNotEmpty()) b.send(player);
+            });
+        }
         return result;
     }
 
