@@ -19,6 +19,7 @@ import java.util.List;
  * @param position position
  * @param scale scale
  * @param rotation rotation
+ * @param skipInterpolation skip interpolation
  */
 public record AnimationMovement(
         float time,

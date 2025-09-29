@@ -179,11 +179,6 @@ public final class BetterModel {
         return Objects.requireNonNull(instance, "BetterModel hasn't been initialized yet!");
     }
 
-    @Deprecated(forRemoval = true)
-    public static @NotNull BetterModelPlugin inst() {
-        return plugin();
-    }
-
     /**
      * Sets plugin instance of BetterModel.
      * @param instance instance

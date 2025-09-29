@@ -49,6 +49,7 @@ public final class BetterModelLibrary {
             null,
             Set.of(
                     "adventure-key",
+                    "adventure-text-logger-slf4j",
                     "adventure-text-serializer-legacy",
                     "adventure-nbt",
                     "adventure-text-serializer-gson",

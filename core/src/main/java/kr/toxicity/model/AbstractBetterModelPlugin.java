@@ -29,22 +29,32 @@ public abstract class AbstractBetterModelPlugin extends JavaPlugin implements Be
     protected final AtomicBoolean firstLoad = new AtomicBoolean();
     protected final BetterModelLogger logger = new BetterModelLogger() {
 
-        private final ComponentLogger internalLogger = ComponentLogger.logger(getLogger().getName());
+        private ComponentLogger internalLogger;
+
+        private @NotNull ComponentLogger logger() {
+            if (internalLogger != null) return internalLogger;
+            synchronized (this) {
+                if (internalLogger != null) return internalLogger;
+                return internalLogger = ComponentLogger.logger(getLogger().getName());
+            }
+        }
 
         @Override
         public void info(@NotNull Component... message) {
-            synchronized (internalLogger) {
+            var log = logger();
+            synchronized (this) {
                 for (Component s : message) {
-                    internalLogger.info(s);
+                    log.info(s);
                 }
             }
         }
 
         @Override
         public void warn(@NotNull Component... message) {
-            synchronized (internalLogger) {
+            var log = logger();
+            synchronized (this) {
                 for (Component s : message) {
-                    internalLogger.warn(s);
+                    log.warn(s);
                 }
             }
         }
