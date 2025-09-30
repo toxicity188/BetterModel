@@ -633,8 +633,8 @@ public final class RenderedBone implements BoneEventHandler {
                     AnimationMovement.EMPTY,
                     (b, a) -> {
                         skipInterpolation = false;
-                        if (a.skipInterpolation()) root.state(uuid).skipInterpolation = true;
                         relativeOffsetCache = null;
+                        if (a != null && a.skipInterpolation()) root.state(uuid).skipInterpolation = true;
                     }
             );
         }
