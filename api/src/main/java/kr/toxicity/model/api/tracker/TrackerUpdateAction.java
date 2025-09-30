@@ -126,6 +126,15 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
     }
 
     /**
+     * Creates move duration action
+     * @param moveDuration move duration
+     * @return move duration action
+     */
+    static @NotNull MoveDuration moveDuration(int moveDuration) {
+        return new MoveDuration(moveDuration);
+    }
+
+    /**
      * Gets composited action
      * @return composited action
      */
@@ -314,6 +323,17 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
         @Override
         public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
             return bone.updateItem(predicate);
+        }
+    }
+
+    /**
+     * Move duration
+     * @param moveDuration move duration
+     */
+    record MoveDuration(int moveDuration) implements TrackerUpdateAction {
+        @Override
+        public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
+            return bone.moveDuration(predicate, moveDuration);
         }
     }
 

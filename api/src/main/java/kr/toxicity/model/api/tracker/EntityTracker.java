@@ -227,7 +227,7 @@ public class EntityTracker extends Tracker {
     public void damageTint() {
         if (!modifier().damageTint()) return;
         var get = damageTint.get();
-        if (get <= 0 && damageTint.compareAndSet(get, 10)) task(() -> update(TrackerUpdateAction.tint(damageTintValue())));
+        if (get < 0 && damageTint.compareAndSet(get, 10)) task(() -> update(TrackerUpdateAction.tint(damageTintValue())));
     }
 
     @Override
@@ -250,15 +250,6 @@ public class EntityTracker extends Tracker {
      */
     public @NotNull Entity sourceEntity() {
         return registry.entity();
-    }
-
-    /**
-     * Sets move duration of this model.
-     * @param duration duration
-     */
-    public void moveDuration(int duration) {
-        pipeline.iterateTree(b -> b.moveDuration(duration));
-        forceUpdate(true);
     }
 
     /**

@@ -230,10 +230,16 @@ public final class RenderedBone implements BoneEventHandler {
 
     /**
      * Sets bone's move duration.
+     * @param predicate predicate
      * @param duration duration
+     * @return success or not
      */
-    public void moveDuration(int duration) {
-        if (display != null) display.moveDuration(duration);
+    public boolean moveDuration(@NotNull Predicate<RenderedBone> predicate, int duration) {
+        if (display != null && predicate.test(this)) {
+            display.moveDuration(duration);
+            return true;
+        }
+        return false;
     }
 
     /**
