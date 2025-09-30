@@ -114,12 +114,16 @@ public abstract class Tracker implements AutoCloseable {
         this.modifier = modifier;
         bundlerSet = new BundlerSet();
         updater = () -> {
-            if (frame % MINECRAFT_TICK_MULTIPLIER == 0) {
-                Runnable task;
-                while ((task = queuedTask.poll()) != null) task.run();
+            try {
+                if (frame % MINECRAFT_TICK_MULTIPLIER == 0) {
+                    Runnable task;
+                    while ((task = queuedTask.poll()) != null) task.run();
+                }
+                handler.handle(this, bundlerSet);
+                bundlerSet.send();
+            } catch (Throwable throwable) {
+                LogUtil.handleException("Ticking this tracker has been failed: " + name(), throwable);
             }
-            handler.handle(this, bundlerSet);
-            bundlerSet.send();
         };
         if (modifier.sightTrace()) pipeline.viewFilter(p -> EntityUtil.canSee(p.getEyeLocation(), location()));
         frame((t, s) -> {
