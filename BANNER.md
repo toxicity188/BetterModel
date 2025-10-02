@@ -61,7 +61,7 @@ This plugin supports **player model with using user's custom skin without textur
 
 ## 🚀 Supported environment
 
-[![](https://img.shields.io/badge/minecraft-1.20.5%7E1.21.9-8FCA5C?style=for-the-badge)](https://www.minecraft.net/en-us/download/server)
+[![](https://img.shields.io/badge/minecraft-1.20.5%7E1.21.10-8FCA5C?style=for-the-badge)](https://www.minecraft.net/en-us/download/server)
 [![](https://img.shields.io/badge/java-21%7E-ED8B00?style=for-the-badge)](https://adoptium.net/)
 
 [![](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/supported/paper_vector.svg)](https://papermc.io/downloads/paper)

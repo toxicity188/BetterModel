@@ -18,6 +18,10 @@ import java.util.Comparator;
  */
 public record MinecraftVersion(int major, int minor, int patch) implements Comparable<MinecraftVersion> {
     /**
+     * 1.21.10
+     */
+    public static final MinecraftVersion V1_21_10 = of(1, 21, 10);
+    /**
      * 1.21.9
      */
     public static final MinecraftVersion V1_21_9 = of(1, 21, 9);
@@ -75,7 +79,7 @@ public record MinecraftVersion(int major, int minor, int patch) implements Compa
 
     /**
      * Parses version from string
-     * @param version version like "1.21.9"
+     * @param version version like "1.21.10"
      */
     public static @NotNull MinecraftVersion parse(@NotNull String version) {
         var split = version.split("\\.");
