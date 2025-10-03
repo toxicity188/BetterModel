@@ -5,7 +5,7 @@ plugins {
     alias(libs.plugins.minotaur) apply false
     alias(libs.plugins.shadow)
     alias(libs.plugins.hangar)
-    id("xyz.jpenilla.run-paper") version "3.0.0"
+    id("xyz.jpenilla.run-paper") version "3.0.1"
 }
 
 val minecraft = property("minecraft_version").toString()
