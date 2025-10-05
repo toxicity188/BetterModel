@@ -16,7 +16,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.HoverEvent
-import net.kyori.adventure.text.format.NamedTextColor
+import net.kyori.adventure.text.format.NamedTextColor.*
 import net.kyori.adventure.text.format.TextDecoration
 import org.bukkit.command.CommandSender
 
@@ -28,18 +28,18 @@ class CommandModule(
 ) : CommandExecutionInfo {
     companion object {
         private val upperLineMessage = componentOf("------ BetterModel ${PLUGIN.semver()} ------") {
-            color(NamedTextColor.GRAY)
+            color(GRAY)
         }
         private val underLineMessage = componentOf("----------------------------------") {
-            color(NamedTextColor.GRAY)
+            color(GRAY)
         }
         private val requiredMessage = componentOf(
-            "    <arg>".toComponent(NamedTextColor.RED),
+            "    <arg>".toComponent(RED),
             spaceComponentOf(),
             " - required".toComponent()
         )
         private val optionalMessage = componentOf(
-            "    [arg]".toComponent(NamedTextColor.DARK_AQUA),
+            "    [arg]".toComponent(DARK_AQUA),
             spaceComponentOf(),
             " - optional".toComponent()
         )
@@ -47,23 +47,23 @@ class CommandModule(
             decorate(TextDecoration.BOLD)
             append(spaceComponentOf())
             append(componentOf("[Wiki]") {
-                color(NamedTextColor.AQUA)
+                color(AQUA)
                 toURLComponent("https://github.com/toxicity188/BetterModel/wiki")
             })
             append(spaceComponentOf())
             append(componentOf("[Download]") {
-                color(NamedTextColor.GREEN)
+                color(GREEN)
                 toURLComponent("https://modrinth.com/plugin/bettermodel/versions")
             })
             append(spaceComponentOf())
             append(componentOf("[Discord]") {
-                color(NamedTextColor.BLUE)
+                color(BLUE)
                 toURLComponent("https://discord.com/invite/rePyFESDbk")
             })
         }
 
         private fun TextComponent.Builder.toURLComponent(url: String) = hoverEvent(HoverEvent.showText(componentOf(
-            url.toComponent(NamedTextColor.DARK_AQUA),
+            url.toComponent(DARK_AQUA),
             lineComponentOf(),
             lineComponentOf(),
             "Click to open link.".toComponent()
@@ -130,18 +130,18 @@ class CommandModule(
     }
 
     private fun CommandAPICommand.toComponent() = componentOf {
-        append("/$rootName".toComponent(NamedTextColor.YELLOW))
+        append("/$rootName".toComponent(YELLOW))
         append(spaceComponentOf())
         append(name.toComponent())
         append(arguments.map {
             spaceComponentOf().append(it.toComponent())
         })
-        append(" - ".toComponent(NamedTextColor.DARK_GRAY))
-        append(shortDescription.toComponent(NamedTextColor.GRAY))
+        append(" - ".toComponent(DARK_GRAY))
+        append(shortDescription.toComponent(GRAY))
         hoverEvent(
             HoverEvent.showText(componentOf(
                 if (aliases.isNotEmpty()) componentOf(
-                    "Aliases:".toComponent(NamedTextColor.DARK_AQUA),
+                    "Aliases:".toComponent(DARK_AQUA),
                     lineComponentOf(),
                     componentWithLineOf(*aliases.map(String::toComponent).toTypedArray())
                 ) else emptyComponentOf(),
@@ -155,7 +155,7 @@ class CommandModule(
 
     private fun Argument<*>.toComponent() = componentOf {
         content(if (isOptional) "[${nodeName.toTypeName()}]" else "<${nodeName.toTypeName()}>")
-        color(if (isOptional) NamedTextColor.DARK_AQUA else NamedTextColor.RED)
+        color(if (isOptional) DARK_AQUA else RED)
         hoverEvent(HoverEvent.showText(Component.text(argumentType.name.toTypeName())))
     }
 }

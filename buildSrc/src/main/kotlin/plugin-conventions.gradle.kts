@@ -1,5 +1,5 @@
 plugins {
-    id("standard-conventions")
+    id("bukkit-conventions")
     id("com.gradleup.shadow")
     id("com.modrinth.minotaur")
 }
@@ -10,6 +10,7 @@ val groupString = group.toString()
 val classifier = project.name
 
 dependencies {
+    compileOnly(project(":api"))
     shade(project(":core")) {
         exclude("org.jetbrains.kotlin")
     }

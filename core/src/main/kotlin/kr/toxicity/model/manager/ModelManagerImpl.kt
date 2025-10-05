@@ -20,7 +20,7 @@ import kr.toxicity.model.api.manager.ModelManager
 import kr.toxicity.model.api.pack.PackBuilder
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.util.*
-import net.kyori.adventure.text.format.NamedTextColor
+import net.kyori.adventure.text.format.NamedTextColor.*
 import org.bukkit.NamespacedKey
 import org.bukkit.inventory.ItemStack
 import java.io.File
@@ -55,7 +55,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
         }.forEachParallel(targetFolder, Path::fileSize) {
             val load = it.toFile().toTexturedModel() ?: return@forEachParallel warn(componentOf(
                 "This model file has unsupported element type (e.g., mesh): ".toComponent(),
-                it.toString().toComponent(NamedTextColor.RED)
+                it.toString().toComponent(RED)
             ))
             modelFileMap.compute(load.name) compute@ { _, v ->
                 val index = pipeline.progress()
@@ -63,16 +63,16 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                     // A model with the same name already exists from a different file
                     warn(
                         "Duplicate $typeName model name '${load.name}'.".toComponent(),
-                        "Duplicated file: $it".toComponent(NamedTextColor.RED),
-                        "And: ${v.first}".toComponent(NamedTextColor.RED)
+                        "Duplicated file: $it".toComponent(RED),
+                        "And: ${v.first}".toComponent(RED)
                     )
                     return@compute v
                 }
                 debugPack {
                     componentOf(
                         "$typeName model file successfully loaded: ".toComponent(),
-                        it.toString().toComponent(NamedTextColor.GREEN),
-                        " ($index/${pipeline.goal})".toComponent(NamedTextColor.DARK_GRAY)
+                        it.toString().toComponent(GREEN),
+                        " ($index/${pipeline.goal})".toComponent(DARK_GRAY)
                     )
                 }
                 it to load
@@ -94,7 +94,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                         .takeIf(File::isDirectory)
                         ?.run {
                             copyRecursively(folder, overwrite = true)
-                            info("ModelEngine's models are successfully migrated.".toComponent(NamedTextColor.GREEN))
+                            info("ModelEngine's models are successfully migrated.".toComponent(GREEN))
                         } ?: run {
                         if (PLUGIN.version().useModernResource()) folder.addResource("demon_knight.bbmodel")
                     }
@@ -222,7 +222,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                     debugPack {
                         componentOf(
                             "This model was successfully imported: ".toComponent(),
-                            load.name.toComponent(NamedTextColor.GREEN)
+                            load.name.toComponent(GREEN)
                         )
                     }
                     ModelImportedEvent(this).call()

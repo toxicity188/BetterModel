@@ -1,5 +1,8 @@
+import xyz.jpenilla.resourcefactory.bukkit.Permission
+
 plugins {
     alias(libs.plugins.convention.plugin)
+    alias(libs.plugins.resourcefactory.bukkit)
 }
 
 dependencies {
@@ -14,11 +17,43 @@ dependencies {
 }
 
 modrinth {
-    loaders = BUKKIT_LOADERS + PAPER_LOADERS
+    loaders = BUKKIT_LOADERS
 }
 
 tasks.shadowJar {
     manifest {
         attributes["paperweight-mappings-namespace"] = "spigot"
+    }
+}
+
+bukkitPluginYaml {
+    main = "$group.spigot.BetterModelPluginSpigot"
+    version = project.version.toString()
+    name = rootProject.name
+    foliaSupported = true
+    apiVersion = "1.20"
+    author = "toxicity188"
+    description = "Modern Bedrock model engine for Bukkit"
+    website = "https://modrinth.com/plugin/bettermodel"
+    softDepend = listOf(
+        "MythicMobs",
+        "Citizens",
+        "SkinsRestorer"
+    )
+    libraries = libs.bundles.library.map {
+        it.map(Any::toString)
+    }
+    permissions.create("bettermodel") {
+        default = Permission.Default.OP
+        description = "Accesses to command."
+        children = mapOf(
+            "reload" to true,
+            "spawn" to true,
+            "disguise" to true,
+            "undisguise" to true,
+            "test" to true,
+            "play" to true,
+            "version" to true
+        )
     }
 }

@@ -1,9 +1,6 @@
-import xyz.jpenilla.resourcefactory.bukkit.Permission
-
 plugins {
     alias(libs.plugins.convention.bukkit)
     alias(libs.plugins.paperweight) apply false
-    alias(libs.plugins.resourcefactory.bukkit)
 }
 
 repositories {
@@ -36,36 +33,4 @@ dependencies {
     compileOnly("net.skinsrestorer:skinsrestorer-api:15.8.1")
     compileOnly("io.lumine:Mythic-Dist:5.10.1")
     compileOnly("com.nexomc:nexo:1.12.1-dev")
-}
-
-bukkitPluginYaml {
-    main = "$group.BetterModelPluginImpl"
-    version = project.version.toString()
-    name = rootProject.name
-    foliaSupported = true
-    apiVersion = "1.20"
-    author = "toxicity188"
-    description = "Modern Bedrock model engine for Bukkit"
-    website = "https://modrinth.com/plugin/bettermodel"
-    softDepend = listOf(
-        "MythicMobs",
-        "Citizens",
-        "SkinsRestorer"
-    )
-    libraries = libs.bundles.library.map {
-        it.map(Any::toString)
-    }
-    permissions.create("bettermodel") {
-        default = Permission.Default.OP
-        description = "Accesses to command."
-        children = mapOf(
-            "reload" to true,
-            "spawn" to true,
-            "disguise" to true,
-            "undisguise" to true,
-            "test" to true,
-            "play" to true,
-            "version" to true
-        )
-    }
 }

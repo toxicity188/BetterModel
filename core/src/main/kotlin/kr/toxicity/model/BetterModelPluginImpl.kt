@@ -21,7 +21,7 @@ import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.configuration.PluginConfiguration
 import kr.toxicity.model.manager.*
 import kr.toxicity.model.util.*
-import net.kyori.adventure.text.format.NamedTextColor
+import net.kyori.adventure.text.format.NamedTextColor.*
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -32,8 +32,7 @@ import java.util.function.Consumer
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 
-@Suppress("UNUSED")
-class BetterModelPluginImpl : AbstractBetterModelPlugin() {
+abstract class BetterModelPluginImpl : AbstractBetterModelPlugin() {
 
     private lateinit var props: BetterModelProperties
 
@@ -44,9 +43,9 @@ class BetterModelPluginImpl : AbstractBetterModelPlugin() {
         }.getOrElse {
             warn(
                 "Unable to start this plugin.".toComponent(),
-                "Reason: ${it.message ?: "Unknown"}".toComponent(NamedTextColor.RED),
-                "Stack trace: ${it.stackTraceToString()}".toComponent(NamedTextColor.RED),
-                "Plugin will be automatically disabled.".toComponent(NamedTextColor.DARK_RED)
+                "Reason: ${it.message ?: "Unknown"}".toComponent(RED),
+                "Stack trace: ${it.stackTraceToString()}".toComponent(RED),
+                "Plugin will be automatically disabled.".toComponent(DARK_RED)
             )
             return Bukkit.getPluginManager().disablePlugin(this)
         }
@@ -56,7 +55,7 @@ class BetterModelPluginImpl : AbstractBetterModelPlugin() {
         props.managers.forEach(GlobalManager::start)
         if (isSnapshot) warn(
             "This build is dev version: be careful to use it!".toComponent(),
-            "Build number: ${props.snapshot}".toComponent(NamedTextColor.LIGHT_PURPLE)
+            "Build number: ${props.snapshot}".toComponent(LIGHT_PURPLE)
         )
         registerListener(object : Listener {
             @EventHandler
@@ -81,14 +80,14 @@ class BetterModelPluginImpl : AbstractBetterModelPlugin() {
                     is Failure -> result.throwable.handleException("Unable to load plugin properly.")
                     is OnReload -> throw RuntimeException("Plugin load failed.")
                     is Success -> info(
-                        "Plugin is loaded. (${result.totalTime().withComma()} ms)".toComponent(NamedTextColor.GREEN),
-                        "Minecraft version: ${props.version}, NMS version: ${props.nms.version()}".toComponent(NamedTextColor.AQUA),
+                        "Plugin is loaded. (${result.totalTime().withComma()} ms)".toComponent(GREEN),
+                        "Minecraft version: ${props.version}, NMS version: ${props.nms.version()}".toComponent(AQUA),
                         "Platform: ${when {
                             BetterModel.IS_FOLIA -> "Folia"
                             BetterModel.IS_PURPUR -> "Purpur"
                             BetterModel.IS_PAPER -> "Paper"
                             else -> "Bukkit"
-                        }}".toComponent(NamedTextColor.AQUA)
+                        }}".toComponent(AQUA)
                     )
                 }
             }

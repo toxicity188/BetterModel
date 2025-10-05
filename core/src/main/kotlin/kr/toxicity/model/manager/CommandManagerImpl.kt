@@ -7,7 +7,6 @@
 package kr.toxicity.model.manager
 
 import dev.jorel.commandapi.CommandAPI
-import dev.jorel.commandapi.CommandAPIBukkitConfig
 import dev.jorel.commandapi.arguments.*
 import dev.jorel.commandapi.executors.CommandExecutionInfo
 import dev.jorel.commandapi.executors.PlayerCommandExecutor
@@ -22,7 +21,7 @@ import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.command.commandModule
 import kr.toxicity.model.util.*
 import net.kyori.adventure.text.event.HoverEvent
-import net.kyori.adventure.text.format.NamedTextColor
+import net.kyori.adventure.text.format.NamedTextColor.*
 import org.bukkit.Location
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.LivingEntity
@@ -34,7 +33,6 @@ import kotlin.math.pow
 object CommandManagerImpl : CommandManager, GlobalManager {
 
     override fun start() {
-        CommandAPI.onLoad(CommandAPIBukkitConfig(PLUGIN).beLenientForMinorVersions(true).silentLogs(true))
         commandModule("bettermodel") {
             withAliases("bm")
         }.apply {
@@ -125,21 +123,21 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                                 audience.info(
                                     emptyComponentOf(),
                                     componentOf("Reload completed. (${result.totalTime().withComma()}ms)") {
-                                        color(NamedTextColor.GREEN)
+                                        color(GREEN)
                                     },
                                     componentOf("Assets reload time - ${result.assetsTime().withComma()}ms") {
-                                        color(NamedTextColor.GRAY)
+                                        color(GRAY)
                                         hoverEvent(HoverEvent.showText(componentOf("Reading all config and model.")))
                                     },
                                     componentOf("Packing time - ${result.packingTime().withComma()}ms") {
-                                        color(NamedTextColor.GRAY)
+                                        color(GRAY)
                                         hoverEvent(HoverEvent.showText(componentOf("Packing all model to resource pack.")))
                                     },
                                     componentOf("${BetterModel.models().size.withComma()} of models are loaded successfully. (${result.length().toByteFormat()})") {
-                                        color(NamedTextColor.YELLOW)
+                                        color(YELLOW)
                                     },
                                     componentOf(if (result.packResult.changed()) "${result.packResult.size().withComma()} of files are zipped." else "Zipping is skipped due to the same result.") {
-                                        color(NamedTextColor.YELLOW)
+                                        color(YELLOW)
                                     },
                                     emptyComponentOf()
                                 )
@@ -237,7 +235,7 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                         }
                 )
                 withOptionalArguments(
-                    PlayerArgument("player"),
+                    EntitySelectorArgument.OnePlayer("player"),
                     LocationArgument("location")
                 )
                 executes(CommandExecutionInfo info@ {

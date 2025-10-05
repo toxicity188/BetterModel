@@ -8,7 +8,6 @@ package kr.toxicity.model;
 
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.util.function.BooleanConstantSupplier;
-import net.byteflux.libby.BukkitLibraryManager;
 import net.byteflux.libby.Library;
 import net.byteflux.libby.relocation.Relocation;
 import org.jetbrains.annotations.NotNull;
@@ -98,7 +97,7 @@ public final class BetterModelLibrary {
     );
 
     public void load(@NotNull AbstractBetterModelPlugin plugin) {
-        var manager = new BukkitLibraryManager(plugin, ".libs");
+        var manager = new BetterModelLibraryManager(plugin);
         manager.addRepository("https://maven-central.storage-download.googleapis.com/maven2/");
         manager.addRepository("https://maven.blamejared.com/");
         manager.addMavenCentral();

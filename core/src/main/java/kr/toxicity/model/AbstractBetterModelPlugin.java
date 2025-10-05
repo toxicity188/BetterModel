@@ -61,7 +61,6 @@ public abstract class AbstractBetterModelPlugin extends JavaPlugin implements Be
     };
     private @Nullable Attributes attributes;
 
-    @Override
     public void onLoad() {
         new BetterModelLibrary().load(this);
         BetterModel.register(this);
