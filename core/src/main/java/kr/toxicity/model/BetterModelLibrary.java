@@ -14,86 +14,90 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BooleanSupplier;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
+@SuppressWarnings("unused")
 public final class BetterModelLibrary {
 
     private static final String KOTLIN_RELOCATED = "_kotlin".substring(1);
+    private static final List<LibraryData> LIBRARY_DATA = new ArrayList<>();
 
-    public static final LibraryData KOTLIN = new LibraryData(
+    public static final LibraryData KOTLIN = register(
             "org{}jetbrains{}kotlin",
             KOTLIN_RELOCATED + "-stdlib",
-            KOTLIN_RELOCATED
+            builder -> builder.relocation(KOTLIN_RELOCATED)
     );
-    public static final LibraryData BSTATS = new LibraryData(
+    public static final LibraryData BSTATS = register(
             "org{}bstats",
             "bstats-bukkit",
-            "org{}bstats",
-            Set.of(
-                    "bstats-base"
-            )
+            builder -> builder.relocation("org{}bstats")
+                    .subModules(
+                            "bstats-base"
+                    )
     );
-    public static final LibraryData MOLANG_COMPILER = new LibraryData(
+    public static final LibraryData COMMANDAPI_PAPER_SHADE = register(
+            "dev{}jorel",
+            "commandapi-paper-shade",
+            builder -> builder.relocation("dev{}jorel{}commandapi")
+                    .versionRef("commandapi-paper-core")
+                    .predicate(BooleanConstantSupplier.of(BetterModel.IS_PAPER))
+    );
+    public static final LibraryData COMMANDAPI_SPIGOT_SHADE = register(
+            "dev{}jorel",
+            "commandapi-spigot-shade",
+            builder -> builder.relocation("dev{}jorel{}commandapi")
+                    .versionRef("commandapi-paper-core")
+                    .predicate(BooleanConstantSupplier.of(!BetterModel.IS_PAPER))
+    );
+    public static final LibraryData MOLANG_COMPILER = register(
             "gg{}moonflower",
             "molang-compiler",
-            null
+            builder -> builder
     );
-    public static final LibraryData ADVENTURE_API = new LibraryData(
+    public static final LibraryData ADVENTURE_API = register(
             "net{}kyori",
             "adventure-api",
-            null,
-            Set.of(
-                    "adventure-key",
-                    "adventure-text-logger-slf4j",
-                    "adventure-text-serializer-legacy",
-                    "adventure-nbt",
-                    "adventure-text-serializer-gson",
-                    "adventure-text-serializer-gson-legacy-impl",
-                    "adventure-text-serializer-json",
-                    "adventure-text-serializer-json-legacy-impl"
-            ),
-            BooleanConstantSupplier.of(!BetterModel.IS_PAPER)
+            builder -> builder
+                    .subModules(
+                            "adventure-key",
+                            "adventure-text-logger-slf4j",
+                            "adventure-text-serializer-legacy",
+                            "adventure-nbt",
+                            "adventure-text-serializer-gson",
+                            "adventure-text-serializer-gson-legacy-impl",
+                            "adventure-text-serializer-json",
+                            "adventure-text-serializer-json-legacy-impl"
+                    )
+                    .predicate(BooleanConstantSupplier.of(!BetterModel.IS_PAPER))
     );
-    public static final LibraryData EXAMINATION_API = new LibraryData(
+    public static final LibraryData EXAMINATION_API = register(
             "net{}kyori",
             "examination-api",
-            null,
-            Set.of(
-                    "examination-string"
-            ),
-            BooleanConstantSupplier.of(!BetterModel.IS_PAPER)
+            builder -> builder
+                    .subModules(
+                            "examination-string"
+                    )
+                    .predicate(BooleanConstantSupplier.of(!BetterModel.IS_PAPER))
     );
-    public static final LibraryData OPTION = new LibraryData(
+    public static final LibraryData OPTION = register(
             "net{}kyori",
             "option",
-            null,
-            BooleanConstantSupplier.of(!BetterModel.IS_PAPER)
+            builder -> builder.predicate(BooleanConstantSupplier.of(!BetterModel.IS_PAPER))
     );
-    public static final LibraryData ADVENTURE_PLATFORM = new LibraryData(
+    public static final LibraryData ADVENTURE_PLATFORM = register(
             "net{}kyori",
             "adventure-platform-bukkit",
-            null,
-            Set.of(
-                    "adventure-platform-api",
-                    "adventure-platform-facet",
-                    "adventure-platform-viaversion",
-                    "adventure-text-serializer-bungeecord"
-            ),
-            BooleanConstantSupplier.of(!BetterModel.IS_PAPER)
-    );
-
-    private static final List<LibraryData> LIBRARY_DATA = List.of(
-            KOTLIN,
-            BSTATS,
-            MOLANG_COMPILER,
-            ADVENTURE_API,
-            EXAMINATION_API,
-            OPTION,
-            ADVENTURE_PLATFORM
+            builder -> builder
+                    .subModules(
+                            "adventure-platform-api",
+                            "adventure-platform-facet",
+                            "adventure-platform-viaversion",
+                            "adventure-text-serializer-bungeecord"
+                    )
+                    .predicate(BooleanConstantSupplier.of(!BetterModel.IS_PAPER))
     );
 
     public void load(@NotNull AbstractBetterModelPlugin plugin) {
@@ -107,35 +111,64 @@ public final class BetterModelLibrary {
                 .forEach(manager::loadLibrary);
     }
 
+    private static @NotNull LibraryData register(@NotNull String group, @NotNull String artifact, @NotNull Function<LibraryData.Builder, LibraryData.Builder> function) {
+        var build = function.apply(new LibraryData.Builder(group, artifact)).build();
+        LIBRARY_DATA.add(build);
+        return build;
+    }
+
     public record LibraryData(
             @NotNull String group,
             @NotNull String artifact,
             @Nullable String relocation,
+            @NotNull String versionRef,
             @NotNull @Unmodifiable Set<String> subModules,
             @NotNull BooleanSupplier predicate
     ) {
-        public LibraryData(
-                @NotNull String group,
-                @NotNull String artifact,
-                @Nullable String relocation
-        ) {
-            this(group, artifact, relocation, Collections.emptySet(), BooleanConstantSupplier.TRUE);
-        }
-        public LibraryData(
-                @NotNull String group,
-                @NotNull String artifact,
-                @Nullable String relocation,
-                @NotNull BooleanSupplier predicate
-        ) {
-            this(group, artifact, relocation, Collections.emptySet(), predicate);
-        }
-        public LibraryData(
-                @NotNull String group,
-                @NotNull String artifact,
-                @Nullable String relocation,
-                @NotNull @Unmodifiable Set<String> subModules
-        ) {
-            this(group, artifact, relocation, subModules, BooleanConstantSupplier.TRUE);
+
+        private static class Builder {
+            final String group;
+            final String artifact;
+            @Nullable String relocation;
+            @NotNull String versionRef;
+            @NotNull @Unmodifiable Set<String> subModules = Collections.emptySet();
+            @NotNull BooleanSupplier predicate = BooleanConstantSupplier.TRUE;
+
+            Builder(@NotNull String group, @NotNull String artifact) {
+                this.group = group;
+                this.artifact = this.versionRef = artifact;
+            }
+
+            @NotNull Builder predicate(@NotNull BooleanSupplier predicate) {
+                this.predicate = Objects.requireNonNull(predicate);
+                return this;
+            }
+
+            @NotNull Builder subModules(@NotNull String... subModules) {
+                this.subModules = Set.of(Objects.requireNonNull(subModules));
+                return this;
+            }
+
+            @NotNull Builder relocation(@Nullable String relocation) {
+                this.relocation = Objects.requireNonNull(relocation);
+                return this;
+            }
+
+            @NotNull Builder versionRef(@NotNull String versionRef) {
+                this.versionRef = Objects.requireNonNull(versionRef);
+                return this;
+            }
+
+            @NotNull LibraryData build() {
+                return new LibraryData(
+                        group,
+                        artifact,
+                        relocation,
+                        versionRef,
+                        subModules,
+                        predicate
+                );
+            }
         }
 
         public boolean isLoaded() {
@@ -143,7 +176,7 @@ public final class BetterModelLibrary {
         }
 
         private @NotNull Stream<Library> toLibby(@NotNull AbstractBetterModelPlugin plugin) {
-            var version = plugin.attributes().getValue("library-" + artifact);
+            var version = plugin.attributes().getValue("library-" + versionRef);
             return Stream.concat(
                     Stream.of(artifact),
                     subModules.stream()

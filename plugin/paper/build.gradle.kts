@@ -16,7 +16,7 @@ dependencies {
     shade(project(":nms:v1_21_R4")) { isTransitive = false }
     shade(project(":nms:v1_21_R5")) { isTransitive = false }
     shade(project(":nms:v1_21_R6")) { isTransitive = false }
-    shade(libs.commandapi.paper)
+    compileOnly(libs.commandapi.paper)
 }
 
 modrinth {

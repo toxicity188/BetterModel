@@ -22,7 +22,6 @@ dependencies {
         exclude("net.kyori")
         exclude("org.ow2.asm")
     }
-    compileOnly(libs.commandapi.bukkit)
 
     compileOnly(libs.bundles.manifestLibrary)
     testImplementation(libs.bundles.manifestLibrary)

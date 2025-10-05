@@ -13,7 +13,7 @@ dependencies {
     shade(project(":nms:v1_21_R4", configuration = "reobf")) { isTransitive = false }
     shade(project(":nms:v1_21_R5", configuration = "reobf")) { isTransitive = false }
     shade(project(":nms:v1_21_R6", configuration = "reobf")) { isTransitive = false }
-    shade(libs.commandapi.bukkit)
+    compileOnly(libs.commandapi.spigot)
 }
 
 modrinth {
