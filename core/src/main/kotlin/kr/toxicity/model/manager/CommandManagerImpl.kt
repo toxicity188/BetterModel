@@ -193,12 +193,12 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                     EntitySelectorArgument.OnePlayer("player"),
                     LocationArgument("location")
                 )
-                executes(CommandExecutionInfo exec@ {
-                    val audience = it.sender().audience()
-                    val model = it.args().mapToModel("model") { return@exec audience.warn("Unable to find this model: $this") }
-                    val animation = it.args().mapString("animation") { str -> model.animation(str).orElse(null) ?: return@exec audience.warn("Unable to find this animation: $str") }
-                    val player = it.args().map("player") { it.sender() as? Player ?: return@exec audience.warn("Unable to find target player.") }
-                    val location = it.args().map("location") {
+                executes(CommandExecutionInfo exec@ { info ->
+                    val audience = info.sender().audience()
+                    val model = info.args().mapToModel("model") { return@exec audience.warn("Unable to find this model: $it") }
+                    val animation = info.args().mapString("animation") { str -> model.animation(str).orElse(null) ?: return@exec audience.warn("Unable to find this animation: $str") }
+                    val player = info.args().map("player") { info.sender() as? Player ?: return@exec audience.warn("Unable to find target player.") }
+                    val location = info.args().map("location") {
                         player.location.apply {
                             add(Vector(0, 0, 10).rotateAroundY(-Math.toRadians(player.yaw.toDouble())))
                             yaw += 180
