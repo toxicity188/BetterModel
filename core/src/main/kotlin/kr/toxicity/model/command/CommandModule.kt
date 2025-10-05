@@ -11,8 +11,11 @@ import dev.jorel.commandapi.SuggestionInfo
 import dev.jorel.commandapi.arguments.Argument
 import dev.jorel.commandapi.arguments.ArgumentSuggestions
 import dev.jorel.commandapi.commandsenders.BukkitCommandSender
+import dev.jorel.commandapi.executors.CommandArguments
 import dev.jorel.commandapi.executors.CommandExecutionInfo
 import dev.jorel.commandapi.executors.ExecutionInfo
+import kr.toxicity.model.api.BetterModel
+import kr.toxicity.model.api.data.renderer.ModelRenderer
 import kr.toxicity.model.util.*
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
@@ -23,10 +26,21 @@ import net.kyori.adventure.text.format.TextDecoration
 import org.bukkit.command.CommandSender
 
 fun commandModule(name: String, block: CommandAPICommand.() -> Unit) = CommandModule(null, CommandAPICommand(name).apply(block))
+
 fun Argument<*>.suggest(collections: Collection<String>): Argument<*> = replaceSuggestions(ArgumentSuggestions.strings(collections))
 fun Argument<*>.suggest(block: (SuggestionInfo<CommandSender>) -> Collection<String>): Argument<*> = replaceSuggestions(ArgumentSuggestions.stringCollection(block))
 fun Argument<*>.suggestNullable(collections: Collection<String>?): Argument<*> = suggest(collections ?: emptySet())
 fun Argument<*>.suggestNullable(block: (SuggestionInfo<CommandSender>) -> Collection<String>?): Argument<*> = suggest { block(it) ?: emptySet() }
+
+inline fun <reified T : Any> CommandArguments.map(name: String, ifNull: () -> T) = get(name) as? T ?: ifNull()
+inline fun <reified T : Any> CommandArguments.map(name: String, ifNull: T) = get(name) as? T ?: ifNull
+inline fun <reified T : Any> CommandArguments.map(name: String) = get(name) as T
+inline fun <reified T : Any> CommandArguments.mapNullable(name: String) = get(name) as? T
+inline fun <reified T : Any> CommandArguments.mapString(name: String, mapper: (String) -> T) = map<String>(name).let(mapper)
+inline fun <reified T : Any> CommandArguments.mapNullableString(name: String, mapper: (String) -> T?) = mapNullable<String>(name)?.let(mapper)
+inline fun CommandArguments.mapToModel(name: String, ifNotFound: (String) -> ModelRenderer) = mapString(name) { BetterModel.modelOrNull(it) ?: ifNotFound(it) }
+inline fun CommandArguments.mapToLimb(name: String, ifNotFound: (String) -> ModelRenderer) = mapString(name) { BetterModel.limbOrNull(it) ?: ifNotFound(it) }
+
 
 class CommandModule(
     parent: CommandModule?,

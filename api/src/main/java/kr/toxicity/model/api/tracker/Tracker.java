@@ -416,7 +416,7 @@ public abstract class Tracker implements AutoCloseable {
      * @param modifier modifier
      * @return success
      */
-    public boolean animate(@NotNull String animation, AnimationModifier modifier) {
+    public boolean animate(@NotNull String animation, @NotNull AnimationModifier modifier) {
         return animate(animation, modifier, () -> {});
     }
 
@@ -427,7 +427,28 @@ public abstract class Tracker implements AutoCloseable {
      * @param removeTask remove task
      * @return success
      */
-    public boolean animate(@NotNull String animation, AnimationModifier modifier, Runnable removeTask) {
+    public boolean animate(@NotNull String animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
+        return animate(b -> true, animation, modifier, removeTask);
+    }
+
+    /**
+     * Players this animation by once
+     * @param animation animation
+     * @param modifier modifier
+     * @return success
+     */
+    public boolean animate(@NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier) {
+        return animate(animation, modifier, () -> {});
+    }
+
+    /**
+     * Players this animation by once
+     * @param animation animation
+     * @param modifier modifier
+     * @param removeTask remove task
+     * @return success
+     */
+    public boolean animate(@NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
         return animate(b -> true, animation, modifier, removeTask);
     }
 

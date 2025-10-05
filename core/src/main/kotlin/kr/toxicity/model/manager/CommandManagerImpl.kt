@@ -18,14 +18,12 @@ import kr.toxicity.model.api.manager.CommandManager
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.tracker.EntityHideOption
 import kr.toxicity.model.api.tracker.Tracker
+import kr.toxicity.model.api.tracker.TrackerModifier
 import kr.toxicity.model.api.version.MinecraftVersion
-import kr.toxicity.model.command.commandModule
-import kr.toxicity.model.command.suggest
-import kr.toxicity.model.command.suggestNullable
+import kr.toxicity.model.command.*
 import kr.toxicity.model.util.*
 import net.kyori.adventure.text.event.HoverEvent
 import net.kyori.adventure.text.format.NamedTextColor.*
-import org.bukkit.Location
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
@@ -42,12 +40,10 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                 withShortDescription("disguises self.")
                 withAliases("d")
                 withArguments(
-                    StringArgument("name").suggest { BetterModel.modelKeys() }
+                    StringArgument("model").suggest { BetterModel.modelKeys() }
                 )
-                executesPlayer(PlayerCommandExecutor { player, args ->
-                    val name = args["name"] as String
-                    BetterModel.modelOrNull(name)
-                        ?.getOrCreate(player) ?: player.audience().warn("This model doesn't exist: $name")
+                executesPlayer(PlayerCommandExecutor exec@ { player, args ->
+                    args.mapToModel("model") { return@exec player.audience().warn("Unable to find this model: $it") }.getOrCreate(player)
                 })
             }
             command("undisguise") {
@@ -57,10 +53,10 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                     StringArgument("model").suggestNullable { (it.sender as? Player)?.toRegistry()?.trackers()?.map(Tracker::name) }
                 )
                 executesPlayer(PlayerCommandExecutor { player, args ->
-                    val model = args["model"] as? String
+                    val model = args.mapNullable<String>("model")
                     if (model != null) {
                         player.toTracker(model)?.close() ?: player.audience().warn("Cannot find this model to undisguise: $model")
-                    } else BetterModel.registryOrNull(player.uniqueId)?.close() ?: player.audience().warn("Cannot find any model to undisguise")
+                    } else player.toRegistry()?.close() ?: player.audience().warn("Cannot find any model to undisguise")
                 })
             }
             command("spawn") {
@@ -72,23 +68,25 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                 withOptionalArguments(
                     EntityTypeArgument("type"),
                     DoubleArgument("scale").suggest((-2..2).map { 4.0.pow(it.toDouble()).toString() }),
-                    LocationArgument("coordinates")
+                    LocationArgument("location")
                 )
-                executesPlayer(PlayerCommandExecutor { player, args ->
-                    val n = args["model"] as String
-                    val t = args["type"] as? EntityType ?: EntityType.HUSK
-                    val s = args["scale"] as? Double ?: 1.0
-                    val loc = args["coordinates"] as? Location ?: player.location
-                    val e = player.world.spawnEntity(loc, t).apply {
-                        if (PLUGIN.version() >= MinecraftVersion.V1_21 && this is LivingEntity) getAttribute(ATTRIBUTE_SCALE)?.baseValue = s
-                    }
-                    if (e.isValid) {
-                        BetterModel.modelOrNull(n)
-                            ?.create(e)
-                            ?: player.audience().warn("Unable to find this renderer: $n")
-                    } else {
-                        player.audience().warn("Entity spawning has been blocked.")
-                    }
+                executesPlayer(PlayerCommandExecutor exec@ { player, args ->
+                    val model = args.mapToModel("model") { return@exec player.audience().warn("Unable to find this model: $it") }
+                    val type = args.map("type", EntityType.HUSK)
+                    val scale = args.map("scale", 1.0)
+                    val loc = args.map("location") { player.location }
+                    loc.run {
+                        (world ?: player.world).spawnEntity(
+                            this,
+                            type
+                        ).apply {
+                            if (PLUGIN.version() >= MinecraftVersion.V1_21 && this is LivingEntity) getAttribute(ATTRIBUTE_SCALE)?.baseValue = scale
+                        }
+                    }.takeIf {
+                        it.isValid
+                    }?.let { entity ->
+                        model.create(entity)
+                    } ?: player.audience().warn("Entity spawning has been blocked.")
                 })
             }
             command("reload") {
@@ -165,26 +163,23 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                     StringArgument("loop_type").suggest(AnimationIterator.Type.entries.map { it.name.lowercase() }),
                     BooleanArgument("hide")
                 )
-                executesPlayer(PlayerCommandExecutor { player, args ->
-                    val n = args["limb"] as String
-                    val a = args["animation"] as String
-                    val loopTypeStr = args["loop_type"] as? String
-                    val hide = args["hide"] as? Boolean != false
-
-                    val loopType = loopTypeStr?.let {
+                executesPlayer(PlayerCommandExecutor exec@ { player, args ->
+                    val audience = player.audience()
+                    val limb = args.mapToLimb("limb") { return@exec audience.warn("Unable to find this limb: $it") }
+                    val animation = args.mapString("animation") { limb.animation(it).orElse(null) ?: return@exec audience.warn("Unable to find this animation: $it") }
+                    val loopType = args.mapNullableString("loop_type") {
                         runCatching {
                             AnimationIterator.Type.valueOf(it.uppercase())
-                        }.onFailure {
-                            player.audience().warn("Invalid loop type: '$loopTypeStr'. Using default.")
+                        }.onFailure { _ ->
+                            audience.warn("Invalid loop type: '$it'. Using default.")
                         }.getOrNull()
                     }
-                    if (!ModelManagerImpl.animate(player, n, a, AnimationModifier(
-                        1,
-                        0,
-                        loopType
-                    )) {
+                    val hide = args.mapNullable<Boolean>("hide") != false
+                    limb.getOrCreate(player, TrackerModifier.DEFAULT) {
                         it.hideOption(if (hide) EntityHideOption.DEFAULT else EntityHideOption.FALSE)
-                    }) player.audience().warn("Unable to find this animation($a) or model($n).")
+                    }.run {
+                        if (!animate(animation, AnimationModifier(0, 0, loopType), ::close)) close()
+                    }
                 })
             }
             command("test") {
@@ -200,20 +195,18 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                 )
                 executes(CommandExecutionInfo info@ {
                     val audience = it.sender().audience()
-                    val model = (it.args()["model"] as String).run {
-                        BetterModel.modelOrNull(this) ?: return@info audience.warn("Unable to find this model: $this")
-                    }
-                    val animation = (it.args()["animation"] as String).run {
-                        model.animation(this).orElse(null) ?: return@info audience.warn("Unable to find this animation: $this")
-                    }
-                    val player = it.args()["player"] as? Player ?: it.sender() as? Player ?: return@info audience.warn("Unable to find target player.")
-                    val location = it.args()["location"] as? Location ?: player.location.apply {
-                        add(Vector(0, 0, 10).rotateAroundY(-Math.toRadians(player.yaw.toDouble())))
-                        yaw += 180
+                    val model = it.args().mapToModel("model") { return@info audience.warn("Unable to find this model: $this") }
+                    val animation = it.args().mapString("animation") { str -> model.animation(str).orElse(null) ?: return@info audience.warn("Unable to find this animation: $str") }
+                    val player = it.args().map("player") { it.sender() as? Player ?: return@info audience.warn("Unable to find target player.") }
+                    val location = it.args().map("location") {
+                        player.location.apply {
+                            add(Vector(0, 0, 10).rotateAroundY(-Math.toRadians(player.yaw.toDouble())))
+                            yaw += 180
+                        }
                     }
                     model.create(location).run {
                         spawn(player)
-                        animate({ true }, animation, AnimationModifier.builder()
+                        animate(animation, AnimationModifier.builder()
                             .start(0)
                             .type(AnimationIterator.Type.PLAY_ONCE)
                             .build(), ::close)
