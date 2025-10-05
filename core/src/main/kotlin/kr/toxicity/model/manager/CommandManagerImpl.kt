@@ -90,6 +90,7 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                         4.0.pow(it.toDouble()).toString()
                     }))
                 )
+                withOptionalArguments(LocationArgument("coordinates"))
                 executesPlayer(PlayerCommandExecutor { player, args ->
                     val n = args["name"] as String
                     val t = (args["type"] as? String)?.let {
@@ -98,7 +99,8 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                         }.getOrDefault(EntityType.HUSK)
                     } ?: EntityType.HUSK
                     val s = args["scale"] as? Double ?: 1.0
-                    val e = player.world.spawnEntity(player.location, t).apply {
+                    val loc = args["coordinates"] as? Location ?: player.location
+                    val e = player.world.spawnEntity(loc, t).apply {
                         if (PLUGIN.version() >= MinecraftVersion.V1_21 && this is LivingEntity) getAttribute(ATTRIBUTE_SCALE)?.baseValue = s
                     }
                     if (e.isValid) {
