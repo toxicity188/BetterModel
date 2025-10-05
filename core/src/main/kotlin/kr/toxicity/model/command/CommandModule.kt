@@ -41,7 +41,6 @@ inline fun <reified T : Any> CommandArguments.mapNullableString(name: String, ma
 inline fun CommandArguments.mapToModel(name: String, ifNotFound: (String) -> ModelRenderer) = mapString(name) { BetterModel.modelOrNull(it) ?: ifNotFound(it) }
 inline fun CommandArguments.mapToLimb(name: String, ifNotFound: (String) -> ModelRenderer) = mapString(name) { BetterModel.limbOrNull(it) ?: ifNotFound(it) }
 
-
 class CommandModule(
     parent: CommandModule?,
     private val delegate: CommandAPICommand

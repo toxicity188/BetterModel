@@ -193,11 +193,11 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                     EntitySelectorArgument.OnePlayer("player"),
                     LocationArgument("location")
                 )
-                executes(CommandExecutionInfo info@ {
+                executes(CommandExecutionInfo exec@ {
                     val audience = it.sender().audience()
-                    val model = it.args().mapToModel("model") { return@info audience.warn("Unable to find this model: $this") }
-                    val animation = it.args().mapString("animation") { str -> model.animation(str).orElse(null) ?: return@info audience.warn("Unable to find this animation: $str") }
-                    val player = it.args().map("player") { it.sender() as? Player ?: return@info audience.warn("Unable to find target player.") }
+                    val model = it.args().mapToModel("model") { return@exec audience.warn("Unable to find this model: $this") }
+                    val animation = it.args().mapString("animation") { str -> model.animation(str).orElse(null) ?: return@exec audience.warn("Unable to find this animation: $str") }
+                    val player = it.args().map("player") { it.sender() as? Player ?: return@exec audience.warn("Unable to find target player.") }
                     val location = it.args().map("location") {
                         player.location.apply {
                             add(Vector(0, 0, 10).rotateAroundY(-Math.toRadians(player.yaw.toDouble())))
@@ -206,10 +206,7 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                     }
                     model.create(location).run {
                         spawn(player)
-                        animate(animation, AnimationModifier.builder()
-                            .start(0)
-                            .type(AnimationIterator.Type.PLAY_ONCE)
-                            .build(), ::close)
+                        animate(animation, AnimationModifier(0, 0, AnimationIterator.Type.PLAY_ONCE), ::close)
                     }
                 })
             }
