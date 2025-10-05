@@ -8,7 +8,8 @@ package kr.toxicity.model.manager
 
 import dev.jorel.commandapi.CommandAPI
 import dev.jorel.commandapi.arguments.*
-import dev.jorel.commandapi.executors.CommandExecutionInfo
+import dev.jorel.commandapi.executors.CommandArguments
+import dev.jorel.commandapi.executors.CommandExecutor
 import dev.jorel.commandapi.executors.PlayerCommandExecutor
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.BetterModelPlugin.ReloadResult.*
@@ -24,6 +25,7 @@ import kr.toxicity.model.command.*
 import kr.toxicity.model.util.*
 import net.kyori.adventure.text.event.HoverEvent
 import net.kyori.adventure.text.format.NamedTextColor.*
+import org.bukkit.command.CommandSender
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
@@ -42,9 +44,7 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                 withArguments(
                     StringArgument("model").suggest { BetterModel.modelKeys() }
                 )
-                executesPlayer(PlayerCommandExecutor exec@ { player, args ->
-                    args.mapToModel("model") { return@exec player.audience().warn("Unable to find this model: $it") }.getOrCreate(player)
-                })
+                executesPlayer(PlayerCommandExecutor(::disguise))
             }
             command("undisguise") {
                 withShortDescription("undisguises self.")
@@ -52,12 +52,7 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                 withOptionalArguments(
                     StringArgument("model").suggestNullable { (it.sender as? Player)?.toRegistry()?.trackers()?.map(Tracker::name) }
                 )
-                executesPlayer(PlayerCommandExecutor { player, args ->
-                    val model = args.mapNullable<String>("model")
-                    if (model != null) {
-                        player.toTracker(model)?.close() ?: player.audience().warn("Cannot find this model to undisguise: $model")
-                    } else player.toRegistry()?.close() ?: player.audience().warn("Cannot find any model to undisguise")
-                })
+                executesPlayer(PlayerCommandExecutor(::undisguise))
             }
             command("spawn") {
                 withShortDescription("summons some model to given type")
@@ -70,87 +65,17 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                     DoubleArgument("scale").suggest((-2..2).map { 4.0.pow(it.toDouble()).toString() }),
                     LocationArgument("location")
                 )
-                executesPlayer(PlayerCommandExecutor exec@ { player, args ->
-                    val model = args.mapToModel("model") { return@exec player.audience().warn("Unable to find this model: $it") }
-                    val type = args.map("type", EntityType.HUSK)
-                    val scale = args.map("scale", 1.0)
-                    val loc = args.map("location") { player.location }
-                    loc.run {
-                        (world ?: player.world).spawnEntity(
-                            this,
-                            type
-                        ).apply {
-                            if (PLUGIN.version() >= MinecraftVersion.V1_21 && this is LivingEntity) getAttribute(ATTRIBUTE_SCALE)?.baseValue = scale
-                        }
-                    }.takeIf {
-                        it.isValid
-                    }?.let { entity ->
-                        model.create(entity)
-                    } ?: player.audience().warn("Entity spawning has been blocked.")
-                })
+                executesPlayer(PlayerCommandExecutor(::spawn))
             }
             command("reload") {
                 withAliases("re", "rl")
                 withShortDescription("reloads this plugin.")
-                executes(CommandExecutionInfo {
-                    PLUGIN.scheduler().asyncTask {
-                        val audience = it.sender().audience()
-                        audience.info("Start reloading. please wait...")
-                        when (val result = PLUGIN.reload(it.sender())) {
-                            is OnReload -> audience.warn("This plugin is still on reload!")
-                            is Success -> {
-                                audience.info(
-                                    emptyComponentOf(),
-                                    componentOf("Reload completed. (${result.totalTime().withComma()}ms)") {
-                                        color(GREEN)
-                                    },
-                                    componentOf("Assets reload time - ${result.assetsTime().withComma()}ms") {
-                                        color(GRAY)
-                                        hoverEvent(HoverEvent.showText(componentOf("Reading all config and model.")))
-                                    },
-                                    componentOf("Packing time - ${result.packingTime().withComma()}ms") {
-                                        color(GRAY)
-                                        hoverEvent(HoverEvent.showText(componentOf("Packing all model to resource pack.")))
-                                    },
-                                    componentOf("${BetterModel.models().size.withComma()} of models are loaded successfully. (${result.length().toByteFormat()})") {
-                                        color(YELLOW)
-                                    },
-                                    componentOf(if (result.packResult.changed()) "${result.packResult.size().withComma()} of files are zipped." else "Zipping is skipped due to the same result.") {
-                                        color(YELLOW)
-                                    },
-                                    emptyComponentOf()
-                                )
-                            }
-                            is Failure -> {
-                                audience.warn(
-                                    emptyComponentOf(),
-                                    "Reload failed.".toComponent(),
-                                    "Please read the log to find the problem.".toComponent(),
-                                    emptyComponentOf()
-                                )
-                                audience.warn()
-                                result.throwable.handleException("Reload failed.")
-                            }
-                        }
-                    }
-                })
+                executes(CommandExecutor { sender, _ -> reload(sender) })
             }
             command("version") {
                 withShortDescription("checks BetterModel's version.")
                 withAliases("v")
-                executes(CommandExecutionInfo {
-                    val audience = it.sender().audience()
-                    audience.info("Searching version, please wait...")
-                    PLUGIN.scheduler().asyncTask {
-                        val version = LATEST_VERSION
-                        audience.infoNotNull(
-                            emptyComponentOf(),
-                            "Current: ${PLUGIN.semver()}".toComponent(),
-                            version.release?.let { version -> componentOf("Latest release: ") { append(version.toURLComponent()) } },
-                            version.snapshot?.let { version -> componentOf("Latest snapshot: ") { append(version.toURLComponent()) } }
-                        )
-                    }
-                })
+                executes(CommandExecutor { sender, _ -> version(sender) })
             }
             command("play") {
                 withShortDescription("plays player animation.")
@@ -163,24 +88,7 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                     StringArgument("loop_type").suggest(AnimationIterator.Type.entries.map { it.name.lowercase() }),
                     BooleanArgument("hide")
                 )
-                executesPlayer(PlayerCommandExecutor exec@ { player, args ->
-                    val audience = player.audience()
-                    val limb = args.mapToLimb("limb") { return@exec audience.warn("Unable to find this limb: $it") }
-                    val animation = args.mapString("animation") { limb.animation(it).orElse(null) ?: return@exec audience.warn("Unable to find this animation: $it") }
-                    val loopType = args.mapNullableString("loop_type") {
-                        runCatching {
-                            AnimationIterator.Type.valueOf(it.uppercase())
-                        }.onFailure { _ ->
-                            audience.warn("Invalid loop type: '$it'. Using default.")
-                        }.getOrNull()
-                    }
-                    val hide = args.mapNullable<Boolean>("hide") != false
-                    limb.getOrCreate(player, TrackerModifier.DEFAULT) {
-                        it.hideOption(if (hide) EntityHideOption.DEFAULT else EntityHideOption.FALSE)
-                    }.run {
-                        if (!animate(animation, AnimationModifier(0, 0, loopType), ::close)) close()
-                    }
-                })
+                executesPlayer(PlayerCommandExecutor(::play))
             }
             command("test") {
                 withShortDescription("Tests some model's animation to specific player")
@@ -193,25 +101,133 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                     EntitySelectorArgument.OnePlayer("player"),
                     LocationArgument("location")
                 )
-                executes(CommandExecutionInfo exec@ { info ->
-                    val audience = info.sender().audience()
-                    val model = info.args().mapToModel("model") { return@exec audience.warn("Unable to find this model: $it") }
-                    val animation = info.args().mapString("animation") { str -> model.animation(str).orElse(null) ?: return@exec audience.warn("Unable to find this animation: $str") }
-                    val player = info.args().map("player") { info.sender() as? Player ?: return@exec audience.warn("Unable to find target player.") }
-                    val location = info.args().map("location") {
-                        player.location.apply {
-                            add(Vector(0, 0, 10).rotateAroundY(-Math.toRadians(player.yaw.toDouble())))
-                            yaw += 180
-                        }
-                    }
-                    model.create(location).run {
-                        spawn(player)
-                        animate(animation, AnimationModifier(0, 0, AnimationIterator.Type.PLAY_ONCE), ::close)
-                    }
-                })
+                executes(CommandExecutor(::test))
             }
         }.build().register(PLUGIN)
         CommandAPI.onEnable()
+    }
+
+    private fun disguise(player: Player, args: CommandArguments) {
+        args.mapToModel("model") { return player.audience().warn("Unable to find this model: $it") }.getOrCreate(player)
+    }
+
+    private fun undisguise(player: Player, args: CommandArguments) {
+        val model = args.mapNullable<String>("model")
+        if (model != null) {
+            player.toTracker(model)?.close() ?: player.audience().warn("Cannot find this model to undisguise: $model")
+        } else player.toRegistry()?.close() ?: player.audience().warn("Cannot find any model to undisguise")
+    }
+
+    private fun spawn(player: Player, args: CommandArguments) {
+        val model = args.mapToModel("model") { return player.audience().warn("Unable to find this model: $it") }
+        val type = args.map("type", EntityType.HUSK)
+        val scale = args.map("scale", 1.0)
+        val loc = args.map("location") { player.location }
+        loc.run {
+            (world ?: player.world).spawnEntity(
+                this,
+                type
+            ).apply {
+                if (PLUGIN.version() >= MinecraftVersion.V1_21 && this is LivingEntity) getAttribute(ATTRIBUTE_SCALE)?.baseValue = scale
+            }
+        }.takeIf {
+            it.isValid
+        }?.let { entity ->
+            model.create(entity)
+        } ?: player.audience().warn("Entity spawning has been blocked.")
+    }
+
+    private fun version(sender: CommandSender) {
+        val audience = sender.audience()
+        audience.info("Searching version, please wait...")
+        PLUGIN.scheduler().asyncTask {
+            val version = LATEST_VERSION
+            audience.infoNotNull(
+                emptyComponentOf(),
+                "Current: ${PLUGIN.semver()}".toComponent(),
+                version.release?.let { version -> componentOf("Latest release: ") { append(version.toURLComponent()) } },
+                version.snapshot?.let { version -> componentOf("Latest snapshot: ") { append(version.toURLComponent()) } }
+            )
+        }
+    }
+
+    private fun reload(sender: CommandSender) {
+        val audience = sender.audience()
+        PLUGIN.scheduler().asyncTask {
+            audience.info("Start reloading. please wait...")
+            when (val result = PLUGIN.reload(sender)) {
+                is OnReload -> audience.warn("This plugin is still on reload!")
+                is Success -> {
+                    audience.info(
+                        emptyComponentOf(),
+                        componentOf("Reload completed. (${result.totalTime().withComma()}ms)") {
+                            color(GREEN)
+                        },
+                        componentOf("Assets reload time - ${result.assetsTime().withComma()}ms") {
+                            color(GRAY)
+                            hoverEvent(HoverEvent.showText(componentOf("Reading all config and model.")))
+                        },
+                        componentOf("Packing time - ${result.packingTime().withComma()}ms") {
+                            color(GRAY)
+                            hoverEvent(HoverEvent.showText(componentOf("Packing all model to resource pack.")))
+                        },
+                        componentOf("${BetterModel.models().size.withComma()} of models are loaded successfully. (${result.length().toByteFormat()})") {
+                            color(YELLOW)
+                        },
+                        componentOf(if (result.packResult.changed()) "${result.packResult.size().withComma()} of files are zipped." else "Zipping is skipped due to the same result.") {
+                            color(YELLOW)
+                        },
+                        emptyComponentOf()
+                    )
+                }
+                is Failure -> {
+                    audience.warn(
+                        emptyComponentOf(),
+                        "Reload failed.".toComponent(),
+                        "Please read the log to find the problem.".toComponent(),
+                        emptyComponentOf()
+                    )
+                    audience.warn()
+                    result.throwable.handleException("Reload failed.")
+                }
+            }
+        }
+    }
+
+    private fun play(player: Player, args: CommandArguments) {
+        val audience = player.audience()
+        val limb = args.mapToLimb("limb") { return audience.warn("Unable to find this limb: $it") }
+        val animation = args.mapString("animation") { limb.animation(it).orElse(null) ?: return audience.warn("Unable to find this animation: $it") }
+        val loopType = args.mapNullableString("loop_type") {
+            runCatching {
+                AnimationIterator.Type.valueOf(it.uppercase())
+            }.onFailure { _ ->
+                audience.warn("Invalid loop type: '$it'. Using default.")
+            }.getOrNull()
+        }
+        val hide = args.mapNullable<Boolean>("hide") != false
+        limb.getOrCreate(player, TrackerModifier.DEFAULT) {
+            it.hideOption(if (hide) EntityHideOption.DEFAULT else EntityHideOption.FALSE)
+        }.run {
+            if (!animate(animation, AnimationModifier(0, 0, loopType), ::close)) close()
+        }
+    }
+
+    private fun test(sender: CommandSender, args: CommandArguments) {
+        val audience = sender.audience()
+        val model = args.mapToModel("model") { return audience.warn("Unable to find this model: $it") }
+        val animation = args.mapString("animation") { str -> model.animation(str).orElse(null) ?: return audience.warn("Unable to find this animation: $str") }
+        val player = args.map("player") { sender as? Player ?: return audience.warn("Unable to find target player.") }
+        val location = args.map("location") {
+            player.location.apply {
+                add(Vector(0, 0, 10).rotateAroundY(-Math.toRadians(player.yaw.toDouble())))
+                yaw += 180
+            }
+        }
+        model.create(location).run {
+            spawn(player)
+            animate(animation, AnimationModifier(0, 0, AnimationIterator.Type.PLAY_ONCE), ::close)
+        }
     }
 
     override fun reload(pipeline: ReloadPipeline, zipper: PackZipper) {
