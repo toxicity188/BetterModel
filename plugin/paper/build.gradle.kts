@@ -30,10 +30,9 @@ tasks.modrinth {
 val generatePaperLibrary by tasks.registering {
     outputs.file(libraryDir)
     doLast {
-        val text = libs.bundles.library.get().joinToString("\n") { dep -> dep.toString() }
         val file = libraryDir.get().asFile
         file.parentFile.mkdirs()
-        file.writeText(text)
+        file.writeText(libs.bundles.library.get().joinToString("\n") { dep -> dep.toString() })
     }
 }
 

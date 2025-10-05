@@ -18,8 +18,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
+import java.util.Objects;
 
 @SuppressWarnings({"UnstableApiUsage", "unused"})
 public final class BetterModelLoader implements PluginLoader {
@@ -32,10 +31,9 @@ public final class BetterModelLoader implements PluginLoader {
                 MavenLibraryResolver.MAVEN_CENTRAL_DEFAULT_MIRROR
         ).build());
         try (
-                var jarFile = new JarFile(classpathBuilder.getContext().getPluginSource().toFile());
-                var jarStream = jarFile.getInputStream(new JarEntry("paper-library"));
-                var jarReader = new InputStreamReader(jarStream, StandardCharsets.UTF_8);
-                var reader = new BufferedReader(jarReader)
+                var stream = Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("paper-library"));
+                var streamReader = new InputStreamReader(stream, StandardCharsets.UTF_8);
+                var reader = new BufferedReader(streamReader)
         ) {
             String next;
             while ((next = reader.readLine()) != null) {

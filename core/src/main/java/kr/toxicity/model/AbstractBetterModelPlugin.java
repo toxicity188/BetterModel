@@ -16,10 +16,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.jar.Attributes;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 public abstract class AbstractBetterModelPlugin extends JavaPlugin implements BetterModelPlugin {
@@ -75,8 +74,7 @@ public abstract class AbstractBetterModelPlugin extends JavaPlugin implements Be
         synchronized (this) {
             if (attributes != null) return attributes;
             try (
-                    var jar = new JarFile(getFile());
-                    var stream = jar.getInputStream(new JarEntry("META-INF/MANIFEST.MF"))
+                    var stream = Objects.requireNonNull(getClassLoader().getResourceAsStream("META-INF/MANIFEST.MF"))
             ) {
                 return attributes = new Manifest(stream).getMainAttributes();
             } catch (IOException e) {

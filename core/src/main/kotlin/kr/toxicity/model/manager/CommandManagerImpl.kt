@@ -17,8 +17,11 @@ import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.manager.CommandManager
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.tracker.EntityHideOption
+import kr.toxicity.model.api.tracker.Tracker
 import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.command.commandModule
+import kr.toxicity.model.command.suggest
+import kr.toxicity.model.command.suggestNullable
 import kr.toxicity.model.util.*
 import net.kyori.adventure.text.event.HoverEvent
 import net.kyori.adventure.text.format.NamedTextColor.*
@@ -27,7 +30,6 @@ import org.bukkit.entity.EntityType
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.util.Vector
-import java.util.concurrent.CompletableFuture
 import kotlin.math.pow
 
 object CommandManagerImpl : CommandManager, GlobalManager {
@@ -39,10 +41,8 @@ object CommandManagerImpl : CommandManager, GlobalManager {
             command("disguise") {
                 withShortDescription("disguises self.")
                 withAliases("d")
-                withArguments(StringArgument("name")
-                    .replaceSuggestions(ArgumentSuggestions.strings {
-                        BetterModel.modelKeys().toTypedArray()
-                    })
+                withArguments(
+                    StringArgument("name").suggest { BetterModel.modelKeys() }
                 )
                 executesPlayer(PlayerCommandExecutor { player, args ->
                     val name = args["name"] as String
@@ -53,17 +53,11 @@ object CommandManagerImpl : CommandManager, GlobalManager {
             command("undisguise") {
                 withShortDescription("undisguises self.")
                 withAliases("ud")
-                withOptionalArguments(StringArgument("model")
-                    .replaceSuggestions(ArgumentSuggestions.strings {
-                        (it.sender as? Player)?.uniqueId?.let { u ->
-                            BetterModel.registryOrNull(u)?.trackers()?.map { t ->
-                                t.name()
-                            }
-                        }?.toTypedArray() ?: emptyArray()
-                    })
+                withOptionalArguments(
+                    StringArgument("model").suggestNullable { (it.sender as? Player)?.toRegistry()?.trackers()?.map(Tracker::name) }
                 )
                 executesPlayer(PlayerCommandExecutor { player, args ->
-                    val model = args.get("model") as? String
+                    val model = args["model"] as? String
                     if (model != null) {
                         player.toTracker(model)?.close() ?: player.audience().warn("Cannot find this model to undisguise: $model")
                     } else BetterModel.registryOrNull(player.uniqueId)?.close() ?: player.audience().warn("Cannot find any model to undisguise")
@@ -72,32 +66,17 @@ object CommandManagerImpl : CommandManager, GlobalManager {
             command("spawn") {
                 withShortDescription("summons some model to given type")
                 withAliases("s")
-                withArguments(StringArgument("name")
-                    .replaceSuggestions(ArgumentSuggestions.strings {
-                        BetterModel.modelKeys().toTypedArray()
-                    })
+                withArguments(
+                    StringArgument("model").suggest { BetterModel.modelKeys() }
                 )
-                withOptionalArguments(StringArgument("type")
-                    .replaceSuggestions(ArgumentSuggestions.strings {
-                        EntityType.entries
-                            .map {
-                                it.name.lowercase()
-                            }.toTypedArray()
-                    })
+                withOptionalArguments(
+                    EntityTypeArgument("type"),
+                    DoubleArgument("scale").suggest((-2..2).map { 4.0.pow(it.toDouble()).toString() }),
+                    LocationArgument("coordinates")
                 )
-                withOptionalArguments(DoubleArgument("scale")
-                    .replaceSuggestions(ArgumentSuggestions.strings((-2..2).map {
-                        4.0.pow(it.toDouble()).toString()
-                    }))
-                )
-                withOptionalArguments(LocationArgument("coordinates"))
                 executesPlayer(PlayerCommandExecutor { player, args ->
-                    val n = args["name"] as String
-                    val t = (args["type"] as? String)?.let {
-                        runCatching {
-                            EntityType.valueOf((args["type"] as String).uppercase())
-                        }.getOrDefault(EntityType.HUSK)
-                    } ?: EntityType.HUSK
+                    val n = args["model"] as String
+                    val t = args["type"] as? EntityType ?: EntityType.HUSK
                     val s = args["scale"] as? Double ?: 1.0
                     val loc = args["coordinates"] as? Location ?: player.location
                     val e = player.world.spawnEntity(loc, t).apply {
@@ -179,27 +158,15 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                 withShortDescription("plays player animation.")
                 withAliases("p")
                 withArguments(
-                    StringArgument("name")
-                        .replaceSuggestions(ArgumentSuggestions.strings {
-                            BetterModel.limbKeys().toTypedArray()
-                        }),
-                    StringArgument("animation")
-                        .replaceSuggestions { sender, builder ->
-                            BetterModel.limbOrNull(sender.previousArgs["name"] as String)?.animations()?.forEach(builder::suggest)
-                            CompletableFuture.supplyAsync {
-                                builder.build()
-                            }
-                        }
+                    StringArgument("limb").suggest { BetterModel.limbKeys() },
+                    StringArgument("animation").suggestNullable { BetterModel.limbOrNull(it.previousArgs["limb"] as String)?.animations() }
                 )
                 withOptionalArguments(
-                    StringArgument("loop_type")
-                        .replaceSuggestions(ArgumentSuggestions.strings(
-                            *AnimationIterator.Type.entries.map { it.name.lowercase() }.toTypedArray()
-                        )),
+                    StringArgument("loop_type").suggest(AnimationIterator.Type.entries.map { it.name.lowercase() }),
                     BooleanArgument("hide")
                 )
                 executesPlayer(PlayerCommandExecutor { player, args ->
-                    val n = args["name"] as String
+                    val n = args["limb"] as String
                     val a = args["animation"] as String
                     val loopTypeStr = args["loop_type"] as? String
                     val hide = args["hide"] as? Boolean != false
@@ -224,17 +191,8 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                 withShortDescription("Tests some model's animation to specific player")
                 withAliases("t")
                 withArguments(
-                    StringArgument("model")
-                        .replaceSuggestions(ArgumentSuggestions.strings {
-                            BetterModel.modelKeys().toTypedArray()
-                        }),
-                    StringArgument("animation")
-                        .replaceSuggestions { sender, builder ->
-                            BetterModel.modelOrNull(sender.previousArgs["model"] as String)?.animations()?.forEach(builder::suggest)
-                            CompletableFuture.supplyAsync {
-                                builder.build()
-                            }
-                        }
+                    StringArgument("model").suggest { BetterModel.modelKeys() },
+                    StringArgument("animation").suggestNullable { BetterModel.modelOrNull(it.previousArgs["model"] as String)?.animations() }
                 )
                 withOptionalArguments(
                     EntitySelectorArgument.OnePlayer("player"),
