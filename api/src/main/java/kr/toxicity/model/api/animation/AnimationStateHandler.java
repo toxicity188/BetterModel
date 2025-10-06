@@ -103,7 +103,7 @@ public final class AnimationStateHandler<T extends Timed> {
      */
     public float progress() {
         var frame = frame();
-        return frame == 0 ? 0 : (float) delay / frame;
+        return frame == 0 ? 0 : Math.clamp((float) delay / frame, 0F, 1F);
     }
 
     private boolean shouldUpdateAnimation() {
@@ -155,7 +155,7 @@ public final class AnimationStateHandler<T extends Timed> {
                 value(beforeKeyframe = afterKeyframe),
                 value(afterKeyframe = next)
         );
-        delay = Math.round(frame());
+        delay = Math.max(Math.round(frame()), Tracker.MINECRAFT_TICK_MULTIPLIER);
         return true;
     }
 
