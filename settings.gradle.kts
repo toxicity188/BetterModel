@@ -8,7 +8,7 @@ include(
     "api",
     "core",
     "purpur",
-    //"plugin:spigot", TODO add this when spigot mapping is released.
+    "plugin:spigot",
     "plugin:paper",
     "authlib:v6",
     "authlib:v7",

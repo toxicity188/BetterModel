@@ -36,6 +36,7 @@
             <option value="$PROJECT_DIR$/nms/v1_21_R6" />
             <option value="$PROJECT_DIR$/plugin" />
             <option value="$PROJECT_DIR$/plugin/paper" />
+            <option value="$PROJECT_DIR$/plugin/spigot" />
             <option value="$PROJECT_DIR$/purpur" />
             <option value="$PROJECT_DIR$/test-plugin" />
           </set>
