@@ -50,6 +50,7 @@ public final class BoneTagRegistry {
      * @return bone name
      */
     public static @NotNull BoneName parse(@NotNull String rawName) {
+        rawName = rawName.toLowerCase(Locale.ROOT);
         var tagArray = List.of(rawName.split("_"));
         if (tagArray.size() < 2) return new BoneName(Collections.emptySet(), rawName, rawName);
         var set = new HashSet<BoneTag>();
