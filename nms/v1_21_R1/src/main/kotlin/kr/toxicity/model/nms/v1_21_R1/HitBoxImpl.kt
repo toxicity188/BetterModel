@@ -415,7 +415,7 @@ internal class HitBoxImpl(
                 vec3.y,
                 vec3.z + source.minZ * scale,
                 vec3.x + source.maxX * scale,
-                vec3.y + (source.maxY - source.minY) * scale,
+                vec3.y + source.y() * scale,
                 vec3.z + source.maxZ * scale
             ).apply {
                 if (CONFIG.debug().has(DebugConfig.DebugOption.HITBOX)) {

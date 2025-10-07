@@ -283,8 +283,8 @@ internal class HitBoxImpl(
             pos.z.toDouble()
         )
         BlockGetter.forEachBlockIntersectedBetween(
-            oldPosition().subtract(0.0, minusHeight, 0.0),
-            position().subtract(0.0, minusHeight, 0.0),
+            oldPosition(),
+            position(),
             boundingBox
         ) { pos, step ->
             if (BetterModel.IS_PAPER) applier.advanceStep(step, pos)
@@ -439,10 +439,10 @@ internal class HitBoxImpl(
             val source = rotatedSource
             AABB(
                 vec3.x + source.minX * scale,
-                vec3.y + type.height,
+                vec3.y,
                 vec3.z + source.minZ * scale,
                 vec3.x + source.maxX * scale,
-                vec3.y + source.y() * scale + type.height,
+                vec3.y + source.y() * scale,
                 vec3.z + source.maxZ * scale
             ).apply {
                 if (CONFIG.debug().has(DebugConfig.DebugOption.HITBOX)) {
