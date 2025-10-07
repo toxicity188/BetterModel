@@ -7,7 +7,7 @@
 package kr.toxicity.model.api.data.blueprint;
 
 import kr.toxicity.model.api.data.raw.ModelResolution;
-import kr.toxicity.model.api.util.PackUtil;
+import kr.toxicity.model.api.pack.PackObfuscator;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
@@ -43,15 +43,16 @@ public record ModelBlueprint(
 
     /**
      * Builds blueprint image
+     * @param obfuscator obfuscator
      * @return images
      */
     @NotNull
     @Unmodifiable
-    public Stream<BlueprintImage> buildImage() {
+    public Stream<BlueprintImage> buildImage(@NotNull PackObfuscator obfuscator) {
         return textures.stream()
                 .filter(BlueprintTexture::canBeRendered)
                 .map(texture -> new BlueprintImage(
-                        PackUtil.toPackName(name + "_" + texture.name()),
+                        texture.packName(obfuscator, name),
                         texture.image(),
                         texture.isAnimatedTexture() ? texture.toMcmeta() : null)
                 );

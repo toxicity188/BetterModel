@@ -24,6 +24,8 @@ pack:
   generate-modern-model: true
   #generates legacy resource pack (<1.21.3)
   generate-legacy-model: true
+  #should obfuscate this resource pack
+  use-obfuscation: true
 #toggles metrics in bStats (https://bstats.org/plugin/bukkit/BetterModel/24237)
 metrics: true
 #enables sight-trace culling

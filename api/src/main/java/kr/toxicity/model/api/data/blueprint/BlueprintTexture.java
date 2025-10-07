@@ -9,6 +9,7 @@ package kr.toxicity.model.api.data.blueprint;
 import com.google.gson.JsonObject;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.raw.ModelResolution;
+import kr.toxicity.model.api.pack.PackObfuscator;
 import kr.toxicity.model.api.util.PackUtil;
 import kr.toxicity.model.api.util.json.JsonObjectBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -64,12 +65,32 @@ public record BlueprintTexture(
     }
 
     /**
-     * Creates pack name
-     * @param parentName parent name
-     * @return texture name in pack
+     * Gets pack name
+     * @param parent parent
+     * @return pack name
      */
-    public @NotNull String packName(@NotNull String parentName) {
-        return BetterModel.config().namespace() + ":item/" + PackUtil.toPackName(parentName + "_" + name());
+    public @NotNull String packName(@NotNull String parent) {
+        return PackUtil.toPackName(parent + "_" + name());
+    }
+
+    /**
+     * Creates pack name
+     * @param obfuscator obfuscator
+     * @param parent parent
+     * @return pack name
+     */
+    public @NotNull String packName(@NotNull PackObfuscator obfuscator, @NotNull String parent) {
+        return obfuscator.obfuscate(packName(parent));
+    }
+
+    /**
+     * Creates pack namespace
+     * @param obfuscator obfuscator
+     * @param parentName parent name
+     * @return texture namespace
+     */
+    public @NotNull String packNamespace(@NotNull PackObfuscator obfuscator, @NotNull String parentName) {
+        return BetterModel.config().namespace() + ":item/" + packName(obfuscator, parentName);
     }
 
     /**

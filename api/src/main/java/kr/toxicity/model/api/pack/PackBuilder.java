@@ -16,6 +16,7 @@ import java.util.function.Supplier;
 public final class PackBuilder {
     private final PackAssets assets;
     private final PackPath path;
+    private final PackObfuscator obfuscator = PackObfuscator.order();
 
     public @NotNull PackBuilder resolve(@NotNull String... paths) {
         return new PackBuilder(assets, path.resolve(paths));
@@ -28,6 +29,10 @@ public final class PackBuilder {
     public void add(@NotNull String[] paths, long size, @NotNull Supplier<byte[]> supplier) {
         var resolve = path.resolve(paths);
         assets.resourceMap.putIfAbsent(resolve, PackResource.of(assets.overlay, resolve, size, supplier));
+    }
+
+    public @NotNull PackObfuscator obfuscator() {
+        return obfuscator;
     }
 
     public void add(@NotNull String path, @NotNull Supplier<byte[]> supplier) {

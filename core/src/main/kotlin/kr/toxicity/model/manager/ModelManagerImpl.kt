@@ -205,14 +205,18 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                     var success = false
                     //Modern
                     modernModel.ifAvailable {
-                        group.buildModernJson(load)
+                        group.buildModernJson(textures.obfuscator().withModels(pack.obfuscator()), load)
                     }?.let {
                         modernModel.build(it, size)
                         success = true
                     }
                     //Legacy
                     legacyModel.ifAvailable {
-                        group.buildLegacyJson(PLUGIN.version().useModernResource(),load)
+                        group.buildLegacyJson(
+                            PLUGIN.version().useModernResource(),
+                            textures.obfuscator().withModels(pack.obfuscator()),
+                            load
+                        )
                     }?.let {
                         legacyModel.build(listOf(it), size)
                         success = true
@@ -227,7 +231,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                     }
                     ModelImportedEvent(this).call()
                 }
-                if (hasTexture) load.buildImage().forEach { image ->
+                if (hasTexture) load.buildImage(textures.obfuscator()).forEach { image ->
                     textures.add("${image.name}.png", image.estimatedSize()) {
                         image.image.toByteArray()
                     }

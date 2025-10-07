@@ -10,6 +10,7 @@ import com.google.gson.JsonObject;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.data.raw.Float3;
 import kr.toxicity.model.api.data.raw.ModelElement;
+import kr.toxicity.model.api.pack.PackObfuscator;
 import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.PackUtil;
 import kr.toxicity.model.api.util.json.JsonObjectBuilder;
@@ -58,23 +59,20 @@ public sealed interface BlueprintChildren {
             return origin.invertXZ();
         }
 
-        /**
-         * Gets JSON name of blueprint.
-         * @param parent parent
-         * @return name
-         */
-        public @NotNull String jsonName(@NotNull ModelBlueprint parent) {
+        private @NotNull String jsonName(@NotNull ModelBlueprint parent) {
             return PackUtil.toPackName(parent.name() + "_" + name.rawName());
         }
 
         /**
          * Gets blueprint legacy json
          * @param skipLog skip log
+         * @param obfuscator obfuscator
          * @param parent parent
          * @return json
          */
         public @Nullable BlueprintJson buildLegacyJson(
                 boolean skipLog,
+                @NotNull PackObfuscator.Pair obfuscator,
                 @NotNull ModelBlueprint parent
         ) {
             Predicate<BlueprintElement> filter = element -> MathUtil.checkValidDegree(element.identifierDegree());
@@ -82,17 +80,19 @@ public sealed interface BlueprintChildren {
                     filter,
                     element -> "The model " + parent.name() + "'s cube \"" + element.element.name() + "\" has an invalid rotation which does not supported in legacy client (<=1.21.3) " + element.element.rotation()
             );
-            return buildJson(-2, 1, scale(), parent, Float3.ZERO, filterIsInstance(children, BlueprintElement.class).filter(filter));
+            return buildJson(-2, 1, scale(), obfuscator, parent, Float3.ZERO, filterIsInstance(children, BlueprintElement.class).filter(filter));
         }
 
         /**
          * Gets blueprint modern json
+         * @param obfuscator obfuscator
          * @param parent parent
          * @return json
          */
         @Nullable
         @Unmodifiable
         public List<BlueprintJson> buildModernJson(
+                @NotNull PackObfuscator.Pair obfuscator,
                 @NotNull ModelBlueprint parent
         ) {
             var scale = scale();
@@ -101,7 +101,7 @@ public sealed interface BlueprintChildren {
                             filterIsInstance(children, BlueprintElement.class),
                             BlueprintElement::identifierDegree
                     ),
-                    (i, entry) -> buildJson(0, i + 1, scale, parent, entry.getKey(), entry.getValue().stream())
+                    (i, entry) -> buildJson(0, i + 1, scale, obfuscator, parent, entry.getKey(), entry.getValue().stream())
             ).filter(Objects::nonNull)
                     .toList();
             return list.isEmpty() ? null : list;
@@ -111,6 +111,7 @@ public sealed interface BlueprintChildren {
                 int tint,
                 int number,
                 float scale,
+                @NotNull PackObfuscator.Pair obfuscator,
                 @NotNull ModelBlueprint parent,
                 @NotNull Float3 identifier,
                 @NotNull Stream<BlueprintElement> cubes
@@ -120,13 +121,13 @@ public sealed interface BlueprintChildren {
                     .filter(c -> c.element.hasTexture())
                     .toList();
             if (cubeElement.isEmpty()) return null;
-            return new BlueprintJson(jsonName(parent) + "_" + number, JsonObjectBuilder.builder()
+            return new BlueprintJson(obfuscator.models().obfuscate(jsonName(parent) + "_" + number), JsonObjectBuilder.builder()
                     .jsonObject("textures", textures -> {
                         var index = 0;
                         for (BlueprintTexture texture : parent.textures()) {
-                            textures.property(Integer.toString(index++), texture.packName(parent.name()));
+                            textures.property(Integer.toString(index++), texture.packNamespace(obfuscator.textures(), parent.name()));
                         }
-                        textures.property("particle", parent.textures().getFirst().packName(parent.name()));
+                        textures.property("particle", parent.textures().getFirst().packNamespace(obfuscator.textures(), parent.name()));
                     })
                     .jsonArray("elements", mapToJson(cubeElement, cube -> cube.buildJson(tint, scale, parent, this, identifier)))
                     .jsonObject("display", display -> display.jsonObject("fixed", fixed -> {
