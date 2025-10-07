@@ -7,6 +7,7 @@
 package kr.toxicity.model.api.bone;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Objects;
 import java.util.Set;
@@ -17,7 +18,7 @@ import java.util.Set;
  * @param name name
  * @param rawName original name
  */
-public record BoneName(@NotNull Set<BoneTag> tags, @NotNull String name, @NotNull String rawName) {
+public record BoneName(@NotNull @Unmodifiable Set<BoneTag> tags, @NotNull String name, @NotNull String rawName) {
 
     /**
      * Checks this name has some tags

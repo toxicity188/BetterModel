@@ -58,8 +58,8 @@ public final class BoneTagRegistry {
             var tag = byTagName(s).orElse(null);
             if (tag != null && set.size() < tagArray.size()) {
                 set.add(tag);
-            } else return new BoneName(set, String.join("_", tagArray.subList(set.size(), tagArray.size())), rawName);
+            } else return new BoneName(Collections.unmodifiableSet(set), String.join("_", tagArray.subList(set.size(), tagArray.size())), rawName);
         }
-        return new BoneName(set, String.join("_", tagArray.subList(set.size(), tagArray.size())), rawName);
+        return new BoneName(Collections.unmodifiableSet(set), String.join("_", tagArray.subList(set.size(), tagArray.size())), rawName);
     }
 }
