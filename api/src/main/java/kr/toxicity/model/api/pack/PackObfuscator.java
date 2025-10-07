@@ -50,6 +50,9 @@ public interface PackObfuscator {
         return new Pair(models, textures);
     }
 
+    /**
+     * Obfuscate by order
+     */
     class Order implements PackObfuscator {
 
         private static final char[] AVAILABLE_NAME = new char[] {
