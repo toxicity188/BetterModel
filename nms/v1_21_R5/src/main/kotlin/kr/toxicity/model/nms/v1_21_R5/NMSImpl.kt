@@ -135,10 +135,8 @@ class NMSImpl : NMS {
         private val slim = BetterModel.plugin().skinManager().isSlim(profile())
 
         init {
-            val pipeLine = getConnection(connection).channel.pipeline()
-            pipeLine.toMap().forEach {
-                if (it.value is Connection) pipeLine.addBefore(it.key, INJECT_NAME, this)
-            }
+            val pipeline = getConnection(connection).channel.pipeline()
+            pipeline.addBefore(pipeline.first { it.value is Connection }.key, INJECT_NAME, this)
         }
 
         override fun isSlim(): Boolean = slim

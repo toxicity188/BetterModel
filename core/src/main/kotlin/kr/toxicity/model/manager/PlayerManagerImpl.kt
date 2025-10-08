@@ -14,6 +14,7 @@ import kr.toxicity.model.util.handleFailure
 import kr.toxicity.model.util.registerListener
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
+import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
@@ -26,7 +27,7 @@ object PlayerManagerImpl : PlayerManager, GlobalManager {
 
     override fun start() {
         registerListener(object : Listener {
-            @EventHandler
+            @EventHandler(priority = EventPriority.HIGHEST)
             fun PlayerJoinEvent.join() {
                 if (player.isOnline) runCatching { //For fake player
                     player.register()
@@ -34,7 +35,7 @@ object PlayerManagerImpl : PlayerManager, GlobalManager {
                     "Unable to load ${player.name}'s data."
                 }
             }
-            @EventHandler
+            @EventHandler(priority = EventPriority.MONITOR)
             fun PlayerQuitEvent.quit() {
                 playerMap.remove(player.uniqueId)?.use {
                     SkinManagerImpl.removeCache(it.profile())
