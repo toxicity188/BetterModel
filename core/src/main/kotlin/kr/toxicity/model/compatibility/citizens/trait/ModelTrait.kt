@@ -35,9 +35,9 @@ class ModelTrait : Trait("model") {
     }
 
     override fun save(key: DataKey) {
-        key.setString("", npc.entity?.uniqueId?.let { uuid ->
-            BetterModel.registryOrNull(uuid)?.first()?.name()
-        })
+        npc.entity?.uniqueId?.let { uuid ->
+            key.setString("", BetterModel.registryOrNull(uuid)?.first()?.name())
+        }
     }
 
     override fun onSpawn() {
