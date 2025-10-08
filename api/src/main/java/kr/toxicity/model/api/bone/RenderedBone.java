@@ -663,7 +663,7 @@ public final class RenderedBone implements BoneEventHandler {
         public int interpolationDuration() {
             if (root.state(uuid).skipInterpolation) return 0;
             var frame = state.frame() / (float) Tracker.MINECRAFT_TICK_MULTIPLIER;
-            return Math.round(frame + MathUtil.FLOAT_COMPARISON_EPSILON);
+            return Math.max(Math.round(frame + MathUtil.FLOAT_COMPARISON_EPSILON), 1);
         }
 
         private @NotNull BoneMovement nextMovement() {
@@ -674,7 +674,7 @@ public final class RenderedBone implements BoneEventHandler {
         private @NotNull BoneMovement relativeOffset() {
             if (relativeOffsetCache != null) return relativeOffsetCache;
             var def = defaultFrame();
-            var preventModifierUpdate = interpolationDuration() < 1;
+            var preventModifierUpdate = interpolationDuration() <= 1;
             if (parent != null) {
                 var p = parent.state(uuid).relativeOffset();
                 return relativeOffsetCache = new BoneMovement(
