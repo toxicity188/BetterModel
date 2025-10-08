@@ -59,7 +59,7 @@ public interface PackObfuscator {
     /**
      * Obfuscate by order
      */
-    class Order implements PackObfuscator {
+    final class Order implements PackObfuscator {
 
         private static final char[] AVAILABLE_NAME = new char[] {
                 'a', 'b', 'c', 'd', 'e', 'f', 'g',
@@ -68,6 +68,7 @@ public interface PackObfuscator {
                 'w', 'x', 'y', 'z',
                 '0', '1', '2', '3', '4', '5', '6' ,'7', '8', '9'
         };
+        private static final int NAME_LENGTH = AVAILABLE_NAME.length;
 
         private final Map<String, String> nameMap = new HashMap<>();
 
@@ -81,11 +82,11 @@ public interface PackObfuscator {
             return nameMap.computeIfAbsent(rawName, n -> {
                 var size = nameMap.size();
                 var builder = new StringBuilder();
-                while (size >= AVAILABLE_NAME.length) {
-                    builder.append(AVAILABLE_NAME[size % AVAILABLE_NAME.length]);
-                    size /= AVAILABLE_NAME.length;
+                while (size >= NAME_LENGTH) {
+                    builder.append(AVAILABLE_NAME[size % NAME_LENGTH]);
+                    size /= NAME_LENGTH;
                 }
-                builder.append(AVAILABLE_NAME[size % AVAILABLE_NAME.length]);
+                builder.append(AVAILABLE_NAME[size % NAME_LENGTH]);
                 return builder.toString();
             });
         }
