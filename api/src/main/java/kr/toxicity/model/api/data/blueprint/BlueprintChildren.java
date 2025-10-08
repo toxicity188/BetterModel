@@ -143,10 +143,10 @@ public sealed interface BlueprintChildren {
          * @return scale
          */
         public float scale() {
-            return (float) filterIsInstance(children, BlueprintElement.class)
+            return (float) Math.max(filterIsInstance(children, BlueprintElement.class)
                     .mapToDouble(e -> e.element.max(origin) / 16F)
                     .max()
-                    .orElse(1F);
+                    .orElse(1F), 1F);
         }
 
         /**
