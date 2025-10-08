@@ -14,6 +14,7 @@ import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.event.CreatePlayerSkinEvent
 import kr.toxicity.model.api.event.RemovePlayerSkinEvent
 import kr.toxicity.model.api.manager.SkinManager
+import kr.toxicity.model.api.pack.PackObfuscator
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.player.PlayerLimb
 import kr.toxicity.model.api.player.PlayerSkinProvider
@@ -569,8 +570,14 @@ object SkinManagerImpl : SkinManager, GlobalManager {
     }
 
     fun write(block: (UVByteBuilder) -> Unit) {
+        val itemObf = PackObfuscator.order()
+        val modelObf = PackObfuscator.order()
         fun UVModel.write() {
-            asJson("one_pixel").forEach {
+            val model = modelName()
+            packName(itemObf.obfuscate(model))
+            asJson("one_pixel") {
+                modelObf.obfuscate("${model}_$it")
+            }.forEach {
                 block(it)
             }
         }
@@ -761,9 +768,6 @@ object SkinManagerImpl : SkinManager, GlobalManager {
             CONFIG.namespace(),
             "player_limb"
         )
-        profileCache.asMap().entries.forEach {
-            it.setValue(it.value.refresh())
-        }
         if (!CONFIG.module().playerAnimation) return
         if (supported()) write { resource ->
             zipper.modern().add(resource.path(), resource.estimatedSize()) {
@@ -774,6 +778,9 @@ object SkinManagerImpl : SkinManager, GlobalManager {
             zipper.legacy().add(s) {
                 read
             }
+        }
+        profileCache.asMap().entries.forEach {
+            it.setValue(it.value.refresh())
         }
     }
 }
