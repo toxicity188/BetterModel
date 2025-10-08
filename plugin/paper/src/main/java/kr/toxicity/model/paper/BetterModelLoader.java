@@ -28,7 +28,7 @@ public final class BetterModelLoader implements PluginLoader {
         lib.addRepository(new RemoteRepository.Builder(
                 null,
                 "default",
-                MavenLibraryResolver.MAVEN_CENTRAL_DEFAULT_MIRROR
+                "https://maven-central.storage-download.googleapis.com/maven2"
         ).build());
         try (
                 var stream = Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("paper-library"));
