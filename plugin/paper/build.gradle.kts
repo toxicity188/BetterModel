@@ -71,6 +71,11 @@ paperPluginYaml {
             required = false,
             load = PaperPluginYaml.Load.BEFORE
         )
+        server(
+            name = "Nexo",
+            required = false,
+            load = PaperPluginYaml.Load.OMIT
+        )
     }
     permissions.create("bettermodel") {
         default = Permission.Default.OP
