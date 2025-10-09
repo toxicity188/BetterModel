@@ -14,8 +14,6 @@ import net.kyori.adventure.text.format.NamedTextColor
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
-import java.security.DigestOutputStream
-import java.security.MessageDigest
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.zip.Deflater
 import java.util.zip.ZipEntry
@@ -117,15 +115,7 @@ class ZipGenerator : PackGenerator {
             }
             file.outputStream().use {
                 it.buffered().use { buffered ->
-                    runCatching {
-                        MessageDigest.getInstance("SHA-1")
-                    }.map { digest ->
-                        DigestOutputStream(buffered, digest).use { digest ->
-                            ZipOutputStream(digest).use(::zip)
-                        }
-                    }.getOrElse {
-                        ZipOutputStream(buffered).use(::zip)
-                    }
+                    ZipOutputStream(buffered).use(::zip)
                 }
             }
         }

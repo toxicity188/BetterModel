@@ -13,7 +13,6 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
 import java.util.function.BooleanSupplier;
 
 /**
@@ -94,7 +93,7 @@ public record AnimationModifier(
          * @return self
          */
         public @NotNull Builder predicate(@Nullable BooleanSupplier predicate) {
-            this.predicate = Objects.requireNonNull(predicate);
+            this.predicate = predicate;
             return this;
         }
 
