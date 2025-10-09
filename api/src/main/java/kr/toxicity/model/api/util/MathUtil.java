@@ -75,6 +75,14 @@ public final class MathUtil {
      */
     public static final FloatComparator FRAME_COMPARATOR = (a, b) -> isSimilar(a, b, FRAME_EPSILON) ? 0 : Float.compare(a, b);
 
+    private static final FloatSet VALID_ROTATION_DEGREES = FloatSet.of(
+            0F,
+            ROTATION_DEGREE,
+            ROTATION_DEGREE * 2,
+            -ROTATION_DEGREE,
+            -ROTATION_DEGREE * 2
+    );
+
     /**
      * Checks two floats are similar.
      * @param a a
@@ -151,17 +159,6 @@ public final class MathUtil {
     public static int similarHashCode(float value) {
         return (int) (value / FLOAT_COMPARISON_EPSILON);
     }
-
-    /**
-     * Valid rotation degrees
-     */
-    public static final FloatSet VALID_ROTATION_DEGREES = FloatSet.of(
-            0F,
-            ROTATION_DEGREE,
-            ROTATION_DEGREE * 2,
-            -ROTATION_DEGREE,
-            -ROTATION_DEGREE * 2
-    );
 
     /**
      * Checks these floats are valid Minecraft degree

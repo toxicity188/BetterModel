@@ -147,10 +147,8 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                     "textures" to jsonObjectOf("layer0" to "minecraft:item/$itemName"),
                     "overrides" to entries
                 ).run {
-                    val byteArray = toByteArray()
-                    val estimatedSize = byteArray.size.toLong()
-                    pack.add("${CONFIG.itemNamespace()}.json", estimatedSize) { byteArray }
-                    zipper.legacy().minecraft().models().resolve("item").add("$itemName.json", estimatedSize) { byteArray }
+                    pack.add("${CONFIG.itemNamespace()}.json", estimatedSize) { toByteArray() }
+                    zipper.legacy().minecraft().models().resolve("item").add("$itemName.json", estimatedSize) { toByteArray() }
                 }
             }
         )

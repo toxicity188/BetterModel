@@ -61,7 +61,7 @@ public interface PackObfuscator {
      */
     final class Order implements PackObfuscator {
 
-        private static final char[] AVAILABLE_NAME = new char[] {
+        private static final char[] AVAILABLE_NAME = {
                 'a', 'b', 'c', 'd', 'e', 'f', 'g',
                 'h', 'i', 'j', 'k', 'm', 'n', 'l', 'o', 'p',
                 'q', 'r', 's', 't', 'u', 'v',

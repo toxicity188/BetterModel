@@ -9,6 +9,7 @@ package kr.toxicity.model.manager.debug
 import kr.toxicity.model.manager.ReloadPipeline
 import kr.toxicity.model.util.componentOf
 import kr.toxicity.model.util.emptyComponentOf
+import kr.toxicity.model.util.toComponent
 import kr.toxicity.model.util.withComma
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.bossbar.BossBar
@@ -34,9 +35,7 @@ class BossBarIndicator(
     override fun status(status: ReloadPipeline.Status) {
         bossBar.run {
             name(componentOf(status.status) {
-                append(componentOf(" (${status.current.withComma()} / ${status.goal.withComma()})") {
-                    color(NamedTextColor.YELLOW)
-                })
+                append(" (${status.current.withComma()} / ${status.goal.withComma()})".toComponent(NamedTextColor.YELLOW))
             })
             progress(status.progress)
         }

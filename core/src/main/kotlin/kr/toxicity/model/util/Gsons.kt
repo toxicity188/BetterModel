@@ -20,10 +20,6 @@ fun File.toTexturedModel(): ModelBlueprint? = bufferedReader().use {
         ?.toBlueprint(nameWithoutExtension.toPackName())
 }
 
-fun JsonElement.toByteArray(): ByteArray {
-    return ModelData.GSON.toJson(this).toByteArray(Charsets.UTF_8)
-}
-
 fun buildJsonArray(capacity: Int = 10, block: JsonArray.() -> Unit) = JsonArray(capacity).apply(block)
 fun buildJsonObject(block: JsonObject.() -> Unit) = JsonObject().apply(block)
 
