@@ -71,6 +71,7 @@ public interface PackObfuscator {
         private static final int NAME_LENGTH = AVAILABLE_NAME.length;
 
         private final Map<String, String> nameMap = new HashMap<>();
+        private final StringBuilder builder = new StringBuilder();
 
         /**
          * Private initializer
@@ -81,7 +82,7 @@ public interface PackObfuscator {
         public @NotNull String obfuscate(@NotNull String rawName) {
             return nameMap.computeIfAbsent(rawName, n -> {
                 var size = nameMap.size();
-                var builder = new StringBuilder();
+                builder.setLength(0);
                 while (size >= NAME_LENGTH) {
                     builder.append(AVAILABLE_NAME[size % NAME_LENGTH]);
                     size /= NAME_LENGTH;

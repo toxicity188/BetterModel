@@ -155,7 +155,7 @@ public final class AnimationStateHandler<T extends Timed> {
                 value(beforeKeyframe = afterKeyframe),
                 value(afterKeyframe = next)
         );
-        delay = Math.max(Math.round(frame()), Tracker.MINECRAFT_TICK_MULTIPLIER);
+        delay = Math.round(frame());
         return true;
     }
 
