@@ -26,6 +26,7 @@ import kr.toxicity.model.util.*
 import net.kyori.adventure.text.event.HoverEvent
 import net.kyori.adventure.text.format.NamedTextColor.*
 import org.bukkit.command.CommandSender
+import org.bukkit.entity.Entity
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
@@ -34,16 +35,48 @@ import kotlin.math.pow
 
 object CommandManagerImpl : CommandManager, GlobalManager {
 
+    private val modelKeys get() = StringArgument("model").suggest { BetterModel.modelKeys() }
+    private val limbKeys get() = StringArgument("limb").suggest { BetterModel.limbKeys() }
+    private val playerArgs get() = EntitySelectorArgument.OnePlayer("player")
+    private val entitiesArgs get() = EntitySelectorArgument.ManyEntities("entities")
+
     override fun start() {
         commandModule("bettermodel") {
             withAliases("bm")
         }.apply {
+            command("reload") {
+                withAliases("re", "rl")
+                withShortDescription("reloads this plugin.")
+                executes(CommandExecutor { sender, _ -> reload(sender) })
+            }
+            command("spawn") {
+                withShortDescription("summons some model to given type")
+                withAliases("s")
+                withArguments(modelKeys)
+                withOptionalArguments(
+                    EntityTypeArgument("type"),
+                    DoubleArgument("scale").suggest((-2..2).map { 4.0.pow(it.toDouble()).toString() }),
+                    LocationArgument("location")
+                )
+                executesPlayer(PlayerCommandExecutor(::spawn))
+            }
+            command("test") {
+                withShortDescription("Tests some model's animation to specific player")
+                withAliases("t")
+                withArguments(
+                    modelKeys,
+                    StringArgument("animation").suggestNullable { BetterModel.modelOrNull(it.previousArgs["model"] as String)?.animations() }
+                )
+                withOptionalArguments(
+                    playerArgs,
+                    LocationArgument("location")
+                )
+                executes(CommandExecutor(::test))
+            }
             command("disguise") {
                 withShortDescription("disguises self.")
                 withAliases("d")
-                withArguments(
-                    StringArgument("model").suggest { BetterModel.modelKeys() }
-                )
+                withArguments(modelKeys)
                 executesPlayer(PlayerCommandExecutor(::disguise))
             }
             command("undisguise") {
@@ -54,34 +87,11 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                 )
                 executesPlayer(PlayerCommandExecutor(::undisguise))
             }
-            command("spawn") {
-                withShortDescription("summons some model to given type")
-                withAliases("s")
-                withArguments(
-                    StringArgument("model").suggest { BetterModel.modelKeys() }
-                )
-                withOptionalArguments(
-                    EntityTypeArgument("type"),
-                    DoubleArgument("scale").suggest((-2..2).map { 4.0.pow(it.toDouble()).toString() }),
-                    LocationArgument("location")
-                )
-                executesPlayer(PlayerCommandExecutor(::spawn))
-            }
-            command("reload") {
-                withAliases("re", "rl")
-                withShortDescription("reloads this plugin.")
-                executes(CommandExecutor { sender, _ -> reload(sender) })
-            }
-            command("version") {
-                withShortDescription("checks BetterModel's version.")
-                withAliases("v")
-                executes(CommandExecutor { sender, _ -> version(sender) })
-            }
             command("play") {
                 withShortDescription("plays player animation.")
                 withAliases("p")
                 withArguments(
-                    StringArgument("limb").suggest { BetterModel.limbKeys() },
+                    limbKeys,
                     StringArgument("animation").suggestNullable { BetterModel.limbOrNull(it.previousArgs["limb"] as String)?.animations() }
                 )
                 withOptionalArguments(
@@ -90,18 +100,20 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                 )
                 executesPlayer(PlayerCommandExecutor(::play))
             }
-            command("test") {
-                withShortDescription("Tests some model's animation to specific player")
-                withAliases("t")
-                withArguments(
-                    StringArgument("model").suggest { BetterModel.modelKeys() },
-                    StringArgument("animation").suggestNullable { BetterModel.modelOrNull(it.previousArgs["model"] as String)?.animations() }
-                )
-                withOptionalArguments(
-                    EntitySelectorArgument.OnePlayer("player"),
-                    LocationArgument("location")
-                )
-                executes(CommandExecutor(::test))
+            command("hide") {
+                withShortDescription("hides some entities from target player.")
+                withArguments(modelKeys, playerArgs, entitiesArgs)
+                executes(CommandExecutor(::hide))
+            }
+            command("show") {
+                withShortDescription("shows some entities to target player.")
+                withArguments(modelKeys, playerArgs, entitiesArgs)
+                executes(CommandExecutor(::show))
+            }
+            command("version") {
+                withShortDescription("checks BetterModel's version.")
+                withAliases("v")
+                executes(CommandExecutor { sender, _ -> version(sender) })
             }
         }.build().register(PLUGIN)
         CommandAPI.onEnable()
@@ -109,6 +121,26 @@ object CommandManagerImpl : CommandManager, GlobalManager {
 
     private fun disguise(player: Player, args: CommandArguments) {
         args.mapToModel("model") { return player.audience().warn("Unable to find this model: $it") }.getOrCreate(player)
+    }
+
+    private fun hide(sender: CommandSender, args: CommandArguments) {
+        val model = args.map<String>("model")
+        val player = args.map<Player>("player")
+        if (!args.any<Entity>("entities") {
+                it.toRegistry()?.tracker(model)?.hide(player) == true
+            }) {
+            sender.audience().warn("Failed to hide any of provided entities.")
+        }
+    }
+
+    private fun show(sender: CommandSender, args: CommandArguments) {
+        val model = args.map<String>("model")
+        val player = args.map<Player>("player")
+        if (!args.any<Entity>("entities") {
+                it.toRegistry()?.tracker(model)?.show(player) == true
+            }) {
+            sender.audience().warn("Failed to hide any of provided entities.")
+        }
     }
 
     private fun undisguise(player: Player, args: CommandArguments) {

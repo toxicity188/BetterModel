@@ -899,6 +899,11 @@ public abstract class Tracker implements AutoCloseable {
         }
     }
 
+    @Override
+    public String toString() {
+        return name();
+    }
+
     @RequiredArgsConstructor
     public enum CloseReason {
         REMOVE(false),

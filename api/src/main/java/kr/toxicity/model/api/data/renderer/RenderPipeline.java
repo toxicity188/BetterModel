@@ -109,7 +109,7 @@ public final class RenderPipeline implements BoneEventHandler {
         this.viewFilter = this.viewFilter.and(Objects.requireNonNull(filter));
     }
     public void hideFilter(@NotNull Predicate<Player> filter) {
-        this.hideFilter = this.hideFilter.and(Objects.requireNonNull(filter));
+        this.hideFilter = this.hideFilter.or(Objects.requireNonNull(filter));
     }
 
     public void spawnPacketHandler(@NotNull Consumer<PacketBundler> spawnPacketHandler) {
@@ -296,8 +296,7 @@ public final class RenderPipeline implements BoneEventHandler {
     }
 
     public boolean hide(@NotNull Player player) {
-        if (isHide(player)) return false;
-        hidePlayerSet.add(player.getUniqueId());
+        if (isHide(player) || !hidePlayerSet.add(player.getUniqueId())) return false;
         if (isSpawned(player.getUniqueId())) {
             var bundler = createBundler();
             iterateTree(b -> b.forceUpdate(false, bundler));
@@ -313,8 +312,7 @@ public final class RenderPipeline implements BoneEventHandler {
     }
 
     public boolean show(@NotNull Player player) {
-        if (!isHide(player)) return false;
-        hidePlayerSet.remove(player.getUniqueId());
+        if (!isHide(player) || !hidePlayerSet.remove(player.getUniqueId())) return false;
         if (isSpawned(player.getUniqueId())) {
             var bundler = createBundler();
             iterateTree(b -> b.forceUpdate(true, bundler));

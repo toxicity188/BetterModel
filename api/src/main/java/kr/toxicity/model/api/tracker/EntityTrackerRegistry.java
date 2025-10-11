@@ -23,6 +23,7 @@ import kr.toxicity.model.api.util.LogUtil;
 import kr.toxicity.model.api.util.ThreadUtil;
 import kr.toxicity.model.api.util.lock.DuplexLock;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -44,6 +45,7 @@ import java.util.stream.Stream;
 /**
  * A registry of each entity's tracker
  */
+@ToString(onlyExplicitlyIncluded = true)
 public final class EntityTrackerRegistry {
 
     private static final Object2ReferenceMap<UUID, EntityTrackerRegistry> UUID_REGISTRY_MAP = new Object2ReferenceOpenHashMap<>();
@@ -54,13 +56,16 @@ public final class EntityTrackerRegistry {
      */
     public static final NamespacedKey TRACKING_ID = Objects.requireNonNull(NamespacedKey.fromString("bettermodel_tracker"));
 
+    @ToString.Include
     private final AtomicBoolean closed = new AtomicBoolean();
     private final AtomicBoolean loaded = new AtomicBoolean();
+    @ToString.Include
     private final Entity entity;
     private final int id;
     private final UUID uuid;
     private final EntityAdapter adapter;
     private final ConcurrentNavigableMap<String, EntityTracker> trackerMap = new ConcurrentSkipListMap<>();
+    @ToString.Include
     private final Collection<EntityTracker> trackers = Collections.unmodifiableCollection(trackerMap.values());
     private final Map<UUID, PlayerChannelCache> viewedPlayerMap = new ConcurrentHashMap<>();
     final Map<UUID, MountedHitBox> mountedHitBoxCache = new ConcurrentHashMap<>();

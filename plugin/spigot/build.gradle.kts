@@ -53,7 +53,9 @@ bukkitPluginYaml {
             "undisguise" to true,
             "test" to true,
             "play" to true,
-            "version" to true
+            "version" to true,
+            "hide" to true,
+            "show" to true
         )
     }
 }
