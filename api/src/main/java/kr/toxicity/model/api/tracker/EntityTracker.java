@@ -97,7 +97,6 @@ public class EntityTracker extends Tracker {
                     pipeline.hidePacketHandler(shadow::remove);
                     pipeline.showPacketHandler(shadow::spawn);
                 });
-        pipeline.hideFilter(p -> !p.canSee(registry.entity()));
 
         //Animation
         pipeline.defaultPosition(FunctionUtil.throttleTick(() -> adapter.passengerPosition().mul(-1)));
