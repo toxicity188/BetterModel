@@ -306,8 +306,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                 this,
                 type,
                 group.filterIsInstance<BlueprintGroup>()
-                    .associate { it.name to it.parse() },
-                animations
+                    .associate { it.name to it.parse() }
             )
         }
     }

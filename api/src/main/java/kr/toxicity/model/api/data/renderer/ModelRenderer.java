@@ -37,14 +37,12 @@ import static kr.toxicity.model.api.util.CollectionUtil.mapValue;
  *
  * @param parent parent blueprint
  * @param type type
- * @param rendererGroupMap group map
- * @param animationMap animation map
+ * @param rendererGroups group map
  */
 public record ModelRenderer(
         @NotNull ModelBlueprint parent,
         @NotNull Type type,
-        @NotNull @Unmodifiable Map<BoneName, RendererGroup> rendererGroupMap,
-        @NotNull @Unmodifiable Map<String, BlueprintAnimation> animationMap
+        @NotNull @Unmodifiable Map<BoneName, RendererGroup> rendererGroups
 ) {
     /**
      * Gets a renderer group by tree
@@ -53,7 +51,7 @@ public record ModelRenderer(
      * @return group or null
      */
     public @Nullable RendererGroup groupByTree(@NotNull BoneName name) {
-        return groupByTree0(rendererGroupMap, name);
+        return groupByTree0(rendererGroups, name);
     }
 
     private static @Nullable RendererGroup groupByTree0(@NotNull Map<BoneName, RendererGroup> map, @NotNull BoneName name) {
@@ -73,7 +71,7 @@ public record ModelRenderer(
      * @return flatten groups
      */
     public @NotNull Stream<RendererGroup> flatten() {
-        return rendererGroupMap.values().stream().flatMap(RendererGroup::flatten);
+        return rendererGroups.values().stream().flatMap(RendererGroup::flatten);
     }
 
     /**
@@ -81,7 +79,7 @@ public record ModelRenderer(
      * @return names
      */
     public @NotNull @Unmodifiable Set<String> animations() {
-        return animationMap.keySet();
+        return parent.animations().keySet();
     }
 
     /**
@@ -91,7 +89,7 @@ public record ModelRenderer(
      * @return optional animation
      */
     public @NotNull Optional<BlueprintAnimation> animation(@NotNull String name) {
-        return Optional.ofNullable(animationMap.get(name));
+        return Optional.ofNullable(parent.animations().get(name));
     }
 
     /**
@@ -503,7 +501,7 @@ public record ModelRenderer(
     }
 
     private @NotNull RenderPipeline pipeline(@NotNull RenderSource<?> source) {
-        return new RenderPipeline(this, source, mapValue(rendererGroupMap, value -> value.create(source)));
+        return new RenderPipeline(this, source, mapValue(rendererGroups, value -> value.create(source)));
     }
 
     /**
