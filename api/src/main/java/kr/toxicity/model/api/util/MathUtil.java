@@ -193,27 +193,6 @@ public final class MathUtil {
     }
 
     /**
-     * Converts animation rotation to display rotation
-     * @param vector original
-     * @return vector
-     */
-    public static @NotNull Vector3f animationToDisplay(@NotNull Vector3f vector) {
-        vector.y = -vector.y;
-        vector.z = -vector.z;
-        return vector;
-    }
-
-    /**
-     * Converts animation position to display position
-     * @param vector original
-     * @return vector
-     */
-    public static @NotNull Vector3f transformToDisplay(@NotNull Vector3f vector) {
-        vector.z = -vector.z;
-        return vector;
-    }
-
-    /**
      * Converts vector rotation to quaternion
      * @param vector vector
      * @return rotation

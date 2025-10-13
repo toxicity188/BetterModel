@@ -9,6 +9,7 @@ package kr.toxicity.model.api.data.raw;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationMovement;
+import kr.toxicity.model.api.animation.VectorPoint;
 import kr.toxicity.model.api.bone.BoneTagRegistry;
 import kr.toxicity.model.api.data.blueprint.AnimationGenerator;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
@@ -18,6 +19,7 @@ import kr.toxicity.model.api.script.AnimationScript;
 import kr.toxicity.model.api.script.BlueprintScript;
 import kr.toxicity.model.api.script.TimeScript;
 import kr.toxicity.model.api.util.InterpolationUtil;
+import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,20 +48,21 @@ public record ModelAnimation(
 ) {
     /**
      * Converts raw animation to blueprint animation
+     * @param meta meta
      * @param children children
      * @param placeholder placeholder
      * @return converted animation
      */
-    public @NotNull BlueprintAnimation toBlueprint(@NotNull List<BlueprintChildren> children, @NotNull ModelPlaceholder placeholder) {
+    public @NotNull BlueprintAnimation toBlueprint(@NotNull ModelMeta meta, @NotNull List<BlueprintChildren> children, @NotNull ModelPlaceholder placeholder) {
         var map = new HashMap<>(animators());
         var script = Optional.ofNullable(map.remove("effects"))
                 .map(a -> toScript(a, placeholder))
                 .orElseGet(() -> BlueprintScript.fromEmpty(this));
         var animators = AnimationGenerator.createMovements(length(), children, associate(
-                map.values().stream().filter(ModelAnimator::hasName),
+                map.values().stream().filter(ModelAnimator::isAvailable),
                 e -> BoneTagRegistry.parse(e.name()),
                 e -> {
-                    var builder = new BlueprintAnimator.Builder(length());
+                    var builder = new Builder(meta.formatVersion(), length());
                     e.stream().forEach(keyframe -> builder.addFrame(keyframe, placeholder));
                     return builder.build(name());
                 }
@@ -125,5 +128,49 @@ public record ModelAnimation(
     @NotNull
     public Map<String, ModelAnimator> animators() {
         return animators != null ? animators : Collections.emptyMap();
+    }
+
+    @RequiredArgsConstructor
+    private static final class Builder {
+
+        private final ModelMeta.FormatVersion version;
+        private final float length;
+
+        private final List<VectorPoint> transform = new ArrayList<>();
+        private final List<VectorPoint> scale = new ArrayList<>();
+        private final List<VectorPoint> rotation = new ArrayList<>();
+
+        void addFrame(@NotNull ModelKeyframe keyframe, @NotNull ModelPlaceholder placeholder) {
+            var time = keyframe.time();
+            if (time > length) return;
+            var interpolation = keyframe.findInterpolator();
+            var function = keyframe.point().toFunction(placeholder);
+            switch (keyframe.channel()) {
+                case POSITION -> transform.add(new VectorPoint(
+                        function.map(version::convertAnimationPosition).memoize(),
+                        time,
+                        interpolation
+                ));
+                case ROTATION -> rotation.add(new VectorPoint(
+                        function.map(version::convertAnimationRotation).memoize(),
+                        time,
+                        interpolation
+                ));
+                case SCALE -> scale.add(new VectorPoint(
+                        function.map(vec -> vec.sub(1, 1, 1)).memoize(),
+                        time,
+                        interpolation
+                ));
+            }
+        }
+
+        @NotNull BlueprintAnimator.AnimatorData build(@NotNull String name) {
+            return new BlueprintAnimator.AnimatorData(
+                    name,
+                    transform,
+                    scale,
+                    rotation
+            );
+        }
     }
 }

@@ -10,6 +10,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -22,15 +23,15 @@ import java.util.stream.Stream;
 @ApiStatus.Internal
 public record ModelAnimator(
         @Nullable String name,
-        @NotNull List<ModelKeyframe> keyframes
+        @Nullable List<ModelKeyframe> keyframes
 ) {
 
     /**
-     * Checks this animator has a name
-     * @return has a name
+     * Checks this animator is available
+     * @return is available
      */
-    public boolean hasName() {
-        return name != null;
+    public boolean isAvailable() {
+        return name != null && !keyframes().isEmpty();
     }
 
     /**
@@ -43,11 +44,20 @@ public record ModelAnimator(
     }
 
     /**
+     * Gets keyframes
+     * @return keyframes
+     */
+    @Override
+    public @NotNull List<ModelKeyframe> keyframes() {
+        return keyframes != null ? keyframes : Collections.emptyList();
+    }
+
+    /**
      * Gets keyframe stream
      * @return stream
      */
     public @NotNull Stream<ModelKeyframe> stream() {
-        return keyframes.stream()
+        return keyframes().stream()
                 .filter(ModelKeyframe::hasPoint)
                 .sorted();
     }

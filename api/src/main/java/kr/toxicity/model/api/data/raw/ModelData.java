@@ -23,6 +23,7 @@ import static kr.toxicity.model.api.util.CollectionUtil.mapToList;
 
 /**
  * Raw BlockBench model's data.
+ * @param meta meta
  * @param resolution resolution
  * @param elements elements
  * @param outliner children
@@ -32,11 +33,13 @@ import static kr.toxicity.model.api.util.CollectionUtil.mapToList;
  */
 @ApiStatus.Internal
 public record ModelData(
+        @NotNull ModelMeta meta,
         @NotNull ModelResolution resolution,
         @NotNull List<ModelElement> elements,
         @NotNull List<ModelChildren> outliner,
         @NotNull List<ModelTexture> textures,
         @Nullable List<ModelAnimation> animations,
+        @Nullable List<ModelGroup> groups,
         @Nullable @SerializedName("animation_variable_placeholders") ModelPlaceholder placeholder
 ) {
     /**
@@ -45,6 +48,7 @@ public record ModelData(
     public static final Gson GSON = new GsonBuilder()
             .registerTypeAdapter(Float3.class, Float3.PARSER)
             .registerTypeAdapter(Float4.class, Float4.PARSER)
+            .registerTypeAdapter(ModelMeta.class, ModelMeta.PARSER)
             .registerTypeAdapter(Datapoint.class, Datapoint.PARSER)
             .registerTypeAdapter(ModelChildren.class, ModelChildren.PARSER)
             .registerTypeAdapter(ModelPlaceholder.class, ModelPlaceholder.PARSER)
@@ -58,13 +62,14 @@ public record ModelData(
     public @NotNull ModelBlueprint toBlueprint(@NotNull String name) {
         var placeholder = placeholder();
         var elementMap = associate(elements(), ModelElement::uuid);
-        var group = mapToList(outliner(), children -> children.toBlueprint(elementMap));
+        var groupMap = associate(groups(), ModelGroup::uuid);
+        var group = mapToList(outliner(), children -> children.toBlueprint(elementMap, groupMap));
         return new ModelBlueprint(
                 name,
                 resolution(),
                 mapToList(textures(), ModelTexture::toBlueprint),
                 group,
-                associate(animations().stream().map(raw -> raw.toBlueprint(group, placeholder)), BlueprintAnimation::name)
+                associate(animations().stream().map(raw -> raw.toBlueprint(meta, group, placeholder)), BlueprintAnimation::name)
         );
     }
 
@@ -94,5 +99,14 @@ public record ModelData(
     @NotNull
     public List<ModelAnimation> animations() {
         return animations != null ? animations : Collections.emptyList();
+    }
+
+    /**
+     * Gets groups
+     * @return groups
+     */
+    @Override
+    public @NotNull List<ModelGroup> groups() {
+        return groups != null ? groups : Collections.emptyList();
     }
 }
