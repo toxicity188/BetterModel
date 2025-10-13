@@ -65,7 +65,7 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                 withAliases("t")
                 withArguments(
                     modelKeys,
-                    StringArgument("animation").suggestNullable { BetterModel.modelOrNull(it.previousArgs["model"] as String)?.animations() }
+                    StringArgument("animation").suggestNullable { BetterModel.modelOrNull(it.previousArgs["model"] as String)?.animations()?.keys }
                 )
                 withOptionalArguments(
                     playerArgs,
@@ -92,7 +92,7 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                 withAliases("p")
                 withArguments(
                     limbKeys,
-                    StringArgument("animation").suggestNullable { BetterModel.limbOrNull(it.previousArgs["limb"] as String)?.animations() }
+                    StringArgument("animation").suggestNullable { BetterModel.limbOrNull(it.previousArgs["limb"] as String)?.animations()?.keys }
                 )
                 withOptionalArguments(
                     StringArgument("loop_type").suggest(AnimationIterator.Type.entries.map { it.name.lowercase() }),

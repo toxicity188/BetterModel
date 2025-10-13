@@ -25,7 +25,7 @@ import java.awt.image.BufferedImage;
  */
 public record BlueprintTexture(
         @NotNull String name,
-        BufferedImage image,
+        @NotNull BufferedImage image,
         int uvWidth,
         int uvHeight
 ) {

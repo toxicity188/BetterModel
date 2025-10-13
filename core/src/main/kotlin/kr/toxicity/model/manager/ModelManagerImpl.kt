@@ -303,10 +303,11 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                 )
             }
             return ModelRenderer(
-                this,
+                name,
                 type,
                 group.filterIsInstance<BlueprintGroup>()
-                    .associate { it.name to it.parse() }
+                    .associate { it.name to it.parse() },
+                animations
             )
         }
     }

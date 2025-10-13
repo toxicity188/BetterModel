@@ -10,7 +10,6 @@ import com.mojang.authlib.GameProfile;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
-import kr.toxicity.model.api.data.blueprint.ModelBlueprint;
 import kr.toxicity.model.api.tracker.DummyTracker;
 import kr.toxicity.model.api.tracker.EntityTracker;
 import kr.toxicity.model.api.tracker.TrackerModifier;
@@ -26,7 +25,6 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -35,14 +33,16 @@ import static kr.toxicity.model.api.util.CollectionUtil.mapValue;
 /**
  * A blueprint renderer.
  *
- * @param parent parent blueprint
+ * @param name name
  * @param type type
  * @param rendererGroups group map
+ * @param animations animations
  */
 public record ModelRenderer(
-        @NotNull ModelBlueprint parent,
+        @NotNull String name,
         @NotNull Type type,
-        @NotNull @Unmodifiable Map<BoneName, RendererGroup> rendererGroups
+        @NotNull @Unmodifiable Map<BoneName, RendererGroup> rendererGroups,
+        @NotNull @Unmodifiable Map<String, BlueprintAnimation> animations
 ) {
     /**
      * Gets a renderer group by tree
@@ -75,21 +75,13 @@ public record ModelRenderer(
     }
 
     /**
-     * Gets all names of animation.
-     * @return names
-     */
-    public @NotNull @Unmodifiable Set<String> animations() {
-        return parent.animations().keySet();
-    }
-
-    /**
      * Gets blueprint animation by name
      *
      * @param name name
      * @return optional animation
      */
     public @NotNull Optional<BlueprintAnimation> animation(@NotNull String name) {
-        return Optional.ofNullable(parent.animations().get(name));
+        return Optional.ofNullable(animations().get(name));
     }
 
     /**
@@ -98,7 +90,7 @@ public record ModelRenderer(
      * @return name
      */
     public @NotNull String name() {
-        return parent.name();
+        return name;
     }
 
     //----- Dummy -----
