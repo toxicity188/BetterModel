@@ -62,8 +62,8 @@ public record ModelAnimation(
                 map.values().stream().filter(ModelAnimator::isAvailable),
                 e -> BoneTagRegistry.parse(e.name()),
                 e -> {
-                    var builder = new Builder(meta.formatVersion(), length());
-                    e.stream().forEach(keyframe -> builder.addFrame(keyframe, placeholder));
+                    var builder = new Builder(meta.formatVersion(), placeholder, length());
+                    e.stream().forEach(builder::addFrame);
                     return builder.build(name());
                 }
         ));
@@ -134,13 +134,14 @@ public record ModelAnimation(
     private static final class Builder {
 
         private final ModelMeta.FormatVersion version;
+        private final ModelPlaceholder placeholder;
         private final float length;
 
         private final List<VectorPoint> transform = new ArrayList<>();
         private final List<VectorPoint> scale = new ArrayList<>();
         private final List<VectorPoint> rotation = new ArrayList<>();
 
-        void addFrame(@NotNull ModelKeyframe keyframe, @NotNull ModelPlaceholder placeholder) {
+        void addFrame(@NotNull ModelKeyframe keyframe) {
             var time = keyframe.time();
             if (time > length) return;
             var interpolation = keyframe.findInterpolator();

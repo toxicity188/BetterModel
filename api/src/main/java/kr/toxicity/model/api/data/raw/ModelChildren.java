@@ -11,6 +11,7 @@ import kr.toxicity.model.api.bone.BoneTagRegistry;
 import kr.toxicity.model.api.data.blueprint.BlueprintChildren;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 import java.util.Map;
@@ -75,7 +76,7 @@ public sealed interface ModelChildren {
      */
     record ModelOutliner(
             @NotNull ModelGroup group,
-            @NotNull List<ModelChildren> children
+            @NotNull @Unmodifiable List<ModelChildren> children
     ) implements ModelChildren {
 
         @Override

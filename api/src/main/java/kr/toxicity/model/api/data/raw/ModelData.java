@@ -29,6 +29,7 @@ import static kr.toxicity.model.api.util.CollectionUtil.mapToList;
  * @param outliner children
  * @param textures textures
  * @param animations animations
+ * @param groups groups (>=BlockBench 5.0.0)
  * @param placeholder placeholder
  */
 @ApiStatus.Internal
