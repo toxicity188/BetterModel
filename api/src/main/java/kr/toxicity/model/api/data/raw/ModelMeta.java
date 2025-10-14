@@ -47,6 +47,7 @@ public record ModelMeta(
 
             @Override
             public @NotNull Vector3f convertAnimationPosition(@NotNull Vector3f vector) {
+                vector.x = -vector.x;
                 vector.z = -vector.z;
                 return vector.div(MathUtil.MODEL_TO_BLOCK_MULTIPLIER);
             }

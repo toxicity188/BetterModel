@@ -62,7 +62,7 @@ public final class CollectionUtil {
     @NotNull
     @Unmodifiable
     public static <E, R> List<R> mapToList(@NotNull Collection<E> collection, @NotNull Function<E, R> mapper) {
-        return mapToList(collection.stream(), mapper);
+        return collection.isEmpty() ? Collections.emptyList() : mapToList(collection.stream(), mapper);
     }
 
     /**
@@ -89,7 +89,7 @@ public final class CollectionUtil {
      */
     @NotNull
     public static <E, R extends JsonElement> JsonArray mapToJson(@NotNull Collection<E> collection, @NotNull Function<E, R> mapper) {
-        return mapToJson(collection.size(), collection.stream(), mapper);
+        return collection.isEmpty() ? new JsonArray() : mapToJson(collection.size(), collection.stream(), mapper);
     }
 
     /**
@@ -234,7 +234,7 @@ public final class CollectionUtil {
     @NotNull
     @Unmodifiable
     public static <E, K, V> Map<K, V> associate(@NotNull Collection<E> collection, @NotNull Function<E, K> keyMapper, @NotNull Function<E, V> valueMapper) {
-        return associate(collection.stream(), keyMapper, valueMapper);
+        return collection.isEmpty() ? Collections.emptyMap() : associate(collection.stream(), keyMapper, valueMapper);
     }
 
     /**
@@ -265,7 +265,7 @@ public final class CollectionUtil {
     @NotNull
     @Unmodifiable
     public static <E, K> Map<K, E> associate(@NotNull Collection<E> collection, @NotNull Function<E, K> keyMapper) {
-        return associate(collection.stream(), keyMapper);
+        return collection.isEmpty() ? Collections.emptyMap() : associate(collection.stream(), keyMapper);
     }
 
     /**

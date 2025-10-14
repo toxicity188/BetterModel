@@ -95,9 +95,10 @@ public record BlueprintTexture(
 
     /**
      * Gets model resolution
+     * @param resolution parent resolution
      * @return resolution
      */
-    public @NotNull ModelResolution resolution() {
-        return new ModelResolution(uvWidth, uvHeight);
+    public @NotNull ModelResolution resolution(@NotNull ModelResolution resolution) {
+        return resolution.width() == image.getWidth() && resolution.height() == image.getHeight() ? new ModelResolution(image.getWidth(), image.getHeight()) : new ModelResolution(uvWidth, uvHeight);
     }
 }

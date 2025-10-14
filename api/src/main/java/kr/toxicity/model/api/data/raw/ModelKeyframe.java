@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Locale;
 
 import static java.util.Optional.ofNullable;
 
@@ -62,7 +63,7 @@ public record ModelKeyframe(
      */
     public @NotNull VectorInterpolator findInterpolator() {
         if (interpolation == null) return VectorInterpolator.defaultInterpolator();
-        return switch (interpolation.toLowerCase()) {
+        return switch (interpolation.toLowerCase(Locale.ROOT)) {
             case "linear" -> LinearInterpolator.INSTANCE;
             case "catmullrom" -> CatmullRomInterpolator.INSTANCE;
             case "step" -> StepInterpolator.INSTANCE;
