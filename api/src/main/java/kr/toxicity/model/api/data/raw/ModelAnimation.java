@@ -56,6 +56,7 @@ public record ModelAnimation(
     public @NotNull BlueprintAnimation toBlueprint(@NotNull ModelMeta meta, @NotNull List<BlueprintChildren> children, @NotNull ModelPlaceholder placeholder) {
         var map = new HashMap<>(animators());
         var script = Optional.ofNullable(map.remove("effects"))
+                .filter(ModelAnimator::isNotEmpty)
                 .map(a -> toScript(a, placeholder))
                 .orElseGet(() -> BlueprintScript.fromEmpty(this));
         var animators = AnimationGenerator.createMovements(length(), children, associate(

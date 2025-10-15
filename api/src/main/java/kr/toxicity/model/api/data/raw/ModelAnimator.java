@@ -31,7 +31,15 @@ public record ModelAnimator(
      * @return is available
      */
     public boolean isAvailable() {
-        return name != null && !keyframes().isEmpty();
+        return name != null && isNotEmpty();
+    }
+
+    /**
+     * Checks this animator is not empty
+     * @return is not empty
+     */
+    public boolean isNotEmpty() {
+        return !keyframes().isEmpty();
     }
 
     /**
