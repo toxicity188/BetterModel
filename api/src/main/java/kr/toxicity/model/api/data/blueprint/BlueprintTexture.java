@@ -94,11 +94,20 @@ public record BlueprintTexture(
     }
 
     /**
+     * Checks this textures has UV size
+     * @return has UV size
+     */
+    public boolean hasUVSize() {
+        return uvWidth > 0 && uvHeight > 0;
+    }
+
+    /**
      * Gets model resolution
      * @param resolution parent resolution
      * @return resolution
      */
     public @NotNull ModelResolution resolution(@NotNull ModelResolution resolution) {
-        return resolution.width() == image.getWidth() && resolution.height() == image.getHeight() ? new ModelResolution(image.getWidth(), image.getHeight()) : new ModelResolution(uvWidth, uvHeight);
+        if (!hasUVSize()) return resolution;
+        return resolution.width() == image.getWidth() && resolution.height() == image.getHeight() ? resolution : new ModelResolution(uvWidth, uvHeight);
     }
 }
