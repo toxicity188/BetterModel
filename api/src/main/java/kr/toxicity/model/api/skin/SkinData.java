@@ -8,6 +8,7 @@ package kr.toxicity.model.api.skin;
 
 import kr.toxicity.model.api.util.TransformedItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Skin data of player.
@@ -73,4 +74,9 @@ public interface SkinData {
      * @return right foreleg
      */
     @NotNull TransformedItemStack rightForeLeg();
+    /**
+     * Gets cape
+     * @return cape
+     */
+    @Nullable TransformedItemStack cape();
 }

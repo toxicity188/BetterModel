@@ -8,7 +8,9 @@ package kr.toxicity.model.manager
 
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.benmanes.caffeine.cache.RemovalCause
+import com.google.gson.Gson
 import com.google.gson.JsonParser
+import com.google.gson.annotations.SerializedName
 import kr.toxicity.library.dynamicuv.*
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.event.CreatePlayerSkinEvent
@@ -559,6 +561,25 @@ object SkinManagerImpl : SkinManager, GlobalManager {
             )
         )
     )
+    private val CAPE = UVModel(
+        { uvNamespace },
+        "cape"
+    ).addElement(
+        UVElement(
+            ElementVector(10f, 16f, 1f).div(DIV_FACTOR),
+            ElementVector(0f, -8f, 0.5f).div(DIV_FACTOR),
+            UVSpace(10, 16, 1),
+            UVElement.ColorType.RGB,
+            mapOf(
+                UVFace.NORTH to UVPos(12, 1),
+                UVFace.SOUTH to UVPos(1, 1),
+                UVFace.EAST to UVPos(11, 1),
+                UVFace.WEST to UVPos(0, 1),
+                UVFace.UP to UVPos(1, 0),
+                UVFace.DOWN to UVPos(11, 0)
+            )
+        )
+    )
 
     private fun UVModel.asItem(image: BufferedImage): TransformedItemStack {
         val data = write(image)
@@ -597,9 +618,12 @@ object SkinManagerImpl : SkinManager, GlobalManager {
         SLIM_LEFT_FOREARM.write()
         SLIM_RIGHT_ARM.write()
         SLIM_RIGHT_FOREARM.write()
+        CAPE.write()
 
         block(UVByteBuilder.emptyImage(uvNamespace, "one_pixel"))
     }
+
+    private val gson = Gson()
 
     private val profileCache = Caffeine.newBuilder()
         .expireAfterAccess(5, TimeUnit.MINUTES)
@@ -612,7 +636,7 @@ object SkinManagerImpl : SkinManager, GlobalManager {
 
     private val fallback by lazy {
         PLUGIN.getResource("fallback_skin.png")!!.use {
-            SkinDataImpl(false, ImageIO.read(it))
+            SkinDataImpl(false, ImageIO.read(it), null)
         }
     }
 
@@ -646,6 +670,21 @@ object SkinManagerImpl : SkinManager, GlobalManager {
         }.getOrDefault(false)
     }
 
+    private data class Skin(
+        val textures: SkinTextures
+    )
+
+    private data class SkinTextures(
+        @SerializedName("SKIN") val skin: SkinUrl,
+        @SerializedName("CAPE") val cape: SkinUrl?
+    )
+
+    private data class SkinUrl(
+        val url: String
+    ) {
+        fun toURI(): URI = URI.create(url)
+    }
+
     override fun getOrRequest(profile: SkinProfile): SkinData {
         return profileCache.get(profile.id) { id ->
             skinProvider.provide(profile).thenApply { provided ->
@@ -655,24 +694,22 @@ object SkinManagerImpl : SkinManager, GlobalManager {
                 }
             }.thenCompose { selected ->
                 httpClient {
-                    sendAsync(HttpRequest.newBuilder()
-                        .uri(
-                            URI.create(
-                                JsonParser.parseString(String(Base64.getDecoder().decode(selected.textures.first().value)))
-                                    .asJsonObject
-                                    .getAsJsonObject("textures")
-                                    .getAsJsonObject("SKIN")
-                                    .getAsJsonPrimitive("url")
-                                    .asString
-                            ))
-                        .GET()
-                        .build(),
-                        HttpResponse.BodyHandlers.ofInputStream()
-                    ).thenAccept {
-                        it.body().use { stream ->
+                    gson.fromJson(
+                        String(Base64.getDecoder().decode(selected.textures.first().value)),
+                        Skin::class.java
+                    ).textures.run {
+                        fun SkinUrl.toFuture() = sendAsync(HttpRequest.newBuilder()
+                            .uri(toURI())
+                            .GET()
+                            .build(), HttpResponse.BodyHandlers.ofInputStream())
+                            .thenComposeAsync { request ->
+                                CompletableFuture.supplyAsync { request.body().use { ImageIO.read(it) } }
+                            }
+                        skin.toFuture().thenCombine(cape?.toFuture() ?: CompletableFuture.completedFuture(null)) { skin, cape ->
                             profileCache.put(id, SkinDataImpl(
                                 isSlim(selected),
-                                ImageIO.read(stream).convertLegacy(),
+                                skin.convertLegacy(),
+                                cape,
                                 selected
                             ))
                             BetterModel.registryOrNull(id)?.trackers()?.forEach { tracker ->
@@ -730,22 +767,24 @@ object SkinManagerImpl : SkinManager, GlobalManager {
 
     private class SkinDataImpl(
         private val isSlim: Boolean,
-        private val image: BufferedImage,
+        private val skinImage: BufferedImage,
+        private val capeImage: BufferedImage?,
         val original: SkinProfile? = null
     ) : SkinData {
 
-        private val head = HEAD.asItem(image)
-        private val hip = HIP.asItem(image)
-        private val waist = WAIST.asItem(image)
-        private val chest = CHEST.asItem(image)
-        private val leftArm = (if (isSlim) SLIM_LEFT_ARM else LEFT_ARM).asItem(image)
-        private val leftForeArm = (if (isSlim) SLIM_LEFT_FOREARM else LEFT_FOREARM).asItem(image)
-        private val rightArm = (if (isSlim) SLIM_RIGHT_ARM else RIGHT_ARM).asItem(image)
-        private val rightForeArm = (if (isSlim) SLIM_RIGHT_FOREARM else RIGHT_FOREARM).asItem(image)
-        private val leftLeg = LEFT_LEG.asItem(image)
-        private val leftForeLeg = LEFT_FORELEG.asItem(image)
-        private val rightLeg = RIGHT_LEG.asItem(image)
-        private val rightForeLeg = RIGHT_FORELEG.asItem(image)
+        private val head = HEAD.asItem(skinImage)
+        private val hip = HIP.asItem(skinImage)
+        private val waist = WAIST.asItem(skinImage)
+        private val chest = CHEST.asItem(skinImage)
+        private val leftArm = (if (isSlim) SLIM_LEFT_ARM else LEFT_ARM).asItem(skinImage)
+        private val leftForeArm = (if (isSlim) SLIM_LEFT_FOREARM else LEFT_FOREARM).asItem(skinImage)
+        private val rightArm = (if (isSlim) SLIM_RIGHT_ARM else RIGHT_ARM).asItem(skinImage)
+        private val rightForeArm = (if (isSlim) SLIM_RIGHT_FOREARM else RIGHT_FOREARM).asItem(skinImage)
+        private val leftLeg = LEFT_LEG.asItem(skinImage)
+        private val leftForeLeg = LEFT_FORELEG.asItem(skinImage)
+        private val rightLeg = RIGHT_LEG.asItem(skinImage)
+        private val rightForeLeg = RIGHT_FORELEG.asItem(skinImage)
+        private val cape = capeImage?.let { CAPE.asItem(it) }
 
         override fun head(): TransformedItemStack = head
         override fun hip(): TransformedItemStack = hip
@@ -759,8 +798,9 @@ object SkinManagerImpl : SkinManager, GlobalManager {
         override fun leftForeLeg(): TransformedItemStack = leftForeLeg
         override fun rightLeg(): TransformedItemStack = rightLeg
         override fun rightForeLeg(): TransformedItemStack = rightForeLeg
+        override fun cape(): TransformedItemStack? = cape
 
-        fun refresh() = SkinDataImpl(isSlim, image, original)
+        fun refresh() = SkinDataImpl(isSlim, skinImage, capeImage, original)
     }
 
     override fun reload(pipeline: ReloadPipeline, zipper: PackZipper) {

@@ -6,6 +6,8 @@
  */
 package kr.toxicity.model.api.bone;
 
+import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.data.renderer.RenderSource;
 import kr.toxicity.model.api.player.PlayerLimb;
 import kr.toxicity.model.api.util.TransformedItemStack;
 import org.bukkit.entity.ItemDisplay;
@@ -123,6 +125,25 @@ public enum BoneTags implements BoneTag {
      * Player left foreleg
      */
     PLAYER_LEFT_FORELEG(PlayerLimb.LEFT_FORELEG.getItemMapper(), new String[] { "plfl" }),
+    /**
+     * Cape
+     */
+    CAPE(new BoneItemMapper() {
+        @Override
+        public @NotNull TransformedItemStack apply(@NotNull RenderSource<?> renderSource, @NotNull TransformedItemStack transformedItemStack) {
+            var manager = BetterModel.plugin().skinManager();
+            if (manager.supported() && renderSource instanceof RenderSource.Profiled profiled) {
+                var cape = manager.getOrRequest(profiled.profile()).cape();
+                if (cape != null) return cape;
+            }
+            return TransformedItemStack.empty();
+        }
+
+        @Override
+        public @NotNull ItemDisplay.ItemDisplayTransform transform() {
+            return ItemDisplay.ItemDisplayTransform.FIXED;
+        }
+    }, new String[] { "cape" })
     ;
 
     BoneTags(@NotNull String[] tags) {
