@@ -92,10 +92,10 @@ public class EntityTracker extends Tracker {
                         shadow.sendDirtyEntityData(s.getDataBundler());
                         shadow.sendPosition(adapter, s.getTickBundler());
                     }));
-                    pipeline.spawnPacketHandler(shadow::spawn);
+                    pipeline.spawnPacketHandler(shadow::spawnWithEntityData);
+                    pipeline.showPacketHandler(shadow::spawnWithEntityData);
                     pipeline.despawnPacketHandler(shadow::remove);
                     pipeline.hidePacketHandler(shadow::remove);
-                    pipeline.showPacketHandler(shadow::spawn);
                 });
 
         //Animation

@@ -70,6 +70,16 @@ public interface ModelDisplay extends Identifiable {
     }
 
     /**
+     * Spawns this display with data
+     * @param bundler packet bundler
+     */
+    default void spawnWithEntityData(@NotNull PacketBundler bundler) {
+        var visible = !invisible();
+        spawn(visible, bundler);
+        sendEntityData(visible, bundler);
+    }
+
+    /**
      * Spawns this display
      * @param showItem show item
      * @param bundler packet bundler
