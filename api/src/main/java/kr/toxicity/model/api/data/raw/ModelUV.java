@@ -6,10 +6,13 @@
  */
 package kr.toxicity.model.api.data.raw;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
 
 /**
  * UV data of a model
@@ -20,8 +23,25 @@ import org.jetbrains.annotations.Nullable;
 public record ModelUV(
         @NotNull Float4 uv,
         float rotation,
-        @Nullable Integer texture
+        @Nullable JsonElement texture
 ) {
+
+    /**
+     * Checks this UV has textures.
+     * @return has texture
+     */
+    public boolean hasTexture() {
+        return texture != null && texture.isJsonPrimitive() && texture.getAsJsonPrimitive().isNumber();
+    }
+
+    /**
+     * Gets texture index
+     * @return texture index
+     */
+    public int textureIndex() {
+        return Objects.requireNonNull(texture).getAsInt();
+    }
+
     /**
      * Gets json data of uv
      * @param parent parent blueprint
@@ -30,8 +50,8 @@ public record ModelUV(
      */
     public @NotNull JsonObject toJson(@NotNull ModelBlueprint parent, int tint) {
         var object = new JsonObject();
-        if (texture == null) return object;
-        object.add("uv", uv.div(parent.textures().get(texture).resolution(parent.resolution())).toJson());
+        if (!hasTexture()) return object;
+        object.add("uv", uv.div(parent.textures().get(textureIndex()).resolution(parent.resolution())).toJson());
         if (rotation != 0) object.addProperty("rotation", rotation);
         object.addProperty("tintindex", tint);
         object.addProperty("texture", "#" + texture);

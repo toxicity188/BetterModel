@@ -37,12 +37,12 @@ public record ModelFace(
      */
     public @NotNull JsonObject toJson(@NotNull ModelBlueprint parent, int tint) {
         var object = new JsonObject();
-        if (north.texture() != null) object.add("north", north.toJson(parent, tint));
-        if (east.texture() != null) object.add("east", east.toJson(parent, tint));
-        if (south.texture() != null) object.add("south", south.toJson(parent, tint));
-        if (west.texture() != null) object.add("west", west.toJson(parent, tint));
-        if (up.texture() != null) object.add("up", up.toJson(parent, tint));
-        if (down.texture() != null) object.add("down", down.toJson(parent, tint));
+        if (north.hasTexture()) object.add("north", north.toJson(parent, tint));
+        if (east.hasTexture()) object.add("east", east.toJson(parent, tint));
+        if (south.hasTexture()) object.add("south", south.toJson(parent, tint));
+        if (west.hasTexture()) object.add("west", west.toJson(parent, tint));
+        if (up.hasTexture()) object.add("up", up.toJson(parent, tint));
+        if (down.hasTexture()) object.add("down", down.toJson(parent, tint));
         return object;
     }
 
@@ -51,11 +51,11 @@ public record ModelFace(
      * @return Whether this UV has textures.
      */
     public boolean hasTexture() {
-        return north.texture() != null
-                || east.texture() != null
-                || south.texture() != null
-                || west.texture() != null
-                || up.texture() != null
-                || down.texture() != null;
+        return north.hasTexture()
+                || east.hasTexture()
+                || south.hasTexture()
+                || west.hasTexture()
+                || up.hasTexture()
+                || down.hasTexture();
     }
 }
