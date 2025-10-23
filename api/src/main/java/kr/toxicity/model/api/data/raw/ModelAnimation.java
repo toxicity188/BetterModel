@@ -25,7 +25,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static kr.toxicity.model.api.util.CollectionUtil.associate;
 
@@ -61,15 +60,16 @@ public record ModelAnimation(
             @NotNull List<BlueprintChildren> children,
             @NotNull ModelPlaceholder placeholder
     ) {
-        var map = animators().entrySet().stream()
-                .filter(e -> availableUUIDs.contains(e.getKey()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        var map = new HashMap<>(animators());
         var script = Optional.ofNullable(map.remove("effects"))
                 .filter(ModelAnimator::isNotEmpty)
                 .map(a -> toScript(a, placeholder))
                 .orElseGet(() -> BlueprintScript.fromEmpty(this));
         var animators = AnimationGenerator.createMovements(length(), children, associate(
-                map.values().stream().filter(ModelAnimator::isAvailable),
+                map.entrySet().stream()
+                        .filter(e -> availableUUIDs.contains(e.getKey()))
+                        .map(Map.Entry::getValue)
+                        .filter(ModelAnimator::isAvailable),
                 e -> BoneTagRegistry.parse(e.name()),
                 e -> {
                     var builder = new Builder(meta.formatVersion(), placeholder, length());
