@@ -51,4 +51,9 @@ public record BoneName(@NotNull @Unmodifiable Set<BoneTag> tags, @NotNull String
     public int hashCode() {
         return rawName.hashCode();
     }
+
+    @Override
+    public @NotNull String toString() {
+        return rawName;
+    }
 }

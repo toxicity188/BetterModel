@@ -96,7 +96,7 @@ public final class PackResult {
         return get != null ? Collections.unmodifiableSet(get) : Collections.emptySet();
     }
 
-    public Stream<PackByte> stream() {
+    public @NotNull Stream<PackByte> stream() {
         return Stream.concat(
                 overlays.values().stream().flatMap(Collection::stream),
                 assets.stream()

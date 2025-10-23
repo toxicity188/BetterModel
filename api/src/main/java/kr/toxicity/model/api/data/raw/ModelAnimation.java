@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static kr.toxicity.model.api.util.CollectionUtil.associate;
 
@@ -49,12 +50,20 @@ public record ModelAnimation(
     /**
      * Converts raw animation to blueprint animation
      * @param meta meta
+     * @param availableUUIDs available uuids
      * @param children children
      * @param placeholder placeholder
      * @return converted animation
      */
-    public @NotNull BlueprintAnimation toBlueprint(@NotNull ModelMeta meta, @NotNull List<BlueprintChildren> children, @NotNull ModelPlaceholder placeholder) {
-        var map = new HashMap<>(animators());
+    public @NotNull BlueprintAnimation toBlueprint(
+            @NotNull ModelMeta meta,
+            @NotNull Set<String> availableUUIDs,
+            @NotNull List<BlueprintChildren> children,
+            @NotNull ModelPlaceholder placeholder
+    ) {
+        var map = animators().entrySet().stream()
+                .filter(e -> availableUUIDs.contains(e.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         var script = Optional.ofNullable(map.remove("effects"))
                 .filter(ModelAnimator::isNotEmpty)
                 .map(a -> toScript(a, placeholder))

@@ -15,10 +15,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -77,6 +74,34 @@ public final class CollectionUtil {
     @Unmodifiable
     public static <E, R> List<R> mapToList(@NotNull Stream<E> stream, @NotNull Function<E, R> mapper) {
         return stream.map(mapper).toList();
+    }
+
+    /**
+     * Maps stream to set
+     * @param collection collection
+     * @param mapper mapper
+     * @return unmodifiable set
+     * @param <E> element
+     * @param <R> return value
+     */
+    @NotNull
+    @Unmodifiable
+    public static <E, R> Set<R> mapToSet(@NotNull Collection<E> collection, @NotNull Function<E, R> mapper) {
+        return collection.isEmpty() ? Collections.emptySet() : mapToSet(collection.stream(), mapper);
+    }
+
+    /**
+     * Maps stream to set
+     * @param stream stream
+     * @param mapper mapper
+     * @return unmodifiable set
+     * @param <E> element
+     * @param <R> return value
+     */
+    @NotNull
+    @Unmodifiable
+    public static <E, R> Set<R> mapToSet(@NotNull Stream<E> stream, @NotNull Function<E, R> mapper) {
+        return stream.map(mapper).collect(Collectors.toUnmodifiableSet());
     }
 
     /**

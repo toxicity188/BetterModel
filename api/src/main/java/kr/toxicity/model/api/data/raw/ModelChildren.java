@@ -16,6 +16,7 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 import static kr.toxicity.model.api.util.CollectionUtil.filterIsInstance;
 import static kr.toxicity.model.api.util.CollectionUtil.mapToList;
@@ -56,6 +57,18 @@ public sealed interface ModelChildren {
     );
 
     /**
+     * Flattens this children tree
+     * @return flatten stream
+     */
+    @NotNull Stream<ModelChildren> flatten();
+
+    /**
+     * Gets uuid
+     * @return uuid
+     */
+    @NotNull String uuid();
+
+    /**
      * A raw element's uuid.
      * @param uuid uuid
      */
@@ -66,6 +79,11 @@ public sealed interface ModelChildren {
                 @NotNull Map<String, ModelGroup> groupMap
         ) {
             return new BlueprintChildren.BlueprintElement(Objects.requireNonNull(elementMap.get(uuid())));
+        }
+
+        @Override
+        public @NotNull Stream<ModelChildren> flatten() {
+            return Stream.of(this);
         }
     }
 
@@ -86,7 +104,7 @@ public sealed interface ModelChildren {
         ) {
             var child = mapToList(children, c -> c.toBlueprint(elementMap, groupMap));
             var filtered = filterIsInstance(child, BlueprintChildren.BlueprintElement.class).toList();
-            var selectedGroup = groupMap.getOrDefault(group.uuid(), group);
+            var selectedGroup = groupMap.getOrDefault(uuid(), group);
             return new BlueprintChildren.BlueprintGroup(
                     BoneTagRegistry.parse(selectedGroup.name()),
                     selectedGroup.origin(),
@@ -94,6 +112,19 @@ public sealed interface ModelChildren {
                     child,
                     filtered.isEmpty() ? selectedGroup.visibility() : filtered.stream().anyMatch(element -> element.element().visibility())
             );
+        }
+
+        @Override
+        public @NotNull Stream<ModelChildren> flatten() {
+            return Stream.concat(
+                    Stream.of(this),
+                    children.stream().flatMap(ModelChildren::flatten)
+            );
+        }
+
+        @Override
+        public @NotNull String uuid() {
+            return group.uuid();
         }
     }
 }

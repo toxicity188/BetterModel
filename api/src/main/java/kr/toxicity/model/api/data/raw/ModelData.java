@@ -18,8 +18,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 
-import static kr.toxicity.model.api.util.CollectionUtil.associate;
-import static kr.toxicity.model.api.util.CollectionUtil.mapToList;
+import static kr.toxicity.model.api.util.CollectionUtil.*;
 
 /**
  * Raw BlockBench model's data.
@@ -65,12 +64,16 @@ public record ModelData(
         var elementMap = associate(elements(), ModelElement::uuid);
         var groupMap = associate(groups(), ModelGroup::uuid);
         var group = mapToList(outliner(), children -> children.toBlueprint(elementMap, groupMap));
+        var availableUUIDs = mapToSet(
+                filterIsInstance(outliner().stream().flatMap(ModelChildren::flatten), ModelChildren.ModelOutliner.class),
+                ModelChildren.ModelOutliner::uuid
+        );
         return new ModelBlueprint(
                 name,
                 resolution(),
                 mapToList(textures(), ModelTexture::toBlueprint),
                 group,
-                associate(animations().stream().map(raw -> raw.toBlueprint(meta, group, placeholder)), BlueprintAnimation::name)
+                associate(animations().stream().map(raw -> raw.toBlueprint(meta, availableUUIDs, group, placeholder)), BlueprintAnimation::name)
         );
     }
 

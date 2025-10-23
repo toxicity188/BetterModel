@@ -150,13 +150,19 @@ public final class AnimationStateHandler<T extends Timed> {
     }
 
     private boolean setAfterKeyframe(@Nullable KeyframeData next) {
-        if (value(afterKeyframe) == value(next)) return false;
+        if (equals(afterKeyframe, next)) return false;
         setConsumer.accept(
                 value(beforeKeyframe = afterKeyframe),
                 value(afterKeyframe = next)
         );
         delay = Math.round(frame());
         return true;
+    }
+
+    private boolean equals(@Nullable KeyframeData from, @Nullable KeyframeData to) {
+        if (from == null && to == null) return true;
+        if (from == null || to == null) return false;
+        return from.value == to.value && from.realTime == to.realTime;
     }
 
     private @Nullable T value(@Nullable KeyframeData data) {
