@@ -18,7 +18,7 @@ import java.util.List;
  * A keyframe iterator of animation.
  * @param <T> keyframe type
  */
-public interface AnimationIterator<T extends Timed> extends Iterator<T> {
+public sealed interface AnimationIterator<T extends Timed> extends Iterator<T> {
 
     /**
      * Clears this iterator
@@ -42,8 +42,8 @@ public interface AnimationIterator<T extends Timed> extends Iterator<T> {
         @SerializedName("once")
         PLAY_ONCE {
             @Override
-            public @NotNull <T extends Timed> AnimationIterator<T> create(@NotNull List<T> keyFrames) {
-                return new PlayOnce<>(keyFrames);
+            public @NotNull <T extends Timed> AnimationIterator<T> create(@NotNull List<T> keyframes) {
+                return new PlayOnce<>(keyframes);
             }
         },
         /**
@@ -52,8 +52,8 @@ public interface AnimationIterator<T extends Timed> extends Iterator<T> {
         @SerializedName("loop")
         LOOP {
             @Override
-            public @NotNull <T extends Timed> AnimationIterator<T> create(@NotNull List<T> keyFrames) {
-                return new Loop<>(keyFrames);
+            public @NotNull <T extends Timed> AnimationIterator<T> create(@NotNull List<T> keyframes) {
+                return new Loop<>(keyframes);
             }
         },
         /**
@@ -62,19 +62,19 @@ public interface AnimationIterator<T extends Timed> extends Iterator<T> {
         @SerializedName("hold")
         HOLD_ON_LAST {
             @Override
-            public @NotNull <T extends Timed> AnimationIterator<T> create(@NotNull List<T> keyFrames) {
-                return new HoldOnLast<>(keyFrames);
+            public @NotNull <T extends Timed> AnimationIterator<T> create(@NotNull List<T> keyframes) {
+                return new HoldOnLast<>(keyframes);
             }
         }
         ;
 
         /**
          * Creates iterator by given keyframes
-         * @param keyFrames keyframes
+         * @param keyframes keyframes
          * @return iterator
          * @param <T> keyframe type
          */
-        public abstract <T extends Timed> @NotNull AnimationIterator<T> create(@NotNull List<T> keyFrames);
+        public abstract <T extends Timed> @NotNull AnimationIterator<T> create(@NotNull List<T> keyframes);
     }
 
     /**
@@ -83,7 +83,7 @@ public interface AnimationIterator<T extends Timed> extends Iterator<T> {
      */
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     final class PlayOnce<T extends Timed> implements AnimationIterator<T> {
-        private final List<T> keyFrame;
+        private final List<T> keyframe;
         private int index = 0;
 
         @Override
@@ -93,13 +93,13 @@ public interface AnimationIterator<T extends Timed> extends Iterator<T> {
 
         @Override
         public boolean hasNext() {
-            return index < keyFrame.size();
+            return index < keyframe.size();
         }
 
         @Override
         @NotNull
         public T next() {
-            return keyFrame.get(index++);
+            return keyframe.get(index++);
         }
 
         @NotNull
@@ -115,7 +115,7 @@ public interface AnimationIterator<T extends Timed> extends Iterator<T> {
      */
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     final class HoldOnLast<T extends Timed> implements AnimationIterator<T> {
-        private final List<T> keyFrame;
+        private final List<T> keyframe;
         private int index = 0;
 
         @Override
@@ -131,8 +131,8 @@ public interface AnimationIterator<T extends Timed> extends Iterator<T> {
         @Override
         @NotNull
         public T next() {
-            if (index >= keyFrame.size()) return keyFrame.getLast();
-            return keyFrame.get(index++);
+            if (index >= keyframe.size()) return keyframe.getLast();
+            return keyframe.get(index++);
         }
 
         @NotNull
@@ -148,7 +148,7 @@ public interface AnimationIterator<T extends Timed> extends Iterator<T> {
      */
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     final class Loop<T extends Timed> implements AnimationIterator<T> {
-        private final List<T> keyFrame;
+        private final List<T> keyframe;
         private int index = 0;
 
         @Override
@@ -164,8 +164,8 @@ public interface AnimationIterator<T extends Timed> extends Iterator<T> {
         @Override
         @NotNull
         public T next() {
-            if (index >= keyFrame.size()) index = 0;
-            return keyFrame.get(index++);
+            if (index >= keyframe.size()) index = 0;
+            return keyframe.get(index++);
         }
 
         @NotNull

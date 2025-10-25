@@ -45,7 +45,7 @@ public final class CollectionUtil {
      */
     @NotNull
     public static <E, R> Stream<R> filterIsInstance(@NotNull Collection<E> collection, @NotNull Class<R> rClass) {
-        return filterIsInstance(collection.stream(), rClass);
+        return collection.isEmpty() ? Stream.empty() : filterIsInstance(collection.stream(), rClass);
     }
 
     /**

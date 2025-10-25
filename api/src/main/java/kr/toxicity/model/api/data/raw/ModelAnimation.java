@@ -60,13 +60,8 @@ public record ModelAnimation(
             @NotNull List<BlueprintChildren> children,
             @NotNull ModelPlaceholder placeholder
     ) {
-        var map = new HashMap<>(animators());
-        var script = Optional.ofNullable(map.remove("effects"))
-                .filter(ModelAnimator::isNotEmpty)
-                .map(a -> toScript(a, placeholder))
-                .orElseGet(() -> BlueprintScript.fromEmpty(this));
         var animators = AnimationGenerator.createMovements(length(), children, associate(
-                map.entrySet().stream()
+                animators().entrySet().stream()
                         .filter(e -> availableUUIDs.contains(e.getKey()))
                         .map(Map.Entry::getValue)
                         .filter(ModelAnimator::isAvailable),
@@ -83,7 +78,10 @@ public record ModelAnimation(
                 length(),
                 override(),
                 animators,
-                script,
+                Optional.ofNullable(animators().get("effects"))
+                        .filter(ModelAnimator::isNotEmpty)
+                        .map(a -> toScript(a, placeholder))
+                        .orElseGet(() -> BlueprintScript.fromEmpty(this)),
                 animators.isEmpty() ? AnimationMovement.withEmpty(length()) : animators.values()
                         .iterator()
                         .next()

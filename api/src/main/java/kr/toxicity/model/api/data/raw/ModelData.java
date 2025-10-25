@@ -49,7 +49,6 @@ public record ModelData(
             .registerTypeAdapter(Float3.class, Float3.PARSER)
             .registerTypeAdapter(Float4.class, Float4.PARSER)
             .registerTypeAdapter(ModelMeta.class, ModelMeta.PARSER)
-            .registerTypeAdapter(Datapoint.class, Datapoint.PARSER)
             .registerTypeAdapter(ModelChildren.class, ModelChildren.PARSER)
             .registerTypeAdapter(ModelPlaceholder.class, ModelPlaceholder.PARSER)
             .create();

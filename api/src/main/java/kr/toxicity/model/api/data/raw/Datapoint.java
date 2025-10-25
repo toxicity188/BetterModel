@@ -6,7 +6,6 @@
  */
 package kr.toxicity.model.api.data.raw;
 
-import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonPrimitive;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.util.function.Float2FloatConstantFunction;
@@ -35,20 +34,6 @@ public record Datapoint(
 ) {
 
     /**
-     * Parser instance
-     */
-    public static final JsonDeserializer<Datapoint> PARSER = (json, typeOfT, context) -> {
-        var object = json.getAsJsonObject();
-        var script = object.getAsJsonPrimitive("script");
-        return new Datapoint(
-                object.getAsJsonPrimitive("x"),
-                object.getAsJsonPrimitive("y"),
-                object.getAsJsonPrimitive("z"),
-                script != null ? script.getAsString() : null
-        );
-    };
-
-    /**
      * Checks this datapoint has script
      * @return has script
      */
@@ -63,18 +48,6 @@ public record Datapoint(
     @Override
     public @NotNull String script() {
         return Objects.requireNonNull(script);
-    }
-
-    private static @NotNull Float2FloatFunction build(@Nullable JsonPrimitive primitive, @NotNull ModelPlaceholder placeholder) {
-        if (primitive == null) return Float2FloatFunction.ZERO;
-        if (primitive.isNumber()) return Float2FloatFunction.of(primitive.getAsFloat());
-        var string = primitive.getAsString().trim();
-        if (string.isEmpty()) return Float2FloatFunction.ZERO;
-        try {
-            return Float2FloatFunction.of(Float.parseFloat(string));
-        } catch (NumberFormatException ignored) {
-            return BetterModel.plugin().evaluator().compile(placeholder.parseVariable(string));
-        }
     }
 
     /**
@@ -97,6 +70,18 @@ public record Datapoint(
                     yb.applyAsFloat(f),
                     zb.applyAsFloat(f)
             );
+        }
+    }
+
+    private static @NotNull Float2FloatFunction build(@Nullable JsonPrimitive primitive, @NotNull ModelPlaceholder placeholder) {
+        if (primitive == null) return Float2FloatFunction.ZERO;
+        if (primitive.isNumber()) return Float2FloatFunction.of(primitive.getAsFloat());
+        var string = primitive.getAsString().trim();
+        if (string.isEmpty()) return Float2FloatFunction.ZERO;
+        try {
+            return Float2FloatFunction.of(Float.parseFloat(string));
+        } catch (NumberFormatException ignored) {
+            return BetterModel.plugin().evaluator().compile(placeholder.parseVariable(string));
         }
     }
 }
