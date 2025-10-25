@@ -11,5 +11,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+/**
+ * Model load result
+ * @param blueprint blueprint
+ * @param errors error messages
+ */
 public record ModelLoadResult(@NotNull ModelBlueprint blueprint, @NotNull List<String> errors) {
 }
