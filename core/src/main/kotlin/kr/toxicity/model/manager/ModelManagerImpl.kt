@@ -53,10 +53,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
             status = "Importing $typeName models..."
             goal = targetFolder.size
         }.forEachParallel(targetFolder, Path::fileSize) {
-            val load = it.toFile().toTexturedModel() ?: return@forEachParallel warn(componentOf(
-                "This model file has unsupported element type (e.g., mesh): ".toComponent(),
-                it.toString().toComponent(RED)
-            ))
+            val load = it.toFile().toTexturedModel() ?: return@forEachParallel
             modelFileMap.compute(load.name) compute@ { _, v ->
                 val index = pipeline.progress()
                 if (v != null) {

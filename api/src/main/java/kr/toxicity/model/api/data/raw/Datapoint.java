@@ -52,13 +52,13 @@ public record Datapoint(
 
     /**
      * Creates vector function
-     * @param placeholder placeholder
+     * @param context context
      * @return vector function
      */
-    public @NotNull FloatFunction<Vector3f> toFunction(@NotNull ModelPlaceholder placeholder) {
-        var xb = build(x, placeholder);
-        var yb = build(y, placeholder);
-        var zb = build(z, placeholder);
+    public @NotNull FloatFunction<Vector3f> toFunction(@NotNull ModelLoadContext context) {
+        var xb = build(x, context);
+        var yb = build(y, context);
+        var zb = build(z, context);
         if (xb instanceof Float2FloatConstantFunction(float xc)
                 && yb instanceof Float2FloatConstantFunction(float yc)
                 && zb instanceof Float2FloatConstantFunction(float zc)
@@ -73,7 +73,7 @@ public record Datapoint(
         }
     }
 
-    private static @NotNull Float2FloatFunction build(@Nullable JsonPrimitive primitive, @NotNull ModelPlaceholder placeholder) {
+    private static @NotNull Float2FloatFunction build(@Nullable JsonPrimitive primitive, @NotNull ModelLoadContext context) {
         if (primitive == null) return Float2FloatFunction.ZERO;
         if (primitive.isNumber()) return Float2FloatFunction.of(primitive.getAsFloat());
         var string = primitive.getAsString().trim();
@@ -81,7 +81,13 @@ public record Datapoint(
         try {
             return Float2FloatFunction.of(Float.parseFloat(string));
         } catch (NumberFormatException ignored) {
-            return BetterModel.plugin().evaluator().compile(placeholder.parseVariable(string));
+            return context.trySupply(
+                    () -> BetterModel.plugin().evaluator().compile(context.placeholder.parseVariable(string)),
+                    error -> new ModelLoadContext.Fallback<>(
+                            Float2FloatFunction.ZERO,
+                            "Cannot parse this datapoint: " + primitive + ", reason: " + error.getMessage()
+                    )
+            );
         }
     }
 }

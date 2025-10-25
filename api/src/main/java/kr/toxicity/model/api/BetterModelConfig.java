@@ -159,6 +159,12 @@ public interface BetterModelConfig {
     int packetBundlingSize();
 
     /**
+     * Gets whether strict loading is enabled
+     * @return strict loading
+     */
+    boolean enableStrictLoading();
+
+    /**
      * Pack type
      */
     enum PackType {

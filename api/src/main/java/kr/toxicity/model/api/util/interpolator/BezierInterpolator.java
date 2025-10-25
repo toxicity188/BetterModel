@@ -7,7 +7,6 @@
 package kr.toxicity.model.api.util.interpolator;
 
 import kr.toxicity.model.api.animation.VectorPoint;
-import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,11 +19,13 @@ import static kr.toxicity.model.api.util.InterpolationUtil.*;
 /**
  * Bezier interpolator
  */
-@RequiredArgsConstructor
 @ApiStatus.Internal
-public final class BezierInterpolator implements VectorInterpolator {
-
-    private final @Nullable Vector3f bezierLeftTime, bezierLeftValue, bezierRightTime, bezierRightValue;
+public record BezierInterpolator(
+        @Nullable Vector3f bezierLeftTime,
+        @Nullable Vector3f bezierLeftValue,
+        @Nullable Vector3f bezierRightTime,
+        @Nullable Vector3f bezierRightValue
+) implements VectorInterpolator {
 
     @NotNull
     @Override

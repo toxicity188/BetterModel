@@ -52,4 +52,9 @@ public enum CatmullRomInterpolator implements VectorInterpolator {
                 a
         );
     }
+
+    @Override
+    public String toString() {
+        return "catmullrom";
+    }
 }

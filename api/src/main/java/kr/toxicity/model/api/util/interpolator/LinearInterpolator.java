@@ -40,4 +40,9 @@ public enum LinearInterpolator implements VectorInterpolator {
                 a
         );
     }
+
+    @Override
+    public String toString() {
+        return "linear";
+    }
 }

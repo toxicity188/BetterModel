@@ -64,3 +64,5 @@ cancel-player-model-inventory: false
 player-hide-delay: 3
 #packet bundling size
 packet-bundling-size: 16
+#enable strict loading
+enable-strict-loading: false

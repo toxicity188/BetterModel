@@ -48,17 +48,15 @@ public record ModelAnimation(
 ) {
     /**
      * Converts raw animation to blueprint animation
-     * @param meta meta
+     * @param context context
      * @param availableUUIDs available uuids
      * @param children children
-     * @param placeholder placeholder
      * @return converted animation
      */
     public @NotNull BlueprintAnimation toBlueprint(
-            @NotNull ModelMeta meta,
+            @NotNull ModelLoadContext context,
             @NotNull Set<String> availableUUIDs,
-            @NotNull List<BlueprintChildren> children,
-            @NotNull ModelPlaceholder placeholder
+            @NotNull List<BlueprintChildren> children
     ) {
         var animators = AnimationGenerator.createMovements(length(), children, associate(
                 animators().entrySet().stream()
@@ -67,7 +65,7 @@ public record ModelAnimation(
                         .filter(ModelAnimator::isAvailable),
                 e -> BoneTagRegistry.parse(e.name()),
                 e -> {
-                    var builder = new Builder(meta.formatVersion(), placeholder, length());
+                    var builder = new Builder(context, length());
                     e.stream().forEach(builder::addFrame);
                     return builder.build(name());
                 }
@@ -80,7 +78,7 @@ public record ModelAnimation(
                 animators,
                 Optional.ofNullable(animators().get("effects"))
                         .filter(ModelAnimator::isNotEmpty)
-                        .map(a -> toScript(a, placeholder))
+                        .map(a -> toScript(a, context.placeholder))
                         .orElseGet(() -> BlueprintScript.fromEmpty(this)),
                 animators.isEmpty() ? AnimationMovement.withEmpty(length()) : animators.values()
                         .iterator()
@@ -141,8 +139,7 @@ public record ModelAnimation(
     @RequiredArgsConstructor
     private static final class Builder {
 
-        private final ModelMeta.FormatVersion version;
-        private final ModelPlaceholder placeholder;
+        private final ModelLoadContext context;
         private final float length;
 
         private final List<VectorPoint> transform = new ArrayList<>();
@@ -153,7 +150,8 @@ public record ModelAnimation(
             var time = keyframe.time();
             if (time > length) return;
             var interpolation = keyframe.findInterpolator();
-            var function = keyframe.point().toFunction(placeholder);
+            var function = keyframe.point().toFunction(context);
+            var version = context.meta.formatVersion();
             switch (keyframe.channel()) {
                 case POSITION -> transform.add(new VectorPoint(
                         function.map(version::convertAnimationPosition).memoize(),

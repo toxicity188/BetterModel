@@ -14,11 +14,24 @@ import kr.toxicity.model.api.data.blueprint.ModelBlueprint
 import kr.toxicity.model.api.data.raw.ModelData
 import java.io.File
 
-fun File.toTexturedModel(): ModelBlueprint? = bufferedReader().use {
-    ModelData.GSON.fromJson(it, ModelData::class.java)
-        .takeIf(ModelData::isSupported)
-        ?.toBlueprint(nameWithoutExtension.toPackName())
-}
+fun File.toTexturedModel(): ModelBlueprint? = runCatching {
+    bufferedReader().use {
+        ModelData.GSON.fromJson(it, ModelData::class.java)
+            .apply { assertSupported() }
+            .loadBlueprint(nameWithoutExtension.toPackName())
+            .let { result ->
+                if (result.errors.isNotEmpty()) warn(
+                    *buildList {
+                        add("Error has been occurred while parsing this model: ${result.blueprint.name}")
+                        addAll(result.errors)
+                    }.map { error -> error.toComponent() }.toTypedArray()
+                )
+                result.blueprint
+            }
+    }
+}.handleFailure {
+    "Unable to load this model: $path"
+}.getOrNull()
 
 fun buildJsonArray(capacity: Int = 10, block: JsonArray.() -> Unit) = JsonArray(capacity).apply(block)
 fun buildJsonObject(block: JsonObject.() -> Unit) = JsonObject().apply(block)

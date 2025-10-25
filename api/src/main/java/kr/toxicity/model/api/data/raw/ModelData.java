@@ -9,6 +9,7 @@ package kr.toxicity.model.api.data.raw;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
+import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint;
 import org.jetbrains.annotations.ApiStatus;
@@ -58,21 +59,38 @@ public record ModelData(
      * @param name blueprint name
      * @return blueprint
      */
-    public @NotNull ModelBlueprint toBlueprint(@NotNull String name) {
-        var placeholder = placeholder();
-        var elementMap = associate(elements(), ModelElement::uuid);
-        var groupMap = associate(groups(), ModelGroup::uuid);
-        var group = mapToList(outliner(), children -> children.toBlueprint(elementMap, groupMap));
+    public @NotNull ModelLoadResult loadBlueprint(@NotNull String name) {
+        return loadBlueprint(name, BetterModel.config().enableStrictLoading());
+    }
+
+    /**
+     * Converts model data to blueprint
+     * @param name blueprint name
+     * @param strict strict
+     * @return blueprint
+     */
+    public @NotNull ModelLoadResult loadBlueprint(@NotNull String name, boolean strict) {
+        var context = new ModelLoadContext(
+                placeholder(),
+                meta(),
+                associate(elements(), ModelElement::uuid),
+                associate(groups(), ModelGroup::uuid),
+                strict
+        );
+        var group = mapToList(outliner(), children -> children.toBlueprint(context));
         var availableUUIDs = mapToSet(
                 filterIsInstance(outliner().stream().flatMap(ModelChildren::flatten), ModelChildren.ModelOutliner.class),
                 ModelChildren.ModelOutliner::uuid
         );
-        return new ModelBlueprint(
-                name,
-                resolution(),
-                mapToList(textures(), ModelTexture::toBlueprint),
-                group,
-                associate(animations().stream().map(raw -> raw.toBlueprint(meta, availableUUIDs, group, placeholder)), BlueprintAnimation::name)
+        return new ModelLoadResult(
+                new ModelBlueprint(
+                        name,
+                        resolution(),
+                        mapToList(textures(), ModelTexture::toBlueprint),
+                        group,
+                        associate(animations().stream().map(raw -> raw.toBlueprint(context, availableUUIDs, group)), BlueprintAnimation::name)
+                ),
+                context.errors
         );
     }
 
@@ -84,6 +102,12 @@ public record ModelData(
         return elements().stream().allMatch(ModelElement::isSupported);
     }
 
+    /**
+     * Asserts this model
+     */
+    public void assertSupported() {
+        if (!isSupported()) throw new RuntimeException("This model file has unsupported element type (e.g., mesh)");
+    }
 
     /**
      * Gets placeholder

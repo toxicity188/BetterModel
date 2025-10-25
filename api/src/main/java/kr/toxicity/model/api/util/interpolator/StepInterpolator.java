@@ -34,4 +34,9 @@ public enum StepInterpolator implements VectorInterpolator {
     public boolean isContinuous() {
         return false;
     }
+
+    @Override
+    public String toString() {
+        return "step";
+    }
 }

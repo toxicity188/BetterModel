@@ -14,7 +14,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -47,14 +46,10 @@ public sealed interface ModelChildren {
 
     /**
      * Converts children to blueprint children
-     * @param elementMap element map
-     * @param groupMap group map
+     * @param context context
      * @return children
      */
-    @NotNull BlueprintChildren toBlueprint(
-            @NotNull Map<String, ModelElement> elementMap,
-            @NotNull Map<String, ModelGroup> groupMap
-    );
+    @NotNull BlueprintChildren toBlueprint(@NotNull ModelLoadContext context);
 
     /**
      * Flattens this children tree
@@ -74,11 +69,8 @@ public sealed interface ModelChildren {
      */
     record ModelUUID(@NotNull String uuid) implements ModelChildren {
         @Override
-        public @NotNull BlueprintChildren toBlueprint(
-                @NotNull Map<String, ModelElement> elementMap,
-                @NotNull Map<String, ModelGroup> groupMap
-        ) {
-            return new BlueprintChildren.BlueprintElement(Objects.requireNonNull(elementMap.get(uuid())));
+        public @NotNull BlueprintChildren toBlueprint(@NotNull ModelLoadContext context) {
+            return new BlueprintChildren.BlueprintElement(Objects.requireNonNull(context.elements.get(uuid())));
         }
 
         @Override
@@ -98,13 +90,10 @@ public sealed interface ModelChildren {
     ) implements ModelChildren {
 
         @Override
-        public @NotNull BlueprintChildren toBlueprint(
-                @NotNull Map<String, ModelElement> elementMap,
-                @NotNull Map<String, ModelGroup> groupMap
-        ) {
-            var child = mapToList(children, c -> c.toBlueprint(elementMap, groupMap));
+        public @NotNull BlueprintChildren toBlueprint(@NotNull ModelLoadContext context) {
+            var child = mapToList(children, c -> c.toBlueprint(context));
             var filtered = filterIsInstance(child, BlueprintChildren.BlueprintElement.class).toList();
-            var selectedGroup = groupMap.getOrDefault(uuid(), group);
+            var selectedGroup = context.groups.getOrDefault(uuid(), group);
             return new BlueprintChildren.BlueprintGroup(
                     BoneTagRegistry.parse(selectedGroup.name()),
                     selectedGroup.origin(),
