@@ -23,7 +23,6 @@ import kr.toxicity.model.api.tracker.TrackerModifier
 import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.command.*
 import kr.toxicity.model.util.*
-import net.kyori.adventure.text.event.HoverEvent
 import net.kyori.adventure.text.format.NamedTextColor.*
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Entity
@@ -196,23 +195,17 @@ object CommandManagerImpl : CommandManager, GlobalManager {
                 is Success -> {
                     audience.info(
                         emptyComponentOf(),
-                        componentOf("Reload completed. (${result.totalTime().withComma()}ms)") {
-                            color(GREEN)
-                        },
-                        componentOf("Assets reload time - ${result.assetsTime().withComma()}ms") {
+                        "Reload completed. (${result.totalTime().withComma()}ms)".toComponent(GREEN),
+                        "Assets reload time - ${result.assetsTime().withComma()}ms".toComponent {
                             color(GRAY)
-                            hoverEvent(HoverEvent.showText(componentOf("Reading all config and model.")))
+                            hoverEvent("Reading all config and model.".toComponent().toHoverEvent())
                         },
-                        componentOf("Packing time - ${result.packingTime().withComma()}ms") {
+                        "Packing time - ${result.packingTime().withComma()}ms".toComponent {
                             color(GRAY)
-                            hoverEvent(HoverEvent.showText(componentOf("Packing all model to resource pack.")))
+                            hoverEvent("Packing all model to resource pack.".toComponent().toHoverEvent())
                         },
-                        componentOf("${BetterModel.models().size.withComma()} of models are loaded successfully. (${result.length().toByteFormat()})") {
-                            color(YELLOW)
-                        },
-                        componentOf(if (result.packResult.changed()) "${result.packResult.size().withComma()} of files are zipped." else "Zipping is skipped due to the same result.") {
-                            color(YELLOW)
-                        },
+                        "${BetterModel.models().size.withComma()} of models are loaded successfully. (${result.length().toByteFormat()})".toComponent(YELLOW),
+                        (if (result.packResult.changed()) "${result.packResult.size().withComma()} of files are zipped." else "Zipping is skipped due to the same result.").toComponent(YELLOW),
                         emptyComponentOf()
                     )
                 }

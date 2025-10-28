@@ -25,15 +25,11 @@ class NexoCompatibility : Compatibility {
                     is BetterModelPlugin.ReloadResult.Success -> {
                         result.packResult().directory()?.let {
                             addResourcePack(it)
-                            info(componentOf("Successfully merged with Nexo.") {
-                                color(NamedTextColor.GREEN)
-                            })
+                            info("Successfully merged with Nexo.".toComponent(NamedTextColor.GREEN))
                         }
                     }
                     is BetterModelPlugin.ReloadResult.OnReload -> {
-                        warn(componentOf("BetterModel is still on reload!") {
-                            color(NamedTextColor.RED)
-                        })
+                        warn("BetterModel is still on reload!".toComponent(NamedTextColor.RED))
                     }
                     is BetterModelPlugin.ReloadResult.Failure -> {
                         result.throwable.handleException("Unable to merge with Nexo.")

@@ -18,10 +18,8 @@ import dev.jorel.commandapi.executors.ExecutionInfo
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.data.renderer.ModelRenderer
 import kr.toxicity.model.util.*
-import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.event.ClickEvent
-import net.kyori.adventure.text.event.HoverEvent
 import net.kyori.adventure.text.format.NamedTextColor.*
 import net.kyori.adventure.text.format.TextDecoration
 import org.bukkit.command.CommandSender
@@ -68,17 +66,17 @@ class CommandModule(
                 componentOf {
                     decorate(TextDecoration.BOLD)
                     append(spaceComponentOf())
-                    append(componentOf("[Wiki]") {
+                    append("[Wiki]".toComponent {
                         color(AQUA)
                         toURLComponent("https://github.com/toxicity188/BetterModel/wiki")
                     })
                     append(spaceComponentOf())
-                    append(componentOf("[Download]") {
+                    append("[Download]".toComponent {
                         color(GREEN)
                         toURLComponent("https://modrinth.com/plugin/bettermodel/versions")
                     })
                     append(spaceComponentOf())
-                    append(componentOf("[Discord]") {
+                    append("[Discord]".toComponent {
                         color(BLUE)
                         toURLComponent("https://discord.com/invite/rePyFESDbk")
                     })
@@ -98,12 +96,12 @@ class CommandModule(
             )
         ).flatten()
 
-        fun TextComponent.Builder.toURLComponent(url: String) = hoverEvent(HoverEvent.showText(componentOf(
+        fun TextComponent.Builder.toURLComponent(url: String) = hoverEvent(componentOf(
             url.toComponent(DARK_AQUA),
             lineComponentOf(),
             lineComponentOf(),
             "Click to open link.".toComponent()
-        ))).clickEvent(ClickEvent.openUrl(url))
+        ).toHoverEvent()).clickEvent(ClickEvent.openUrl(url))
 
         val CommandAPICommand.shortName: String get() = if (aliases.isNotEmpty()) aliases.first() else name
 
@@ -173,24 +171,22 @@ class CommandModule(
         })
         append(" - ".toComponent(DARK_GRAY))
         append(shortDescription.toComponent(GRAY))
-        hoverEvent(
-            HoverEvent.showText(componentOf(
-                if (aliases.isNotEmpty()) componentOf(
-                    "Aliases:".toComponent(DARK_AQUA),
-                    lineComponentOf(),
-                    componentWithLineOf(*aliases.map(String::toComponent).toTypedArray())
-                ) else emptyComponentOf(),
+        hoverEvent(componentOf(
+            if (aliases.isNotEmpty()) componentOf(
+                "Aliases:".toComponent(DARK_AQUA),
                 lineComponentOf(),
-                lineComponentOf(),
-                "Click to suggest command.".toComponent()
-            )
-        ))
+                componentWithLineOf(*aliases.map(String::toComponent).toTypedArray())
+            ) else emptyComponentOf(),
+            lineComponentOf(),
+            lineComponentOf(),
+            "Click to suggest command.".toComponent()
+        ).toHoverEvent())
         clickEvent(ClickEvent.suggestCommand("/$rootName $shortName"))
     }
 
     private fun Argument<*>.toComponent() = componentOf {
         content(if (isOptional) "[${nodeName.toTypeName()}]" else "<${nodeName.toTypeName()}>")
         color(if (isOptional) DARK_AQUA else RED)
-        hoverEvent(HoverEvent.showText(Component.text(argumentType.name.toTypeName())))
+        hoverEvent(argumentType.name.toTypeName().toComponent().toHoverEvent())
     }
 }
