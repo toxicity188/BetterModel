@@ -83,11 +83,6 @@ internal class ModelDisplayImpl(
 
     override fun spawn(showItem: Boolean, bundler: PacketBundler) {
         bundler += addPacket
-        bundler += ClientboundSetEntityDataPacket(display.id, listOf(SynchedEntityData.DataValue(
-            Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID.id,
-            Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID.serializer,
-            3
-        )))
     }
 
     override fun remove(bundler: PacketBundler) {

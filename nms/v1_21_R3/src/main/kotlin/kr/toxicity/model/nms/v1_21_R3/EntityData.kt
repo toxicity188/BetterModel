@@ -33,7 +33,12 @@ internal val ITEM_DISPLAY_ID = ItemDisplay::class.java.accessors().map {
     it.id
 }
 internal val ITEM_SERIALIZER = ItemDisplay::class.java.accessors().first()
-internal val ITEM_ENTITY_DATA = (mutableListOf(SHARED_FLAG) + ITEM_DISPLAY_ID + DISPLAY_SET.subList(7, DISPLAY_SET.size).map { it.id }).toIntSet()
+internal val ITEM_ENTITY_DATA = buildList { 
+    add(SHARED_FLAG)
+    addAll(ITEM_DISPLAY_ID)
+    add(Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID.id)
+    DISPLAY_SET.subList(7, DISPLAY_SET.size).mapTo(this) { it.id }
+}.toIntSet()
 
 @Suppress("UNCHECKED_CAST")
 private val DISPLAY_INTERPOLATION_DELAY = (DISPLAY_SET.first() as EntityDataAccessor<Int>).run {

@@ -44,7 +44,7 @@ internal class ModelNametagImpl(
         EntityType.TEXT_DISPLAY,
         MinecraftServer.getServer().overworld()
     ).apply {
-        entityData[Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID] = 3
+        entityData[Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID] = 1
         setTransformation(emptyTransformation)
         billboardConstraints = Display.BillboardConstraints.CENTER
     }

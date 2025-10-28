@@ -18,6 +18,7 @@ import kr.toxicity.model.api.nms.ModelInteractionHand
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
+import kr.toxicity.model.api.tracker.TrackerUpdateAction
 import kr.toxicity.model.util.PLUGIN
 import kr.toxicity.model.util.registerListener
 import org.bukkit.entity.Entity
@@ -30,6 +31,7 @@ import org.bukkit.event.player.PlayerChangedWorldEvent
 import org.bukkit.event.player.PlayerInteractAtEntityEvent
 import org.bukkit.event.player.PlayerInteractEntityEvent
 import org.bukkit.event.player.PlayerQuitEvent
+import org.bukkit.event.player.PlayerToggleSneakEvent
 import org.bukkit.event.world.EntitiesLoadEvent
 import org.bukkit.event.world.EntitiesUnloadEvent
 import org.bukkit.inventory.EquipmentSlot
@@ -162,6 +164,13 @@ object EntityManagerImpl : EntityManager, GlobalManager {
             entity.forEachTracker {
                 it.animate("damage", AnimationModifier.DEFAULT_WITH_PLAY_ONCE)
                 it.damageTint()
+            }
+        }
+        @EventHandler
+        fun PlayerToggleSneakEvent.sneak() {
+            BetterModel.registryOrNull(player)?.trackers()?.forEach {
+                it.update(TrackerUpdateAction.moveDuration(0))
+                it.task { it.update(TrackerUpdateAction.moveDuration(3)) }
             }
         }
     }

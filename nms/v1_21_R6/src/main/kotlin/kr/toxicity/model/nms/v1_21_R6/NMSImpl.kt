@@ -312,6 +312,7 @@ class NMSImpl : NMS {
     override fun createParallelBundler(threshold: Int): PacketBundler = parallelBundlerOf(threshold)
 
     override fun create(location: Location, yOffset: Double, initialConsumer: Consumer<ModelDisplay>): ModelDisplay = ModelDisplayImpl(ItemDisplay(EntityType.ITEM_DISPLAY, (location.world as CraftWorld).handle).apply {
+        entityData[Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID] = 3
         billboardConstraints = Display.BillboardConstraints.FIXED
         valid = true
         moveTo(

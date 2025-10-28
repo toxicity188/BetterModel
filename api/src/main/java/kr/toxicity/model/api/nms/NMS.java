@@ -37,6 +37,15 @@ public interface NMS {
     default @NotNull ModelDisplay create(@NotNull Location location) {
         return create(location, 0, d -> {});
     }
+    /**
+     * Creates model display
+     * @param location start location
+     * @param initialConsumer initial consumer
+     * @return model display
+     */
+    default @NotNull ModelDisplay create(@NotNull Location location, @NotNull Consumer<ModelDisplay> initialConsumer) {
+        return create(location, 0, initialConsumer);
+    }
 
     /**
      * Creates model display
