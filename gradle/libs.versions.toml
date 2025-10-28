@@ -13,7 +13,7 @@ commandapi = "11.0.0"
 kotlin = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 
 semver4j = "com.vdurmont:semver4j:3.1.0"
-caffeine = "com.github.ben-manes.caffeine:caffeine:3.2.2"
+caffeine = "com.github.ben-manes.caffeine:caffeine:3.2.3"
 
 adventure-api = "net.kyori:adventure-api:4.25.0"
 adventure-examination = "net.kyori:examination-api:1.3.0"
