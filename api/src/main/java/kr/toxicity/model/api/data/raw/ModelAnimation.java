@@ -90,7 +90,7 @@ public record ModelAnimation(
         );
     }
 
-    private @NotNull BlueprintScript toScript(@NotNull ModelAnimator animator, @NotNull ModelPlaceholder placeholder) {
+    private @Nullable BlueprintScript toScript(@NotNull ModelAnimator animator, @NotNull ModelPlaceholder placeholder) {
         var get = animator.stream()
                 .filter(f -> f.point().hasScript())
                 .map(d -> AnimationScript.of(Arrays.stream(placeholder.parseVariable(d.point().script()).split("\n"))
@@ -99,6 +99,7 @@ public record ModelAnimation(
                         .toList()
                 ).time(d.time()))
                 .toList();
+        if (get.isEmpty()) return null;
         var list = new ArrayList<TimeScript>(get.size() + 2);
         if (get.getFirst().time() > 0) list.add(TimeScript.EMPTY);
         var before = 0F;
