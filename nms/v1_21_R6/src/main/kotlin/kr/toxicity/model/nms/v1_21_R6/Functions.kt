@@ -9,7 +9,7 @@ package kr.toxicity.model.nms.v1_21_R6
 import io.netty.buffer.Unpooled
 import io.papermc.paper.adventure.PaperAdventure
 import io.papermc.paper.configuration.GlobalConfiguration
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet
+import it.unimi.dsi.fastutil.ints.IntSet
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.util.EventUtil
@@ -62,7 +62,7 @@ internal val ONLINE_MODE by lazy(LazyThreadSafetyMode.NONE) {
     if (BetterModel.IS_PAPER) GlobalConfiguration.get().proxies.isProxyOnlineMode else Bukkit.getOnlineMode()
 }
 
-internal fun List<Int>.toIntSet(): IntOpenHashSet = IntOpenHashSet(this)
+internal fun List<Int>.toIntSet(): IntSet = IntSet.of(*toIntArray())
 
 internal fun Entity.passengerPosition(): Vector3f {
     return attachments.get(EntityAttachment.PASSENGER, 0, yRot).let { v ->
@@ -72,12 +72,10 @@ internal fun Entity.passengerPosition(): Vector3f {
 
 internal fun Event.call(): Boolean = EventUtil.call(this)
 
-private val DATA_ITEMS by lazy(LazyThreadSafetyMode.NONE) {
-    SynchedEntityData::class.java.declaredFields.first {
-        it.type.isArray
-    }.apply {
-        isAccessible = true
-    }
+private val DATA_ITEMS = SynchedEntityData::class.java.declaredFields.first {
+    it.type.isArray
+}.apply {
+    isAccessible = true
 }
 
 internal fun SynchedEntityData.pack(
@@ -171,7 +169,7 @@ internal inline fun LivingEntity.toEquipmentPacket(mapper: (EquipmentSlot) -> It
 internal fun LivingEntity.toEmptyEquipmentPacket() = toEquipmentPacket { ItemStack.EMPTY }
 
 internal val Player.hotbarSlot get() = inventory.selectedSlot + 36
-internal val PLAYER_EQUIPMENT_SLOT = IntOpenHashSet(intArrayOf(45, 5, 6, 7, 8))
+internal val PLAYER_EQUIPMENT_SLOT = IntSet.of(*intArrayOf(45, 5, 6, 7, 8))
 internal fun ClientboundContainerSetSlotPacket.isEquipment(player: Player) = containerId == 0 && (PLAYER_EQUIPMENT_SLOT.contains(slot) || slot == player.hotbarSlot)
 
 internal fun Entity.toFakeAddPacket() = ClientboundAddEntityPacket(

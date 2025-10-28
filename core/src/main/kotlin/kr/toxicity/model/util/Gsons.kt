@@ -15,7 +15,7 @@ import kr.toxicity.model.api.data.raw.ModelData
 import java.io.File
 
 fun File.toTexturedModel(): ModelBlueprint? = runCatching {
-    bufferedReader().use {
+    reader().use {
         ModelData.GSON.fromJson(it, ModelData::class.java)
             .apply { assertSupported() }
             .loadBlueprint(nameWithoutExtension.toPackName())

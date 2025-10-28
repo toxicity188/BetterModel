@@ -60,7 +60,7 @@ internal class TransformationData {
     fun packDirty(): List<SynchedEntityData.DataValue<*>>? {
         val i = translation.cleanIndex + scale.cleanIndex + rotation.cleanIndex
         if (i == 0) return null
-        return ArrayList<SynchedEntityData.DataValue<*>>(i + 2).apply {
+        return buildList(i + 2) {
             add(DISPLAY_INTERPOLATION_DELAY)
             add(duration)
             translation.value?.let { add(it) }
