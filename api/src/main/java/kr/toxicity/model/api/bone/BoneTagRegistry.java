@@ -56,7 +56,7 @@ public final class BoneTagRegistry {
         var set = new HashSet<BoneTag>();
         for (String s : tagArray) {
             var tag = byTagName(s).orElse(null);
-            if (tag != null && set.size() < tagArray.size()) {
+            if (tag != null && set.size() < tagArray.size() - 1) {
                 set.add(tag);
             } else return new BoneName(Collections.unmodifiableSet(set), String.join("_", tagArray.subList(set.size(), tagArray.size())), rawName);
         }
