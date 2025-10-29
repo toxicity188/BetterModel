@@ -40,6 +40,7 @@ import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import org.bukkit.Bukkit
 import org.bukkit.Color
+import org.bukkit.Location
 import org.bukkit.Particle
 import org.bukkit.craftbukkit.CraftServer
 import org.bukkit.craftbukkit.entity.CraftArmorStand
@@ -70,7 +71,10 @@ internal class HitBoxImpl(
     private var onFly = false
 
     val craftEntity: HitBox by lazy {
-        object : CraftArmorStand(Bukkit.getServer() as CraftServer, this), HitBox by this {}
+        object : CraftArmorStand(Bukkit.getServer() as CraftServer, this), HitBox by this {
+            override fun getLocation(): Location = interaction.bukkitEntity.location
+            override fun getLocation(loc: Location?): Location? = interaction.bukkitEntity.getLocation(loc)
+        }
     }
     private val _rotatedSource = FunctionUtil.throttleTick(Supplier {
         source.rotate(Quaterniond(bone.hitBoxViewRotation()))

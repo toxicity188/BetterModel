@@ -7,21 +7,16 @@
 package kr.toxicity.model.util
 
 import com.google.gson.JsonElement
+import kr.toxicity.model.api.data.blueprint.BlueprintImage
 import kr.toxicity.model.api.data.raw.ModelData
-import java.awt.image.RenderedImage
 import java.io.ByteArrayOutputStream
 import java.io.OutputStreamWriter
 import java.nio.charset.StandardCharsets
-import javax.imageio.ImageIO
 
 private val IO_BUFFER = ThreadLocal.withInitial { ByteArrayOutputStream(1024) }
 
-fun RenderedImage.toByteArray(): ByteArray {
-    return IO_BUFFER.get().let { buffer ->
-        buffer.reset()
-        ImageIO.write(this, "png", buffer)
-        buffer.toByteArray()
-    }
+fun BlueprintImage.toByteArray(): ByteArray {
+    return image
 }
 
 fun JsonElement.toByteArray(): ByteArray {

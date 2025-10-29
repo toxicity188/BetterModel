@@ -112,7 +112,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
         val blueprint: ModelBlueprint
     ) {
         val jsonSize = size - blueprint.textures.sumOf {
-            it.image.height * it.image.width * 4
+            it.image.size
         }
     }
 
@@ -228,7 +228,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                 }
                 if (hasTexture) load.buildImage(textures.obfuscator()).forEach { image ->
                     textures.add("${image.name}.png", image.estimatedSize()) {
-                        image.image.toByteArray()
+                        image.toByteArray()
                     }
                     image.mcmeta()?.let { meta ->
                         textures.add("${image.name}.png.mcmeta", -1) {

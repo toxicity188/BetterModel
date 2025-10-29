@@ -16,7 +16,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.ItemDisplay;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.util.function.Function;
@@ -194,7 +193,7 @@ public enum PlayerLimb {
     private final @NotNull Vector3f slimScale;
     private final @NotNull Vector3f offset;
     private final @NotNull Vector3f slimOffset;
-    private final @Nullable Function<SkinData, TransformedItemStack> skinMapper;
+    private final @NotNull Function<SkinData, TransformedItemStack> skinMapper;
     private final @NotNull ItemDisplay.ItemDisplayTransform transform;
 
     @Getter
@@ -208,7 +207,7 @@ public enum PlayerLimb {
     public @NotNull TransformedItemStack createItem(@NotNull RenderSource.Profiled profiled) {
         var profile = profiled.profile();
         var manager = BetterModel.plugin().skinManager();
-        if (skinMapper != null && manager.supported()) {
+        if (manager.supported()) {
             return skinMapper.apply(manager.getOrRequest(profile));
         }
         var isSlim = profiled.slim();

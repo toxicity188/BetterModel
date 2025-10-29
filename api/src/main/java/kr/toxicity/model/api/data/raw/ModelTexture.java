@@ -11,9 +11,6 @@ import kr.toxicity.model.api.data.blueprint.BlueprintTexture;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.util.Base64;
 
 /**
@@ -39,17 +36,11 @@ public record ModelTexture(
      * @return converted textures
      */
     public @NotNull BlueprintTexture toBlueprint() {
-        BufferedImage image;
-        try (
-                var input = new ByteArrayInputStream(Base64.getDecoder().decode(source().split(",")[1]))
-        ) {
-            image = ImageIO.read(input);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
         return new BlueprintTexture(
                 name().split("\\.")[0],
-                image,
+                Base64.getDecoder().decode(source().split(",")[1]),
+                width(),
+                height(),
                 uvWidth(),
                 uvHeight()
         );

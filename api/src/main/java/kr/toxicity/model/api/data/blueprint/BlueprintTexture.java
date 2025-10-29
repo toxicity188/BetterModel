@@ -14,18 +14,20 @@ import kr.toxicity.model.api.util.PackUtil;
 import kr.toxicity.model.api.util.json.JsonObjectBuilder;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.image.BufferedImage;
-
 /**
  * Texture of the model
  * @param name texture name
  * @param image image
+ * @param width original width
+ * @param height original height
  * @param uvWidth uv width
  * @param uvHeight uv height
  */
 public record BlueprintTexture(
         @NotNull String name,
-        @NotNull BufferedImage image,
+        byte[] image,
+        int width,
+        int height,
         int uvWidth,
         int uvHeight
 ) {
@@ -35,11 +37,11 @@ public record BlueprintTexture(
      */
     public boolean isAnimatedTexture() {
         if (uvWidth > 0 && uvHeight > 0) {
-            var h = (float) image.getHeight() / uvHeight;
-            var w = (float) image.getWidth() / uvWidth;
+            var h = (float) height / uvHeight;
+            var w = (float) width / uvWidth;
             return h > w;
         } else {
-            return image.getHeight() / image.getWidth() > 1;
+            return height > 0 && width > 0 && height / width > 1;
         }
     }
 
@@ -108,6 +110,6 @@ public record BlueprintTexture(
      */
     public @NotNull ModelResolution resolution(@NotNull ModelResolution resolution) {
         if (!hasUVSize()) return resolution;
-        return resolution.width() == image.getWidth() && resolution.height() == image.getHeight() ? resolution : new ModelResolution(uvWidth, uvHeight);
+        return resolution.width() == width && resolution.height() == height ? resolution : new ModelResolution(uvWidth, uvHeight);
     }
 }
