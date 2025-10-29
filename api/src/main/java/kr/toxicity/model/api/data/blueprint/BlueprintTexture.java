@@ -72,7 +72,7 @@ public record BlueprintTexture(
      * @return pack name
      */
     public @NotNull String packName(@NotNull String parent) {
-        return PackUtil.toPackName(parent + "_" + name());
+        return PackUtil.toPackName(name().startsWith("global_") ? name() : parent + "_" + name());
     }
 
     /**

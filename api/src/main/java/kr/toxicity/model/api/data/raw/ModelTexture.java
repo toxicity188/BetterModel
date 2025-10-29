@@ -36,9 +36,10 @@ public record ModelTexture(
      * @return converted textures
      */
     public @NotNull BlueprintTexture toBlueprint() {
+        var nameIndex = name().indexOf('.');
         return new BlueprintTexture(
-                name().split("\\.")[0],
-                Base64.getDecoder().decode(source().split(",")[1]),
+                nameIndex >= 0 ? name().substring(0, nameIndex) : name(),
+                Base64.getDecoder().decode(source().substring(source().indexOf(',') + 1)),
                 width(),
                 height(),
                 uvWidth(),
