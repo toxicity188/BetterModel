@@ -136,7 +136,7 @@ public sealed interface ModelScaler {
         /**
          * Entity
          */
-        Getter ENTITY = t -> t instanceof EntityTracker entityTracker ? (float) entityTracker.registry().adapter().scale() : 1F;
+        Getter ENTITY = t -> t instanceof EntityTracker entityTracker ? (float) entityTracker.registry().entity().scale() : 1F;
 
         /**
          * Gets scale by tracker

@@ -12,6 +12,8 @@ import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.bone.BoneTags;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.data.renderer.RenderPipeline;
+import kr.toxicity.model.api.entity.BaseEntity;
+import kr.toxicity.model.api.entity.BasePlayer;
 import kr.toxicity.model.api.event.CreateEntityTrackerEvent;
 import kr.toxicity.model.api.event.DismountModelEvent;
 import kr.toxicity.model.api.event.MountModelEvent;
@@ -23,8 +25,6 @@ import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.function.BonePredicate;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -75,24 +75,23 @@ public class EntityTracker extends Tracker {
         bodyRotator = new EntityBodyRotator(registry);
 
         var entity = registry.entity();
-        var adapter = registry.adapter();
         var scale = FunctionUtil.throttleTickFloat(() -> scaler().scale(this));
         //Shadow
         Optional.ofNullable(bone("shadow"))
                 .ifPresent(bone -> {
                     var box = bone.getGroup().getHitBox();
                     if (box == null) return;
-                    var shadow = BetterModel.plugin().nms().create(entity.getLocation(), d -> {
-                        if (entity instanceof Player) d.moveDuration(1);
+                    var shadow = BetterModel.nms().create(entity.location(), d -> {
+                        if (entity instanceof BasePlayer) d.moveDuration(1);
                     });
                     var baseScale = (float) (box.box().x() + box.box().z()) / 4F;
                     tick(((t, s) -> {
                         var wPos = bone.hitBoxPosition();
                         shadow.shadowRadius(scale.getAsFloat() * baseScale);
-                        shadow.syncEntity(adapter);
+                        shadow.syncEntity(entity);
                         shadow.syncPosition(location().add(wPos.x, wPos.y, wPos.z));
                         shadow.sendDirtyEntityData(s.getDataBundler());
-                        shadow.sendPosition(adapter, s.getTickBundler());
+                        shadow.sendPosition(entity, s.getTickBundler());
                     }));
                     pipeline.spawnPacketHandler(shadow::spawnWithEntityData);
                     pipeline.showPacketHandler(shadow::spawnWithEntityData);
@@ -101,7 +100,7 @@ public class EntityTracker extends Tracker {
                 });
 
         //Animation
-        pipeline.defaultPosition(FunctionUtil.throttleTick(() -> adapter.passengerPosition().mul(-1)));
+        pipeline.defaultPosition(FunctionUtil.throttleTick(() -> entity.passengerPosition().mul(-1)));
         pipeline.scale(scale);
         Function<Quaternionf, Quaternionf> headRotator = r -> r.mul(MathUtil.toQuaternion(bodyRotator.headRotation()));
         pipeline.addRotationModifier(
@@ -113,23 +112,23 @@ public class EntityTracker extends Tracker {
                 headRotator
         );
 
-        var damageTickProvider = FunctionUtil.throttleTickFloat(adapter::damageTick);
-        var walkSupplier = FunctionUtil.throttleTickBoolean(() -> adapter.onWalk() || damageTickProvider.getAsFloat() > 0.25 || pipeline.bones().stream().anyMatch(e -> {
+        var damageTickProvider = FunctionUtil.throttleTickFloat(entity::damageTick);
+        var walkSupplier = FunctionUtil.throttleTickBoolean(() -> entity.onWalk() || damageTickProvider.getAsFloat() > 0.25 || pipeline.bones().stream().anyMatch(e -> {
             var hitBox = e.getHitBox();
             return hitBox != null && hitBox.onWalk();
         }));
-        var walkSpeedSupplier = modifier.damageAnimation() ? FunctionUtil.throttleTickFloat(() -> adapter.walkSpeed() + (float) Math.sqrt(damageTickProvider.getAsFloat())) : null;
+        var walkSpeedSupplier = modifier.damageAnimation() ? FunctionUtil.throttleTickFloat(() -> entity.walkSpeed() + (float) Math.sqrt(damageTickProvider.getAsFloat())) : null;
         animate("walk", new AnimationModifier(walkSupplier, 6, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
-        animate("idle_fly", new AnimationModifier(adapter::fly, 6, 0, AnimationIterator.Type.LOOP, null));
-        animate("walk_fly", new AnimationModifier(() -> adapter.fly() && walkSupplier.getAsBoolean(), 6, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
+        animate("idle_fly", new AnimationModifier(entity::fly, 6, 0, AnimationIterator.Type.LOOP, null));
+        animate("walk_fly", new AnimationModifier(() -> entity.fly() && walkSupplier.getAsBoolean(), 6, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
         animate("spawn", AnimationModifier.DEFAULT_WITH_PLAY_ONCE);
         createNametag(CREATE_NAMETAG_PREDICATE, (bone, tag) -> {
             if (bone.name().tagged(BoneTags.PLAYER_TAG)) {
                 tag.alwaysVisible(true);
             } else if (bone.name().tagged(BoneTags.MOB_TAG)) {
                 tag.alwaysVisible(false);
-            } else tag.alwaysVisible(entity instanceof Player);
-            tag.component(adapter.customName());
+            } else tag.alwaysVisible(entity instanceof BasePlayer);
+            tag.component(entity.customName());
         });
         pipeline.eventDispatcher().handleCreateHitBox((b, l) -> l.mount((h, e) -> {
                     registry.mountedHitBoxCache.put(e.getUniqueId(), new EntityTrackerRegistry.MountedHitBox(b, e, h));
@@ -154,7 +153,7 @@ public class EntityTracker extends Tracker {
 
     @Override
     public @NotNull ModelRotation rotation() {
-        return registry.adapter().dead() ? pipeline.getRotation() : super.rotation();
+        return registry.entity().dead() ? pipeline.getRotation() : super.rotation();
     }
 
     /**
@@ -173,7 +172,7 @@ public class EntityTracker extends Tracker {
     private void updateBaseEntity0() {
         var loc = location();
         displays().forEach(d -> {
-            d.syncEntity(registry.adapter());
+            d.syncEntity(registry.entity());
             d.syncPosition(loc);
         });
     }
@@ -193,7 +192,7 @@ public class EntityTracker extends Tracker {
      * @return success
      */
     public boolean createHitBox(@Nullable HitBoxListener listener, @NotNull BonePredicate predicate) {
-        return createHitBox(registry.adapter(), listener, predicate);
+        return createHitBox(registry.entity(), listener, predicate);
     }
 
     /**
@@ -203,7 +202,7 @@ public class EntityTracker extends Tracker {
      * @return hitbox or null
      */
     public @Nullable HitBox hitbox(@Nullable HitBoxListener listener, @NotNull Predicate<RenderedBone> predicate) {
-        return hitbox(registry.adapter(), listener, predicate);
+        return hitbox(registry.entity(), listener, predicate);
     }
 
     /**
@@ -233,7 +232,7 @@ public class EntityTracker extends Tracker {
 
     @Override
     public void despawn() {
-        if (registry.adapter().dead()) {
+        if (registry.entity().dead()) {
             close(CloseReason.DESPAWN);
             return;
         }
@@ -242,14 +241,14 @@ public class EntityTracker extends Tracker {
 
     @Override
     public @NotNull Location location() {
-        return sourceEntity().getLocation();
+        return sourceEntity().location();
     }
 
     /**
      * Gets source entity
      * @return source
      */
-    public @NotNull Entity sourceEntity() {
+    public @NotNull BaseEntity sourceEntity() {
         return registry.entity();
     }
 

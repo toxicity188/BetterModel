@@ -10,6 +10,8 @@ import com.mojang.authlib.GameProfile;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox;
+import kr.toxicity.model.api.entity.BaseEntity;
+import kr.toxicity.model.api.entity.BasePlayer;
 import kr.toxicity.model.api.mount.MountController;
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry;
 import kr.toxicity.model.api.util.TransformedItemStack;
@@ -129,7 +131,7 @@ public interface NMS {
      * @param condition condition
      */
     default void hide(@NotNull PlayerChannelHandler channel, @NotNull EntityTrackerRegistry registry, @NotNull BooleanSupplier condition) {
-        if (registry.entity() instanceof Player) {
+        if (registry.entity() instanceof BasePlayer) {
             var plugin = BetterModel.plugin();
             plugin.scheduler().asyncTaskLater(plugin.config().playerHideDelay(), () -> {
                 if (condition.getAsBoolean()) hide(channel, registry);
@@ -146,7 +148,7 @@ public interface NMS {
      * @param listener hitbox listener
      * @return hit-box
      */
-    @Nullable HitBox createHitBox(@NotNull EntityAdapter entity, @NotNull RenderedBone bone, @NotNull NamedBoundingBox namedBoundingBox, @NotNull MountController controller, @NotNull HitBoxListener listener);
+    @Nullable HitBox createHitBox(@NotNull BaseEntity entity, @NotNull RenderedBone bone, @NotNull NamedBoundingBox namedBoundingBox, @NotNull MountController controller, @NotNull HitBoxListener listener);
 
     /**
      * Gets Spigot-mapped version of Minecraft vanilla code.
@@ -159,7 +161,7 @@ public interface NMS {
      * @param entity entity
      * @return adapter
      */
-    @NotNull EntityAdapter adapt(@NotNull Entity entity);
+    @NotNull BaseEntity adapt(@NotNull Entity entity);
 
     /**
      * Gets game profile from player

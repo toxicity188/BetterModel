@@ -84,7 +84,7 @@ public final class RenderPipeline implements BoneEventHandler {
     }
 
     public @NotNull PacketBundler createBundler() {
-        return BetterModel.plugin().nms().createBundler(displayAmount + 1);
+        return BetterModel.nms().createBundler(displayAmount + 1);
     }
 
     public @Nullable PlayerChannelHandler channel(@NotNull UUID uuid) {
@@ -92,12 +92,12 @@ public final class RenderPipeline implements BoneEventHandler {
     }
 
     public @NotNull PacketBundler createLazyBundler() {
-        return BetterModel.plugin().nms().createLazyBundler();
+        return BetterModel.nms().createLazyBundler();
     }
 
     public @NotNull PacketBundler createParallelBundler() {
         var size = BetterModel.config().packetBundlingSize();
-        return size <= 0 ? createBundler() : BetterModel.plugin().nms().createParallelBundler(size);
+        return size <= 0 ? createBundler() : BetterModel.nms().createParallelBundler(size);
     }
 
     @Override

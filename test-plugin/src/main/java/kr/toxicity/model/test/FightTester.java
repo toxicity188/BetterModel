@@ -285,12 +285,12 @@ public final class FightTester implements ModelTester, Listener {
                     0,
                     new Particle.DustOptions(Color.YELLOW, 1)
             );
-            var display = BetterModel.plugin().nms().create(start, 0, d -> {
+            var display = BetterModel.nms().create(start, 0, d -> {
                 d.item(lineItem);
                 d.brightness(15, 15);
             });
             var transformer = display.createTransformer();
-            var bundler = BetterModel.plugin().nms().createBundler(2);
+            var bundler = BetterModel.nms().createBundler(2);
             display.spawn(bundler);
             display.sendEntityData(true, bundler);
             transformer.transform(
@@ -304,7 +304,7 @@ public final class FightTester implements ModelTester, Listener {
             var displayCounter = new AtomicInteger();
             queuedTask.add(() -> {
                 if (displayCounter.incrementAndGet() >= 20 || task.isCancelled()) {
-                    var removeBundler = BetterModel.plugin().nms().createBundler(1);
+                    var removeBundler = BetterModel.nms().createBundler(1);
                     display.remove(removeBundler);
                     players.forEach(removeBundler::send);
                     return true;

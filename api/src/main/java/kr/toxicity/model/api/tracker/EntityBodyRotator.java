@@ -7,7 +7,7 @@
 package kr.toxicity.model.api.tracker;
 
 import com.google.gson.annotations.SerializedName;
-import kr.toxicity.model.api.nms.EntityAdapter;
+import kr.toxicity.model.api.entity.BaseEntity;
 import kr.toxicity.model.api.util.FunctionUtil;
 import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.lazy.LazyFloatProvider;
@@ -26,7 +26,7 @@ import java.util.function.Supplier;
  */
 public final class EntityBodyRotator {
     private final EntityTrackerRegistry registry;
-    private final EntityAdapter adapter;
+    private final BaseEntity entity;
     private final LazyFloatProvider provider;
     private final Supplier<Vector3f> headSupplier;
     private final Supplier<ModelRotation> bodySupplier;
@@ -61,24 +61,24 @@ public final class EntityBodyRotator {
 
     EntityBodyRotator(@NotNull EntityTrackerRegistry registry) {
         this.registry = registry;
-        this.adapter = registry.adapter();
+        this.entity = registry.entity();
         this.rotation = new ModelRotation(
-                adapter.pitch(),
-                adapter.bodyYaw()
+                entity.pitch(),
+                entity.bodyYaw()
         );
-        this.provider = new LazyFloatProvider(adapter.bodyYaw(), () -> rotationDuration * MathUtil.MINECRAFT_TICK_MILLS);
+        this.provider = new LazyFloatProvider(entity.bodyYaw(), () -> rotationDuration * MathUtil.MINECRAFT_TICK_MILLS);
         headSupplier = LazyFloatProvider.ofVector(Tracker.TRACKER_TICK_INTERVAL, () -> 4 * MathUtil.MINECRAFT_TICK_MILLS, () -> {
-            var value = bodyRotation().y() - adapter.headYaw();
+            var value = bodyRotation().y() - entity.headYaw();
             if (value > 180) value -= 360;
             else if (value < -180) value += 360;
             return new Vector3f(
-                    clampHead(adapter.pitch()),
+                    clampHead(entity.pitch()),
                     clampHead(value),
                     0
             );
         });
         bodySupplier = FunctionUtil.throttleTick(() -> new ModelRotation(
-                adapter.pitch(),
+                entity.pitch(),
                 bodyRotation0()
         ));
         reset();
@@ -105,11 +105,11 @@ public final class EntityBodyRotator {
     }
 
     private float bodyRotation0() {
-        if (playerMode) return adapter.headYaw();
-        if (registry.hasControllingPassenger()) return adapter.bodyYaw();
-        var headYaw = adapter.headYaw();
+        if (playerMode) return entity.headYaw();
+        if (registry.hasControllingPassenger()) return entity.bodyYaw();
+        var headYaw = entity.headYaw();
         if (MathUtil.isSimilar(headYaw, rotation.y(), MathUtil.DEGREES_TO_PACKED_BYTE)) tick = 0;
-        if (adapter.onWalk()) {
+        if (entity.onWalk()) {
             tick = 0;
             return stableBodyYaw();
         } else if (++tick > rotationDelay) {
@@ -121,8 +121,8 @@ public final class EntityBodyRotator {
     }
 
     private float stableBodyYaw() {
-        var yaw = adapter.bodyYaw();
-        var headYaw = adapter.headYaw();
+        var yaw = entity.bodyYaw();
+        var headYaw = entity.headYaw();
         var minStable = correctYaw(headYaw - stable);
         var maxStable = correctYaw(headYaw + stable);
         return Math.clamp(yaw, Math.min(minStable, maxStable), Math.max(minStable, maxStable));

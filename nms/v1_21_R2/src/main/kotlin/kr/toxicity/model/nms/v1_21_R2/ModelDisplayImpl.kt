@@ -6,8 +6,8 @@
  */
 package kr.toxicity.model.nms.v1_21_R2
 
+import kr.toxicity.model.api.entity.BaseEntity
 import kr.toxicity.model.api.nms.DisplayTransformer
-import kr.toxicity.model.api.nms.EntityAdapter
 import kr.toxicity.model.api.nms.ModelDisplay
 import kr.toxicity.model.api.nms.PacketBundler
 import kr.toxicity.model.api.tracker.ModelRotation
@@ -62,7 +62,7 @@ internal class ModelDisplayImpl(
         }
     }
 
-    override fun syncEntity(entity: EntityAdapter) {
+    override fun syncEntity(entity: BaseEntity) {
         display.valid = !entity.dead()
         display.onGround = entity.ground()
         val beforeInvisible = display.isInvisible
@@ -101,7 +101,7 @@ internal class ModelDisplayImpl(
         bundler += ClientboundTeleportEntityPacket.teleport(display.id, PositionMoveRotation.of(display), emptySet(), display.onGround)
     }
 
-    override fun sendPosition(adapter: EntityAdapter, bundler: PacketBundler) {
+    override fun sendPosition(adapter: BaseEntity, bundler: PacketBundler) {
         val handle = adapter.handle() as Entity
         if (display.position() == display.oldPosition()) return
         bundler += ClientboundEntityPositionSyncPacket(

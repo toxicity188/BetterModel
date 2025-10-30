@@ -6,6 +6,7 @@
  */
 package kr.toxicity.model.api.nms;
 
+import kr.toxicity.model.api.entity.BaseEntity;
 import kr.toxicity.model.api.tracker.ModelRotation;
 import org.bukkit.Location;
 import org.bukkit.entity.Display;
@@ -41,7 +42,7 @@ public interface ModelDisplay extends Identifiable {
      * Syncs entity data of source entity
      * @param entity source
      */
-    void syncEntity(@NotNull EntityAdapter entity);
+    void syncEntity(@NotNull BaseEntity entity);
 
     /**
      * Syncs position of source location
@@ -148,7 +149,7 @@ public interface ModelDisplay extends Identifiable {
      * @param adapter adapter
      * @param bundler packet bundler
      */
-    void sendPosition(@NotNull EntityAdapter adapter, @NotNull PacketBundler bundler);
+    void sendPosition(@NotNull BaseEntity adapter, @NotNull PacketBundler bundler);
 
     /**
      * Toggles glow.

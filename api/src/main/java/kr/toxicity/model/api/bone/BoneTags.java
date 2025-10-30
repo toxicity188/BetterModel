@@ -8,10 +8,10 @@ package kr.toxicity.model.api.bone;
 
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.renderer.RenderSource;
+import kr.toxicity.model.api.entity.BaseEntity;
 import kr.toxicity.model.api.player.PlayerLimb;
 import kr.toxicity.model.api.util.TransformedItemStack;
 import org.bukkit.entity.ItemDisplay;
-import org.bukkit.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,26 +56,14 @@ public enum BoneTags implements BoneTag {
      */
     LEFT_ITEM(BoneItemMapper.entity(
             ItemDisplay.ItemDisplayTransform.THIRDPERSON_LEFTHAND,
-            e -> {
-                if (e instanceof LivingEntity entity) {
-                    var equipment = entity.getEquipment();
-                    if (equipment != null) return TransformedItemStack.of(equipment.getItemInOffHand());
-                }
-                return TransformedItemStack.empty();
-            }
+            BaseEntity::offHand
     ), new String[] { "pli", "li" }),
     /**
      * Entity's item in right hand
      */
     RIGHT_ITEM(BoneItemMapper.entity(
             ItemDisplay.ItemDisplayTransform.THIRDPERSON_RIGHTHAND,
-            e -> {
-                if (e instanceof LivingEntity entity) {
-                    var equipment = entity.getEquipment();
-                    if (equipment != null) return TransformedItemStack.of(equipment.getItemInMainHand());
-                }
-                return TransformedItemStack.empty();
-            }
+            BaseEntity::mainHand
     ), new String[] { "pri", "ri" }),
     /**
      * Player head

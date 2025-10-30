@@ -14,6 +14,7 @@ import io.netty.channel.ChannelPromise
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.bone.RenderedBone
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox
+import kr.toxicity.model.api.entity.BaseEntity
 import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.nms.*
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
@@ -28,15 +29,12 @@ import net.minecraft.network.syncher.EntityDataSerializers
 import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.level.ServerLevel
-import net.minecraft.server.level.ServerPlayer
 import net.minecraft.server.network.ServerCommonPacketListenerImpl
-import net.minecraft.world.effect.MobEffects
 import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.Display.ItemDisplay
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.LivingEntity
-import net.minecraft.world.entity.ai.attributes.Attributes
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.Items
 import net.minecraft.world.item.component.ResolvableProfile
@@ -53,7 +51,6 @@ import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.LeatherArmorMeta
-import org.joml.Vector3f
 import java.util.*
 import java.util.function.Consumer
 
@@ -103,7 +100,7 @@ class NMSImpl : NMS {
     }
 
     override fun hide(channel: PlayerChannelHandler, registry: EntityTrackerRegistry) {
-        val target = (registry.entity() as CraftEntity).vanillaEntity
+        val target = registry.entity().handle() as? Entity ?: return
         val list = bundlerOf()
         target.entityData.pack(
             valueFilter = { it.id == SHARED_FLAG }
@@ -127,17 +124,15 @@ class NMSImpl : NMS {
 
     inner class PlayerChannelHandlerImpl(
         private val player: Player
-    ) : PlayerChannelHandler, ChannelDuplexHandler() {
+    ) : PlayerChannelHandler, ChannelDuplexHandler(), Profiled by ProfiledImpl(profile(player)) {
         private val connection = (player as CraftPlayer).handle.connection
         private val uuid = player.uniqueId
-        private val slim = BetterModel.plugin().skinManager().isSlim(profile())
 
         init {
             val pipeline = getConnection(connection).channel.pipeline()
             pipeline.addBefore(pipeline.first { it.value is Connection }.key, INJECT_NAME, this)
         }
 
-        override fun isSlim(): Boolean = slim
         override fun id(): Int = connection.player.id
         override fun uuid(): UUID = uuid
         override fun close() {
@@ -162,7 +157,7 @@ class NMSImpl : NMS {
         }
 
         override fun sendEntityData(registry: EntityTrackerRegistry) {
-            val handle = registry.adapter().handle() as Entity
+            val handle = registry.entity().handle() as? Entity ?: return
             val list = bundlerOf(
                 ClientboundSetPassengersPacket(handle)
             )
@@ -205,7 +200,7 @@ class NMSImpl : NMS {
                 }
                 is ClientboundSetPassengersPacket -> {
                     vehicle.toRegistry()?.let {
-                        return it.mountPacket(array = passengers)
+                        return it.mountPacket(it.entity().handle() as? Entity ?: return this, array = passengers)
                     }
                 }
                 is ClientboundUpdateAttributesPacket if entityId.toPlayerEntity() is HitBox -> return null
@@ -217,12 +212,12 @@ class NMSImpl : NMS {
                 is ClientboundSetEquipmentPacket -> entity.toRegistry {
                     return null
                 }?.let {
-                    if (it.hideOption(uuid).equipment()) (it.adapter().handle() as? LivingEntity)?.toEmptyEquipmentPacket()?.let { packet ->
+                    if (it.hideOption(uuid).equipment()) (it.entity().handle() as? LivingEntity)?.toEmptyEquipmentPacket()?.let { packet ->
                         return packet
                     }
                 } 
                 is ClientboundRespawnPacket -> playerModel?.let {
-                    bundlerOf(it.mountPacket()).send(player)
+                    bundlerOf(it.mountPacket(connection.player)).send(player)
                 }
                 is ClientboundContainerSetSlotPacket if isEquipment(connection.player) && playerModel?.hideOption(uuid)?.equipment() == true -> {
                     return ClientboundContainerSetSlotPacket(containerId, stateId, slot, EMPTY_ITEM)
@@ -284,10 +279,11 @@ class NMSImpl : NMS {
     }
 
     override fun mount(registry: EntityTrackerRegistry, bundler: PacketBundler) {
-        bundler += registry.mountPacket()
+        val entity = registry.entity().handle()
+        if (entity is Entity) bundler += registry.mountPacket(entity)
     }
 
-    private fun EntityTrackerRegistry.mountPacket(entity: Entity = adapter().handle() as Entity, array: IntArray = entity.passengers.filter {
+    private fun EntityTrackerRegistry.mountPacket(entity: Entity, array: IntArray = entity.passengers.filter {
         EntityTrackerRegistry.registry(it.uuid) == null
     }.map {
         it.id
@@ -336,7 +332,7 @@ class NMSImpl : NMS {
         }
     }
 
-    override fun createHitBox(entity: EntityAdapter, bone: RenderedBone, namedBoundingBox: NamedBoundingBox, mountController: MountController, listener: HitBoxListener): HitBox? {
+    override fun createHitBox(entity: BaseEntity, bone: RenderedBone, namedBoundingBox: NamedBoundingBox, mountController: MountController, listener: HitBoxListener): HitBox? {
         val handle = entity.handle() as? Entity ?: return null
         val newBox = namedBoundingBox.center()
         return HitBoxImpl(
@@ -351,61 +347,9 @@ class NMSImpl : NMS {
 
     override fun version(): NMSVersion = NMSVersion.V1_21_R2
 
-    override fun adapt(entity: org.bukkit.entity.Entity): EntityAdapter {
+    override fun adapt(entity: org.bukkit.entity.Entity): BaseEntity {
         entity as CraftEntity
-        return object : EntityAdapter {
-
-            override fun entity(): org.bukkit.entity.Entity = entity
-            override fun customName(): AdventureComponent? = handle().run {
-                if (this is ServerPlayer) (customName ?: name).asAdventure() else customName?.asAdventure()?.takeIf { 
-                    isCustomNameVisible
-                }
-            }
-            override fun handle(): Entity = entity.vanillaEntity
-            override fun id(): Int = handle().id
-            override fun dead(): Boolean = (handle() as? LivingEntity)?.isDeadOrDying == true || handle().removalReason != null || !handle().valid
-            override fun invisible(): Boolean = handle().isInvisible || (handle() as? LivingEntity)?.hasEffect(MobEffects.INVISIBILITY) == true
-            override fun glow(): Boolean = handle().isCurrentlyGlowing
-
-            override fun onWalk(): Boolean {
-                return handle().isWalking()
-            }
-
-            override fun scale(): Double {
-                val handle = handle()
-                return if (handle is LivingEntity) handle.scale.toDouble() else 1.0
-            }
-
-            override fun pitch(): Float = handle().xRot
-            override fun ground(): Boolean = handle().onGround()
-            override fun bodyYaw(): Float = handle().yRot
-            override fun headYaw(): Float = if (handle() is LivingEntity) handle().yHeadRot else bodyYaw()
-            override fun fly(): Boolean = handle().isFlying
-
-            override fun damageTick(): Float {
-                val handle = handle()
-                if (handle !is LivingEntity) return 0F
-                val duration = handle.invulnerableDuration.toFloat()
-                if (duration <= 0F) return 0F
-                val knockBack = 1 - (handle.getAttribute(Attributes.KNOCKBACK_RESISTANCE)?.value?.toFloat() ?: 0F)
-                return handle.invulnerableTime.toFloat() / duration * knockBack
-            }
-
-            override fun walkSpeed(): Float {
-                val handle = handle()
-                if (handle !is LivingEntity) return 0F
-                if (!handle.onGround) return 1F
-                val speed = handle.getEffect(MobEffects.MOVEMENT_SPEED)?.amplifier ?: 0
-                val slow = handle.getEffect(MobEffects.MOVEMENT_SLOWDOWN)?.amplifier ?: 0
-                return (1F + (speed - slow) * 0.2F)
-                    .coerceAtLeast(0.2F)
-                    .coerceAtMost(2F)
-            }
-
-            override fun passengerPosition(): Vector3f {
-                return handle().passengerPosition()
-            }
-        }
+        return if (entity is CraftPlayer) BasePlayerImpl(entity, profile(entity)) else BaseEntityImpl(entity)
     }
     
     override fun profile(player: OfflinePlayer): GameProfile = if (player is CraftOfflinePlayer) getOfflineGameProfile(player) else getGameProfile((player as CraftPlayer).handle)

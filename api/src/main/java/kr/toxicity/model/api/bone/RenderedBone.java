@@ -14,6 +14,7 @@ import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox;
 import kr.toxicity.model.api.data.renderer.RenderSource;
 import kr.toxicity.model.api.data.renderer.RendererGroup;
+import kr.toxicity.model.api.entity.BaseEntity;
 import kr.toxicity.model.api.nms.*;
 import kr.toxicity.model.api.tracker.ModelRotation;
 import kr.toxicity.model.api.tracker.Tracker;
@@ -133,7 +134,7 @@ public final class RenderedBone implements BoneEventHandler {
         defaultFrame = movement;
         children = childrenMapper.apply(this);
         if (!dummyBone) {
-            display = BetterModel.plugin().nms().create(renderSource.location(), renderSource instanceof RenderSource.Entity ? -4096 : 0, d -> {
+            display = BetterModel.nms().create(renderSource.location(), renderSource instanceof RenderSource.Entity ? -4096 : 0, d -> {
                 d.display(itemMapper.transform());
                 d.invisible(!group.getParent().visibility());
                 d.viewRange(EntityUtil.ENTITY_MODEL_VIEW_RADIUS);
@@ -179,7 +180,7 @@ public final class RenderedBone implements BoneEventHandler {
      * @param listener hit box listener
      * @return success
      */
-    public boolean createHitBox(@NotNull EntityAdapter entity, @NotNull Predicate<RenderedBone> predicate, @Nullable HitBoxListener listener) {
+    public boolean createHitBox(@NotNull BaseEntity entity, @NotNull Predicate<RenderedBone> predicate, @Nullable HitBoxListener listener) {
         if (predicate.test(this)) {
             var previous = hitBox;
             synchronized (this) {
@@ -188,7 +189,7 @@ public final class RenderedBone implements BoneEventHandler {
                 if (h == null) h = ModelBoundingBox.MIN.named(name());
                 var l = eventDispatcher.onCreateHitBox(this, (listener != null ? listener : HitBoxListener.EMPTY).toBuilder()).build();
                 if (hitBox != null) hitBox.removeHitBox();
-                hitBox = BetterModel.plugin().nms().createHitBox(entity, this, h, group.getMountController(), l);
+                hitBox = BetterModel.nms().createHitBox(entity, this, h, group.getMountController(), l);
                 return hitBox != null;
             }
         }
@@ -205,7 +206,7 @@ public final class RenderedBone implements BoneEventHandler {
         if (nametag == null && predicate.test(this)) {
             synchronized (this) {
                 if (nametag != null) return false;
-                nametag = BetterModel.plugin().nms().createNametag(this, consumer);
+                nametag = BetterModel.nms().createNametag(this, consumer);
             }
             return true;
         }
@@ -479,7 +480,7 @@ public final class RenderedBone implements BoneEventHandler {
         return false;
     }
     private void applyItem(@NotNull ModelDisplay targetDisplay) {
-        targetDisplay.item(itemStack.isAir() ? itemStack.itemStack() : tintCacheMap.computeIfAbsent(tint, i -> BetterModel.plugin().nms().tint(itemStack.itemStack(), i)));
+        targetDisplay.item(itemStack.isAir() ? itemStack.itemStack() : tintCacheMap.computeIfAbsent(tint, i -> BetterModel.nms().tint(itemStack.itemStack(), i)));
     }
 
     public @NotNull BoneName name() {

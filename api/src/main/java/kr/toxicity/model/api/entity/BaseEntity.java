@@ -4,27 +4,28 @@
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
-package kr.toxicity.model.api.nms;
+package kr.toxicity.model.api.entity;
 
 import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.nms.Identifiable;
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry;
+import kr.toxicity.model.api.util.TransformedItemStack;
 import net.kyori.adventure.text.Component;
-import org.bukkit.entity.Entity;
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
+import org.bukkit.persistence.PersistentDataHolder;
+import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * An adapter of entity
  */
-public interface EntityAdapter {
-    /**
-     * Gets a source
-     * @return source entity
-     */
-    @NotNull Entity entity();
+public interface BaseEntity extends Identifiable, PersistentDataHolder {
 
     /**
      * Gets custom name of this entity
@@ -123,11 +124,35 @@ public interface EntityAdapter {
     @NotNull Vector3f passengerPosition();
 
     /**
+     * Gets tracked player set
+     * @return tracked player set
+     */
+    @NotNull Stream<Player> trackedBy();
+
+    /**
+     * Gets location
+     * @return location
+     */
+    @NotNull Location location();
+
+    /**
+     * Gets main hand item
+     * @return main hand
+     */
+    @Nullable TransformedItemStack mainHand();
+
+    /**
+     * Gets offhand item
+     * @return offhand
+     */
+    @Nullable TransformedItemStack offHand();
+
+    /**
      * Gets tracker registry of this adapter
      * @return optional tracker registry
      */
     default @NotNull Optional<EntityTrackerRegistry> registry() {
-        return BetterModel.registry(entity().getUniqueId());
+        return BetterModel.registry(uuid());
     }
 
     /**
@@ -137,5 +162,31 @@ public interface EntityAdapter {
     default boolean hasControllingPassenger() {
         var registry = registry().orElse(null);
         return registry != null && registry.hasControllingPassenger();
+    }
+
+    /**
+     * Checks this entity has model data
+     * @return has model data
+     */
+    default boolean hasModelData() {
+        return modelData() != null;
+    }
+
+    /**
+     * Gets this entity's model data
+     * @return model data
+     */
+    default @Nullable String modelData() {
+        return getPersistentDataContainer().get(EntityTrackerRegistry.TRACKING_ID, PersistentDataType.STRING);
+    }
+
+    /**
+     * Sets this entity's model data
+     * @param modelData model data
+     */
+    default void modelData(@Nullable String modelData) {
+        var container = getPersistentDataContainer();
+        if (modelData == null) container.remove(EntityTrackerRegistry.TRACKING_ID);
+        else container.set(EntityTrackerRegistry.TRACKING_ID, PersistentDataType.STRING, modelData);
     }
 }

@@ -7,6 +7,8 @@
 package kr.toxicity.model.api;
 
 import kr.toxicity.model.api.data.renderer.ModelRenderer;
+import kr.toxicity.model.api.entity.BaseEntity;
+import kr.toxicity.model.api.nms.NMS;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry;
 import org.bukkit.entity.Entity;
@@ -121,6 +123,15 @@ public final class BetterModel {
     }
 
     /**
+     * Gets entity registry by entity.
+     * @param entity entity
+     * @return optional registry
+     */
+    public static @NotNull Optional<EntityTrackerRegistry> registry(@NotNull BaseEntity entity) {
+        return Optional.ofNullable(registryOrNull(entity));
+    }
+
+    /**
      * Gets entity registry by entity's uuid.
      * @param uuid uuid
      * @return registry or null
@@ -135,6 +146,15 @@ public final class BetterModel {
      * @return registry or null
      */
     public static @Nullable EntityTrackerRegistry registryOrNull(@NotNull Entity entity) {
+        return registryOrNull(nms().adapt(entity));
+    }
+
+    /**
+     * Gets entity registry by entity.
+     * @param entity entity
+     * @return registry or null
+     */
+    public static @Nullable EntityTrackerRegistry registryOrNull(@NotNull BaseEntity entity) {
         return EntityTrackerRegistry.registry(entity);
     }
 
@@ -177,6 +197,14 @@ public final class BetterModel {
      */
     public static @NotNull BetterModelPlugin plugin() {
         return Objects.requireNonNull(instance, "BetterModel hasn't been initialized yet!");
+    }
+
+    /**
+     * Gets nms
+     * @return nms
+     */
+    public static @NotNull NMS nms() {
+        return plugin().nms();
     }
 
     /**

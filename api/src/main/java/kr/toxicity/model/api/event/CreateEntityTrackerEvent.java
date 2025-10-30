@@ -6,9 +6,9 @@
  */
 package kr.toxicity.model.api.event;
 
+import kr.toxicity.model.api.entity.BaseEntity;
 import kr.toxicity.model.api.tracker.EntityTracker;
 import lombok.Getter;
-import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,7 +37,7 @@ public final class CreateEntityTrackerEvent extends CreateTrackerEvent {
      * @return source entity
      */
     @NotNull
-    public Entity sourceEntity() {
+    public BaseEntity sourceEntity() {
         return tracker().sourceEntity();
     }
 }

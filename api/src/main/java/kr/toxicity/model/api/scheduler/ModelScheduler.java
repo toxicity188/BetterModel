@@ -6,6 +6,7 @@
  */
 package kr.toxicity.model.api.scheduler;
 
+import kr.toxicity.model.api.entity.BaseEntity;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +36,27 @@ public interface ModelScheduler {
      */
     default @Nullable ModelTask taskLater(@NotNull Entity entity, long delay, @NotNull Runnable runnable) {
         return taskLater(entity.getLocation(), delay, runnable);
+    }
+
+    /**
+     * Runs entity sync task
+     * @param entity entity
+     * @param runnable task
+     * @return scheduled task
+     */
+    default @Nullable ModelTask task(@NotNull BaseEntity entity, @NotNull Runnable runnable) {
+        return task(entity.location(), runnable);
+    }
+
+    /**
+     * Runs entity sync task
+     * @param entity entity
+     * @param delay delay
+     * @param runnable task
+     * @return scheduled task
+     */
+    default @Nullable ModelTask taskLater(@NotNull BaseEntity entity, long delay, @NotNull Runnable runnable) {
+        return taskLater(entity.location(), delay, runnable);
     }
 
     /**

@@ -119,7 +119,7 @@ public final class RollTester implements ModelTester, Listener {
     private void playRoll(@NotNull Player player) {
         var input = inputToYaw(player);
         BetterModel.limb("steve")
-                .map(r -> r.getOrCreate(player, TrackerModifier.DEFAULT, t -> t.rotation(() -> new ModelRotation(player.getPitch(), packDegree(input + t.registry().adapter().bodyYaw())))))
+                .map(r -> r.getOrCreate(player, TrackerModifier.DEFAULT, t -> t.rotation(() -> new ModelRotation(player.getPitch(), packDegree(input + t.registry().entity().bodyYaw())))))
                 .ifPresent(t -> {
                     if (t.animate(b -> true, "roll", AnimationModifier.DEFAULT_WITH_PLAY_ONCE, () -> {
                         BetterModel.plugin().scheduler().asyncTaskLater(3, () -> coolTimeSet.remove(player.getUniqueId()));
@@ -135,7 +135,7 @@ public final class RollTester implements ModelTester, Listener {
                             ));
                             BetterModel.plugin().scheduler().asyncTaskLater(8, () -> invulnerableSet.remove(player.getUniqueId()));
                             player.setVelocity(player.getVelocity()
-                                    .add(new Vector(0, 0, 0.75).rotateAroundY(-Math.toRadians(input + t.registry().adapter().bodyYaw())))
+                                    .add(new Vector(0, 0, 0.75).rotateAroundY(-Math.toRadians(input + t.registry().entity().bodyYaw())))
                                     .setY(0.15));
                         }
                     } else t.close();

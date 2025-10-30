@@ -11,6 +11,7 @@ import io.lumine.mythic.bukkit.events.MythicConditionLoadEvent
 import io.lumine.mythic.bukkit.events.MythicMechanicLoadEvent
 import io.lumine.mythic.bukkit.events.MythicTargeterLoadEvent
 import kr.toxicity.model.api.BetterModel
+import kr.toxicity.model.api.entity.BaseBukkitEntity
 import kr.toxicity.model.api.script.AnimationScript
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.compatibility.Compatibility
@@ -34,10 +35,11 @@ class MythicMobsCompatibility : Compatibility {
             AnimationScript.of(BetterModel.IS_FOLIA) script@ { tracker ->
                 if (!CONFIG.module().model) return@script
                 if (tracker !is EntityTracker) return@script
+                val entity = (tracker.registry().entity() as? BaseBukkitEntity ?: return@script).entity()
                 if (!MythicBukkit.inst().apiHelper.castSkill(
-                        tracker.registry().entity(),
+                        entity,
                         args,
-                    MythicBukkit.inst().apiHelper.getMythicMobInstance(tracker.registry().entity())?.power ?: 1F
+                    MythicBukkit.inst().apiHelper.getMythicMobInstance(entity)?.power ?: 1F
                 ) {
                     name.metadata.toMap().forEach { (key, value) ->
                         it.parameters[key] = value.toString()

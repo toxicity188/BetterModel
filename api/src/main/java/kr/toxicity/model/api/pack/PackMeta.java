@@ -138,7 +138,7 @@ public record PackMeta(
 
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static final class Builder {
-        private int format = BetterModel.plugin().nms().version().getMetaVersion();
+        private int format = BetterModel.nms().version().getMetaVersion();
         private String description = "BetterModel's default pack.";
         private final List<OverlayEntry> entries = new ArrayList<>();
         private VersionRange supportedFormats = VersionRange.LEGACY;

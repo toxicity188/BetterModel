@@ -10,7 +10,6 @@ import com.mojang.authlib.GameProfile;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.tracker.*;
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,20 +29,20 @@ public sealed interface RenderSource<T extends Tracker> {
     }
 
     @ApiStatus.Internal
-    static @NotNull RenderSource.Entity of(@NotNull org.bukkit.entity.Entity entity, @NotNull GameProfile profile, boolean slim) {
-        return entity instanceof Player player ? new ProfiledPlayer(player, profile, slim) : new ProfiledEntity(entity, profile, slim);
+    static @NotNull RenderSource.Entity of(@NotNull kr.toxicity.model.api.entity.BaseEntity entity, @NotNull GameProfile profile, boolean slim) {
+        return entity instanceof kr.toxicity.model.api.entity.BasePlayer player ? new ProfiledPlayer(player, profile, slim) : new ProfiledEntity(entity, profile, slim);
     }
 
     @ApiStatus.Internal
-    static @NotNull RenderSource.Entity of(@NotNull org.bukkit.entity.Entity entity) {
-        return entity instanceof Player player ? new BasePlayer(player) : new BaseEntity(entity);
+    static @NotNull RenderSource.Entity of(@NotNull kr.toxicity.model.api.entity.BaseEntity entity) {
+        return entity instanceof kr.toxicity.model.api.entity.BasePlayer player ? new BasePlayer(player) : new BaseEntity(entity);
     }
 
     @NotNull Location location();
     T create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<T> preUpdateConsumer);
 
     sealed interface Entity extends RenderSource<EntityTracker> {
-        @NotNull org.bukkit.entity.Entity entity();
+        @NotNull kr.toxicity.model.api.entity.BaseEntity entity();
         @NotNull
         EntityTracker getOrCreate(@NotNull String name, @NotNull Supplier<RenderPipeline> supplier, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer);
     }
@@ -72,7 +71,7 @@ public sealed interface RenderSource<T extends Tracker> {
         }
     }
 
-    record BaseEntity(@NotNull org.bukkit.entity.Entity entity) implements Entity {
+    record BaseEntity(@NotNull kr.toxicity.model.api.entity.BaseEntity entity) implements Entity {
 
         @NotNull
         @Override
@@ -87,11 +86,11 @@ public sealed interface RenderSource<T extends Tracker> {
 
         @Override
         public @NotNull Location location() {
-            return entity.getLocation();
+            return entity.location();
         }
     }
 
-    record ProfiledEntity(@NotNull org.bukkit.entity.Entity entity, @NotNull GameProfile profile, boolean slim) implements Entity, Profiled {
+    record ProfiledEntity(@NotNull kr.toxicity.model.api.entity.BaseEntity entity, @NotNull GameProfile profile, boolean slim) implements Entity, Profiled {
 
         @NotNull
         @Override
@@ -106,11 +105,11 @@ public sealed interface RenderSource<T extends Tracker> {
 
         @Override
         public @NotNull Location location() {
-            return entity.getLocation();
+            return entity.location();
         }
     }
 
-    record BasePlayer(@NotNull Player entity) implements Entity, Profiled {
+    record BasePlayer(@NotNull kr.toxicity.model.api.entity.BasePlayer entity) implements Entity, Profiled {
 
         @NotNull
         @Override
@@ -125,23 +124,23 @@ public sealed interface RenderSource<T extends Tracker> {
 
         @Override
         public @NotNull Location location() {
-            return entity.getLocation();
+            return entity.location();
         }
 
         @NotNull
         @Override
         public GameProfile profile() {
-            return BetterModel.plugin().nms().profile(entity);
+            return entity.profile();
         }
 
         @Override
         public boolean slim() {
-            var channel = BetterModel.plugin().playerManager().player(entity.getUniqueId());
+            var channel = BetterModel.plugin().playerManager().player(entity.uuid());
             return channel != null && channel.isSlim();
         }
     }
 
-    record ProfiledPlayer(@NotNull Player entity, @NotNull GameProfile profile, boolean slim) implements Entity, Profiled {
+    record ProfiledPlayer(@NotNull kr.toxicity.model.api.entity.BasePlayer entity, @NotNull GameProfile profile, boolean slim) implements Entity, Profiled {
         @NotNull
         @Override
         public EntityTracker create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
@@ -155,7 +154,7 @@ public sealed interface RenderSource<T extends Tracker> {
 
         @Override
         public @NotNull Location location() {
-            return entity.getLocation();
+            return entity.location();
         }
     }
 }

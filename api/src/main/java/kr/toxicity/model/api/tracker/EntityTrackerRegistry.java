@@ -17,6 +17,8 @@ import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.config.DebugConfig;
+import kr.toxicity.model.api.entity.BaseEntity;
+import kr.toxicity.model.api.entity.BasePlayer;
 import kr.toxicity.model.api.nms.*;
 import kr.toxicity.model.api.util.CollectionUtil;
 import kr.toxicity.model.api.util.LogUtil;
@@ -27,7 +29,6 @@ import lombok.ToString;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,16 +55,16 @@ public final class EntityTrackerRegistry {
     /**
      * Tracker's namespace.
      */
+    @NotNull
     public static final NamespacedKey TRACKING_ID = Objects.requireNonNull(NamespacedKey.fromString("bettermodel_tracker"));
 
     @ToString.Include
     private final AtomicBoolean closed = new AtomicBoolean();
     private final AtomicBoolean loaded = new AtomicBoolean();
     @ToString.Include
-    private final Entity entity;
+    private final BaseEntity entity;
     private final int id;
     private final UUID uuid;
-    private final EntityAdapter adapter;
     private final ConcurrentNavigableMap<String, EntityTracker> trackerMap = new ConcurrentSkipListMap<>();
     @ToString.Include
     private final Collection<EntityTracker> trackers = Collections.unmodifiableCollection(trackerMap.values());
@@ -94,8 +95,8 @@ public final class EntityTrackerRegistry {
      * @param entity entity
      * @return registry or null
      */
-    public static @Nullable EntityTrackerRegistry registry(@NotNull Entity entity) {
-        return hasModelData(entity) ? getOrCreate(entity) : null;
+    public static @Nullable EntityTrackerRegistry registry(@NotNull BaseEntity entity) {
+        return entity.hasModelData() ? getOrCreate(entity) : null;
     }
 
     /**
@@ -122,8 +123,8 @@ public final class EntityTrackerRegistry {
      * @return registry
      */
     @ApiStatus.Internal
-    public static @NotNull EntityTrackerRegistry getOrCreate(@NotNull Entity entity) {
-        var uuid = entity.getUniqueId();
+    public static @NotNull EntityTrackerRegistry getOrCreate(@NotNull BaseEntity entity) {
+        var uuid = entity.uuid();
         var get = registry(uuid);
         if (get != null) return get;
         EntityTrackerRegistry registry;
@@ -147,27 +148,17 @@ public final class EntityTrackerRegistry {
         return json.isJsonArray() ? json.getAsJsonArray().asList() : Collections.singletonList(json);
     }
 
-    /**
-     * Checks this entity has model data
-     * @param entity entity
-     * @return has model data
-     */
-    public static boolean hasModelData(@NotNull Entity entity) {
-        return entity.getPersistentDataContainer().has(TRACKING_ID);
-    }
-
-    private EntityTrackerRegistry(@NotNull Entity entity) {
+    private EntityTrackerRegistry(@NotNull BaseEntity entity) {
         this.entity = entity;
-        this.adapter = BetterModel.plugin().nms().adapt(entity);
-        this.uuid = entity.getUniqueId();
-        this.id = adapter.id();
+        this.uuid = entity.uuid();
+        this.id = entity.id();
     }
 
     /**
      * Gets source entity
      * @return entity
      */
-    public @NotNull Entity entity() {
+    public @NotNull BaseEntity entity() {
         return entity;
     }
 
@@ -185,14 +176,6 @@ public final class EntityTrackerRegistry {
      */
     public int id() {
         return id;
-    }
-
-    /**
-     * Gets entity's adapter
-     * @return adapter
-     */
-    public @NotNull EntityAdapter adapter() {
-        return adapter;
     }
 
     /**
@@ -282,9 +265,8 @@ public final class EntityTrackerRegistry {
     }
 
     private void refreshPlayer() {
-        var stream = entity.getTrackedBy().stream();
-        if (entity instanceof Player player) stream = Stream.concat(Stream.of(player), stream);
-        stream.map(p -> BetterModel.player(p.getUniqueId()).orElse(null))
+        entity.trackedBy()
+                .map(p -> BetterModel.player(p.getUniqueId()).orElse(null))
                 .filter(Objects::nonNull)
                 .forEach(this::registerPlayer);
     }
@@ -324,11 +306,11 @@ public final class EntityTrackerRegistry {
         for (EntityTracker value : trackers()) {
             value.close(reason);
         }
-        if (!reason.shouldBeSave()) runSync(() -> entity.getPersistentDataContainer().remove(TRACKING_ID));
+        if (!reason.shouldBeSave()) runSync(() -> entity.modelData(null));
         REGISTRY_LOCK.accessToWriteLock(() -> {
             UUID_REGISTRY_MAP.remove(uuid);
             ID_REGISTRY_MAP.remove(id);
-            if (entity instanceof Player player) player.updateInventory();
+            if (entity instanceof BasePlayer player) player.updateInventory();
             return null;
         });
         LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> uuid + "'s tracker registry has been removed. (" + UUID_REGISTRY_MAP.size() + ")");
@@ -355,7 +337,7 @@ public final class EntityTrackerRegistry {
      * Refreshes this registry
      */
     public void refresh() {
-        if (adapter.dead()) return;
+        if (entity.dead()) return;
         for (EntityTracker value : trackers()) {
             value.refresh();
         }
@@ -386,7 +368,7 @@ public final class EntityTrackerRegistry {
      * Loads entity's tracker this in this registry
      */
     public void load() {
-        load(deserialize(entity.getPersistentDataContainer().get(TRACKING_ID, PersistentDataType.STRING))
+        load(deserialize(entity.modelData())
                 .stream()
                 .map(TrackerData::deserialize));
     }
@@ -396,13 +378,13 @@ public final class EntityTrackerRegistry {
      */
     public void save() {
         var data = serialize().toString();
-        runSync(() -> entity.getPersistentDataContainer().set(TRACKING_ID, PersistentDataType.STRING, data));
+        runSync(() -> entity.modelData(data));
     }
 
     private void runSync(@NotNull Runnable runnable) {
         if (ThreadUtil.isTickThread()) {
             runnable.run();
-        } else BetterModel.plugin().scheduler().task(entity.getLocation(), runnable);
+        } else BetterModel.plugin().scheduler().task(entity.location(), runnable);
     }
 
     /**
@@ -467,13 +449,13 @@ public final class EntityTrackerRegistry {
         if (handler == null) return false;
         var cache = registerPlayer(handler);
         if (trackerMap.isEmpty()) return false;
-        var bundler = BetterModel.plugin().nms().createBundler(10);
+        var bundler = BetterModel.nms().createBundler(10);
         for (EntityTracker value : trackers()) {
             if (shouldNotSpawned && value.isSpawned(player)) continue;
             if (value.canBeSpawnedAt(player)) value.spawn(player, bundler);
         }
         if (bundler.isEmpty()) return false;
-        BetterModel.plugin().nms().mount(this, bundler);
+        BetterModel.nms().mount(this, bundler);
         cache.spawn(bundler);
         return true;
     }
@@ -575,12 +557,12 @@ public final class EntityTrackerRegistry {
 
         private void hide() {
             reapplyHideOption();
-            BetterModel.plugin().nms().hide(channelHandler, EntityTrackerRegistry.this);
+            BetterModel.nms().hide(channelHandler, EntityTrackerRegistry.this);
         }
 
         private void spawn(@NotNull PacketBundler bundler) {
             reapplyHideOption();
-            bundler.send(channelHandler.player(), () -> BetterModel.plugin().nms().hide(channelHandler, EntityTrackerRegistry.this, () -> viewedPlayerMap.containsKey(channelHandler.uuid())));
+            bundler.send(channelHandler.player(), () -> BetterModel.nms().hide(channelHandler, EntityTrackerRegistry.this, () -> viewedPlayerMap.containsKey(channelHandler.uuid())));
         }
 
         private synchronized void reapplyHideOption() {

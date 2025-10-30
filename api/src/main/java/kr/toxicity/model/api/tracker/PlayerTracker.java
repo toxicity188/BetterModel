@@ -7,7 +7,6 @@
 package kr.toxicity.model.api.tracker;
 
 import kr.toxicity.model.api.data.renderer.RenderPipeline;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,11 +28,5 @@ public final class PlayerTracker extends EntityTracker {
     public PlayerTracker(@NotNull EntityTrackerRegistry registry, @NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
         super(registry, pipeline, modifier, preUpdateConsumer);
         bodyRotator().setValue(setter -> setter.setPlayerMode(true));
-    }
-
-    @NotNull
-    @Override
-    public Player sourceEntity() {
-        return (Player) super.sourceEntity();
     }
 }

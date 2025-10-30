@@ -19,6 +19,8 @@ import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.data.renderer.ModelRenderer;
 import kr.toxicity.model.api.data.renderer.RenderPipeline;
 import kr.toxicity.model.api.data.renderer.RenderSource;
+import kr.toxicity.model.api.entity.BaseEntity;
+import kr.toxicity.model.api.entity.BasePlayer;
 import kr.toxicity.model.api.event.*;
 import kr.toxicity.model.api.nms.*;
 import kr.toxicity.model.api.script.TimeScript;
@@ -583,7 +585,7 @@ public abstract class Tracker implements AutoCloseable {
      * @param predicate predicate
      * @return success
      */
-    public boolean createHitBox(@NotNull EntityAdapter entity, @Nullable HitBoxListener listener, @NotNull BonePredicate predicate) {
+    public boolean createHitBox(@NotNull BaseEntity entity, @Nullable HitBoxListener listener, @NotNull BonePredicate predicate) {
         return tryUpdate((b, p) -> b.createHitBox(entity, p, listener), predicate);
     }
 
@@ -594,7 +596,7 @@ public abstract class Tracker implements AutoCloseable {
      * @param listener listener
      * @return hitbox or null
      */
-    public @Nullable HitBox hitbox(@NotNull EntityAdapter entity, @Nullable HitBoxListener listener, @NotNull Predicate<RenderedBone> predicate) {
+    public @Nullable HitBox hitbox(@NotNull BaseEntity entity, @Nullable HitBoxListener listener, @NotNull Predicate<RenderedBone> predicate) {
         return pipeline.firstNotNull(bone -> {
             if (predicate.test(bone)) {
                 if (bone.getHitBox() == null) bone.createHitBox(entity, BonePredicate.TRUE, listener);
@@ -613,7 +615,7 @@ public abstract class Tracker implements AutoCloseable {
         return tryUpdate((b, p) -> b.createNametag(p, tag -> {
             consumer.accept(b, tag);
             perPlayerTick((tracker, player) -> {
-                if (pipeline.getSource() instanceof RenderSource.BasePlayer(Player entity) && entity == player) return;
+                if (pipeline.getSource() instanceof RenderSource.BasePlayer(BasePlayer basePlayer) && basePlayer.uuid().equals(player.getUniqueId())) return;
                 tag.teleport(tracker.location());
                 tag.send(player);
             });

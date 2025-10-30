@@ -7,8 +7,8 @@
 package kr.toxicity.model.api.bone;
 
 import kr.toxicity.model.api.data.renderer.RenderSource;
+import kr.toxicity.model.api.entity.BaseEntity;
 import kr.toxicity.model.api.util.TransformedItemStack;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -75,7 +75,7 @@ public interface BoneItemMapper extends BiFunction<RenderSource<?>, TransformedI
      * @param mapper mapper
      * @return bone item mapper
      */
-    static @NotNull BoneItemMapper entity(@NotNull ItemDisplay.ItemDisplayTransform transform, @NotNull Function<Entity, TransformedItemStack> mapper) {
+    static @NotNull BoneItemMapper entity(@NotNull ItemDisplay.ItemDisplayTransform transform, @NotNull Function<BaseEntity, TransformedItemStack> mapper) {
         return new BoneItemMapper() {
 
             private static final TransformedItemStack AIR = TransformedItemStack.empty();
