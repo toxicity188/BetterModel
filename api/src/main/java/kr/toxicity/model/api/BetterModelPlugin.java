@@ -95,25 +95,10 @@ public interface BetterModelPlugin extends Plugin {
      */
     @NotNull PlayerManager playerManager();
     /**
-     * Gets entity manager.
-     * @return entity manager
-     */
-    @NotNull EntityManager entityManager();
-    /**
-     * Gets command manager.
-     * @return command manager
-     */
-    @NotNull CommandManager commandManager();
-    /**
      * Gets script manager.
      * @return script manager
      */
     @NotNull ScriptManager scriptManager();
-    /**
-     * Gets compatibility manager.
-     * @return compatibility manager
-     */
-    @NotNull CompatibilityManager compatibilityManager();
     /**
      * Gets skin manager.
      * @return skin manager

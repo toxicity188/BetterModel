@@ -15,7 +15,6 @@ import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.BetterModelPlugin.ReloadResult.*
 import kr.toxicity.model.api.animation.AnimationIterator
 import kr.toxicity.model.api.animation.AnimationModifier
-import kr.toxicity.model.api.manager.CommandManager
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.tracker.EntityHideOption
 import kr.toxicity.model.api.tracker.Tracker
@@ -32,7 +31,7 @@ import org.bukkit.entity.Player
 import org.bukkit.util.Vector
 import kotlin.math.pow
 
-object CommandManagerImpl : CommandManager, GlobalManager {
+object CommandManager : GlobalManager {
 
     private val modelKeys get() = StringArgument("model").suggest { BetterModel.modelKeys() }
     private val limbKeys get() = StringArgument("limb").suggest { BetterModel.limbKeys() }

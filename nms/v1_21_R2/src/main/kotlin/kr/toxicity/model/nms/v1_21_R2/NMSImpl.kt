@@ -12,6 +12,7 @@ import io.netty.channel.ChannelDuplexHandler
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
 import kr.toxicity.model.api.BetterModel
+import kr.toxicity.model.api.armor.PlayerArmor
 import kr.toxicity.model.api.bone.RenderedBone
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox
 import kr.toxicity.model.api.entity.BaseEntity
@@ -123,9 +124,9 @@ class NMSImpl : NMS {
     })
 
     inner class PlayerChannelHandlerImpl(
-        private val player: Player
-    ) : PlayerChannelHandler, ChannelDuplexHandler(), Profiled by ProfiledImpl(profile(player)) {
-        private val connection = (player as CraftPlayer).handle.connection
+        private val player: CraftPlayer
+    ) : PlayerChannelHandler, ChannelDuplexHandler(), Profiled by ProfiledImpl(PlayerArmor.EMPTY, { profile(player) }) {
+        private val connection = player.handle.connection
         private val uuid = player.uniqueId
 
         init {
@@ -244,7 +245,7 @@ class NMSImpl : NMS {
         override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
             fun EntityTrackerRegistry.updatePlayerLimb() = BetterModel.plugin().scheduler().asyncTaskLater(1) {
                 if (isClosed) return@asyncTaskLater
-                player.updateInventory()
+                player.handle.containerMenu.sendAllDataToRemote()
                 trackers().forEach { tracker ->
                     tracker.update(TrackerUpdateAction.itemMapping()) { bone ->
                         !bone.itemMapper.fixed()
@@ -298,7 +299,7 @@ class NMSImpl : NMS {
         }
     }
 
-    override fun inject(player: Player): PlayerChannelHandlerImpl = PlayerChannelHandlerImpl(player)
+    override fun inject(player: Player): PlayerChannelHandlerImpl = PlayerChannelHandlerImpl(player as CraftPlayer)
 
     override fun createBundler(initialCapacity: Int): PacketBundler = bundlerOf(initialCapacity)
     override fun createLazyBundler(): PacketBundler = lazyBundlerOf()
@@ -349,7 +350,7 @@ class NMSImpl : NMS {
 
     override fun adapt(entity: org.bukkit.entity.Entity): BaseEntity {
         entity as CraftEntity
-        return if (entity is CraftPlayer) BasePlayerImpl(entity, profile(entity)) else BaseEntityImpl(entity)
+        return if (entity is CraftPlayer) BasePlayerImpl(entity) { profile(entity) } else BaseEntityImpl(entity)
     }
     
     override fun profile(player: OfflinePlayer): GameProfile = if (player is CraftOfflinePlayer) getOfflineGameProfile(player) else getGameProfile((player as CraftPlayer).handle)

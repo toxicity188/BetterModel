@@ -126,9 +126,9 @@ class NMSImpl : NMS {
     })
 
     inner class PlayerChannelHandlerImpl(
-        private val player: Player
-    ) : PlayerChannelHandler, ChannelDuplexHandler(), Profiled by ProfiledImpl(profile(player)) {
-        private val connection = (player as CraftPlayer).handle.connection
+        private val player: CraftPlayer
+    ) : PlayerChannelHandler, ChannelDuplexHandler(), Profiled by ProfiledImpl(PlayerArmorImpl(player), { profile(player) }) {
+        private val connection = player.handle.connection
         private val uuid = player.uniqueId
 
         init {
@@ -245,7 +245,7 @@ class NMSImpl : NMS {
         override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
             fun EntityTrackerRegistry.updatePlayerLimb() = BetterModel.plugin().scheduler().asyncTaskLater(1) {
                 if (isClosed) return@asyncTaskLater
-                player.updateInventory()
+                player.handle.containerMenu.sendAllDataToRemote()
                 trackers().forEach { tracker ->
                     tracker.update(TrackerUpdateAction.itemMapping()) { bone ->
                         !bone.itemMapper.fixed()
@@ -299,7 +299,7 @@ class NMSImpl : NMS {
         }
     }
 
-    override fun inject(player: Player): PlayerChannelHandlerImpl = PlayerChannelHandlerImpl(player)
+    override fun inject(player: Player): PlayerChannelHandlerImpl = PlayerChannelHandlerImpl(player as CraftPlayer)
 
     override fun createBundler(initialCapacity: Int): PacketBundler = bundlerOf(initialCapacity)
     override fun createLazyBundler(): PacketBundler = lazyBundlerOf()
@@ -355,7 +355,7 @@ class NMSImpl : NMS {
 
     override fun adapt(entity: org.bukkit.entity.Entity): BaseEntity {
         entity as CraftEntity
-        return if (entity is CraftPlayer) BasePlayerImpl(entity, profile(entity)) else BaseEntityImpl(entity)
+        return if (entity is CraftPlayer) BasePlayerImpl(entity) { profile(entity) } else BaseEntityImpl(entity)
     }
     
     override fun profile(player: OfflinePlayer): GameProfile = if (player is CraftOfflinePlayer) getOfflineGameProfile(player) else getGameProfile((player as CraftPlayer).handle)
@@ -364,9 +364,9 @@ class NMSImpl : NMS {
         set(DataComponents.PROFILE, ResolvableProfile(profile))
     }.asBukkit()
 
-    override fun createSkinItem(model: String, flags: List<Boolean>, colors: List<Int>): TransformedItemStack {
+    override fun createSkinItem(model: String, flags: List<Boolean>, strings: List<String>, colors: List<Int>): TransformedItemStack {
         return VanillaItemStack(Items.PLAYER_HEAD).run {
-            set(DataComponents.CUSTOM_MODEL_DATA, CustomModelData(emptyList(), flags, emptyList(), colors))
+            set(DataComponents.CUSTOM_MODEL_DATA, CustomModelData(emptyList(), flags, strings, colors))
             set(DataComponents.ITEM_MODEL, ResourceLocation.parse(model))
             TransformedItemStack.of(asBukkit())
         }

@@ -9,6 +9,7 @@ package kr.toxicity.model.api.bone;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.renderer.RenderSource;
 import kr.toxicity.model.api.entity.BaseEntity;
+import kr.toxicity.model.api.nms.Profiled;
 import kr.toxicity.model.api.player.PlayerLimb;
 import kr.toxicity.model.api.util.TransformedItemStack;
 import org.bukkit.entity.ItemDisplay;
@@ -120,8 +121,8 @@ public enum BoneTags implements BoneTag {
         @Override
         public @NotNull TransformedItemStack apply(@NotNull RenderSource<?> renderSource, @NotNull TransformedItemStack transformedItemStack) {
             var manager = BetterModel.plugin().skinManager();
-            if (manager.supported() && renderSource instanceof RenderSource.Profiled profiled) {
-                var cape = manager.getOrRequest(profiled.profile()).cape();
+            if (manager.supported() && renderSource instanceof Profiled profiled) {
+                var cape = manager.getOrRequest(profiled.profile()).cape(profiled);
                 if (cape != null) return cape;
             }
             return TransformedItemStack.empty();

@@ -153,9 +153,6 @@ abstract class BetterModelPluginImpl : AbstractBetterModelPlugin() {
     override fun evaluator(): BetterModelEvaluator = props.evaluator
     override fun modelManager(): ModelManager = ModelManagerImpl
     override fun playerManager(): PlayerManager = PlayerManagerImpl
-    override fun entityManager(): EntityManager = EntityManagerImpl
-    override fun commandManager(): CommandManager = CommandManagerImpl
-    override fun compatibilityManager(): CompatibilityManager = CompatibilityManagerImpl
     override fun scriptManager(): ScriptManager = ScriptManagerImpl
     override fun skinManager(): SkinManager = SkinManagerImpl
 

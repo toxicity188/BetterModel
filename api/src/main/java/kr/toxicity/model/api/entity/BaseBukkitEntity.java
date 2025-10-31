@@ -10,7 +10,6 @@ import kr.toxicity.model.api.util.TransformedItemStack;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * An adapter of bukkit entity
@@ -24,7 +23,7 @@ public interface BaseBukkitEntity extends BaseEntity {
     @NotNull Entity entity();
 
     @Override
-    default @Nullable TransformedItemStack mainHand() {
+    default @NotNull TransformedItemStack mainHand() {
         if (entity() instanceof LivingEntity livingEntity) {
             var equipment = livingEntity.getEquipment();
             if (equipment != null) return TransformedItemStack.of(equipment.getItemInMainHand());
@@ -33,7 +32,7 @@ public interface BaseBukkitEntity extends BaseEntity {
     }
 
     @Override
-    default @Nullable TransformedItemStack offHand() {
+    default @NotNull TransformedItemStack offHand() {
         if (entity() instanceof LivingEntity livingEntity) {
             var equipment = livingEntity.getEquipment();
             if (equipment != null) return TransformedItemStack.of(equipment.getItemInOffHand());

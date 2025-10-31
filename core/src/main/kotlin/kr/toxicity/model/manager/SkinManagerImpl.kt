@@ -11,11 +11,15 @@ import com.github.benmanes.caffeine.cache.RemovalCause
 import com.google.gson.Gson
 import com.google.gson.JsonParser
 import com.google.gson.annotations.SerializedName
+import it.unimi.dsi.fastutil.ints.IntList
+import kr.toxicity.library.armormodel.ArmorResource
 import kr.toxicity.library.dynamicuv.*
 import kr.toxicity.model.api.BetterModel
+import kr.toxicity.model.api.armor.ArmorItem
 import kr.toxicity.model.api.event.CreatePlayerSkinEvent
 import kr.toxicity.model.api.event.RemovePlayerSkinEvent
 import kr.toxicity.model.api.manager.SkinManager
+import kr.toxicity.model.api.nms.Profiled
 import kr.toxicity.model.api.pack.PackObfuscator
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.player.PlayerLimb
@@ -31,6 +35,7 @@ import kr.toxicity.model.authlib.V7AuthLibAdapter
 import kr.toxicity.model.player.HttpPlayerSkinProvider
 import kr.toxicity.model.util.*
 import org.bukkit.Bukkit
+import org.joml.Vector3f
 import java.awt.image.BufferedImage
 import java.net.URI
 import java.net.http.HttpRequest
@@ -581,42 +586,76 @@ object SkinManagerImpl : SkinManager, GlobalManager {
         )
     )
 
-    private fun UVModel.asItem(image: BufferedImage): TransformedItemStack {
+    private data class SkinModelData(
+        val namespace: String,
+        val data: UVModelData
+    )
+
+    private fun UVModel.asModelData(image: BufferedImage): SkinModelData {
         val data = write(image)
-        return PLUGIN.nms().createSkinItem(
+        return SkinModelData(
             itemModelNamespace(),
+            data
+        )
+    }
+
+    private val whiteList = IntList.of(*(0..8).map { 0xFFFFFF }.toIntArray())
+
+    private fun SkinModelData.asItem(colors: IntList = IntList.of()): TransformedItemStack = PLUGIN.nms().createSkinItem(
+        namespace,
+        data.flags,
+        emptyList(),
+        colors + data.colors
+    )
+
+    private fun SkinModelData.asItem(resource: ArmorResource, item: ArmorItem? = null): TransformedItemStack {
+        if (item == null) return asItem(whiteList)
+        val armorData = ArmorManager.armor.resource(resource).run {
+            item.trim()?.let {
+                customModelData(item.type, item.tint, it, item.palette?.let { p -> ArmorManager.armor.colors()[p] })
+            } ?: customModelData(item.type, item.tint)
+        }
+        return PLUGIN.nms().createSkinItem(
+            namespace,
             data.flags,
-            data.colors
+            armorData.strings,
+            armorData.colors + data.colors
         )
     }
 
     fun write(block: (UVByteBuilder) -> Unit) {
         val itemObf = PackObfuscator.order()
         val modelObf = PackObfuscator.order()
-        fun UVModel.write() {
+        fun UVModel.write(armorResource: ArmorResource? = null) {
             val model = modelName()
             packName(itemObf.obfuscate(model))
-            asJson("one_pixel") {
-                modelObf.obfuscate("${model}_$it")
-            }.forEach {
+            asJson("one_pixel", UVLoadContext(
+                { modelObf.obfuscate("${model}_$it") },
+                { indexer, _, array ->
+                    armorResource?.let { ArmorManager.armor.resource(it) }?.let {
+                        array += it.toJson()
+                        indexer.shiftColor(9)
+                    }
+                }
+            )).forEach {
                 block(it)
             }
         }
-        HEAD.write()
-        CHEST.write()
-        WAIST.write()
-        HIP.write()
-        LEFT_LEG.write()
-        LEFT_FORELEG.write()
-        RIGHT_LEG.write()
-        RIGHT_FORELEG.write()
-        LEFT_ARM.write()
+        HEAD.write(ArmorResource.HELMET)
+        CHEST.write(ArmorResource.CHEST)
+        WAIST.write(ArmorResource.WAIST)
+        HIP.write(ArmorResource.HIP)
+        LEFT_LEG.write(ArmorResource.LEFT_LEG)
+        LEFT_FORELEG.write(ArmorResource.LEFT_FORELEG)
+        RIGHT_LEG.write(ArmorResource.RIGHT_LEG)
+        RIGHT_FORELEG.write(ArmorResource.RIGHT_FORELEG)
+        LEFT_ARM.write(ArmorResource.LEFT_ARM)
         LEFT_FOREARM.write()
-        RIGHT_ARM.write()
+        RIGHT_ARM.write(ArmorResource.RIGHT_ARM)
         RIGHT_FOREARM.write()
-        SLIM_LEFT_ARM.write()
+        SLIM_LEFT_ARM.write(ArmorResource.LEFT_ARM)
         SLIM_LEFT_FOREARM.write()
-        SLIM_RIGHT_ARM.write()
+        SLIM_RIGHT_ARM.write(ArmorResource.RIGHT_ARM)
         SLIM_RIGHT_FOREARM.write()
         CAPE.write()
 
@@ -772,33 +811,33 @@ object SkinManagerImpl : SkinManager, GlobalManager {
         val original: SkinProfile? = null
     ) : SkinData {
 
-        private val head = HEAD.asItem(skinImage)
-        private val hip = HIP.asItem(skinImage)
-        private val waist = WAIST.asItem(skinImage)
-        private val chest = CHEST.asItem(skinImage)
-        private val leftArm = (if (isSlim) SLIM_LEFT_ARM else LEFT_ARM).asItem(skinImage)
-        private val leftForeArm = (if (isSlim) SLIM_LEFT_FOREARM else LEFT_FOREARM).asItem(skinImage)
-        private val rightArm = (if (isSlim) SLIM_RIGHT_ARM else RIGHT_ARM).asItem(skinImage)
-        private val rightForeArm = (if (isSlim) SLIM_RIGHT_FOREARM else RIGHT_FOREARM).asItem(skinImage)
-        private val leftLeg = LEFT_LEG.asItem(skinImage)
-        private val leftForeLeg = LEFT_FORELEG.asItem(skinImage)
-        private val rightLeg = RIGHT_LEG.asItem(skinImage)
-        private val rightForeLeg = RIGHT_FORELEG.asItem(skinImage)
-        private val cape = capeImage?.let { CAPE.asItem(it) }
+        private val head = HEAD.asModelData(skinImage)
+        private val hip = HIP.asModelData(skinImage)
+        private val waist = WAIST.asModelData(skinImage)
+        private val chest = CHEST.asModelData(skinImage)
+        private val leftArm = (if (isSlim) SLIM_LEFT_ARM else LEFT_ARM).asModelData(skinImage)
+        private val rightArm = (if (isSlim) SLIM_RIGHT_ARM else RIGHT_ARM).asModelData(skinImage)
+        private val leftLeg = LEFT_LEG.asModelData(skinImage)
+        private val leftForeLeg = LEFT_FORELEG.asModelData(skinImage)
+        private val rightLeg = RIGHT_LEG.asModelData(skinImage)
+        private val rightForeLeg = RIGHT_FORELEG.asModelData(skinImage)
+        private val leftForeArm = (if (isSlim) SLIM_LEFT_FOREARM else LEFT_FOREARM).asModelData(skinImage).asItem()
+        private val rightForeArm = (if (isSlim) SLIM_RIGHT_FOREARM else RIGHT_FOREARM).asModelData(skinImage).asItem()
+        private val cape = capeImage?.let { CAPE.asModelData(it).asItem() }
 
-        override fun head(): TransformedItemStack = head
-        override fun hip(): TransformedItemStack = hip
-        override fun waist(): TransformedItemStack = waist
-        override fun chest(): TransformedItemStack = chest
-        override fun leftArm(): TransformedItemStack = leftArm
+        override fun head(profiled: Profiled): TransformedItemStack = head.asItem(ArmorResource.HELMET, profiled.armors().helmet())
+        override fun hip(profiled: Profiled): TransformedItemStack = hip.asItem(ArmorResource.HIP, profiled.armors().leggings())
+        override fun waist(profiled: Profiled): TransformedItemStack = waist.asItem(ArmorResource.WAIST, profiled.armors().chestplate())
+        override fun chest(profiled: Profiled): TransformedItemStack = chest.asItem(ArmorResource.CHEST, profiled.armors().chestplate())
+        override fun leftArm(profiled: Profiled): TransformedItemStack = leftArm.asItem(ArmorResource.LEFT_ARM, profiled.armors().chestplate())
+        override fun rightArm(profiled: Profiled): TransformedItemStack = rightArm.asItem(ArmorResource.RIGHT_ARM, profiled.armors().chestplate())
+        override fun leftLeg(profiled: Profiled): TransformedItemStack = leftLeg.asItem(ArmorResource.LEFT_LEG, profiled.armors().leggings())
+        override fun rightLeg(profiled: Profiled): TransformedItemStack = rightLeg.asItem(ArmorResource.RIGHT_LEG, profiled.armors().leggings())
+        override fun leftForeLeg(profiled: Profiled): TransformedItemStack = leftForeLeg.asItem(ArmorResource.LEFT_FORELEG, profiled.armors().boots())
+        override fun rightForeLeg(profiled: Profiled): TransformedItemStack = rightForeLeg.asItem(ArmorResource.RIGHT_FORELEG, profiled.armors().boots())
         override fun leftForeArm(): TransformedItemStack = leftForeArm
-        override fun rightArm(): TransformedItemStack = rightArm
         override fun rightForeArm(): TransformedItemStack = rightForeArm
-        override fun leftLeg(): TransformedItemStack = leftLeg
-        override fun leftForeLeg(): TransformedItemStack = leftForeLeg
-        override fun rightLeg(): TransformedItemStack = rightLeg
-        override fun rightForeLeg(): TransformedItemStack = rightForeLeg
-        override fun cape(): TransformedItemStack? = cape
+        override fun cape(profiled: Profiled): TransformedItemStack? = if (profiled.armors().chestplate() != null) cape?.offset(Vector3f(0F, 0F, -1F / 16F)) else cape
 
         fun refresh() = SkinDataImpl(isSlim, skinImage, capeImage, original)
     }

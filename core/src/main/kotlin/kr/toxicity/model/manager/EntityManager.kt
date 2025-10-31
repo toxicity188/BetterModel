@@ -12,7 +12,6 @@ import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent
 import it.unimi.dsi.fastutil.objects.ReferenceSet
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.animation.AnimationModifier
-import kr.toxicity.model.api.manager.EntityManager
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.ModelInteractionHand
 import kr.toxicity.model.api.pack.PackZipper
@@ -35,7 +34,7 @@ import org.bukkit.event.world.EntitiesUnloadEvent
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.potion.PotionEffectType
 
-object EntityManagerImpl : EntityManager, GlobalManager {
+object EntityManager : GlobalManager {
 
     private val effectSet = ReferenceSet.of(
         PotionEffectType.GLOWING,

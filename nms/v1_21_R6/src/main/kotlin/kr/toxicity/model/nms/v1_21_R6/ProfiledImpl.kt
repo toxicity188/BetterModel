@@ -8,15 +8,15 @@ package kr.toxicity.model.nms.v1_21_R6
 
 import com.mojang.authlib.GameProfile
 import kr.toxicity.model.api.BetterModel
+import kr.toxicity.model.api.armor.PlayerArmor
 import kr.toxicity.model.api.nms.Profiled
 
 class ProfiledImpl(
-    private val gameProfile: GameProfile,
+    private val playerArmor: PlayerArmor,
+    private val gameProfile: () -> GameProfile
 ) : Profiled {
-    private val slim by lazy {
-        BetterModel.plugin().skinManager().isSlim(gameProfile)
-    }
 
-    override fun profile(): GameProfile = gameProfile
-    override fun isSlim(): Boolean = slim
+    override fun profile(): GameProfile = gameProfile()
+    override fun isSlim(): Boolean = BetterModel.plugin().skinManager().isSlim(profile())
+    override fun armors(): PlayerArmor = playerArmor
 }

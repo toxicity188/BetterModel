@@ -9,6 +9,7 @@ package kr.toxicity.model.api.player;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.bone.BoneItemMapper;
 import kr.toxicity.model.api.data.renderer.RenderSource;
+import kr.toxicity.model.api.nms.Profiled;
 import kr.toxicity.model.api.skin.SkinData;
 import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.TransformedItemStack;
@@ -18,6 +19,7 @@ import org.bukkit.entity.ItemDisplay;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
@@ -59,7 +61,7 @@ public enum PlayerLimb {
             scale(2.7891F,5.5938F,3.7188F, 0.25F),
             offset(-0.625F, 1.5F, 0, 0.25F),
             offset(-0.043F, 1.5F, 0, 0.25F),
-            SkinData::rightForeArm,
+            (d, p) -> d.rightForeArm(),
             ItemDisplay.ItemDisplayTransform.FIXED
     ),
     /**
@@ -83,7 +85,7 @@ public enum PlayerLimb {
             scale(2.7891F,5.5938F,3.7188F, 0.25F),
             offset(0.625F, 1.5F, 0, 0.25F), 
             offset(0.043F, 1.5F, 0, 0.25F),
-            SkinData::leftForeArm,
+            (d, p) -> d.leftForeArm(),
             ItemDisplay.ItemDisplayTransform.FIXED
     ),
     /**
@@ -193,7 +195,7 @@ public enum PlayerLimb {
     private final @NotNull Vector3f slimScale;
     private final @NotNull Vector3f offset;
     private final @NotNull Vector3f slimOffset;
-    private final @NotNull Function<SkinData, TransformedItemStack> skinMapper;
+    private final @NotNull BiFunction<SkinData, Profiled, TransformedItemStack> skinMapper;
     private final @NotNull ItemDisplay.ItemDisplayTransform transform;
 
     @Getter
@@ -204,13 +206,13 @@ public enum PlayerLimb {
      * @param profiled target player
      * @return item
      */
-    public @NotNull TransformedItemStack createItem(@NotNull RenderSource.Profiled profiled) {
+    public @NotNull TransformedItemStack createItem(@NotNull Profiled profiled) {
         var profile = profiled.profile();
         var manager = BetterModel.plugin().skinManager();
         if (manager.supported()) {
-            return skinMapper.apply(manager.getOrRequest(profile));
+            return skinMapper.apply(manager.getOrRequest(profile), profiled);
         }
-        var isSlim = profiled.slim();
+        var isSlim = profiled.isSlim();
         return TransformedItemStack.of(position, isSlim ? slimOffset : offset, isSlim ? slimScale : scale, BetterModel.nms().createPlayerHead(profiled.profile()));
     }
 
@@ -220,7 +222,7 @@ public enum PlayerLimb {
     @RequiredArgsConstructor
     public class LimbItemMapper implements BoneItemMapper {
 
-        private final Function<RenderSource.Profiled, TransformedItemStack> playerMapper;
+        private final Function<Profiled, TransformedItemStack> playerMapper;
 
         @NotNull
         @Override
@@ -231,7 +233,7 @@ public enum PlayerLimb {
         @Override
         @NotNull
         public TransformedItemStack apply(@NotNull RenderSource<?> source, @NotNull TransformedItemStack transformedItemStack) {
-            if (source instanceof RenderSource.Profiled profiled) {
+            if (source instanceof Profiled profiled) {
                 return playerMapper.apply(profiled);
             }
             return transformedItemStack;

@@ -7,6 +7,7 @@
 package kr.toxicity.model.api.nms;
 
 import com.mojang.authlib.GameProfile;
+import kr.toxicity.model.api.armor.PlayerArmor;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -25,4 +26,9 @@ public interface Profiled {
      */
     boolean isSlim();
 
+    /**
+     * Gets player armor
+     * @return armor
+     */
+    @NotNull PlayerArmor armors();
 }

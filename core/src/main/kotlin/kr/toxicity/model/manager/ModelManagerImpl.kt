@@ -169,8 +169,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                     "type" to "range_dispatch",
                     "property" to "custom_model_data",
                     "fallback" to jsonObjectOf(
-                        "type" to "minecraft:model",
-                        "model" to "minecraft:item/${CONFIG.item().name.lowercase()}"
+                        "type" to "minecraft:empty"
                     ),
                     "entries" to entries
                 )).run {

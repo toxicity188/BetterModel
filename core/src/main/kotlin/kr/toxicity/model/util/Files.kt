@@ -6,11 +6,13 @@
  */
 package kr.toxicity.model.util
 
+import java.awt.image.BufferedImage
 import java.io.File
 import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.stream.Stream
+import javax.imageio.ImageIO
 
 inline fun File.getOrCreateDirectory(name: String, initialConsumer: (File) -> Unit = {}) = File(this, name).also { target ->
     if (!target.exists()) {
@@ -19,9 +21,13 @@ inline fun File.getOrCreateDirectory(name: String, initialConsumer: (File) -> Un
     }
 }
 
+fun File.subFiles(): List<File> = listFiles()?.toList() ?: emptyList()
+
 inline fun copyResourceAs(name: String, block: (InputStream) -> Unit) {
     PLUGIN.getResource(name)?.use(block)
 }
+
+fun File.toImage(): BufferedImage = ImageIO.read(this)
 
 fun File.fileTreeList(): Stream<Path> = Files.find(
     toPath(),

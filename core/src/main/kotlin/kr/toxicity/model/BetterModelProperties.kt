@@ -75,13 +75,14 @@ internal class BetterModelProperties(
         }
     val managers by lazy {
         listOf(
-            CompatibilityManagerImpl,
+            CompatibilityManager,
+            ArmorManager,
             SkinManagerImpl,
             ModelManagerImpl,
             PlayerManagerImpl,
-            EntityManagerImpl,
+            EntityManager,
             ScriptManagerImpl,
-            CommandManagerImpl
+            CommandManager
         )
     }
 

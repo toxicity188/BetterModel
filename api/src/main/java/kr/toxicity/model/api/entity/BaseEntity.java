@@ -139,13 +139,13 @@ public interface BaseEntity extends Identifiable, PersistentDataHolder {
      * Gets main hand item
      * @return main hand
      */
-    @Nullable TransformedItemStack mainHand();
+    @NotNull TransformedItemStack mainHand();
 
     /**
      * Gets offhand item
      * @return offhand
      */
-    @Nullable TransformedItemStack offHand();
+    @NotNull TransformedItemStack offHand();
 
     /**
      * Gets tracker registry of this adapter

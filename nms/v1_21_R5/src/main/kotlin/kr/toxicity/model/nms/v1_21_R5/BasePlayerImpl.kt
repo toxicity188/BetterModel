@@ -16,8 +16,8 @@ import java.util.stream.Stream
 
 class BasePlayerImpl(
     private val delegate: CraftPlayer,
-    private val profile: GameProfile
-) : BaseBukkitEntity by BaseEntityImpl(delegate), BaseBukkitPlayer, Profiled by ProfiledImpl(profile) {
+    private val profile: () -> GameProfile
+) : BaseBukkitEntity by BaseEntityImpl(delegate), BaseBukkitPlayer, Profiled by ProfiledImpl(PlayerArmorImpl(delegate), profile) {
     override fun updateInventory() {
         delegate.handle.containerMenu.sendAllDataToRemote()
     }

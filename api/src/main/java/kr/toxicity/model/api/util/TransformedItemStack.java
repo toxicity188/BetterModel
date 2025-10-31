@@ -61,6 +61,15 @@ public record TransformedItemStack(@NotNull Vector3f position, @NotNull Vector3f
     }
 
     /**
+     * Sets offset
+     * @param offset offset
+     * @return new item
+     */
+    public @NotNull TransformedItemStack offset(@NotNull Vector3f offset) {
+        return of(position, offset, scale, itemStack);
+    }
+
+    /**
      * Modify item
      * @param mapper mapper
      * @return modified item

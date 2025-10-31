@@ -7,7 +7,6 @@
 package kr.toxicity.model.manager
 
 import kr.toxicity.model.api.BetterModel
-import kr.toxicity.model.api.manager.CompatibilityManager
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.compatibility.citizens.CitizensCompatibility
 import kr.toxicity.model.compatibility.mythicmobs.MythicMobsCompatibility
@@ -23,7 +22,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.server.PluginEnableEvent
 
-object CompatibilityManagerImpl : CompatibilityManager, GlobalManager {
+object CompatibilityManager : GlobalManager {
 
     private val compatibilities = mutableMapOf(
         "MythicMobs" to {

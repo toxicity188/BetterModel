@@ -8,6 +8,8 @@ package kr.toxicity.model.api.data.renderer;
 
 import com.mojang.authlib.GameProfile;
 import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.armor.PlayerArmor;
+import kr.toxicity.model.api.nms.Profiled;
 import kr.toxicity.model.api.tracker.*;
 import org.bukkit.Location;
 import org.jetbrains.annotations.ApiStatus;
@@ -50,10 +52,6 @@ public sealed interface RenderSource<T extends Tracker> {
     sealed interface Dummy extends RenderSource<DummyTracker> {
     }
 
-    sealed interface Profiled {
-        @NotNull GameProfile profile();
-        boolean slim();
-    }
 
     record BaseDummy(@NotNull Location location) implements Dummy {
         @NotNull
@@ -63,11 +61,16 @@ public sealed interface RenderSource<T extends Tracker> {
         }
     }
 
-    record ProfiledDummy(@NotNull Location location, @NotNull GameProfile profile, boolean slim) implements Profiled, Dummy {
+    record ProfiledDummy(@NotNull Location location, @NotNull GameProfile profile, boolean isSlim) implements Profiled, Dummy {
         @NotNull
         @Override
         public DummyTracker create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<DummyTracker> preUpdateConsumer) {
             return new DummyTracker(location, pipeline, modifier, preUpdateConsumer);
+        }
+
+        @Override
+        public @NotNull PlayerArmor armors() {
+            return PlayerArmor.EMPTY;
         }
     }
 
@@ -90,7 +93,7 @@ public sealed interface RenderSource<T extends Tracker> {
         }
     }
 
-    record ProfiledEntity(@NotNull kr.toxicity.model.api.entity.BaseEntity entity, @NotNull GameProfile profile, boolean slim) implements Entity, Profiled {
+    record ProfiledEntity(@NotNull kr.toxicity.model.api.entity.BaseEntity entity, @NotNull GameProfile profile, boolean isSlim) implements Entity, Profiled {
 
         @NotNull
         @Override
@@ -106,6 +109,11 @@ public sealed interface RenderSource<T extends Tracker> {
         @Override
         public @NotNull Location location() {
             return entity.location();
+        }
+
+        @Override
+        public @NotNull PlayerArmor armors() {
+            return PlayerArmor.EMPTY;
         }
     }
 
@@ -134,13 +142,18 @@ public sealed interface RenderSource<T extends Tracker> {
         }
 
         @Override
-        public boolean slim() {
+        public boolean isSlim() {
             var channel = BetterModel.plugin().playerManager().player(entity.uuid());
             return channel != null && channel.isSlim();
         }
+
+        @Override
+        public @NotNull PlayerArmor armors() {
+            return entity.armors();
+        }
     }
 
-    record ProfiledPlayer(@NotNull kr.toxicity.model.api.entity.BasePlayer entity, @NotNull GameProfile profile, boolean slim) implements Entity, Profiled {
+    record ProfiledPlayer(@NotNull kr.toxicity.model.api.entity.BasePlayer entity, @NotNull GameProfile profile, boolean isSlim) implements Entity, Profiled {
         @NotNull
         @Override
         public EntityTracker create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
@@ -155,6 +168,11 @@ public sealed interface RenderSource<T extends Tracker> {
         @Override
         public @NotNull Location location() {
             return entity.location();
+        }
+
+        @Override
+        public @NotNull PlayerArmor armors() {
+            return entity.armors();
         }
     }
 }

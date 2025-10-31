@@ -53,6 +53,13 @@ object PlayerManagerImpl : PlayerManager, GlobalManager {
     override fun reload(pipeline: ReloadPipeline, zipper: PackZipper) {
     }
 
+    override fun end() {
+        playerMap.values.removeIf {
+            it.use { used -> SkinManagerImpl.removeCache(used.profile()) }
+            true
+        }
+    }
+
 
     override fun player(uuid: UUID): PlayerChannelHandler? = playerMap[uuid]
     override fun player(player: Player): PlayerChannelHandler = player.register()

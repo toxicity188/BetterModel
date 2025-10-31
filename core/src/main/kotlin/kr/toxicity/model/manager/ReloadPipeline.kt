@@ -9,6 +9,7 @@ package kr.toxicity.model.manager
 import kr.toxicity.model.manager.debug.ReloadIndicator
 import kr.toxicity.model.util.PLUGIN
 import kr.toxicity.model.util.parallelIOThreadPool
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicInteger
 
 class ReloadPipeline(
@@ -29,6 +30,14 @@ class ReloadPipeline(
 
     fun <T> forEachParallel(list: List<T>, sizeAssume: (T) -> Long, block: (T) -> Unit) {
         pool.forEachParallel(list, sizeAssume, block)
+    }
+
+    fun <T, R> mapParallel(list: List<T>, sizeAssume: (T) -> Long, block: (T) -> R?): List<R> {
+        return CopyOnWriteArrayList<R>().apply {
+            forEachParallel(list, sizeAssume) { t: T ->
+                block(t)?.let { add(it) }
+            }
+        }
     }
 
     private val task = PLUGIN.scheduler().asyncTaskTimer(1, 1) {

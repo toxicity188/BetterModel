@@ -181,7 +181,7 @@ public interface NMS {
      * Creates skin item
      * @return item
      */
-    default @NotNull TransformedItemStack createSkinItem(@NotNull String model, @NotNull List<Boolean> flags, @NotNull List<Integer> colors) {
+    default @NotNull TransformedItemStack createSkinItem(@NotNull String model, @NotNull List<Boolean> flags, @NotNull List<String> strings, @NotNull List<Integer> colors) {
         return TransformedItemStack.empty();
     }
 
