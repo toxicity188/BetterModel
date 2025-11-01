@@ -12,11 +12,11 @@ import com.mojang.authlib.properties.PropertyMap
 import com.mojang.util.UUIDTypeAdapter
 import kr.toxicity.model.api.player.PlayerSkinProvider
 import kr.toxicity.model.api.skin.SkinProfile
+import kr.toxicity.model.util.buildHttpRequest
 import kr.toxicity.model.util.handleException
 import kr.toxicity.model.util.httpClient
 import java.io.Reader
 import java.net.URI
-import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.util.*
 import java.util.concurrent.CompletableFuture
@@ -38,20 +38,25 @@ class HttpPlayerSkinProvider : PlayerSkinProvider {
 
     override fun provide(profile: SkinProfile): CompletableFuture<SkinProfile> {
         return httpClient {
-            sendAsync(HttpRequest.newBuilder()
-                .GET()
-                .uri(URI.create("https://api.minecraftservices.com/minecraft/profile/lookup/name/${profile.name}"))
-                .build(), HttpResponse.BodyHandlers.ofInputStream()
+            sendAsync(
+                buildHttpRequest {
+                    GET()
+                    uri(URI.create("https://api.minecraftservices.com/minecraft/profile/lookup/name/${profile.name}"))
+                },
+                HttpResponse.BodyHandlers.ofInputStream()
             ).thenCompose {
                 val uuid = it.body().use { body ->
                     body.bufferedReader().use(JsonParser::parseReader)
                 }.asJsonObject
                     .getAsJsonPrimitive("id")
                     .asString
-                sendAsync(HttpRequest.newBuilder()
-                    .GET()
-                    .uri(URI.create("https://sessionserver.mojang.com/session/minecraft/profile/$uuid"))
-                    .build(), HttpResponse.BodyHandlers.ofInputStream())
+                sendAsync(
+                    buildHttpRequest {
+                        GET()
+                        uri(URI.create("https://sessionserver.mojang.com/session/minecraft/profile/$uuid"))
+                    },
+                    HttpResponse.BodyHandlers.ofInputStream()
+                )
             }.thenApply {
                 it.body().use { body ->
                     body.bufferedReader().use(::read)

@@ -38,7 +38,6 @@ import org.bukkit.Bukkit
 import org.joml.Vector3f
 import java.awt.image.BufferedImage
 import java.net.URI
-import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.util.*
 import java.util.concurrent.CompletableFuture
@@ -737,13 +736,15 @@ object SkinManagerImpl : SkinManager, GlobalManager {
                         String(Base64.getDecoder().decode(selected.textures.first().value)),
                         Skin::class.java
                     ).textures.run {
-                        fun SkinUrl.toFuture() = sendAsync(HttpRequest.newBuilder()
-                            .uri(toURI())
-                            .GET()
-                            .build(), HttpResponse.BodyHandlers.ofInputStream())
-                            .thenComposeAsync { request ->
-                                CompletableFuture.supplyAsync { request.body().use { ImageIO.read(it) } }
-                            }
+                        fun SkinUrl.toFuture() = sendAsync(
+                            buildHttpRequest {
+                                uri(toURI())
+                                GET()
+                            },
+                            HttpResponse.BodyHandlers.ofInputStream()
+                        ).thenComposeAsync { request ->
+                            CompletableFuture.supplyAsync { request.body().use { ImageIO.read(it) } }
+                        }
                         skin.toFuture().thenCombine(cape?.toFuture() ?: CompletableFuture.completedFuture(null)) { skin, cape ->
                             profileCache.put(id, SkinDataImpl(
                                 isSlim(selected),
