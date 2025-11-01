@@ -15,16 +15,174 @@ import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.util.CONFIG
 import kr.toxicity.model.util.DATA_FOLDER
 import kr.toxicity.model.util.PLUGIN
+import kr.toxicity.model.util.buildHttpRequest
 import kr.toxicity.model.util.getOrCreateDirectory
 import kr.toxicity.model.util.handleFailure
+import kr.toxicity.model.util.httpClient
+import kr.toxicity.model.util.info
 import kr.toxicity.model.util.subFiles
+import kr.toxicity.model.util.toComponent
 import kr.toxicity.model.util.toImage
+import kr.toxicity.model.util.toJson
+import net.kyori.adventure.text.format.NamedTextColor
 import java.io.File
+import java.net.URI
+import java.net.http.HttpResponse
+import java.util.concurrent.CompletableFuture
+import java.util.jar.JarFile
+import java.util.zip.ZipEntry
+import kotlin.io.path.createTempFile
 
 object ArmorManager : GlobalManager {
 
+    private const val ARMOR_PATH = "assets/minecraft/textures/entity/equipment/humanoid"
+    private const val ARMOR_PATH_LEGGINGS = "assets/minecraft/textures/entity/equipment/humanoid_leggings"
+
+    private const val ARMOR_TRIM_PATH = "assets/minecraft/textures/trims/entity/humanoid"
+    private const val ARMOR_TRIM_PATH_LEGGINGS = "assets/minecraft/textures/trims/entity/humanoid_leggings"
+    private const val ARMOR_PALETTE_PATH = "assets/minecraft/textures/trims/color_palettes"
+
+    private val armors = setOf(
+        "chainmail",
+        "copper",
+        "diamond",
+        "gold",
+        "iron",
+        "leather",
+        "netherite"
+    )
+
+    private val palettes = setOf(
+        "amethyst",
+        "copper",
+        "copper_darker",
+        "diamond",
+        "diamond_darker",
+        "emerald",
+        "gold",
+        "gold_darker",
+        "iron",
+        "iron_darker",
+        "lapis",
+        "netherite",
+        "netherite_darker",
+        "quartz",
+        "redstone",
+        "resin"
+    )
+
+    private val trims = setOf(
+        "bolt",
+        "coast",
+        "dune",
+        "eye",
+        "flow",
+        "host",
+        "raiser",
+        "rib",
+        "sentry",
+        "shaper",
+        "silence",
+        "snout",
+        "spire",
+        "tide",
+        "vex",
+        "ward",
+        "wayfinder",
+        "wild"
+    )
+
     var armor: ArmorModel = ArmorModel.EMPTY
         private set
+
+    private data class VersionManifest(
+        val latest: ManifestLatest,
+        val versions: List<ManifestVersion>
+    )
+
+    private data class ManifestLatest(
+        val release: String
+    )
+
+    private data class ManifestVersion(
+        val id: String,
+        val url: String
+    )
+
+    private data class VersionHash(
+        val downloads: Map<String, HashDownload>
+    )
+
+    private data class HashDownload(
+        val url: String
+    )
+
+    private data class MinecraftClient(
+        val version: String,
+        val file: File
+    )
+
+    private fun downloadMinecraftClient(): CompletableFuture<MinecraftClient?> = httpClient {
+        val cacheFolder = DATA_FOLDER.getOrCreateDirectory(".cache")
+        sendAsync(
+            buildHttpRequest {
+                GET()
+                uri(URI.create("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"))
+            },
+            HttpResponse.BodyHandlers.ofInputStream()
+        ).thenComposeAsync { response1 ->
+            val manifest = response1.toJson(VersionManifest::class.java).run {
+                versions.associateBy { it.id }[latest.release]!!
+            }
+            val cache = File(cacheFolder, "${manifest.id}.jar")
+            if (cache.exists() && cache.length() > 0) CompletableFuture.supplyAsync { MinecraftClient(manifest.id, cache) }
+            else sendAsync(
+                buildHttpRequest {
+                    GET()
+                    uri(URI.create(manifest.url))
+                },
+                HttpResponse.BodyHandlers.ofInputStream()
+            ).thenComposeAsync { response2 ->
+                val hash = response2.toJson(VersionHash::class.java)
+                sendAsync(
+                    buildHttpRequest {
+                        GET()
+                        uri(URI.create(hash.run { downloads["client"]!!.url }))
+                    },
+                    HttpResponse.BodyHandlers.ofInputStream()
+                ).thenComposeAsync { response3 ->
+                    val temp = createTempFile(cache.parentFile.toPath(), manifest.id, ".tmp").toFile()
+                    response3.body().use { input ->
+                        temp.outputStream().buffered().use(input::copyTo)
+                    }
+                    temp.renameTo(cache)
+                    CompletableFuture.supplyAsync { MinecraftClient(manifest.id, cache) }
+                }
+            }
+        }
+    }.orElse {
+        CompletableFuture.completedFuture(null)
+    }
+
+    private class ArmorImageCache(
+        val name: String,
+        val armor: ByteArray,
+        val leggings: ByteArray
+    ) {
+        fun write(target: File) {
+            val file = File(target, name).apply { mkdirs() }
+            File(file, "armor.png").outputStream().buffered().use { it.write(armor) }
+            File(file, "leggings.png").outputStream().buffered().use { it.write(leggings) }
+        }
+    }
+
+    private fun JarFile.loadArmorImage(name: String, armorPath: String, leggingsPath: String) = ArmorImageCache(
+        name,
+        loadImage(armorPath, name),
+        loadImage(leggingsPath, name)
+    )
+
+    private fun JarFile.loadImage(path: String, name: String) = getInputStream(ZipEntry("$path/$name.png")).use { it.readAllBytes() }
 
     override fun reload(
         pipeline: ReloadPipeline,
@@ -34,17 +192,19 @@ object ArmorManager : GlobalManager {
             armor = ArmorModel.EMPTY
             return
         }
-        val folder = DATA_FOLDER.getOrCreateDirectory("armor_assets") {
-            PLUGIN.loadAssets(
-                pipeline,
-                "armor_assets"
-            ) { path, stream ->
-                File(it, path).apply {
-                    parentFile.mkdirs()
-                }.outputStream().buffered().use { buffer ->
-                    stream.copyTo(buffer)
+        val folder = DATA_FOLDER.getOrCreateDirectory("armors") {
+            info("Downloading client jar...".toComponent())
+            val armorsFile = File(it, "armors")
+            val trimsFile = File(it, "armor_trims")
+            val palettesFile = File(it, "palettes").apply { mkdirs() }
+            downloadMinecraftClient().join()?.let { client ->
+                JarFile(client.file).use { jar ->
+                    armors.forEach { name -> jar.loadArmorImage(name, ARMOR_PATH, ARMOR_PATH_LEGGINGS).write(armorsFile) }
+                    trims.forEach { name -> jar.loadArmorImage(name, ARMOR_TRIM_PATH, ARMOR_TRIM_PATH_LEGGINGS).write(trimsFile) }
+                    palettes.forEach { name -> jar.loadImage(ARMOR_PALETTE_PATH, name).let { image -> File(palettesFile, "$name.png").writeBytes(image) } }
                 }
             }
+            info("Download success!".toComponent(NamedTextColor.LIGHT_PURPLE))
         }
         val textures = PackObfuscator.order()
         val models = PackObfuscator.order()
