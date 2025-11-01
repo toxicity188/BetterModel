@@ -35,11 +35,8 @@ import kotlin.io.path.createTempFile
 
 object ArmorManager : GlobalManager {
 
-    private const val ARMOR_PATH = "assets/minecraft/textures/entity/equipment/humanoid"
-    private const val ARMOR_PATH_LEGGINGS = "assets/minecraft/textures/entity/equipment/humanoid_leggings"
-
-    private const val ARMOR_TRIM_PATH = "assets/minecraft/textures/trims/entity/humanoid"
-    private const val ARMOR_TRIM_PATH_LEGGINGS = "assets/minecraft/textures/trims/entity/humanoid_leggings"
+    private val ARMOR_PATH = "assets/minecraft/textures/entity/equipment/humanoid" to  "assets/minecraft/textures/entity/equipment/humanoid_leggings"
+    private val ARMOR_TRIM_PATH = "assets/minecraft/textures/trims/entity/humanoid" to "assets/minecraft/textures/trims/entity/humanoid_leggings"
     private const val ARMOR_PALETTE_PATH = "assets/minecraft/textures/trims/color_palettes"
 
     private val armors = setOf(
@@ -169,6 +166,8 @@ object ArmorManager : GlobalManager {
         val armor: ByteArray,
         val leggings: ByteArray
     ) {
+        val size: Long get() = armor.size.toLong() + leggings.size.toLong()
+
         fun write(target: File) {
             val file = File(target, name).apply { mkdirs() }
             File(file, "armor.png").outputStream().buffered().use { it.write(armor) }
@@ -176,10 +175,10 @@ object ArmorManager : GlobalManager {
         }
     }
 
-    private fun JarFile.loadArmorImage(name: String, armorPath: String, leggingsPath: String) = ArmorImageCache(
+    private fun JarFile.loadArmorImage(name: String, pathPair: Pair<String, String>) = ArmorImageCache(
         name,
-        loadImage(armorPath, name),
-        loadImage(leggingsPath, name)
+        loadImage(pathPair.first, name),
+        loadImage(pathPair.second, name)
     )
 
     private fun JarFile.loadImage(path: String, name: String) = getInputStream(ZipEntry("$path/$name.png")).use { it.readAllBytes() }
@@ -197,14 +196,27 @@ object ArmorManager : GlobalManager {
             val armorsFile = File(it, "armors")
             val trimsFile = File(it, "armor_trims")
             val palettesFile = File(it, "palettes").apply { mkdirs() }
-            downloadMinecraftClient().join()?.let { client ->
-                JarFile(client.file).use { jar ->
-                    armors.forEach { name -> jar.loadArmorImage(name, ARMOR_PATH, ARMOR_PATH_LEGGINGS).write(armorsFile) }
-                    trims.forEach { name -> jar.loadArmorImage(name, ARMOR_TRIM_PATH, ARMOR_TRIM_PATH_LEGGINGS).write(trimsFile) }
-                    palettes.forEach { name -> jar.loadImage(ARMOR_PALETTE_PATH, name).let { image -> File(palettesFile, "$name.png").writeBytes(image) } }
+            runCatching {
+                downloadMinecraftClient().join()?.let { client ->
+                    JarFile(client.file).use { jar ->
+                        pipeline.forEachParallel(
+                            armors.map { name -> jar.loadArmorImage(name, ARMOR_PATH) },
+                                ArmorImageCache::size
+                        ) { image -> image.write(armorsFile) }
+                        pipeline.forEachParallel(
+                            trims.map { name -> jar.loadArmorImage(name, ARMOR_TRIM_PATH) },
+                            ArmorImageCache::size
+                        ) { image -> image.write(trimsFile) }
+                        pipeline.forEachParallel(
+                            palettes.map { name -> name to jar.loadImage(ARMOR_PALETTE_PATH, name) },
+                            { image -> image.second.size.toLong() },
+                        ) { image -> File(palettesFile, "${image.first}.png").writeBytes(image.second)}
+                    }
                 }
+                info("Download success!".toComponent(NamedTextColor.LIGHT_PURPLE))
+            }.handleFailure {
+                "Unable to download default armor assets."
             }
-            info("Download success!".toComponent(NamedTextColor.LIGHT_PURPLE))
         }
         val textures = PackObfuscator.order()
         val models = PackObfuscator.order()
