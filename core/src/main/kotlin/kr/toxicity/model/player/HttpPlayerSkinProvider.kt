@@ -46,7 +46,7 @@ class HttpPlayerSkinProvider : PlayerSkinProvider {
                 HttpResponse.BodyHandlers.ofInputStream()
             ).thenCompose {
                 val uuid = it.body().use { body ->
-                    body.bufferedReader().use(JsonParser::parseReader)
+                    body.reader().use(JsonParser::parseReader)
                 }.asJsonObject
                     .getAsJsonPrimitive("id")
                     .asString
@@ -59,7 +59,7 @@ class HttpPlayerSkinProvider : PlayerSkinProvider {
                 )
             }.thenApply {
                 it.body().use { body ->
-                    body.bufferedReader().use(::read)
+                    body.reader().use(::read)
                 }.let { p ->
                     SkinProfile(p.id, p.name, p.properties["textures"])
                 }
