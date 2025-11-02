@@ -35,7 +35,7 @@ import kotlin.io.path.createTempFile
 
 object ArmorManager : GlobalManager {
 
-    private val ARMOR_PATH = "assets/minecraft/textures/entity/equipment/humanoid" to  "assets/minecraft/textures/entity/equipment/humanoid_leggings"
+    private val ARMOR_PATH = "assets/minecraft/textures/entity/equipment/humanoid" to "assets/minecraft/textures/entity/equipment/humanoid_leggings"
     private val ARMOR_TRIM_PATH = "assets/minecraft/textures/trims/entity/humanoid" to "assets/minecraft/textures/trims/entity/humanoid_leggings"
     private const val ARMOR_PALETTE_PATH = "assets/minecraft/textures/trims/color_palettes"
 

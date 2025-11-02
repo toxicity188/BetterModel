@@ -730,7 +730,7 @@ object SkinManagerImpl : SkinManager, GlobalManager {
                     call()
                     skinProfile
                 }
-            }.thenCompose { selected ->
+            }.thenComposeAsync { selected ->
                 httpClient {
                     gson.fromJson(
                         String(Base64.getDecoder().decode(selected.textures.first().value)),

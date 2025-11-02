@@ -20,11 +20,11 @@ import org.bukkit.command.CommandSender
 class AnimateCommand {
     @Command(
         aliases = ["npc"],
-        usage = "animate <id> <animation> [speed] [player]",
+        usage = "animate <id> <animation> [loop_type] [speed] [player]",
         desc = "",
         modifiers = ["animate"],
         min = 3,
-        max = 5,
+        max = 6,
         permission = "citizens.npc.animate"
     )
     @Suppress("UNUSED")
@@ -34,8 +34,9 @@ class AnimateCommand {
         npc: NPC?,
         @Arg(1) id: String,
         @Arg(2) animation: String,
-        @Arg(3) speed: String?,
-        @Arg(4) player: String?
+        @Arg(3) loopType: String?,
+        @Arg(4) speed: String?,
+        @Arg(5) player: String?
     ) {
         val targetNpc = CitizensAPI.getNPCRegistry().getById(id.toIntOrNull() ?: return) ?: return
         val spd = speed?.toFloatOrNull() ?: 1F
@@ -44,7 +45,9 @@ class AnimateCommand {
             .start(0)
             .end(0)
             .speed { spd }
-            .type(AnimationIterator.Type.PLAY_ONCE)
+            .type(loopType?.runCatching {
+                AnimationIterator.Type.valueOf(uppercase())
+            }?.getOrNull() ?: AnimationIterator.Type.PLAY_ONCE)
             .build()
         BetterModel.registryOrNull(targetNpc.entity.uniqueId)?.trackers()?.forEach {
             it.animate(animation, modifier)

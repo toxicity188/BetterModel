@@ -7,6 +7,7 @@
 package kr.toxicity.model.api.event;
 
 
+import kr.toxicity.model.api.data.blueprint.ModelBlueprint;
 import kr.toxicity.model.api.data.renderer.ModelRenderer;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ public final class ModelImportedEvent extends AbstractModelEvent {
      */
     public static final HandlerList HANDLER_LIST = new HandlerList();
 
+    private final ModelBlueprint blueprint;
     private final ModelRenderer renderer;
 
     @Override
