@@ -10,6 +10,8 @@ import kr.toxicity.model.api.armor.ArmorItem
 import kr.toxicity.model.api.armor.PlayerArmor
 import net.minecraft.core.component.DataComponents
 import net.minecraft.world.entity.EquipmentSlot
+import net.minecraft.world.item.component.DyedItemColor
+import net.minecraft.world.item.equipment.EquipmentAssets
 import org.bukkit.craftbukkit.entity.CraftPlayer
 
 class PlayerArmorImpl(
@@ -35,7 +37,7 @@ class PlayerArmorImpl(
     private fun VanillaItemStack.toArmorItem(): ArmorItem? = get(DataComponents.EQUIPPABLE)?.assetId?.map {
         val trim = get(DataComponents.TRIM)
         ArmorItem(
-            get(DataComponents.DYED_COLOR)?.rgb ?: 0xFFFFFF,
+            get(DataComponents.DYED_COLOR)?.rgb ?: if (it === EquipmentAssets.LEATHER) DyedItemColor.LEATHER_COLOR else 0xFFFFFF,
             it.location().path,
             trim?.pattern?.value()?.assetId?.path,
             trim?.material?.value()?.assets?.base?.suffix

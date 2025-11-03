@@ -118,10 +118,6 @@ public record PackMeta(
             @SerializedName("min_inclusive") int minInclusive,
             @SerializedName("max_inclusive") int maxInclusive
     ) {
-        public static final VersionRange LEGACY = new VersionRange(
-                NMSVersion.first().getMetaVersion(),
-                64 //<=1.21.8
-        );
 
        public VersionRange(int value) {
            this(value, value);
@@ -141,7 +137,10 @@ public record PackMeta(
         private int format = BetterModel.nms().version().getMetaVersion();
         private String description = "BetterModel's default pack.";
         private final List<OverlayEntry> entries = new ArrayList<>();
-        private VersionRange supportedFormats = VersionRange.LEGACY;
+        private VersionRange supportedFormats = new VersionRange(
+                NMSVersion.first().getMetaVersion(),
+                NMSVersion.latest().getMetaVersion() //<=1.21.8
+        );
         private PackVersion minFormat = new PackVersion(NMSVersion.first().getMetaVersion());
         private PackVersion maxFormat = new PackVersion(NMSVersion.latest().getMetaVersion());
 
