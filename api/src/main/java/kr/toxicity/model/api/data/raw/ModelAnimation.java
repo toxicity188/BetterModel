@@ -65,7 +65,7 @@ public record ModelAnimation(
                         .filter(ModelAnimator::isAvailable),
                 e -> BoneTagRegistry.parse(e.name()),
                 e -> {
-                    var builder = new Builder(context, length());
+                    var builder = new Builder(context, length(), e.rotationGlobal());
                     e.stream().forEach(builder::addFrame);
                     return builder.build(name());
                 }
@@ -142,6 +142,7 @@ public record ModelAnimation(
 
         private final ModelLoadContext context;
         private final float length;
+        private final boolean rotationGlobal;
 
         private final List<VectorPoint> transform = new ArrayList<>();
         private final List<VectorPoint> scale = new ArrayList<>();
@@ -177,7 +178,8 @@ public record ModelAnimation(
                     name,
                     transform,
                     scale,
-                    rotation
+                    rotation,
+                    rotationGlobal
             );
         }
     }

@@ -6,6 +6,7 @@
  */
 package kr.toxicity.model.api.data.raw;
 
+import com.google.gson.annotations.SerializedName;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -19,12 +20,22 @@ import java.util.stream.Stream;
  * A raw model animator.
  * @param name group name
  * @param keyframes keyframes
+ * @param _rotationGlobal rotation global
  */
 @ApiStatus.Internal
 public record ModelAnimator(
         @Nullable String name,
-        @Nullable List<ModelKeyframe> keyframes
+        @Nullable List<ModelKeyframe> keyframes,
+        @Nullable @SerializedName("rotation_global") Boolean _rotationGlobal
 ) {
+
+    /**
+     * Gets rotation global
+     * @return rotation global
+     */
+    public boolean rotationGlobal() {
+        return Boolean.TRUE.equals(_rotationGlobal);
+    }
 
     /**
      * Checks this animator is available

@@ -656,11 +656,6 @@ public final class RenderedBone implements BoneEventHandler {
             return 1F - state.progress();
         }
 
-        private @NotNull BoneMovement defaultFrame() {
-            var keyframe = state.afterKeyframe();
-            return defaultFrame.plus(keyframe != null ? keyframe : AnimationMovement.EMPTY);
-        }
-
         public int interpolationDuration() {
             if (root.state(uuid).skipInterpolation) return 0;
             var frame = state.frame() / (float) Tracker.MINECRAFT_TICK_MULTIPLIER;
@@ -674,8 +669,10 @@ public final class RenderedBone implements BoneEventHandler {
 
         private @NotNull BoneMovement relativeOffset() {
             if (relativeOffsetCache != null) return relativeOffsetCache;
-            var def = defaultFrame();
-            var preventModifierUpdate = interpolationDuration() <= 1;
+            var keyframe = state.afterKeyframe();
+            if (keyframe == null) keyframe = AnimationMovement.EMPTY;
+            var def = defaultFrame.plus(keyframe);
+            var preventModifierUpdate = interpolationDuration() < 1;
             if (parent != null) {
                 var p = parent.state(uuid).relativeOffset();
                 return relativeOffsetCache = new BoneMovement(
@@ -686,7 +683,7 @@ public final class RenderedBone implements BoneEventHandler {
                                 ).sub(parent.lastModifiedPosition)
                                 .add(modifiedPosition(preventModifierUpdate)),
                         def.scale().mul(p.scale()),
-                        p.rotation().div(parent.lastModifiedRotation, new Quaternionf())
+                        (keyframe.globalRotation() ? new Quaternionf() : p.rotation().div(parent.lastModifiedRotation, new Quaternionf()))
                                 .mul(def.rotation())
                                 .mul(modifiedRotation(preventModifierUpdate)),
                         def.rawRotation()

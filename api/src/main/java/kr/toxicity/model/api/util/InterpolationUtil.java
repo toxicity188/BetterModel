@@ -44,12 +44,19 @@ public final class InterpolationUtil {
      * @param position position point
      * @param rotation rotation point
      * @param scale scale point
+     * @param rotationGlobal rotation global
      * @param points keyframe time set
      * @return animation movement list
      */
     @NotNull
     @Unmodifiable
-    public static List<AnimationMovement> buildAnimation(@NotNull List<VectorPoint> position, @NotNull List<VectorPoint> rotation, @NotNull List<VectorPoint> scale, @NotNull FloatSortedSet points) {
+    public static List<AnimationMovement> buildAnimation(
+            @NotNull List<VectorPoint> position,
+            @NotNull List<VectorPoint> rotation,
+            @NotNull List<VectorPoint> scale,
+            boolean rotationGlobal,
+            @NotNull FloatSortedSet points
+    ) {
         var pp = interpolatorFor(position);
         var sp = interpolatorFor(scale);
         var rp = interpolatorFor(rotation);
@@ -67,6 +74,7 @@ public final class InterpolationUtil {
                     takeIf(pr.vector, MathUtil::isNotZero),
                     takeIf(sr.vector, MathUtil::isNotZero),
                     takeIf(rr.vector, MathUtil::isNotZero),
+                    rotationGlobal,
                     pr.skipInterpolation || sr.skipInterpolation || rr.skipInterpolation
             );
             before = f;

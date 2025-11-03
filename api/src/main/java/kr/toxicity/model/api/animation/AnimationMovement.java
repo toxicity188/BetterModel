@@ -19,6 +19,7 @@ import java.util.List;
  * @param position position
  * @param scale scale
  * @param rotation rotation
+ * @param globalRotation global rotation
  * @param skipInterpolation skip interpolation
  */
 public record AnimationMovement(
@@ -26,6 +27,7 @@ public record AnimationMovement(
         @Nullable Vector3f position,
         @Nullable Vector3f scale,
         @Nullable Vector3f rotation,
+        boolean globalRotation,
         boolean skipInterpolation
 ) implements Timed {
 
@@ -50,7 +52,7 @@ public record AnimationMovement(
      * @param time time
      */
     public AnimationMovement(float time) {
-        this(time, null, null, null, false);
+        this(time, null, null, null, false, false);
     }
 
     /**

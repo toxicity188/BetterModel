@@ -25,19 +25,20 @@ public record BlueprintAnimator(
         @NotNull @Unmodifiable List<AnimationMovement> keyframe
 ) {
 
-
     /**
      * Animation data
      * @param name name
      * @param position position
      * @param scale scale
      * @param rotation rotation
+     * @param rotationGlobal rotation global
      */
     public record AnimatorData(
             @NotNull String name,
             @NotNull List<VectorPoint> position,
             @NotNull List<VectorPoint> scale,
-            @NotNull List<VectorPoint> rotation
+            @NotNull List<VectorPoint> rotation,
+            boolean rotationGlobal
     ) {
         /**
          * Gets flatten points

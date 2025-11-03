@@ -225,7 +225,7 @@ public final class MathUtil {
     }
 
     /**
-     * Converts zxy euler to xyz euler
+     * Converts quaternion to xyz euler
      * @param quaternion rotation
      * @return xyz euler
      */

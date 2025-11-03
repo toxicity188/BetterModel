@@ -62,6 +62,7 @@ public final class AnimationGenerator {
                         v.position(),
                         v.rotation(),
                         v.scale(),
+                        v.rotationGlobal(),
                         floatSet
                 )
         ));
