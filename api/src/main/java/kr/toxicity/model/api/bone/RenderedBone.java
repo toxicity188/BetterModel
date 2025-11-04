@@ -484,7 +484,7 @@ public final class RenderedBone implements BoneEventHandler {
     }
 
     public @NotNull BoneName name() {
-        return getGroup().getName();
+        return getGroup().name();
     }
 
     public void teleport(@NotNull Location location, @NotNull PacketBundler bundler) {

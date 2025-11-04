@@ -70,7 +70,25 @@ public sealed interface ModelChildren {
     record ModelUUID(@NotNull String uuid) implements ModelChildren {
         @Override
         public @NotNull BlueprintChildren toBlueprint(@NotNull ModelLoadContext context) {
-            return new BlueprintChildren.BlueprintElement(Objects.requireNonNull(context.elements.get(uuid())));
+            var get = Objects.requireNonNull(context.elements.get(uuid()));
+            return switch (get) {
+                case ModelElement.Cube cube -> new BlueprintChildren.BlueprintCube(
+                        BoneTagRegistry.parse(cube.name()),
+                        cube.from(),
+                        cube.to(),
+                        cube.inflate(),
+                        cube.rotation(),
+                        cube.origin(),
+                        cube.faces(),
+                        cube.visibility()
+                );
+                case ModelElement.Locator locator -> new BlueprintChildren.BlueprintLocator(BoneTagRegistry.parse(locator.name()));
+                case ModelElement.NullObject nullObject -> new BlueprintChildren.BlueprintNullObject(
+                        BoneTagRegistry.parse(nullObject.name()),
+                        BoneTagRegistry.parse(Objects.requireNonNull(context.elements.get(nullObject.ikTarget())).name())
+                );
+                case ModelElement.Unsupported ignored -> throw new UnsupportedOperationException(ignored.type());
+            };
         }
 
         @Override
@@ -92,14 +110,14 @@ public sealed interface ModelChildren {
         @Override
         public @NotNull BlueprintChildren toBlueprint(@NotNull ModelLoadContext context) {
             var child = mapToList(children, c -> c.toBlueprint(context));
-            var filtered = filterIsInstance(child, BlueprintChildren.BlueprintElement.class).toList();
+            var filtered = filterIsInstance(child, BlueprintChildren.BlueprintCube.class).toList();
             var selectedGroup = context.groups.getOrDefault(uuid(), group);
             return new BlueprintChildren.BlueprintGroup(
                     BoneTagRegistry.parse(selectedGroup.name()),
                     selectedGroup.origin(),
                     selectedGroup.rotation().invertXZ(),
                     child,
-                    filtered.isEmpty() ? selectedGroup.visibility() : filtered.stream().anyMatch(element -> element.element().visibility())
+                    filtered.isEmpty() ? selectedGroup.visibility() : filtered.stream().anyMatch(BlueprintChildren.BlueprintCube::visibility)
             );
         }
 

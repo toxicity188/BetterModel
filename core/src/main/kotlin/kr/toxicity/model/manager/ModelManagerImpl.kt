@@ -282,7 +282,6 @@ object ModelManagerImpl : ModelManager, GlobalManager {
         private fun ModelBlueprint.toRenderer(type: ModelRenderer.Type, consumer: (BlueprintGroup) -> Int?): ModelRenderer {
             fun BlueprintGroup.parse(): RendererGroup {
                 return RendererGroup(
-                    name,
                     scale(),
                     if (name.toItemMapper() !== BoneItemMapper.EMPTY) null else consumer(this)?.let { i ->
                         ItemStack(CONFIG.item()).apply {
