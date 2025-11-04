@@ -11,7 +11,7 @@ import kr.toxicity.model.api.tracker.Tracker
 import kr.toxicity.model.api.tracker.TrackerUpdateAction
 import kr.toxicity.model.api.util.function.BonePredicate
 
-class PartBrightnessScript(
+class BrightnessScript(
     val predicate: BonePredicate,
     val block: Int,
     val sky: Int
