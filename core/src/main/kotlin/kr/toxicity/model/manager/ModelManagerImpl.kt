@@ -36,6 +36,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
     private val generalModelView = generalModelMap.toImmutableView()
     private val playerModelMap = hashMapOf<String, ModelRenderer>()
     private val playerModelView = playerModelMap.toImmutableView()
+    private val modelExtensions = setOf("bbmodel", "ajmodel")
 
     private fun importModels(
         type: ModelRenderer.Type,
@@ -44,7 +45,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
     ): List<ImportedModel> {
         val modelFileMap = ConcurrentHashMap<String, Pair<Path, ModelBlueprint>>()
         val targetFolder = dir.fileTreeList().use { stream ->
-            stream.filter { it.extension == "bbmodel" }.toList()
+            stream.filter { it.extension in modelExtensions }.toList()
         }.ifEmpty {
             return emptyList()
         }
@@ -54,7 +55,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
             goal = targetFolder.size
         }.forEachParallel(targetFolder, Path::fileSize) {
             val load = it.toFile().toTexturedModel() ?: return@forEachParallel
-            modelFileMap.compute(load.name) compute@ { _, v ->
+            modelFileMap.compute(load.name) { _, v ->
                 val index = pipeline.progress()
                 if (v != null) {
                     // A model with the same name already exists from a different file
