@@ -184,5 +184,4 @@ public sealed interface ModelElement {
             return rotation != null ? rotation : Float3.ZERO;
         }
     }
-
 }

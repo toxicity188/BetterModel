@@ -278,9 +278,7 @@ public final class MathUtil {
         var dot = f.dot(t);
 
         if (len < 1e-6f) {
-            // 동일한 방향
             if (dot > 0.999999f) return new Quaternionf();
-            // 반대 방향 (180도 회전)
             var ortho = Math.abs(f.x) < 0.9f
                     ? f.cross(1, 0, 0, new Vector3f())
                     : f.cross(0, 1, 0, new Vector3f());
