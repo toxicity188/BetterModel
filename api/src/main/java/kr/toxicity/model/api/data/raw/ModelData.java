@@ -80,8 +80,8 @@ public record ModelData(
         );
         var group = mapToList(outliner(), children -> children.toBlueprint(context));
         var availableUUIDs = mapToSet(
-                filterIsInstance(outliner().stream().flatMap(ModelChildren::flatten), ModelChildren.ModelOutliner.class),
-                ModelChildren.ModelOutliner::uuid
+                outliner().stream().flatMap(ModelChildren::flatten),
+                ModelChildren::uuid
         );
         return new ModelLoadResult(
                 new ModelBlueprint(

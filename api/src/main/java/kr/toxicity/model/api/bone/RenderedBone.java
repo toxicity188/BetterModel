@@ -35,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -48,12 +49,7 @@ public final class RenderedBone implements BoneEventHandler {
 
     private static final int INITIAL_TINT_VALUE = 0xFFFFFF;
     private static final Vector3f EMPTY_VECTOR = new Vector3f();
-    private static final BoneMovement EMPTY_MOVEMENT = new BoneMovement(
-            EMPTY_VECTOR,
-            new Vector3f(1),
-            new Quaternionf(),
-            EMPTY_VECTOR
-    );
+    private static final int MAX_IK_ITERATION = 20;
 
     @Getter
     @NotNull
@@ -150,8 +146,13 @@ public final class RenderedBone implements BoneEventHandler {
     public void locator(@NotNull Map<BoneName, RenderedBone> boneMap) {
         if (getGroup().getParent() instanceof BlueprintElement.BlueprintNullObject nullObject) {
             var get = boneMap.get(nullObject.ikTarget());
-            if (get != null) get.locator = this;
+            if (get != null) get.locator(this);
         }
+    }
+
+    private void locator(@NotNull RenderedBone bone) {
+        locator = bone;
+        if (parent != null) parent.locator(bone);
     }
 
     private @NotNull BoneStateHandler state(@Nullable Player player) {
@@ -411,6 +412,15 @@ public final class RenderedBone implements BoneEventHandler {
         if (d != null) d.sendTransformation(bundler);
     }
 
+    public void applyLocator(@Nullable UUID uuid) {
+        if (locator != null) fabrik(
+                flatten().filter(b -> b.locator == locator)
+                        .map(b -> b.state(uuid))
+                        .toList(),
+                locator.root.group.getPosition().add(locator.state(uuid).after().position(), new Vector3f())
+                        .sub(root.group.getPosition())
+        );
+    }
 
     public int interpolationDuration() {
         return globalState.interpolationDuration();
@@ -431,10 +441,10 @@ public final class RenderedBone implements BoneEventHandler {
     public @NotNull Vector3f worldPosition(@NotNull Vector3f localOffset, @NotNull Vector3f globalOffset, @Nullable UUID uuid) {
         var state = state(uuid);
         var progress = state.progress();
-        var after = state.afterTransform != null ? state.afterTransform : state.relativeOffset();
-        var before = state.beforeTransform != null ? state.beforeTransform : EMPTY_MOVEMENT;
+        var after = state.after();
+        var before = state.before();
         return MathUtil.fma(
-                        InterpolationUtil.lerp(before.transform(), after.transform(), progress)
+                        InterpolationUtil.lerp(before.position(), after.position(), progress)
                                 .add(itemStack.offset())
                                 .add(localOffset)
                                 .rotate(
@@ -457,8 +467,8 @@ public final class RenderedBone implements BoneEventHandler {
     public @NotNull Vector3f worldRotation(@Nullable UUID uuid) {
         var state = state(uuid);
         var progress = state.progress();
-        var after = state.afterTransform != null ? state.afterTransform : state.relativeOffset();
-        var before = state.beforeTransform != null ? state.beforeTransform : EMPTY_MOVEMENT;
+        var after = state.after();
+        var before = state.before();
         return InterpolationUtil.lerp(before.rawRotation(), after.rawRotation(), progress);
     }
 
@@ -658,6 +668,14 @@ public final class RenderedBone implements BoneEventHandler {
             );
         }
 
+        private BoneMovement before() {
+            return beforeTransform != null ? beforeTransform : defaultFrame;
+        }
+
+        private BoneMovement after() {
+            return afterTransform != null ? afterTransform : relativeOffset();
+        }
+
         public boolean tick() {
             var result = state.tick(() -> {
                 if (uuid != null) {
@@ -665,6 +683,10 @@ public final class RenderedBone implements BoneEventHandler {
                     consumer.accept(uuid);
                 }
             }) || firstTick;
+            if (result) {
+                beforeTransform = afterTransform;
+                afterTransform = relativeOffset();
+            }
             firstTick = false;
             return result;
         }
@@ -679,11 +701,6 @@ public final class RenderedBone implements BoneEventHandler {
             return Math.round(frame + MathUtil.FLOAT_COMPARISON_EPSILON);
         }
 
-        private @NotNull BoneMovement nextMovement() {
-            beforeTransform = afterTransform;
-            return afterTransform = relativeOffset();
-        }
-
         private @NotNull BoneMovement relativeOffset() {
             if (relativeOffsetCache != null) return relativeOffsetCache;
             var keyframe = state.afterKeyframe();
@@ -694,9 +711,9 @@ public final class RenderedBone implements BoneEventHandler {
                 var p = parent.state(uuid).relativeOffset();
                 return relativeOffsetCache = new BoneMovement(
                         MathUtil.fma(
-                                        def.transform().rotate(p.rotation()),
+                                        def.position().rotate(p.rotation()),
                                         p.scale(),
-                                        p.transform()
+                                        p.position()
                                 ).sub(parent.lastModifiedPosition)
                                 .add(modifiedPosition(preventModifierUpdate)),
                         def.scale().mul(p.scale()),
@@ -707,7 +724,7 @@ public final class RenderedBone implements BoneEventHandler {
                 );
             }
             return relativeOffsetCache = new BoneMovement(
-                    def.transform().add(modifiedPosition(preventModifierUpdate)),
+                    def.position().add(modifiedPosition(preventModifierUpdate)),
                     def.scale(),
                     def.rotation().mul(modifiedRotation(preventModifierUpdate)),
                     def.rawRotation()
@@ -715,14 +732,14 @@ public final class RenderedBone implements BoneEventHandler {
         }
 
         private void sendTransformation(@NotNull PacketBundler bundler) {
-            var boneMovement = nextMovement();
             if (transformer == null) return;
+            var boneMovement = after();
             var mul = scale.getAsFloat();
             transformer.transform(
                     interpolationDuration(),
                     MathUtil.fma(
                             itemStack.offset().rotate(boneMovement.rotation(), new Vector3f())
-                                    .add(boneMovement.transform())
+                                    .add(boneMovement.position())
                                     .add(root.group.getPosition()),
                             mul,
                             itemStack.position()
@@ -734,6 +751,46 @@ public final class RenderedBone implements BoneEventHandler {
                     boneMovement.rotation(),
                     bundler
             );
+        }
+    }
+
+    private static void fabrik(@NotNull List<BoneStateHandler> bones, @NotNull Vector3f target) {
+        if (bones.size() < 2) return;
+
+        var first = bones.getFirst().after().position();
+        var last = bones.getLast().after().position();
+
+        var rootPos = new Vector3f(first);
+
+        float[] lengths = new float[bones.size() - 1];
+        for (int i = 0; i < bones.size() - 1; i++) {
+            lengths[i] = bones.get(i).after().position()
+                    .distance(bones.get(i + 1).after().position());
+        }
+        for (int iter = 0; iter < MAX_IK_ITERATION; iter++) {
+            // Forward
+            last.set(target);
+            for (int i = bones.size() - 2; i >= 0; i--) {
+                var current = bones.get(i).after().position();
+                var next = bones.get(i + 1).after().position();
+                current.set(InterpolationUtil.lerp(next, current, lengths[i] / current.distance(next)));
+            }
+            // Backward
+            first.set(rootPos);
+            for (int i = 0; i < bones.size() - 1; i++) {
+                var current = bones.get(i).after().position();
+                var next = bones.get(i + 1).after().position();
+                next.set(InterpolationUtil.lerp(current, next, lengths[i] / current.distance(next)));
+            }
+            // Check
+            if (last.distance(target) < MathUtil.FRAME_EPSILON) break;
+        }
+        for (int i = 0; i < bones.size() - 1; i++) {
+            var current = bones.get(i).after();
+            var next = bones.get(i + 1).after();
+
+            var dir = next.position().sub(current.position(), new Vector3f()).normalize();
+            current.rotation().set(MathUtil.fromToRotation(dir).mul(current.rotation()));
         }
     }
 }
