@@ -8,7 +8,7 @@ package kr.toxicity.model.api.data.renderer;
 
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.bone.*;
-import kr.toxicity.model.api.data.blueprint.BlueprintChildren;
+import kr.toxicity.model.api.data.blueprint.BlueprintElement;
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox;
 import kr.toxicity.model.api.mount.MountController;
 import kr.toxicity.model.api.mount.MountControllers;
@@ -36,7 +36,7 @@ public final class RendererGroup {
 
     private static final Vector3f DEFAULT_SCALE = new Vector3f(1);
     @Getter
-    private final BlueprintChildren.BlueprintGroup parent;
+    private final BlueprintElement.Bone parent;
     @Getter
     private final Vector3f position;
     private final Vector3f rotation;
@@ -64,7 +64,7 @@ public final class RendererGroup {
     public RendererGroup(
             float scale,
             @Nullable ItemStack itemStack,
-            @NotNull BlueprintChildren.BlueprintGroup group,
+            @NotNull BlueprintElement.Bone group,
             @NotNull Map<BoneName, RendererGroup> children,
             @Nullable NamedBoundingBox box
     ) {

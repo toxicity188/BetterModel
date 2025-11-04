@@ -11,6 +11,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.*;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
+import kr.toxicity.model.api.data.blueprint.BlueprintElement;
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox;
 import kr.toxicity.model.api.data.renderer.RenderSource;
 import kr.toxicity.model.api.data.renderer.RendererGroup;
@@ -67,6 +68,8 @@ public final class RenderedBone implements BoneEventHandler {
     @Nullable
     @Getter
     private final RenderedBone parent;
+
+    private RenderedBone locator;
 
     @Getter
     @NotNull
@@ -144,15 +147,25 @@ public final class RenderedBone implements BoneEventHandler {
         globalState = new BoneStateHandler(null, uuid -> {});
     }
 
+    public void locator(@NotNull Map<BoneName, RenderedBone> boneMap) {
+        if (getGroup().getParent() instanceof BlueprintElement.BlueprintNullObject nullObject) {
+            var get = boneMap.get(nullObject.ikTarget());
+            if (get != null) get.locator = this;
+        }
+    }
+
     private @NotNull BoneStateHandler state(@Nullable Player player) {
         return state(player != null ? player.getUniqueId() : null);
     }
+
     private @NotNull BoneStateHandler state(@Nullable UUID uuid) {
         return uuid == null ? globalState : perPlayerState.getOrDefault(uuid, globalState);
     }
+
     private @NotNull BoneStateHandler getOrCreateState(@Nullable Player player) {
         return getOrCreateState(player != null ? player.getUniqueId() : null);
     }
+
     private @NotNull BoneStateHandler getOrCreateState(@Nullable UUID uuid) {
         return uuid == null ? globalState : perPlayerState.computeIfAbsent(uuid, u -> {
             eventDispatcher.onStateCreated(this, u);
@@ -365,13 +378,13 @@ public final class RenderedBone implements BoneEventHandler {
         return false;
     }
 
-    public boolean tick(@NotNull PacketBundler globalBundler) {
-        return globalState.tick(globalBundler);
+    public boolean tick() {
+        return globalState.tick();
     }
 
-    public boolean tick(@NotNull UUID uuid, @NotNull PacketBundler perPlayerBundler) {
+    public boolean tick(@NotNull UUID uuid) {
         var get = perPlayerState.get(uuid);
-        return get != null && get.tick(perPlayerBundler);
+        return get != null && get.tick();
     }
 
     public void dirtyUpdate(@NotNull PacketBundler bundler) {
@@ -389,10 +402,15 @@ public final class RenderedBone implements BoneEventHandler {
         if (d != null) d.sendEntityData(!d.invisible(), bundler);
     }
 
+    public void sendTransformation(@Nullable UUID uuid, @NotNull PacketBundler bundler) {
+        state(uuid).sendTransformation(bundler);
+    }
+
     public void forceTransformation(@NotNull PacketBundler bundler) {
         var d = globalState.transformer;
         if (d != null) d.sendTransformation(bundler);
     }
+
 
     public int interpolationDuration() {
         return globalState.interpolationDuration();
@@ -640,14 +658,13 @@ public final class RenderedBone implements BoneEventHandler {
             );
         }
 
-        public boolean tick(@NotNull PacketBundler bundler) {
+        public boolean tick() {
             var result = state.tick(() -> {
                 if (uuid != null) {
                     perPlayerState.remove(uuid);
                     consumer.accept(uuid);
                 }
             }) || firstTick;
-            if (result) sendTransformation(bundler);
             firstTick = false;
             return result;
         }

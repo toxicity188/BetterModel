@@ -79,6 +79,7 @@ public final class RenderPipeline implements BoneEventHandler {
                 RenderedBone::name
         );
         displayAmount = (int) flattenBoneMap.values().stream()
+                .peek(bone -> bone.locator(flattenBoneMap))
                 .filter(rb -> rb.getDisplay() != null)
                 .count();
     }
@@ -153,11 +154,15 @@ public final class RenderPipeline implements BoneEventHandler {
     }
 
     public boolean tick(@NotNull PacketBundler bundler) {
-        return matchTree(b -> b.tick(bundler));
+        var match = matchTree(RenderedBone::tick);
+        if (match) iterateTree(b -> b.sendTransformation(null, bundler));
+        return match;
     }
 
     public boolean tick(@NotNull UUID uuid, @NotNull PacketBundler bundler) {
-        return matchTree(b -> b.tick(uuid, bundler));
+        var match = matchTree(b -> b.tick(uuid));
+        if (match) iterateTree(b -> b.sendTransformation(uuid, bundler));
+        return match;
     }
 
     public void defaultPosition(@NotNull Supplier<Vector3f> movement) {

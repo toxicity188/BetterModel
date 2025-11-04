@@ -14,7 +14,7 @@ import kr.toxicity.model.api.bone.BoneTagRegistry;
 import kr.toxicity.model.api.data.blueprint.AnimationGenerator;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimator;
-import kr.toxicity.model.api.data.blueprint.BlueprintChildren;
+import kr.toxicity.model.api.data.blueprint.BlueprintElement;
 import kr.toxicity.model.api.script.AnimationScript;
 import kr.toxicity.model.api.script.BlueprintScript;
 import kr.toxicity.model.api.script.TimeScript;
@@ -56,7 +56,7 @@ public record ModelAnimation(
     public @NotNull BlueprintAnimation toBlueprint(
             @NotNull ModelLoadContext context,
             @NotNull Set<String> availableUUIDs,
-            @NotNull List<BlueprintChildren> children
+            @NotNull List<BlueprintElement> children
     ) {
         var animators = AnimationGenerator.createMovements(length(), children, associate(
                 animators().entrySet().stream()

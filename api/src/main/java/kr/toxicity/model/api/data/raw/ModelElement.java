@@ -75,15 +75,26 @@ public sealed interface ModelElement {
      * @param name
      * @param uuid
      * @param ikTarget ik target
+     * @param position position
      */
     record NullObject(
             @NotNull String name,
             @NotNull String uuid,
-            @NotNull @SerializedName("ik_target") String ikTarget
+            @NotNull @SerializedName("ik_target") String ikTarget,
+            @Nullable Float3 position
     ) implements ModelElement {
         @Override
         public @NotNull String type() {
             return "null_object";
+        }
+
+        /**
+         * Gets position
+         * @return position
+         */
+        @Override
+        public @NotNull Float3 position() {
+            return position != null ? position : Float3.ZERO;
         }
     }
 

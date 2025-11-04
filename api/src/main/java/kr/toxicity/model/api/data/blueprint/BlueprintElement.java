@@ -29,15 +29,45 @@ import java.util.stream.Stream;
 import static kr.toxicity.model.api.util.CollectionUtil.*;
 
 /**
- * A children of blueprint (group, element).
+ * An element of blueprint.
  */
-public sealed interface BlueprintChildren {
+public sealed interface BlueprintElement {
 
     /**
-     * Gets bone name
-     * @return bone name
+     * Bone element
      */
-    @NotNull BoneName name();
+    sealed interface Bone extends BlueprintElement {
+        /**
+         * Gets bone name
+         * @return bone name
+         */
+        @NotNull BoneName name();
+    }
+
+
+    /**
+     * Gets origin
+     * @return origin
+     */
+    default @NotNull Float3 origin() {
+        return Float3.ZERO;
+    }
+
+    /**
+     * Gets rotation
+     * @return rotation
+     */
+    default @NotNull Float3 rotation() {
+        return Float3.ZERO;
+    }
+
+    /**
+     * Gets visibility
+     * @return visibility
+     */
+    default boolean visibility() {
+        return false;
+    }
 
     /**
      * Blueprint group
@@ -51,9 +81,9 @@ public sealed interface BlueprintChildren {
             @NotNull BoneName name,
             @NotNull Float3 origin,
             @NotNull Float3 rotation,
-            @NotNull List<BlueprintChildren> children,
+            @NotNull List<BlueprintElement> children,
             boolean visibility
-    ) implements BlueprintChildren {
+    ) implements Bone {
 
         /**
          * Gets origin
@@ -189,17 +219,21 @@ public sealed interface BlueprintChildren {
      */
     record BlueprintLocator(
             @NotNull BoneName name
-    ) implements BlueprintChildren {}
+    ) implements Bone {
+    }
 
     /**
      * Blueprint null object
      * @param name name
      * @param ikTarget ik target
+     * @param origin origin
      */
     record BlueprintNullObject(
             @NotNull BoneName name,
-            @NotNull BoneName ikTarget
-    ) implements BlueprintChildren {}
+            @NotNull BoneName ikTarget,
+            @NotNull Float3 origin
+    ) implements Bone {
+    }
 
     /**
      * Blueprint cube.
@@ -213,7 +247,7 @@ public sealed interface BlueprintChildren {
      * @param visibility visibility
      */
     record BlueprintCube(
-            @NotNull BoneName name,
+            @NotNull String name,
             @NotNull Float3 from,
             @NotNull Float3 to,
             float inflate,
@@ -221,7 +255,7 @@ public sealed interface BlueprintChildren {
             @NotNull Float3 origin,
             @Nullable ModelFace faces,
             boolean visibility
-    ) implements BlueprintChildren {
+    ) implements BlueprintElement {
 
         private @NotNull Float3 identifierDegree() {
             return MathUtil.identifier(rotation());

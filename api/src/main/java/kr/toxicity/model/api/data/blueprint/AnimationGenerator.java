@@ -44,7 +44,7 @@ public final class AnimationGenerator {
      */
     public static @NotNull Map<BoneName, BlueprintAnimator> createMovements(
             float length,
-            @NotNull List<BlueprintChildren> children,
+            @NotNull List<BlueprintElement> children,
             @NotNull Map<BoneName, BlueprintAnimator.AnimatorData> pointMap
     ) {
         var floatSet = mapFloat(pointMap.values()
@@ -70,10 +70,10 @@ public final class AnimationGenerator {
 
     private AnimationGenerator(
             @NotNull Map<BoneName, BlueprintAnimator.AnimatorData> pointMap,
-            @NotNull List<BlueprintChildren> children
+            @NotNull List<BlueprintElement> children
     ) {
         this.pointMap = pointMap;
-        trees = filterIsInstance(children, BlueprintChildren.BlueprintGroup.class)
+        trees = filterIsInstance(children, BlueprintElement.BlueprintGroup.class)
                 .map(g -> new AnimationTree(g, pointMap.get(g.name())))
                 .flatMap(AnimationTree::flatten)
                 .toList();
@@ -139,17 +139,17 @@ public final class AnimationGenerator {
         private int searchCache = 0;
         private final Float2ObjectMap<Vector3f> valueCache = new Float2ObjectOpenHashMap<>();
 
-        AnimationTree(@NotNull BlueprintChildren.BlueprintGroup group, @Nullable BlueprintAnimator.AnimatorData data) {
+        AnimationTree(@NotNull BlueprintElement.BlueprintGroup group, @Nullable BlueprintAnimator.AnimatorData data) {
             this(null, group, data);
         }
         AnimationTree(
                 @Nullable AnimationTree parent,
-                @NotNull BlueprintChildren.BlueprintGroup group,
+                @NotNull BlueprintElement.BlueprintGroup group,
                 @Nullable BlueprintAnimator.AnimatorData data
         ) {
             this.parent = parent;
             this.data = data;
-            children = filterIsInstance(group.children(), BlueprintChildren.BlueprintGroup.class)
+            children = filterIsInstance(group.children(), BlueprintElement.BlueprintGroup.class)
                     .map(g -> new AnimationTree(this, g, pointMap.get(g.name())))
                     .toList();
         }

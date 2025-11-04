@@ -10,7 +10,7 @@ import com.google.gson.JsonArray
 import kr.toxicity.model.api.bone.BoneItemMapper
 import kr.toxicity.model.api.bone.BoneTagRegistry
 import kr.toxicity.model.api.bone.BoneTags
-import kr.toxicity.model.api.data.blueprint.BlueprintChildren.BlueprintGroup
+import kr.toxicity.model.api.data.blueprint.BlueprintElement
 import kr.toxicity.model.api.data.blueprint.BlueprintJson
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint
 import kr.toxicity.model.api.data.renderer.ModelRenderer
@@ -279,8 +279,9 @@ object ModelManagerImpl : ModelManager, GlobalManager {
             )
         )
 
-        private fun ModelBlueprint.toRenderer(type: ModelRenderer.Type, consumer: (BlueprintGroup) -> Int?): ModelRenderer {
-            fun BlueprintGroup.parse(): RendererGroup {
+        private fun ModelBlueprint.toRenderer(type: ModelRenderer.Type, consumer: (BlueprintElement.BlueprintGroup) -> Int?): ModelRenderer {
+            fun BlueprintElement.Bone.parse(): RendererGroup {
+                if (this !is BlueprintElement.BlueprintGroup) return RendererGroup(1.0F, null, this, emptyMap(), null)
                 return RendererGroup(
                     scale(),
                     if (name.toItemMapper() !== BoneItemMapper.EMPTY) null else consumer(this)?.let { i ->
@@ -293,16 +294,16 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                         }
                     },
                     this,
-                    children.filterIsInstance<BlueprintGroup>()
-                        .associate { it.name to it.parse() },
+                    children.filterIsInstance<BlueprintElement.Bone>()
+                        .associate { it.name() to it.parse() },
                     hitBox(),
                 )
             }
             return ModelRenderer(
                 name,
                 type,
-                group.filterIsInstance<BlueprintGroup>()
-                    .associate { it.name to it.parse() },
+                group.filterIsInstance<BlueprintElement.Bone>()
+                    .associate { it.name() to it.parse() },
                 animations
             )
         }
