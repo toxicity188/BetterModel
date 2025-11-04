@@ -13,6 +13,7 @@ import kr.toxicity.model.api.script.AnimationScript
 import kr.toxicity.model.api.script.ScriptBuilder
 import kr.toxicity.model.script.ChangePartScript
 import kr.toxicity.model.script.EnchantScript
+import kr.toxicity.model.script.PartBrightnessScript
 import kr.toxicity.model.script.PartVisibilityScript
 import kr.toxicity.model.script.RemapScript
 import kr.toxicity.model.script.TintScript
@@ -49,6 +50,13 @@ object ScriptManagerImpl : ScriptManager, GlobalManager {
             PartVisibilityScript(
                 it.metadata.bonePredicate,
                 it.metadata.asBoolean("visible") ?: return@addBuilder AnimationScript.EMPTY,
+            )
+        }
+        addBuilder("partbright") {
+            PartBrightnessScript(
+                it.metadata.bonePredicate,
+                it.metadata().asNumber("block")?.toInt() ?: return@addBuilder AnimationScript.EMPTY,
+                it.metadata().asNumber("sky")?.toInt() ?: return@addBuilder AnimationScript.EMPTY,
             )
         }
         addBuilder("enchant") {
