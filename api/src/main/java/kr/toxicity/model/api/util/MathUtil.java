@@ -75,6 +75,8 @@ public final class MathUtil {
      */
     public static final FloatComparator FRAME_COMPARATOR = (a, b) -> isSimilar(a, b, FRAME_EPSILON) ? 0 : Float.compare(a, b);
 
+    private static final Vector3f FORWARD_AXIS = new Vector3f(0, -1, 0);
+
     private static final FloatSet VALID_ROTATION_DEGREES = FloatSet.of(
             0F,
             ROTATION_DEGREE,
@@ -250,6 +252,43 @@ public final class MathUtil {
         }
         ret.y = (float) asin(clamp(mat.m20, -1F, 1F));
         return ret.mul(RADIANS_TO_DEGREES);
+    }
+
+    /**
+     * Gets rotation from two vectors
+     * @param to to
+     * @return quaternion
+     */
+    public static @NotNull Quaternionf fromToRotation(Vector3f to) {
+        return fromToRotation(FORWARD_AXIS, to);
+    }
+
+    /**
+     * Gets rotation from two vectors
+     * @param from from
+     * @param to to
+     * @return quaternion
+     */
+    public static @NotNull Quaternionf fromToRotation(@NotNull Vector3f from, @NotNull Vector3f to) {
+        var f = new Vector3f(from).normalize();
+        var t = new Vector3f(to).normalize();
+
+        var axis = f.cross(t, new Vector3f());
+        var len = axis.length();
+        var dot = f.dot(t);
+
+        if (len < 1e-6f) {
+            if (dot > 0.999999f) return new Quaternionf();
+            var ortho = Math.abs(f.x) < 0.9f
+                    ? f.cross(1, 0, 0, new Vector3f())
+                    : f.cross(0, 1, 0, new Vector3f());
+            return new Quaternionf().fromAxisAngleRad(ortho.normalize(), (float) Math.PI);
+        }
+
+        axis.div(len);
+        var angle = (float) Math.atan2(len, dot);
+
+        return new Quaternionf().fromAxisAngleRad(axis, angle);
     }
 
     /**

@@ -8,7 +8,7 @@ package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonDeserializer;
 import kr.toxicity.model.api.bone.BoneTagRegistry;
-import kr.toxicity.model.api.data.blueprint.BlueprintChildren;
+import kr.toxicity.model.api.data.blueprint.BlueprintElement;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
@@ -49,7 +49,7 @@ public sealed interface ModelChildren {
      * @param context context
      * @return children
      */
-    @NotNull BlueprintChildren toBlueprint(@NotNull ModelLoadContext context);
+    @NotNull BlueprintElement toBlueprint(@NotNull ModelLoadContext context);
 
     /**
      * Flattens this children tree
@@ -69,8 +69,27 @@ public sealed interface ModelChildren {
      */
     record ModelUUID(@NotNull String uuid) implements ModelChildren {
         @Override
-        public @NotNull BlueprintChildren toBlueprint(@NotNull ModelLoadContext context) {
-            return new BlueprintChildren.BlueprintElement(Objects.requireNonNull(context.elements.get(uuid())));
+        public @NotNull BlueprintElement toBlueprint(@NotNull ModelLoadContext context) {
+            var get = Objects.requireNonNull(context.elements.get(uuid()));
+            return switch (get) {
+                case ModelElement.Cube cube -> new BlueprintElement.BlueprintCube(
+                        cube.name(),
+                        cube.from(),
+                        cube.to(),
+                        cube.inflate(),
+                        cube.rotation(),
+                        cube.origin(),
+                        cube.faces(),
+                        cube.visibility()
+                );
+                case ModelElement.Locator locator -> new BlueprintElement.BlueprintLocator(BoneTagRegistry.parse(locator.name()));
+                case ModelElement.NullObject nullObject -> new BlueprintElement.BlueprintNullObject(
+                        BoneTagRegistry.parse(nullObject.name()),
+                        BoneTagRegistry.parse(Objects.requireNonNull(context.elements.get(nullObject.ikTarget())).name()),
+                        nullObject.position()
+                );
+                case ModelElement.Unsupported ignored -> throw new UnsupportedOperationException(ignored.type());
+            };
         }
 
         @Override
@@ -90,16 +109,16 @@ public sealed interface ModelChildren {
     ) implements ModelChildren {
 
         @Override
-        public @NotNull BlueprintChildren toBlueprint(@NotNull ModelLoadContext context) {
+        public @NotNull BlueprintElement toBlueprint(@NotNull ModelLoadContext context) {
             var child = mapToList(children, c -> c.toBlueprint(context));
-            var filtered = filterIsInstance(child, BlueprintChildren.BlueprintElement.class).toList();
+            var filtered = filterIsInstance(child, BlueprintElement.BlueprintCube.class).toList();
             var selectedGroup = context.groups.getOrDefault(uuid(), group);
-            return new BlueprintChildren.BlueprintGroup(
+            return new BlueprintElement.BlueprintGroup(
                     BoneTagRegistry.parse(selectedGroup.name()),
                     selectedGroup.origin(),
                     selectedGroup.rotation().invertXZ(),
                     child,
-                    filtered.isEmpty() ? selectedGroup.visibility() : filtered.stream().anyMatch(element -> element.element().visibility())
+                    filtered.isEmpty() ? selectedGroup.visibility() : filtered.stream().anyMatch(BlueprintElement.BlueprintCube::visibility)
             );
         }
 

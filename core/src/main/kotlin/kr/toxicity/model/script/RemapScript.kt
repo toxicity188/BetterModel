@@ -26,7 +26,7 @@ class RemapScript(
     private val filter by lazy {
         map?.let {
             BetterModel.modelOrNull(it.toPackName())?.flatten()?.map { group ->
-                group.name
+                group.name()
             }?.toSet()
         }
     }
@@ -35,9 +35,9 @@ class RemapScript(
         val f = filter
         newModel?.run {
             if (flatten().filter {
-                f == null || f.contains(it.name)
+                f == null || f.contains(it.name())
             }.any {
-                tracker.bone(it.name)?.itemStack({ true }, it.itemStack) == true
+                tracker.bone(it.name())?.itemStack({ true }, it.itemStack) == true
             }) tracker.forceUpdate(true)
         }
     }

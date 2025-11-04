@@ -8,7 +8,7 @@ package kr.toxicity.model.api.data.renderer;
 
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.bone.*;
-import kr.toxicity.model.api.data.blueprint.BlueprintChildren;
+import kr.toxicity.model.api.data.blueprint.BlueprintElement;
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox;
 import kr.toxicity.model.api.mount.MountController;
 import kr.toxicity.model.api.mount.MountControllers;
@@ -35,11 +35,8 @@ import static kr.toxicity.model.api.util.CollectionUtil.mapValue;
 public final class RendererGroup {
 
     private static final Vector3f DEFAULT_SCALE = new Vector3f(1);
-
     @Getter
-    private final BoneName name;
-    @Getter
-    private final BlueprintChildren.BlueprintGroup parent;
+    private final BlueprintElement.Bone parent;
     @Getter
     private final Vector3f position;
     private final Vector3f rotation;
@@ -58,7 +55,6 @@ public final class RendererGroup {
 
     /**
      * Creates group instance.
-     * @param name name
      * @param scale scale
      * @param itemStack item
      * @param group parent
@@ -66,15 +62,12 @@ public final class RendererGroup {
      * @param box hit-box
      */
     public RendererGroup(
-            @NotNull BoneName name,
             float scale,
             @Nullable ItemStack itemStack,
-            @NotNull BlueprintChildren.BlueprintGroup group,
+            @NotNull BlueprintElement.Bone group,
             @NotNull Map<BoneName, RendererGroup> children,
             @Nullable NamedBoundingBox box
     ) {
-        this.name = name;
-        this.itemMapper = name.toItemMapper();
         this.parent = group;
         this.children = children;
         this.itemStack = TransformedItemStack.of(
@@ -83,12 +76,13 @@ public final class RendererGroup {
                 new Vector3f(scale),
                 itemStack != null ? itemStack : new ItemStack(Material.AIR)
         );
+        this.itemMapper = name().toItemMapper();
         position = group.origin().toBlockScale().toVector();
         this.hitBox = box;
         rotation = group.rotation().toVector();
-        if (name.tagged(BoneTags.SEAT)) {
+        if (name().tagged(BoneTags.SEAT)) {
             mountController = BetterModel.config().defaultMountController();
-        } else if (name.tagged(BoneTags.SUB_SEAT)) {
+        } else if (name().tagged(BoneTags.SUB_SEAT)) {
             mountController = MountControllers.NONE;
         } else mountController = MountControllers.INVALID;
     }
@@ -98,6 +92,14 @@ public final class RendererGroup {
                 Stream.of(this),
                 children.values().stream().flatMap(RendererGroup::flatten)
         );
+    }
+
+    /**
+     * Gets name
+     * @return name
+     */
+    public @NotNull BoneName name() {
+        return parent.name();
     }
 
     /**

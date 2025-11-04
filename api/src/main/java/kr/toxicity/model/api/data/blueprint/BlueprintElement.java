@@ -9,7 +9,7 @@ package kr.toxicity.model.api.data.blueprint;
 import com.google.gson.JsonObject;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.data.raw.Float3;
-import kr.toxicity.model.api.data.raw.ModelElement;
+import kr.toxicity.model.api.data.raw.ModelFace;
 import kr.toxicity.model.api.pack.PackObfuscator;
 import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.PackUtil;
@@ -29,9 +29,45 @@ import java.util.stream.Stream;
 import static kr.toxicity.model.api.util.CollectionUtil.*;
 
 /**
- * A children of blueprint (group, element).
+ * An element of blueprint.
  */
-public sealed interface BlueprintChildren {
+public sealed interface BlueprintElement {
+
+    /**
+     * Bone element
+     */
+    sealed interface Bone extends BlueprintElement {
+        /**
+         * Gets bone name
+         * @return bone name
+         */
+        @NotNull BoneName name();
+    }
+
+
+    /**
+     * Gets origin
+     * @return origin
+     */
+    default @NotNull Float3 origin() {
+        return Float3.ZERO;
+    }
+
+    /**
+     * Gets rotation
+     * @return rotation
+     */
+    default @NotNull Float3 rotation() {
+        return Float3.ZERO;
+    }
+
+    /**
+     * Gets visibility
+     * @return visibility
+     */
+    default boolean visibility() {
+        return false;
+    }
 
     /**
      * Blueprint group
@@ -45,9 +81,9 @@ public sealed interface BlueprintChildren {
             @NotNull BoneName name,
             @NotNull Float3 origin,
             @NotNull Float3 rotation,
-            @NotNull List<BlueprintChildren> children,
+            @NotNull List<BlueprintElement> children,
             boolean visibility
-    ) implements BlueprintChildren {
+    ) implements Bone {
 
         /**
          * Gets origin
@@ -75,12 +111,12 @@ public sealed interface BlueprintChildren {
                 @NotNull PackObfuscator.Pair obfuscator,
                 @NotNull ModelBlueprint parent
         ) {
-            Predicate<BlueprintElement> filter = element -> MathUtil.checkValidDegree(element.identifierDegree());
+            Predicate<BlueprintCube> filter = element -> MathUtil.checkValidDegree(element.identifierDegree());
             if (!skipLog) filter = filterWithWarning(
                     filter,
-                    element -> "The model " + parent.name() + "'s cube \"" + element.element.name() + "\" has an invalid rotation which does not supported in legacy client (<=1.21.3) " + element.element.rotation()
+                    element -> "The model " + parent.name() + "'s cube \"" + element.name() + "\" has an invalid rotation which does not supported in legacy client (<=1.21.3) " + element.rotation()
             );
-            return buildJson(-2, 1, scale(), obfuscator, parent, Float3.ZERO, filterIsInstance(children, BlueprintElement.class).filter(filter));
+            return buildJson(-2, 1, scale(), obfuscator, parent, Float3.ZERO, filterIsInstance(children, BlueprintCube.class).filter(filter));
         }
 
         /**
@@ -98,8 +134,8 @@ public sealed interface BlueprintChildren {
             var scale = scale();
             var list = mapIndexed(
                     group(
-                            filterIsInstance(children, BlueprintElement.class),
-                            BlueprintElement::identifierDegree
+                            filterIsInstance(children, BlueprintCube.class),
+                            BlueprintCube::identifierDegree
                     ),
                     (i, entry) -> buildJson(0, i + 1, scale, obfuscator, parent, entry.getKey(), entry.getValue().stream())
             ).filter(Objects::nonNull)
@@ -114,11 +150,11 @@ public sealed interface BlueprintChildren {
                 @NotNull PackObfuscator.Pair obfuscator,
                 @NotNull ModelBlueprint parent,
                 @NotNull Float3 identifier,
-                @NotNull Stream<BlueprintElement> cubes
+                @NotNull Stream<BlueprintCube> cubes
         ) {
             if (parent.textures().isEmpty()) return null;
             var cubeElement = cubes
-                    .filter(c -> c.element.hasTexture())
+                    .filter(BlueprintCube::hasTexture)
                     .toList();
             if (cubeElement.isEmpty()) return null;
             return new BlueprintJson(obfuscator.models().obfuscate(jsonName(parent) + "_" + number), JsonObjectBuilder.builder()
@@ -143,8 +179,8 @@ public sealed interface BlueprintChildren {
          * @return scale
          */
         public float scale() {
-            return (float) Math.max(filterIsInstance(children, BlueprintElement.class)
-                    .mapToDouble(e -> e.element.max(origin) / 16F)
+            return (float) Math.max(filterIsInstance(children, BlueprintCube.class)
+                    .mapToDouble(e -> e.max(origin) / 16F)
                     .max()
                     .orElse(1F), 1F);
         }
@@ -154,8 +190,7 @@ public sealed interface BlueprintChildren {
          * @return bounding box
          */
         public @Nullable NamedBoundingBox hitBox() {
-            return filterIsInstance(children, BlueprintElement.class).map(be -> {
-                var element = be.element;
+            return filterIsInstance(children, BlueprintCube.class).map(element -> {
                 var from = element.from()
                         .minus(origin)
                         .toBlockScale()
@@ -179,13 +214,51 @@ public sealed interface BlueprintChildren {
     }
 
     /**
-     * Blueprint element.
-     * @param element raw element
+     * Blueprint locator
+     * @param name name
      */
-    record BlueprintElement(@NotNull ModelElement element) implements BlueprintChildren {
+    record BlueprintLocator(
+            @NotNull BoneName name
+    ) implements Bone {
+    }
+
+    /**
+     * Blueprint null object
+     * @param name name
+     * @param ikTarget ik target
+     * @param origin origin
+     */
+    record BlueprintNullObject(
+            @NotNull BoneName name,
+            @NotNull BoneName ikTarget,
+            @NotNull Float3 origin
+    ) implements Bone {
+    }
+
+    /**
+     * Blueprint cube.
+     * @param name name
+     * @param from min-position
+     * @param to max-position
+     * @param inflate inflate
+     * @param rotation rotation
+     * @param origin origin
+     * @param faces uv
+     * @param visibility visibility
+     */
+    record BlueprintCube(
+            @NotNull String name,
+            @NotNull Float3 from,
+            @NotNull Float3 to,
+            float inflate,
+            @NotNull Float3 rotation,
+            @NotNull Float3 origin,
+            @Nullable ModelFace faces,
+            boolean visibility
+    ) implements BlueprintElement {
 
         private @NotNull Float3 identifierDegree() {
-            return MathUtil.identifier(element.rotation());
+            return MathUtil.identifier(rotation());
         }
 
         private static @NotNull Float3 centralize(@NotNull Float3 target, @NotNull Float3 groupOrigin, float scale) {
@@ -204,22 +277,22 @@ public sealed interface BlueprintChildren {
                 @NotNull Float3 identifier
         ) {
             var qua = MathUtil.toQuaternion(identifier.toVector()).invert();
-            var centerOrigin = centralize(element.origin(), group.origin, scale);
+            var centerOrigin = centralize(origin(), group.origin, scale);
             var groupDelta = deltaPosition(centerOrigin, qua);
-            var inflate = new Float3(element.inflate() / scale);
+            var inflate = new Float3(inflate() / scale);
             return JsonObjectBuilder.builder()
-                    .jsonArray("from", centralize(element.from(), group.origin, scale)
+                    .jsonArray("from", centralize(from(), group.origin, scale)
                             .plus(groupDelta)
                             .plus(Float3.CENTER)
                             .minus(inflate)
                             .toJson())
-                    .jsonArray("to", centralize(element.to(), group.origin, scale)
+                    .jsonArray("to", centralize(to(), group.origin, scale)
                             .plus(groupDelta)
                             .plus(Float3.CENTER)
                             .plus(inflate)
                             .toJson())
-                    .jsonObject("faces", Objects.requireNonNull(element.faces()).toJson(parent, tint))
-                    .jsonObject("rotation", Optional.of(element.rotation().minus(identifier))
+                    .jsonObject("faces", Objects.requireNonNull(faces()).toJson(parent, tint))
+                    .jsonObject("rotation", Optional.of(rotation().minus(identifier))
                             .filter(r -> !Float3.ZERO.equals(r))
                             .map(rot -> {
                                 var rotation = getRotation(rot);
@@ -231,6 +304,32 @@ public sealed interface BlueprintChildren {
                             })
                             .orElse(null))
                     .build();
+        }
+
+        /**
+         * Gets max length of this cube
+         * @param origin origin
+         * @return cube length
+         */
+        public float max(@NotNull Float3 origin) {
+            var f = from().minus(origin);
+            var t = to().minus(origin);
+            var max = 0F;
+            max = Math.max(max, Math.abs(f.x()));
+            max = Math.max(max, Math.abs(f.y()));
+            max = Math.max(max, Math.abs(f.z()));
+            max = Math.max(max, Math.abs(t.x()));
+            max = Math.max(max, Math.abs(t.y()));
+            max = Math.max(max, Math.abs(t.z()));
+            return max;
+        }
+
+        /**
+         * Checks this model has texture
+         * @return model has texture
+         */
+        public boolean hasTexture() {
+            return faces != null && faces.hasTexture();
         }
 
         private @NotNull JsonObject getRotation(@NotNull Float3 rot) {

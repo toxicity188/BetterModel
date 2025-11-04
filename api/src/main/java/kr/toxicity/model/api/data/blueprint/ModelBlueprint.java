@@ -29,7 +29,7 @@ public record ModelBlueprint(
         @NotNull String name,
         @NotNull ModelResolution resolution,
         @NotNull List<BlueprintTexture> textures,
-        @NotNull List<BlueprintChildren> group,
+        @NotNull List<BlueprintElement> group,
         @NotNull Map<String, BlueprintAnimation> animations
 ) {
 

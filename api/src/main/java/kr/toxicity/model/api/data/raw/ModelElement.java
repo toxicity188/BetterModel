@@ -6,129 +6,182 @@
  */
 package kr.toxicity.model.api.data.raw;
 
+import com.google.gson.JsonDeserializer;
 import com.google.gson.annotations.SerializedName;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A raw model's element (cube).
- * @param name name
- * @param type type
- * @param uuid cube's uuid
- * @param from min-position
- * @param to max-position
- * @param inflate inflate
- * @param rotation rotation
- * @param origin origin
- * @param faces uv
- * @param _visibility visibility
+ * A raw model's element
  */
 @ApiStatus.Internal
-public record ModelElement(
-        @NotNull String name,
-        @Nullable Type type,
-        @NotNull String uuid,
-        @Nullable Float3 from,
-        @Nullable Float3 to,
-        float inflate,
-        @Nullable Float3 rotation,
-        @NotNull Float3 origin,
-        @Nullable ModelFace faces,
-        @SerializedName("visibility") @Nullable Boolean _visibility
-) {
+public sealed interface ModelElement {
+
+    JsonDeserializer<ModelElement> PARSER = (json, type, context) -> {
+        var t = json.getAsJsonObject().getAsJsonPrimitive("type");
+        var select = t != null ? t.getAsString() : "cube";
+        return switch (select) {
+            case "null_object" -> context.deserialize(json, NullObject.class);
+            case "locator" -> context.deserialize(json, Locator.class);
+            case "cube" -> context.deserialize(json, Cube.class);
+            default -> new Unsupported(select);
+        };
+    };
+
     /**
-     * Gets max length of this cube
-     * @param origin origin
-     * @return cube length
+     * Gets name
+     * @return name
      */
-    public float max(@NotNull Float3 origin) {
-        var f = from().minus(origin);
-        var t = to().minus(origin);
-        var max = 0F;
-        max = Math.max(max, Math.abs(f.x()));
-        max = Math.max(max, Math.abs(f.y()));
-        max = Math.max(max, Math.abs(f.z()));
-        max = Math.max(max, Math.abs(t.x()));
-        max = Math.max(max, Math.abs(t.y()));
-        max = Math.max(max, Math.abs(t.z()));
-        return max;
-    }
+    @NotNull String name();
 
     /**
-     * Gets from-position
-     * @return from-position
+     * Gets uuid
+     * @return uuid
      */
-    @Override
-    public @NotNull Float3 from() {
-        return from != null ? from : Float3.ZERO;
-    }
+    @NotNull String uuid();
 
     /**
-     * Gets to-position
-     * @return to-position
+     * Gets type
+     * @return type
      */
-    @Override
-    public @NotNull Float3 to() {
-        return to != null ? to : Float3.ZERO;
-    }
+    @NotNull String type();
 
     /**
-     * Gets visibility
-     * @return visibility
-     */
-    public boolean visibility() {
-        return !Boolean.FALSE.equals(_visibility);
-    }
-
-    /**
-     * Gets rotation
-     * @return rotation
-     */
-    @Override
-    public @NotNull Float3 rotation() {
-        return rotation != null ? rotation : Float3.ZERO;
-    }
-
-    /**
-     * Gets element type
-     * @return element type
-     */
-    @Override
-    public @NotNull Type type() {
-        return type != null ? type : Type.CUBE;
-    }
-
-
-    /**
-     * Checks this model has texture
-     * @return model has texture
-     */
-    public boolean hasTexture() {
-        return faces != null && faces.hasTexture();
-    }
-
-    /**
-     * Checks this element is supported in the Minecraft client.
+     * Checks this element is supported
      * @return supported
      */
-    public boolean isSupported() {
-        return type() == Type.CUBE;
+    default boolean isSupported() {
+        return true;
     }
 
     /**
-     * Element type
+     * A raw model's locator
+     * @param name
+     * @param uuid
      */
-    public enum Type {
+    record Locator(
+            @NotNull String name,
+            @NotNull String uuid
+    ) implements ModelElement {
+        @Override
+        public @NotNull String type() {
+            return "locator";
+        }
+    }
+
+    /**
+     * A raw model's null object
+     * @param name
+     * @param uuid
+     * @param ikTarget ik target
+     * @param position position
+     */
+    record NullObject(
+            @NotNull String name,
+            @NotNull String uuid,
+            @NotNull @SerializedName("ik_target") String ikTarget,
+            @Nullable Float3 position
+    ) implements ModelElement {
+        @Override
+        public @NotNull String type() {
+            return "null_object";
+        }
+
         /**
-         * Cube
+         * Gets position
+         * @return position
          */
-        @SerializedName("cube")
-        CUBE,
+        @Override
+        public @NotNull Float3 position() {
+            return position != null ? position : Float3.ZERO;
+        }
+    }
+
+    /**
+     * Unsupported model's object
+     * @param type unsupported type
+     */
+    record Unsupported(@NotNull String type) implements ModelElement {
+
+        @Override
+        public @NotNull String name() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public @NotNull String uuid() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean isSupported() {
+            return false;
+        }
+    }
+
+    /**
+     * A raw model's cube.
+     * @param name name
+     * @param uuid cube's uuid
+     * @param from min-position
+     * @param to max-position
+     * @param inflate inflate
+     * @param rotation rotation
+     * @param origin origin
+     * @param faces uv
+     * @param _visibility visibility
+     */
+    record Cube(
+            @NotNull String name,
+            @NotNull String uuid,
+            @Nullable Float3 from,
+            @Nullable Float3 to,
+            float inflate,
+            @Nullable Float3 rotation,
+            @NotNull Float3 origin,
+            @Nullable ModelFace faces,
+            @SerializedName("visibility") @Nullable Boolean _visibility
+    ) implements ModelElement {
+
+        @Override
+        public @NotNull String type() {
+            return "cube";
+        }
+
         /**
-         * Mesh
+         * Gets from-position
+         * @return from-position
          */
-        @SerializedName("mesh")
-        MESH
+        @Override
+        public @NotNull Float3 from() {
+            return from != null ? from : Float3.ZERO;
+        }
+
+        /**
+         * Gets to-position
+         * @return to-position
+         */
+        @Override
+        public @NotNull Float3 to() {
+            return to != null ? to : Float3.ZERO;
+        }
+
+        /**
+         * Gets visibility
+         * @return visibility
+         */
+        public boolean visibility() {
+            return !Boolean.FALSE.equals(_visibility);
+        }
+
+        /**
+         * Gets rotation
+         * @return rotation
+         */
+        @Override
+        public @NotNull Float3 rotation() {
+            return rotation != null ? rotation : Float3.ZERO;
+        }
     }
 }

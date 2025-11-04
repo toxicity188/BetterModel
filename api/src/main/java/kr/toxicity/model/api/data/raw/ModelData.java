@@ -52,6 +52,7 @@ public record ModelData(
             .registerTypeAdapter(ModelMeta.class, ModelMeta.PARSER)
             .registerTypeAdapter(ModelChildren.class, ModelChildren.PARSER)
             .registerTypeAdapter(ModelPlaceholder.class, ModelPlaceholder.PARSER)
+            .registerTypeAdapter(ModelElement.class, ModelElement.PARSER)
             .create();
 
     /**
@@ -79,8 +80,8 @@ public record ModelData(
         );
         var group = mapToList(outliner(), children -> children.toBlueprint(context));
         var availableUUIDs = mapToSet(
-                filterIsInstance(outliner().stream().flatMap(ModelChildren::flatten), ModelChildren.ModelOutliner.class),
-                ModelChildren.ModelOutliner::uuid
+                outliner().stream().flatMap(ModelChildren::flatten),
+                ModelChildren::uuid
         );
         return new ModelLoadResult(
                 new ModelBlueprint(
@@ -95,18 +96,15 @@ public record ModelData(
     }
 
     /**
-     * Checks this model is supported in the Minecraft client.
-     * @return is supported
-     */
-    public boolean isSupported() {
-        return elements().stream().allMatch(ModelElement::isSupported);
-    }
-
-    /**
      * Asserts this model
      */
     public void assertSupported() {
-        if (!isSupported()) throw new RuntimeException("This model file has unsupported element type (e.g., mesh)");
+        elements().stream()
+                .filter(e -> !e.isSupported())
+                .findFirst()
+                .ifPresent(e -> {
+                    throw new RuntimeException("This model file has unsupported element type: " + e.type());
+                });
     }
 
     /**
