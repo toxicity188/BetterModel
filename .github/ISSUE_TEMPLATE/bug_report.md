@@ -2,7 +2,7 @@
 name: Bug report
 about: Create a report to help us improve
 title: Any issue
-labels: bug, question
+labels: bug
 assignees: toxicity188
 
 ---
@@ -24,6 +24,7 @@ I required some help to provide you a correct solution.
 **Disclaimer**  
 I do NOT provide any solution about that.
 
+- Outdated BetterModel
 - Using informal launcher such as Feather client
 - Closed-source plugin/mod such as Optifine, ItemsAdder or Nexo
 - Usage in hybrid bukkit such as ArcLight

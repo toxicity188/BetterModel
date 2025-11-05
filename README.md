@@ -1,7 +1,7 @@
 # ⚡ BetterModel
 [![Maven Central Version](https://img.shields.io/maven-central/v/io.github.toxicity188/bettermodel?style=flat-square&logo=sonatype)](https://central.sonatype.com/artifact/io.github.toxicity188/bettermodel)
 [![CodeFactor](https://www.codefactor.io/repository/github/toxicity188/bettermodel/badge?style=flat-square)](https://www.codefactor.io/repository/github/toxicity188/bettermodel)
-[![Total line](https://tokei.rs/b1/github/toxicity188/BetterModel?category=code&style=flat-square)](https://github.com/toxicity188/BetterModel)
+[![Code line](https://sloc.xyz/github/toxicity188/BetterModel/?category=codes&style=flat-square)](https://github.com/toxicity188/BetterModel)
 [![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/toxicity188/BetterModel?style=flat-square&logo=github)](https://github.com/toxicity188/BetterModel/issues)
 [![](https://img.shields.io/github/actions/workflow/status/toxicity188/BetterModel/publish.yml?style=flat-square)](https://modrinth.com/plugin/bettermodel/versions)
 
@@ -38,7 +38,8 @@ This plugin implements **fully server-side 3D model** by using an item display e
 - [adventure](https://github.com/KyoriPowered/adventure): component
 - [stable player display](https://github.com/bradleyq/stable_player_display): player animation
 - [caffeine](https://github.com/ben-manes/caffeine): concurrent map cache
-- [DynamicUV](https://github.com/toxicity188/DynamicUV): player model-uv
+- [DynamicUV](https://github.com/toxicity188/DynamicUV): player model
+- [ArmorModel](https://github.com/toxicity188/ArmorModel): armor in player model
 - [molang-compiler](https://github.com/Ocelot5836/molang-compiler): compiling and evaluating molang expression
 - [libby](https://github.com/AlessioDP/libby): runtime library downloader
 
