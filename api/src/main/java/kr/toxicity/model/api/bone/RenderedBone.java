@@ -649,6 +649,7 @@ public final class RenderedBone implements BoneEventHandler {
     private final class BoneStateHandler {
         private boolean firstTick = true;
         private boolean skipInterpolation = false;
+        private boolean sent;
         private final @Nullable UUID uuid;
         private final @NotNull Consumer<UUID> consumer;
         private final AnimationStateHandler<AnimationMovement> state;
@@ -686,6 +687,7 @@ public final class RenderedBone implements BoneEventHandler {
             if (result) {
                 beforeTransform = afterTransform;
                 afterTransform = relativeOffset();
+                sent = false;
             }
             firstTick = false;
             return result;
@@ -732,7 +734,8 @@ public final class RenderedBone implements BoneEventHandler {
         }
 
         private void sendTransformation(@NotNull PacketBundler bundler) {
-            if (transformer == null) return;
+            if (sent || transformer == null) return;
+            sent = true;
             var boneMovement = after();
             var mul = scale.getAsFloat();
             transformer.transform(
