@@ -666,7 +666,6 @@ public final class RenderedBone implements BoneEventHandler {
                     (b, a) -> {
                         synchronized (this) {
                             skipInterpolation = false;
-                            afterTransform = null;
                             if (a != null && a.skipInterpolation()) root.state(uuid).skipInterpolation = true;
                         }
                     }
@@ -717,6 +716,7 @@ public final class RenderedBone implements BoneEventHandler {
             if (result) {
                 synchronized (this) {
                     beforeTransform = afterTransform;
+                    afterTransform = null;
                     sent = false;
                 }
             }
