@@ -413,8 +413,10 @@ public final class RenderedBone implements BoneEventHandler {
     }
 
     public void applyLocator(@Nullable UUID uuid) {
-        if (locator != null) fabrik(
-                flatten().filter(b -> b.locator == locator)
+        if (locator == null) return;
+        fabrik(
+                flatten()
+                        .filter(s -> s.locator == locator)
                         .map(b -> b.state(uuid))
                         .toList(),
                 locator.root.group.getPosition().add(locator.state(uuid).after().position(), new Vector3f())
@@ -653,7 +655,7 @@ public final class RenderedBone implements BoneEventHandler {
         private final @Nullable UUID uuid;
         private final Consumer<UUID> consumer;
         private final AnimationStateHandler<AnimationMovement> state;
-        private volatile BoneMovement beforeTransform, afterTransform, relativeOffsetCache;
+        private volatile BoneMovement beforeTransform, afterTransform;
         private final DisplayTransformer transformer = display != null ? display.createTransformer() : null;
 
         private BoneStateHandler(@Nullable UUID uuid, @NotNull Consumer<UUID> consumer) {
@@ -662,19 +664,47 @@ public final class RenderedBone implements BoneEventHandler {
             state = new AnimationStateHandler<>(
                     AnimationMovement.EMPTY,
                     (b, a) -> {
-                        skipInterpolation = false;
-                        relativeOffsetCache = null;
-                        if (a != null && a.skipInterpolation()) root.state(uuid).skipInterpolation = true;
+                        synchronized (this) {
+                            skipInterpolation = false;
+                            afterTransform = null;
+                            if (a != null && a.skipInterpolation()) root.state(uuid).skipInterpolation = true;
+                        }
                     }
             );
         }
 
         private @NotNull BoneMovement before() {
-            return beforeTransform != null ? beforeTransform : defaultFrame;
+            return beforeTransform != null ? beforeTransform : (beforeTransform = defaultFrame);
         }
 
         private @NotNull BoneMovement after() {
-            return afterTransform != null ? afterTransform : relativeOffset();
+            if (afterTransform != null) return afterTransform;
+            var keyframe = state.afterKeyframe();
+            if (keyframe == null) keyframe = AnimationMovement.EMPTY;
+            var preventModifierUpdate = interpolationDuration() < 1;
+            var def = defaultFrame.plus(keyframe);
+            if (parent != null) {
+                var p = parent.state(uuid).after();
+                def = new BoneMovement(
+                        MathUtil.fma(
+                                        def.position().rotate(p.rotation()),
+                                        p.scale(),
+                                        p.position()
+                                ).sub(parent.lastModifiedPosition)
+                                .add(modifiedPosition(preventModifierUpdate)),
+                        def.scale().mul(p.scale()),
+                        (keyframe.globalRotation() ? new Quaternionf() : p.rotation().div(parent.lastModifiedRotation, new Quaternionf()))
+                                .mul(def.rotation())
+                                .mul(modifiedRotation(preventModifierUpdate)),
+                        def.rawRotation()
+                );
+            } else {
+                def.position().add(modifiedPosition(preventModifierUpdate));
+                def.rotation().mul(modifiedRotation(preventModifierUpdate));
+            }
+            synchronized (this) {
+                return afterTransform = def;
+            }
         }
 
         public boolean tick() {
@@ -685,9 +715,10 @@ public final class RenderedBone implements BoneEventHandler {
                 }
             }) || firstTick;
             if (result) {
-                beforeTransform = afterTransform;
-                afterTransform = relativeOffset();
-                sent = false;
+                synchronized (this) {
+                    beforeTransform = afterTransform;
+                    sent = false;
+                }
             }
             firstTick = false;
             return result;
@@ -701,36 +732,6 @@ public final class RenderedBone implements BoneEventHandler {
             if (root.state(uuid).skipInterpolation) return 0;
             var frame = state.frame() / (float) Tracker.MINECRAFT_TICK_MULTIPLIER;
             return Math.round(frame + MathUtil.FLOAT_COMPARISON_EPSILON);
-        }
-
-        private @NotNull BoneMovement relativeOffset() {
-            if (relativeOffsetCache != null) return relativeOffsetCache;
-            var keyframe = state.afterKeyframe();
-            if (keyframe == null) keyframe = AnimationMovement.EMPTY;
-            var def = defaultFrame.plus(keyframe);
-            var preventModifierUpdate = interpolationDuration() < 1;
-            if (parent != null) {
-                var p = parent.state(uuid).relativeOffset();
-                return relativeOffsetCache = new BoneMovement(
-                        MathUtil.fma(
-                                        def.position().rotate(p.rotation()),
-                                        p.scale(),
-                                        p.position()
-                                ).sub(parent.lastModifiedPosition)
-                                .add(modifiedPosition(preventModifierUpdate)),
-                        def.scale().mul(p.scale()),
-                        (keyframe.globalRotation() ? new Quaternionf() : p.rotation().div(parent.lastModifiedRotation, new Quaternionf()))
-                                .mul(def.rotation())
-                                .mul(modifiedRotation(preventModifierUpdate)),
-                        def.rawRotation()
-                );
-            }
-            return relativeOffsetCache = new BoneMovement(
-                    def.position().add(modifiedPosition(preventModifierUpdate)),
-                    def.scale(),
-                    def.rotation().mul(modifiedRotation(preventModifierUpdate)),
-                    def.rawRotation()
-            );
         }
 
         private void sendTransformation(@NotNull PacketBundler bundler) {
