@@ -651,7 +651,7 @@ public final class RenderedBone implements BoneEventHandler {
         private boolean skipInterpolation = false;
         private boolean sent;
         private final @Nullable UUID uuid;
-        private final @NotNull Consumer<UUID> consumer;
+        private final Consumer<UUID> consumer;
         private final AnimationStateHandler<AnimationMovement> state;
         private volatile BoneMovement beforeTransform, afterTransform, relativeOffsetCache;
         private final DisplayTransformer transformer = display != null ? display.createTransformer() : null;
@@ -669,11 +669,11 @@ public final class RenderedBone implements BoneEventHandler {
             );
         }
 
-        private BoneMovement before() {
+        private @NotNull BoneMovement before() {
             return beforeTransform != null ? beforeTransform : defaultFrame;
         }
 
-        private BoneMovement after() {
+        private @NotNull BoneMovement after() {
             return afterTransform != null ? afterTransform : relativeOffset();
         }
 
@@ -792,7 +792,7 @@ public final class RenderedBone implements BoneEventHandler {
             var current = bones.get(i).after();
             var next = bones.get(i + 1).after();
 
-            var dir = next.position().sub(current.position(), new Vector3f()).normalize();
+            var dir = next.position().sub(current.position(), new Vector3f());
             current.rotation().set(MathUtil.fromToRotation(dir).mul(current.rotation()));
         }
     }

@@ -50,7 +50,6 @@ public record ModelUV(
      */
     public @NotNull JsonObject toJson(@NotNull ModelBlueprint parent, int tint) {
         var object = new JsonObject();
-        if (!hasTexture()) return object;
         object.add("uv", uv.div(parent.textures().get(textureIndex()).resolution(parent.resolution())).toJson());
         if (rotation != 0) object.addProperty("rotation", rotation);
         object.addProperty("tintindex", tint);

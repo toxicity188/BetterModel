@@ -10,10 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -27,6 +24,7 @@ public final class ModelLoadContext {
     final @NotNull ModelMeta meta;
     final @NotNull Map<String, ModelElement> elements;
     final @NotNull Map<String, ModelGroup> groups;
+    final @NotNull Set<String> availableUUIDs;
     private final boolean strict;
     private final List<String> _errors = new ArrayList<>();
     final List<String> errors = Collections.unmodifiableList(_errors);

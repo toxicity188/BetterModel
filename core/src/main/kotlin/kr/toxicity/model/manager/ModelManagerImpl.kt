@@ -263,7 +263,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
             }
         }
 
-        private fun List<BlueprintJson>.toModernJson() = if (size == 1) get(0).toModernJson() else jsonObjectOf(
+        private fun List<BlueprintJson>.toModernJson() = if (size == 1) first().toModernJson() else jsonObjectOf(
             "type" to "minecraft:composite",
             "models" to fold(JsonArray(size)) { array, element -> array.apply { add(element.toModernJson()) } }
         )

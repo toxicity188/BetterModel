@@ -49,18 +49,16 @@ public record ModelAnimation(
     /**
      * Converts raw animation to blueprint animation
      * @param context context
-     * @param availableUUIDs available uuids
      * @param children children
      * @return converted animation
      */
     public @NotNull BlueprintAnimation toBlueprint(
             @NotNull ModelLoadContext context,
-            @NotNull Set<String> availableUUIDs,
             @NotNull List<BlueprintElement> children
     ) {
         var animators = AnimationGenerator.createMovements(length(), children, associate(
                 animators().entrySet().stream()
-                        .filter(e -> availableUUIDs.contains(e.getKey()))
+                        .filter(e -> context.availableUUIDs.contains(e.getKey()))
                         .map(Map.Entry::getValue)
                         .filter(ModelAnimator::isAvailable),
                 e -> BoneTagRegistry.parse(e.name()),

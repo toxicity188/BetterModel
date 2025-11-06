@@ -76,20 +76,17 @@ public record ModelData(
                 meta(),
                 associate(elements(), ModelElement::uuid),
                 associate(groups(), ModelGroup::uuid),
+                mapToSet(outliner().stream().flatMap(ModelChildren::flatten), ModelChildren::uuid),
                 strict
         );
         var group = mapToList(outliner(), children -> children.toBlueprint(context));
-        var availableUUIDs = mapToSet(
-                outliner().stream().flatMap(ModelChildren::flatten),
-                ModelChildren::uuid
-        );
         return new ModelLoadResult(
                 new ModelBlueprint(
                         name,
                         resolution(),
                         mapToList(textures(), ModelTexture::toBlueprint),
                         group,
-                        associate(animations().stream().map(raw -> raw.toBlueprint(context, availableUUIDs, group)), BlueprintAnimation::name)
+                        associate(animations().stream().map(raw -> raw.toBlueprint(context, group)), BlueprintAnimation::name)
                 ),
                 context.errors
         );

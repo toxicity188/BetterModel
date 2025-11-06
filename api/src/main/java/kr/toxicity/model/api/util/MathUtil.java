@@ -255,11 +255,11 @@ public final class MathUtil {
     }
 
     /**
-     * Gets rotation from two vectors
+     * Gets rotation from vectors
      * @param to to
      * @return quaternion
      */
-    public static @NotNull Quaternionf fromToRotation(Vector3f to) {
+    public static @NotNull Quaternionf fromToRotation(@NotNull Vector3f to) {
         return fromToRotation(FORWARD_AXIS, to);
     }
 
@@ -285,10 +285,7 @@ public final class MathUtil {
             return new Quaternionf().fromAxisAngleRad(ortho.normalize(), (float) Math.PI);
         }
 
-        axis.div(len);
-        var angle = (float) Math.atan2(len, dot);
-
-        return new Quaternionf().fromAxisAngleRad(axis, angle);
+        return new Quaternionf().fromAxisAngleRad(axis.div(len), (float) Math.atan2(len, dot));
     }
 
     /**

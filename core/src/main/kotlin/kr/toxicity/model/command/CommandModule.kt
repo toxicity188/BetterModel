@@ -132,12 +132,6 @@ class CommandModule(
 
     init {
         delegate.withPermission(rootPermission)
-        command("help") {
-            withAliases("h")
-            withOptionalArguments(pageArgs.suggest { helpComponentRange.map(Any::toString) })
-            withShortDescription("shows help command to player.")
-            executes(this@CommandModule)
-        }
     }
 
     fun command(name: String, block: CommandAPICommand.() -> Unit): CommandModule {
@@ -151,7 +145,14 @@ class CommandModule(
 
     fun build(): CommandAPICommand = delegate
         .withOptionalArguments(pageArgs)
-        .withSubcommands(*sub.values.toTypedArray())
+        .withSubcommands(*buildList {
+            add(CommandAPICommand("help")
+                .withPermission("$rootPermission.help")
+                .withAliases("h")
+                .withOptionalArguments(pageArgs.suggest { helpComponentRange.map(Any::toString) })
+                .executes(this@CommandModule))
+            addAll(sub.values)
+        }.toTypedArray())
         .executes(this)
 
 

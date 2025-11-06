@@ -18,6 +18,9 @@ import org.jetbrains.annotations.Nullable;
 @ApiStatus.Internal
 public sealed interface ModelElement {
 
+    /**
+     * Parser
+     */
     JsonDeserializer<ModelElement> PARSER = (json, type, context) -> {
         var t = json.getAsJsonObject().getAsJsonPrimitive("type");
         var select = t != null ? t.getAsString() : "cube";
