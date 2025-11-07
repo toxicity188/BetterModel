@@ -29,6 +29,11 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 
 class MythicMobsCompatibility : Compatibility {
+
+    private companion object {
+        const val NAMESPACE = "bm:"
+    }
+
     override fun start() {
         ScriptManagerImpl.addBuilder("mm") { name ->
             val args = name.args() ?: return@addBuilder AnimationScript.EMPTY
@@ -54,7 +59,7 @@ class MythicMobsCompatibility : Compatibility {
             @EventHandler
             fun MythicMechanicLoadEvent.load() {
                 if (!CONFIG.module().model) return
-                when (mechanicName.lowercase()) {
+                when (mechanicName.lowercase().substringAfter(NAMESPACE)) {
                     "playlimbanim" -> register(PlayLimbAnimMechanic(config))
                     "model" -> register(ModelMechanic(config))
                     "state", "animation" -> register(StateMechanic(config))
@@ -79,14 +84,14 @@ class MythicMobsCompatibility : Compatibility {
             @EventHandler
             fun MythicConditionLoadEvent.load() {
                 if (!CONFIG.module().model) return
-                when (conditionName.lowercase()) {
+                when (conditionName.lowercase().substringAfter(NAMESPACE)) {
                     "modelhaspassenger" -> register(ModelHasPassengerCondition(config))
                 }
             }
             @EventHandler
             fun MythicTargeterLoadEvent.load() {
                 if (!CONFIG.module().model) return
-                when (targeterName.lowercase()) {
+                when (targeterName.lowercase().substringAfter(NAMESPACE)) {
                     "modelpart" -> register(ModelPartTargeter(config))
                 }
             }
