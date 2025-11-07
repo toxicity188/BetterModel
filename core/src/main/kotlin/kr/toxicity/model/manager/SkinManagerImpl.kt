@@ -730,10 +730,11 @@ object SkinManagerImpl : SkinManager, GlobalManager {
                     call()
                     skinProfile
                 }
-            }.thenComposeAsync { selected ->
+            }.thenComposeAsync compose@ { selected ->
+                val textures = selected.textures.firstOrNull()?.value ?: return@compose CompletableFuture.completedFuture(null)
                 httpClient {
                     gson.fromJson(
-                        String(Base64.getDecoder().decode(selected.textures.first().value)),
+                        String(Base64.getDecoder().decode(textures)),
                         Skin::class.java
                     ).textures.run {
                         fun SkinUrl.toFuture() = sendAsync(
@@ -761,7 +762,7 @@ object SkinManagerImpl : SkinManager, GlobalManager {
                     }
                 }.orElse {
                     it.handleException("Unable to read this profile: ${selected.name}")
-                    CompletableFuture.completedFuture(null)
+                    CompletableFuture.failedFuture(it)
                 }
             }.exceptionally {
                 it.handleException("unable to read this skin: ${profile.name}")
