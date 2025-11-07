@@ -42,10 +42,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.*;
 import java.util.stream.Stream;
 
-/**
- * A rendered item-display.
- */
-public final class RenderedBone implements BoneEventHandler {
+public final class RenderedBone implements BoneEventHandler, SegmentBone {
 
     private static final int INITIAL_TINT_VALUE = 0xFFFFFF;
     private static final Vector3f EMPTY_VECTOR = new Vector3f();
@@ -106,6 +103,18 @@ public final class RenderedBone implements BoneEventHandler {
     private Vector3f lastModifiedPosition = new Vector3f();
     private Function<Quaternionf, Quaternionf> rotationModifier = r -> r;
     private Quaternionf lastModifiedRotation = new Quaternionf();
+
+    private boolean bounded = false;
+    private float minX = -Float.MAX_VALUE;
+    private float maxX = Float.MAX_VALUE;
+    private float minY = -Float.MAX_VALUE;
+    private float maxY = Float.MAX_VALUE;
+    private float minZ = -Float.MAX_VALUE;
+    private float maxZ = Float.MAX_VALUE;
+    private float alignRate = 1.0F;
+    private float elasticity = 0.0F;
+    private final Vector3f worldLocation = new Vector3f();
+    private final Vector3f delta = new Vector3f();
 
     /**
      * Creates entity.
@@ -796,5 +805,107 @@ public final class RenderedBone implements BoneEventHandler {
             var dir = next.position().sub(current.position(), new Vector3f());
             current.rotation().set(MathUtil.fromToRotation(dir).mul(current.rotation()));
         }
+    }
+
+    @Override
+    public void setBounded(boolean bounded) {
+        this.bounded = bounded;
+    }
+
+    @Override
+    public boolean isBounded() {
+        return bounded;
+    }
+
+    @Override
+    public void setMinX(float minX) {
+        this.minX = minX;
+    }
+
+    @Override
+    public float getMinX() {
+        return minX;
+    }
+
+    @Override
+    public void setMaxX(float maxX) {
+        this.maxX = maxX;
+    }
+
+    @Override
+    public float getMaxX() {
+        return maxX;
+    }
+
+    @Override
+    public void setMinY(float minY) {
+        this.minY = minY;
+    }
+
+    @Override
+    public float getMinY() {
+        return minY;
+    }
+
+    @Override
+    public void setMaxY(float maxY) {
+        this.maxY = maxY;
+    }
+
+    @Override
+    public float getMaxY() {
+        return maxY;
+    }
+
+    @Override
+    public void setMinZ(float minZ) {
+        this.minZ = minZ;
+    }
+
+    @Override
+    public float getMinZ() {
+        return minZ;
+    }
+
+    @Override
+    public void setMaxZ(float maxZ) {
+        this.maxZ = maxZ;
+    }
+
+    @Override
+    public float getMaxZ() {
+        return maxZ;
+    }
+
+    @Override
+    public void setAlignRate(float alignRate) {
+        this.alignRate = alignRate;
+    }
+
+    @Override
+    public float getAlignRate() {
+        return alignRate;
+    }
+
+    @Override
+    public void setElasticity(float elasticity) {
+        this.elasticity = elasticity;
+    }
+
+    @Override
+    public float getElasticity() {
+        return elasticity;
+    }
+
+    @Override
+    @NotNull
+    public Vector3f getWorldLocation() {
+        return new Vector3f(worldLocation);
+    }
+
+    @Override
+    @NotNull
+    public Vector3f getDelta() {
+        return new Vector3f(delta);
     }
 }

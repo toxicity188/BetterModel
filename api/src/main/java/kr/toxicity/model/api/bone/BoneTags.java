@@ -132,7 +132,9 @@ public enum BoneTags implements BoneTag {
         public @NotNull ItemDisplay.ItemDisplayTransform transform() {
             return ItemDisplay.ItemDisplayTransform.FIXED;
         }
-    }, new String[] { "cape" })
+    }, new String[] { "cape" }),
+    SEGMENT(new String[] { "seg", "segment" }),
+    TAIL(new String[] { "tail" })
     ;
 
     BoneTags(@NotNull String[] tags) {

@@ -58,6 +58,7 @@ class MythicMobsCompatibility : Compatibility {
                     "playlimbanim" -> register(PlayLimbAnimMechanic(config))
                     "model" -> register(ModelMechanic(config))
                     "state", "animation" -> register(StateMechanic(config))
+                    "statetoggle", "togglestate" -> register(StateToggleMechanic(config))
                     "defaultstate", "defaultanimation" -> register(DefaultStateMechanic(config))
                     "partvisibility", "partvis" -> register(PartVisibilityMechanic(config))
                     "bindhitbox" -> register(BindHitBoxMechanic(config))
@@ -74,6 +75,7 @@ class MythicMobsCompatibility : Compatibility {
                     "bodyrotation", "bodyclamp" -> register(BodyRotationMechanic(config))
                     "remapmodel", "remap" -> register(RemapModelMechanic(config))
                     "pairmodel" -> register(PairModelMechanic(config))
+                    "segment", "tail" -> register(SegmentMechanic(config))
                 }
             }
             @EventHandler
