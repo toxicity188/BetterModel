@@ -35,18 +35,20 @@ class SkinsRestorerCompatibility : Compatibility {
                 })
             }
             SkinManagerImpl.setSkinProvider {
-                CompletableFuture.completedFuture(playerStorage
-                    .getSkinForPlayer(
-                        it.id,
-                        it.name,
-                        Bukkit.getOnlineMode()
-                    ).map { skin ->
-                        SkinProfile(
+                CompletableFuture.supplyAsync {
+                    playerStorage
+                        .getSkinForPlayer(
                             it.id,
                             it.name,
-                            listOf(skin.toProperty())
-                        )
-                    }.orElse(null))
+                            Bukkit.getOnlineMode()
+                        ).map { skin ->
+                            SkinProfile(
+                                it.id,
+                                it.name,
+                                listOf(skin.toProperty())
+                            )
+                        }.orElse(null)
+                }
             }
         }
     }
