@@ -248,7 +248,7 @@ object CommandManager : GlobalManager {
         val player = args.map("player") { sender as? Player ?: return audience.warn("Unable to find target player.") }
         val location = args.map("location") {
             player.location.apply {
-                add(Vector(0, 0, 10).rotateAroundY(-Math.toRadians(player.yaw.toDouble())))
+                add(Vector(0, 0, 10).rotateAroundY(-Math.toRadians(yaw.toDouble())))
                 yaw += 180
             }
         }
