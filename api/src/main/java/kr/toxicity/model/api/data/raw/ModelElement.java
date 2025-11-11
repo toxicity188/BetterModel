@@ -65,11 +65,20 @@ public sealed interface ModelElement {
      */
     record Locator(
             @NotNull String name,
-            @NotNull String uuid
+            @NotNull String uuid,
+            @Nullable Float3 position
     ) implements ModelElement {
         @Override
         public @NotNull String type() {
             return "locator";
+        }
+        /**
+         * Gets position
+         * @return position
+         */
+        @Override
+        public @NotNull Float3 position() {
+            return position != null ? position : Float3.ZERO;
         }
     }
 

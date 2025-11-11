@@ -11,6 +11,7 @@ import kr.toxicity.model.api.util.MathUtil;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.LinkedHashMap;
@@ -27,7 +28,7 @@ public final class BoneIKSolver {
     private static final int MAX_IK_ITERATION = 20;
 
     private final Map<UUID, RenderedBone> boneMap;
-    private final Map<RenderedBone, List<RenderedBone>> locators = new LinkedHashMap<>();
+    private final Map<RenderedBone, IKTree> locators = new LinkedHashMap<>();
 
     /**
      * Adds some external locator to this solver
@@ -38,12 +39,13 @@ public final class BoneIKSolver {
     public void addLocator(@Nullable UUID ikSource, @NotNull UUID ikTarget, @NotNull RenderedBone locator) {
         var target = boneMap.get(ikTarget);
         if (target == null) return;
-        var list = (ikSource == null ? target.root : boneMap.getOrDefault(ikSource, target.root))
-                .flatten()
-                .filter(bone -> bone.flattenBones().contains(target))
+        var root = locator.flattenBones().contains(target.root) ? locator : target.root;
+        var source = ikSource == null ? root : boneMap.getOrDefault(ikSource, root);
+        var list = source.flatten()
+                .filter(bone -> !bone.flattenBones().contains(locator) && bone.flattenBones().contains(target))
                 .toList();
         if (list.size() < 2) return;
-        locators.put(locator, list);
+        locators.put(locator, new IKTree(source, list));
     }
 
     /**
@@ -60,19 +62,24 @@ public final class BoneIKSolver {
     public void solve(@Nullable UUID uuid) {
         for (var entry : locators.entrySet()) {
             var locator = entry.getKey();
-            var root = entry.getValue().getFirst().root;
+            var value = entry.getValue();
+            var root = value.bones.getFirst();
             fabrik(
-                    entry.getValue()
-                            .stream()
+                    value.bones.stream()
                             .map(bone -> bone.state(uuid))
                             .toList(),
-                    locator.root.group.getPosition().add(locator.state(uuid).after().position(), new Vector3f())
-                            .sub(root.group.getPosition())
+                    value.source.state(uuid).after().rotation().get(new Quaternionf()),
+                    locator.state(uuid).after().position().get(new Vector3f())
+                            .add(locator.root.group.getPosition())
+                            .sub(root.state(uuid).after().position())
+                            .sub(root.root.group.getPosition())
             );
         }
     }
 
-    private static void fabrik(@NotNull List<RenderedBone.BoneStateHandler> bones, @NotNull Vector3f target) {
+    private record IKTree(@NotNull RenderedBone source, @NotNull List<RenderedBone> bones) {}
+
+    private static void fabrik(@NotNull List<RenderedBone.BoneStateHandler> bones, @NotNull Quaternionf parentRot, @NotNull Vector3f target) {
         var first = bones.getFirst().after().position();
         var last = bones.getLast().after().position();
 
@@ -80,8 +87,9 @@ public final class BoneIKSolver {
 
         float[] lengths = new float[bones.size() - 1];
         for (int i = 0; i < bones.size() - 1; i++) {
-            lengths[i] = bones.get(i).after().position()
-                    .distance(bones.get(i + 1).after().position());
+            var before = bones.get(i).after();
+            var after = bones.get(i + 1).after();
+            lengths[i] = before.position().distance(after.position());
         }
         for (int iter = 0; iter < MAX_IK_ITERATION; iter++) {
             // Forward
@@ -110,7 +118,7 @@ public final class BoneIKSolver {
             var next = bones.get(i + 1).after();
 
             var dir = next.position().sub(current.position(), new Vector3f());
-            current.rotation().set(MathUtil.fromToRotation(dir).mul(current.rotation()));
+            current.rotation().set(MathUtil.fromToRotation(dir).div(parentRot).mul(current.rotation()));
         }
     }
 }

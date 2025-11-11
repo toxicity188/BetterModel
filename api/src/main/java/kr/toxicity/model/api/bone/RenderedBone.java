@@ -696,4 +696,9 @@ public final class RenderedBone implements BoneEventHandler {
     public int hashCode() {
         return uuid().hashCode();
     }
+
+    @Override
+    public String toString() {
+        return name().toString();
+    }
 }

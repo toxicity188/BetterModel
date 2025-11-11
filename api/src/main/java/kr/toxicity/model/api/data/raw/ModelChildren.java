@@ -85,7 +85,11 @@ public sealed interface ModelChildren {
                         cube.faces(),
                         cube.visibility()
                 );
-                case ModelElement.Locator locator -> new BlueprintElement.BlueprintLocator(uid, BoneTagRegistry.parse(locator.name()));
+                case ModelElement.Locator locator -> new BlueprintElement.BlueprintLocator(
+                        uid,
+                        BoneTagRegistry.parse(locator.name()),
+                        locator.position()
+                );
                 case ModelElement.NullObject nullObject -> new BlueprintElement.BlueprintNullObject(
                         uid,
                         BoneTagRegistry.parse(nullObject.name()),

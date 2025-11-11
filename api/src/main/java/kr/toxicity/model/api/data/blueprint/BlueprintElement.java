@@ -46,15 +46,12 @@ public sealed interface BlueprintElement {
          * @return bone name
          */
         @NotNull BoneName name();
-    }
 
-
-    /**
-     * Gets origin
-     * @return origin
-     */
-    default @NotNull Float3 origin() {
-        return Float3.ZERO;
+        /**
+         * Gets origin
+         * @return origin
+         */
+        @NotNull Float3 origin();
     }
 
     /**
@@ -223,11 +220,22 @@ public sealed interface BlueprintElement {
      * Blueprint locator
      * @param uuid uuid
      * @param name name
+     * @param origin origin
      */
     record BlueprintLocator(
             @NotNull UUID uuid,
-            @NotNull BoneName name
+            @NotNull BoneName name,
+            @NotNull Float3 origin
     ) implements Bone {
+        /**
+         * Gets origin
+         * @return origin
+         */
+        @Override
+        @NotNull
+        public Float3 origin() {
+            return origin.invertXZ();
+        }
     }
 
     /**
@@ -245,6 +253,15 @@ public sealed interface BlueprintElement {
             @Nullable UUID ikSource,
             @NotNull Float3 origin
     ) implements Bone {
+        /**
+         * Gets origin
+         * @return origin
+         */
+        @Override
+        @NotNull
+        public Float3 origin() {
+            return origin.invertXZ();
+        }
     }
 
     /**
