@@ -170,7 +170,7 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
     record Brightness(int block, int sky) implements TrackerUpdateAction {
         @Override
         public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
-            return bone.brightness(predicate, block, sky);
+            return bone.applyAtDisplay(predicate, display -> display.brightness(block, sky));
         }
     }
 
@@ -192,7 +192,7 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
 
         @Override
         public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
-            return bone.glow(predicate, value);
+            return bone.applyAtDisplay(predicate, display -> display.glow(value));
         }
     }
 
@@ -203,7 +203,7 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
     record GlowColor(int glowColor) implements TrackerUpdateAction {
         @Override
         public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
-            return bone.glowColor(predicate, glowColor);
+            return bone.applyAtDisplay(predicate, display -> display.glowColor(glowColor));
         }
     }
 
@@ -214,7 +214,7 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
     record ViewRange(float viewRange) implements TrackerUpdateAction {
         @Override
         public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
-            return bone.viewRange(predicate, viewRange);
+            return bone.applyAtDisplay(predicate, display -> display.viewRange(viewRange));
         }
     }
 
@@ -284,7 +284,7 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
 
         @Override
         public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
-            return bone.togglePart(predicate, value);
+            return bone.applyAtDisplay(predicate, display -> display.invisible(!value));
         }
     }
 
@@ -306,7 +306,7 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
     record Billboard(@NotNull Display.Billboard billboard) implements TrackerUpdateAction {
         @Override
         public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
-            return bone.billboard(predicate, billboard);
+            return bone.applyAtDisplay(predicate, display -> display.billboard(billboard));
         }
     }
 
@@ -333,7 +333,7 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
     record MoveDuration(int moveDuration) implements TrackerUpdateAction {
         @Override
         public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
-            return bone.moveDuration(predicate, moveDuration);
+            return bone.applyAtDisplay(predicate, display -> display.moveDuration(moveDuration));
         }
     }
 

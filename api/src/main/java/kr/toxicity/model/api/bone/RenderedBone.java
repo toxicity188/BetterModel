@@ -26,7 +26,6 @@ import kr.toxicity.model.api.util.function.FloatSupplier;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Location;
-import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
@@ -35,9 +34,7 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.*;
 import java.util.stream.Stream;
@@ -65,7 +62,8 @@ public final class RenderedBone implements BoneEventHandler {
     @Getter
     private final RenderedBone parent;
 
-    private RenderedBone locator;
+    private final Set<RenderedBone> locators = new LinkedHashSet<>();
+    private List<RenderedBone> flattenBones;
 
     @Getter
     @NotNull
@@ -151,7 +149,7 @@ public final class RenderedBone implements BoneEventHandler {
     }
 
     private void locator(@NotNull RenderedBone bone) {
-        locator = bone;
+        locators.add(bone);
         if (parent != null) parent.locator(bone);
     }
 
@@ -244,20 +242,6 @@ public final class RenderedBone implements BoneEventHandler {
     }
 
     /**
-     * Sets bone's move duration.
-     * @param predicate predicate
-     * @param duration duration
-     * @return success or not
-     */
-    public boolean moveDuration(@NotNull Predicate<RenderedBone> predicate, int duration) {
-        if (display != null && predicate.test(this)) {
-            display.moveDuration(duration);
-            return true;
-        }
-        return false;
-    }
-
-    /**
      * Sets the scale of this bone
      * @param scale scale
      */
@@ -266,50 +250,14 @@ public final class RenderedBone implements BoneEventHandler {
     }
 
     /**
-     * Apply a glow to this model.
-     * @param glow should glow
+     * Applies some function at display
+     * @param predicate predicate
+     * @param consumer consumer
      * @return success or not
      */
-    public boolean glow(@NotNull Predicate<RenderedBone> predicate, boolean glow) {
+    public boolean applyAtDisplay(@NotNull Predicate<RenderedBone> predicate, @NotNull Consumer<ModelDisplay> consumer) {
         if (display != null && predicate.test(this)) {
-            display.glow(glow);
-            return true;
-        }
-        return false;
-    }
-    /**
-     * Sets a view range of this model.
-     * @param viewRange view range
-     * @return success or not
-     */
-    public boolean viewRange(@NotNull Predicate<RenderedBone> predicate, float viewRange) {
-        if (display != null && predicate.test(this)) {
-            display.viewRange(viewRange);
-            return true;
-        }
-        return false;
-    }
-    /**
-     * Sets a glow color to this model.
-     * @param glowColor hex glow color
-     * @return success or not
-     */
-    public boolean glowColor(@NotNull Predicate<RenderedBone> predicate, int glowColor) {
-        if (display != null && predicate.test(this)) {
-            display.glowColor(glowColor);
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Apply a billboard to this model.
-     * @param billboard billboard
-     * @return success or not
-     */
-    public boolean billboard(@NotNull Predicate<RenderedBone> predicate, @NotNull Display.Billboard billboard) {
-        if (display != null && predicate.test(this)) {
-            display.billboard(billboard);
+            consumer.accept(display);
             return true;
         }
         return false;
@@ -330,14 +278,6 @@ public final class RenderedBone implements BoneEventHandler {
                 tintCacheMap.clear();
                 return applyItem();
             }
-        }
-        return false;
-    }
-
-    public boolean brightness(@NotNull Predicate<RenderedBone> predicate, int block, int sky) {
-        if (display != null && predicate.test(this)) {
-            display.brightness(block, sky);
-            return true;
         }
         return false;
     }
@@ -413,15 +353,16 @@ public final class RenderedBone implements BoneEventHandler {
     }
 
     public void applyLocator(@Nullable UUID uuid) {
-        if (locator == null) return;
-        fabrik(
-                flatten()
-                        .filter(s -> s.locator == locator)
-                        .map(b -> b.state(uuid))
-                        .toList(),
-                locator.root.group.getPosition().add(locator.state(uuid).after().position(), new Vector3f())
-                        .sub(root.group.getPosition())
-        );
+        for (RenderedBone locator : locators) {
+            fabrik(
+                    flatten()
+                            .filter(s -> s.locators.contains(locator))
+                            .map(b -> b.state(uuid))
+                            .toList(),
+                    locator.root.group.getPosition().add(locator.state(uuid).after().position(), new Vector3f())
+                            .sub(root.group.getPosition())
+            );
+        }
     }
 
     public int interpolationDuration() {
@@ -443,16 +384,16 @@ public final class RenderedBone implements BoneEventHandler {
     public @NotNull Vector3f worldPosition(@NotNull Vector3f localOffset, @NotNull Vector3f globalOffset, @Nullable UUID uuid) {
         var state = state(uuid);
         var progress = state.progress();
-        var after = state.after();
+        var current = state.current();
         var before = state.before();
         return MathUtil.fma(
-                        InterpolationUtil.lerp(before.position(), after.position(), progress)
+                        InterpolationUtil.lerp(before.position(), current.position(), progress)
                                 .add(itemStack.offset())
                                 .add(localOffset)
                                 .rotate(
-                                        MathUtil.toQuaternion(InterpolationUtil.lerp(before.rawRotation(), after.rawRotation(), progress))
+                                        MathUtil.toQuaternion(InterpolationUtil.lerp(before.rawRotation(), current.rawRotation(), progress))
                                 ),
-                        InterpolationUtil.lerp(before.scale(), after.scale(), progress),
+                        InterpolationUtil.lerp(before.scale(), current.scale(), progress),
                         globalOffset
 
                 )
@@ -469,9 +410,9 @@ public final class RenderedBone implements BoneEventHandler {
     public @NotNull Vector3f worldRotation(@Nullable UUID uuid) {
         var state = state(uuid);
         var progress = state.progress();
-        var after = state.after();
+        var current = state.current();
         var before = state.before();
-        return InterpolationUtil.lerp(before.rawRotation(), after.rawRotation(), progress);
+        return InterpolationUtil.lerp(before.rawRotation(), current.rawRotation(), progress);
     }
 
     public void defaultPosition(@NotNull Supplier<Vector3f> movement) {
@@ -509,6 +450,7 @@ public final class RenderedBone implements BoneEventHandler {
         }
         return false;
     }
+
     private void applyItem(@NotNull ModelDisplay targetDisplay) {
         targetDisplay.item(itemStack.isAir() ? itemStack.itemStack() : tintCacheMap.computeIfAbsent(tint, i -> BetterModel.nms().tint(itemStack.itemStack(), i)));
     }
@@ -570,25 +512,15 @@ public final class RenderedBone implements BoneEventHandler {
         if (nametag != null) nametag.remove(bundler);
     }
 
-    /**
-     * Toggles some part
-     * @param predicate predicate
-     * @param toggle toggle
-     * @return success
-     */
-    public boolean togglePart(@NotNull Predicate<RenderedBone> predicate, boolean toggle) {
-        if (display != null && predicate.test(this)) {
-            display.invisible(!toggle);
-            return true;
-        }
-        return false;
-    }
-
     public @NotNull Stream<RenderedBone> flatten() {
-        return Stream.concat(
-                Stream.of(this),
-                children.values().stream().flatMap(RenderedBone::flatten)
-        );
+        if (flattenBones != null) return flattenBones.stream();
+        synchronized (this) {
+            if (flattenBones != null) return flattenBones.stream();
+            return (flattenBones = Stream.concat(
+                    Stream.of(this),
+                    children.values().stream().flatMap(RenderedBone::flatten)
+            ).toList()).stream();
+        }
     }
 
     public void iterateTree(@NotNull Consumer<RenderedBone> boneConsumer) {
@@ -674,6 +606,10 @@ public final class RenderedBone implements BoneEventHandler {
 
         private @NotNull BoneMovement before() {
             return beforeTransform != null ? beforeTransform : (beforeTransform = defaultFrame);
+        }
+
+        private @NotNull BoneMovement current() {
+            return afterTransform != null ? afterTransform : before();
         }
 
         private @NotNull BoneMovement after() {
@@ -777,14 +713,18 @@ public final class RenderedBone implements BoneEventHandler {
             for (int i = bones.size() - 2; i >= 0; i--) {
                 var current = bones.get(i).after().position();
                 var next = bones.get(i + 1).after().position();
-                current.set(InterpolationUtil.lerp(next, current, lengths[i] / current.distance(next)));
+                var dist = current.distance(next);
+                if (dist < MathUtil.FLOAT_COMPARISON_EPSILON) continue;
+                current.set(InterpolationUtil.lerp(next, current, lengths[i] / dist));
             }
             // Backward
             first.set(rootPos);
             for (int i = 0; i < bones.size() - 1; i++) {
                 var current = bones.get(i).after().position();
                 var next = bones.get(i + 1).after().position();
-                next.set(InterpolationUtil.lerp(current, next, lengths[i] / current.distance(next)));
+                var dist = current.distance(next);
+                if (dist < MathUtil.FLOAT_COMPARISON_EPSILON) continue;
+                next.set(InterpolationUtil.lerp(current, next, lengths[i] / dist));
             }
             // Check
             if (last.distance(target) < MathUtil.FRAME_EPSILON) break;
@@ -796,5 +736,17 @@ public final class RenderedBone implements BoneEventHandler {
             var dir = next.position().sub(current.position(), new Vector3f());
             current.rotation().set(MathUtil.fromToRotation(dir).mul(current.rotation()));
         }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (!(obj instanceof RenderedBone bone)) return false;
+        return name().equals(bone.name());
+    }
+
+    @Override
+    public int hashCode() {
+        return name().hashCode();
     }
 }
