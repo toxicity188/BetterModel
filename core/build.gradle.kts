@@ -29,7 +29,7 @@ dependencies {
     compileOnly("net.citizensnpcs:citizens-main:2.0.40-SNAPSHOT") {
         exclude("net.byteflux")
     }
-    compileOnly("net.skinsrestorer:skinsrestorer-api:15.8.2")
+    compileOnly("net.skinsrestorer:skinsrestorer-api:15.9.0")
     compileOnly("io.lumine:Mythic-Dist:5.10.1")
     compileOnly("com.nexomc:nexo:1.14.0")
 }
