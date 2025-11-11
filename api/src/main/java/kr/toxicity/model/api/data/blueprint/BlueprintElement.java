@@ -19,10 +19,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 import org.joml.Quaternionf;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -37,6 +34,13 @@ public sealed interface BlueprintElement {
      * Bone element
      */
     sealed interface Bone extends BlueprintElement {
+
+        /**
+         * Gets bone uuid
+         * @return uuid
+         */
+        @NotNull UUID uuid();
+
         /**
          * Gets bone name
          * @return bone name
@@ -71,6 +75,7 @@ public sealed interface BlueprintElement {
 
     /**
      * Blueprint group
+     * @param uuid uuid
      * @param name group name
      * @param origin origin
      * @param rotation rotation
@@ -78,6 +83,7 @@ public sealed interface BlueprintElement {
      * @param visibility visibility
      */
     record BlueprintGroup(
+            @NotNull UUID uuid,
             @NotNull BoneName name,
             @NotNull Float3 origin,
             @NotNull Float3 rotation,
@@ -215,22 +221,28 @@ public sealed interface BlueprintElement {
 
     /**
      * Blueprint locator
+     * @param uuid uuid
      * @param name name
      */
     record BlueprintLocator(
+            @NotNull UUID uuid,
             @NotNull BoneName name
     ) implements Bone {
     }
 
     /**
      * Blueprint null object
+     * @param uuid uuid
      * @param name name
      * @param ikTarget ik target
+     * @param ikSource ik source
      * @param origin origin
      */
     record BlueprintNullObject(
+            @NotNull UUID uuid,
             @NotNull BoneName name,
-            @NotNull BoneName ikTarget,
+            @Nullable UUID ikTarget,
+            @Nullable UUID ikSource,
             @NotNull Float3 origin
     ) implements Bone {
     }

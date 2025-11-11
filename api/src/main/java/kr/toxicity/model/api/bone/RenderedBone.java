@@ -37,6 +37,7 @@ import org.joml.Vector3f;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -46,28 +47,26 @@ public final class RenderedBone implements BoneEventHandler {
 
     private static final int INITIAL_TINT_VALUE = 0xFFFFFF;
     private static final Vector3f EMPTY_VECTOR = new Vector3f();
-    private static final int MAX_IK_ITERATION = 20;
 
     @Getter
     @NotNull
-    private final RendererGroup group;
+    final RendererGroup group;
     private final BoneMovement defaultFrame;
     private final RenderSource<?> renderSource;
     private final BoneEventDispatcher eventDispatcher = new BoneEventDispatcher();
 
     @NotNull
     @Getter
-    private final RenderedBone root;
+    final RenderedBone root;
     @Nullable
     @Getter
-    private final RenderedBone parent;
+    final RenderedBone parent;
 
-    private final Set<RenderedBone> locators = new LinkedHashSet<>();
-    private List<RenderedBone> flattenBones;
+    private Set<RenderedBone> flattenBones;
 
     @Getter
     @NotNull
-    private final Map<BoneName, RenderedBone> children;
+    final Map<BoneName, RenderedBone> children;
 
     private final Int2ObjectMap<ItemStack> tintCacheMap = new Int2ObjectOpenHashMap<>();
     @Getter
@@ -141,23 +140,19 @@ public final class RenderedBone implements BoneEventHandler {
         globalState = new BoneStateHandler(null, uuid -> {});
     }
 
-    public void locator(@NotNull Map<BoneName, RenderedBone> boneMap) {
+    public void locator(@NotNull BoneIKSolver solver) {
         if (getGroup().getParent() instanceof BlueprintElement.BlueprintNullObject nullObject) {
-            var get = boneMap.get(nullObject.ikTarget());
-            if (get != null) get.locator(this);
+            var ikTarget = nullObject.ikTarget();
+            if (ikTarget == null) return;
+            solver.addLocator(nullObject.ikSource(), ikTarget, this);
         }
-    }
-
-    private void locator(@NotNull RenderedBone bone) {
-        locators.add(bone);
-        if (parent != null) parent.locator(bone);
     }
 
     private @NotNull BoneStateHandler state(@Nullable Player player) {
         return state(player != null ? player.getUniqueId() : null);
     }
 
-    private @NotNull BoneStateHandler state(@Nullable UUID uuid) {
+    @NotNull BoneStateHandler state(@Nullable UUID uuid) {
         return uuid == null ? globalState : perPlayerState.getOrDefault(uuid, globalState);
     }
 
@@ -352,19 +347,6 @@ public final class RenderedBone implements BoneEventHandler {
         if (d != null) d.sendTransformation(bundler);
     }
 
-    public void applyLocator(@Nullable UUID uuid) {
-        for (RenderedBone locator : locators) {
-            fabrik(
-                    flatten()
-                            .filter(s -> s.locators.contains(locator))
-                            .map(b -> b.state(uuid))
-                            .toList(),
-                    locator.root.group.getPosition().add(locator.state(uuid).after().position(), new Vector3f())
-                            .sub(root.group.getPosition())
-            );
-        }
-    }
-
     public int interpolationDuration() {
         return globalState.interpolationDuration();
     }
@@ -455,10 +437,6 @@ public final class RenderedBone implements BoneEventHandler {
         targetDisplay.item(itemStack.isAir() ? itemStack.itemStack() : tintCacheMap.computeIfAbsent(tint, i -> BetterModel.nms().tint(itemStack.itemStack(), i)));
     }
 
-    public @NotNull BoneName name() {
-        return getGroup().name();
-    }
-
     public void teleport(@NotNull Location location, @NotNull PacketBundler bundler) {
         if (display != null) display.teleport(location, bundler);
     }
@@ -513,13 +491,18 @@ public final class RenderedBone implements BoneEventHandler {
     }
 
     public @NotNull Stream<RenderedBone> flatten() {
-        if (flattenBones != null) return flattenBones.stream();
+        return flattenBones().stream();
+    }
+
+    public @NotNull Set<RenderedBone> flattenBones() {
+        if (flattenBones != null) return flattenBones;
         synchronized (this) {
-            if (flattenBones != null) return flattenBones.stream();
-            return (flattenBones = Stream.concat(
+            if (flattenBones != null) return flattenBones;
+            var set = Stream.concat(
                     Stream.of(this),
                     children.values().stream().flatMap(RenderedBone::flatten)
-            ).toList()).stream();
+            ).collect(Collectors.toCollection(LinkedHashSet::new));
+            return flattenBones = Collections.unmodifiableSet(set);
         }
     }
 
@@ -580,7 +563,7 @@ public final class RenderedBone implements BoneEventHandler {
         return rotation;
     }
 
-    private final class BoneStateHandler {
+    final class BoneStateHandler {
         private boolean firstTick = true;
         private boolean skipInterpolation = false;
         private boolean sent;
@@ -612,7 +595,7 @@ public final class RenderedBone implements BoneEventHandler {
             return afterTransform != null ? afterTransform : before();
         }
 
-        private @NotNull BoneMovement after() {
+        @NotNull BoneMovement after() {
             if (afterTransform != null) return afterTransform;
             var keyframe = state.afterKeyframe();
             if (keyframe == null) keyframe = AnimationMovement.EMPTY;
@@ -642,7 +625,7 @@ public final class RenderedBone implements BoneEventHandler {
             }
         }
 
-        public boolean tick() {
+        private boolean tick() {
             var result = state.tick(() -> {
                 if (uuid != null) {
                     perPlayerState.remove(uuid);
@@ -660,11 +643,11 @@ public final class RenderedBone implements BoneEventHandler {
             return result;
         }
 
-        public float progress() {
+        private float progress() {
             return 1F - state.progress();
         }
 
-        public int interpolationDuration() {
+        private int interpolationDuration() {
             if (root.state(uuid).skipInterpolation) return 0;
             var frame = state.frame() / (float) Tracker.MINECRAFT_TICK_MULTIPLIER;
             return Math.round(frame + MathUtil.FLOAT_COMPARISON_EPSILON);
@@ -694,59 +677,23 @@ public final class RenderedBone implements BoneEventHandler {
         }
     }
 
-    private static void fabrik(@NotNull List<BoneStateHandler> bones, @NotNull Vector3f target) {
-        if (bones.size() < 2) return;
+    public @NotNull BoneName name() {
+        return getGroup().name();
+    }
 
-        var first = bones.getFirst().after().position();
-        var last = bones.getLast().after().position();
-
-        var rootPos = new Vector3f(first);
-
-        float[] lengths = new float[bones.size() - 1];
-        for (int i = 0; i < bones.size() - 1; i++) {
-            lengths[i] = bones.get(i).after().position()
-                    .distance(bones.get(i + 1).after().position());
-        }
-        for (int iter = 0; iter < MAX_IK_ITERATION; iter++) {
-            // Forward
-            last.set(target);
-            for (int i = bones.size() - 2; i >= 0; i--) {
-                var current = bones.get(i).after().position();
-                var next = bones.get(i + 1).after().position();
-                var dist = current.distance(next);
-                if (dist < MathUtil.FLOAT_COMPARISON_EPSILON) continue;
-                current.set(InterpolationUtil.lerp(next, current, lengths[i] / dist));
-            }
-            // Backward
-            first.set(rootPos);
-            for (int i = 0; i < bones.size() - 1; i++) {
-                var current = bones.get(i).after().position();
-                var next = bones.get(i + 1).after().position();
-                var dist = current.distance(next);
-                if (dist < MathUtil.FLOAT_COMPARISON_EPSILON) continue;
-                next.set(InterpolationUtil.lerp(current, next, lengths[i] / dist));
-            }
-            // Check
-            if (last.distance(target) < MathUtil.FRAME_EPSILON) break;
-        }
-        for (int i = 0; i < bones.size() - 1; i++) {
-            var current = bones.get(i).after();
-            var next = bones.get(i + 1).after();
-
-            var dir = next.position().sub(current.position(), new Vector3f());
-            current.rotation().set(MathUtil.fromToRotation(dir).mul(current.rotation()));
-        }
+    public @NotNull UUID uuid() {
+        return getGroup().uuid();
     }
 
     @Override
     public boolean equals(Object obj) {
         if (obj == this) return true;
         if (!(obj instanceof RenderedBone bone)) return false;
-        return name().equals(bone.name());
+        return uuid().equals(bone.uuid());
     }
 
     @Override
     public int hashCode() {
-        return name().hashCode();
+        return uuid().hashCode();
     }
 }

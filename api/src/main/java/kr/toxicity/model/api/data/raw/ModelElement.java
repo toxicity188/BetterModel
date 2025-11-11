@@ -78,12 +78,14 @@ public sealed interface ModelElement {
      * @param name
      * @param uuid
      * @param ikTarget ik target
+     * @param ikSource ik source
      * @param position position
      */
     record NullObject(
             @NotNull String name,
             @NotNull String uuid,
-            @NotNull @SerializedName("ik_target") String ikTarget,
+            @Nullable @SerializedName("ik_target") String ikTarget,
+            @Nullable @SerializedName("ik_source") String ikSource,
             @Nullable Float3 position
     ) implements ModelElement {
         @Override

@@ -24,6 +24,7 @@ import org.jetbrains.annotations.Unmodifiable;
 import org.joml.Vector3f;
 
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static kr.toxicity.model.api.util.CollectionUtil.mapValue;
@@ -103,6 +104,14 @@ public final class RendererGroup {
     }
 
     /**
+     * Gets uuid
+     * @return uuid
+     */
+    public @NotNull UUID uuid() {
+        return parent.uuid();
+    }
+
+    /**
      * Creates entity.
      * @param source source
      * @return entity
@@ -131,5 +140,17 @@ public final class RendererGroup {
      */
     public @NotNull TransformedItemStack getItemStack() {
         return itemStack.copy();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof RendererGroup that)) return false;
+        return uuid().equals(that.uuid());
+    }
+
+    @Override
+    public int hashCode() {
+        return uuid().hashCode();
     }
 }

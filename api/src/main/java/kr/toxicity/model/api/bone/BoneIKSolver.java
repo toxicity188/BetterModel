@@ -1,0 +1,116 @@
+/**
+ * This source file is part of BetterModel.
+ * Copyright (c) 2024–2025 toxicity188
+ * Licensed under the MIT License.
+ * See LICENSE.md file for full license text.
+ */
+package kr.toxicity.model.api.bone;
+
+import kr.toxicity.model.api.util.InterpolationUtil;
+import kr.toxicity.model.api.util.MathUtil;
+import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3f;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+/**
+ * Bone IK solver
+ */
+@RequiredArgsConstructor
+public final class BoneIKSolver {
+
+    private static final int MAX_IK_ITERATION = 20;
+
+    private final Map<UUID, RenderedBone> boneMap;
+    private final Map<RenderedBone, List<RenderedBone>> locators = new LinkedHashMap<>();
+
+    /**
+     * Adds some external locator to this solver
+     * @param ikSource nullable source
+     * @param ikTarget target bone
+     * @param locator locator bone
+     */
+    public void addLocator(@Nullable UUID ikSource, @NotNull UUID ikTarget, @NotNull RenderedBone locator) {
+        var target = boneMap.get(ikTarget);
+        if (target == null) return;
+        var list = (ikSource == null ? target.root : boneMap.getOrDefault(ikSource, target.root))
+                .flatten()
+                .filter(bone -> bone.flattenBones().contains(target))
+                .toList();
+        if (list.size() < 2) return;
+        locators.put(locator, list);
+    }
+
+    /**
+     * Solves ik
+     */
+    public void solve() {
+        solve(null);
+    }
+
+    /**
+     * Solves ik
+     * @param uuid player uuid
+     */
+    public void solve(@Nullable UUID uuid) {
+        for (var entry : locators.entrySet()) {
+            var locator = entry.getKey();
+            var root = entry.getValue().getFirst().root;
+            fabrik(
+                    entry.getValue()
+                            .stream()
+                            .map(bone -> bone.state(uuid))
+                            .toList(),
+                    locator.root.group.getPosition().add(locator.state(uuid).after().position(), new Vector3f())
+                            .sub(root.group.getPosition())
+            );
+        }
+    }
+
+    private static void fabrik(@NotNull List<RenderedBone.BoneStateHandler> bones, @NotNull Vector3f target) {
+        var first = bones.getFirst().after().position();
+        var last = bones.getLast().after().position();
+
+        var rootPos = new Vector3f(first);
+
+        float[] lengths = new float[bones.size() - 1];
+        for (int i = 0; i < bones.size() - 1; i++) {
+            lengths[i] = bones.get(i).after().position()
+                    .distance(bones.get(i + 1).after().position());
+        }
+        for (int iter = 0; iter < MAX_IK_ITERATION; iter++) {
+            // Forward
+            last.set(target);
+            for (int i = bones.size() - 2; i >= 0; i--) {
+                var current = bones.get(i).after().position();
+                var next = bones.get(i + 1).after().position();
+                var dist = current.distance(next);
+                if (dist < MathUtil.FLOAT_COMPARISON_EPSILON) continue;
+                current.set(InterpolationUtil.lerp(next, current, lengths[i] / dist));
+            }
+            // Backward
+            first.set(rootPos);
+            for (int i = 0; i < bones.size() - 1; i++) {
+                var current = bones.get(i).after().position();
+                var next = bones.get(i + 1).after().position();
+                var dist = current.distance(next);
+                if (dist < MathUtil.FLOAT_COMPARISON_EPSILON) continue;
+                next.set(InterpolationUtil.lerp(current, next, lengths[i] / dist));
+            }
+            // Check
+            if (last.distance(target) < MathUtil.FRAME_EPSILON) break;
+        }
+        for (int i = 0; i < bones.size() - 1; i++) {
+            var current = bones.get(i).after();
+            var next = bones.get(i + 1).after();
+
+            var dir = next.position().sub(current.position(), new Vector3f());
+            current.rotation().set(MathUtil.fromToRotation(dir).mul(current.rotation()));
+        }
+    }
+}

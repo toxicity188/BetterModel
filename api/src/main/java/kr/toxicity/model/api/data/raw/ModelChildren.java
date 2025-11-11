@@ -15,6 +15,8 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static kr.toxicity.model.api.util.CollectionUtil.filterIsInstance;
@@ -71,6 +73,7 @@ public sealed interface ModelChildren {
         @Override
         public @NotNull BlueprintElement toBlueprint(@NotNull ModelLoadContext context) {
             var get = Objects.requireNonNull(context.elements.get(uuid()));
+            var uid = UUID.fromString(uuid);
             return switch (get) {
                 case ModelElement.Cube cube -> new BlueprintElement.BlueprintCube(
                         cube.name(),
@@ -82,10 +85,18 @@ public sealed interface ModelChildren {
                         cube.faces(),
                         cube.visibility()
                 );
-                case ModelElement.Locator locator -> new BlueprintElement.BlueprintLocator(BoneTagRegistry.parse(locator.name()));
+                case ModelElement.Locator locator -> new BlueprintElement.BlueprintLocator(uid, BoneTagRegistry.parse(locator.name()));
                 case ModelElement.NullObject nullObject -> new BlueprintElement.BlueprintNullObject(
+                        uid,
                         BoneTagRegistry.parse(nullObject.name()),
-                        BoneTagRegistry.parse(Objects.requireNonNull(context.elements.get(nullObject.ikTarget())).name()),
+                        Optional.ofNullable(nullObject.ikTarget())
+                                .filter(str -> !str.isEmpty())
+                                .map(UUID::fromString)
+                                .orElse(null),
+                        Optional.ofNullable(nullObject.ikSource())
+                                .filter(str -> !str.isEmpty())
+                                .map(UUID::fromString)
+                                .orElse(null),
                         nullObject.position()
                 );
                 case ModelElement.Unsupported ignored -> throw new UnsupportedOperationException(ignored.type());
@@ -114,6 +125,7 @@ public sealed interface ModelChildren {
             var filtered = filterIsInstance(child, BlueprintElement.BlueprintCube.class).toList();
             var selectedGroup = context.groups.getOrDefault(uuid(), group);
             return new BlueprintElement.BlueprintGroup(
+                    UUID.fromString(selectedGroup.uuid()),
                     BoneTagRegistry.parse(selectedGroup.name()),
                     selectedGroup.origin(),
                     selectedGroup.rotation().invertXZ(),

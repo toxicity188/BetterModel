@@ -8,10 +8,7 @@ package kr.toxicity.model.api.data.renderer;
 
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.*;
-import kr.toxicity.model.api.bone.BoneEventDispatcher;
-import kr.toxicity.model.api.bone.BoneEventHandler;
-import kr.toxicity.model.api.bone.BoneName;
-import kr.toxicity.model.api.bone.RenderedBone;
+import kr.toxicity.model.api.bone.*;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.nms.HitBox;
 import kr.toxicity.model.api.nms.PacketBundler;
@@ -39,6 +36,7 @@ import static kr.toxicity.model.api.util.CollectionUtil.associate;
  * A pipeline class of each tracker.
  */
 public final class RenderPipeline implements BoneEventHandler {
+
     @Getter
     private final ModelRenderer parent;
     @Getter
@@ -49,7 +47,9 @@ public final class RenderPipeline implements BoneEventHandler {
     private final int displayAmount;
     private final Map<UUID, PlayerChannelHandler> playerMap = new ConcurrentHashMap<>();
     private final Set<UUID> hidePlayerSet = ConcurrentHashMap.newKeySet();
+
     private final BoneEventDispatcher eventDispatcher = new BoneEventDispatcher();
+    private final BoneIKSolver ikSolver;
 
     private Predicate<Player> viewFilter = p -> true;
     private Predicate<Player> hideFilter = p -> hidePlayerSet.contains(p.getUniqueId());
@@ -78,8 +78,9 @@ public final class RenderPipeline implements BoneEventHandler {
                         .peek(bone -> bone.extend(this)),
                 RenderedBone::name
         );
+        ikSolver = new BoneIKSolver(associate(flattenBoneMap.values(), RenderedBone::uuid));
         displayAmount = (int) flattenBoneMap.values().stream()
-                .peek(bone -> bone.locator(flattenBoneMap))
+                .peek(bone -> bone.locator(ikSolver))
                 .filter(rb -> rb.getDisplay() != null)
                 .count();
     }
@@ -156,9 +157,7 @@ public final class RenderPipeline implements BoneEventHandler {
     public boolean tick(@NotNull PacketBundler bundler) {
         var match = matchTree(RenderedBone::tick);
         if (match) {
-            for (RenderedBone value : boneMap.values()) {
-                value.applyLocator(null);
-            }
+            ikSolver.solve();
             iterateTree(b -> b.sendTransformation(null, bundler));
         }
         return match;
@@ -167,9 +166,7 @@ public final class RenderPipeline implements BoneEventHandler {
     public boolean tick(@NotNull UUID uuid, @NotNull PacketBundler bundler) {
         var match = matchTree(b -> b.tick(uuid));
         if (match) {
-            for (RenderedBone value : boneMap.values()) {
-                value.applyLocator(uuid);
-            }
+            ikSolver.solve(uuid);
             iterateTree(b -> b.sendTransformation(uuid, bundler));
         }
         return match;
