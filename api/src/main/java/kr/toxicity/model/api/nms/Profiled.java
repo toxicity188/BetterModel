@@ -8,6 +8,7 @@ package kr.toxicity.model.api.nms;
 
 import com.mojang.authlib.GameProfile;
 import kr.toxicity.model.api.armor.PlayerArmor;
+import kr.toxicity.model.api.player.PlayerSkinParts;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -31,4 +32,10 @@ public interface Profiled {
      * @return armor
      */
     @NotNull PlayerArmor armors();
+
+    /**
+     * Gets player skin customization
+     * @return skin parts
+     */
+    @NotNull PlayerSkinParts skinParts();
 }

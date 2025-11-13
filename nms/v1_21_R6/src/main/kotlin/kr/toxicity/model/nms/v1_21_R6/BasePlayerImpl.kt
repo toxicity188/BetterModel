@@ -10,14 +10,16 @@ import com.mojang.authlib.GameProfile
 import kr.toxicity.model.api.entity.BaseBukkitEntity
 import kr.toxicity.model.api.entity.BaseBukkitPlayer
 import kr.toxicity.model.api.nms.Profiled
+import kr.toxicity.model.api.player.PlayerSkinParts
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.entity.Player
 import java.util.stream.Stream
 
 class BasePlayerImpl(
     private val delegate: CraftPlayer,
-    private val profile: () -> GameProfile
-) : BaseBukkitEntity by BaseEntityImpl(delegate), BaseBukkitPlayer, Profiled by ProfiledImpl(PlayerArmorImpl(delegate), profile) {
+    private val profile: () -> GameProfile,
+    private val skinParts: () -> PlayerSkinParts
+) : BaseBukkitEntity by BaseEntityImpl(delegate), BaseBukkitPlayer, Profiled by ProfiledImpl(PlayerArmorImpl(delegate), profile, skinParts) {
     override fun updateInventory() {
         delegate.handle.containerMenu.sendAllDataToRemote()
     }

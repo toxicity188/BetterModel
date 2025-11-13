@@ -123,7 +123,7 @@ public enum BoneTags implements BoneTag {
             var manager = BetterModel.plugin().skinManager();
             if (manager.supported() && renderSource instanceof Profiled profiled) {
                 var cape = manager.getOrRequest(profiled.profile()).cape(profiled);
-                if (cape != null) return cape;
+                if (cape != null && profiled.skinParts().isCapeEnabled()) return cape;
             }
             return TransformedItemStack.empty();
         }

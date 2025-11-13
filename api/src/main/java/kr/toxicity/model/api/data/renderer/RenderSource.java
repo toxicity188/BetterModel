@@ -10,6 +10,7 @@ import com.mojang.authlib.GameProfile;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.armor.PlayerArmor;
 import kr.toxicity.model.api.nms.Profiled;
+import kr.toxicity.model.api.player.PlayerSkinParts;
 import kr.toxicity.model.api.tracker.*;
 import org.bukkit.Location;
 import org.jetbrains.annotations.ApiStatus;
@@ -72,6 +73,11 @@ public sealed interface RenderSource<T extends Tracker> {
         public @NotNull PlayerArmor armors() {
             return PlayerArmor.EMPTY;
         }
+
+        @Override
+        public @NotNull PlayerSkinParts skinParts() {
+            return PlayerSkinParts.DEFAULT;
+        }
     }
 
     record BaseEntity(@NotNull kr.toxicity.model.api.entity.BaseEntity entity) implements Entity {
@@ -115,6 +121,11 @@ public sealed interface RenderSource<T extends Tracker> {
         public @NotNull PlayerArmor armors() {
             return PlayerArmor.EMPTY;
         }
+
+        @Override
+        public @NotNull PlayerSkinParts skinParts() {
+            return PlayerSkinParts.DEFAULT;
+        }
     }
 
     record BasePlayer(@NotNull kr.toxicity.model.api.entity.BasePlayer entity) implements Entity, Profiled {
@@ -151,6 +162,11 @@ public sealed interface RenderSource<T extends Tracker> {
         public @NotNull PlayerArmor armors() {
             return entity.armors();
         }
+
+        @Override
+        public @NotNull PlayerSkinParts skinParts() {
+            return entity.skinParts();
+        }
     }
 
     record ProfiledPlayer(@NotNull kr.toxicity.model.api.entity.BasePlayer entity, @NotNull GameProfile profile, boolean isSlim) implements Entity, Profiled {
@@ -173,6 +189,11 @@ public sealed interface RenderSource<T extends Tracker> {
         @Override
         public @NotNull PlayerArmor armors() {
             return entity.armors();
+        }
+
+        @Override
+        public @NotNull PlayerSkinParts skinParts() {
+            return entity.skinParts();
         }
     }
 }
