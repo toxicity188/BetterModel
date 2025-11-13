@@ -11,6 +11,7 @@ import io.papermc.paper.adventure.PaperAdventure
 import io.papermc.paper.configuration.GlobalConfiguration
 import it.unimi.dsi.fastutil.ints.IntSet
 import kr.toxicity.model.api.BetterModel
+import kr.toxicity.model.api.player.PlayerSkinParts
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.util.EventUtil
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
@@ -186,6 +187,8 @@ internal fun Entity.toFakeAddPacket() = ClientboundAddEntityPacket(
     deltaMovement,
     yHeadRot.toDouble()
 )
+
+internal fun Player.toCustomisation() = PlayerSkinParts(entityData.get(Player.DATA_PLAYER_MODE_CUSTOMISATION).toInt())
 
 internal fun VanillaComponent.asAdventure() = if (BetterModel.IS_PAPER) {
     PaperAdventure.asAdventure(this)

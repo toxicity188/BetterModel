@@ -17,7 +17,6 @@ import kr.toxicity.model.api.data.blueprint.NamedBoundingBox
 import kr.toxicity.model.api.entity.BaseEntity
 import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.nms.*
-import kr.toxicity.model.api.player.PlayerSkinParts
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.tracker.TrackerUpdateAction
 import kr.toxicity.model.api.util.TransformedItemStack
@@ -34,8 +33,11 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.network.ServerCommonPacketListenerImpl
 import net.minecraft.server.players.NameAndId
 import net.minecraft.util.ARGB
-import net.minecraft.world.entity.*
+import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.Display.ItemDisplay
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.Items
 import net.minecraft.world.item.component.CustomModelData
@@ -64,7 +66,6 @@ class NMSImpl : NMS {
         private val getGameProfile: (net.minecraft.world.entity.player.Player) -> GameProfile = createAdaptedFieldGetter { it.gameProfile }
         private val getOfflineGameProfile: (CraftOfflinePlayer) -> NameAndId = createAdaptedFieldGetter()
         private val getConnection: (ServerCommonPacketListenerImpl) -> Connection = createAdaptedFieldGetter { it.connection }
-        private val getEntityData: (Entity) -> SynchedEntityData = createAdaptedFieldGetter { it.entityData }
         private val spigotChunkAccess = ServerLevel::class.java.fields.firstOrNull {
             it.type == PersistentEntitySectionManager::class.java
         }?.apply {
@@ -126,7 +127,11 @@ class NMSImpl : NMS {
 
     inner class PlayerChannelHandlerImpl(
         private val player: CraftPlayer
-    ) : PlayerChannelHandler, ChannelDuplexHandler(), Profiled by ProfiledImpl(PlayerArmorImpl(player), { profile(player) }, { PlayerSkinParts(getEntityData(player.handle).get(Avatar.DATA_PLAYER_MODE_CUSTOMISATION).toInt()) }) {
+    ) : PlayerChannelHandler, ChannelDuplexHandler(), Profiled by ProfiledImpl(
+        PlayerArmorImpl(player),
+        { profile(player) },
+        { player.handle.toCustomisation() }
+    ) {
         private val connection = player.handle.connection
         private val uuid = player.uniqueId
 
@@ -356,7 +361,7 @@ class NMSImpl : NMS {
 
     override fun adapt(entity: org.bukkit.entity.Entity): BaseEntity {
         entity as CraftEntity
-        return if (entity is CraftPlayer) BasePlayerImpl(entity, { profile(entity) }) { PlayerSkinParts(getEntityData(entity.handle).get(Avatar.DATA_PLAYER_MODE_CUSTOMISATION).toInt()) } else BaseEntityImpl(entity)
+        return if (entity is CraftPlayer) BasePlayerImpl(entity, { profile(entity) }) { entity.handle.toCustomisation() } else BaseEntityImpl(entity)
     }
 
     override fun profile(player: OfflinePlayer): GameProfile = if (player is CraftOfflinePlayer) getOfflineGameProfile(player).toUncompletedGameProfile() else getGameProfile((player as CraftPlayer).handle)
