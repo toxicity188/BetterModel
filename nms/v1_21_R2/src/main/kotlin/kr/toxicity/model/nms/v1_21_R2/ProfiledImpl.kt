@@ -10,14 +10,17 @@ import com.mojang.authlib.GameProfile
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.armor.PlayerArmor
 import kr.toxicity.model.api.nms.Profiled
+import kr.toxicity.model.api.player.PlayerSkinParts
 
 
 class ProfiledImpl(
     private val playerArmor: PlayerArmor,
-    private val gameProfile: () -> GameProfile
+    private val gameProfile: () -> GameProfile,
+    private val playerSkinParts: () -> PlayerSkinParts
 ) : Profiled {
 
     override fun profile(): GameProfile = gameProfile()
     override fun isSlim(): Boolean = BetterModel.plugin().skinManager().isSlim(profile())
     override fun armors(): PlayerArmor = playerArmor
+    override fun skinParts(): PlayerSkinParts = playerSkinParts()
 }
