@@ -39,13 +39,12 @@ public final class BoneIKSolver {
     public void addLocator(@Nullable UUID ikSource, @NotNull UUID ikTarget, @NotNull RenderedBone locator) {
         var target = boneMap.get(ikTarget);
         if (target == null) return;
-        var root = locator.flattenBones().contains(target.root) ? locator : target.root;
-        var source = ikSource == null ? root : boneMap.getOrDefault(ikSource, root);
+        var source = ikSource == null ? target.root : boneMap.getOrDefault(ikSource, target.root);
         var list = source.flatten()
                 .filter(bone -> !bone.flattenBones().contains(locator) && bone.flattenBones().contains(target))
                 .toList();
         if (list.size() < 2) return;
-        locators.put(locator, new IKTree(source, list));
+        locators.put(locator, new IKTree(source, list, new float[list.size() - 1]));
     }
 
     /**
@@ -66,9 +65,10 @@ public final class BoneIKSolver {
             var root = value.bones.getFirst();
             fabrik(
                     value.bones.stream()
-                            .map(bone -> bone.state(uuid))
+                            .map(bone -> bone.state(uuid).after())
                             .toList(),
-                    value.source.state(uuid).after().rotation().get(new Quaternionf()),
+                    value.source.state(uuid).after().rotation().invert(new Quaternionf()),
+                    value.buffer,
                     locator.state(uuid).after().position().get(new Vector3f())
                             .add(locator.root.group.getPosition())
                             .sub(root.state(uuid).after().position())
@@ -77,48 +77,47 @@ public final class BoneIKSolver {
         }
     }
 
-    private record IKTree(@NotNull RenderedBone source, @NotNull List<RenderedBone> bones) {}
+    private record IKTree(@NotNull RenderedBone source, @NotNull List<RenderedBone> bones, float[] buffer) {}
 
-    private static void fabrik(@NotNull List<RenderedBone.BoneStateHandler> bones, @NotNull Quaternionf parentRot, @NotNull Vector3f target) {
-        var first = bones.getFirst().after().position();
-        var last = bones.getLast().after().position();
+    private static void fabrik(@NotNull List<BoneMovement> bones, @NotNull Quaternionf parentRot, float[] lengths, @NotNull Vector3f target) {
+        var first = bones.getFirst().position();
+        var last = bones.getLast().position();
 
         var rootPos = new Vector3f(first);
 
-        float[] lengths = new float[bones.size() - 1];
         for (int i = 0; i < bones.size() - 1; i++) {
-            var before = bones.get(i).after();
-            var after = bones.get(i + 1).after();
+            var before = bones.get(i);
+            var after = bones.get(i + 1);
             lengths[i] = before.position().distance(after.position());
         }
         for (int iter = 0; iter < MAX_IK_ITERATION; iter++) {
             // Forward
             last.set(target);
             for (int i = bones.size() - 2; i >= 0; i--) {
-                var current = bones.get(i).after().position();
-                var next = bones.get(i + 1).after().position();
+                var current = bones.get(i).position();
+                var next = bones.get(i + 1).position();
                 var dist = current.distance(next);
                 if (dist < MathUtil.FLOAT_COMPARISON_EPSILON) continue;
-                current.set(InterpolationUtil.lerp(next, current, lengths[i] / dist));
+                InterpolationUtil.lerp(next, current, lengths[i] / dist, current);
             }
             // Backward
             first.set(rootPos);
             for (int i = 0; i < bones.size() - 1; i++) {
-                var current = bones.get(i).after().position();
-                var next = bones.get(i + 1).after().position();
+                var current = bones.get(i).position();
+                var next = bones.get(i + 1).position();
                 var dist = current.distance(next);
                 if (dist < MathUtil.FLOAT_COMPARISON_EPSILON) continue;
-                next.set(InterpolationUtil.lerp(current, next, lengths[i] / dist));
+                InterpolationUtil.lerp(current, next, lengths[i] / dist, next);
             }
             // Check
             if (last.distance(target) < MathUtil.FRAME_EPSILON) break;
         }
         for (int i = 0; i < bones.size() - 1; i++) {
-            var current = bones.get(i).after();
-            var next = bones.get(i + 1).after();
+            var current = bones.get(i);
+            var next = bones.get(i + 1);
 
             var dir = next.position().sub(current.position(), new Vector3f());
-            current.rotation().set(MathUtil.fromToRotation(dir).div(parentRot).mul(current.rotation()));
+            current.rotation().set(MathUtil.fromToRotation(dir).mul(parentRot).mul(current.rotation()));
         }
     }
 }

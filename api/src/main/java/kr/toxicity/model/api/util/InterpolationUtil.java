@@ -166,11 +166,22 @@ public final class InterpolationUtil {
      * @return lerped vector
      */
     public static @NotNull Vector3f lerp(@NotNull Vector3f p0, @NotNull Vector3f p1, float alpha) {
-        return new Vector3f(
-                lerp(p0.x, p1.x, alpha),
-                lerp(p0.y, p1.y, alpha),
-                lerp(p0.z, p1.z, alpha)
-        );
+        return lerp(p0, p1, alpha, new Vector3f());
+    }
+
+    /**
+     * Lerps two point
+     * @param p0 p0
+     * @param p1 p1
+     * @param alpha alpha
+     * @param dest destination vector
+     * @return lerped vector
+     */
+    public static @NotNull Vector3f lerp(@NotNull Vector3f p0, @NotNull Vector3f p1, float alpha, @NotNull Vector3f dest) {
+        dest.x = lerp(p0.x, p1.x, alpha);
+        dest.y = lerp(p0.y, p1.y, alpha);
+        dest.z = lerp(p0.z, p1.z, alpha);
+        return dest;
     }
 
     /**
