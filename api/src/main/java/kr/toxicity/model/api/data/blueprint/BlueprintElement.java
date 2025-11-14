@@ -79,7 +79,7 @@ public sealed interface BlueprintElement {
      * @param children children
      * @param visibility visibility
      */
-    record BlueprintGroup(
+    record Group(
             @NotNull UUID uuid,
             @NotNull BoneName name,
             @NotNull Float3 origin,
@@ -114,12 +114,12 @@ public sealed interface BlueprintElement {
                 @NotNull PackObfuscator.Pair obfuscator,
                 @NotNull ModelBlueprint parent
         ) {
-            Predicate<BlueprintCube> filter = element -> MathUtil.checkValidDegree(element.identifierDegree());
+            Predicate<Cube> filter = element -> MathUtil.checkValidDegree(element.identifierDegree());
             if (!skipLog) filter = filterWithWarning(
                     filter,
                     element -> "The model " + parent.name() + "'s cube \"" + element.name() + "\" has an invalid rotation which does not supported in legacy client (<=1.21.3) " + element.rotation()
             );
-            return buildJson(-2, 1, scale(), obfuscator, parent, Float3.ZERO, filterIsInstance(children, BlueprintCube.class).filter(filter));
+            return buildJson(-2, 1, scale(), obfuscator, parent, Float3.ZERO, filterIsInstance(children, Cube.class).filter(filter));
         }
 
         /**
@@ -137,8 +137,8 @@ public sealed interface BlueprintElement {
             var scale = scale();
             var list = mapIndexed(
                     group(
-                            filterIsInstance(children, BlueprintCube.class),
-                            BlueprintCube::identifierDegree
+                            filterIsInstance(children, Cube.class),
+                            Cube::identifierDegree
                     ),
                     (i, entry) -> buildJson(0, i + 1, scale, obfuscator, parent, entry.getKey(), entry.getValue().stream())
             ).filter(Objects::nonNull)
@@ -153,11 +153,11 @@ public sealed interface BlueprintElement {
                 @NotNull PackObfuscator.Pair obfuscator,
                 @NotNull ModelBlueprint parent,
                 @NotNull Float3 identifier,
-                @NotNull Stream<BlueprintCube> cubes
+                @NotNull Stream<Cube> cubes
         ) {
             if (parent.textures().isEmpty()) return null;
             var cubeElement = cubes
-                    .filter(BlueprintCube::hasTexture)
+                    .filter(Cube::hasTexture)
                     .toList();
             if (cubeElement.isEmpty()) return null;
             return new BlueprintJson(obfuscator.models().obfuscate(jsonName(parent) + "_" + number), JsonObjectBuilder.builder()
@@ -182,7 +182,7 @@ public sealed interface BlueprintElement {
          * @return scale
          */
         public float scale() {
-            return (float) Math.max(filterIsInstance(children, BlueprintCube.class)
+            return (float) Math.max(filterIsInstance(children, Cube.class)
                     .mapToDouble(e -> e.max(origin) / 16F)
                     .max()
                     .orElse(1F), 1F);
@@ -193,7 +193,7 @@ public sealed interface BlueprintElement {
          * @return bounding box
          */
         public @Nullable NamedBoundingBox hitBox() {
-            return filterIsInstance(children, BlueprintCube.class).map(element -> {
+            return filterIsInstance(children, Cube.class).map(element -> {
                 var from = element.from()
                         .minus(origin)
                         .toBlockScale()
@@ -222,7 +222,7 @@ public sealed interface BlueprintElement {
      * @param name name
      * @param origin origin
      */
-    record BlueprintLocator(
+    record Locator(
             @NotNull UUID uuid,
             @NotNull BoneName name,
             @NotNull Float3 origin
@@ -255,7 +255,7 @@ public sealed interface BlueprintElement {
      * @param ikSource ik source
      * @param origin origin
      */
-    record BlueprintNullObject(
+    record NullObject(
             @NotNull UUID uuid,
             @NotNull BoneName name,
             @Nullable UUID ikTarget,
@@ -284,7 +284,7 @@ public sealed interface BlueprintElement {
      * @param faces uv
      * @param visibility visibility
      */
-    record BlueprintCube(
+    record Cube(
             @NotNull String name,
             @NotNull Float3 from,
             @NotNull Float3 to,
@@ -311,7 +311,7 @@ public sealed interface BlueprintElement {
                 int tint,
                 float scale,
                 @NotNull ModelBlueprint parent,
-                @NotNull BlueprintGroup group,
+                @NotNull BlueprintElement.Group group,
                 @NotNull Float3 identifier
         ) {
             var qua = MathUtil.toQuaternion(identifier.toVector()).invert();

@@ -141,7 +141,7 @@ public final class RenderedBone implements BoneEventHandler {
     }
 
     public void locator(@NotNull BoneIKSolver solver) {
-        if (getGroup().getParent() instanceof BlueprintElement.BlueprintNullObject nullObject) {
+        if (getGroup().getParent() instanceof BlueprintElement.NullObject nullObject) {
             var ikTarget = nullObject.ikTarget();
             if (ikTarget == null) return;
             solver.addLocator(nullObject.ikSource(), ikTarget, this);

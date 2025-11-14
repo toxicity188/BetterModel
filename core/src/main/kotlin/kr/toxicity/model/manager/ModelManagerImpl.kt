@@ -279,9 +279,9 @@ object ModelManagerImpl : ModelManager, GlobalManager {
             )
         )
 
-        private fun ModelBlueprint.toRenderer(type: ModelRenderer.Type, consumer: (BlueprintElement.BlueprintGroup) -> Int?): ModelRenderer {
+        private fun ModelBlueprint.toRenderer(type: ModelRenderer.Type, consumer: (BlueprintElement.Group) -> Int?): ModelRenderer {
             fun BlueprintElement.Bone.parse(): RendererGroup {
-                if (this !is BlueprintElement.BlueprintGroup) return RendererGroup(1.0F, null, this, emptyMap(), null)
+                if (this !is BlueprintElement.Group) return RendererGroup(1.0F, null, this, emptyMap(), null)
                 return RendererGroup(
                     scale(),
                     if (name.toItemMapper() !== BoneItemMapper.EMPTY) null else consumer(this)?.let { i ->

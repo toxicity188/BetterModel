@@ -93,15 +93,15 @@ public sealed interface ModelChildren {
         @Override
         public @NotNull BlueprintElement toBlueprint(@NotNull ModelLoadContext context) {
             var child = mapToList(children, c -> c.toBlueprint(context));
-            var filtered = filterIsInstance(child, BlueprintElement.BlueprintCube.class).toList();
+            var filtered = filterIsInstance(child, BlueprintElement.Cube.class).toList();
             var selectedGroup = context.groups.getOrDefault(uuid(), group);
-            return new BlueprintElement.BlueprintGroup(
+            return new BlueprintElement.Group(
                     UUID.fromString(selectedGroup.uuid()),
                     BoneTagRegistry.parse(selectedGroup.name()),
                     selectedGroup.origin(),
                     selectedGroup.rotation().invertXZ(),
                     child,
-                    filtered.isEmpty() ? selectedGroup.visibility() : filtered.stream().anyMatch(BlueprintElement.BlueprintCube::visibility)
+                    filtered.isEmpty() ? selectedGroup.visibility() : filtered.stream().anyMatch(BlueprintElement.Cube::visibility)
             );
         }
 

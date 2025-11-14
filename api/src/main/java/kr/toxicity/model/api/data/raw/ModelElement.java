@@ -95,7 +95,7 @@ public sealed interface ModelElement {
 
         @Override
         public @NotNull BlueprintElement toBlueprint() {
-            return new BlueprintElement.BlueprintLocator(
+            return new BlueprintElement.Locator(
                     UUID.fromString(uuid),
                     BoneTagRegistry.parse(name()),
                     position()
@@ -165,7 +165,7 @@ public sealed interface ModelElement {
 
         @Override
         public @NotNull BlueprintElement toBlueprint() {
-           return new BlueprintElement.BlueprintNullObject(
+           return new BlueprintElement.NullObject(
                     UUID.fromString(uuid),
                     BoneTagRegistry.parse(name()),
                     Optional.ofNullable(ikTarget())
@@ -274,7 +274,7 @@ public sealed interface ModelElement {
 
         @Override
         public @NotNull BlueprintElement toBlueprint() {
-            return new BlueprintElement.BlueprintCube(
+            return new BlueprintElement.Cube(
                     name(),
                     from(),
                     to(),

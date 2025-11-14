@@ -73,7 +73,7 @@ public final class AnimationGenerator {
             @NotNull List<BlueprintElement> children
     ) {
         this.pointMap = pointMap;
-        trees = filterIsInstance(children, BlueprintElement.BlueprintGroup.class)
+        trees = filterIsInstance(children, BlueprintElement.Group.class)
                 .map(g -> new AnimationTree(g, pointMap.get(g.name())))
                 .flatMap(AnimationTree::flatten)
                 .toList();
@@ -139,17 +139,17 @@ public final class AnimationGenerator {
         private int searchCache = 0;
         private final Float2ObjectMap<Vector3f> valueCache = new Float2ObjectOpenHashMap<>();
 
-        AnimationTree(@NotNull BlueprintElement.BlueprintGroup group, @Nullable BlueprintAnimator.AnimatorData data) {
+        AnimationTree(@NotNull BlueprintElement.Group group, @Nullable BlueprintAnimator.AnimatorData data) {
             this(null, group, data);
         }
         AnimationTree(
                 @Nullable AnimationTree parent,
-                @NotNull BlueprintElement.BlueprintGroup group,
+                @NotNull BlueprintElement.Group group,
                 @Nullable BlueprintAnimator.AnimatorData data
         ) {
             this.parent = parent;
             this.data = data;
-            children = filterIsInstance(group.children(), BlueprintElement.BlueprintGroup.class)
+            children = filterIsInstance(group.children(), BlueprintElement.Group.class)
                     .map(g -> new AnimationTree(this, g, pointMap.get(g.name())))
                     .toList();
         }
