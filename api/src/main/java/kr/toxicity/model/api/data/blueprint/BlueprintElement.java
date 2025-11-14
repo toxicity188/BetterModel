@@ -226,7 +226,7 @@ public sealed interface BlueprintElement {
             @NotNull UUID uuid,
             @NotNull BoneName name,
             @NotNull Float3 origin
-    ) implements BlueprintElement {
+    ) implements Bone {
         /**
          * Gets origin
          * @return origin
