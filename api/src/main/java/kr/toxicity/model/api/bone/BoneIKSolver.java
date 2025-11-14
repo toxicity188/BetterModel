@@ -9,6 +9,7 @@ package kr.toxicity.model.api.bone;
 import kr.toxicity.model.api.util.InterpolationUtil;
 import kr.toxicity.model.api.util.MathUtil;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
@@ -22,6 +23,7 @@ import java.util.UUID;
 /**
  * Bone IK solver
  */
+@ApiStatus.Internal
 @RequiredArgsConstructor
 public final class BoneIKSolver {
 

@@ -149,23 +149,26 @@ public record ModelAnimation(
         void addFrame(@NotNull ModelKeyframe keyframe) {
             var time = keyframe.time();
             if (time > length) return;
-            var interpolation = keyframe.findInterpolator();
             var function = keyframe.point().toFunction(context);
+            var interpolation = keyframe.interpolation();
             var version = context.meta.formatVersion();
             switch (keyframe.channel()) {
                 case POSITION -> transform.add(new VectorPoint(
                         function.map(version::convertAnimationPosition).memoize(),
                         time,
+                        keyframe.bezierConfig(version::convertAnimationPosition),
                         interpolation
                 ));
                 case ROTATION -> rotation.add(new VectorPoint(
                         function.map(version::convertAnimationRotation).memoize(),
                         time,
+                        keyframe.bezierConfig(version::convertAnimationRotation),
                         interpolation
                 ));
                 case SCALE -> scale.add(new VectorPoint(
-                        function.map(vec -> vec.sub(1, 1, 1)).memoize(),
+                        function.map(version::convertAnimationScale).memoize(),
                         time,
+                        keyframe.bezierConfig(version::convertAnimationScale),
                         interpolation
                 ));
             }

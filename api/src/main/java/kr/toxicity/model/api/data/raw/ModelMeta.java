@@ -98,5 +98,15 @@ public record ModelMeta(
          * @return converted vector
          */
         public abstract @NotNull Vector3f convertAnimationPosition(@NotNull Vector3f vector);
+
+        /**
+         * Converts animation scale
+         * @param vector target vector
+         * @return converted vector
+         */
+        public @NotNull Vector3f convertAnimationScale(@NotNull Vector3f vector) {
+            vector.sub(1F, 1F, 1F);
+            return vector;
+        }
     }
 }

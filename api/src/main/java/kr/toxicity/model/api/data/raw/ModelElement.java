@@ -39,12 +39,6 @@ public sealed interface ModelElement {
     };
 
     /**
-     * Gets name
-     * @return name
-     */
-    @NotNull String name();
-
-    /**
      * Gets uuid
      * @return uuid
      */
@@ -105,25 +99,14 @@ public sealed interface ModelElement {
 
     /**
      * A raw model's camera
-     * @param name
      * @param uuid
      */
     record Camera(
-            @NotNull String name,
-            @NotNull String uuid,
-            @Nullable Float3 position
+            @NotNull String uuid
     ) implements ModelElement {
         @Override
         public @NotNull String type() {
             return "camera";
-        }
-        /**
-         * Gets position
-         * @return position
-         */
-        @Override
-        public @NotNull Float3 position() {
-            return position != null ? position : Float3.ZERO;
         }
 
         @Override
@@ -188,13 +171,8 @@ public sealed interface ModelElement {
     record Unsupported(@NotNull String type) implements ModelElement {
 
         @Override
-        public @NotNull String name() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
         public @NotNull String uuid() {
-            throw new UnsupportedOperationException();
+            throw new UnsupportedOperationException(type());
         }
 
         @Override

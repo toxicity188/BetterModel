@@ -8,15 +8,16 @@ package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.annotations.SerializedName;
 import kr.toxicity.model.api.animation.Timed;
+import kr.toxicity.model.api.animation.VectorPoint;
 import kr.toxicity.model.api.util.interpolator.*;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3f;
 
 import java.util.List;
-import java.util.Locale;
-
-import static java.util.Optional.ofNullable;
+import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * A keyframe of model.
@@ -37,7 +38,7 @@ public record ModelKeyframe(
         @SerializedName("bezier_left_value") @Nullable Float3 bezierLeftValue,
         @SerializedName("bezier_right_time") @Nullable Float3 bezierRightTime,
         @SerializedName("bezier_right_value") @Nullable Float3 bezierRightValue,
-        @Nullable String interpolation,
+        @Nullable VectorInterpolator interpolation,
         float time
 ) implements Timed {
 
@@ -58,23 +59,25 @@ public record ModelKeyframe(
     }
 
     /**
-     * Finds proper interpolator matched by this keyframe
-     * @return interpolator
+     * Gets interpolation
+     * @return interpolation
      */
-    public @NotNull VectorInterpolator findInterpolator() {
-        if (interpolation == null) return VectorInterpolator.defaultInterpolator();
-        return switch (interpolation.toLowerCase(Locale.ROOT)) {
-            case "linear" -> LinearInterpolator.INSTANCE;
-            case "catmullrom" -> CatmullRomInterpolator.INSTANCE;
-            case "step" -> StepInterpolator.INSTANCE;
-            case "bezier" -> new BezierInterpolator(
-                    ofNullable(bezierLeftTime).map(Float3::toVector).orElse(null),
-                    ofNullable(bezierLeftValue).map(Float3::toVector).orElse(null),
-                    ofNullable(bezierRightTime).map(Float3::toVector).orElse(null),
-                    ofNullable(bezierRightValue).map(Float3::toVector).orElse(null)
-            );
-            default -> VectorInterpolator.defaultInterpolator();
-        };
+    @Override
+    public @NotNull VectorInterpolator interpolation() {
+        return interpolation != null ? interpolation : VectorInterpolator.LINEAR;
+    }
+
+    /**
+     * Gets bezier config
+     * @return bezier config
+     */
+    public @NotNull VectorPoint.BezierConfig bezierConfig(@NotNull Function<Vector3f, Vector3f> function) {
+        return new VectorPoint.BezierConfig(
+                Optional.ofNullable(bezierLeftTime).map(Float3::toVector).orElse(null),
+                Optional.ofNullable(bezierLeftValue).map(Float3::toVector).map(function).orElse(null),
+                Optional.ofNullable(bezierRightTime).map(Float3::toVector).orElse(null),
+                Optional.ofNullable(bezierRightValue).map(Float3::toVector).map(function).orElse(null)
+        );
     }
 
     /**

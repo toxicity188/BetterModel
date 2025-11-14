@@ -9,6 +9,7 @@ package kr.toxicity.model.api.animation;
 import kr.toxicity.model.api.util.function.FloatFunction;
 import kr.toxicity.model.api.util.interpolator.VectorInterpolator;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 /**
@@ -17,15 +18,18 @@ import org.joml.Vector3f;
  * @param time time
  * @param interpolator interpolator
  */
-public record VectorPoint(@NotNull FloatFunction<Vector3f> function, float time, @NotNull VectorInterpolator interpolator) implements Timed {
+public record VectorPoint(@NotNull FloatFunction<Vector3f> function, float time, @NotNull BezierConfig bezier, @NotNull VectorInterpolator interpolator) implements Timed {
+
+    private static final Vector3f ZERO = new Vector3f();
 
     /**
      * Empty point
      */
     public static final VectorPoint EMPTY = new VectorPoint(
-            FloatFunction.of(new Vector3f()),
+            FloatFunction.of(ZERO),
             0F,
-            VectorInterpolator.defaultInterpolator()
+            new BezierConfig(null, null, null, null),
+            VectorInterpolator.LINEAR
     );
 
     /**
@@ -51,6 +55,36 @@ public record VectorPoint(@NotNull FloatFunction<Vector3f> function, float time,
      */
     public @NotNull Vector3f vector() {
         return vector(time);
+    }
+
+    /**
+     * Bezier config
+     * @param leftTime left time
+     * @param leftValue left value
+     * @param rightTime right time
+     * @param rightValue right value
+     */
+    public record BezierConfig(@Nullable Vector3f leftTime, @Nullable Vector3f leftValue, @Nullable Vector3f rightTime, @Nullable Vector3f rightValue) {
+
+        @Override
+        public @NotNull Vector3f leftTime() {
+            return leftTime != null ? leftTime : ZERO;
+        }
+
+        @Override
+        public @NotNull Vector3f leftValue() {
+            return leftValue != null ? leftValue : ZERO;
+        }
+
+        @Override
+        public @NotNull Vector3f rightTime() {
+            return rightTime != null ? rightTime : ZERO;
+        }
+
+        @Override
+        public @NotNull Vector3f rightValue() {
+            return rightValue != null ? rightValue : ZERO;
+        }
     }
 
     @Override

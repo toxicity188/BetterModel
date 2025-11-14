@@ -14,7 +14,6 @@ import kr.toxicity.model.api.animation.VectorPoint;
 import kr.toxicity.model.api.tracker.Tracker;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 import org.joml.Vector3f;
 
@@ -206,20 +205,20 @@ public final class InterpolationUtil {
         return fma(uuu, p0, fma(3.0F * uut, p1, fma(3.0F * utt, p2, ttt * p3)));
     }
 
-    private static float derivativeBezier(float p0, float p1, float p2, float p3, float t) {
+    private static float derivativeBezier(float p1, float p2, float t) {
         float u = 1.0F - t;
         float uu = u * u;
         float ut = u * t;
         float tt = t * t;
-        return fma(3.0F * uu, p1 - p0, fma(6.0F * ut, p2 - p1, 3.0F * tt * (p3 - p2)));
+        return fma(3.0F * uu, p1, fma(6.0F * ut, p2 - p1, 3.0F * tt * (1 - p2)));
     }
 
-    private static float solveBezierTForTime(float time, float t0, float h1, float h2, float t1) {
+    private static float solveBezierTForTime(float time, float h1, float h2) {
         float t = 0.5F;
         int maxIterations = 20;
         for (int i = 0; i < maxIterations; i++) {
-            float bezTime = cubicBezier(t0, h1, h2, t1, t);
-            float derivative = derivativeBezier(t0, h1, h2, t1, t);
+            float bezTime = cubicBezier(0, h1, h2, 1, t);
+            float derivative = derivativeBezier(h1, h2, t);
             float error = bezTime - time;
             if (Math.abs(error) < FLOAT_COMPARISON_EPSILON) {
                 return t;
@@ -235,51 +234,41 @@ public final class InterpolationUtil {
 
     /**
      * Interpolates two vectors as bezier
-     * @param time time
-     * @param startTime start time
-     * @param endTime end time
-     * @param startValue start value
-     * @param endValue end value
-     * @param bezierLeftTime bezier left time
-     * @param bezierLeftValue bezier left value
+     * @param alpha alpha time
+     * @param start start keyframe
+     * @param end end keyframe
      * @param bezierRightTime bezier right time
      * @param bezierRightValue bezier right value
+     * @param bezierLeftTime bezier left time
+     * @param bezierLeftValue bezier left value
      * @return interpolated vector
      */
     public static @NotNull Vector3f bezier(
-            float time,
-            float startTime,
-            float endTime,
-            @NotNull Vector3f startValue,
-            @NotNull Vector3f endValue,
-            @Nullable Vector3f bezierLeftTime,
-            @Nullable Vector3f bezierLeftValue,
-            @Nullable Vector3f bezierRightTime,
-            @Nullable Vector3f bezierRightValue
+            float alpha,
+            @NotNull Vector3f start,
+            @NotNull Vector3f end,
+            @NotNull Vector3f bezierRightTime,
+            @NotNull Vector3f bezierRightValue,
+            @NotNull Vector3f bezierLeftTime,
+            @NotNull Vector3f bezierLeftValue
     ) {
-        Vector3f p1 = bezierRightValue != null ? bezierRightValue.add(startValue, new Vector3f()) : startValue;
-        Vector3f p2 = bezierLeftValue != null ? bezierLeftValue.add(endValue, new Vector3f()) : endValue;
+        var p1 = start.add(bezierRightValue, new Vector3f());
+        var p2 = end.add(bezierLeftValue, new Vector3f());
         return new Vector3f(
-                cubicBezier(startValue.x, p1.x, p2.x, endValue.x, solveBezierTForTime(
-                        time,
-                        startTime,
-                        bezierRightTime != null ? bezierRightTime.x + startTime : startTime,
-                        bezierLeftTime != null ? bezierLeftTime.x + endTime : endTime,
-                        endTime
+                cubicBezier(start.x, p1.x, p2.x, end.x, solveBezierTForTime(
+                        alpha,
+                        bezierRightTime.x,
+                        1 + bezierLeftTime.x
                 )),
-                cubicBezier(startValue.y, p1.y, p2.y, endValue.y, solveBezierTForTime(
-                        time,
-                        startTime,
-                        bezierRightTime != null ? bezierRightTime.y + startTime : startTime,
-                        bezierLeftTime != null ? bezierLeftTime.y + endTime : endTime,
-                        endTime
+                cubicBezier(start.y, p1.y, p2.y, end.y, solveBezierTForTime(
+                        alpha,
+                        bezierRightTime.y,
+                        1 + bezierLeftTime.y
                 )),
-                cubicBezier(startValue.z, p1.z, p2.z, endValue.z, solveBezierTForTime(
-                        time,
-                        startTime,
-                        bezierRightTime != null ? bezierRightTime.z + startTime : startTime,
-                        bezierLeftTime != null ? bezierLeftTime.z + endTime : endTime,
-                        endTime
+                cubicBezier(start.z, p1.z, p2.z, end.z, solveBezierTForTime(
+                        alpha,
+                        bezierRightTime.z,
+                        1 + bezierLeftTime.z
                 ))
         );
     }
