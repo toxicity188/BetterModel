@@ -579,8 +579,7 @@ public final class RenderedBone implements BoneEventHandler {
                     AnimationMovement.EMPTY,
                     (b, a) -> {
                         synchronized (this) {
-                            skipInterpolation = false;
-                            if (a != null && a.skipInterpolation()) root.state(uuid).skipInterpolation = true;
+                            skipInterpolation = (a != null && a.skipInterpolation()) || (parent != null && parent.state(uuid).skipInterpolation);
                         }
                     }
             );
@@ -646,7 +645,7 @@ public final class RenderedBone implements BoneEventHandler {
         }
 
         private int interpolationDuration() {
-            if (root.state(uuid).skipInterpolation) return 0;
+            if (skipInterpolation) return 0;
             var frame = state.frame() / (float) Tracker.MINECRAFT_TICK_MULTIPLIER;
             return Math.round(frame + MathUtil.FLOAT_COMPARISON_EPSILON);
         }
