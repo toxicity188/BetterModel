@@ -226,7 +226,7 @@ public sealed interface BlueprintElement {
             @NotNull UUID uuid,
             @NotNull BoneName name,
             @NotNull Float3 origin
-    ) implements Bone {
+    ) implements BlueprintElement {
         /**
          * Gets origin
          * @return origin
@@ -236,6 +236,15 @@ public sealed interface BlueprintElement {
         public Float3 origin() {
             return origin.invertXZ();
         }
+    }
+
+    /**
+     * Blueprint camera
+     * @param uuid uuid
+     */
+    record BlueprintCamera(
+            @NotNull UUID uuid
+    ) implements BlueprintElement {
     }
 
     /**

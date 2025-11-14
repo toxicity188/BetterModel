@@ -15,7 +15,6 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -72,39 +71,7 @@ public sealed interface ModelChildren {
     record ModelUUID(@NotNull String uuid) implements ModelChildren {
         @Override
         public @NotNull BlueprintElement toBlueprint(@NotNull ModelLoadContext context) {
-            var get = Objects.requireNonNull(context.elements.get(uuid()));
-            var uid = UUID.fromString(uuid);
-            return switch (get) {
-                case ModelElement.Cube cube -> new BlueprintElement.BlueprintCube(
-                        cube.name(),
-                        cube.from(),
-                        cube.to(),
-                        cube.inflate(),
-                        cube.rotation(),
-                        cube.origin(),
-                        cube.faces(),
-                        cube.visibility()
-                );
-                case ModelElement.Locator locator -> new BlueprintElement.BlueprintLocator(
-                        uid,
-                        BoneTagRegistry.parse(locator.name()),
-                        locator.position()
-                );
-                case ModelElement.NullObject nullObject -> new BlueprintElement.BlueprintNullObject(
-                        uid,
-                        BoneTagRegistry.parse(nullObject.name()),
-                        Optional.ofNullable(nullObject.ikTarget())
-                                .filter(str -> !str.isEmpty())
-                                .map(UUID::fromString)
-                                .orElse(null),
-                        Optional.ofNullable(nullObject.ikSource())
-                                .filter(str -> !str.isEmpty())
-                                .map(UUID::fromString)
-                                .orElse(null),
-                        nullObject.position()
-                );
-                case ModelElement.Unsupported ignored -> throw new UnsupportedOperationException(ignored.type());
-            };
+            return Objects.requireNonNull(context.elements.get(uuid())).toBlueprint();
         }
 
         @Override

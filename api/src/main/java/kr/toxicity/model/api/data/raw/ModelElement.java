@@ -8,9 +8,14 @@ package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonDeserializer;
 import com.google.gson.annotations.SerializedName;
+import kr.toxicity.model.api.bone.BoneTagRegistry;
+import kr.toxicity.model.api.data.blueprint.BlueprintElement;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * A raw model's element
@@ -27,6 +32,7 @@ public sealed interface ModelElement {
         return switch (select) {
             case "null_object" -> context.deserialize(json, NullObject.class);
             case "locator" -> context.deserialize(json, Locator.class);
+            case "camera" -> context.deserialize(json, Camera.class);
             case "cube" -> context.deserialize(json, Cube.class);
             default -> new Unsupported(select);
         };
@@ -49,6 +55,12 @@ public sealed interface ModelElement {
      * @return type
      */
     @NotNull String type();
+
+    /**
+     * Converts to blueprint
+     * @return blueprint
+     */
+    @NotNull BlueprintElement toBlueprint();
 
     /**
      * Checks this element is supported
@@ -80,6 +92,46 @@ public sealed interface ModelElement {
         public @NotNull Float3 position() {
             return position != null ? position : Float3.ZERO;
         }
+
+        @Override
+        public @NotNull BlueprintElement toBlueprint() {
+            return new BlueprintElement.BlueprintLocator(
+                    UUID.fromString(uuid),
+                    BoneTagRegistry.parse(name()),
+                    position()
+            );
+        }
+    }
+
+    /**
+     * A raw model's camera
+     * @param name
+     * @param uuid
+     */
+    record Camera(
+            @NotNull String name,
+            @NotNull String uuid,
+            @Nullable Float3 position
+    ) implements ModelElement {
+        @Override
+        public @NotNull String type() {
+            return "camera";
+        }
+        /**
+         * Gets position
+         * @return position
+         */
+        @Override
+        public @NotNull Float3 position() {
+            return position != null ? position : Float3.ZERO;
+        }
+
+        @Override
+        public @NotNull BlueprintElement toBlueprint() {
+            return new BlueprintElement.BlueprintCamera(
+                    UUID.fromString(uuid)
+            );
+        }
     }
 
     /**
@@ -110,6 +162,23 @@ public sealed interface ModelElement {
         public @NotNull Float3 position() {
             return position != null ? position : Float3.ZERO;
         }
+
+        @Override
+        public @NotNull BlueprintElement toBlueprint() {
+           return new BlueprintElement.BlueprintNullObject(
+                    UUID.fromString(uuid),
+                    BoneTagRegistry.parse(name()),
+                    Optional.ofNullable(ikTarget())
+                            .filter(str -> !str.isEmpty())
+                            .map(UUID::fromString)
+                            .orElse(null),
+                    Optional.ofNullable(ikSource())
+                            .filter(str -> !str.isEmpty())
+                            .map(UUID::fromString)
+                            .orElse(null),
+                    position()
+            );
+        }
     }
 
     /**
@@ -131,6 +200,11 @@ public sealed interface ModelElement {
         @Override
         public boolean isSupported() {
             return false;
+        }
+
+        @Override
+        public @NotNull BlueprintElement toBlueprint() {
+            throw new UnsupportedOperationException(type());
         }
     }
 
@@ -196,6 +270,20 @@ public sealed interface ModelElement {
         @Override
         public @NotNull Float3 rotation() {
             return rotation != null ? rotation : Float3.ZERO;
+        }
+
+        @Override
+        public @NotNull BlueprintElement toBlueprint() {
+            return new BlueprintElement.BlueprintCube(
+                    name(),
+                    from(),
+                    to(),
+                    inflate(),
+                    rotation(),
+                    origin(),
+                    faces(),
+                    visibility()
+            );
         }
     }
 }
