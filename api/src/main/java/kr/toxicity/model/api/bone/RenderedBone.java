@@ -566,11 +566,10 @@ public final class RenderedBone implements BoneEventHandler {
     final class BoneStateHandler {
         private boolean firstTick = true;
         private boolean skipInterpolation = false;
-        private boolean sent;
         private final @Nullable UUID uuid;
         private final Consumer<UUID> consumer;
         private final AnimationStateHandler<AnimationMovement> state;
-        private volatile BoneMovement beforeTransform, afterTransform;
+        private volatile BoneMovement beforeTransform, afterTransform, currentTransform;
         private final DisplayTransformer transformer = display != null ? display.createTransformer() : null;
 
         private BoneStateHandler(@Nullable UUID uuid, @NotNull Consumer<UUID> consumer) {
@@ -592,7 +591,7 @@ public final class RenderedBone implements BoneEventHandler {
         }
 
         private @NotNull BoneMovement current() {
-            return afterTransform != null ? afterTransform : before();
+            return currentTransform != null ? currentTransform : after();
         }
 
         @NotNull BoneMovement after() {
@@ -636,7 +635,6 @@ public final class RenderedBone implements BoneEventHandler {
                 synchronized (this) {
                     beforeTransform = afterTransform;
                     afterTransform = null;
-                    sent = false;
                 }
             }
             firstTick = false;
@@ -654,9 +652,10 @@ public final class RenderedBone implements BoneEventHandler {
         }
 
         private void sendTransformation(@NotNull PacketBundler bundler) {
-            if (sent || transformer == null) return;
-            sent = true;
+            if (transformer == null) return;
             var boneMovement = after();
+            if (currentTransform == boneMovement) return;
+            currentTransform = boneMovement;
             var mul = scale.getAsFloat();
             transformer.transform(
                     interpolationDuration(),
