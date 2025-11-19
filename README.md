@@ -41,7 +41,7 @@ This plugin implements **fully server-side 3D model** by using an item display e
 #### Library
 - [Kotlin stdlib](https://github.com/JetBrains/kotlin): modern functional programming
 - [semver4j](https://github.com/vdurmont/semver4j): semver parser
-- [CommandAPI](https://github.com/CommandAPI/CommandAPI): command
+- [cloud](https://github.com/Incendo/cloud-minecraft): command
 - [adventure](https://github.com/KyoriPowered/adventure): component
 - [stable player display](https://github.com/bradleyq/stable_player_display): player animation
 - [caffeine](https://github.com/ben-manes/caffeine): concurrent map cache

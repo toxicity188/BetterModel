@@ -48,7 +48,7 @@ tasks {
         prefix("kotlin")
         prefix("kr.toxicity.library.sharedpackets")
         prefix("kr.toxicity.library.armormodel")
-        prefix("dev.jorel.commandapi")
+        prefix("org.incendo.cloud")
         prefix("org.bstats")
         prefix("net.byteflux.libby")
     }
