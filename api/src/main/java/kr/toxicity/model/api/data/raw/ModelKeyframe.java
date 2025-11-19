@@ -59,25 +59,32 @@ public record ModelKeyframe(
     }
 
     /**
+     * Gets vector point
+     * @param context context
+     * @param function function
+     * @return vector point
+     */
+    public @NotNull VectorPoint point(@NotNull ModelLoadContext context, @NotNull Function<Vector3f, Vector3f> function) {
+        return new VectorPoint(
+                point().toFunction(context).map(function).memoize(),
+                time(),
+                new VectorPoint.BezierConfig(
+                        Optional.ofNullable(bezierLeftTime).map(Float3::toVector).orElse(null),
+                        Optional.ofNullable(bezierLeftValue).map(Float3::toVector).map(function).orElse(null),
+                        Optional.ofNullable(bezierRightTime).map(Float3::toVector).orElse(null),
+                        Optional.ofNullable(bezierRightValue).map(Float3::toVector).map(function).orElse(null)
+                ),
+                interpolation()
+        );
+    }
+
+    /**
      * Gets interpolation
      * @return interpolation
      */
     @Override
     public @NotNull VectorInterpolator interpolation() {
         return interpolation != null ? interpolation : VectorInterpolator.LINEAR;
-    }
-
-    /**
-     * Gets bezier config
-     * @return bezier config
-     */
-    public @NotNull VectorPoint.BezierConfig bezierConfig(@NotNull Function<Vector3f, Vector3f> function) {
-        return new VectorPoint.BezierConfig(
-                Optional.ofNullable(bezierLeftTime).map(Float3::toVector).orElse(null),
-                Optional.ofNullable(bezierLeftValue).map(Float3::toVector).map(function).orElse(null),
-                Optional.ofNullable(bezierRightTime).map(Float3::toVector).orElse(null),
-                Optional.ofNullable(bezierRightValue).map(Float3::toVector).map(function).orElse(null)
-        );
     }
 
     /**
