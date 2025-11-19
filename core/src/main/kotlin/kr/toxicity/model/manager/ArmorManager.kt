@@ -144,7 +144,7 @@ object ArmorManager : GlobalManager {
                 sendAsync(
                     buildHttpRequest {
                         GET()
-                        uri(URI.create(hash.run { downloads["client"]!!.url }))
+                        uri(URI.create(hash.downloads["client"]!!.url))
                     },
                     HttpResponse.BodyHandlers.ofInputStream()
                 ).thenComposeAsync { response3 ->

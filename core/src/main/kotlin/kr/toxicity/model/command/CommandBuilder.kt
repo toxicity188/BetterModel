@@ -14,6 +14,7 @@ import net.kyori.adventure.text.format.TextDecoration
 import org.bukkit.command.CommandSender
 import org.incendo.cloud.Command
 import org.incendo.cloud.CommandManager
+import org.incendo.cloud.bukkit.BukkitCommandMeta
 import org.incendo.cloud.description.Description
 import org.incendo.cloud.parser.standard.IntegerParser
 
@@ -77,7 +78,7 @@ class CommandBuilder(
     }
 
     private val root: CommandBuilder = parent?.root ?: this
-    private val suggest: String = parent?.let { "${it.suggest} ${info.name}" } ?: info.name
+    private val suggest: String = parent?.let { "${it.suggest} ${info.name}" } ?: info.simpleName
     private val permission: String = parent?.let { "${it.permission} ${info.name}" } ?: info.name
     private val children = mutableListOf<CommandLike>()
     private val helpCommand by lazy {
@@ -127,7 +128,9 @@ class CommandBuilder(
         val name: String,
         val description: Description,
         val aliases: List<String>
-    )
+    ) {
+        val simpleName get() = if (aliases.isNotEmpty()) aliases.minBy { it.length } else name
+    }
 
     override fun toComponent(): TextComponent {
         TODO("Not yet implemented")
@@ -146,5 +149,5 @@ class CommandBuilder(
         info.name,
         info.description,
         *info.aliases.toTypedArray()
-    )
+    ).meta(BukkitCommandMeta.BUKKIT_DESCRIPTION, info.description.textDescription())
 }

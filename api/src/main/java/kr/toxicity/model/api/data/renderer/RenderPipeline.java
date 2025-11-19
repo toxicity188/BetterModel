@@ -9,7 +9,6 @@ package kr.toxicity.model.api.data.renderer;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.*;
 import kr.toxicity.model.api.bone.*;
-import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.nms.HitBox;
 import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
@@ -201,21 +200,6 @@ public final class RenderPipeline implements BoneEventHandler {
 
     public @Nullable RenderedBone boneOf(@NotNull BoneName name) {
         return flattenBoneMap.get(name);
-    }
-
-    @ApiStatus.Internal
-    public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier, @NotNull AnimationEventHandler eventHandler) {
-        return matchTree(AnimationPredicate.of(filter), (b, a) -> b.addAnimation(a, animation, modifier, eventHandler));
-    }
-
-    @ApiStatus.Internal
-    public boolean replace(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier) {
-        return matchTree(AnimationPredicate.of(filter), (b, a) -> b.replaceAnimation(a, target, animation, modifier));
-    }
-
-    @ApiStatus.Internal
-    public boolean stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @Nullable Player player) {
-        return matchTree(b -> b.stopAnimation(filter, target, player));
     }
 
     @ApiStatus.Internal

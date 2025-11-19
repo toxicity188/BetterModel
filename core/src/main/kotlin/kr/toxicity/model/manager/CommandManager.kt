@@ -42,7 +42,7 @@ object CommandManager : GlobalManager {
     override fun start() {
         command(
             "bettermodel",
-            "BetterModel's main command.",
+            "All-related command.",
             "bm", "model"
         ) {
             create(

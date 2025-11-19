@@ -7,10 +7,7 @@
 package kr.toxicity.model.api.tracker;
 
 import kr.toxicity.model.api.BetterModel;
-import kr.toxicity.model.api.animation.AnimationEventHandler;
-import kr.toxicity.model.api.animation.AnimationIterator;
-import kr.toxicity.model.api.animation.AnimationModifier;
-import kr.toxicity.model.api.animation.AnimationStateHandler;
+import kr.toxicity.model.api.animation.*;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.BoneTags;
 import kr.toxicity.model.api.bone.RenderedBone;
@@ -503,7 +500,7 @@ public abstract class Tracker implements AutoCloseable {
     public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier, @NotNull AnimationEventHandler eventHandler) {
         var script = animation.script(modifier);
         if (script != null) scriptProcessor.addAnimation(animation.name(), script.iterator(modifier), modifier, AnimationEventHandler.start());
-        return pipeline.animate(filter, animation, modifier, eventHandler);
+        return pipeline.matchTree(AnimationPredicate.of(filter), (b, a) -> b.addAnimation(a, animation, modifier, eventHandler));
     }
 
     /**
@@ -534,7 +531,7 @@ public abstract class Tracker implements AutoCloseable {
      */
     public boolean stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, @Nullable Player player) {
         var script = scriptProcessor.stopAnimation(animation);
-        return pipeline.stopAnimation(filter, animation, player) || script;
+        return pipeline.matchTree(b -> b.stopAnimation(filter, animation, player)) || script;
     }
 
     /**
@@ -573,7 +570,7 @@ public abstract class Tracker implements AutoCloseable {
     public boolean replace(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier) {
         var script = animation.script(modifier);
         if (script != null) scriptProcessor.replaceAnimation(target, script.iterator(modifier), modifier);
-        return pipeline.replace(filter, target, animation, modifier);
+        return pipeline.matchTree(AnimationPredicate.of(filter), (b, a) -> b.replaceAnimation(a, target, animation, modifier));
     }
 
     //--- Update action ---
