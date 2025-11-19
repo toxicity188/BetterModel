@@ -16,7 +16,6 @@ import org.incendo.cloud.Command
 import org.incendo.cloud.CommandManager
 import org.incendo.cloud.description.Description
 import org.incendo.cloud.parser.standard.IntegerParser
-import org.incendo.cloud.parser.standard.LiteralParser
 
 class CommandBuilder(
     val parent: CommandBuilder?,
@@ -93,19 +92,6 @@ class CommandBuilder(
                     list += emptyComponentOf()
                     list += "---------< Page $index / $maxPage >---------".toComponent(GRAY)
                 }.toTypedArray()
-        }
-        listOf(
-            createBuilder(),
-            createBuilder().optional("help", LiteralParser.literal("help", "h"))
-        ).map {
-            it.optional("page", IntegerParser.integerParser(1, maxPage))
-                .permission("$permission.help")
-                .handler { ctx ->
-                    val page = ctx.getOrDefault("page", 1)
-                        .coerceAtLeast(1)
-                        .coerceAtMost(maxPage)
-                    ctx.sender().audience().info(*helpComponents[page - 1])
-                }
         }
         val builder = createBuilder()
             .permission("$permission.help")
