@@ -357,6 +357,7 @@ public abstract class Tracker implements AutoCloseable {
         if (result) {
             LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " is spawned at player " + player.getName() + ": " + name());
             task(() -> {
+                if (isHide(player)) return;
                 var b = pipeline.createBundler();
                 pipeline.iterateTree(bone -> bone.forceUpdate(b));
                 if (b.isNotEmpty()) b.send(player);

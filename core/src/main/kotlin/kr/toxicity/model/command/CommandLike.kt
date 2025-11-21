@@ -15,11 +15,12 @@ import kr.toxicity.model.util.toHoverEvent
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.format.NamedTextColor.DARK_AQUA
-import net.kyori.adventure.text.format.NamedTextColor.DARK_GRAY
 import net.kyori.adventure.text.format.NamedTextColor.GRAY
+import net.kyori.adventure.text.format.NamedTextColor.GREEN
 import net.kyori.adventure.text.format.NamedTextColor.LIGHT_PURPLE
 import net.kyori.adventure.text.format.NamedTextColor.RED
 import net.kyori.adventure.text.format.NamedTextColor.YELLOW
+import net.kyori.adventure.text.format.TextDecoration
 import org.bukkit.command.CommandSender
 import org.incendo.cloud.Command
 import org.incendo.cloud.component.CommandComponent
@@ -47,7 +48,9 @@ interface CommandLike {
                 append(comp.toComponent(i == 0))
                 if (i < components().size) append(spaceComponentOf())
             }
-            append(" - ".toComponent(DARK_GRAY))
+            append(lineComponentOf())
+            append("  |  ".toComponent { color(GREEN).decorate(TextDecoration.BOLD) })
+            append(" └ ".toComponent())
             append(commandDescription().description().textDescription().toComponent(GRAY))
             hoverEvent(componentOf(
                 "Permission:".toComponent(DARK_AQUA),

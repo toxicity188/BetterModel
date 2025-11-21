@@ -25,7 +25,7 @@ class CommandBuilder(
 ) : CommandLike {
 
     private companion object {
-        const val PAGE_SPLIT_INDEX = 6
+        const val PAGE_SPLIT_INDEX = 5
 
         val prefix = listOf(
             emptyComponentOf(),
@@ -54,17 +54,6 @@ class CommandBuilder(
                         toURLComponent("https://discord.com/invite/rePyFESDbk")
                     })
                 },
-                emptyComponentOf(),
-                componentOf(
-                    "    <arg>".toComponent(RED),
-                    spaceComponentOf(),
-                    " - required".toComponent()
-                ),
-                componentOf(
-                    "    [arg]".toComponent(DARK_AQUA),
-                    spaceComponentOf(),
-                    " - optional".toComponent()
-                ),
                 emptyComponentOf()
             )
         ).flatten()
@@ -79,7 +68,7 @@ class CommandBuilder(
 
     private val root: CommandBuilder = parent?.root ?: this
     private val suggest: String = parent?.let { "${it.suggest} ${info.name}" } ?: info.simpleName
-    private val permission: String = parent?.let { "${it.permission} ${info.name}" } ?: info.name
+    private val permission: String = parent?.let { "${it.permission}.${info.name}" } ?: info.name
     private val children = mutableListOf<CommandLike>()
     private val helpCommand by lazy {
         val maxPage = children.size / PAGE_SPLIT_INDEX + 1
