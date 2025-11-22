@@ -183,7 +183,7 @@ public sealed interface BlueprintElement {
          */
         public float scale() {
             return (float) Math.max(filterIsInstance(children, Cube.class)
-                    .mapToDouble(e -> e.max() / 16F)
+                    .mapToDouble(e -> e.max(origin) / 16F)
                     .max()
                     .orElse(1F), 1F);
         }
@@ -348,7 +348,7 @@ public sealed interface BlueprintElement {
          * Gets max length of this cube
          * @return cube length
          */
-        public float max() {
+        public float max(@NotNull Float3 origin) {
             var f = from().minus(origin);
             var t = to().minus(origin);
             var max = 0F;
