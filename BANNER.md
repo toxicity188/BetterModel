@@ -14,7 +14,9 @@
 ![](https://github.com/user-attachments/assets/ff515577-6a72-48ba-9943-81f00dddb375)
 * * *
 
-This plugin implements **fully server-side 3D model** by using an item display entity packet.
+**BetterModel** is a plugin-based engine that provide runtime BlockBench model rendering & animating for Minecraft Java Edition.  
+
+It implements **fully server-side 3D model** by using an item display entity packet.
 
 - Importing Generic BlockBench model `.bbmodel`
 - Auto-generating resource pack
