@@ -9,8 +9,8 @@ package kr.toxicity.model.api.pack;
 import kr.toxicity.model.api.BetterModel;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Pack obfuscator
@@ -70,7 +70,7 @@ public interface PackObfuscator {
         };
         private static final int NAME_LENGTH = AVAILABLE_NAME.length;
 
-        private final Map<String, String> nameMap = new HashMap<>();
+        private final Map<String, String> nameMap = new ConcurrentHashMap<>();
         private final StringBuilder builder = new StringBuilder();
 
         /**

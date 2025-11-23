@@ -160,7 +160,7 @@ public sealed interface BlueprintElement {
                     .filter(Cube::hasTexture)
                     .toList();
             if (cubeElement.isEmpty()) return null;
-            return new BlueprintJson(obfuscator.models().obfuscate(jsonName(parent) + "_" + number), JsonObjectBuilder.builder()
+            return new BlueprintJson(obfuscator.models().obfuscate(jsonName(parent) + "_" + number), () -> JsonObjectBuilder.builder()
                     .jsonObject("textures", textures -> {
                         var index = 0;
                         for (BlueprintTexture texture : parent.textures()) {

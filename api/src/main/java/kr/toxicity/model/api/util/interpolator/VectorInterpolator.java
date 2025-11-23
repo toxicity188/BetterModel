@@ -24,6 +24,9 @@ import static kr.toxicity.model.api.util.InterpolationUtil.lerp;
  */
 @ApiStatus.Internal
 public enum VectorInterpolator {
+    /**
+     * Linear
+     */
     @SerializedName("linear")
     LINEAR {
         @NotNull
@@ -41,6 +44,9 @@ public enum VectorInterpolator {
             );
         }
     },
+    /**
+     * Catmullrom
+     */
     @SerializedName("catmullrom")
     CATMULLROM {
         private static @NotNull VectorPoint indexOf(@NotNull List<VectorPoint> list, int index, int relative) {
@@ -70,6 +76,9 @@ public enum VectorInterpolator {
             );
         }
     },
+    /**
+     * Bezier
+     */
     @SerializedName("bezier")
     BEZIER {
         @NotNull
@@ -93,6 +102,9 @@ public enum VectorInterpolator {
             );
         }
     },
+    /**
+     * Step
+     */
     @SerializedName("step")
     STEP {
         @NotNull
@@ -115,6 +127,7 @@ public enum VectorInterpolator {
      * @param time destination time
      * @return interpolated vector
      */
+    @NotNull
     public abstract Vector3f interpolate(@NotNull List<VectorPoint> points, int p2Index, float time);
 
     /**

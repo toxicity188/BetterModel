@@ -19,7 +19,6 @@ import kr.toxicity.model.api.script.AnimationScript;
 import kr.toxicity.model.api.script.BlueprintScript;
 import kr.toxicity.model.api.script.TimeScript;
 import kr.toxicity.model.api.util.InterpolationUtil;
-import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -60,13 +59,9 @@ public record ModelAnimation(
                 animators().entrySet().stream()
                         .filter(e -> context.availableUUIDs.contains(e.getKey()))
                         .map(Map.Entry::getValue)
-                        .filter(ModelAnimator::isAvailable),
-                e -> BoneTagRegistry.parse(e.name()),
-                e -> {
-                    var builder = new Builder(context, length(), e.rotationGlobal());
-                    e.stream().forEach(builder::addFrame);
-                    return builder.build(name());
-                }
+                        .filter(ModelAnimator::isAvailable)
+                        .map(a -> buildAnimationData(context, a)),
+                data -> BoneTagRegistry.parse(data.name())
         ));
         return new BlueprintAnimation(
                 name(),
@@ -135,36 +130,25 @@ public record ModelAnimation(
         return animators != null ? animators : Collections.emptyMap();
     }
 
-    @RequiredArgsConstructor
-    private static final class Builder {
-
-        private final ModelLoadContext context;
-        private final float length;
-        private final boolean rotationGlobal;
-
-        private final List<VectorPoint> transform = new ArrayList<>();
-        private final List<VectorPoint> scale = new ArrayList<>();
-        private final List<VectorPoint> rotation = new ArrayList<>();
-
-        void addFrame(@NotNull ModelKeyframe keyframe) {
-            var time = keyframe.time();
-            if (time > length) return;
-            var version = context.meta.formatVersion();
+    @NotNull
+    private BlueprintAnimator.AnimatorData buildAnimationData(@NotNull ModelLoadContext context, @NotNull ModelAnimator animator) {
+        var position = new ArrayList<VectorPoint>();
+        var rotation = new ArrayList<VectorPoint>();
+        var scale = new ArrayList<VectorPoint>();
+        var version = context.meta.formatVersion();
+        animator.stream().filter(keyframe -> keyframe.time() <= length()).forEach(keyframe -> {
             switch (keyframe.channel()) {
-                case POSITION -> transform.add(keyframe.point(context, version::convertAnimationPosition));
+                case POSITION -> position.add(keyframe.point(context, version::convertAnimationPosition));
                 case ROTATION -> rotation.add(keyframe.point(context, version::convertAnimationRotation));
                 case SCALE -> scale.add(keyframe.point(context, version::convertAnimationScale));
             }
-        }
-
-        @NotNull BlueprintAnimator.AnimatorData build(@NotNull String name) {
-            return new BlueprintAnimator.AnimatorData(
-                    name,
-                    transform,
-                    scale,
-                    rotation,
-                    rotationGlobal
-            );
-        }
+        });
+        return new BlueprintAnimator.AnimatorData(
+                animator.name(),
+                position,
+                scale,
+                rotation,
+                animator.rotationGlobal()
+        );
     }
 }

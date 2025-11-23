@@ -135,7 +135,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                     "model" to "${CONFIG.namespace()}:item/${blueprint.name}"
                 )
                 pack.add("${blueprint.name}.json", size) {
-                    blueprint.element.toByteArray()
+                    blueprint.element.get().toByteArray()
                 }
             },
             onClose = {
@@ -161,7 +161,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                 )
                 blueprints.forEach { json ->
                     pack.add("${json.name}.json", size / blueprints.size) {
-                        json.element.toByteArray()
+                        json.element.get().toByteArray()
                     }
                 }
             },
@@ -202,7 +202,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                     modernModel.ifAvailable {
                         group.buildModernJson(textures.obfuscator().withModels(pack.obfuscator()), load)
                     }?.let {
-                        modernModel.build(it, size)
+                        modernModel.build(it, size / it.size)
                         success = true
                     }
                     //Legacy
