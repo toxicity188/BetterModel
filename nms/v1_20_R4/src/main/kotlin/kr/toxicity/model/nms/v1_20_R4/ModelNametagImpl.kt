@@ -56,9 +56,8 @@ internal class ModelNametagImpl(
         0.0
     )
 
-    @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
     override fun component(component: Component?) {
-        display.text = component?.asVanilla()
+        display.text = component?.asVanilla() ?: VanillaComponent.empty()
     }
 
     override fun teleport(location: Location) {
@@ -70,7 +69,7 @@ internal class ModelNametagImpl(
     }
 
     override fun send(player: Player) {
-        if (display.text == null) return
+        if (display.text == VanillaComponent.empty()) return
         val hb = bone.group.hitBox?.centerPoint() ?: emptyVector
         val pos = bone.worldPosition(hb, emptyVector, player.uniqueId)
         display.moveTo(Vec3(

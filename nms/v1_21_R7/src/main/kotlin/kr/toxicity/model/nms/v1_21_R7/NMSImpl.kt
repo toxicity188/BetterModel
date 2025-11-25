@@ -4,7 +4,7 @@
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
-package kr.toxicity.model.nms.v1_21_R5
+package kr.toxicity.model.nms.v1_21_R7
 
 import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.EntityLookup
 import com.mojang.authlib.GameProfile
@@ -27,10 +27,11 @@ import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.*
 import net.minecraft.network.syncher.EntityDataSerializers
 import net.minecraft.network.syncher.SynchedEntityData
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.network.ServerCommonPacketListenerImpl
+import net.minecraft.server.players.NameAndId
 import net.minecraft.util.ARGB
 import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.Display.ItemDisplay
@@ -63,7 +64,7 @@ class NMSImpl : NMS {
 
         //Spigot
         private val getGameProfile: (net.minecraft.world.entity.player.Player) -> GameProfile = createAdaptedFieldGetter { it.gameProfile }
-        private val getOfflineGameProfile: (CraftOfflinePlayer) -> GameProfile = createAdaptedFieldGetter()
+        private val getOfflineGameProfile: (CraftOfflinePlayer) -> NameAndId = createAdaptedFieldGetter()
         private val getConnection: (ServerCommonPacketListenerImpl) -> Connection = createAdaptedFieldGetter { it.connection }
         private val spigotChunkAccess = ServerLevel::class.java.fields.firstOrNull {
             it.type == PersistentEntitySectionManager::class.java
@@ -356,23 +357,23 @@ class NMSImpl : NMS {
             mountController
         ).craftEntity
     }
-    override fun version(): NMSVersion = NMSVersion.V1_21_R5
+    override fun version(): NMSVersion = NMSVersion.V1_21_R7
 
     override fun adapt(entity: org.bukkit.entity.Entity): BaseEntity {
         entity as CraftEntity
         return if (entity is CraftPlayer) BasePlayerImpl(entity, { profile(entity) }) { entity.handle.toCustomisation() } else BaseEntityImpl(entity)
     }
 
-    override fun profile(player: OfflinePlayer): GameProfile = if (player is CraftOfflinePlayer) getOfflineGameProfile(player) else getGameProfile((player as CraftPlayer).handle)
+    override fun profile(player: OfflinePlayer): GameProfile = if (player is CraftOfflinePlayer) getOfflineGameProfile(player).toUncompletedGameProfile() else getGameProfile((player as CraftPlayer).handle)
 
     override fun createPlayerHead(profile: GameProfile): ItemStack = VanillaItemStack(Items.PLAYER_HEAD).apply {
-        set(DataComponents.PROFILE, ResolvableProfile(profile))
+        set(DataComponents.PROFILE, ResolvableProfile.createResolved(profile))
     }.asBukkit()
 
     override fun createSkinItem(model: String, flags: List<Boolean>, strings: List<String>, colors: List<Int>): TransformedItemStack {
         return VanillaItemStack(Items.PLAYER_HEAD).run {
             set(DataComponents.CUSTOM_MODEL_DATA, CustomModelData(emptyList(), flags, strings, colors))
-            set(DataComponents.ITEM_MODEL, ResourceLocation.parse(model))
+            set(DataComponents.ITEM_MODEL, Identifier.parse(model))
             TransformedItemStack.of(asBukkit())
         }
     }

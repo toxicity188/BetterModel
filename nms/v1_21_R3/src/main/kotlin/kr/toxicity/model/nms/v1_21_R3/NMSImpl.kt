@@ -82,7 +82,7 @@ class NMSImpl : NMS {
                     } ?: throw RuntimeException("LevelEntityGetter")
                 }
             }
-        private val getEntityById: (LevelEntityGetter<Entity>, Int) -> Entity? = if (BetterModel.IS_PAPER)  { g, i ->
+        private val getEntityById: (LevelEntityGetter<Entity>, Int) -> Entity? = if (BetterModel.IS_PAPER) { g, i ->
             (g as EntityLookup)[i]
         } else LevelEntityGetterAdapter::class.java.declaredFields.first {
             net.minecraft.world.level.entity.EntityLookup::class.java.isAssignableFrom(it.type)

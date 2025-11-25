@@ -35,7 +35,8 @@ internal class BetterModelProperties(
 
     val version = parse(Bukkit.getBukkitVersion().substringBefore('-'))
     val nms = when (version) {
-        V1_21_9, V1_21_10 -> Latest()
+        V1_21_11 -> Latest()
+        V1_21_9, V1_21_10 -> kr.toxicity.model.nms.v1_21_R6.NMSImpl()
         V1_21_6, V1_21_7, V1_21_8 -> kr.toxicity.model.nms.v1_21_R5.NMSImpl()
         V1_21_5 -> kr.toxicity.model.nms.v1_21_R4.NMSImpl()
         V1_21_4 -> kr.toxicity.model.nms.v1_21_R3.NMSImpl()

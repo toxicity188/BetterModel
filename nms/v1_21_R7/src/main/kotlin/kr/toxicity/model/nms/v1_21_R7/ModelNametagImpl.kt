@@ -4,7 +4,7 @@
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
-package kr.toxicity.model.nms.v1_21_R1
+package kr.toxicity.model.nms.v1_21_R7
 
 import com.mojang.math.Transformation
 import kr.toxicity.model.api.bone.RenderedBone
@@ -13,12 +13,13 @@ import kr.toxicity.model.api.nms.PacketBundler
 import kr.toxicity.model.api.util.EntityUtil
 import net.kyori.adventure.text.Component
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
+import net.minecraft.network.protocol.game.ClientboundEntityPositionSyncPacket
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
-import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket
 import net.minecraft.server.MinecraftServer
 import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.PositionMoveRotation
 import net.minecraft.world.phys.Vec3
 import org.bukkit.Location
 import org.bukkit.entity.Player
@@ -86,7 +87,7 @@ internal class ModelNametagImpl(
                 }
             )
             inPoint -> bundlerOfNotNull(
-                ClientboundTeleportEntityPacket(display),
+                ClientboundEntityPositionSyncPacket(display.id, PositionMoveRotation.of(display), false),
                 display.entityData.packDirty()?.let {
                     ClientboundSetEntityDataPacket(display.id, it)
                 }
