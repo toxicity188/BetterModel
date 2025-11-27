@@ -25,7 +25,7 @@ import kr.toxicity.model.util.warn
 import org.bstats.bukkit.Metrics
 import org.bukkit.Bukkit
 
-private typealias Latest = kr.toxicity.model.nms.v1_21_R6.NMSImpl
+private typealias Latest = kr.toxicity.model.nms.v1_21_R7.NMSImpl
 
 internal class BetterModelProperties(
     private val plugin: AbstractBetterModelPlugin
