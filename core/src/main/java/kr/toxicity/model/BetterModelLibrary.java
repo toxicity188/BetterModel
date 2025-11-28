@@ -48,15 +48,15 @@ public final class BetterModelLibrary {
 //                    )
 //                    .relocation("org{}incendo{}cloud")
 //    );
-//    public static final LibraryData CLOUD_CORE = register(
-//            "org{}incendo",
-//            "cloud-core",
-//            builder -> builder
-//                    .subModules(
-//                            "cloud-services"
-//                    )
-//                    .relocation("org{}incendo{}cloud")
-//    );
+    public static final LibraryData CLOUD_CORE = register(
+            "org{}incendo",
+            "cloud-core",
+            builder -> builder
+                    .subModules(
+                            "cloud-services"
+                    )
+                    .relocation("org{}incendo{}cloud")
+    );
     public static final LibraryData GEANTYREF = register(
             "io{}leangen{}geantyref",
             "geantyref",

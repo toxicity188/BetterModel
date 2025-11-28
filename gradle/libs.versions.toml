@@ -50,7 +50,7 @@ manifestLibrary = [
     "bStats",
     "molangCompiler",
 #    "cloud-paper", TODO add remove this when cloud-paper 2.0.0-beta.14 is released
-#    "cloud-core",
+    "cloud-core",
     "geantyref",
     "adventure-api",
     "adventure-examination",

@@ -21,6 +21,8 @@ dependencies {
     shade(libs.bundles.shadedLibrary) {
         exclude("net.kyori")
         exclude("org.ow2.asm")
+        exclude("io.leangen.geantyref")
+        exclude("org.incendo", "cloud-core")
     }
 
     compileOnly(libs.bundles.manifestLibrary)
