@@ -75,7 +75,7 @@ public final class MathUtil {
      */
     public static final FloatComparator FRAME_COMPARATOR = (a, b) -> isSimilar(a, b, FRAME_EPSILON) ? 0 : Float.compare(a, b);
 
-    private static final Vector3f FORWARD_AXIS = new Vector3f(0, -1, 0);
+    private static final Vector3f FORWARD_AXIS = new Vector3f(0, -1, 0).normalize();
 
     private static final FloatSet VALID_ROTATION_DEGREES = FloatSet.of(
             0F,
@@ -258,34 +258,34 @@ public final class MathUtil {
      * Gets rotation from vectors
      * @param to to
      * @return quaternion
+     * @param dest destination quaternion
      */
-    public static @NotNull Quaternionf fromToRotation(@NotNull Vector3f to) {
-        return fromToRotation(FORWARD_AXIS, to);
+    public static @NotNull Quaternionf fromToRotation(@NotNull Vector3f to, @NotNull Quaternionf dest) {
+        return fromToRotation(FORWARD_AXIS, to, dest);
     }
 
     /**
      * Gets rotation from two vectors
      * @param from from
      * @param to to
+     * @param dest destination quaternion
      * @return quaternion
      */
-    public static @NotNull Quaternionf fromToRotation(@NotNull Vector3f from, @NotNull Vector3f to) {
-        var f = new Vector3f(from).normalize();
-        var t = new Vector3f(to).normalize();
-
-        var axis = f.cross(t, new Vector3f());
+    public static @NotNull Quaternionf fromToRotation(@NotNull Vector3f from, @NotNull Vector3f to, @NotNull Quaternionf dest) {
+        var cache = new Vector3f();
+        var axis = from.cross(to, cache);
         var len = axis.length();
-        var dot = f.dot(t);
+        var dot = from.dot(to);
 
-        if (len < 1e-6f) {
-            if (dot > 0.999999f) return new Quaternionf();
-            var ortho = Math.abs(f.x) < 0.9f
-                    ? f.cross(1, 0, 0, new Vector3f())
-                    : f.cross(0, 1, 0, new Vector3f());
-            return new Quaternionf().fromAxisAngleRad(ortho.normalize(), (float) Math.PI);
+        if (len < 1e-6F) {
+            if (dot > 0.999999F) return dest.identity();
+            var ortho = Math.abs(from.x) < 0.9F
+                    ? from.cross(1, 0, 0, cache)
+                    : from.cross(0, 1, 0, cache);
+            return dest.fromAxisAngleRad(ortho.normalize(), (float) Math.PI);
         }
 
-        return new Quaternionf().fromAxisAngleRad(axis.div(len), (float) Math.atan2(len, dot));
+        return dest.fromAxisAngleRad(axis.div(len), (float) Math.atan2(len, dot));
     }
 
     /**

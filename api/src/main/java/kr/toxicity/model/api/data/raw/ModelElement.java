@@ -111,7 +111,7 @@ public sealed interface ModelElement {
 
         @Override
         public @NotNull BlueprintElement toBlueprint() {
-            return new BlueprintElement.BlueprintCamera(
+            return new BlueprintElement.Camera(
                     UUID.fromString(uuid)
             );
         }

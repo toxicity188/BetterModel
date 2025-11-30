@@ -242,7 +242,7 @@ public sealed interface BlueprintElement {
      * Blueprint camera
      * @param uuid uuid
      */
-    record BlueprintCamera(
+    record Camera(
             @NotNull UUID uuid
     ) implements BlueprintElement {
     }

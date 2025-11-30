@@ -30,7 +30,7 @@ public final class BoneIKSolver {
     private static final int MAX_IK_ITERATION = 20;
 
     private final Map<UUID, RenderedBone> boneMap;
-    private final Map<RenderedBone, IKTree> locators = new LinkedHashMap<>();
+    private final Map<RenderedBone, IKChain> locators = new LinkedHashMap<>();
 
     /**
      * Adds some external locator to this solver
@@ -46,7 +46,7 @@ public final class BoneIKSolver {
                 .filter(bone -> !bone.flattenBones().contains(locator) && bone.flattenBones().contains(target))
                 .toList();
         if (list.size() < 2) return;
-        locators.put(locator, new IKTree(source, list, new float[list.size() - 1]));
+        locators.put(locator, new IKChain(source, list, new IKCache(list.size())));
     }
 
     /**
@@ -69,9 +69,9 @@ public final class BoneIKSolver {
                     value.bones.stream()
                             .map(bone -> bone.state(uuid).after())
                             .toList(),
-                    value.source.state(uuid).after().rotation().invert(new Quaternionf()),
-                    value.buffer,
-                    locator.state(uuid).after().position().get(new Vector3f())
+                    value.source.state(uuid).after().rotation().invert(value.cache.rotation),
+                    value.cache.buffer,
+                    locator.state(uuid).after().position().get(value.cache.destination)
                             .add(locator.root.group.getPosition())
                             .sub(root.state(uuid).after().position())
                             .sub(root.root.group.getPosition())
@@ -79,13 +79,20 @@ public final class BoneIKSolver {
         }
     }
 
-    private record IKTree(@NotNull RenderedBone source, @NotNull List<RenderedBone> bones, float[] buffer) {}
+    private record IKChain(@NotNull RenderedBone source, @NotNull List<RenderedBone> bones, @NotNull IKCache cache) {}
+
+    private record IKCache(float[] buffer, @NotNull Vector3f destination, @NotNull Quaternionf rotation) {
+        private IKCache(int length) {
+            this(new float[length - 1], new Vector3f(), new Quaternionf());
+        }
+    }
 
     private static void fabrik(@NotNull List<BoneMovement> bones, @NotNull Quaternionf parentRot, float[] lengths, @NotNull Vector3f target) {
         var first = bones.getFirst().position();
         var last = bones.getLast().position();
 
-        var rootPos = new Vector3f(first);
+        var vecCache = new Vector3f();
+        var rootPos = first.get(vecCache);
 
         for (int i = 0; i < bones.size() - 1; i++) {
             var before = bones.get(i);
@@ -114,12 +121,13 @@ public final class BoneIKSolver {
             // Check
             if (last.distance(target) < MathUtil.FRAME_EPSILON) break;
         }
+        var rotCache = new Quaternionf();
         for (int i = 0; i < bones.size() - 1; i++) {
             var current = bones.get(i);
             var next = bones.get(i + 1);
 
-            var dir = next.position().sub(current.position(), new Vector3f());
-            current.rotation().set(MathUtil.fromToRotation(dir).mul(parentRot).mul(current.rotation()));
+            var dir = next.position().sub(current.position(), vecCache);
+            current.rotation().set(MathUtil.fromToRotation(dir, rotCache).mul(parentRot).mul(current.rotation()));
         }
     }
 }
