@@ -135,6 +135,42 @@ public record ModelRenderer(
     }
 
     /**
+     * Creates tracker by location and completed profile
+     *
+     * @param location location
+     * @param profile  profile
+     * @return empty tracker
+     */
+    public @NotNull DummyTracker create(@NotNull Location location, @NotNull ModelProfile profile) {
+        return create(location, profile.asUncompleted());
+    }
+
+    /**
+     * Creates tracker by location and completed profile
+     *
+     * @param location location
+     * @param profile  profile
+     * @param modifier modifier
+     * @return empty tracker
+     */
+    public @NotNull DummyTracker create(@NotNull Location location, ModelProfile profile, @NotNull TrackerModifier modifier) {
+        return create(location, profile.asUncompleted(), modifier);
+    }
+
+    /**
+     * Creates tracker by location and completed profile
+     *
+     * @param location          location
+     * @param profile           profile
+     * @param modifier          modifier
+     * @param preUpdateConsumer task on pre-update
+     * @return empty tracker
+     */
+    public @NotNull DummyTracker create(@NotNull Location location, @NotNull ModelProfile profile, @NotNull TrackerModifier modifier, @NotNull Consumer<DummyTracker> preUpdateConsumer) {
+        return create(location, profile.asUncompleted(), modifier, preUpdateConsumer);
+    }
+
+    /**
      * Creates tracker by location and uncompleted profile
      *
      * @param location location
@@ -281,6 +317,42 @@ public record ModelRenderer(
     }
 
     /**
+     * Gets or creates tracker by entity and completed profile
+     *
+     * @param entity   entity
+     * @param profile  profile
+     * @return entity tracker
+     */
+    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull ModelProfile profile) {
+        return getOrCreate(entity, profile.asUncompleted());
+    }
+
+    /**
+     * Gets or creates tracker by entity and completed profile
+     *
+     * @param entity   entity
+     * @param profile  profile
+     * @param modifier modifier
+     * @return entity tracker
+     */
+    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull ModelProfile profile, @NotNull TrackerModifier modifier) {
+        return getOrCreate(entity, profile.asUncompleted(), modifier);
+    }
+
+    /**
+     * Gets or creates tracker by entity and completed profile
+     *
+     * @param entity            entity
+     * @param profile           skin
+     * @param modifier          modifier
+     * @param preUpdateConsumer task on pre-update
+     * @return entity tracker
+     */
+    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull ModelProfile profile, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
+        return getOrCreate(entity, profile.asUncompleted(), modifier, preUpdateConsumer);
+    }
+
+    /**
      * Gets or creates tracker by entity and uncompleted profile
      *
      * @param entity   entity
@@ -352,6 +424,42 @@ public record ModelRenderer(
             modifier,
             preUpdateConsumer
         );
+    }
+
+    /**
+     * Creates tracker by entity and completed profile
+     *
+     * @param entity   entity
+     * @param profile  profile
+     * @return entity tracker
+     */
+    public @NotNull EntityTracker create(@NotNull BaseEntity entity, @NotNull ModelProfile profile) {
+        return create(entity, profile.asUncompleted());
+    }
+
+    /**
+     * Creates tracker by entity and completed profile
+     *
+     * @param entity   entity
+     * @param profile  profile
+     * @param modifier modifier
+     * @return entity tracker
+     */
+    public @NotNull EntityTracker create(@NotNull BaseEntity entity, @NotNull ModelProfile profile, @NotNull TrackerModifier modifier) {
+        return create(entity, profile.asUncompleted(), modifier);
+    }
+
+    /**
+     * Creates tracker by entity and completed profile
+     *
+     * @param entity            entity
+     * @param profile           profile
+     * @param modifier          modifier
+     * @param preUpdateConsumer task on pre-update
+     * @return entity tracker
+     */
+    public @NotNull EntityTracker create(@NotNull BaseEntity entity, @NotNull ModelProfile profile, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
+        return create(entity, profile.asUncompleted(), modifier, preUpdateConsumer);
     }
 
     /**
@@ -434,6 +542,43 @@ public record ModelRenderer(
             modifier,
             preUpdateConsumer
         );
+    }
+
+    /**
+     * Gets or creates tracker by entity and completed profile
+     *
+     * @param entity   entity
+     * @param profile  profile
+     * @return entity tracker
+     */
+    public @NotNull EntityTracker getOrCreate(@NotNull BaseEntity entity, @NotNull ModelProfile profile) {
+        return getOrCreate(entity, profile.asUncompleted());
+    }
+
+
+    /**
+     * Gets or creates tracker by entity and completed profile
+     *
+     * @param entity   entity
+     * @param profile  profile
+     * @param modifier modifier
+     * @return entity tracker
+     */
+    public @NotNull EntityTracker getOrCreate(@NotNull BaseEntity entity, ModelProfile profile, @NotNull TrackerModifier modifier) {
+        return getOrCreate(entity, profile.asUncompleted(), modifier);
+    }
+
+    /**
+     * Gets or creates tracker by entity and completed profile
+     *
+     * @param entity            entity
+     * @param profile           profile
+     * @param modifier          modifier
+     * @param preUpdateConsumer task on pre-update
+     * @return entity tracker
+     */
+    public @NotNull EntityTracker getOrCreate(@NotNull BaseEntity entity, @NotNull ModelProfile profile, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
+        return getOrCreate(entity, profile.asUncompleted(), modifier, preUpdateConsumer);
     }
 
     /**
