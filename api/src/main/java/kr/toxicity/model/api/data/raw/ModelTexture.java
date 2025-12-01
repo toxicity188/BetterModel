@@ -25,6 +25,8 @@ import javax.imageio.ImageIO;
  * @param height height
  * @param uvWidth uv-width
  * @param uvHeight uv-height
+ * @param frameTime frame time for animation
+ * @param frameInterpolate whether to interpolate frames
  */
 @ApiStatus.Internal
 public record ModelTexture(
@@ -33,7 +35,9 @@ public record ModelTexture(
         int width,
         int height,
         @SerializedName("uv_width") int uvWidth,
-        @SerializedName("uv_height") int uvHeight
+        @SerializedName("uv_height") int uvHeight,
+        @SerializedName("frame_time") int frameTime,
+        @SerializedName("frame_interpolate") boolean frameInterpolate
 ) {
     /**
      * Converts this texture to blueprint textures
@@ -49,7 +53,9 @@ public record ModelTexture(
                 resolution[0],
                 resolution[1],
                 uvWidth(),
-                uvHeight()
+                uvHeight(),
+                frameTime(),
+                frameInterpolate()
         );
     }
 

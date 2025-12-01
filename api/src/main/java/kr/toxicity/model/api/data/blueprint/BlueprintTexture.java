@@ -22,6 +22,8 @@ import org.jetbrains.annotations.NotNull;
  * @param height original height
  * @param uvWidth uv width
  * @param uvHeight uv height
+ * @param frameTime frame time for animation
+ * @param frameInterpolate whether to interpolate frames
  */
 public record BlueprintTexture(
         @NotNull String name,
@@ -29,7 +31,9 @@ public record BlueprintTexture(
         int width,
         int height,
         int uvWidth,
-        int uvHeight
+        int uvHeight,
+        int frameTime,
+        boolean frameInterpolate
 ) {
     /**
      * Checks this texture is animated
@@ -60,8 +64,9 @@ public record BlueprintTexture(
     public @NotNull JsonObject toMcmeta() {
         return JsonObjectBuilder.builder()
                 .jsonObject("animation", animation -> {
-                    animation.property("interpolate", true);
-                    animation.property("frametime", BetterModel.config().animatedTextureFrameTime());
+                    animation.property("interpolate", frameInterpolate());
+                    int frametime = frameTime() > 0 ? frameTime() : BetterModel.config().animatedTextureFrameTime();
+                    animation.property("frametime", frametime);
                 })
                 .build();
     }
