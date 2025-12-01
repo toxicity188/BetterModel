@@ -1,30 +1,50 @@
 ---
 name: Bug report
-about: Create a report to help us improve
-title: Any issue
+about: Report a bug to help us improve BetterModel
+title: "[Bug] "
 labels: bug
 assignees: toxicity188
 
 ---
 
-**Required**  
-I required some help to provide you a correct solution.
+### ✔️ Pre-check
+- [ ] Tested with the **latest snapshot** of BetterModel from [Modrinth](https://modrinth.com/plugin/bettermodel)
+- [ ] Confirmed the issue occurs **without** other optional/experimental plugins or clients (see Disclaimer below)
 
-1. Tell me the detail about your problem.
-2. Upload some screenshot or text log related to your issue. such as:
-- Error log
-- In-game screen
-- Your yml config
-- Your resource
-3. Remember to notice your environment
-- OS(windows/mac/etc)
-- Server version(1.21.5/etc)
-- Server platform(Spigot/Paper/Folia/Purpur/etc)
+---
 
-**Disclaimer**  
-I do NOT provide any solution about that.
+### 🐞 Problem Description
+Detailed information about your problem.
 
-- Outdated BetterModel
-- Using informal launcher such as Feather client
-- Closed-source plugin/mod such as Optifine, ItemsAdder or Nexo
-- Usage in hybrid bukkit such as ArcLight
+---
+
+### 📜 Server Log
+Your error log if exists.
+
+---
+
+### 🖼️ Screenshot / Video
+Your in-game screenshot.
+
+---
+
+### 🧪 Test Model / Code
+Upload the model, resource pack, or test code that can reproduce the issue if possible.
+
+---
+
+### 🌍 Environment
+- OS: (Windows, Linux, etc.)
+- Server software & version: (Paper 1.21.1, etc.)
+
+---
+
+```
+Disclaimer
+
+The following environments are not supported, and issues occurring under these conditions will not be handled:
+
+- Informal / modified launchers (e.g., Feather client)
+- Closed-source mods/plugins (Optifine, ItemsAdder, Nexo, etc.)
+- Hybrid server platforms (e.g., Arclight)
+```
