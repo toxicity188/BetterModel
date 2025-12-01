@@ -102,6 +102,10 @@ public sealed interface BlueprintElement {
             return PackUtil.toPackName(parent.name() + "_" + name.rawName());
         }
 
+        private boolean isHiddenGroup() {
+            return "hitbox".equalsIgnoreCase(name.rawName());
+        }
+
         /**
          * Gets blueprint legacy json
          * @param skipLog skip log
@@ -114,6 +118,7 @@ public sealed interface BlueprintElement {
                 @NotNull PackObfuscator.Pair obfuscator,
                 @NotNull ModelBlueprint parent
         ) {
+            if (isHiddenGroup()) return null;
             Predicate<Cube> filter = element -> MathUtil.checkValidDegree(element.identifierDegree());
             if (!skipLog) filter = filterWithWarning(
                     filter,
@@ -134,6 +139,7 @@ public sealed interface BlueprintElement {
                 @NotNull PackObfuscator.Pair obfuscator,
                 @NotNull ModelBlueprint parent
         ) {
+            if (isHiddenGroup()) return null;
             var scale = scale();
             var list = mapIndexed(
                     group(
@@ -155,9 +161,10 @@ public sealed interface BlueprintElement {
                 @NotNull Float3 identifier,
                 @NotNull Stream<Cube> cubes
         ) {
+            if (isHiddenGroup()) return null;
             if (parent.textures().isEmpty()) return null;
             var cubeElement = cubes
-                    .filter(Cube::hasTexture)
+                    .filter(element -> element.hasTexture() && element.shouldRender())
                     .toList();
             if (cubeElement.isEmpty()) return null;
             return new BlueprintJson(obfuscator.models().obfuscate(jsonName(parent) + "_" + number), () -> JsonObjectBuilder.builder()
@@ -367,6 +374,14 @@ public sealed interface BlueprintElement {
          */
         public boolean hasTexture() {
             return faces != null && faces.hasTexture();
+        }
+
+        /**
+         * Checks whether this cube should be rendered in final model JSON.
+         * @return true if renderable
+         */
+        public boolean shouldRender() {
+            return !name().equalsIgnoreCase("hitbox");
         }
 
         private @NotNull JsonObject getRotation(@NotNull Float3 rot) {
