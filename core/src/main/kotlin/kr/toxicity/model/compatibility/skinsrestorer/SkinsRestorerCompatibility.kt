@@ -23,17 +23,12 @@ class SkinsRestorerCompatibility : Compatibility {
     private val manager = SkinsRestorerProvider.get()
 
     override fun start() {
-        SkinsRestorerProvider.get().run {
-            eventBus.subscribe(
-                PLUGIN,
-                SkinApplyEvent::class.java
-            ) {
-                val player = it.getPlayer(Player::class.java)
-                SkinManagerImpl.refresh(ModelProfile.of(player))
-            }
-            ProfileManagerImpl.supplier {
-                SkinsRestorerProfile(it)
-            }
+        manager.eventBus.subscribe(PLUGIN, SkinApplyEvent::class.java) {
+            val player = it.getPlayer(Player::class.java)
+            SkinManagerImpl.removeCache(ModelProfile.of(player))
+        }
+        ProfileManagerImpl.supplier {
+            SkinsRestorerProfile(it)
         }
     }
 

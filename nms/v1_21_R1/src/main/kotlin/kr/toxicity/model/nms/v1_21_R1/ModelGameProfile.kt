@@ -12,7 +12,7 @@ import kr.toxicity.model.api.profile.ModelProfile
 import kr.toxicity.model.api.profile.ModelProfileInfo
 import kr.toxicity.model.api.profile.ModelProfileSkin
 
-internal class ModelGameProfile(
+internal data class ModelGameProfile(
     private val gameProfile: GameProfile
 ) : ModelProfile {
 

@@ -24,9 +24,4 @@ public interface SkinManager {
     @NotNull CompletableFuture<? extends SkinData> complete(@NotNull ModelProfile.Uncompleted profile);
 
     void removeCache(@NotNull ModelProfile profile);
-
-    default void refresh(@NotNull ModelProfile profile) {
-        removeCache(profile);
-        complete(profile.asUncompleted());
-    }
 }

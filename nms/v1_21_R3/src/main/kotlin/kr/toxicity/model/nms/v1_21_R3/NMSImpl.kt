@@ -366,7 +366,7 @@ class NMSImpl : NMS {
     override fun createPlayerHead(profile: ModelProfile): ItemStack = VanillaItemStack(Items.PLAYER_HEAD).apply {
         set(DataComponents.PROFILE, ResolvableProfile(GameProfile(
             profile.info().id,
-            profile.info().name,
+            profile.info().name ?: "",
         ).apply {
             properties.put("textures", Property("textures", profile.skin().raw))
         }))

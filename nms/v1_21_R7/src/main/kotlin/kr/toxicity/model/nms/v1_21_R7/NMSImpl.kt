@@ -369,7 +369,7 @@ class NMSImpl : NMS {
     override fun createPlayerHead(profile: ModelProfile): ItemStack = VanillaItemStack(Items.PLAYER_HEAD).apply {
         set(DataComponents.PROFILE, ResolvableProfile.createResolved(GameProfile(
             profile.info().id,
-            profile.info().name,
+            profile.info().name ?: "",
             PropertyMap(ImmutableMultimap.of(
                 "textures", Property("textures", profile.skin().raw)
             ))
