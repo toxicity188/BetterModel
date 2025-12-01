@@ -11,7 +11,11 @@ import kr.toxicity.model.api.data.blueprint.BlueprintTexture;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.Base64;
+import javax.imageio.ImageIO;
 
 /**
  * A raw model texture.
@@ -36,14 +40,36 @@ public record ModelTexture(
      * @return converted textures
      */
     public @NotNull BlueprintTexture toBlueprint() {
+        var decoded = Base64.getDecoder().decode(source().substring(source().indexOf(',') + 1));
+        var resolution = resolveResolution(decoded, width(), height());
         var nameIndex = name().indexOf('.');
         return new BlueprintTexture(
                 nameIndex >= 0 ? name().substring(0, nameIndex) : name(),
-                Base64.getDecoder().decode(source().substring(source().indexOf(',') + 1)),
-                width(),
-                height(),
+                decoded,
+                resolution[0],
+                resolution[1],
                 uvWidth(),
                 uvHeight()
         );
+    }
+
+    private static int[] resolveResolution(byte[] imageData, int currentWidth, int currentHeight) {
+        if (currentWidth > 0 && currentHeight > 0) {
+            return new int[]{currentWidth, currentHeight};
+        }
+        try (var stream = new ByteArrayInputStream(imageData)) {
+            BufferedImage image = ImageIO.read(stream);
+            if (image != null) {
+                var width = currentWidth > 0 ? currentWidth : image.getWidth();
+                var height = currentHeight > 0 ? currentHeight : image.getHeight();
+                return new int[]{width, height};
+            }
+        } catch (IOException ignored) {
+            // Fallback to provided dimensions if image read fails
+        }
+        return new int[]{
+                currentWidth > 0 ? currentWidth : 0,
+                currentHeight > 0 ? currentHeight : 0
+        };
     }
 }
