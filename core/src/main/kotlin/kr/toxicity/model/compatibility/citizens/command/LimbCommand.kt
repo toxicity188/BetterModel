@@ -22,7 +22,7 @@ import org.bukkit.entity.Player
 class LimbCommand {
     @Command(
         aliases = ["npc"],
-        usage = "limb <id> <model> <animation> [player] [loop_type]",
+        usage = "limb <id> <model> <animation> <player> [loop_type]",
         desc = "",
         modifiers = ["limb"],
         min = 5,
