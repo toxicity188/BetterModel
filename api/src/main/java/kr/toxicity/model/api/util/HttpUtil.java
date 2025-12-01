@@ -87,9 +87,8 @@ public final class HttpUtil {
                         .map(e -> GSON.fromJson(e, PluginVersion.class))
                         .filter(PluginVersion::isSamePlatform)
                         .filter(v -> v.versions.contains(version))
-                        .sorted(Comparator.comparing((PluginVersion v) -> v.versionNumber))
-                        .toList()
-                        .reversed());
+                        .sorted(Comparator.comparing((PluginVersion v) -> v.versionNumber).reversed())
+                        .toList());
             }
         }).orElse(e -> {
             LogUtil.handleException("Unable to get BetterModel's version info.", e);

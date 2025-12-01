@@ -22,11 +22,11 @@ import org.bukkit.entity.Player
 class LimbCommand {
     @Command(
         aliases = ["npc"],
-        usage = "limb <id> <model> <animation> [player]",
+        usage = "limb <id> <model> <animation> <player> [loop_type]",
         desc = "",
         modifiers = ["limb"],
         min = 5,
-        max = 5,
+        max = 6,
         permission = "citizens.npc.animate"
     )
     @Suppress("UNUSED")
@@ -37,30 +37,41 @@ class LimbCommand {
         @Arg(1) id: String,
         @Arg(2) model: String,
         @Arg(3) animation: String,
-        @Arg(4) player: String
+        @Arg(4) player: String,
+        @Arg(5) type: String?
     ) {
         val targetNpc = CitizensAPI.getNPCRegistry().getById(id.toIntOrNull() ?: return) ?: return
         val npcEntity = targetNpc.entity as? Player ?: return
         val targetPlayer = Bukkit.getPlayer(player) ?: return
+
+        val animType = type
+            ?.let { t ->
+                runCatching {
+                    AnimationIterator.Type.valueOf(t.uppercase())
+                }.getOrNull()
+            }
+            ?: AnimationIterator.Type.PLAY_ONCE
+
         BetterModel.limb(model)
             .map {
                 it.getOrCreate(npcEntity, TrackerModifier.DEFAULT) { tracker ->
                     tracker.markPlayerForSpawn(targetPlayer)
                 }
             }.ifPresent { tracker ->
-                if (tracker.animate(
-                        animation,
-                        AnimationModifier.builder()
-                            .start(0)
-                            .player(targetPlayer)
-                            .type(AnimationIterator.Type.PLAY_ONCE)
-                            .build()
-                    ) {
-                        tracker.unmarkPlayerForSpawn(targetPlayer)
-                        tracker.registry().remove(targetPlayer)
-                        if (tracker.playerCount() == 0) tracker.close()
-                    }
+                val success = tracker.animate(
+                    animation,
+                    AnimationModifier.builder()
+                        .start(0)
+                        .player(targetPlayer)
+                        .type(animType)
+                        .build()
                 ) {
+                    tracker.unmarkPlayerForSpawn(targetPlayer)
+                    tracker.registry().remove(targetPlayer)
+                    if (tracker.playerCount() == 0) tracker.close()
+                }
+
+                if (success) {
                     if (!tracker.isSpawned(targetPlayer)) {
                         tracker.markPlayerForSpawn(targetPlayer)
                         tracker.registry().spawnIfNotSpawned(targetPlayer)
