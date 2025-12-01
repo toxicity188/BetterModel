@@ -29,7 +29,7 @@ import java.util.function.BooleanSupplier;
 @RequiredArgsConstructor
 @ApiStatus.Internal
 public final class AnimationStateHandler<T extends Timed> {
-    
+
     private final T initialValue;
     private final BiConsumer<T, T> setConsumer;
 
@@ -152,8 +152,8 @@ public final class AnimationStateHandler<T extends Timed> {
     private boolean setAfterKeyframe(@Nullable KeyframeData next) {
         if (equals(afterKeyframe, next)) return false;
         setConsumer.accept(
-                value(beforeKeyframe = afterKeyframe),
-                value(afterKeyframe = next)
+            value(beforeKeyframe = afterKeyframe),
+            value(afterKeyframe = next)
         );
         delay = Math.round(frame());
         return true;
@@ -192,8 +192,8 @@ public final class AnimationStateHandler<T extends Timed> {
     public void replaceAnimation(@NotNull String name, @NotNull AnimationIterator<T> iterator, @NotNull AnimationModifier modifier) {
         synchronized (animators) {
             animators.computeIfPresent(name, (k, v) -> new TreeIterator(k, iterator, v.modifier.toBuilder()
-                    .mergeNotDefault(modifier)
-                    .build(), v.eventHandler));
+                .mergeNotDefault(modifier)
+                .build(), v.eventHandler));
         }
         forceUpdateAnimation.set(true);
     }

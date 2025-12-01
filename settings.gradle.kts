@@ -10,8 +10,6 @@ include(
     "purpur",
     "plugin:spigot",
     "plugin:paper",
-    "authlib:v6",
-    "authlib:v7",
     "nms:v1_20_R4",
     "nms:v1_21_R1",
     "nms:v1_21_R2",

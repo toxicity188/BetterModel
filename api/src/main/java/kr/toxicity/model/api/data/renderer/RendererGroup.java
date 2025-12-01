@@ -63,19 +63,19 @@ public final class RendererGroup {
      * @param box hit-box
      */
     public RendererGroup(
-            float scale,
-            @Nullable ItemStack itemStack,
-            @NotNull BlueprintElement.Bone group,
-            @NotNull Map<BoneName, RendererGroup> children,
-            @Nullable NamedBoundingBox box
+        float scale,
+        @Nullable ItemStack itemStack,
+        @NotNull BlueprintElement.Bone group,
+        @NotNull Map<BoneName, RendererGroup> children,
+        @Nullable NamedBoundingBox box
     ) {
         this.parent = group;
         this.children = children;
         this.itemStack = TransformedItemStack.of(
-                new Vector3f(),
-                new Vector3f(),
-                new Vector3f(scale),
-                itemStack != null ? itemStack : new ItemStack(Material.AIR)
+            new Vector3f(),
+            new Vector3f(),
+            new Vector3f(scale),
+            itemStack != null ? itemStack : new ItemStack(Material.AIR)
         );
         this.itemMapper = name().toItemMapper();
         position = group.origin().toBlockScale().toVector();
@@ -90,8 +90,8 @@ public final class RendererGroup {
 
     public @NotNull Stream<RendererGroup> flatten() {
         return Stream.concat(
-                Stream.of(this),
-                children.values().stream().flatMap(RendererGroup::flatten)
+            Stream.of(this),
+            children.values().stream().flatMap(RendererGroup::flatten)
         );
     }
 
@@ -117,20 +117,21 @@ public final class RendererGroup {
      * @return entity
      */
     public @NotNull RenderedBone create(@NotNull RenderSource<?> source) {
-        return create(source, null);
+        return create(source.fallbackContext(), null);
     }
-    private @NotNull RenderedBone create(@NotNull RenderSource<?> source, @Nullable RenderedBone parentBone) {
+
+    private @NotNull RenderedBone create(@NotNull BoneRenderContext context, @Nullable RenderedBone parentBone) {
         return new RenderedBone(
-                this,
-                parentBone,
-                source,
-                new BoneMovement(
-                        parentBone != null ? position.sub(parentBone.getGroup().position, new Vector3f()) : new Vector3f(),
-                        DEFAULT_SCALE,
-                        MathUtil.toQuaternion(rotation),
-                        rotation
-                ),
-                parent -> mapValue(children, value -> value.create(source, parent))
+            this,
+            parentBone,
+            context,
+            new BoneMovement(
+                parentBone != null ? position.sub(parentBone.getGroup().position, new Vector3f()) : new Vector3f(),
+                DEFAULT_SCALE,
+                MathUtil.toQuaternion(rotation),
+                rotation
+            ),
+            parent -> mapValue(children, value -> value.create(context, parent))
         );
     }
 

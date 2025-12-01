@@ -26,10 +26,10 @@ public record VectorPoint(@NotNull FloatFunction<Vector3f> function, float time,
      * Empty point
      */
     public static final VectorPoint EMPTY = new VectorPoint(
-            FloatFunction.of(ZERO),
-            0F,
-            new BezierConfig(null, null, null, null),
-            VectorInterpolator.LINEAR
+        FloatFunction.of(ZERO),
+        0F,
+        new BezierConfig(null, null, null, null),
+        VectorInterpolator.LINEAR
     );
 
     /**

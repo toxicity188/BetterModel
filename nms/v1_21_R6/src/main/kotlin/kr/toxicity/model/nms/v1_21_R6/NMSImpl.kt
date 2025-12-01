@@ -7,7 +7,10 @@
 package kr.toxicity.model.nms.v1_21_R6
 
 import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.EntityLookup
+import com.google.common.collect.ImmutableMultimap
 import com.mojang.authlib.GameProfile
+import com.mojang.authlib.properties.Property
+import com.mojang.authlib.properties.PropertyMap
 import io.netty.channel.ChannelDuplexHandler
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
@@ -17,6 +20,7 @@ import kr.toxicity.model.api.data.blueprint.NamedBoundingBox
 import kr.toxicity.model.api.entity.BaseEntity
 import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.nms.*
+import kr.toxicity.model.api.profile.ModelProfile
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.tracker.TrackerUpdateAction
 import kr.toxicity.model.api.util.TransformedItemStack
@@ -31,7 +35,6 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.network.ServerCommonPacketListenerImpl
-import net.minecraft.server.players.NameAndId
 import net.minecraft.util.ARGB
 import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.Display.ItemDisplay
@@ -47,8 +50,6 @@ import net.minecraft.world.level.entity.LevelEntityGetter
 import net.minecraft.world.level.entity.LevelEntityGetterAdapter
 import net.minecraft.world.level.entity.PersistentEntitySectionManager
 import org.bukkit.Location
-import org.bukkit.OfflinePlayer
-import org.bukkit.craftbukkit.CraftOfflinePlayer
 import org.bukkit.craftbukkit.CraftWorld
 import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.craftbukkit.entity.CraftPlayer
@@ -64,7 +65,6 @@ class NMSImpl : NMS {
 
         //Spigot
         private val getGameProfile: (net.minecraft.world.entity.player.Player) -> GameProfile = createAdaptedFieldGetter { it.gameProfile }
-        private val getOfflineGameProfile: (CraftOfflinePlayer) -> NameAndId = createAdaptedFieldGetter()
         private val getConnection: (ServerCommonPacketListenerImpl) -> Connection = createAdaptedFieldGetter { it.connection }
         private val spigotChunkAccess = ServerLevel::class.java.fields.firstOrNull {
             it.type == PersistentEntitySectionManager::class.java
@@ -116,7 +116,7 @@ class NMSImpl : NMS {
         }
         list.send(channel.player())
     }
-    
+
     private fun ClientboundSetEntityDataPacket.toRegistryDataPacket(uuid: UUID, registry: EntityTrackerRegistry) = ClientboundSetEntityDataPacket(id, packedItems().map {
         if (it.id == SHARED_FLAG) SynchedEntityData.DataValue(
             it.id,
@@ -222,7 +222,7 @@ class NMSImpl : NMS {
                     if (it.hideOption(uuid).equipment()) (it.entity().handle() as? LivingEntity)?.toEmptyEquipmentPacket()?.let { packet ->
                         return packet
                     }
-                } 
+                }
                 is ClientboundRespawnPacket -> playerModel?.let {
                     bundlerOf(it.mountPacket(connection.player)).send(player)
                 }
@@ -298,7 +298,7 @@ class NMSImpl : NMS {
         return useByteBuf { buffer ->
             buffer.writeVarInt(entity.id)
             buffer.writeVarIntArray(displays()
-                .mapToInt { 
+                .mapToInt {
                     (it as ModelDisplayImpl).display.id
                 }.toArray() + array)
             ClientboundSetPassengersPacket.STREAM_CODEC.decode(buffer)
@@ -364,10 +364,16 @@ class NMSImpl : NMS {
         return if (entity is CraftPlayer) BasePlayerImpl(entity, { profile(entity) }) { entity.handle.toCustomisation() } else BaseEntityImpl(entity)
     }
 
-    override fun profile(player: OfflinePlayer): GameProfile = if (player is CraftOfflinePlayer) getOfflineGameProfile(player).toUncompletedGameProfile() else getGameProfile((player as CraftPlayer).handle)
+    override fun profile(player: Player): ModelProfile = ModelGameProfile(getGameProfile((player as CraftPlayer).handle))
 
-    override fun createPlayerHead(profile: GameProfile): ItemStack = VanillaItemStack(Items.PLAYER_HEAD).apply {
-        set(DataComponents.PROFILE, ResolvableProfile.createResolved(profile))
+    override fun createPlayerHead(profile: ModelProfile): ItemStack = VanillaItemStack(Items.PLAYER_HEAD).apply {
+        set(DataComponents.PROFILE, ResolvableProfile.createResolved(GameProfile(
+            profile.info().id,
+            profile.info().name,
+            PropertyMap(ImmutableMultimap.of(
+                "textures", Property("textures", profile.skin().raw)
+            ))
+        )))
     }.asBukkit()
 
     override fun createSkinItem(model: String, flags: List<Boolean>, strings: List<String>, colors: List<Int>): TransformedItemStack {

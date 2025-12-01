@@ -74,8 +74,8 @@ public final class FightTester implements ModelTester, Listener {
     @EventHandler
     public void start(@NotNull PluginStartReloadEvent event) {
         var path = event.getPackZipper()
-                .modern()
-                .bettermodel();
+            .modern()
+            .bettermodel();
         loadMotion();
         loadItem(path, "knight_sword");
         loadItem(path, "knight_line");
@@ -86,8 +86,8 @@ public final class FightTester implements ModelTester, Listener {
         if (dir.isFile()) return;
         dir.getParentFile().mkdirs();
         try (
-                var stream = new FileOutputStream(dir);
-                var buffered = new BufferedOutputStream(stream)
+            var stream = new FileOutputStream(dir);
+            var buffered = new BufferedOutputStream(stream)
         ) {
             buffered.write(test.asByte("knight.bbmodel").get());
         } catch (IOException e) {
@@ -118,9 +118,9 @@ public final class FightTester implements ModelTester, Listener {
         }
         if (!player.getInventory().getItemInMainHand().getPersistentDataContainer().has(KNIGHT_SWORD_KEY)) return;
         playerCounterMap.computeIfAbsent(uuid, u -> new PlayerSkillCounter(player)
-                .skill("left_attack_1")
-                .skill("left_attack_2")
-                .skill("left_attack_3")).execute();
+            .skill("left_attack_1")
+            .skill("left_attack_2")
+            .skill("left_attack_3")).execute();
     }
 
     private void giveKnightSword(@NotNull Player player) {
@@ -129,8 +129,8 @@ public final class FightTester implements ModelTester, Listener {
             meta.displayName(MiniMessage.miniMessage().deserialize("<gradient:#FF6A00:#FFD800><b>Knight Sword"));
             meta.setUnbreakable(true);
             meta.setItemModel(new NamespacedKey(
-                    BetterModel.plugin(),
-                    "knight_sword"
+                BetterModel.plugin(),
+                "knight_sword"
             ));
             meta.addItemFlags(ItemFlag.values());
             meta.getPersistentDataContainer().set(KNIGHT_SWORD_KEY, PersistentDataType.BOOLEAN, true);
@@ -141,8 +141,8 @@ public final class FightTester implements ModelTester, Listener {
     private static @NotNull ItemStack createLine() {
         var line = new ItemStack(Material.PAPER);
         line.editMeta(meta -> meta.setItemModel(new NamespacedKey(
-                BetterModel.plugin(),
-                "knight_line"
+            BetterModel.plugin(),
+            "knight_line"
         )));
         return line;
     }
@@ -171,42 +171,42 @@ public final class FightTester implements ModelTester, Listener {
         }
         private void execute(@NotNull String target) {
             BetterModel.limb("knight")
-                    .map(limb -> limb.getOrCreate(player))
-                    .ifPresent(tracker -> {
-                        var drawer = tracker.bone("sword_point");
-                        if (drawer == null) {
-                            tracker.close();
-                            return;
-                        }
-                        lineDrawer = new LineDrawer(player, drawer, 30);
-                        Runnable cancel = () -> {
-                            tracker.close();
-                            cancelDrawer();
-                            playerCounterMap.remove(player.getUniqueId());
-                        };
-                        var animation = tracker.renderer().animation(target).orElse(null);
-                        if (animation == null) cancel.run();
-                        else {
-                            tracker.animate(b -> true, animation, AnimationModifier.DEFAULT, AnimationEventHandler.start().onAnimationRemove(cancel));
-                            nextCooldown = (long) ((animation.length() - 0.25) * 1000) + System.currentTimeMillis();
-                            playSound();
-                        }
-                    });
+                .map(limb -> limb.getOrCreate(player))
+                .ifPresent(tracker -> {
+                    var drawer = tracker.bone("sword_point");
+                    if (drawer == null) {
+                        tracker.close();
+                        return;
+                    }
+                    lineDrawer = new LineDrawer(player, drawer, 30);
+                    Runnable cancel = () -> {
+                        tracker.close();
+                        cancelDrawer();
+                        playerCounterMap.remove(player.getUniqueId());
+                    };
+                    var animation = tracker.renderer().animation(target).orElse(null);
+                    if (animation == null) cancel.run();
+                    else {
+                        tracker.animate(b -> true, animation, AnimationModifier.DEFAULT, AnimationEventHandler.start().onAnimationRemove(cancel));
+                        nextCooldown = (long) ((animation.length() - 0.25) * 1000) + System.currentTimeMillis();
+                        playSound();
+                    }
+                });
         }
 
         private void playSound() {
             var loc = player.getLocation();
             player.playSound(
-                    loc,
-                    Sound.ENTITY_BREEZE_SHOOT,
-                    0.75F,
-                    0.5F
+                loc,
+                Sound.ENTITY_BREEZE_SHOOT,
+                0.75F,
+                0.5F
             );
             player.playSound(
-                    loc,
-                    Sound.ENTITY_DROWNED_SHOOT,
-                    2.0F,
-                    0.75F
+                loc,
+                Sound.ENTITY_DROWNED_SHOOT,
+                2.0F,
+                0.75F
             );
         }
 
@@ -219,9 +219,9 @@ public final class FightTester implements ModelTester, Listener {
     }
 
     private record DrawerFrame(
-            float yaw,
-            @NotNull Location location,
-            Vector3f vector
+        float yaw,
+        @NotNull Location location,
+        Vector3f vector
     ) {
     }
 
@@ -234,8 +234,8 @@ public final class FightTester implements ModelTester, Listener {
 
         LineDrawer(@NotNull Player player, @NotNull RenderedBone bone, int count) {
             players = Stream.concat(
-                    Stream.of(player),
-                    player.getTrackedBy().stream()
+                Stream.of(player),
+                player.getTrackedBy().stream()
             ).toList();
             task = Bukkit.getAsyncScheduler().runAtFixedRate(BetterModel.plugin(), task -> {
                 queuedTask.removeIf(BooleanSupplier::getAsBoolean);
@@ -243,21 +243,21 @@ public final class FightTester implements ModelTester, Listener {
                 if (c >= count) return;
                 var before = after;
                 after = new DrawerFrame(
-                        bone.rotation().radianY(),
-                        player.getLocation(),
-                        bone.hitBoxPosition().rotateY(bone.rotation().radianY())
+                    bone.rotation().radianY(),
+                    player.getLocation(),
+                    bone.hitBoxPosition().rotateY(bone.rotation().radianY())
                 );
                 if (before == null) return;
                 var delta = toDeltaVector(
-                        relativeLocation(before.location, before.vector, before.yaw),
-                        relativeLocation(after.location, after.vector, after.yaw),
-                        (float) toRadians(after.location.getYaw())
+                    relativeLocation(before.location, before.vector, before.yaw),
+                    relativeLocation(after.location, after.vector, after.yaw),
+                    (float) toRadians(after.location.getYaw())
                 );
                 var yaw = atan2(delta.x, delta.z);
                 var pitch = atan2(-delta.y, sqrt(fma(delta.x, delta.x, delta.z * delta.z)));
                 createDisplay(relativeLocation(before.location, before.vector, before.yaw), delta.length(), new Quaternionf()
-                        .rotateLocalX((float) pitch)
-                        .rotateLocalY((float) yaw));
+                    .rotateLocalX((float) pitch)
+                    .rotateLocalY((float) yaw));
             }, 50, 10, TimeUnit.MILLISECONDS);
         }
 
@@ -276,14 +276,14 @@ public final class FightTester implements ModelTester, Listener {
         void createDisplay(@NotNull Location start, float length, @NotNull Quaternionf quaternionf) {
             if (length <= 0.1) return;
             start.getWorld().spawnParticle(
-                    Particle.DUST,
-                    start,
-                    3,
-                    0.2,
-                    0.2,
-                    0.2,
-                    0,
-                    new Particle.DustOptions(Color.YELLOW, 1)
+                Particle.DUST,
+                start,
+                3,
+                0.2,
+                0.2,
+                0.2,
+                0,
+                new Particle.DustOptions(Color.YELLOW, 1)
             );
             var display = BetterModel.nms().create(start, 0, d -> {
                 d.item(lineItem);
@@ -294,11 +294,11 @@ public final class FightTester implements ModelTester, Listener {
             display.spawn(bundler);
             display.sendEntityData(true, bundler);
             transformer.transform(
-                    0,
-                    new Vector3f(),
-                    new Vector3f(1, 1, length),
-                    quaternionf,
-                    bundler
+                0,
+                new Vector3f(),
+                new Vector3f(1, 1, length),
+                quaternionf,
+                bundler
             );
             players.forEach(bundler::send);
             var displayCounter = new AtomicInteger();

@@ -26,11 +26,11 @@ import java.util.stream.Stream;
  */
 @ApiStatus.Internal
 public record ModelBlueprint(
-        @NotNull String name,
-        @NotNull ModelResolution resolution,
-        @NotNull List<BlueprintTexture> textures,
-        @NotNull List<BlueprintElement> group,
-        @NotNull Map<String, BlueprintAnimation> animations
+    @NotNull String name,
+    @NotNull ModelResolution resolution,
+    @NotNull List<BlueprintTexture> textures,
+    @NotNull List<BlueprintElement> group,
+    @NotNull Map<String, BlueprintAnimation> animations
 ) {
 
     /**
@@ -50,11 +50,11 @@ public record ModelBlueprint(
     @Unmodifiable
     public Stream<BlueprintImage> buildImage(@NotNull PackObfuscator obfuscator) {
         return textures.stream()
-                .filter(BlueprintTexture::canBeRendered)
-                .map(texture -> new BlueprintImage(
-                        texture.packName(obfuscator, name),
-                        texture.image(),
-                        texture.isAnimatedTexture() ? texture.toMcmeta() : null)
-                );
+            .filter(BlueprintTexture::canBeRendered)
+            .map(texture -> new BlueprintImage(
+                texture.packName(obfuscator, name),
+                texture.image(),
+                texture.isAnimatedTexture() ? texture.toMcmeta() : null)
+            );
     }
 }

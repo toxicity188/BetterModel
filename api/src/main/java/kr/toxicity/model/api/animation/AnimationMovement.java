@@ -23,12 +23,12 @@ import java.util.List;
  * @param skipInterpolation skip interpolation
  */
 public record AnimationMovement(
-        float time,
-        @Nullable Vector3f position,
-        @Nullable Vector3f scale,
-        @Nullable Vector3f rotation,
-        boolean globalRotation,
-        boolean skipInterpolation
+    float time,
+    @Nullable Vector3f position,
+    @Nullable Vector3f scale,
+    @Nullable Vector3f rotation,
+    boolean globalRotation,
+    boolean skipInterpolation
 ) implements Timed {
 
     /**

@@ -78,8 +78,8 @@ public record MinecraftVersion(int major, int minor, int patch) implements Compa
      * Comparator
      */
     private static final Comparator<MinecraftVersion> COMPARATOR = Comparator.comparing(MinecraftVersion::major)
-            .thenComparing(MinecraftVersion::minor)
-            .thenComparing(MinecraftVersion::patch);
+        .thenComparing(MinecraftVersion::minor)
+        .thenComparing(MinecraftVersion::patch);
 
     /**
      * Parses version from string
@@ -88,9 +88,9 @@ public record MinecraftVersion(int major, int minor, int patch) implements Compa
     public static @NotNull MinecraftVersion parse(@NotNull String version) {
         var split = version.split("\\.");
         return of(
-                split.length > 0 ? Integer.parseInt(split[0]) : 0,
-                split.length > 1 ? Integer.parseInt(split[1]) : 0,
-                split.length > 2 ? Integer.parseInt(split[2]) : 0
+            split.length > 0 ? Integer.parseInt(split[0]) : 0,
+            split.length > 1 ? Integer.parseInt(split[1]) : 0,
+            split.length > 2 ? Integer.parseInt(split[2]) : 0
         );
     }
 
@@ -112,14 +112,6 @@ public record MinecraftVersion(int major, int minor, int patch) implements Compa
      */
     public boolean isGreaterOrEquals(@NotNull MinecraftVersion other) {
         return compareTo(other) >= 0;
-    }
-
-    /**
-     * Checks this version should be use v7 authlib.
-     * @return use v7 authlib
-     */
-    public boolean useV7AuthLib() {
-        return isGreaterOrEquals(V1_21_9);
     }
 
     /**

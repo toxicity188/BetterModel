@@ -45,8 +45,8 @@ public final class LogUtil {
         if (BetterModel.config().debug().has(DebugConfig.DebugOption.EXCEPTION)) {
             list.add(toLog("Stack trace:", NamedTextColor.RED));
             try (
-                    var byteArray = new ByteArrayOutputStream();
-                    var print = new PrintStream(byteArray)
+                var byteArray = new ByteArrayOutputStream();
+                var print = new PrintStream(byteArray)
             ) {
                 throwable.printStackTrace(print);
                 list.add(toLog(byteArray.toString(StandardCharsets.UTF_8), NamedTextColor.RED));
@@ -74,9 +74,9 @@ public final class LogUtil {
      */
     public static void debug(@NotNull DebugConfig.DebugOption option, @NotNull Supplier<String> log) {
         debug(option, () -> BetterModel.plugin().logger().info(Component.text()
-                .append(toLog("[DEBUG-" + option + "] ", NamedTextColor.YELLOW))
-                .append(Component.text(log.get()))
-                .build())
+            .append(toLog("[DEBUG-" + option + "] ", NamedTextColor.YELLOW))
+            .append(Component.text(log.get()))
+            .build())
         );
     }
 

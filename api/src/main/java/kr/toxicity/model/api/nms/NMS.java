@@ -6,17 +6,16 @@
  */
 package kr.toxicity.model.api.nms;
 
-import com.mojang.authlib.GameProfile;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox;
 import kr.toxicity.model.api.entity.BaseEntity;
 import kr.toxicity.model.api.entity.BasePlayer;
 import kr.toxicity.model.api.mount.MountController;
+import kr.toxicity.model.api.profile.ModelProfile;
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry;
 import kr.toxicity.model.api.util.TransformedItemStack;
 import org.bukkit.Location;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -31,6 +30,7 @@ import java.util.function.Consumer;
  * A vanilla code handler of Minecraft (NMS)
  */
 public interface NMS {
+
     /**
      * Creates model display
      * @param location start location
@@ -39,6 +39,7 @@ public interface NMS {
     default @NotNull ModelDisplay create(@NotNull Location location) {
         return create(location, 0, d -> {});
     }
+
     /**
      * Creates model display
      * @param location start location
@@ -164,18 +165,18 @@ public interface NMS {
     @NotNull BaseEntity adapt(@NotNull Entity entity);
 
     /**
-     * Gets game profile from player
+     * Gets model skin from player
      * @param player player
-     * @return game profile
+     * @return model skin
      */
-    @NotNull GameProfile profile(@NotNull OfflinePlayer player);
+    @NotNull ModelProfile profile(@NotNull Player player);
 
     /**
-     * Creates player head from game profile
-     * @param profile profile
+     * Creates player head from game skin
+     * @param profile skin
      * @return player head item
      */
-    @NotNull ItemStack createPlayerHead(@NotNull GameProfile profile);
+    @NotNull ItemStack createPlayerHead(@NotNull ModelProfile profile);
 
     /**
      * Creates skin item

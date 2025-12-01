@@ -24,12 +24,12 @@ import org.jetbrains.annotations.NotNull;
  * @param uvHeight uv height
  */
 public record BlueprintTexture(
-        @NotNull String name,
-        byte[] image,
-        int width,
-        int height,
-        int uvWidth,
-        int uvHeight
+    @NotNull String name,
+    byte[] image,
+    int width,
+    int height,
+    int uvWidth,
+    int uvHeight
 ) {
     /**
      * Checks this texture is animated
@@ -59,11 +59,11 @@ public record BlueprintTexture(
      */
     public @NotNull JsonObject toMcmeta() {
         return JsonObjectBuilder.builder()
-                .jsonObject("animation", animation -> {
-                    animation.property("interpolate", true);
-                    animation.property("frametime", BetterModel.config().animatedTextureFrameTime());
-                })
-                .build();
+            .jsonObject("animation", animation -> {
+                animation.property("interpolate", true);
+                animation.property("frametime", BetterModel.config().animatedTextureFrameTime());
+            })
+            .build();
     }
 
     /**

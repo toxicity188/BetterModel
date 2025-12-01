@@ -33,10 +33,10 @@ public interface PackResource extends Supplier<byte[]> {
     }
 
     record Packed(
-            @Nullable PackOverlay overlay,
-            @NotNull PackPath path,
-            long estimatedSize,
-            @NotNull Supplier<byte[]> supplier
+        @Nullable PackOverlay overlay,
+        @NotNull PackPath path,
+        long estimatedSize,
+        @NotNull Supplier<byte[]> supplier
     ) implements PackResource {
         @Override
         public byte[] get() {

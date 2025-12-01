@@ -92,10 +92,10 @@ public record TransformedItemStack(@NotNull Vector3f position, @NotNull Vector3f
      */
     public @NotNull TransformedItemStack copy() {
         return new TransformedItemStack(
-                new Vector3f(position),
-                new Vector3f(offset),
-                new Vector3f(scale),
-                itemStack.clone()
+            new Vector3f(position),
+            new Vector3f(offset),
+            new Vector3f(scale),
+            itemStack.clone()
         );
     }
 }

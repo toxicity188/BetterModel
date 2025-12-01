@@ -22,12 +22,12 @@ import org.jetbrains.annotations.NotNull;
  */
 @ApiStatus.Internal
 public record ModelFace(
-        @NotNull ModelUV north,
-        @NotNull ModelUV east,
-        @NotNull ModelUV south,
-        @NotNull ModelUV west,
-        @NotNull ModelUV up,
-        @NotNull ModelUV down
+    @NotNull ModelUV north,
+    @NotNull ModelUV east,
+    @NotNull ModelUV south,
+    @NotNull ModelUV west,
+    @NotNull ModelUV up,
+    @NotNull ModelUV down
 ) {
     /**
      * Converts UV to JSON object.
@@ -52,10 +52,10 @@ public record ModelFace(
      */
     public boolean hasTexture() {
         return north.hasTexture()
-                || east.hasTexture()
-                || south.hasTexture()
-                || west.hasTexture()
-                || up.hasTexture()
-                || down.hasTexture();
+            || east.hasTexture()
+            || south.hasTexture()
+            || west.hasTexture()
+            || up.hasTexture()
+            || down.hasTexture();
     }
 }

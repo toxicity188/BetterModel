@@ -7,7 +7,8 @@
 package kr.toxicity.model.api.data.renderer;
 
 import kr.toxicity.model.api.BetterModel;
-import kr.toxicity.model.api.animation.*;
+import kr.toxicity.model.api.animation.AnimationPredicate;
+import kr.toxicity.model.api.animation.RunningAnimation;
 import kr.toxicity.model.api.bone.*;
 import kr.toxicity.model.api.nms.HitBox;
 import kr.toxicity.model.api.nms.PacketBundler;
@@ -16,6 +17,7 @@ import kr.toxicity.model.api.tracker.ModelRotation;
 import kr.toxicity.model.api.util.function.BonePredicate;
 import kr.toxicity.model.api.util.function.FloatSupplier;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +46,7 @@ public final class RenderPipeline implements BoneEventHandler {
     private final Map<BoneName, RenderedBone> boneMap;
     private final Map<BoneName, RenderedBone> flattenBoneMap;
     private final int displayAmount;
-    private final Map<UUID, PlayerChannelHandler> playerMap = new ConcurrentHashMap<>();
+    private final Map<UUID, SpawnedPlayer> playerMap = new ConcurrentHashMap<>();
     private final Set<UUID> hidePlayerSet = ConcurrentHashMap.newKeySet();
 
     private final BoneEventDispatcher eventDispatcher = new BoneEventDispatcher();
@@ -62,26 +64,26 @@ public final class RenderPipeline implements BoneEventHandler {
     private ModelRotation rotation = ModelRotation.INVALID;
 
     public RenderPipeline(
-            @NotNull ModelRenderer parent,
-            @NotNull RenderSource<?> source,
-            @NotNull Map<BoneName, RenderedBone> boneMap
+        @NotNull ModelRenderer parent,
+        @NotNull RenderSource<?> source,
+        @NotNull Map<BoneName, RenderedBone> boneMap
     ) {
         this.parent = parent;
         this.source = source;
         this.boneMap = boneMap;
         //Bone
         flattenBoneMap = associate(
-                boneMap.values()
-                        .stream()
-                        .flatMap(RenderedBone::flatten)
-                        .peek(bone -> bone.extend(this)),
-                RenderedBone::name
+            boneMap.values()
+                .stream()
+                .flatMap(RenderedBone::flatten)
+                .peek(bone -> bone.extend(this)),
+            RenderedBone::name
         );
         ikSolver = new BoneIKSolver(associate(flattenBoneMap.values(), RenderedBone::uuid));
         displayAmount = (int) flattenBoneMap.values().stream()
-                .peek(bone -> bone.locator(ikSolver))
-                .filter(rb -> rb.getDisplay() != null)
-                .count();
+            .peek(bone -> bone.locator(ikSolver))
+            .filter(rb -> rb.getDisplay() != null)
+            .count();
     }
 
     public @NotNull PacketBundler createBundler() {
@@ -89,7 +91,8 @@ public final class RenderPipeline implements BoneEventHandler {
     }
 
     public @Nullable PlayerChannelHandler channel(@NotNull UUID uuid) {
-        return playerMap.get(uuid);
+        var get = playerMap.get(uuid);
+        return get != null ? get.handler : null;
     }
 
     public @NotNull PacketBundler createLazyBundler() {
@@ -193,9 +196,9 @@ public final class RenderPipeline implements BoneEventHandler {
 
     public @NotNull Stream<HitBox> hitboxes() {
         return bones()
-                .stream()
-                .map(RenderedBone::getHitBox)
-                .filter(Objects::nonNull);
+            .stream()
+            .map(RenderedBone::getHitBox)
+            .filter(Objects::nonNull);
     }
 
     public @Nullable RenderedBone boneOf(@NotNull BoneName name) {
@@ -203,13 +206,15 @@ public final class RenderPipeline implements BoneEventHandler {
     }
 
     @ApiStatus.Internal
-    public boolean spawn(@NotNull Player player, @NotNull PacketBundler bundler) {
+    public boolean spawn(@NotNull Player player, @NotNull PacketBundler bundler, @NotNull Consumer<SpawnedPlayer> consumer) {
         var get = BetterModel.plugin().playerManager().player(player.getUniqueId());
         if (get == null) return false;
-        playerMap.put(player.getUniqueId(), get);
+        var spawnedPlayer = new SpawnedPlayer(get);
+        playerMap.put(player.getUniqueId(), spawnedPlayer);
         spawnPacketHandler.accept(bundler);
         var hided = isHide(player);
         iterateTree(b -> b.spawn(hided, bundler));
+        consumer.accept(spawnedPlayer);
         return true;
     }
 
@@ -266,11 +271,11 @@ public final class RenderPipeline implements BoneEventHandler {
 
     public <T> @Nullable T firstNotNull(@NotNull Function<RenderedBone, T> mapper) {
         return bones()
-                .stream()
-                .map(mapper)
-                .filter(Objects::nonNull)
-                .findFirst()
-                .orElse(null);
+            .stream()
+            .map(mapper)
+            .filter(Objects::nonNull)
+            .findFirst()
+            .orElse(null);
     }
 
     public int playerCount() {
@@ -278,17 +283,20 @@ public final class RenderPipeline implements BoneEventHandler {
     }
 
     public @NotNull Stream<Player> allPlayer() {
-        return playerMap.values().stream()
-                .map(PlayerChannelHandler::player);
+        return playerMap.values()
+            .stream()
+            .map(spawned -> spawned.handler.player());
     }
+
     public @NotNull Stream<Player> nonHidePlayer() {
-        return filteredPlayer(p -> !isHide(p));
+        return playerMap.values()
+            .stream()
+            .filter(spawned -> spawned.initialLoad)
+            .map(spawned -> spawned.handler.player())
+            .filter(viewFilter);
     }
     public @NotNull Stream<Player> viewedPlayer() {
-        return filteredPlayer(viewFilter);
-    }
-    public @NotNull Stream<Player> filteredPlayer(@NotNull Predicate<Player> predicate) {
-        return allPlayer().filter(predicate);
+        return allPlayer().filter(viewFilter);
     }
 
     public boolean hide(@NotNull Player player) {
@@ -317,5 +325,19 @@ public final class RenderPipeline implements BoneEventHandler {
         }
         BetterModel.plugin().scheduler().task(player, () -> hitboxes().forEach(hb -> hb.show(player)));
         return true;
+    }
+
+    @RequiredArgsConstructor
+    public class SpawnedPlayer {
+        private final PlayerChannelHandler handler;
+        private volatile boolean initialLoad;
+
+        public void load() {
+            if (isHide(handler.player())) return;
+            var b = createBundler();
+            iterateTree(bone -> bone.forceUpdate(b));
+            if (b.isNotEmpty()) b.send(handler.player());
+            initialLoad = true;
+        }
     }
 }

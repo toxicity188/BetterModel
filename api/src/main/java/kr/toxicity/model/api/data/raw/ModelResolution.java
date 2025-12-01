@@ -15,7 +15,7 @@ import org.jetbrains.annotations.ApiStatus;
  */
 @ApiStatus.Internal
 public record ModelResolution(
-        int width,
-        int height
+    int width,
+    int height
 ) {
 }

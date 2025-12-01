@@ -61,14 +61,14 @@ public final class RollTester implements ModelTester, Listener {
         var loc = player.getLocation();
         var data = block.getBlockData();
         loc.getWorld().spawnParticle(
-                Particle.BLOCK,
-                loc,
-                20,
-                1,
-                0.25,
-                1,
-                0.2,
-                data
+            Particle.BLOCK,
+            loc,
+            20,
+            1,
+            0.25,
+            1,
+            0.2,
+            data
         );
         loc.getWorld().playSound(loc, data.getSoundGroup().getBreakSound(), 0.5F, 1.0F);
         playRoll(player);
@@ -105,41 +105,41 @@ public final class RollTester implements ModelTester, Listener {
 
     private static boolean sendRollTime(@NotNull Audience audience) {
         return BetterModel.limb("steve")
-                .flatMap(r -> r.animation("roll"))
-                .map(animation -> {
-                    audience.sendMessage(Component.text()
-                            .append(Component.text("Loop mode: " + animation.loop()))
-                            .appendNewline()
-                            .append(Component.text("Length: " + animation.length() + " second")));
-                    return audience;
-                })
-                .isPresent();
+            .flatMap(r -> r.animation("roll"))
+            .map(animation -> {
+                audience.sendMessage(Component.text()
+                    .append(Component.text("Loop mode: " + animation.loop()))
+                    .appendNewline()
+                    .append(Component.text("Length: " + animation.length() + " second")));
+                return audience;
+            })
+            .isPresent();
     }
 
     private void playRoll(@NotNull Player player) {
         var input = inputToYaw(player);
         BetterModel.limb("steve")
-                .map(r -> r.getOrCreate(player, TrackerModifier.DEFAULT, t -> t.rotation(() -> new ModelRotation(player.getPitch(), packDegree(input + t.registry().entity().bodyYaw())))))
-                .ifPresent(t -> {
-                    if (t.animate(b -> true, "roll", AnimationModifier.DEFAULT_WITH_PLAY_ONCE, () -> {
-                        BetterModel.plugin().scheduler().asyncTaskLater(3, () -> coolTimeSet.remove(player.getUniqueId()));
-                        t.close();
-                    })) {
-                        if (coolTimeSet.add(player.getUniqueId()) && invulnerableSet.add(player.getUniqueId())) {
-                            player.addPotionEffect(new PotionEffect(
-                                    PotionEffectType.LUCK,
-                                    8,
-                                    5,
-                                    true,
-                                    false
-                            ));
-                            BetterModel.plugin().scheduler().asyncTaskLater(8, () -> invulnerableSet.remove(player.getUniqueId()));
-                            player.setVelocity(player.getVelocity()
-                                    .add(new Vector(0, 0, 0.75).rotateAroundY(-Math.toRadians(input + t.registry().entity().bodyYaw())))
-                                    .setY(0.15));
-                        }
-                    } else t.close();
-                });
+            .map(r -> r.getOrCreate(player, TrackerModifier.DEFAULT, t -> t.rotation(() -> new ModelRotation(player.getPitch(), packDegree(input + t.registry().entity().bodyYaw())))))
+            .ifPresent(t -> {
+                if (t.animate(b -> true, "roll", AnimationModifier.DEFAULT_WITH_PLAY_ONCE, () -> {
+                    BetterModel.plugin().scheduler().asyncTaskLater(3, () -> coolTimeSet.remove(player.getUniqueId()));
+                    t.close();
+                })) {
+                    if (coolTimeSet.add(player.getUniqueId()) && invulnerableSet.add(player.getUniqueId())) {
+                        player.addPotionEffect(new PotionEffect(
+                            PotionEffectType.LUCK,
+                            8,
+                            5,
+                            true,
+                            false
+                        ));
+                        BetterModel.plugin().scheduler().asyncTaskLater(8, () -> invulnerableSet.remove(player.getUniqueId()));
+                        player.setVelocity(player.getVelocity()
+                            .add(new Vector(0, 0, 0.75).rotateAroundY(-Math.toRadians(input + t.registry().entity().bodyYaw())))
+                            .setY(0.15));
+                    }
+                } else t.close();
+            });
     }
 
     private static float inputToYaw(@NotNull Player player) {

@@ -26,8 +26,8 @@ public interface ScriptBuilder {
     @NotNull AnimationScript build(@NotNull ScriptData data);
 
     record ScriptData(
-            @Nullable String args,
-            @NotNull ScriptMetaData metadata
+        @Nullable String args,
+        @NotNull ScriptMetaData metadata
     ) {}
 
     interface ScriptMetaData {

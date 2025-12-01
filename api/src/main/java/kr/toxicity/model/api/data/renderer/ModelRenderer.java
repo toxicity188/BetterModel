@@ -6,18 +6,17 @@
  */
 package kr.toxicity.model.api.data.renderer;
 
-import com.mojang.authlib.GameProfile;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.entity.BaseEntity;
+import kr.toxicity.model.api.profile.ModelProfile;
 import kr.toxicity.model.api.tracker.DummyTracker;
 import kr.toxicity.model.api.tracker.EntityTracker;
 import kr.toxicity.model.api.tracker.TrackerModifier;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Location;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,10 +39,10 @@ import static kr.toxicity.model.api.util.CollectionUtil.mapValue;
  * @param animations animations
  */
 public record ModelRenderer(
-        @NotNull String name,
-        @NotNull Type type,
-        @NotNull @Unmodifiable Map<BoneName, RendererGroup> rendererGroups,
-        @NotNull @Unmodifiable Map<String, BlueprintAnimation> animations
+    @NotNull String name,
+    @NotNull Type type,
+    @NotNull @Unmodifiable Map<BoneName, RendererGroup> rendererGroups,
+    @NotNull @Unmodifiable Map<String, BlueprintAnimation> animations
 ) {
     /**
      * Gets a renderer group by tree
@@ -60,11 +59,11 @@ public record ModelRenderer(
         var get = map.get(name);
         if (get != null) return get;
         else return map.values()
-                .stream()
-                .map(g -> groupByTree0(g.getChildren(), name))
-                .filter(Objects::nonNull)
-                .findFirst()
-                .orElse(null);
+            .stream()
+            .map(g -> groupByTree0(g.getChildren(), name))
+            .filter(Objects::nonNull)
+            .findFirst()
+            .orElse(null);
     }
 
     /**
@@ -129,101 +128,51 @@ public record ModelRenderer(
     public @NotNull DummyTracker create(@NotNull Location location, @NotNull TrackerModifier modifier, @NotNull Consumer<DummyTracker> preUpdateConsumer) {
         var source = RenderSource.of(location);
         return source.create(
-                pipeline(source),
-                modifier,
-                preUpdateConsumer
+            pipeline(source),
+            modifier,
+            preUpdateConsumer
         );
     }
 
     /**
-     * Creates tracker by location and player
-     *
-     * @param location location
-     * @param player   player
-     * @return empty tracker
-     */
-    public @NotNull DummyTracker create(@NotNull Location location, @NotNull OfflinePlayer player) {
-        return create(location, player, TrackerModifier.DEFAULT);
-    }
-
-    /**
-     * Creates tracker by location and profile
+     * Creates tracker by location and uncompleted profile
      *
      * @param location location
      * @param profile  profile
      * @return empty tracker
      */
-    public @NotNull DummyTracker create(@NotNull Location location, @NotNull GameProfile profile) {
+    public @NotNull DummyTracker create(@NotNull Location location, @NotNull ModelProfile.Uncompleted profile) {
         return create(location, profile, TrackerModifier.DEFAULT);
     }
 
     /**
-     * Creates tracker by location and profile
-     *
-     * @param location location
-     * @param profile  profile
-     * @param slim     slim
-     * @return empty tracker
-     */
-    public @NotNull DummyTracker create(@NotNull Location location, @NotNull GameProfile profile, boolean slim) {
-        return create(location, profile, slim, TrackerModifier.DEFAULT);
-    }
-
-    /**
-     * Creates tracker by location and player
-     *
-     * @param location location
-     * @param player   player
-     * @param modifier modifier
-     * @return empty tracker
-     */
-    public @NotNull DummyTracker create(@NotNull Location location, @NotNull OfflinePlayer player, @NotNull TrackerModifier modifier) {
-        var channel = BetterModel.plugin().playerManager().player(player.getUniqueId());
-        return channel == null ? create(location, BetterModel.nms().profile(player), modifier) : create(location, channel.profile(), channel.isSlim(), modifier);
-    }
-
-    /**
-     * Creates tracker by location and profile
+     * Creates tracker by location and uncompleted profile
      *
      * @param location location
      * @param profile  profile
      * @param modifier modifier
      * @return empty tracker
      */
-    public @NotNull DummyTracker create(@NotNull Location location, @NotNull GameProfile profile, @NotNull TrackerModifier modifier) {
-        return create(location, profile, BetterModel.plugin().skinManager().isSlim(profile), modifier);
-    }
-
-    /**
-     * Creates tracker by location and profile
-     *
-     * @param location location
-     * @param profile  profile
-     * @param slim     slim
-     * @param modifier modifier
-     * @return empty tracker
-     */
-    public @NotNull DummyTracker create(@NotNull Location location, @NotNull GameProfile profile, boolean slim, @NotNull TrackerModifier modifier) {
-        return create(location, profile, slim, modifier, t -> {
+    public @NotNull DummyTracker create(@NotNull Location location, ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier) {
+        return create(location, profile, modifier, t -> {
         });
     }
 
     /**
-     * Creates tracker by location and profile
+     * Creates tracker by location and uncompleted profile
      *
      * @param location          location
      * @param profile           profile
-     * @param slim              slim
      * @param modifier          modifier
      * @param preUpdateConsumer task on pre-update
      * @return empty tracker
      */
-    public @NotNull DummyTracker create(@NotNull Location location, @NotNull GameProfile profile, boolean slim, @NotNull TrackerModifier modifier, @NotNull Consumer<DummyTracker> preUpdateConsumer) {
-        var source = RenderSource.of(location, profile, slim);
+    public @NotNull DummyTracker create(@NotNull Location location, @NotNull ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier, @NotNull Consumer<DummyTracker> preUpdateConsumer) {
+        var source = RenderSource.of(location, profile);
         return source.create(
-                pipeline(source),
-                modifier,
-                preUpdateConsumer
+            pipeline(source),
+            modifier,
+            preUpdateConsumer
         );
     }
 
@@ -237,29 +186,6 @@ public record ModelRenderer(
      */
     public @NotNull EntityTracker create(@NotNull Entity entity) {
         return create(BetterModel.nms().adapt(entity));
-    }
-
-    /**
-     * Creates tracker by entity and profile
-     *
-     * @param entity entity
-     * @param player   player
-     * @return entity tracker
-     */
-    public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull OfflinePlayer player) {
-        return create(BetterModel.nms().adapt(entity), player);
-    }
-
-    /**
-     * Creates tracker by entity and player
-     *
-     * @param entity entity
-     * @param player  player
-     * @param modifier modifier
-     * @return entity tracker
-     */
-    public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull OfflinePlayer player, @NotNull TrackerModifier modifier) {
-        return create(BetterModel.nms().adapt(entity), player, modifier);
     }
 
     /**
@@ -286,65 +212,39 @@ public record ModelRenderer(
     }
 
     /**
-     * Creates tracker by entity and profile
+     * Creates tracker by entity and uncompleted profile
      *
      * @param entity   entity
      * @param profile  profile
      * @return entity tracker
      */
-    public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull GameProfile profile) {
+    public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull ModelProfile.Uncompleted profile) {
         return create(BetterModel.nms().adapt(entity), profile);
     }
 
     /**
-     * Creates tracker by entity and profile
-     *
-     * @param entity   entity
-     * @param profile  profile
-     * @param slim     slim
-     * @return entity tracker
-     */
-    public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull GameProfile profile, boolean slim) {
-        return create(BetterModel.nms().adapt(entity), profile, slim);
-    }
-
-    /**
-     * Creates tracker by entity and profile
+     * Creates tracker by entity and uncompleted profile
      *
      * @param entity   entity
      * @param profile  profile
      * @param modifier modifier
      * @return entity tracker
      */
-    public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull GameProfile profile, @NotNull TrackerModifier modifier) {
+    public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier) {
         return create(BetterModel.nms().adapt(entity), profile, modifier);
     }
 
     /**
-     * Creates tracker by entity and profile
-     *
-     * @param entity   entity
-     * @param profile  profile
-     * @param slim     slim
-     * @param modifier modifier
-     * @return entity tracker
-     */
-    public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull GameProfile profile, boolean slim, @NotNull TrackerModifier modifier) {
-        return create(BetterModel.nms().adapt(entity), profile, slim, modifier);
-    }
-
-    /**
-     * Creates tracker by entity and profile
+     * Creates tracker by entity and uncompleted profile
      *
      * @param entity            entity
-     * @param profile           profile
-     * @param slim              slim
+     * @param profile           skin
      * @param modifier          modifier
      * @param preUpdateConsumer task on pre-update
      * @return entity tracker
      */
-    public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull GameProfile profile, boolean slim, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
-        return create(BetterModel.nms().adapt(entity), profile, slim, modifier, preUpdateConsumer);
+    public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
+        return create(BetterModel.nms().adapt(entity), profile, modifier, preUpdateConsumer);
     }
 
     /**
@@ -381,88 +281,39 @@ public record ModelRenderer(
     }
 
     /**
-     * Gets or creates tracker by entity and profile
-     *
-     * @param entity entity
-     * @param player   player
-     * @return entity tracker
-     */
-    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull OfflinePlayer player) {
-        return getOrCreate(BetterModel.nms().adapt(entity), player);
-    }
-
-    /**
-     * Gets or creates tracker by entity and player
-     *
-     * @param entity entity
-     * @param player  player
-     * @param modifier modifier
-     * @return entity tracker
-     */
-    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull OfflinePlayer player, @NotNull TrackerModifier modifier) {
-        return getOrCreate(BetterModel.nms().adapt(entity), player, modifier);
-    }
-
-    /**
-     * Gets or creates tracker by entity and profile
+     * Gets or creates tracker by entity and uncompleted profile
      *
      * @param entity   entity
      * @param profile  profile
      * @return entity tracker
      */
-    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull GameProfile profile) {
+    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull ModelProfile.Uncompleted profile) {
         return getOrCreate(BetterModel.nms().adapt(entity), profile);
     }
 
     /**
-     * Gets or creates tracker by entity and profile
-     *
-     * @param entity   entity
-     * @param profile  profile
-     * @param slim     slim
-     * @return entity tracker
-     */
-    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull GameProfile profile, boolean slim) {
-        return getOrCreate(BetterModel.nms().adapt(entity), profile, slim);
-    }
-
-    /**
-     * Gets or creates tracker by entity and profile
+     * Gets or creates tracker by entity and uncompleted profile
      *
      * @param entity   entity
      * @param profile  profile
      * @param modifier modifier
      * @return entity tracker
      */
-    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull GameProfile profile, @NotNull TrackerModifier modifier) {
+    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier) {
         return getOrCreate(BetterModel.nms().adapt(entity), profile, modifier);
     }
 
     /**
-     * Gets or creates tracker by entity and profile
-     *
-     * @param entity   entity
-     * @param profile  profile
-     * @param slim     slim
-     * @param modifier modifier
-     * @return entity tracker
-     */
-    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull GameProfile profile, boolean slim, @NotNull TrackerModifier modifier) {
-        return getOrCreate(BetterModel.nms().adapt(entity), profile, slim, modifier);
-    }
-
-    /**
-     * Gets or creates tracker by entity and profile
+     * Gets or creates tracker by entity and uncompleted profile
      *
      * @param entity            entity
-     * @param profile           profile
-     * @param slim              slim
+     * @param profile           skin
      * @param modifier          modifier
      * @param preUpdateConsumer task on pre-update
      * @return entity tracker
      */
-    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull GameProfile profile, boolean slim, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
-        return getOrCreate(BetterModel.nms().adapt(entity), profile, slim, modifier, preUpdateConsumer);
+    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
+        return getOrCreate(BetterModel.nms().adapt(entity), profile, modifier, preUpdateConsumer);
     }
 
     /**
@@ -474,31 +325,6 @@ public record ModelRenderer(
     public @NotNull EntityTracker create(@NotNull BaseEntity entity) {
         return create(entity, TrackerModifier.DEFAULT);
     }
-
-    /**
-     * Creates tracker by entity and profile
-     *
-     * @param entity entity
-     * @param player   player
-     * @return entity tracker
-     */
-    public @NotNull EntityTracker create(@NotNull BaseEntity entity, @NotNull OfflinePlayer player) {
-        return create(entity, player, TrackerModifier.DEFAULT);
-    }
-
-    /**
-     * Creates tracker by entity and player
-     *
-     * @param entity entity
-     * @param player  player
-     * @param modifier modifier
-     * @return entity tracker
-     */
-    public @NotNull EntityTracker create(@NotNull BaseEntity entity, @NotNull OfflinePlayer player, @NotNull TrackerModifier modifier) {
-        var channel = BetterModel.plugin().playerManager().player(player.getUniqueId());
-        return channel == null ? create(entity, BetterModel.nms().profile(player), modifier) : create(entity, channel.profile(), channel.isSlim(), modifier);
-    }
-
     /**
      * Creates tracker by entity
      *
@@ -522,77 +348,51 @@ public record ModelRenderer(
     public @NotNull EntityTracker create(@NotNull BaseEntity entity, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
         var source = RenderSource.of(entity);
         return source.create(
-                pipeline(source),
-                modifier,
-                preUpdateConsumer
+            pipeline(source),
+            modifier,
+            preUpdateConsumer
         );
     }
 
     /**
-     * Creates tracker by entity and profile
+     * Creates tracker by entity and uncompleted profile
      *
      * @param entity   entity
      * @param profile  profile
      * @return entity tracker
      */
-    public @NotNull EntityTracker create(@NotNull BaseEntity entity, @NotNull GameProfile profile) {
-        return create(entity, profile, BetterModel.plugin().skinManager().isSlim(profile));
+    public @NotNull EntityTracker create(@NotNull BaseEntity entity, @NotNull ModelProfile.Uncompleted profile) {
+        return create(entity, profile, TrackerModifier.DEFAULT);
     }
 
     /**
-     * Creates tracker by entity and profile
-     *
-     * @param entity   entity
-     * @param profile  profile
-     * @param slim     slim
-     * @return entity tracker
-     */
-    public @NotNull EntityTracker create(@NotNull BaseEntity entity, @NotNull GameProfile profile, boolean slim) {
-        return create(entity, profile, slim, TrackerModifier.DEFAULT);
-    }
-
-    /**
-     * Creates tracker by entity and profile
+     * Creates tracker by entity and uncompleted profile
      *
      * @param entity   entity
      * @param profile  profile
      * @param modifier modifier
      * @return entity tracker
      */
-    public @NotNull EntityTracker create(@NotNull BaseEntity entity, @NotNull GameProfile profile, @NotNull TrackerModifier modifier) {
-        return create(entity, profile, BetterModel.plugin().skinManager().isSlim(profile), modifier);
-    }
-
-    /**
-     * Creates tracker by entity and profile
-     *
-     * @param entity   entity
-     * @param profile  profile
-     * @param slim     slim
-     * @param modifier modifier
-     * @return entity tracker
-     */
-    public @NotNull EntityTracker create(@NotNull BaseEntity entity, @NotNull GameProfile profile, boolean slim, @NotNull TrackerModifier modifier) {
-        return create(entity, profile, slim, modifier, t -> {
+    public @NotNull EntityTracker create(@NotNull BaseEntity entity, @NotNull ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier) {
+        return create(entity, profile, modifier, t -> {
         });
     }
 
     /**
-     * Creates tracker by entity and profile
+     * Creates tracker by entity and uncompleted profile
      *
      * @param entity            entity
      * @param profile           profile
-     * @param slim              slim
      * @param modifier          modifier
      * @param preUpdateConsumer task on pre-update
      * @return entity tracker
      */
-    public @NotNull EntityTracker create(@NotNull BaseEntity entity, @NotNull GameProfile profile, boolean slim, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
-        var source = RenderSource.of(entity, profile, slim);
+    public @NotNull EntityTracker create(@NotNull BaseEntity entity, @NotNull ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
+        var source = RenderSource.of(entity, profile);
         return source.create(
-                pipeline(source),
-                modifier,
-                preUpdateConsumer
+            pipeline(source),
+            modifier,
+            preUpdateConsumer
         );
     }
 
@@ -629,103 +429,54 @@ public record ModelRenderer(
     public @NotNull EntityTracker getOrCreate(@NotNull BaseEntity entity, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
         var source = RenderSource.of(entity);
         return source.getOrCreate(
-                name(),
-                () -> pipeline(source),
-                modifier,
-                preUpdateConsumer
+            name(),
+            () -> pipeline(source),
+            modifier,
+            preUpdateConsumer
         );
     }
 
     /**
-     * Gets or creates tracker by entity and profile
-     *
-     * @param entity entity
-     * @param player   player
-     * @return entity tracker
-     */
-    public @NotNull EntityTracker getOrCreate(@NotNull BaseEntity entity, @NotNull OfflinePlayer player) {
-        return getOrCreate(entity, player, TrackerModifier.DEFAULT);
-    }
-
-    /**
-     * Gets or creates tracker by entity and player
-     *
-     * @param entity entity
-     * @param player  player
-     * @param modifier modifier
-     * @return entity tracker
-     */
-    public @NotNull EntityTracker getOrCreate(@NotNull BaseEntity entity, @NotNull OfflinePlayer player, @NotNull TrackerModifier modifier) {
-        var channel = BetterModel.plugin().playerManager().player(player.getUniqueId());
-        return channel == null ? getOrCreate(entity, BetterModel.nms().profile(player), modifier) : getOrCreate(entity, channel.profile(), channel.isSlim(), modifier);
-    }
-
-    /**
-     * Gets or creates tracker by entity and profile
+     * Gets or creates tracker by entity and uncompleted profile
      *
      * @param entity   entity
      * @param profile  profile
      * @return entity tracker
      */
-    public @NotNull EntityTracker getOrCreate(@NotNull BaseEntity entity, @NotNull GameProfile profile) {
-        return getOrCreate(entity, profile, BetterModel.plugin().skinManager().isSlim(profile));
+    public @NotNull EntityTracker getOrCreate(@NotNull BaseEntity entity, @NotNull ModelProfile.Uncompleted profile) {
+        return getOrCreate(entity, profile, TrackerModifier.DEFAULT);
     }
 
-    /**
-     * Gets or creates tracker by entity and profile
-     *
-     * @param entity   entity
-     * @param profile  profile
-     * @param slim     slim
-     * @return entity tracker
-     */
-    public @NotNull EntityTracker getOrCreate(@NotNull BaseEntity entity, @NotNull GameProfile profile, boolean slim) {
-        return getOrCreate(entity, profile, slim, TrackerModifier.DEFAULT);
-    }
 
     /**
-     * Gets or creates tracker by entity and profile
+     * Gets or creates tracker by entity and uncompleted profile
      *
      * @param entity   entity
      * @param profile  profile
      * @param modifier modifier
      * @return entity tracker
      */
-    public @NotNull EntityTracker getOrCreate(@NotNull BaseEntity entity, @NotNull GameProfile profile, @NotNull TrackerModifier modifier) {
-        return getOrCreate(entity, profile, BetterModel.plugin().skinManager().isSlim(profile), modifier);
-    }
-
-    /**
-     * Gets or creates tracker by entity and profile
-     *
-     * @param entity   entity
-     * @param profile  profile
-     * @param slim     slim
-     * @param modifier modifier
-     * @return entity tracker
-     */
-    public @NotNull EntityTracker getOrCreate(@NotNull BaseEntity entity, @NotNull GameProfile profile, boolean slim, @NotNull TrackerModifier modifier) {
-        return getOrCreate(entity, profile, slim, modifier, t -> {
+    public @NotNull EntityTracker getOrCreate(@NotNull BaseEntity entity, ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier) {
+        return getOrCreate(entity, profile, modifier, t -> {
         });
     }
 
     /**
-     * Gets or creates tracker by entity and profile
+     * Gets or creates tracker by entity and uncompleted profile
      *
      * @param entity            entity
      * @param profile           profile
-     * @param slim              slim
      * @param modifier          modifier
      * @param preUpdateConsumer task on pre-update
      * @return entity tracker
      */
-    public @NotNull EntityTracker getOrCreate(@NotNull BaseEntity entity, @NotNull GameProfile profile, boolean slim, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
-        var source = RenderSource.of(entity, profile, slim);
+    public @NotNull EntityTracker getOrCreate(@NotNull BaseEntity entity, @NotNull ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
+        var source = RenderSource.of(entity, profile);
         return source.getOrCreate(
-                name(),
-                () -> pipeline(source),
-                modifier,
-                preUpdateConsumer
+            name(),
+            () -> pipeline(source),
+            modifier,
+            preUpdateConsumer
         );
     }
 

@@ -8,6 +8,7 @@ package kr.toxicity.model.nms.v1_21_R2
 
 import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.EntityLookup
 import com.mojang.authlib.GameProfile
+import com.mojang.authlib.properties.Property
 import io.netty.channel.ChannelDuplexHandler
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
@@ -18,6 +19,7 @@ import kr.toxicity.model.api.data.blueprint.NamedBoundingBox
 import kr.toxicity.model.api.entity.BaseEntity
 import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.nms.*
+import kr.toxicity.model.api.profile.ModelProfile
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.tracker.TrackerUpdateAction
 import net.kyori.adventure.key.Keyed
@@ -44,8 +46,6 @@ import net.minecraft.world.level.entity.LevelEntityGetterAdapter
 import net.minecraft.world.level.entity.PersistentEntitySectionManager
 import org.bukkit.Color
 import org.bukkit.Location
-import org.bukkit.OfflinePlayer
-import org.bukkit.craftbukkit.CraftOfflinePlayer
 import org.bukkit.craftbukkit.CraftWorld
 import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.craftbukkit.entity.CraftPlayer
@@ -62,7 +62,6 @@ class NMSImpl : NMS {
 
         //Spigot
         private val getGameProfile: (net.minecraft.world.entity.player.Player) -> GameProfile = createAdaptedFieldGetter { it.gameProfile }
-        private val getOfflineGameProfile: (CraftOfflinePlayer) -> GameProfile = createAdaptedFieldGetter()
         private val getConnection: (ServerCommonPacketListenerImpl) -> Connection = createAdaptedFieldGetter { it.connection }
         private val spigotChunkAccess = ServerLevel::class.java.fields.firstOrNull {
             it.type == PersistentEntitySectionManager::class.java
@@ -114,7 +113,7 @@ class NMSImpl : NMS {
         }
         list.send(channel.player())
     }
-    
+
     private fun ClientboundSetEntityDataPacket.toRegistryDataPacket(uuid: UUID, registry: EntityTrackerRegistry) = ClientboundSetEntityDataPacket(id, packedItems().map {
         if (it.id == SHARED_FLAG) SynchedEntityData.DataValue(
             it.id,
@@ -220,7 +219,7 @@ class NMSImpl : NMS {
                     if (it.hideOption(uuid).equipment()) (it.entity().handle() as? LivingEntity)?.toEmptyEquipmentPacket()?.let { packet ->
                         return packet
                     }
-                } 
+                }
                 is ClientboundRespawnPacket -> playerModel?.let {
                     bundlerOf(it.mountPacket(connection.player)).send(player)
                 }
@@ -296,8 +295,8 @@ class NMSImpl : NMS {
         return useByteBuf { buffer ->
             buffer.writeVarInt(entity.id)
             buffer.writeVarIntArray(displays()
-                .mapToInt { 
-                    (it as ModelDisplayImpl).display.id 
+                .mapToInt {
+                    (it as ModelDisplayImpl).display.id
                 }.toArray() + array)
             ClientboundSetPassengersPacket.STREAM_CODEC.decode(buffer)
         }
@@ -356,11 +355,16 @@ class NMSImpl : NMS {
         entity as CraftEntity
         return if (entity is CraftPlayer) BasePlayerImpl(entity, { profile(entity) }) { entity.handle.toCustomisation() } else BaseEntityImpl(entity)
     }
-    
-    override fun profile(player: OfflinePlayer): GameProfile = if (player is CraftOfflinePlayer) getOfflineGameProfile(player) else getGameProfile((player as CraftPlayer).handle)
 
-    override fun createPlayerHead(profile: GameProfile): ItemStack = VanillaItemStack(Items.PLAYER_HEAD).apply {
-        set(DataComponents.PROFILE, ResolvableProfile(profile))
+    override fun profile(player: Player): ModelProfile = ModelGameProfile(getGameProfile((player as CraftPlayer).handle))
+
+    override fun createPlayerHead(profile: ModelProfile): ItemStack = VanillaItemStack(Items.PLAYER_HEAD).apply {
+        set(DataComponents.PROFILE, ResolvableProfile(GameProfile(
+            profile.info().id,
+            profile.info().name,
+        ).apply {
+            properties.put("textures", Property("textures", profile.skin().raw))
+        }))
     }.asBukkit()
 
     override fun isProxyOnlineMode(): Boolean = ONLINE_MODE

@@ -70,9 +70,9 @@ public sealed interface ModelElement {
      * @param uuid
      */
     record Locator(
-            @NotNull String name,
-            @NotNull String uuid,
-            @Nullable Float3 position
+        @NotNull String name,
+        @NotNull String uuid,
+        @Nullable Float3 position
     ) implements ModelElement {
         @Override
         public @NotNull String type() {
@@ -90,9 +90,9 @@ public sealed interface ModelElement {
         @Override
         public @NotNull BlueprintElement toBlueprint() {
             return new BlueprintElement.Locator(
-                    UUID.fromString(uuid),
-                    BoneTagRegistry.parse(name()),
-                    position()
+                UUID.fromString(uuid),
+                BoneTagRegistry.parse(name()),
+                position()
             );
         }
     }
@@ -102,7 +102,7 @@ public sealed interface ModelElement {
      * @param uuid
      */
     record Camera(
-            @NotNull String uuid
+        @NotNull String uuid
     ) implements ModelElement {
         @Override
         public @NotNull String type() {
@@ -112,7 +112,7 @@ public sealed interface ModelElement {
         @Override
         public @NotNull BlueprintElement toBlueprint() {
             return new BlueprintElement.Camera(
-                    UUID.fromString(uuid)
+                UUID.fromString(uuid)
             );
         }
     }
@@ -126,11 +126,11 @@ public sealed interface ModelElement {
      * @param position position
      */
     record NullObject(
-            @NotNull String name,
-            @NotNull String uuid,
-            @Nullable @SerializedName("ik_target") String ikTarget,
-            @Nullable @SerializedName("ik_source") String ikSource,
-            @Nullable Float3 position
+        @NotNull String name,
+        @NotNull String uuid,
+        @Nullable @SerializedName("ik_target") String ikTarget,
+        @Nullable @SerializedName("ik_source") String ikSource,
+        @Nullable Float3 position
     ) implements ModelElement {
         @Override
         public @NotNull String type() {
@@ -148,18 +148,18 @@ public sealed interface ModelElement {
 
         @Override
         public @NotNull BlueprintElement toBlueprint() {
-           return new BlueprintElement.NullObject(
-                    UUID.fromString(uuid),
-                    BoneTagRegistry.parse(name()),
-                    Optional.ofNullable(ikTarget())
-                            .filter(str -> !str.isEmpty())
-                            .map(UUID::fromString)
-                            .orElse(null),
-                    Optional.ofNullable(ikSource())
-                            .filter(str -> !str.isEmpty())
-                            .map(UUID::fromString)
-                            .orElse(null),
-                    position()
+            return new BlueprintElement.NullObject(
+                UUID.fromString(uuid),
+                BoneTagRegistry.parse(name()),
+                Optional.ofNullable(ikTarget())
+                    .filter(str -> !str.isEmpty())
+                    .map(UUID::fromString)
+                    .orElse(null),
+                Optional.ofNullable(ikSource())
+                    .filter(str -> !str.isEmpty())
+                    .map(UUID::fromString)
+                    .orElse(null),
+                position()
             );
         }
     }
@@ -199,15 +199,15 @@ public sealed interface ModelElement {
      * @param _visibility visibility
      */
     record Cube(
-            @NotNull String name,
-            @NotNull String uuid,
-            @Nullable Float3 from,
-            @Nullable Float3 to,
-            float inflate,
-            @Nullable Float3 rotation,
-            @NotNull Float3 origin,
-            @Nullable ModelFace faces,
-            @SerializedName("visibility") @Nullable Boolean _visibility
+        @NotNull String name,
+        @NotNull String uuid,
+        @Nullable Float3 from,
+        @Nullable Float3 to,
+        float inflate,
+        @Nullable Float3 rotation,
+        @NotNull Float3 origin,
+        @Nullable ModelFace faces,
+        @SerializedName("visibility") @Nullable Boolean _visibility
     ) implements ModelElement {
 
         @Override
@@ -253,14 +253,14 @@ public sealed interface ModelElement {
         @Override
         public @NotNull BlueprintElement toBlueprint() {
             return new BlueprintElement.Cube(
-                    name(),
-                    from(),
-                    to(),
-                    inflate(),
-                    rotation(),
-                    origin(),
-                    faces(),
-                    visibility()
+                name(),
+                from(),
+                to(),
+                inflate(),
+                rotation(),
+                origin(),
+                faces(),
+                visibility()
             );
         }
     }

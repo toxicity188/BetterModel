@@ -27,10 +27,10 @@ import java.util.Objects;
  */
 @ApiStatus.Internal
 public record Datapoint(
-        @Nullable JsonPrimitive x,
-        @Nullable JsonPrimitive y,
-        @Nullable JsonPrimitive z,
-        @Nullable String script
+    @Nullable JsonPrimitive x,
+    @Nullable JsonPrimitive y,
+    @Nullable JsonPrimitive z,
+    @Nullable String script
 ) {
 
     /**
@@ -60,15 +60,15 @@ public record Datapoint(
         var yb = build(y, context);
         var zb = build(z, context);
         if (xb instanceof Float2FloatConstantFunction(float xc)
-                && yb instanceof Float2FloatConstantFunction(float yc)
-                && zb instanceof Float2FloatConstantFunction(float zc)
+            && yb instanceof Float2FloatConstantFunction(float yc)
+            && zb instanceof Float2FloatConstantFunction(float zc)
         ) {
             return FloatFunction.of(new Vector3f(xc, yc, zc));
         } else {
             return f -> new Vector3f(
-                    xb.applyAsFloat(f),
-                    yb.applyAsFloat(f),
-                    zb.applyAsFloat(f)
+                xb.applyAsFloat(f),
+                yb.applyAsFloat(f),
+                zb.applyAsFloat(f)
             );
         }
     }
@@ -82,11 +82,11 @@ public record Datapoint(
             return Float2FloatFunction.of(Float.parseFloat(string));
         } catch (NumberFormatException ignored) {
             return context.trySupply(
-                    () -> BetterModel.plugin().evaluator().compile(context.placeholder.parseVariable(string)),
-                    error -> new ModelLoadContext.Fallback<>(
-                            Float2FloatFunction.ZERO,
-                            "Cannot parse this datapoint: " + primitive + ", reason: " + error.getMessage()
-                    )
+                () -> BetterModel.plugin().evaluator().compile(context.placeholder.parseVariable(string)),
+                error -> new ModelLoadContext.Fallback<>(
+                    Float2FloatFunction.ZERO,
+                    "Cannot parse this datapoint: " + primitive + ", reason: " + error.getMessage()
+                )
             );
         }
     }

@@ -19,11 +19,11 @@ import org.jetbrains.annotations.Nullable;
  * @param _visibility visibility
  */
 public record ModelGroup(
-        @NotNull String name,
-        @NotNull String uuid,
-        @Nullable Float3 origin,
-        @Nullable Float3 rotation,
-        @Nullable @SerializedName("visibility") Boolean _visibility
+    @NotNull String name,
+    @NotNull String uuid,
+    @Nullable Float3 origin,
+    @Nullable Float3 rotation,
+    @Nullable @SerializedName("visibility") Boolean _visibility
 ) {
     /**
      * Gets origin

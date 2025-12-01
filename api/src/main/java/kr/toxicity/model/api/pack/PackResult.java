@@ -98,8 +98,8 @@ public final class PackResult {
 
     public @NotNull Stream<PackByte> stream() {
         return Stream.concat(
-                overlays.values().stream().flatMap(Collection::stream),
-                assets.stream()
+            overlays.values().stream().flatMap(Collection::stream),
+            assets.stream()
         );
     }
 

@@ -31,10 +31,10 @@ public record BlueprintScript(@NotNull String name, @NotNull AnimationIterator.T
      */
     public static @NotNull BlueprintScript fromEmpty(@NotNull ModelAnimation animation) {
         return new BlueprintScript(
-                animation.name(),
-                animation.loop(),
-                animation.length(),
-                List.of(TimeScript.EMPTY, AnimationScript.EMPTY.time(animation.length()))
+            animation.name(),
+            animation.loop(),
+            animation.length(),
+            List.of(TimeScript.EMPTY, AnimationScript.EMPTY.time(animation.length()))
         );
     }
 

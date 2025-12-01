@@ -6,16 +6,18 @@
  */
 package kr.toxicity.model.api.data.renderer;
 
-import com.mojang.authlib.GameProfile;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.armor.PlayerArmor;
+import kr.toxicity.model.api.bone.BoneRenderContext;
 import kr.toxicity.model.api.nms.Profiled;
 import kr.toxicity.model.api.player.PlayerSkinParts;
+import kr.toxicity.model.api.profile.ModelProfile;
 import kr.toxicity.model.api.tracker.*;
 import org.bukkit.Location;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -27,13 +29,13 @@ public sealed interface RenderSource<T extends Tracker> {
     }
 
     @ApiStatus.Internal
-    static @NotNull RenderSource.Dummy of(@NotNull Location location, @NotNull GameProfile profile, boolean slim) {
-        return new ProfiledDummy(location, profile, slim);
+    static @NotNull RenderSource.Dummy of(@NotNull Location location, @NotNull ModelProfile.Uncompleted profile) {
+        return new ProfiledDummy(location, profile);
     }
 
     @ApiStatus.Internal
-    static @NotNull RenderSource.Entity of(@NotNull kr.toxicity.model.api.entity.BaseEntity entity, @NotNull GameProfile profile, boolean slim) {
-        return entity instanceof kr.toxicity.model.api.entity.BasePlayer player ? new ProfiledPlayer(player, profile, slim) : new ProfiledEntity(entity, profile, slim);
+    static @NotNull RenderSource.Entity of(@NotNull kr.toxicity.model.api.entity.BaseEntity entity, @NotNull ModelProfile.Uncompleted profile) {
+        return entity instanceof kr.toxicity.model.api.entity.BasePlayer player ? new ProfiledPlayer(player, profile) : new ProfiledEntity(entity, profile);
     }
 
     @ApiStatus.Internal
@@ -42,7 +44,14 @@ public sealed interface RenderSource<T extends Tracker> {
     }
 
     @NotNull Location location();
+
     T create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<T> preUpdateConsumer);
+
+    @NotNull CompletableFuture<BoneRenderContext> completeContext();
+
+    default BoneRenderContext fallbackContext() {
+        return new BoneRenderContext(this);
+    }
 
     sealed interface Entity extends RenderSource<EntityTracker> {
         @NotNull kr.toxicity.model.api.entity.BaseEntity entity();
@@ -60,9 +69,14 @@ public sealed interface RenderSource<T extends Tracker> {
         public DummyTracker create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<DummyTracker> preUpdateConsumer) {
             return new DummyTracker(location, pipeline, modifier, preUpdateConsumer);
         }
+
+        @Override
+        public @NotNull CompletableFuture<BoneRenderContext> completeContext() {
+            return CompletableFuture.completedFuture(fallbackContext());
+        }
     }
 
-    record ProfiledDummy(@NotNull Location location, @NotNull GameProfile profile, boolean isSlim) implements Profiled, Dummy {
+    record ProfiledDummy(@NotNull Location location, @NotNull ModelProfile.Uncompleted profile) implements Dummy {
         @NotNull
         @Override
         public DummyTracker create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<DummyTracker> preUpdateConsumer) {
@@ -70,13 +84,8 @@ public sealed interface RenderSource<T extends Tracker> {
         }
 
         @Override
-        public @NotNull PlayerArmor armors() {
-            return PlayerArmor.EMPTY;
-        }
-
-        @Override
-        public @NotNull PlayerSkinParts skinParts() {
-            return PlayerSkinParts.DEFAULT;
+        public @NotNull CompletableFuture<BoneRenderContext> completeContext() {
+            return BetterModel.plugin().skinManager().complete(profile).thenApply(skin -> new BoneRenderContext(this, skin));
         }
     }
 
@@ -97,9 +106,15 @@ public sealed interface RenderSource<T extends Tracker> {
         public @NotNull Location location() {
             return entity.location();
         }
+
+
+        @Override
+        public @NotNull CompletableFuture<BoneRenderContext> completeContext() {
+            return CompletableFuture.completedFuture(fallbackContext());
+        }
     }
 
-    record ProfiledEntity(@NotNull kr.toxicity.model.api.entity.BaseEntity entity, @NotNull GameProfile profile, boolean isSlim) implements Entity, Profiled {
+    record ProfiledEntity(@NotNull kr.toxicity.model.api.entity.BaseEntity entity, @NotNull ModelProfile.Uncompleted profile) implements Entity {
 
         @NotNull
         @Override
@@ -118,13 +133,8 @@ public sealed interface RenderSource<T extends Tracker> {
         }
 
         @Override
-        public @NotNull PlayerArmor armors() {
-            return PlayerArmor.EMPTY;
-        }
-
-        @Override
-        public @NotNull PlayerSkinParts skinParts() {
-            return PlayerSkinParts.DEFAULT;
+        public @NotNull CompletableFuture<BoneRenderContext> completeContext() {
+            return BetterModel.plugin().skinManager().complete(profile).thenApply(skin -> new BoneRenderContext(this, skin));
         }
     }
 
@@ -146,16 +156,14 @@ public sealed interface RenderSource<T extends Tracker> {
             return entity.location();
         }
 
-        @NotNull
         @Override
-        public GameProfile profile() {
-            return entity.profile();
+        public @NotNull CompletableFuture<BoneRenderContext> completeContext() {
+            return BetterModel.plugin().skinManager().complete(profile().asUncompleted()).thenApply(skin -> new BoneRenderContext(this, skin));
         }
 
         @Override
-        public boolean isSlim() {
-            var channel = BetterModel.plugin().playerManager().player(entity.uuid());
-            return channel != null && channel.isSlim();
+        public @NotNull ModelProfile profile() {
+            return entity.profile();
         }
 
         @Override
@@ -169,7 +177,7 @@ public sealed interface RenderSource<T extends Tracker> {
         }
     }
 
-    record ProfiledPlayer(@NotNull kr.toxicity.model.api.entity.BasePlayer entity, @NotNull GameProfile profile, boolean isSlim) implements Entity, Profiled {
+    record ProfiledPlayer(@NotNull kr.toxicity.model.api.entity.BasePlayer entity, @NotNull ModelProfile.Uncompleted externalProfile) implements Entity, Profiled {
         @NotNull
         @Override
         public EntityTracker create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
@@ -184,6 +192,16 @@ public sealed interface RenderSource<T extends Tracker> {
         @Override
         public @NotNull Location location() {
             return entity.location();
+        }
+
+        @Override
+        public @NotNull CompletableFuture<BoneRenderContext> completeContext() {
+            return BetterModel.plugin().skinManager().complete(externalProfile).thenApply(skin -> new BoneRenderContext(this, skin));
+        }
+
+        @Override
+        public @NotNull ModelProfile profile() {
+            return entity.profile();
         }
 
         @Override

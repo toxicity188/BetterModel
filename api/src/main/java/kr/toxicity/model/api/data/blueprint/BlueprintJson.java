@@ -17,7 +17,7 @@ import java.util.function.Supplier;
  * @param element json element
  */
 public record BlueprintJson(
-        @NotNull String name,
-        @NotNull Supplier<JsonElement> element
+    @NotNull String name,
+    @NotNull Supplier<JsonElement> element
 ) {
 }

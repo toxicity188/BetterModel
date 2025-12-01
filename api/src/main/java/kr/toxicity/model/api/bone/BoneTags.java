@@ -7,7 +7,7 @@
 package kr.toxicity.model.api.bone;
 
 import kr.toxicity.model.api.BetterModel;
-import kr.toxicity.model.api.data.renderer.RenderSource;
+import kr.toxicity.model.api.armor.PlayerArmor;
 import kr.toxicity.model.api.entity.BaseEntity;
 import kr.toxicity.model.api.nms.Profiled;
 import kr.toxicity.model.api.player.PlayerLimb;
@@ -119,13 +119,14 @@ public enum BoneTags implements BoneTag {
      */
     CAPE(new BoneItemMapper() {
         @Override
-        public @NotNull TransformedItemStack apply(@NotNull RenderSource<?> renderSource, @NotNull TransformedItemStack transformedItemStack) {
-            var manager = BetterModel.plugin().skinManager();
-            if (manager.supported() && renderSource instanceof Profiled profiled) {
-                var cape = manager.getOrRequest(profiled.profile()).cape(profiled);
-                if (cape != null && profiled.skinParts().isCapeEnabled()) return cape;
+        public @NotNull TransformedItemStack apply(@NotNull BoneRenderContext context, @NotNull TransformedItemStack transformedItemStack) {
+            TransformedItemStack cape = null;
+            if (BetterModel.plugin().skinManager().supported()) {
+                if (context.source() instanceof Profiled profiled && profiled.skinParts().isCapeEnabled()) {
+                    cape = context.skin().cape(profiled.armors());
+                } else cape = context.skin().cape(PlayerArmor.EMPTY);
             }
-            return TransformedItemStack.empty();
+            return cape != null ? cape : TransformedItemStack.empty();
         }
 
         @Override

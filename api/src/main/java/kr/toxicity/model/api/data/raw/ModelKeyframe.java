@@ -9,7 +9,7 @@ package kr.toxicity.model.api.data.raw;
 import com.google.gson.annotations.SerializedName;
 import kr.toxicity.model.api.animation.Timed;
 import kr.toxicity.model.api.animation.VectorPoint;
-import kr.toxicity.model.api.util.interpolator.*;
+import kr.toxicity.model.api.util.interpolator.VectorInterpolator;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

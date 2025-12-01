@@ -21,9 +21,9 @@ import java.util.Objects;
  * @param texture texture
  */
 public record ModelUV(
-        @NotNull Float4 uv,
-        float rotation,
-        @Nullable JsonElement texture
+    @NotNull Float4 uv,
+    float rotation,
+    @Nullable JsonElement texture
 ) {
 
     /**

@@ -157,7 +157,7 @@ public final class CollectionUtil {
     @NotNull
     public static <E, R> Stream<R> filterIsInstance(@NotNull Stream<E> stream, @NotNull Class<R> rClass) {
         return stream.filter(rClass::isInstance)
-                .map(rClass::cast);
+            .map(rClass::cast);
     }
 
     /**

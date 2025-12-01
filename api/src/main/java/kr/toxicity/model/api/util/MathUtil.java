@@ -78,11 +78,11 @@ public final class MathUtil {
     private static final Vector3f FORWARD_AXIS = new Vector3f(0, -1, 0).normalize();
 
     private static final FloatSet VALID_ROTATION_DEGREES = FloatSet.of(
-            0F,
-            ROTATION_DEGREE,
-            ROTATION_DEGREE * 2,
-            -ROTATION_DEGREE,
-            -ROTATION_DEGREE * 2
+        0F,
+        ROTATION_DEGREE,
+        ROTATION_DEGREE * 2,
+        -ROTATION_DEGREE,
+        -ROTATION_DEGREE * 2
     );
 
     /**
@@ -125,8 +125,8 @@ public final class MathUtil {
      */
     public static boolean isSimilar(@NotNull Vector3f a, @NotNull Vector3f b, float epsilon) {
         return isSimilar(a.x, b.x, epsilon)
-                && isSimilar(a.y, b.y, epsilon)
-                && isSimilar(a.z, b.z, epsilon);
+            && isSimilar(a.y, b.y, epsilon)
+            && isSimilar(a.z, b.z, epsilon);
     }
 
     /**
@@ -148,9 +148,9 @@ public final class MathUtil {
      */
     public static boolean isSimilar(@NotNull Quaternionf a, @NotNull Quaternionf b, float epsilon) {
         return isSimilar(a.x, b.x, epsilon)
-                && isSimilar(a.y, b.y, epsilon)
-                && isSimilar(a.z, b.z, epsilon)
-                && isSimilar(a.w, b.w, epsilon);
+            && isSimilar(a.y, b.y, epsilon)
+            && isSimilar(a.z, b.z, epsilon)
+            && isSimilar(a.w, b.w, epsilon);
     }
 
     /**
@@ -201,11 +201,11 @@ public final class MathUtil {
      */
     public static @NotNull Quaternionf toQuaternion(@NotNull Vector3f vector) {
         return new Quaternionf()
-                .rotateZYX(
-                        vector.z * DEGREES_TO_RADIANS,
-                        vector.y * DEGREES_TO_RADIANS,
-                        vector.x * DEGREES_TO_RADIANS
-                );
+            .rotateZYX(
+                vector.z * DEGREES_TO_RADIANS,
+                vector.y * DEGREES_TO_RADIANS,
+                vector.x * DEGREES_TO_RADIANS
+            );
     }
 
     /**
@@ -280,8 +280,8 @@ public final class MathUtil {
         if (len < 1e-6F) {
             if (dot > 0.999999F) return dest.identity();
             var ortho = Math.abs(from.x) < 0.9F
-                    ? from.cross(1, 0, 0, cache)
-                    : from.cross(0, 1, 0, cache);
+                ? from.cross(1, 0, 0, cache)
+                : from.cross(0, 1, 0, cache);
             return dest.fromAxisAngleRad(ortho.normalize(), (float) Math.PI);
         }
 

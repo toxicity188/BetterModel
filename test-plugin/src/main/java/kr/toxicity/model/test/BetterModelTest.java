@@ -18,8 +18,8 @@ import java.util.function.Supplier;
 public final class BetterModelTest extends JavaPlugin {
 
     private final List<ModelTester> testers = List.of(
-            new RollTester(),
-            new FightTester()
+        new RollTester(),
+        new FightTester()
     );
 
     @Override
@@ -40,7 +40,7 @@ public final class BetterModelTest extends JavaPlugin {
 
     public @NotNull Supplier<byte[]> asByte(@NotNull String path) {
         try (
-                var get = Objects.requireNonNull(getResource(path))
+            var get = Objects.requireNonNull(getResource(path))
         ) {
             var bytes = get.readAllBytes();
             return () -> bytes;

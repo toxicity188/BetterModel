@@ -78,6 +78,7 @@ internal class BetterModelProperties(
         listOf(
             CompatibilityManager,
             ArmorManager,
+            ProfileManagerImpl,
             SkinManagerImpl,
             ModelManagerImpl,
             PlayerManagerImpl,

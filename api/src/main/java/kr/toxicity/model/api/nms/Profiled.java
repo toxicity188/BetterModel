@@ -6,26 +6,21 @@
  */
 package kr.toxicity.model.api.nms;
 
-import com.mojang.authlib.GameProfile;
 import kr.toxicity.model.api.armor.PlayerArmor;
 import kr.toxicity.model.api.player.PlayerSkinParts;
+import kr.toxicity.model.api.profile.ModelProfile;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Profiled
  */
 public interface Profiled {
-    /**
-     * Gets player game profile
-     * @return game profile
-     */
-    @NotNull GameProfile profile();
 
     /**
-     * Checks this player's skin is slim
-     * @return slim or wide
+     * Gets player model skin
+     * @return model skin
      */
-    boolean isSlim();
+    @NotNull ModelProfile profile();
 
     /**
      * Gets player armor

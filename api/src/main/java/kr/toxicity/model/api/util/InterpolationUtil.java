@@ -50,11 +50,11 @@ public final class InterpolationUtil {
     @NotNull
     @Unmodifiable
     public static List<AnimationMovement> buildAnimation(
-            @NotNull List<VectorPoint> position,
-            @NotNull List<VectorPoint> rotation,
-            @NotNull List<VectorPoint> scale,
-            boolean rotationGlobal,
-            @NotNull FloatSortedSet points
+        @NotNull List<VectorPoint> position,
+        @NotNull List<VectorPoint> rotation,
+        @NotNull List<VectorPoint> scale,
+        boolean rotationGlobal,
+        @NotNull FloatSortedSet points
     ) {
         var pp = interpolatorFor(position);
         var sp = interpolatorFor(scale);
@@ -69,12 +69,12 @@ public final class InterpolationUtil {
             var sr = sp.build(f);
             var rr = rp.build(f);
             array[i++] = new AnimationMovement(
-                    roundTime(f - before),
-                    takeIf(pr.vector, MathUtil::isNotZero),
-                    takeIf(sr.vector, MathUtil::isNotZero),
-                    takeIf(rr.vector, MathUtil::isNotZero),
-                    rotationGlobal,
-                    pr.skipInterpolation || sr.skipInterpolation || rr.skipInterpolation
+                roundTime(f - before),
+                takeIf(pr.vector, MathUtil::isNotZero),
+                takeIf(sr.vector, MathUtil::isNotZero),
+                takeIf(rr.vector, MathUtil::isNotZero),
+                rotationGlobal,
+                pr.skipInterpolation || sr.skipInterpolation || rr.skipInterpolation
             );
             before = f;
         }
@@ -244,32 +244,32 @@ public final class InterpolationUtil {
      * @return interpolated vector
      */
     public static @NotNull Vector3f bezier(
-            float alpha,
-            @NotNull Vector3f start,
-            @NotNull Vector3f end,
-            @NotNull Vector3f bezierRightTime,
-            @NotNull Vector3f bezierRightValue,
-            @NotNull Vector3f bezierLeftTime,
-            @NotNull Vector3f bezierLeftValue
+        float alpha,
+        @NotNull Vector3f start,
+        @NotNull Vector3f end,
+        @NotNull Vector3f bezierRightTime,
+        @NotNull Vector3f bezierRightValue,
+        @NotNull Vector3f bezierLeftTime,
+        @NotNull Vector3f bezierLeftValue
     ) {
         var p1 = start.add(bezierRightValue, new Vector3f());
         var p2 = end.add(bezierLeftValue, new Vector3f());
         return new Vector3f(
-                cubicBezier(start.x, p1.x, p2.x, end.x, solveBezierTForTime(
-                        alpha,
-                        bezierRightTime.x,
-                        1 + bezierLeftTime.x
-                )),
-                cubicBezier(start.y, p1.y, p2.y, end.y, solveBezierTForTime(
-                        alpha,
-                        bezierRightTime.y,
-                        1 + bezierLeftTime.y
-                )),
-                cubicBezier(start.z, p1.z, p2.z, end.z, solveBezierTForTime(
-                        alpha,
-                        bezierRightTime.z,
-                        1 + bezierLeftTime.z
-                ))
+            cubicBezier(start.x, p1.x, p2.x, end.x, solveBezierTForTime(
+                alpha,
+                bezierRightTime.x,
+                1 + bezierLeftTime.x
+            )),
+            cubicBezier(start.y, p1.y, p2.y, end.y, solveBezierTForTime(
+                alpha,
+                bezierRightTime.y,
+                1 + bezierLeftTime.y
+            )),
+            cubicBezier(start.z, p1.z, p2.z, end.z, solveBezierTForTime(
+                alpha,
+                bezierRightTime.z,
+                1 + bezierLeftTime.z
+            ))
         );
     }
 
@@ -286,9 +286,9 @@ public final class InterpolationUtil {
         var t2 = t * t;
         var t3 = t2 * t;
         return new Vector3f(
-                fma(t3, fma(-1F, p0.x, fma(3F, p1.x, fma(-3F, p2.x, p3.x))), fma(t2, fma(2F, p0.x, fma(-5F, p1.x, fma(4F, p2.x, -p3.x))), fma(t, -p0.x + p2.x, 2F * p1.x))),
-                fma(t3, fma(-1F, p0.y, fma(3F, p1.y, fma(-3F, p2.y, p3.y))), fma(t2, fma(2F, p0.y, fma(-5F, p1.y, fma(4F, p2.y, -p3.y))), fma(t, -p0.y + p2.y, 2F * p1.y))),
-                fma(t3, fma(-1F, p0.z, fma(3F, p1.z, fma(-3F, p2.z, p3.z))), fma(t2, fma(2F, p0.z, fma(-5F, p1.z, fma(4F, p2.z, -p3.z))), fma(t, -p0.z + p2.z, 2F * p1.z)))
+            fma(t3, fma(-1F, p0.x, fma(3F, p1.x, fma(-3F, p2.x, p3.x))), fma(t2, fma(2F, p0.x, fma(-5F, p1.x, fma(4F, p2.x, -p3.x))), fma(t, -p0.x + p2.x, 2F * p1.x))),
+            fma(t3, fma(-1F, p0.y, fma(3F, p1.y, fma(-3F, p2.y, p3.y))), fma(t2, fma(2F, p0.y, fma(-5F, p1.y, fma(4F, p2.y, -p3.y))), fma(t, -p0.y + p2.y, 2F * p1.y))),
+            fma(t3, fma(-1F, p0.z, fma(3F, p1.z, fma(-3F, p2.z, p3.z))), fma(t2, fma(2F, p0.z, fma(-5F, p1.z, fma(4F, p2.z, -p3.z))), fma(t, -p0.z + p2.z, 2F * p1.z)))
         ).mul(0.5F);
     }
 

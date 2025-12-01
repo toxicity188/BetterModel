@@ -14,11 +14,13 @@ import org.jetbrains.annotations.NotNull;
  * A player channel
  */
 public interface PlayerChannelHandler extends AutoCloseable, Identifiable, Profiled {
+
     /**
      * Gets Bukkit player
      * @return player
      */
     @NotNull Player player();
+
     /**
      * Sends correct entity data of this tracker
      * @param registry registry

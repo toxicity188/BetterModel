@@ -43,13 +43,13 @@ import java.util.function.Function;
 public final class HttpUtil {
 
     private static final HttpClient CLIENT = HttpClient.newBuilder()
-            .connectTimeout(Duration.of(5, ChronoUnit.SECONDS))
-            .executor(Executors.newVirtualThreadPerTaskExecutor())
-            .build();
+        .connectTimeout(Duration.of(5, ChronoUnit.SECONDS))
+        .executor(Executors.newVirtualThreadPerTaskExecutor())
+        .build();
     private static final Gson GSON = new GsonBuilder()
-            .registerTypeAdapter(MinecraftVersion.class, (JsonDeserializer<MinecraftVersion>) (json, typeOfT, context) -> MinecraftVersion.parse(json.getAsString()))
-            .registerTypeAdapter(Semver.class, (JsonDeserializer<Semver>) (json, typeOfT, context) -> new Semver(json.getAsString(), Semver.SemverType.LOOSE))
-            .create();
+        .registerTypeAdapter(MinecraftVersion.class, (JsonDeserializer<MinecraftVersion>) (json, typeOfT, context) -> MinecraftVersion.parse(json.getAsString()))
+        .registerTypeAdapter(Semver.class, (JsonDeserializer<Semver>) (json, typeOfT, context) -> new Semver(json.getAsString(), Semver.SemverType.LOOSE))
+        .create();
 
     /**
      * No initializer
@@ -74,21 +74,21 @@ public final class HttpUtil {
     public static @NotNull LatestVersion versionList(@NotNull MinecraftVersion version) {
         return client(client -> {
             try (var stream = client.send(HttpRequest.newBuilder()
-                    .GET()
-                    .uri(URI.create("https://api.modrinth.com/v2/project/bettermodel/version"))
-                    .build(), HttpResponse.BodyHandlers.ofInputStream()).body();
+                .GET()
+                .uri(URI.create("https://api.modrinth.com/v2/project/bettermodel/version"))
+                .build(), HttpResponse.BodyHandlers.ofInputStream()).body();
                  var reader = new InputStreamReader(stream);
                  var jsonReader = new JsonReader(reader)
             ) {
                 return latestOf(JsonParser.parseReader(jsonReader)
-                        .getAsJsonArray()
-                        .asList()
-                        .stream()
-                        .map(e -> GSON.fromJson(e, PluginVersion.class))
-                        .filter(PluginVersion::isSamePlatform)
-                        .filter(v -> v.versions.contains(version))
-                        .sorted(Comparator.comparing((PluginVersion v) -> v.versionNumber).reversed())
-                        .toList());
+                    .getAsJsonArray()
+                    .asList()
+                    .stream()
+                    .map(e -> GSON.fromJson(e, PluginVersion.class))
+                    .filter(PluginVersion::isSamePlatform)
+                    .filter(v -> v.versions.contains(version))
+                    .sorted(Comparator.comparing((PluginVersion v) -> v.versionNumber).reversed())
+                    .toList());
             }
         }).orElse(e -> {
             LogUtil.handleException("Unable to get BetterModel's version info.", e);
@@ -126,11 +126,11 @@ public final class HttpUtil {
      * @param versions game versions
      */
     public record PluginVersion(
-            @NotNull String id,
-            @NotNull @SerializedName("version_number") Semver versionNumber,
-            @NotNull @SerializedName("version_type") String versionType,
-            @NotNull @SerializedName("game_versions") Set<MinecraftVersion> versions,
-            @NotNull Set<String> loaders
+        @NotNull String id,
+        @NotNull @SerializedName("version_number") Semver versionNumber,
+        @NotNull @SerializedName("version_type") String versionType,
+        @NotNull @SerializedName("game_versions") Set<MinecraftVersion> versions,
+        @NotNull Set<String> loaders
     ) {
         /**
          * Creates a text component with URL
@@ -139,16 +139,16 @@ public final class HttpUtil {
         public @NotNull Component toURLComponent() {
             var url = "https://modrinth.com/plugin/bettermodel/version/" + id;
             return Component.text()
-                    .content(versionNumber.getOriginalValue())
-                    .color(NamedTextColor.AQUA)
-                    .hoverEvent(
-                            HoverEvent.showText(Component.text()
-                                    .append(Component.text(url).color(NamedTextColor.DARK_AQUA))
-                                    .appendNewline()
-                                    .append(Component.text("Click to open link.")))
-                    )
-                    .clickEvent(ClickEvent.openUrl(url))
-                    .build();
+                .content(versionNumber.getOriginalValue())
+                .color(NamedTextColor.AQUA)
+                .hoverEvent(
+                    HoverEvent.showText(Component.text()
+                        .append(Component.text(url).color(NamedTextColor.DARK_AQUA))
+                        .appendNewline()
+                        .append(Component.text("Click to open link.")))
+                )
+                .clickEvent(ClickEvent.openUrl(url))
+                .build();
         }
 
         /**

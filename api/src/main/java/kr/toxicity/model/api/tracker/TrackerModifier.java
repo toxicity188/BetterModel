@@ -16,17 +16,17 @@ import org.jetbrains.annotations.NotNull;
  * @param damageTint enables damage tint
  */
 public record TrackerModifier(
-        @SerializedName("sight-trace") boolean sightTrace,
-        @SerializedName("damage-animation") boolean damageAnimation,
-        @SerializedName("damage-tint") boolean damageTint
+    @SerializedName("sight-trace") boolean sightTrace,
+    @SerializedName("damage-animation") boolean damageAnimation,
+    @SerializedName("damage-tint") boolean damageTint
 ) {
     /**
      * Default modifier
      */
     public static final TrackerModifier DEFAULT = new TrackerModifier(
-            true,
-            true,
-            true
+        true,
+        true,
+        true
     );
 
     /**
@@ -84,16 +84,6 @@ public record TrackerModifier(
         }
 
         /**
-         * @deprecated no longer use. you have to follow {@link TrackerUpdateAction#viewRange(float)}
-         * @param viewRange range
-         * @return self
-         */
-        @Deprecated(forRemoval = true)
-        public @NotNull Builder viewRange(float viewRange) {
-            return this;
-        }
-
-        /**
          * Sets damage tint
          * @param damageTint damage tint
          * @return self
@@ -109,9 +99,9 @@ public record TrackerModifier(
          */
         public @NotNull TrackerModifier build() {
             return new TrackerModifier(
-                    sightTrace,
-                    damageAnimation,
-                    damageTint
+                sightTrace,
+                damageAnimation,
+                damageTint
             );
         }
     }
