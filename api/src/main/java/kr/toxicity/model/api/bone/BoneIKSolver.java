@@ -127,7 +127,7 @@ public final class BoneIKSolver {
             var next = bones.get(i + 1);
 
             var dir = next.position().sub(current.position(), vecCache);
-            current.rotation().set(MathUtil.fromToRotation(dir, rotCache).mul(parentRot).mul(current.rotation()));
+            current.rotation().set(MathUtil.fromToRotation(dir.normalize(), rotCache).mul(parentRot).mul(current.rotation()));
         }
     }
 }
