@@ -26,14 +26,14 @@ public final class BetterModelLoader implements PluginLoader {
     public void classloader(@NotNull PluginClasspathBuilder classpathBuilder) {
         var lib = new MavenLibraryResolver();
         lib.addRepository(new RemoteRepository.Builder(
-                null,
-                "default",
-                "https://maven-central.storage-download.googleapis.com/maven2"
+            null,
+            "default",
+            "https://maven-central.storage-download.googleapis.com/maven2"
         ).build());
         try (
-                var stream = Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("paper-library"));
-                var streamReader = new InputStreamReader(stream, StandardCharsets.UTF_8);
-                var reader = new BufferedReader(streamReader)
+            var stream = Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("paper-library"));
+            var streamReader = new InputStreamReader(stream, StandardCharsets.UTF_8);
+            var reader = new BufferedReader(streamReader)
         ) {
             String next;
             while ((next = reader.readLine()) != null) {

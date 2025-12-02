@@ -26,19 +26,19 @@ public final class BetterModelLibrary {
     private static final List<LibraryData> LIBRARY_DATA = new ArrayList<>();
 
     public static final LibraryData KOTLIN = register(
-            "org{}jetbrains{}kotlin",
-            KOTLIN_RELOCATED + "-stdlib",
-            builder -> builder.relocation(KOTLIN_RELOCATED)
+        "org{}jetbrains{}kotlin",
+        KOTLIN_RELOCATED + "-stdlib",
+        builder -> builder.relocation(KOTLIN_RELOCATED)
     );
     public static final LibraryData BSTATS = register(
-            "org{}bstats",
-            "bstats-bukkit",
-            builder -> builder.relocation("org{}bstats")
-                    .subModules(
-                            "bstats-base"
-                    )
+        "org{}bstats",
+        "bstats-bukkit",
+        builder -> builder.relocation("org{}bstats")
+            .subModules(
+                "bstats-base"
+            )
     );
-//    public static final LibraryData CLOUD = register( TODO add this when cloud-paper 2.0.0-beta.14 is released
+    //    public static final LibraryData CLOUD = register( TODO add this when cloud-paper 2.0.0-beta.14 is released
 //            "org{}incendo",
 //            "cloud-paper",
 //            builder -> builder
@@ -49,65 +49,65 @@ public final class BetterModelLibrary {
 //                    .relocation("org{}incendo{}cloud")
 //    );
     public static final LibraryData CLOUD_CORE = register(
-            "org{}incendo",
-            "cloud-core",
-            builder -> builder
-                    .subModules(
-                            "cloud-services"
-                    )
-                    .relocation("org{}incendo{}cloud")
+        "org{}incendo",
+        "cloud-core",
+        builder -> builder
+            .subModules(
+                "cloud-services"
+            )
+            .relocation("org{}incendo{}cloud")
     );
     public static final LibraryData GEANTYREF = register(
-            "io{}leangen{}geantyref",
-            "geantyref",
-            builder -> builder.predicate(BooleanConstantSupplier.of(!BetterModel.IS_PAPER))
+        "io{}leangen{}geantyref",
+        "geantyref",
+        builder -> builder.predicate(BooleanConstantSupplier.of(!BetterModel.IS_PAPER))
     );
     public static final LibraryData MOLANG_COMPILER = register(
-            "gg{}moonflower",
-            "molang-compiler",
-            builder -> builder
+        "gg{}moonflower",
+        "molang-compiler",
+        builder -> builder
     );
     public static final LibraryData ADVENTURE_API = register(
-            "net{}kyori",
-            "adventure-api",
-            builder -> builder
-                    .subModules(
-                            "adventure-key",
-                            "adventure-text-logger-slf4j",
-                            "adventure-text-serializer-legacy",
-                            "adventure-nbt",
-                            "adventure-text-serializer-gson",
-                            "adventure-text-serializer-gson-legacy-impl",
-                            "adventure-text-serializer-json",
-                            "adventure-text-serializer-json-legacy-impl"
-                    )
-                    .predicate(BooleanConstantSupplier.of(!BetterModel.IS_PAPER))
+        "net{}kyori",
+        "adventure-api",
+        builder -> builder
+            .subModules(
+                "adventure-key",
+                "adventure-text-logger-slf4j",
+                "adventure-text-serializer-legacy",
+                "adventure-nbt",
+                "adventure-text-serializer-gson",
+                "adventure-text-serializer-gson-legacy-impl",
+                "adventure-text-serializer-json",
+                "adventure-text-serializer-json-legacy-impl"
+            )
+            .predicate(BooleanConstantSupplier.of(!BetterModel.IS_PAPER))
     );
     public static final LibraryData EXAMINATION_API = register(
-            "net{}kyori",
-            "examination-api",
-            builder -> builder
-                    .subModules(
-                            "examination-string"
-                    )
-                    .predicate(BooleanConstantSupplier.of(!BetterModel.IS_PAPER))
+        "net{}kyori",
+        "examination-api",
+        builder -> builder
+            .subModules(
+                "examination-string"
+            )
+            .predicate(BooleanConstantSupplier.of(!BetterModel.IS_PAPER))
     );
     public static final LibraryData OPTION = register(
-            "net{}kyori",
-            "option",
-            builder -> builder.predicate(BooleanConstantSupplier.of(!BetterModel.IS_PAPER))
+        "net{}kyori",
+        "option",
+        builder -> builder.predicate(BooleanConstantSupplier.of(!BetterModel.IS_PAPER))
     );
     public static final LibraryData ADVENTURE_PLATFORM = register(
-            "net{}kyori",
-            "adventure-platform-bukkit",
-            builder -> builder
-                    .subModules(
-                            "adventure-platform-api",
-                            "adventure-platform-facet",
-                            "adventure-platform-viaversion",
-                            "adventure-text-serializer-bungeecord"
-                    )
-                    .predicate(BooleanConstantSupplier.of(!BetterModel.IS_PAPER))
+        "net{}kyori",
+        "adventure-platform-bukkit",
+        builder -> builder
+            .subModules(
+                "adventure-platform-api",
+                "adventure-platform-facet",
+                "adventure-platform-viaversion",
+                "adventure-text-serializer-bungeecord"
+            )
+            .predicate(BooleanConstantSupplier.of(!BetterModel.IS_PAPER))
     );
 
     public void load(@NotNull AbstractBetterModelPlugin plugin) {
@@ -116,9 +116,9 @@ public final class BetterModelLibrary {
         manager.addRepository("https://maven.blamejared.com/");
         manager.addMavenCentral();
         LIBRARY_DATA.stream()
-                .filter(LibraryData::isLoaded)
-                .flatMap(library -> library.toLibby(plugin))
-                .forEach(manager::loadLibrary);
+            .filter(LibraryData::isLoaded)
+            .flatMap(library -> library.toLibby(plugin))
+            .forEach(manager::loadLibrary);
     }
 
     private static @NotNull LibraryData register(@NotNull String group, @NotNull String artifact, @NotNull Function<LibraryData.Builder, LibraryData.Builder> function) {
@@ -128,12 +128,12 @@ public final class BetterModelLibrary {
     }
 
     public record LibraryData(
-            @NotNull String group,
-            @NotNull String artifact,
-            @Nullable String relocation,
-            @NotNull String versionRef,
-            @NotNull @Unmodifiable Set<String> subModules,
-            @NotNull BooleanSupplier predicate
+        @NotNull String group,
+        @NotNull String artifact,
+        @Nullable String relocation,
+        @NotNull String versionRef,
+        @NotNull @Unmodifiable Set<String> subModules,
+        @NotNull BooleanSupplier predicate
     ) {
 
         private static class Builder {
@@ -171,12 +171,12 @@ public final class BetterModelLibrary {
 
             @NotNull LibraryData build() {
                 return new LibraryData(
-                        group,
-                        artifact,
-                        relocation,
-                        versionRef,
-                        subModules,
-                        predicate
+                    group,
+                    artifact,
+                    relocation,
+                    versionRef,
+                    subModules,
+                    predicate
                 );
             }
         }
@@ -188,13 +188,13 @@ public final class BetterModelLibrary {
         private @NotNull Stream<Library> toLibby(@NotNull AbstractBetterModelPlugin plugin) {
             var version = plugin.attributes().getValue("library-" + versionRef);
             return Stream.concat(
-                    Stream.of(artifact),
-                    subModules.stream()
+                Stream.of(artifact),
+                subModules.stream()
             ).map(name -> {
                 var libs = Library.builder()
-                        .groupId(group)
-                        .artifactId(name)
-                        .version(version);
+                    .groupId(group)
+                    .artifactId(name)
+                    .version(version);
                 if (relocation != null) libs.relocate(new Relocation(relocation, "kr{}toxicity{}model{}shaded{}" + relocation));
                 return libs.build();
             });

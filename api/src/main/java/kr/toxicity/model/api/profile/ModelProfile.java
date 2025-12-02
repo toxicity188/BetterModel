@@ -132,14 +132,14 @@ public interface ModelProfile {
         @NotNull ModelProfileInfo info();
 
         /**
-         * Completes skin
-         * @return completed skin
+         * Completes profile
+         * @return completed profile
          */
         @NotNull CompletableFuture<ModelProfile> complete();
 
         /**
-         * Gets fallback skin
-         * @return skin
+         * Gets fallback profile
+         * @return profile
          */
         default @NotNull ModelProfile fallback() {
             return of(info());
