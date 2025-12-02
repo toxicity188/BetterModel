@@ -15,16 +15,16 @@ import org.jetbrains.annotations.NotNull;
 public interface ModelProfileSupplier {
 
     /**
-     * Supplies skin
+     * Supplies profile
      * @param info info
-     * @return uncompleted skin
+     * @return uncompleted profile
      */
     @NotNull ModelProfile.Uncompleted supply(@NotNull ModelProfileInfo info);
 
     /**
-     * Supplies skin by player
+     * Supplies profile by player
      * @param player player
-     * @return uncompleted skin
+     * @return uncompleted profile
      */
     default @NotNull ModelProfile.Uncompleted supply(@NotNull OfflinePlayer player) {
         return supply(new ModelProfileInfo(player.getUniqueId(), player.getName()));

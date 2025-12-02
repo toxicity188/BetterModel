@@ -48,7 +48,7 @@ public interface ModelProfile {
     /**
      * Gets skin by player
      * @param player player
-     * @return model skin
+     * @return model profile
      */
     static @NotNull ModelProfile of(@NotNull Player player) {
         var channel = BetterModel.plugin().playerManager().player(player.getUniqueId());
@@ -56,18 +56,18 @@ public interface ModelProfile {
     }
 
     /**
-     * Gets uncompleted skin by offline player
+     * Gets uncompleted profile by offline player
      * @param offlinePlayer offline player
-     * @return skin
+     * @return uncompleted profile
      */
     static @NotNull Uncompleted of(@NotNull OfflinePlayer offlinePlayer) {
         return BetterModel.plugin().profileManager().supplier().supply(offlinePlayer);
     }
 
     /**
-     * Gets uncompleted skin by offline player's uuid
+     * Gets uncompleted profile by offline player's uuid
      * @param uuid offline player's uuid
-     * @return skin
+     * @return uncompleted profile
      */
     static @NotNull Uncompleted of(@NotNull UUID uuid) {
         return of(Bukkit.getOfflinePlayer(uuid));
@@ -87,8 +87,8 @@ public interface ModelProfile {
 
 
     /**
-     * Makes this skin as uncompleted
-     * @return uncompleted skin
+     * Makes this profile as uncompleted
+     * @return uncompleted profile
      */
     default @NotNull Uncompleted asUncompleted() {
         return new Uncompleted() {
@@ -121,7 +121,7 @@ public interface ModelProfile {
     }
 
     /**
-     * Uncompleted skin
+     * Uncompleted profile
      */
     interface Uncompleted {
 

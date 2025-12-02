@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import java.net.URI;
 
 /**
- * Model skin
+ * Profile skin
  * @param skin skin
  * @param cape cape
  * @param slim is slim model
