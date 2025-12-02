@@ -20,35 +20,35 @@ import java.util.function.BooleanSupplier;
  * @param tester tester
  */
 public record PackOverlay(
-        @NotNull String packName,
-        @NotNull Optional<PackMeta.VersionRange> range,
-        @NotNull BooleanSupplier tester
+    @NotNull String packName,
+    @NotNull Optional<PackMeta.VersionRange> range,
+    @NotNull BooleanSupplier tester
 ) implements Comparable<PackOverlay> {
     /**
      * Default
      */
     public static final PackOverlay DEFAULT = new PackOverlay(
-            "",
-            Optional.empty(),
-            BooleanConstantSupplier.TRUE
+        "",
+        Optional.empty(),
+        BooleanConstantSupplier.TRUE
     );
 
     /**
      * Legacy
      */
     public static final PackOverlay LEGACY = new PackOverlay(
-            "legacy",
-            Optional.of(new PackMeta.VersionRange(22, 45)),
-            BetterModel.config().pack()::generateLegacyModel
+        "legacy",
+        Optional.of(new PackMeta.VersionRange(22, 45)),
+        BetterModel.config().pack()::generateLegacyModel
     );
 
     /**
      * Modern
      */
     public static final PackOverlay MODERN = new PackOverlay(
-            "modern",
-            Optional.of(new PackMeta.VersionRange(46, 99)),
-            BetterModel.config().pack()::generateModernModel
+        "modern",
+        Optional.of(new PackMeta.VersionRange(46, 99)),
+        BetterModel.config().pack()::generateModernModel
     );
 
 

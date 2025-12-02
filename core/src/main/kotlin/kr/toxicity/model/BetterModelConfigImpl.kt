@@ -10,9 +10,9 @@ import kr.toxicity.model.api.BetterModelConfig
 import kr.toxicity.model.api.config.DebugConfig
 import kr.toxicity.model.api.config.IndicatorConfig
 import kr.toxicity.model.api.config.ModuleConfig
+import kr.toxicity.model.api.config.PackConfig
 import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.mount.MountControllers
-import kr.toxicity.model.api.config.PackConfig
 import kr.toxicity.model.api.util.EntityUtil
 import kr.toxicity.model.util.ifNull
 import kr.toxicity.model.util.toPackName

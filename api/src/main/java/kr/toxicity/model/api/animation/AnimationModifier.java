@@ -26,13 +26,13 @@ import java.util.function.BooleanSupplier;
  * @param player player
  */
 public record AnimationModifier(
-        @Nullable BooleanSupplier predicate,
-        int start,
-        int end,
-        @Nullable AnimationIterator.Type type,
-        @Nullable FloatSupplier speed,
-        @Nullable Boolean override,
-        @Nullable Player player
+    @Nullable BooleanSupplier predicate,
+    int start,
+    int end,
+    @Nullable AnimationIterator.Type type,
+    @Nullable FloatSupplier speed,
+    @Nullable Boolean override,
+    @Nullable Player player
 ) {
 
     /**
@@ -60,13 +60,13 @@ public record AnimationModifier(
      */
     public @NotNull Builder toBuilder() {
         return builder()
-                .predicate(predicate)
-                .start(start)
-                .end(end)
-                .type(type)
-                .speed(speed)
-                .override(override)
-                .player(player);
+            .predicate(predicate)
+            .start(start)
+            .end(end)
+            .type(type)
+            .speed(speed)
+            .override(override)
+            .player(player);
     }
 
     /**
@@ -189,13 +189,13 @@ public record AnimationModifier(
          */
         public @NotNull AnimationModifier build() {
             return new AnimationModifier(
-                    predicate,
-                    start,
-                    end,
-                    type,
-                    speed,
-                    override,
-                    player
+                predicate,
+                start,
+                end,
+                type,
+                speed,
+                override,
+                player
             );
         }
     }

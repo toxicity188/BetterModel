@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
  * A packet bundler
  */
 public interface PacketBundler {
+
     /**
      * Checks this bundler is empty
      * @return empty or not

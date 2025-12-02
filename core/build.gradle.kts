@@ -15,9 +15,6 @@ dependencies {
     rootProject.project("nms").subprojects.forEach {
         compileOnly(it)
     }
-    rootProject.project("authlib").subprojects.forEach {
-        shade(it)
-    }
     shade(libs.bundles.shadedLibrary) {
         exclude("net.kyori")
         exclude("org.ow2.asm")

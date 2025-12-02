@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 @Builder
 public record ReloadInfo(boolean skipConfig, @NotNull CommandSender sender) {
     public static final ReloadInfo DEFAULT = ReloadInfo.builder()
-            .skipConfig(false)
-            .sender(Bukkit.getConsoleSender())
-            .build();
+        .skipConfig(false)
+        .sender(Bukkit.getConsoleSender())
+        .build();
 }

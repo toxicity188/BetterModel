@@ -6,7 +6,7 @@
  */
 package kr.toxicity.model.api.event;
 
-import kr.toxicity.model.api.skin.SkinProfile;
+import kr.toxicity.model.api.profile.ModelProfile;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.event.Cancellable;
@@ -21,12 +21,12 @@ public final class RemovePlayerSkinEvent extends AbstractModelEvent implements C
      */
     public static final HandlerList HANDLER_LIST = new HandlerList();
 
-    private final SkinProfile skinProfile;
+    private final ModelProfile modelProfile;
     private boolean cancelled;
 
-    public RemovePlayerSkinEvent(@NotNull SkinProfile skinProfile) {
+    public RemovePlayerSkinEvent(@NotNull ModelProfile modelProfile) {
         super(true);
-        this.skinProfile = skinProfile;
+        this.modelProfile = modelProfile;
     }
 
     @Override

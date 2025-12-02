@@ -7,8 +7,9 @@
 package kr.toxicity.model.api.player;
 
 import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.armor.PlayerArmor;
 import kr.toxicity.model.api.bone.BoneItemMapper;
-import kr.toxicity.model.api.data.renderer.RenderSource;
+import kr.toxicity.model.api.bone.BoneRenderContext;
 import kr.toxicity.model.api.nms.Profiled;
 import kr.toxicity.model.api.skin.SkinData;
 import kr.toxicity.model.api.util.MathUtil;
@@ -80,10 +81,10 @@ public enum PlayerLimb {
      * Left forearm
      */
     LEFT_FOREARM(
-            position(4), 
+            position(4),
             scale(3.7188F,5.5938F,3.7188F, 0.25F),
             scale(2.7891F,5.5938F,3.7188F, 0.25F),
-            offset(0.625F, 1.5F, 0, 0.25F), 
+            offset(0.625F, 1.5F, 0, 0.25F),
             offset(0.043F, 1.5F, 0, 0.25F),
             (d, p) -> d.leftForeArm(),
             ItemDisplay.ItemDisplayTransform.FIXED
@@ -92,8 +93,8 @@ public enum PlayerLimb {
      * Hip
      */
     HIP(
-            position(5), 
-            scale(7.4688F,3.7188F,3.7188F, 0.25F), 
+            position(5),
+            scale(7.4688F,3.7188F,3.7188F, 0.25F),
             scale(7.4688F,3.7188F,3.7188F, 0.25F),
             offset(0, 5.75F, 0, 0.25F),
             offset(0, 5.75F, 0, 0.25F),
@@ -104,8 +105,8 @@ public enum PlayerLimb {
      * Waist
      */
     WAIST(
-            position(6), 
-            scale(7.4688F,3.7188F,3.7188F, 0.25F), 
+            position(6),
+            scale(7.4688F,3.7188F,3.7188F, 0.25F),
             scale(7.4688F,3.7188F,3.7188F, 0.25F),
             offset(0, 5.75F, 0, 0.25F),
             offset(0, 5.75F, 0, 0.25F),
@@ -116,8 +117,8 @@ public enum PlayerLimb {
      * Chest
      */
     CHEST(
-            position(7), 
-            scale(7.4688F,3.7188F,3.7188F, 0.25F), 
+            position(7),
+            scale(7.4688F,3.7188F,3.7188F, 0.25F),
             scale(7.4688F,3.7188F,3.7188F, 0.25F),
             offset(0, 5.75F, 0, 0.25F),
             offset(0, 5.75F, 0, 0.25F),
@@ -128,8 +129,8 @@ public enum PlayerLimb {
      * Right leg
      */
     RIGHT_LEG(
-            position(8), 
-            scale(3.7188F,5.5938F,3.7188F, 0.25F), 
+            position(8),
+            scale(3.7188F,5.5938F,3.7188F, 0.25F),
             scale(3.7188F,5.5938F,3.7188F, 0.25F),
             offset(0, 1.12F, 0, 0.25F),
             offset(0, 1.12F, 0, 0.25F),
@@ -140,8 +141,8 @@ public enum PlayerLimb {
      * Right foreleg
      */
     RIGHT_FORELEG(
-            position(9), 
-            scale(3.7188F,5.5938F,3.7188F, 0.25F), 
+            position(9),
+            scale(3.7188F,5.5938F,3.7188F, 0.25F),
             scale(3.7188F,5.5938F,3.7188F, 0.25F),
             offset(0, 1.12F, 0, 0.25F),
             offset(0, 1.12F, 0, 0.25F),
@@ -152,8 +153,8 @@ public enum PlayerLimb {
      * LEft leg
      */
     LEFT_LEG(
-            position(10), 
-            scale(3.7188F,5.5938F,3.7188F, 0.25F), 
+            position(10),
+            scale(3.7188F,5.5938F,3.7188F, 0.25F),
             scale(3.7188F,5.5938F,3.7188F, 0.25F),
             offset(0, 1.12F, 0, 0.25F),
             offset(0, 1.12F, 0, 0.25F),
@@ -164,8 +165,8 @@ public enum PlayerLimb {
      * Left foreleg
      */
     LEFT_FORELEG(
-            position(11), 
-            scale(3.7188F,5.5938F,3.7188F, 0.25F), 
+            position(11),
+            scale(3.7188F,5.5938F,3.7188F, 0.25F),
             scale(3.7188F,5.5938F,3.7188F, 0.25F),
             offset(0, 1.12F, 0, 0.25F),
             offset(0, 1.12F, 0, 0.25F),
@@ -195,7 +196,7 @@ public enum PlayerLimb {
     private final @NotNull Vector3f slimScale;
     private final @NotNull Vector3f offset;
     private final @NotNull Vector3f slimOffset;
-    private final @NotNull BiFunction<SkinData, Profiled, TransformedItemStack> skinMapper;
+    private final @NotNull BiFunction<SkinData, PlayerArmor, TransformedItemStack> skinMapper;
     private final @NotNull ItemDisplay.ItemDisplayTransform transform;
 
     @Getter
@@ -203,17 +204,16 @@ public enum PlayerLimb {
 
     /**
      * Generates transformed item from player
-     * @param profiled target player
+     * @param context context
      * @return item
      */
-    public @NotNull TransformedItemStack createItem(@NotNull Profiled profiled) {
-        var profile = profiled.profile();
-        var manager = BetterModel.plugin().skinManager();
-        if (manager.supported()) {
-            return skinMapper.apply(manager.getOrRequest(profile), profiled);
+    public @NotNull TransformedItemStack createItem(@NotNull BoneRenderContext context) {
+        if (BetterModel.plugin().skinManager().supported()) {
+            return skinMapper.apply(context.skin(), context.source() instanceof Profiled profiled ? profiled.armors() : PlayerArmor.EMPTY);
         }
-        var isSlim = profiled.isSlim();
-        return TransformedItemStack.of(position, isSlim ? slimOffset : offset, isSlim ? slimScale : scale, BetterModel.nms().createPlayerHead(profiled.profile()));
+        var profile = context.skin().profile();
+        var isSlim = profile.skin().slim();
+        return TransformedItemStack.of(position, isSlim ? slimOffset : offset, isSlim ? slimScale : scale, BetterModel.nms().createPlayerHead(profile));
     }
 
     /**
@@ -222,7 +222,7 @@ public enum PlayerLimb {
     @RequiredArgsConstructor
     public class LimbItemMapper implements BoneItemMapper {
 
-        private final Function<Profiled, TransformedItemStack> playerMapper;
+        private final Function<BoneRenderContext, TransformedItemStack> playerMapper;
 
         @NotNull
         @Override
@@ -231,12 +231,8 @@ public enum PlayerLimb {
         }
 
         @Override
-        @NotNull
-        public TransformedItemStack apply(@NotNull RenderSource<?> source, @NotNull TransformedItemStack transformedItemStack) {
-            if (source instanceof Profiled profiled) {
-                return playerMapper.apply(profiled);
-            }
-            return transformedItemStack;
+        public @NotNull TransformedItemStack apply(@NotNull BoneRenderContext context, @NotNull TransformedItemStack transformedItemStack) {
+            return playerMapper.apply(context);
         }
     }
 }

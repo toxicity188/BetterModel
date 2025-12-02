@@ -73,9 +73,9 @@ public final class LazyFloatProvider {
         var alpha = Math.clamp((float) (current - time) / req, 0, 1);
         time = current;
         return storedValue = InterpolationUtil.lerp(
-                storedValue,
-                updateValue,
-                alpha
+            storedValue,
+            updateValue,
+            alpha
         );
     }
 

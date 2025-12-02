@@ -6,29 +6,15 @@
  */
 package kr.toxicity.model.command
 
-import kr.toxicity.model.util.componentOf
-import kr.toxicity.model.util.componentWithLineOf
-import kr.toxicity.model.util.lineComponentOf
-import kr.toxicity.model.util.spaceComponentOf
-import kr.toxicity.model.util.toComponent
-import kr.toxicity.model.util.toHoverEvent
+import kr.toxicity.model.util.*
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.event.ClickEvent
-import net.kyori.adventure.text.format.NamedTextColor.DARK_AQUA
-import net.kyori.adventure.text.format.NamedTextColor.GRAY
-import net.kyori.adventure.text.format.NamedTextColor.GREEN
-import net.kyori.adventure.text.format.NamedTextColor.LIGHT_PURPLE
-import net.kyori.adventure.text.format.NamedTextColor.RED
-import net.kyori.adventure.text.format.NamedTextColor.YELLOW
+import net.kyori.adventure.text.format.NamedTextColor.*
 import net.kyori.adventure.text.format.TextDecoration
 import org.bukkit.command.CommandSender
 import org.incendo.cloud.Command
 import org.incendo.cloud.component.CommandComponent
-import org.incendo.cloud.component.CommandComponent.ComponentType.FLAG
-import org.incendo.cloud.component.CommandComponent.ComponentType.LITERAL
-import org.incendo.cloud.component.CommandComponent.ComponentType.OPTIONAL_VARIABLE
-import org.incendo.cloud.component.CommandComponent.ComponentType.REQUIRED_VARIABLE
-import kotlin.collections.map
+import org.incendo.cloud.component.CommandComponent.ComponentType.*
 
 interface CommandLike {
 

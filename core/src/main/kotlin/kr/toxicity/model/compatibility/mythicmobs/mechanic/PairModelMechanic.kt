@@ -11,7 +11,10 @@ import io.lumine.mythic.api.config.MythicLineConfig
 import io.lumine.mythic.api.skills.ITargetedEntitySkill
 import io.lumine.mythic.api.skills.SkillMetadata
 import io.lumine.mythic.api.skills.SkillResult
-import kr.toxicity.model.compatibility.mythicmobs.*
+import kr.toxicity.model.compatibility.mythicmobs.modelPlaceholder
+import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderArgs
+import kr.toxicity.model.compatibility.mythicmobs.toPlaceholderBoolean
+import kr.toxicity.model.compatibility.mythicmobs.toTracker
 import org.bukkit.entity.Player
 
 class PairModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), ITargetedEntitySkill {

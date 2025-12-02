@@ -35,11 +35,11 @@ public sealed interface ModelChildren {
         else if (json.isJsonObject()) {
             var children = json.getAsJsonObject().getAsJsonArray("children");
             return new ModelOutliner(
-                    context.deserialize(json, ModelGroup.class),
-                    children.asList()
-                            .stream()
-                            .map(child -> (ModelChildren) context.deserialize(child, ModelChildren.class))
-                            .toList()
+                context.deserialize(json, ModelGroup.class),
+                children.asList()
+                    .stream()
+                    .map(child -> (ModelChildren) context.deserialize(child, ModelChildren.class))
+                    .toList()
             );
         }
         else throw new RuntimeException();
@@ -86,8 +86,8 @@ public sealed interface ModelChildren {
      * @param children children
      */
     record ModelOutliner(
-            @NotNull ModelGroup group,
-            @NotNull @Unmodifiable List<ModelChildren> children
+        @NotNull ModelGroup group,
+        @NotNull @Unmodifiable List<ModelChildren> children
     ) implements ModelChildren {
 
         @Override
@@ -96,20 +96,20 @@ public sealed interface ModelChildren {
             var filtered = filterIsInstance(child, BlueprintElement.Cube.class).toList();
             var selectedGroup = context.groups.getOrDefault(uuid(), group);
             return new BlueprintElement.Group(
-                    UUID.fromString(selectedGroup.uuid()),
-                    BoneTagRegistry.parse(selectedGroup.name()),
-                    selectedGroup.origin(),
-                    selectedGroup.rotation().invertXZ(),
-                    child,
-                    filtered.isEmpty() ? selectedGroup.visibility() : filtered.stream().anyMatch(BlueprintElement.Cube::visibility)
+                UUID.fromString(selectedGroup.uuid()),
+                BoneTagRegistry.parse(selectedGroup.name()),
+                selectedGroup.origin(),
+                selectedGroup.rotation().invertXZ(),
+                child,
+                filtered.isEmpty() ? selectedGroup.visibility() : filtered.stream().anyMatch(BlueprintElement.Cube::visibility)
             );
         }
 
         @Override
         public @NotNull Stream<ModelChildren> flatten() {
             return Stream.concat(
-                    Stream.of(this),
-                    children.stream().flatMap(ModelChildren::flatten)
+                Stream.of(this),
+                children.stream().flatMap(ModelChildren::flatten)
             );
         }
 

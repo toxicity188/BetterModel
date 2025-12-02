@@ -52,7 +52,7 @@ public final class RenderedBone implements BoneEventHandler {
     @NotNull
     final RendererGroup group;
     private final BoneMovement defaultFrame;
-    private final RenderSource<?> renderSource;
+    private volatile BoneRenderContext renderContext;
     private final BoneEventDispatcher eventDispatcher = new BoneEventDispatcher();
 
     @NotNull
@@ -108,29 +108,29 @@ public final class RenderedBone implements BoneEventHandler {
      * Creates entity.
      * @param group group
      * @param parent parent entity
-     * @param renderSource render source
+     * @param context render context
      * @param movement spawn movement
      * @param childrenMapper mapper
      */
     @ApiStatus.Internal
     public RenderedBone(
-            @NotNull RendererGroup group,
-            @Nullable RenderedBone parent,
-            @NotNull RenderSource<?> renderSource,
-            @NotNull BoneMovement movement,
-            @NotNull Function<RenderedBone, Map<BoneName, RenderedBone>> childrenMapper
+        @NotNull RendererGroup group,
+        @Nullable RenderedBone parent,
+        @NotNull BoneRenderContext context,
+        @NotNull BoneMovement movement,
+        @NotNull Function<RenderedBone, Map<BoneName, RenderedBone>> childrenMapper
     ) {
         this.group = group;
         this.parent = parent;
-        this.renderSource = renderSource;
+        this.renderContext = context;
         itemMapper = group.getItemMapper();
         root = parent != null ? parent.root : this;
-        this.itemStack = itemMapper.apply(renderSource, group.getItemStack());
+        this.itemStack = itemMapper.apply(renderContext, group.getItemStack());
         this.dummyBone = group.getItemStack().isAir() && itemMapper == BoneItemMapper.EMPTY;
         defaultFrame = movement;
         children = childrenMapper.apply(this);
         if (!dummyBone) {
-            display = BetterModel.nms().create(renderSource.location(), renderSource instanceof RenderSource.Entity ? -4096 : 0, d -> {
+            display = BetterModel.nms().create(context.source().location(), context.source() instanceof RenderSource.Entity ? -4096 : 0, d -> {
                 d.display(itemMapper.transform());
                 d.invisible(!group.getParent().visibility());
                 d.viewRange(EntityUtil.ENTITY_MODEL_VIEW_RADIUS);
@@ -177,7 +177,14 @@ public final class RenderedBone implements BoneEventHandler {
     }
 
     public boolean updateItem(@NotNull Predicate<RenderedBone> predicate) {
-        return itemStack(predicate, itemMapper.apply(renderSource, itemStack));
+        return itemStack(predicate, itemMapper.apply(renderContext, itemStack));
+    }
+
+    public boolean updateItem(@NotNull BoneRenderContext context) {
+        synchronized (this) {
+            renderContext = context;
+        }
+        return updateItem(bone -> true);
     }
 
     /**
@@ -369,20 +376,20 @@ public final class RenderedBone implements BoneEventHandler {
         var current = state.current();
         var before = state.before();
         return MathUtil.fma(
-                        InterpolationUtil.lerp(before.position(), current.position(), progress)
-                                .add(itemStack.offset())
-                                .add(localOffset)
-                                .rotate(
-                                        MathUtil.toQuaternion(InterpolationUtil.lerp(before.rawRotation(), current.rawRotation(), progress))
-                                ),
-                        InterpolationUtil.lerp(before.scale(), current.scale(), progress),
-                        globalOffset
+                InterpolationUtil.lerp(before.position(), current.position(), progress)
+                    .add(itemStack.offset())
+                    .add(localOffset)
+                    .rotate(
+                        MathUtil.toQuaternion(InterpolationUtil.lerp(before.rawRotation(), current.rawRotation(), progress))
+                    ),
+                InterpolationUtil.lerp(before.scale(), current.scale(), progress),
+                globalOffset
 
-                )
-                .add(root.getGroup().getPosition())
-                .mul(scale.getAsFloat())
-                .rotateX(-rotation.radianX())
-                .rotateY(-rotation.radianY());
+            )
+            .add(root.getGroup().getPosition())
+            .mul(scale.getAsFloat())
+            .rotateX(-rotation.radianX())
+            .rotateY(-rotation.radianY());
     }
 
     public @NotNull Vector3f worldRotation() {
@@ -499,8 +506,8 @@ public final class RenderedBone implements BoneEventHandler {
         synchronized (this) {
             if (flattenBones != null) return flattenBones;
             var set = Stream.concat(
-                    Stream.of(this),
-                    children.values().stream().flatMap(RenderedBone::flatten)
+                Stream.of(this),
+                children.values().stream().flatMap(RenderedBone::flatten)
             ).collect(Collectors.toCollection(LinkedHashSet::new));
             return flattenBones = Collections.unmodifiableSet(set);
         }
@@ -550,8 +557,8 @@ public final class RenderedBone implements BoneEventHandler {
     @NotNull
     public Quaternionf hitBoxViewRotation() {
         return MathUtil.toQuaternion(worldRotation())
-                .rotateLocalX(-rotation.radianX())
-                .rotateLocalY(-rotation.radianY());
+            .rotateLocalX(-rotation.radianX())
+            .rotateLocalY(-rotation.radianY());
     }
 
     public float hitBoxScale() {
@@ -576,12 +583,12 @@ public final class RenderedBone implements BoneEventHandler {
             this.uuid = uuid;
             this.consumer = consumer;
             state = new AnimationStateHandler<>(
-                    AnimationMovement.EMPTY,
-                    (b, a) -> {
-                        synchronized (this) {
-                            skipInterpolation = (a != null && a.skipInterpolation()) || (parent != null && parent.state(uuid).skipInterpolation);
-                        }
+                AnimationMovement.EMPTY,
+                (b, a) -> {
+                    synchronized (this) {
+                        skipInterpolation = (a != null && a.skipInterpolation()) || (parent != null && parent.state(uuid).skipInterpolation);
                     }
+                }
             );
         }
 
@@ -602,17 +609,17 @@ public final class RenderedBone implements BoneEventHandler {
             if (parent != null) {
                 var p = parent.state(uuid).after();
                 def = new BoneMovement(
-                        MathUtil.fma(
-                                        def.position().rotate(p.rotation()),
-                                        p.scale(),
-                                        p.position()
-                                ).sub(parent.lastModifiedPosition)
-                                .add(modifiedPosition(preventModifierUpdate)),
-                        def.scale().mul(p.scale()),
-                        (keyframe.globalRotation() ? new Quaternionf() : p.rotation().div(parent.lastModifiedRotation, new Quaternionf()))
-                                .mul(def.rotation())
-                                .mul(modifiedRotation(preventModifierUpdate)),
-                        def.rawRotation()
+                    MathUtil.fma(
+                            def.position().rotate(p.rotation()),
+                            p.scale(),
+                            p.position()
+                        ).sub(parent.lastModifiedPosition)
+                        .add(modifiedPosition(preventModifierUpdate)),
+                    def.scale().mul(p.scale()),
+                    (keyframe.globalRotation() ? new Quaternionf() : p.rotation().div(parent.lastModifiedRotation, new Quaternionf()))
+                        .mul(def.rotation())
+                        .mul(modifiedRotation(preventModifierUpdate)),
+                    def.rawRotation()
                 );
             } else {
                 def.position().add(modifiedPosition(preventModifierUpdate));
@@ -657,20 +664,20 @@ public final class RenderedBone implements BoneEventHandler {
             currentTransform = boneMovement;
             var mul = scale.getAsFloat();
             transformer.transform(
-                    interpolationDuration(),
-                    MathUtil.fma(
-                            itemStack.offset().rotate(boneMovement.rotation(), new Vector3f())
-                                    .add(boneMovement.position())
-                                    .add(root.group.getPosition()),
-                            mul,
-                            itemStack.position()
-                    ).add(defaultPosition.get()),
-                    boneMovement.scale()
-                            .mul(itemStack.scale(), new Vector3f())
-                            .mul(mul)
-                            .max(EMPTY_VECTOR),
-                    boneMovement.rotation(),
-                    bundler
+                interpolationDuration(),
+                MathUtil.fma(
+                    itemStack.offset().rotate(boneMovement.rotation(), new Vector3f())
+                        .add(boneMovement.position())
+                        .add(root.group.getPosition()),
+                    mul,
+                    itemStack.position()
+                ).add(defaultPosition.get()),
+                boneMovement.scale()
+                    .mul(itemStack.scale(), new Vector3f())
+                    .mul(mul)
+                    .max(EMPTY_VECTOR),
+                boneMovement.rotation(),
+                bundler
             );
         }
     }

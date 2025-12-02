@@ -11,12 +11,7 @@ import kr.toxicity.model.api.manager.ScriptManager
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.script.AnimationScript
 import kr.toxicity.model.api.script.ScriptBuilder
-import kr.toxicity.model.script.ChangePartScript
-import kr.toxicity.model.script.EnchantScript
-import kr.toxicity.model.script.BrightnessScript
-import kr.toxicity.model.script.PartVisibilityScript
-import kr.toxicity.model.script.RemapScript
-import kr.toxicity.model.script.TintScript
+import kr.toxicity.model.script.*
 import kr.toxicity.model.util.boneName
 import kr.toxicity.model.util.bonePredicate
 import kr.toxicity.model.util.call

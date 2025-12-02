@@ -14,6 +14,7 @@ import java.util.UUID;
  * Identifiable entity
  */
 public interface Identifiable {
+
     /**
      * Gets entity id
      * @return id

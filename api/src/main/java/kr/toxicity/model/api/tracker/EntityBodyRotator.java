@@ -46,16 +46,16 @@ public final class EntityBodyRotator {
 
     static @NotNull RotatorData defaultData() {
         return new RotatorData(
-                false,
-                false,
-                false,
-                -75,
-                75,
-                -75,
-                75,
-                15,
-                10,
-                10
+            false,
+            false,
+            false,
+            -75,
+            75,
+            -75,
+            75,
+            15,
+            10,
+            10
         );
     }
 
@@ -63,8 +63,8 @@ public final class EntityBodyRotator {
         this.registry = registry;
         this.entity = registry.entity();
         this.rotation = new ModelRotation(
-                entity.pitch(),
-                entity.bodyYaw()
+            entity.pitch(),
+            entity.bodyYaw()
         );
         this.provider = new LazyFloatProvider(entity.bodyYaw(), () -> rotationDuration * MathUtil.MINECRAFT_TICK_MILLS);
         headSupplier = LazyFloatProvider.ofVector(Tracker.TRACKER_TICK_INTERVAL, () -> 4 * MathUtil.MINECRAFT_TICK_MILLS, () -> {
@@ -72,14 +72,14 @@ public final class EntityBodyRotator {
             if (value > 180) value -= 360;
             else if (value < -180) value += 360;
             return new Vector3f(
-                    clampHead(entity.pitch()),
-                    clampHead(value),
-                    0
+                clampHead(entity.pitch()),
+                clampHead(value),
+                0
             );
         });
         bodySupplier = FunctionUtil.throttleTick(() -> new ModelRotation(
-                entity.pitch(),
-                bodyRotation0()
+            entity.pitch(),
+            bodyRotation0()
         ));
         reset();
     }
@@ -161,16 +161,16 @@ public final class EntityBodyRotator {
 
     synchronized @NotNull RotatorData createData() {
         return new RotatorData(
-                headUneven,
-                bodyUneven,
-                playerMode,
-                minBody,
-                maxBody,
-                minHead,
-                maxHead,
-                stable,
-                rotationDuration,
-                rotationDelay
+            headUneven,
+            bodyUneven,
+            playerMode,
+            minBody,
+            maxBody,
+            minHead,
+            maxHead,
+            stable,
+            rotationDuration,
+            rotationDelay
         );
     }
 

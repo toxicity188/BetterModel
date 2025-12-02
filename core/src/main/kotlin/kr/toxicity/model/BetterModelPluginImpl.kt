@@ -155,6 +155,7 @@ abstract class BetterModelPluginImpl : AbstractBetterModelPlugin() {
     override fun playerManager(): PlayerManager = PlayerManagerImpl
     override fun scriptManager(): ScriptManager = ScriptManagerImpl
     override fun skinManager(): SkinManager = SkinManagerImpl
+    override fun profileManager(): ProfileManager = ProfileManagerImpl
 
     override fun config(): BetterModelConfig = props.config
     override fun version(): MinecraftVersion = props.version

@@ -29,13 +29,13 @@ import java.util.Map;
  * @param script script
  */
 public record BlueprintAnimation(
-        @NotNull String name,
-        @NotNull AnimationIterator.Type loop,
-        float length,
-        boolean override,
-        @NotNull @Unmodifiable Map<BoneName, BlueprintAnimator> animator,
-        @Nullable BlueprintScript script,
-        @NotNull List<AnimationMovement> emptyAnimator
+    @NotNull String name,
+    @NotNull AnimationIterator.Type loop,
+    float length,
+    boolean override,
+    @NotNull @Unmodifiable Map<BoneName, BlueprintAnimator> animator,
+    @Nullable BlueprintScript script,
+    @NotNull List<AnimationMovement> emptyAnimator
 ) {
 
     /**

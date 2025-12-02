@@ -89,21 +89,30 @@ public interface BetterModelPlugin extends Plugin {
      * @return model manager
      */
     @NotNull ModelManager modelManager();
+
     /**
      * Gets player manager.
      * @return player manager
      */
     @NotNull PlayerManager playerManager();
+
     /**
      * Gets script manager.
      * @return script manager
      */
     @NotNull ScriptManager scriptManager();
+
     /**
      * Gets skin manager.
      * @return skin manager
      */
     @NotNull SkinManager skinManager();
+    /**
+     * Gets skin manager.
+     * @return skin manager
+     */
+    @NotNull ProfileManager profileManager();
+
     /**
      * Gets plugin scheduler.
      * @return scheduler
@@ -115,6 +124,7 @@ public interface BetterModelPlugin extends Plugin {
      * @param consumer task
      */
     void addReloadStartHandler(@NotNull Consumer<PackZipper> consumer);
+
     /**
      * Adds event handler on the reload end.
      * @param consumer result consumer

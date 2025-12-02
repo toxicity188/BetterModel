@@ -74,7 +74,7 @@ public abstract class AbstractBetterModelPlugin extends JavaPlugin implements Be
         synchronized (this) {
             if (attributes != null) return attributes;
             try (
-                    var stream = Objects.requireNonNull(getClassLoader().getResourceAsStream("META-INF/MANIFEST.MF"))
+                var stream = Objects.requireNonNull(getClassLoader().getResourceAsStream("META-INF/MANIFEST.MF"))
             ) {
                 return attributes = new Manifest(stream).getMainAttributes();
             } catch (IOException e) {

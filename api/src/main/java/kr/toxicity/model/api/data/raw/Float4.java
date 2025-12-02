@@ -21,10 +21,10 @@ import org.jetbrains.annotations.NotNull;
  */
 @ApiStatus.Internal
 public record Float4(
-        float dx,
-        float dz,
-        float tx,
-        float tz
+    float dx,
+    float dz,
+    float tx,
+    float tz
 ) {
 
     /**
@@ -33,10 +33,10 @@ public record Float4(
     public static final JsonDeserializer<Float4> PARSER = (json, typeOfT, context) -> {
         var array = json.getAsJsonArray();
         return new Float4(
-                array.get(0).getAsFloat(),
-                array.get(1).getAsFloat(),
-                array.get(2).getAsFloat(),
-                array.get(3).getAsFloat()
+            array.get(0).getAsFloat(),
+            array.get(1).getAsFloat(),
+            array.get(2).getAsFloat(),
+            array.get(3).getAsFloat()
         );
     };
 
@@ -57,10 +57,10 @@ public record Float4(
      */
     public @NotNull Float4 div(float width, float height) {
         return new Float4(
-                dx / width,
-                dz / height,
-                tx / width,
-                tz / height
+            dx / width,
+            dz / height,
+            tx / width,
+            tz / height
         );
     }
 
@@ -93,9 +93,9 @@ public record Float4(
         if (obj == this) return true;
         if (!(obj instanceof Float4(float dx1, float dz1, float tx1, float tz1))) return false;
         return MathUtil.isSimilar(dx, dx1)
-                && MathUtil.isSimilar(dz, dz1)
-                && MathUtil.isSimilar(tx, tx1)
-                && MathUtil.isSimilar(tz, tz1);
+            && MathUtil.isSimilar(dz, dz1)
+            && MathUtil.isSimilar(tx, tx1)
+            && MathUtil.isSimilar(tz, tz1);
     }
 
     @Override

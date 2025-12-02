@@ -56,23 +56,23 @@ public final class BoneEventDispatcher {
 
         EventFunction() {
             this(
-                    (b, l) -> l,
-                    (b, u) -> {},
-                    (b, u) -> {}
+                (b, l) -> l,
+                (b, u) -> {},
+                (b, u) -> {}
             );
         }
 
         static @NotNull EventFunction concat(@NotNull EventFunction first, @NotNull EventFunction second) {
             return new EventFunction(
-                    (b, l) -> second.createHitBox.apply(b, first.createHitBox.apply(b, l)),
-                    (b, u) -> {
-                        first.stateCreate.accept(b, u);
-                        second.stateCreate.accept(b, u);
-                    },
-                    (b, u) -> {
-                        first.stateRemove.accept(b, u);
-                        second.stateRemove.accept(b, u);
-                    }
+                (b, l) -> second.createHitBox.apply(b, first.createHitBox.apply(b, l)),
+                (b, u) -> {
+                    first.stateCreate.accept(b, u);
+                    second.stateCreate.accept(b, u);
+                },
+                (b, u) -> {
+                    first.stateRemove.accept(b, u);
+                    second.stateRemove.accept(b, u);
+                }
             );
         }
     }

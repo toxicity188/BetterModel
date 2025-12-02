@@ -16,6 +16,7 @@ import org.jetbrains.annotations.Nullable;
  * Model nametag
  */
 public interface ModelNametag {
+
     /**
      * Sets always visible flag
      * @param alwaysVisible always visible

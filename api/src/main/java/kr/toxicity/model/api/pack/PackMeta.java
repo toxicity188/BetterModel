@@ -21,34 +21,34 @@ import java.util.List;
 import java.util.Objects;
 
 public record PackMeta(
-        @NotNull Pack pack,
-        @Nullable Overlay overlays
+    @NotNull Pack pack,
+    @Nullable Overlay overlays
 ) {
 
     public static final PackPath PATH = new PackPath("pack.mcmeta");
     private static final Gson GSON = new GsonBuilder()
-            .registerTypeAdapter(PackVersion.class, (JsonDeserializer<PackVersion>) (json, typeOfT, context) -> {
-                if (json.isJsonPrimitive()) return new PackVersion(json.getAsInt());
-                else if (json.isJsonArray()) {
-                    var array = json.getAsJsonArray();
-                    return new PackVersion(array.get(0).getAsInt(), array.size() < 2 ? 0 : array.get(1).getAsInt());
-                } else return null;
-            })
-            .registerTypeAdapter(PackVersion.class, (JsonSerializer<PackVersion>) (src, typeOfSrc, context) -> src.toJson())
-            .registerTypeAdapter(VersionRange.class, (JsonDeserializer<VersionRange>) (json, typeOfT, context) -> {
-                if (json.isJsonPrimitive()) return new VersionRange(json.getAsInt());
-                else if (json.isJsonArray()) {
-                    var array = json.getAsJsonArray();
-                    return new VersionRange(
-                            array.get(0).getAsInt(),
-                            array.get(1).getAsInt()
-                    );
-                } else if (json.isJsonObject()) {
-                    return context.deserialize(json, VersionRange.class);
-                } else return null;
-            })
-            .registerTypeAdapter(VersionRange.class, (JsonSerializer<VersionRange>) (src, typeOfSrc, context) -> src.toJson())
-            .create();
+        .registerTypeAdapter(PackVersion.class, (JsonDeserializer<PackVersion>) (json, typeOfT, context) -> {
+            if (json.isJsonPrimitive()) return new PackVersion(json.getAsInt());
+            else if (json.isJsonArray()) {
+                var array = json.getAsJsonArray();
+                return new PackVersion(array.get(0).getAsInt(), array.size() < 2 ? 0 : array.get(1).getAsInt());
+            } else return null;
+        })
+        .registerTypeAdapter(PackVersion.class, (JsonSerializer<PackVersion>) (src, typeOfSrc, context) -> src.toJson())
+        .registerTypeAdapter(VersionRange.class, (JsonDeserializer<VersionRange>) (json, typeOfT, context) -> {
+            if (json.isJsonPrimitive()) return new VersionRange(json.getAsInt());
+            else if (json.isJsonArray()) {
+                var array = json.getAsJsonArray();
+                return new VersionRange(
+                    array.get(0).getAsInt(),
+                    array.get(1).getAsInt()
+                );
+            } else if (json.isJsonObject()) {
+                return context.deserialize(json, VersionRange.class);
+            } else return null;
+        })
+        .registerTypeAdapter(VersionRange.class, (JsonSerializer<VersionRange>) (src, typeOfSrc, context) -> src.toJson())
+        .create();
 
     public static @NotNull Builder builder() {
         return new Builder();
@@ -64,17 +64,17 @@ public record PackMeta(
     }
 
     public record Pack(
-            @SerializedName("pack_format") int packFormat,
-            @SerializedName("description") @NotNull String description,
-            @SerializedName("supported_formats") @NotNull VersionRange supportedFormats,
-            @SerializedName("min_format") @NotNull PackVersion minFormat, //>=1.21.9
-            @SerializedName("max_format") @NotNull PackVersion maxFormat
+        @SerializedName("pack_format") int packFormat,
+        @SerializedName("description") @NotNull String description,
+        @SerializedName("supported_formats") @NotNull VersionRange supportedFormats,
+        @SerializedName("min_format") @NotNull PackVersion minFormat, //>=1.21.9
+        @SerializedName("max_format") @NotNull PackVersion maxFormat
     ) {
     }
 
     public record PackVersion(
-            int major,
-            int minor
+        int major,
+        int minor
     ) {
         public PackVersion(int major) {
             this(major, 0);
@@ -96,40 +96,40 @@ public record PackMeta(
     }
 
     public record OverlayEntry(
-            @NotNull VersionRange formats, //Removed in 1.21.9
-            @NotNull String directory,
-            @SerializedName("min_format") @NotNull PackVersion minFormat, //>=1.21.9
-            @SerializedName("max_format") @NotNull PackVersion maxFormat
+        @NotNull VersionRange formats, //Removed in 1.21.9
+        @NotNull String directory,
+        @SerializedName("min_format") @NotNull PackVersion minFormat, //>=1.21.9
+        @SerializedName("max_format") @NotNull PackVersion maxFormat
     ) {
         public OverlayEntry(
-                @NotNull VersionRange formats, //Removed in 1.21.9
-                @NotNull String directory
+            @NotNull VersionRange formats, //Removed in 1.21.9
+            @NotNull String directory
         ) {
             this(
-                    formats,
-                    directory,
-                    new PackVersion(formats.minInclusive),
-                    new PackVersion(formats.maxInclusive)
+                formats,
+                directory,
+                new PackVersion(formats.minInclusive),
+                new PackVersion(formats.maxInclusive)
             );
         }
     }
 
     public record VersionRange(
-            @SerializedName("min_inclusive") int minInclusive,
-            @SerializedName("max_inclusive") int maxInclusive
+        @SerializedName("min_inclusive") int minInclusive,
+        @SerializedName("max_inclusive") int maxInclusive
     ) {
 
-       public VersionRange(int value) {
-           this(value, value);
-       }
+        public VersionRange(int value) {
+            this(value, value);
+        }
 
-       public @NotNull JsonElement toJson() {
-           if (minInclusive == maxInclusive) return new JsonPrimitive(minInclusive);
-           var arr = new JsonArray(2);
-           arr.add(minInclusive);
-           arr.add(maxInclusive);
-           return arr;
-       }
+        public @NotNull JsonElement toJson() {
+            if (minInclusive == maxInclusive) return new JsonPrimitive(minInclusive);
+            var arr = new JsonArray(2);
+            arr.add(minInclusive);
+            arr.add(maxInclusive);
+            return arr;
+        }
     }
 
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -138,8 +138,8 @@ public record PackMeta(
         private String description = "BetterModel's default pack.";
         private final List<OverlayEntry> entries = new ArrayList<>();
         private VersionRange supportedFormats = new VersionRange(
-                NMSVersion.first().getMetaVersion(),
-                NMSVersion.latest().getMetaVersion() //<=1.21.8
+            NMSVersion.first().getMetaVersion(),
+            NMSVersion.latest().getMetaVersion() //<=1.21.8
         );
         private PackVersion minFormat = new PackVersion(NMSVersion.first().getMetaVersion());
         private PackVersion maxFormat = new PackVersion(NMSVersion.latest().getMetaVersion());
@@ -176,14 +176,14 @@ public record PackMeta(
 
         public @NotNull PackMeta build() {
             return new PackMeta(
-                    new Pack(
-                            format,
-                            description,
-                            supportedFormats,
-                            minFormat,
-                            maxFormat
-                    ),
-                    entries.isEmpty() ? null : new Overlay(entries)
+                new Pack(
+                    format,
+                    description,
+                    supportedFormats,
+                    minFormat,
+                    maxFormat
+                ),
+                entries.isEmpty() ? null : new Overlay(entries)
             );
         }
     }

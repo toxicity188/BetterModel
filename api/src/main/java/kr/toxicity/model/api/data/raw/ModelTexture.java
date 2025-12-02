@@ -24,12 +24,12 @@ import java.util.Base64;
  */
 @ApiStatus.Internal
 public record ModelTexture(
-        @NotNull String name,
-        @NotNull String source,
-        int width,
-        int height,
-        @SerializedName("uv_width") int uvWidth,
-        @SerializedName("uv_height") int uvHeight
+    @NotNull String name,
+    @NotNull String source,
+    int width,
+    int height,
+    @SerializedName("uv_width") int uvWidth,
+    @SerializedName("uv_height") int uvHeight
 ) {
     /**
      * Converts this texture to blueprint textures
@@ -38,12 +38,12 @@ public record ModelTexture(
     public @NotNull BlueprintTexture toBlueprint() {
         var nameIndex = name().indexOf('.');
         return new BlueprintTexture(
-                nameIndex >= 0 ? name().substring(0, nameIndex) : name(),
-                Base64.getDecoder().decode(source().substring(source().indexOf(',') + 1)),
-                width(),
-                height(),
-                uvWidth(),
-                uvHeight()
+            nameIndex >= 0 ? name().substring(0, nameIndex) : name(),
+            Base64.getDecoder().decode(source().substring(source().indexOf(',') + 1)),
+            width(),
+            height(),
+            uvWidth(),
+            uvHeight()
         );
     }
 }

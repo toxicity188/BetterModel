@@ -22,9 +22,9 @@ import org.joml.Vector3f;
  */
 @ApiStatus.Internal
 public record Float3(
-        float x,
-        float y,
-        float z
+    float x,
+    float y,
+    float z
 ) {
 
     /**
@@ -49,9 +49,9 @@ public record Float3(
     public static final JsonDeserializer<Float3> PARSER = (json, typeOfT, context) -> {
         var array = json.getAsJsonArray();
         return new Float3(
-                array.get(0).getAsFloat(),
-                array.get(1).getAsFloat(),
-                array.get(2).getAsFloat()
+            array.get(0).getAsFloat(),
+            array.get(1).getAsFloat(),
+            array.get(2).getAsFloat()
         );
     };
 
@@ -62,9 +62,9 @@ public record Float3(
      */
     public @NotNull Float3 plus(@NotNull Float3 other) {
         return new Float3(
-                x + other.x,
-                y + other.y,
-                z + other.z
+            x + other.x,
+            y + other.y,
+            z + other.z
         );
     }
 
@@ -95,9 +95,9 @@ public record Float3(
      */
     public @NotNull Float3 minus(@NotNull Float3 other) {
         return new Float3(
-                x - other.x,
-                y - other.y,
-                z - other.z
+            x - other.x,
+            y - other.y,
+            z - other.z
         );
     }
 
@@ -116,9 +116,9 @@ public record Float3(
      */
     public @NotNull Float3 times(float value) {
         return new Float3(
-                x * value,
-                y * value,
-                z * value
+            x * value,
+            y * value,
+            z * value
         );
     }
     /**
@@ -128,9 +128,9 @@ public record Float3(
      */
     public @NotNull Float3 div(float value) {
         return new Float3(
-                x / value,
-                y / value,
-                z / value
+            x / value,
+            y / value,
+            z / value
         );
     }
 
@@ -140,9 +140,9 @@ public record Float3(
      */
     public @NotNull Float3 invertXZ() {
         return new Float3(
-                -x,
-                y,
-                -z
+            -x,
+            y,
+            -z
         );
     }
 
@@ -181,8 +181,8 @@ public record Float3(
         if (obj == this) return true;
         if (!(obj instanceof Float3(float x1, float y1, float z1))) return false;
         return MathUtil.isSimilar(x, x1)
-                && MathUtil.isSimilar(y, y1)
-                && MathUtil.isSimilar(z, z1);
+            && MathUtil.isSimilar(y, y1)
+            && MathUtil.isSimilar(z, z1);
     }
 
     @Override

@@ -20,13 +20,13 @@ import java.util.Arrays;
  * @param formatVersion format version
  */
 public record ModelMeta(
-        @NotNull FormatVersion formatVersion
+    @NotNull FormatVersion formatVersion
 ) {
     /**
      * Parser
      */
     public static final JsonDeserializer<ModelMeta> PARSER = (json, type, context) -> new ModelMeta(
-            FormatVersion.find(new Semver(json.getAsJsonObject().getAsJsonPrimitive("format_version").getAsString(), Semver.SemverType.LOOSE).getMajor())
+        FormatVersion.find(new Semver(json.getAsJsonObject().getAsJsonPrimitive("format_version").getAsString(), Semver.SemverType.LOOSE).getMajor())
     );
 
     /**
@@ -80,9 +80,9 @@ public record ModelMeta(
          */
         public static @NotNull FormatVersion find(int major) {
             return Arrays.stream(values())
-                    .filter(v -> v.major <= major)
-                    .findFirst()
-                    .orElseThrow();
+                .filter(v -> v.major <= major)
+                .findFirst()
+                .orElseThrow();
         }
 
         /**

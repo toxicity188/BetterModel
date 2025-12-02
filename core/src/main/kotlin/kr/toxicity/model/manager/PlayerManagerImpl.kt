@@ -47,7 +47,7 @@ object PlayerManagerImpl : PlayerManager, GlobalManager {
     private fun Player.register() = playerMap.computeIfAbsent(uniqueId) {
         PLUGIN.nms().inject(this)
     }.apply {
-        if (SkinManagerImpl.supported()) SkinManagerImpl.getOrRequest(profile())
+        SkinManagerImpl.complete(profile().asUncompleted())
     }
 
     override fun reload(pipeline: ReloadPipeline, zipper: PackZipper) {

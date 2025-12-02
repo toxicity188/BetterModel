@@ -21,8 +21,8 @@ import java.util.stream.Stream;
  * @param keyframe keyframes
  */
 public record BlueprintAnimator(
-        @NotNull String name,
-        @NotNull @Unmodifiable List<AnimationMovement> keyframe
+    @NotNull String name,
+    @NotNull @Unmodifiable List<AnimationMovement> keyframe
 ) {
 
     /**
@@ -34,11 +34,11 @@ public record BlueprintAnimator(
      * @param rotationGlobal rotation global
      */
     public record AnimatorData(
-            @NotNull String name,
-            @NotNull List<VectorPoint> position,
-            @NotNull List<VectorPoint> scale,
-            @NotNull List<VectorPoint> rotation,
-            boolean rotationGlobal
+        @NotNull String name,
+        @NotNull List<VectorPoint> position,
+        @NotNull List<VectorPoint> scale,
+        @NotNull List<VectorPoint> rotation,
+        boolean rotationGlobal
     ) {
         /**
          * Gets flatten points
@@ -46,11 +46,11 @@ public record BlueprintAnimator(
          */
         public @NotNull Stream<VectorPoint> allPoints() {
             return Stream.concat(
-                    Stream.concat(
-                            position.stream(),
-                            scale.stream()
-                    ),
-                    rotation.stream()
+                Stream.concat(
+                    position.stream(),
+                    scale.stream()
+                ),
+                rotation.stream()
             );
         }
     }

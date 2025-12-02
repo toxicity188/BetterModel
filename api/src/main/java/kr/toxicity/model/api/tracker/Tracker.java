@@ -17,7 +17,6 @@ import kr.toxicity.model.api.data.renderer.ModelRenderer;
 import kr.toxicity.model.api.data.renderer.RenderPipeline;
 import kr.toxicity.model.api.data.renderer.RenderSource;
 import kr.toxicity.model.api.entity.BaseEntity;
-import kr.toxicity.model.api.entity.BasePlayer;
 import kr.toxicity.model.api.event.*;
 import kr.toxicity.model.api.nms.*;
 import kr.toxicity.model.api.script.TimeScript;
@@ -39,7 +38,10 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.*;
+import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -81,13 +83,13 @@ public abstract class Tracker implements AutoCloseable {
     private final Runnable updater;
     private final BundlerSet bundlerSet;
     private final AnimationStateHandler<TimeScript> scriptProcessor = new AnimationStateHandler<>(
-            TimeScript.EMPTY,
-            (b, a) -> {
-                if (b == null) return;
-                if (b.isSync()) {
-                    BetterModel.plugin().scheduler().task(location(), () -> b.accept(this));
-                } else b.accept(this);
-            }
+        TimeScript.EMPTY,
+        (b, a) -> {
+            if (b == null) return;
+            if (b.isSync()) {
+                BetterModel.plugin().scheduler().task(location(), () -> b.accept(this));
+            } else b.accept(this);
+        }
     );
     private ScheduledFuture<?> task;
     protected ModelRotator rotator = ModelRotator.YAW;
@@ -129,8 +131,8 @@ public abstract class Tracker implements AutoCloseable {
             if (readyForForceUpdate.compareAndSet(true, false)) t.pipeline.iterateTree(b -> b.dirtyUpdate(s.dataBundler));
         });
         tick((t, s) -> pipeline.rotate(
-                t.rotation(),
-                s.tickBundler
+            t.rotation(),
+            s.tickBundler
         ));
         tick((t, s) -> {
             var perPlayer = perPlayerHandler;
@@ -138,14 +140,17 @@ public abstract class Tracker implements AutoCloseable {
         });
         pipeline.spawnPacketHandler(p -> start());
         pipeline.eventDispatcher().handleStateCreate((bone, uuid) -> bundlerSet.perPlayerViewBundler
-                .computeIfAbsent(uuid, PerPlayerCache::new)
-                .add());
+            .computeIfAbsent(uuid, PerPlayerCache::new)
+            .add());
         pipeline.eventDispatcher().handleStateRemove((bone, uuid) -> {
             var get = bundlerSet.perPlayerViewBundler.get(uuid);
             if (get != null) get.remove();
         });
         LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " tracker created: " + name());
         animate("idle", AnimationModifier.builder().start(6).type(AnimationIterator.Type.LOOP).build());
+        pipeline.getSource().completeContext().thenAccept(context -> {
+            if (pipeline.matchTree(bone -> bone.updateItem(context))) forceUpdate(true);
+        });
     }
 
     /**
@@ -279,11 +284,11 @@ public abstract class Tracker implements AutoCloseable {
      */
     public double height() {
         return bones()
-                .stream()
-                .filter(bone -> bone.name().tagged(BoneTags.HEAD, BoneTags.HEAD_WITH_CHILDREN))
-                .mapToDouble(bone -> bone.hitBoxPosition().y)
-                .max()
-                .orElse(0F);
+            .stream()
+            .filter(bone -> bone.name().tagged(BoneTags.HEAD, BoneTags.HEAD_WITH_CHILDREN))
+            .mapToDouble(bone -> bone.hitBoxPosition().y)
+            .max()
+            .orElse(0F);
     }
 
     /**
@@ -353,17 +358,10 @@ public abstract class Tracker implements AutoCloseable {
     protected boolean spawn(@NotNull Player player, @NotNull PacketBundler bundler) {
         if (isClosed()) return false;
         if (!EventUtil.call(new ModelSpawnAtPlayerEvent(player, this))) return false;
-        var result = pipeline.spawn(player, bundler);
-        if (result) {
+        return pipeline.spawn(player, bundler, spawned -> {
             LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " is spawned at player " + player.getName() + ": " + name());
-            task(() -> {
-                if (isHide(player)) return;
-                var b = pipeline.createBundler();
-                pipeline.iterateTree(bone -> bone.forceUpdate(b));
-                if (b.isNotEmpty()) b.send(player);
-            });
-        }
-        return result;
+            task(spawned::load);
+        });
     }
 
     /**
@@ -474,8 +472,8 @@ public abstract class Tracker implements AutoCloseable {
      */
     public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, @NotNull AnimationModifier modifier, @NotNull AnimationEventHandler eventHandler) {
         return renderer().animation(animation)
-                .map(get -> animate(filter, get, modifier, eventHandler))
-                .orElse(false);
+            .map(get -> animate(filter, get, modifier, eventHandler))
+            .orElse(false);
     }
 
     /**
@@ -556,8 +554,8 @@ public abstract class Tracker implements AutoCloseable {
      */
     public boolean replace(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull String animation, @NotNull AnimationModifier modifier) {
         return renderer().animation(animation)
-                .map(get -> replace(filter, target, get, modifier))
-                .orElse(false);
+            .map(get -> replace(filter, target, get, modifier))
+            .orElse(false);
     }
 
     /**
@@ -613,7 +611,7 @@ public abstract class Tracker implements AutoCloseable {
         return tryUpdate((b, p) -> b.createNametag(p, tag -> {
             consumer.accept(b, tag);
             perPlayerTick((tracker, player) -> {
-                if (pipeline.getSource() instanceof RenderSource.BasePlayer(BasePlayer basePlayer) && basePlayer.uuid().equals(player.getUniqueId())) return;
+                if (pipeline.getSource() instanceof RenderSource.Entity entity && entity.entity().uuid().equals(player.getUniqueId())) return;
                 tag.teleport(tracker.location());
                 tag.send(player);
             });
@@ -684,9 +682,9 @@ public abstract class Tracker implements AutoCloseable {
      */
     public @Nullable RenderedBone bone(@NotNull Predicate<RenderedBone> predicate) {
         return bones().stream()
-                .filter(predicate)
-                .findFirst()
-                .orElse(null);
+            .filter(predicate)
+            .findFirst()
+            .orElse(null);
     }
 
     /**
@@ -703,8 +701,8 @@ public abstract class Tracker implements AutoCloseable {
      */
     public @NotNull Stream<ModelDisplay> displays() {
         return bones().stream()
-                .map(RenderedBone::getDisplay)
-                .filter(Objects::nonNull);
+            .map(RenderedBone::getDisplay)
+            .filter(Objects::nonNull);
     }
 
     /**

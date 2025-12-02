@@ -38,12 +38,12 @@ import static kr.toxicity.model.api.util.CollectionUtil.associate;
  */
 @ApiStatus.Internal
 public record ModelAnimation(
-        @NotNull String name,
-        @Nullable AnimationIterator.Type loop,
-        boolean override,
-        @NotNull String uuid,
-        float length,
-        @Nullable Map<String, ModelAnimator> animators
+    @NotNull String name,
+    @Nullable AnimationIterator.Type loop,
+    boolean override,
+    @NotNull String uuid,
+    float length,
+    @Nullable Map<String, ModelAnimator> animators
 ) {
     /**
      * Converts raw animation to blueprint animation
@@ -52,46 +52,46 @@ public record ModelAnimation(
      * @return converted animation
      */
     public @NotNull BlueprintAnimation toBlueprint(
-            @NotNull ModelLoadContext context,
-            @NotNull List<BlueprintElement> children
+        @NotNull ModelLoadContext context,
+        @NotNull List<BlueprintElement> children
     ) {
         var animators = AnimationGenerator.createMovements(length(), children, associate(
-                animators().entrySet().stream()
-                        .filter(e -> context.availableUUIDs.contains(e.getKey()))
-                        .map(Map.Entry::getValue)
-                        .filter(ModelAnimator::isAvailable)
-                        .map(a -> buildAnimationData(context, a)),
-                data -> BoneTagRegistry.parse(data.name())
+            animators().entrySet().stream()
+                .filter(e -> context.availableUUIDs.contains(e.getKey()))
+                .map(Map.Entry::getValue)
+                .filter(ModelAnimator::isAvailable)
+                .map(a -> buildAnimationData(context, a)),
+            data -> BoneTagRegistry.parse(data.name())
         ));
         return new BlueprintAnimation(
-                name(),
-                loop(),
-                length(),
-                override(),
-                animators,
-                Optional.ofNullable(animators().get("effects"))
-                        .filter(ModelAnimator::isNotEmpty)
-                        .map(a -> toScript(a, context.placeholder))
-                        .orElseGet(() -> BlueprintScript.fromEmpty(this)),
-                animators.isEmpty() ? AnimationMovement.withEmpty(length()) : animators.values()
-                        .iterator()
-                        .next()
-                        .keyframe()
-                        .stream()
-                        .map(AnimationMovement::empty)
-                        .toList()
+            name(),
+            loop(),
+            length(),
+            override(),
+            animators,
+            Optional.ofNullable(animators().get("effects"))
+                .filter(ModelAnimator::isNotEmpty)
+                .map(a -> toScript(a, context.placeholder))
+                .orElseGet(() -> BlueprintScript.fromEmpty(this)),
+            animators.isEmpty() ? AnimationMovement.withEmpty(length()) : animators.values()
+                .iterator()
+                .next()
+                .keyframe()
+                .stream()
+                .map(AnimationMovement::empty)
+                .toList()
         );
     }
 
     private @Nullable BlueprintScript toScript(@NotNull ModelAnimator animator, @NotNull ModelPlaceholder placeholder) {
         var get = animator.stream()
-                .filter(f -> f.point().hasScript())
-                .map(d -> AnimationScript.of(Arrays.stream(placeholder.parseVariable(d.point().script()).split("\n"))
-                        .map(BetterModel.plugin().scriptManager()::build)
-                        .filter(Objects::nonNull)
-                        .toList()
-                ).time(d.time()))
-                .toList();
+            .filter(f -> f.point().hasScript())
+            .map(d -> AnimationScript.of(Arrays.stream(placeholder.parseVariable(d.point().script()).split("\n"))
+                .map(BetterModel.plugin().scriptManager()::build)
+                .filter(Objects::nonNull)
+                .toList()
+            ).time(d.time()))
+            .toList();
         if (get.isEmpty()) return null;
         var list = new ArrayList<TimeScript>(get.size() + 2);
         if (get.getFirst().time() > 0) list.add(TimeScript.EMPTY);
@@ -104,10 +104,10 @@ public record ModelAnimation(
         var len = InterpolationUtil.roundTime(length() - before);
         if (len > 0) list.add(AnimationScript.EMPTY.time(len));
         return new BlueprintScript(
-                name(),
-                loop(),
-                length(),
-                list
+            name(),
+            loop(),
+            length(),
+            list
         );
     }
 
@@ -144,11 +144,11 @@ public record ModelAnimation(
             }
         });
         return new BlueprintAnimator.AnimatorData(
-                animator.name(),
-                position,
-                scale,
-                rotation,
-                animator.rotationGlobal()
+            animator.name(),
+            position,
+            scale,
+            rotation,
+            animator.rotationGlobal()
         );
     }
 }

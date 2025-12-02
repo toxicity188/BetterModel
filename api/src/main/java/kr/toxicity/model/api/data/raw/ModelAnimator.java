@@ -24,9 +24,9 @@ import java.util.stream.Stream;
  */
 @ApiStatus.Internal
 public record ModelAnimator(
-        @Nullable String name,
-        @Nullable List<ModelKeyframe> keyframes,
-        @Nullable @SerializedName("rotation_global") Boolean _rotationGlobal
+    @Nullable String name,
+    @Nullable List<ModelKeyframe> keyframes,
+    @Nullable @SerializedName("rotation_global") Boolean _rotationGlobal
 ) {
 
     /**
@@ -77,7 +77,7 @@ public record ModelAnimator(
      */
     public @NotNull Stream<ModelKeyframe> stream() {
         return keyframes().stream()
-                .filter(ModelKeyframe::hasPoint)
-                .sorted();
+            .filter(ModelKeyframe::hasPoint)
+            .sorted();
     }
 }

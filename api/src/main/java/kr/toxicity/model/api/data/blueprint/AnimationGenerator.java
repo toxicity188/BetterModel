@@ -43,13 +43,13 @@ public final class AnimationGenerator {
      * @return generated map
      */
     public static @NotNull Map<BoneName, BlueprintAnimator> createMovements(
-            float length,
-            @NotNull List<BlueprintElement> children,
-            @NotNull Map<BoneName, BlueprintAnimator.AnimatorData> pointMap
+        float length,
+        @NotNull List<BlueprintElement> children,
+        @NotNull Map<BoneName, BlueprintAnimator.AnimatorData> pointMap
     ) {
         var floatSet = mapFloat(pointMap.values()
-                .stream()
-                .flatMap(BlueprintAnimator.AnimatorData::allPoints), VectorPoint::time, () -> new FloatAVLTreeSet(MathUtil.FRAME_COMPARATOR));
+            .stream()
+            .flatMap(BlueprintAnimator.AnimatorData::allPoints), VectorPoint::time, () -> new FloatAVLTreeSet(MathUtil.FRAME_COMPARATOR));
         floatSet.add(0F);
         floatSet.add(length);
         InterpolationUtil.insertLerpFrame(floatSet);
@@ -57,26 +57,26 @@ public final class AnimationGenerator {
         generator.interpolateRotation(floatSet);
         generator.interpolateStep(floatSet);
         return mapValue(pointMap, v -> new BlueprintAnimator(
-                v.name(),
-                InterpolationUtil.buildAnimation(
-                        v.position(),
-                        v.rotation(),
-                        v.scale(),
-                        v.rotationGlobal(),
-                        floatSet
-                )
+            v.name(),
+            InterpolationUtil.buildAnimation(
+                v.position(),
+                v.rotation(),
+                v.scale(),
+                v.rotationGlobal(),
+                floatSet
+            )
         ));
     }
 
     private AnimationGenerator(
-            @NotNull Map<BoneName, BlueprintAnimator.AnimatorData> pointMap,
-            @NotNull List<BlueprintElement> children
+        @NotNull Map<BoneName, BlueprintAnimator.AnimatorData> pointMap,
+        @NotNull List<BlueprintElement> children
     ) {
         this.pointMap = pointMap;
         trees = filterIsInstance(children, BlueprintElement.Group.class)
-                .map(g -> new AnimationTree(g, pointMap.get(g.name())))
-                .flatMap(AnimationTree::flatten)
-                .toList();
+            .map(g -> new AnimationTree(g, pointMap.get(g.name())))
+            .flatMap(AnimationTree::flatten)
+            .toList();
     }
 
     private float firstTime = 0F;
@@ -94,14 +94,14 @@ public final class AnimationGenerator {
             secondTime = iterator.nextFloat();
             if (secondTime - firstTime <= 0) continue;
             var minus = trees.stream()
-                    .mapToDouble(t -> t.tree(firstTime, secondTime, BlueprintAnimator.AnimatorData::rotation))
-                    .max()
-                    .orElse(0);
+                .mapToDouble(t -> t.tree(firstTime, secondTime, BlueprintAnimator.AnimatorData::rotation))
+                .max()
+                .orElse(0);
             var length = (float) Math.ceil(minus / 90);
             if (length < 2) continue;
             var addTime = Math.max(
-                    InterpolationUtil.lerp(0, secondTime - firstTime, 1F / length),
-                    time
+                InterpolationUtil.lerp(0, secondTime - firstTime, 1F / length),
+                time
             );
             for (float f = 1; f < length; f++) {
                 if (secondTime - addTime < time + MathUtil.FRAME_EPSILON) continue;
@@ -112,13 +112,13 @@ public final class AnimationGenerator {
 
     public void interpolateStep(@NotNull FloatSortedSet floats) {
         trees.stream()
-                .map(tree -> tree.data)
-                .filter(Objects::nonNull)
-                .forEach(data -> {
-                    interpolateStep(floats, data.position());
-                    interpolateStep(floats, data.rotation());
-                    interpolateStep(floats, data.scale());
-                });
+            .map(tree -> tree.data)
+            .filter(Objects::nonNull)
+            .forEach(data -> {
+                interpolateStep(floats, data.position());
+                interpolateStep(floats, data.rotation());
+                interpolateStep(floats, data.scale());
+            });
     }
 
     private void interpolateStep(@NotNull FloatSortedSet floats, @NotNull List<VectorPoint> points) {
@@ -143,22 +143,22 @@ public final class AnimationGenerator {
             this(null, group, data);
         }
         AnimationTree(
-                @Nullable AnimationTree parent,
-                @NotNull BlueprintElement.Group group,
-                @Nullable BlueprintAnimator.AnimatorData data
+            @Nullable AnimationTree parent,
+            @NotNull BlueprintElement.Group group,
+            @Nullable BlueprintAnimator.AnimatorData data
         ) {
             this.parent = parent;
             this.data = data;
             children = filterIsInstance(group.children(), BlueprintElement.Group.class)
-                    .map(g -> new AnimationTree(this, g, pointMap.get(g.name())))
-                    .toList();
+                .map(g -> new AnimationTree(this, g, pointMap.get(g.name())))
+                .toList();
         }
 
         @NotNull
         Stream<AnimationTree> flatten() {
             return Stream.concat(
-                    Stream.of(this),
-                    children.stream().flatMap(AnimationTree::flatten)
+                Stream.of(this),
+                children.stream().flatMap(AnimationTree::flatten)
             );
         }
 
@@ -190,9 +190,9 @@ public final class AnimationGenerator {
                 var t2 = second.time();
                 var a = InterpolationUtil.alpha(t1, t2, time);
                 return second.time() == time ? second.vector() : InterpolationUtil.lerp(
-                        first.vector(InterpolationUtil.lerp(t1, t2, a)),
-                        second.vector(),
-                        a
+                    first.vector(InterpolationUtil.lerp(t1, t2, a)),
+                    second.vector(),
+                    a
                 );
             });
         }

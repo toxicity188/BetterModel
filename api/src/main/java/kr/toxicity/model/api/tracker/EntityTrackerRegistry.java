@@ -19,7 +19,10 @@ import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.config.DebugConfig;
 import kr.toxicity.model.api.entity.BaseEntity;
 import kr.toxicity.model.api.entity.BasePlayer;
-import kr.toxicity.model.api.nms.*;
+import kr.toxicity.model.api.nms.HitBox;
+import kr.toxicity.model.api.nms.ModelDisplay;
+import kr.toxicity.model.api.nms.PacketBundler;
+import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.util.CollectionUtil;
 import kr.toxicity.model.api.util.LogUtil;
 import kr.toxicity.model.api.util.ThreadUtil;
@@ -507,7 +510,7 @@ public final class EntityTrackerRegistry {
     public Map<UUID, MountedHitBox> mountedHitBox() {
         return mountedHitBox;
     }
-    
+
     /**
      * Checks this tracker has passenger
      * @return has passenger

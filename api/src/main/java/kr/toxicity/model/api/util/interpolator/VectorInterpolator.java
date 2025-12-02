@@ -15,9 +15,6 @@ import org.joml.Vector3f;
 import java.util.List;
 
 import static kr.toxicity.model.api.util.InterpolationUtil.*;
-import static kr.toxicity.model.api.util.InterpolationUtil.alpha;
-import static kr.toxicity.model.api.util.InterpolationUtil.bezier;
-import static kr.toxicity.model.api.util.InterpolationUtil.lerp;
 
 /**
  * Interpolator
@@ -38,9 +35,9 @@ public enum VectorInterpolator {
             var t2 = p2.time();
             var a = alpha(t1, t2, time);
             return lerp(
-                    p1.vector(lerp(t1, t2, a)),
-                    p2.vector(),
-                    a
+                p1.vector(lerp(t1, t2, a)),
+                p2.vector(),
+                a
             );
         }
     },
@@ -68,11 +65,11 @@ public enum VectorInterpolator {
             var a = alpha(t1, t2, time);
 
             return catmull_rom(
-                    p0.vector(),
-                    p1.vector(lerp(t1, t2, a)),
-                    p2.vector(),
-                    p3.vector(),
-                    a
+                p0.vector(),
+                p1.vector(lerp(t1, t2, a)),
+                p2.vector(),
+                p3.vector(),
+                a
             );
         }
     },
@@ -92,13 +89,13 @@ public enum VectorInterpolator {
             var a = alpha(t1, t2, time);
 
             return bezier(
-                    a,
-                    p1.vector(lerp(t1, t2, a)),
-                    p2.vector(),
-                    p1.bezier().rightTime(),
-                    p1.bezier().rightValue(),
-                    p2.bezier().leftTime(),
-                    p2.bezier().leftValue()
+                a,
+                p1.vector(lerp(t1, t2, a)),
+                p2.vector(),
+                p1.bezier().rightTime(),
+                p1.bezier().rightValue(),
+                p2.bezier().leftTime(),
+                p2.bezier().leftValue()
             );
         }
     },

@@ -19,19 +19,19 @@ import java.util.stream.Stream;
  * @param glowing whether to hide entity's glowing state
  */
 public record EntityHideOption(
-        boolean equipment,
-        boolean fire,
-        boolean visibility,
-        boolean glowing
+    boolean equipment,
+    boolean fire,
+    boolean visibility,
+    boolean glowing
 ) {
     /**
      * Default option
      */
     public static final EntityHideOption DEFAULT = new EntityHideOption(
-            true,
-            true,
-            true,
-            true
+        true,
+        true,
+        true,
+        true
     );
     /**
      * Disabled option
@@ -45,8 +45,8 @@ public record EntityHideOption(
      */
     public static @NotNull EntityHideOption composite(@NotNull Stream<EntityHideOption> options) {
         return builder()
-                .composite(options)
-                .build();
+            .composite(options)
+            .build();
     }
 
     /**
@@ -56,10 +56,10 @@ public record EntityHideOption(
      */
     public static @NotNull EntityHideOption deserialize(@NotNull JsonArray array) {
         return new EntityHideOption(
-                array.get(0).getAsBoolean(),
-                array.get(1).getAsBoolean(),
-                array.get(2).getAsBoolean(),
-                array.get(3).getAsBoolean()
+            array.get(0).getAsBoolean(),
+            array.get(1).getAsBoolean(),
+            array.get(2).getAsBoolean(),
+            array.get(3).getAsBoolean()
         );
     }
 
@@ -129,10 +129,10 @@ public record EntityHideOption(
          */
         public @NotNull EntityHideOption build() {
             return new EntityHideOption(
-                    equipment,
-                    fire,
-                    visibility,
-                    glowing
+                equipment,
+                fire,
+                visibility,
+                glowing
             );
         }
     }

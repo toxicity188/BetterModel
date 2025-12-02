@@ -6,19 +6,19 @@
  */
 package kr.toxicity.model.nms.v1_21_R2
 
-import com.mojang.authlib.GameProfile
 import kr.toxicity.model.api.armor.PlayerArmor
 import kr.toxicity.model.api.entity.BaseBukkitEntity
 import kr.toxicity.model.api.entity.BaseBukkitPlayer
 import kr.toxicity.model.api.nms.Profiled
 import kr.toxicity.model.api.player.PlayerSkinParts
+import kr.toxicity.model.api.profile.ModelProfile
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.entity.Player
 import java.util.stream.Stream
 
 class BasePlayerImpl(
     private val delegate: CraftPlayer,
-    private val profile: () -> GameProfile,
+    private val profile: () -> ModelProfile,
     private val skinParts: () -> PlayerSkinParts
 ) : BaseBukkitEntity by BaseEntityImpl(delegate), BaseBukkitPlayer, Profiled by ProfiledImpl(PlayerArmor.EMPTY, profile, skinParts) {
     override fun updateInventory() {

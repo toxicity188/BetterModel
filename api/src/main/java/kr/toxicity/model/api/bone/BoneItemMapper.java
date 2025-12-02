@@ -19,10 +19,10 @@ import java.util.function.Function;
 /**
  * Item-mapper of bone
  */
-public interface BoneItemMapper extends BiFunction<RenderSource<?>, TransformedItemStack, TransformedItemStack> {
+public interface BoneItemMapper extends BiFunction<BoneRenderContext, TransformedItemStack, TransformedItemStack> {
 
     @Override
-    @NotNull TransformedItemStack apply(@NotNull RenderSource<?> renderSource, @NotNull TransformedItemStack transformedItemStack);
+    @NotNull TransformedItemStack apply(@NotNull BoneRenderContext context, @NotNull TransformedItemStack transformedItemStack);
 
     /**
      * Empty
@@ -36,7 +36,7 @@ public interface BoneItemMapper extends BiFunction<RenderSource<?>, TransformedI
 
         @Override
         @NotNull
-        public TransformedItemStack apply(@NotNull RenderSource<?> source, @NotNull TransformedItemStack transformedItemStack) {
+        public TransformedItemStack apply(@NotNull BoneRenderContext context, @NotNull TransformedItemStack transformedItemStack) {
             return transformedItemStack;
         }
     };
@@ -59,8 +59,8 @@ public interface BoneItemMapper extends BiFunction<RenderSource<?>, TransformedI
             }
 
             @Override
-            public @NotNull TransformedItemStack apply(@NotNull RenderSource renderSource, @NotNull TransformedItemStack transformedItemStack) {
-                if (renderSource instanceof RenderSource.BasePlayer(Player player)) {
+            public @NotNull TransformedItemStack apply(@NotNull BoneRenderContext context, @NotNull TransformedItemStack transformedItemStack) {
+                if (context.source() instanceof RenderSource.BasePlayer(Player player)) {
                     var get = mapper.apply(player);
                     return get == null ? AIR : get;
                 }
@@ -87,8 +87,8 @@ public interface BoneItemMapper extends BiFunction<RenderSource<?>, TransformedI
             }
 
             @Override
-            public @NotNull TransformedItemStack apply(@NotNull RenderSource renderSource, @NotNull TransformedItemStack transformedItemStack) {
-                if (renderSource instanceof RenderSource.Entity entity) {
+            public @NotNull TransformedItemStack apply(@NotNull BoneRenderContext context, @NotNull TransformedItemStack transformedItemStack) {
+                if (context.source() instanceof RenderSource.Entity entity) {
                     var get = mapper.apply(entity.entity());
                     return get == null ? AIR : get;
                 }
