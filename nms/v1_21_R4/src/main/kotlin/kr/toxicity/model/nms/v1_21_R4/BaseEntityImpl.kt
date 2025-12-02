@@ -20,7 +20,7 @@ import org.joml.Vector3f
 import java.util.*
 import java.util.stream.Stream
 
-class BaseEntityImpl(
+internal data class BaseEntityImpl(
     private val delegate: CraftEntity
 ) : BaseBukkitEntity, PersistentDataHolder by delegate {
     override fun customName(): AdventureComponent? = handle().run {

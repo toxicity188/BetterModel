@@ -11,7 +11,7 @@ import kr.toxicity.model.api.nms.Profiled
 import kr.toxicity.model.api.player.PlayerSkinParts
 import kr.toxicity.model.api.profile.ModelProfile
 
-class ProfiledImpl(
+internal class ProfiledImpl(
     private val playerArmor: PlayerArmor,
     private val modelProfile: () -> ModelProfile,
     private val playerSkinParts: () -> PlayerSkinParts

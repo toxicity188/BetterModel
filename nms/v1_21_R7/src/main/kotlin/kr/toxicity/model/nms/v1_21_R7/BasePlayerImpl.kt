@@ -15,7 +15,7 @@ import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.entity.Player
 import java.util.stream.Stream
 
-class BasePlayerImpl(
+internal data class BasePlayerImpl(
     private val delegate: CraftPlayer,
     private val profile: () -> ModelProfile,
     private val skinParts: () -> PlayerSkinParts

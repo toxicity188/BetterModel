@@ -14,7 +14,7 @@ import net.minecraft.world.item.component.DyedItemColor
 import net.minecraft.world.item.equipment.EquipmentAssets
 import org.bukkit.craftbukkit.entity.CraftPlayer
 
-class PlayerArmorImpl(
+internal data class PlayerArmorImpl(
     private val player: CraftPlayer
 ) : PlayerArmor {
 
