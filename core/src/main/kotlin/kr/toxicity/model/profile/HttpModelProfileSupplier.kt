@@ -71,7 +71,7 @@ class HttpModelProfileSupplier : ModelProfileSupplier {
                                 .getAsJsonPrimitive("id")
                                 .asString
                         }
-                    } ?: CompletableFuture.completedFuture(info.id.toString().replace("-", ""))).thenCompose {
+                    } ?: CompletableFuture.completedFuture(info.id.toString().replace("-", ""))).thenComposeAsync {
                         sendAsync(
                             buildHttpRequest {
                                 GET()
@@ -79,7 +79,7 @@ class HttpModelProfileSupplier : ModelProfileSupplier {
                             },
                             HttpResponse.BodyHandlers.ofInputStream()
                         )
-                    }.thenApply {
+                    }.thenApplyAsync {
                         it.body().use { body ->
                             body.reader().use(::read)
                         }.let { profile ->

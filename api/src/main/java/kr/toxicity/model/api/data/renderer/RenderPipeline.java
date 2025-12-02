@@ -330,14 +330,14 @@ public final class RenderPipeline implements BoneEventHandler {
     @RequiredArgsConstructor
     public class SpawnedPlayer {
         private final PlayerChannelHandler handler;
-        private volatile boolean initialLoad;
+        private boolean initialLoad;
 
         public void load() {
+            initialLoad = true;
             if (isHide(handler.player())) return;
             var b = createBundler();
             iterateTree(bone -> bone.forceUpdate(b));
             if (b.isNotEmpty()) b.send(handler.player());
-            initialLoad = true;
         }
     }
 }
