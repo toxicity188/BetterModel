@@ -404,10 +404,10 @@ object SkinManagerImpl : SkinManager, GlobalManager {
             UVSpace(4, 6, 4),
             UVElement.ColorType.RGB,
             mapOf(
-                UVFace.NORTH to UVPos(44, 24),
-                UVFace.SOUTH to UVPos(52, 24),
-                UVFace.EAST to UVPos(40, 24),
-                UVFace.WEST to UVPos(48, 24),
+                UVFace.NORTH to UVPos(44, 26),
+                UVFace.SOUTH to UVPos(52, 26),
+                UVFace.EAST to UVPos(40, 26),
+                UVFace.WEST to UVPos(48, 26),
                 UVFace.DOWN to UVPos(48, 16)
             )
         )
@@ -418,10 +418,10 @@ object SkinManagerImpl : SkinManager, GlobalManager {
             UVSpace(4, 6, 4),
             UVElement.ColorType.ARGB,
             mapOf(
-                UVFace.NORTH to UVPos(44, 24 + 16),
-                UVFace.SOUTH to UVPos(52, 24 + 16),
-                UVFace.EAST to UVPos(40, 24 + 16),
-                UVFace.WEST to UVPos(48, 24 + 16),
+                UVFace.NORTH to UVPos(44, 26 + 16),
+                UVFace.SOUTH to UVPos(52, 26 + 16),
+                UVFace.EAST to UVPos(40, 26 + 16),
+                UVFace.WEST to UVPos(48, 26 + 16),
                 UVFace.DOWN to UVPos(48, 16 + 16)
             )
         )
@@ -532,10 +532,10 @@ object SkinManagerImpl : SkinManager, GlobalManager {
             UVSpace(3, 6, 4),
             UVElement.ColorType.RGB,
             mapOf(
-                UVFace.NORTH to UVPos(44, 24),
-                UVFace.SOUTH to UVPos(51, 24),
-                UVFace.EAST to UVPos(40, 24),
-                UVFace.WEST to UVPos(47, 24),
+                UVFace.NORTH to UVPos(44, 26),
+                UVFace.SOUTH to UVPos(51, 26),
+                UVFace.EAST to UVPos(40, 26),
+                UVFace.WEST to UVPos(47, 26),
                 UVFace.DOWN to UVPos(47, 16)
             )
         )
@@ -546,10 +546,10 @@ object SkinManagerImpl : SkinManager, GlobalManager {
             UVSpace(3, 6, 4),
             UVElement.ColorType.ARGB,
             mapOf(
-                UVFace.NORTH to UVPos(44, 24 + 16),
-                UVFace.SOUTH to UVPos(51, 24 + 16),
-                UVFace.EAST to UVPos(40, 24 + 16),
-                UVFace.WEST to UVPos(47, 24 + 16),
+                UVFace.NORTH to UVPos(44, 26 + 16),
+                UVFace.SOUTH to UVPos(51, 26 + 16),
+                UVFace.EAST to UVPos(40, 26 + 16),
+                UVFace.WEST to UVPos(47, 26 + 16),
                 UVFace.DOWN to UVPos(47, 16 + 16)
             )
         )
