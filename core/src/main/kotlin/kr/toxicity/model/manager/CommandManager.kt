@@ -12,6 +12,7 @@ import kr.toxicity.model.api.animation.AnimationIterator
 import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.tracker.EntityHideOption
+import kr.toxicity.model.api.tracker.ModelScaler
 import kr.toxicity.model.api.tracker.Tracker
 import kr.toxicity.model.api.tracker.TrackerModifier
 import kr.toxicity.model.api.version.MinecraftVersion
@@ -24,20 +25,20 @@ import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.util.Vector
 import org.incendo.cloud.bukkit.data.MultipleEntitySelector
-import org.incendo.cloud.bukkit.parser.PlayerParser
-import org.incendo.cloud.bukkit.parser.location.LocationParser
-import org.incendo.cloud.bukkit.parser.selector.MultipleEntitySelectorParser
+import org.incendo.cloud.bukkit.parser.PlayerParser.playerParser
+import org.incendo.cloud.bukkit.parser.location.LocationParser.locationParser
+import org.incendo.cloud.bukkit.parser.selector.MultipleEntitySelectorParser.multipleEntitySelectorParser
 import org.incendo.cloud.context.CommandContext
-import org.incendo.cloud.parser.standard.BooleanParser
-import org.incendo.cloud.parser.standard.DoubleParser
-import org.incendo.cloud.parser.standard.EnumParser
-import org.incendo.cloud.parser.standard.StringParser
-import org.incendo.cloud.suggestion.SuggestionProvider
+import org.incendo.cloud.parser.standard.BooleanParser.booleanParser
+import org.incendo.cloud.parser.standard.DoubleParser.doubleParser
+import org.incendo.cloud.parser.standard.EnumParser.enumParser
+import org.incendo.cloud.parser.standard.StringParser.stringParser
+import org.incendo.cloud.suggestion.SuggestionProvider.blockingStrings
 
 object CommandManager : GlobalManager {
 
-    private val modelSuggestion = SuggestionProvider.blockingStrings<CommandSender> { _, _ -> BetterModel.modelKeys() }
-    private val limbSuggestion = SuggestionProvider.blockingStrings<CommandSender> { _, _ -> BetterModel.limbKeys() }
+    private val modelSuggestion = blockingStrings<CommandSender> { _, _ -> BetterModel.modelKeys() }
+    private val limbSuggestion = blockingStrings<CommandSender> { _, _ -> BetterModel.limbKeys() }
 
     override fun start() {
         command(
@@ -57,10 +58,10 @@ object CommandManager : GlobalManager {
                 "Summons some model to given type",
                 "s"
             ) {
-                required("model", StringParser.stringParser(), modelSuggestion)
-                    .optional("type", EnumParser.enumParser(EntityType::class.java))
-                    .optional("scale", DoubleParser.doubleParser(0.0625, 16.0))
-                    .optional("location", LocationParser.locationParser())
+                required("model", stringParser(), modelSuggestion)
+                    .optional("type", enumParser(EntityType::class.java))
+                    .optional("scale", doubleParser(0.0625, 16.0))
+                    .optional("location", locationParser())
                     .senderType(Player::class.java)
                     .handler(::spawn)
             }
@@ -69,14 +70,14 @@ object CommandManager : GlobalManager {
                 "Tests some model's animation to specific player",
                 "t"
             ) {
-                required("model", StringParser.stringParser(), modelSuggestion)
+                required("model", stringParser(), modelSuggestion)
                     .required(
                         "animation",
-                        StringParser.stringParser(),
-                        SuggestionProvider.blockingStrings { ctx, _ -> ctx.nullableString("model") { BetterModel.modelOrNull(it)?.animations()?.keys } ?: emptySet()  }
+                        stringParser(),
+                        blockingStrings { ctx, _ -> ctx.nullableString("model") { BetterModel.modelOrNull(it)?.animations()?.keys } ?: emptySet()  }
                     )
-                    .optional("player", PlayerParser.playerParser())
-                    .optional("location", LocationParser.locationParser())
+                    .optional("player", playerParser())
+                    .optional("location", locationParser())
                     .handler(::test)
             }
             create(
@@ -84,7 +85,8 @@ object CommandManager : GlobalManager {
                 "Disguises self.",
                 "d"
             ) {
-                required("model", StringParser.stringParser(), modelSuggestion)
+                required("model", stringParser(), modelSuggestion)
+                    .optional("scaling", booleanParser())
                     .senderType(Player::class.java)
                     .handler(::disguise)
             }
@@ -94,7 +96,7 @@ object CommandManager : GlobalManager {
                 "ud"
             ) {
                 senderType(Player::class.java)
-                    .optional("model", StringParser.stringParser(), SuggestionProvider.blockingStrings { ctx, _ -> ctx.sender().toRegistry()?.trackers()?.map(Tracker::name) ?: emptyList() })
+                    .optional("model", stringParser(), blockingStrings { ctx, _ -> ctx.sender().toRegistry()?.trackers()?.map(Tracker::name) ?: emptyList() })
                     .handler(::undisguise)
             }
             create(
@@ -102,14 +104,14 @@ object CommandManager : GlobalManager {
                 "Plays player animation",
                 "p"
             ) {
-                required("limb", StringParser.stringParser(), limbSuggestion)
+                required("limb", stringParser(), limbSuggestion)
                     .required(
                         "animation",
-                        StringParser.stringParser(),
-                        SuggestionProvider.blockingStrings { ctx, _ -> ctx.nullableString("limb") { BetterModel.limbOrNull(it)?.animations()?.keys } ?: emptySet()  }
+                        stringParser(),
+                        blockingStrings { ctx, _ -> ctx.nullableString("limb") { BetterModel.limbOrNull(it)?.animations()?.keys } ?: emptySet()  }
                     )
-                    .optional("loop_type", EnumParser.enumParser(AnimationIterator.Type::class.java))
-                    .optional("hide", BooleanParser.booleanParser())
+                    .optional("loop_type", enumParser(AnimationIterator.Type::class.java))
+                    .optional("hide", booleanParser())
                     .senderType(Player::class.java)
                     .handler(::play)
             }
@@ -117,18 +119,18 @@ object CommandManager : GlobalManager {
                 "hide",
                 "Hides some entities from target player."
             ) {
-                required("model", StringParser.stringParser(), modelSuggestion)
-                    .required("player", PlayerParser.playerParser())
-                    .required("entities", MultipleEntitySelectorParser.multipleEntitySelectorParser())
+                required("model", stringParser(), modelSuggestion)
+                    .required("player", playerParser())
+                    .required("entities", multipleEntitySelectorParser())
                     .handler(::hide)
             }
             create(
                 "show",
                 "Shows some entities to target player."
             ) {
-                required("model", StringParser.stringParser(), modelSuggestion)
-                    .required("player", PlayerParser.playerParser())
-                    .required("entities", MultipleEntitySelectorParser.multipleEntitySelectorParser())
+                required("model", stringParser(), modelSuggestion)
+                    .required("player", playerParser())
+                    .required("entities", multipleEntitySelectorParser())
                     .handler(::show)
             }
             create(
@@ -165,7 +167,10 @@ object CommandManager : GlobalManager {
 
     private fun disguise(context: CommandContext<Player>) {
         val player = context.sender()
-        context.model("model") { return player.audience().warn("Unable to find this model: $it") }.getOrCreate(player)
+        val scaling = if (context.getOrDefault("scaling", true)) ModelScaler.entity() else ModelScaler.defaultScaler()
+        context.model("model") { return player.audience().warn("Unable to find this model: $it") }.getOrCreate(player, TrackerModifier.DEFAULT) {
+            it.scaler(scaling)
+        }
     }
 
     private fun undisguise(context: CommandContext<Player>) {

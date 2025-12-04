@@ -177,7 +177,10 @@ object EntityManager : GlobalManager {
     }
 
     override fun end() {
-        EntityTrackerRegistry.registries(EntityTrackerRegistry::save)
+        EntityTrackerRegistry.registries {
+            it.save()
+            it.close()
+        }
     }
 
     //Extension
