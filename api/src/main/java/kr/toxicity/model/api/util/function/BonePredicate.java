@@ -163,8 +163,24 @@ public interface BonePredicate extends Predicate<RenderedBone> {
          * Builds with child state
          * @return bone predicate
          */
-        default @NotNull BonePredicate build() {
+        default @NotNull BonePredicate notSet() {
             return build(State.NOT_SET);
+        }
+
+        /**
+         * Builds with applying children bone
+         * @return bone predicate
+         */
+        default @NotNull BonePredicate withChildren() {
+            return build(State.TRUE);
+        }
+
+        /**
+         * Builds without applying children bone
+         * @return bone predicate
+         */
+        default @NotNull BonePredicate withoutChildren() {
+            return build(State.FALSE);
         }
 
         /**

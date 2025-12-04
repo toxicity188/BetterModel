@@ -49,12 +49,12 @@ public class EntityTracker extends Tracker {
     private static final BonePredicate CREATE_HITBOX_PREDICATE = BonePredicate.name("hitbox")
         .or(BonePredicate.tag(BoneTags.HITBOX))
         .or(b -> b.getGroup().getMountController().canMount())
-        .build();
+        .notSet();
 
-    private static final BonePredicate CREATE_NAMETAG_PREDICATE = BonePredicate.tag(BoneTags.TAG, BoneTags.MOB_TAG, BoneTags.PLAYER_TAG).build();
+    private static final BonePredicate CREATE_NAMETAG_PREDICATE = BonePredicate.tag(BoneTags.TAG, BoneTags.MOB_TAG, BoneTags.PLAYER_TAG).notSet();
     private static final BonePredicate HITBOX_REFRESH_PREDICATE = BonePredicate.from(r -> r.getHitBox() != null);
-    private static final BonePredicate HEAD_PREDICATE = BonePredicate.tag(BoneTags.HEAD).build();
-    private static final BonePredicate HEAD_WITH_CHILDREN_PREDICATE = BonePredicate.tag(BoneTags.HEAD_WITH_CHILDREN).build(BonePredicate.State.TRUE);
+    private static final BonePredicate HEAD_PREDICATE = BonePredicate.tag(BoneTags.HEAD).notSet();
+    private static final BonePredicate HEAD_WITH_CHILDREN_PREDICATE = BonePredicate.tag(BoneTags.HEAD_WITH_CHILDREN).withChildren();
 
     private final EntityTrackerRegistry registry;
 
