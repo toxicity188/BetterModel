@@ -46,11 +46,15 @@ import java.util.function.Predicate;
  */
 public class EntityTracker extends Tracker {
 
-    private static final BonePredicate CREATE_HITBOX_PREDICATE = BonePredicate.from(b -> b.name().name().equals("hitbox")
-        || b.name().tagged(BoneTags.HITBOX)
-        || b.getGroup().getMountController().canMount());
-    private static final BonePredicate CREATE_NAMETAG_PREDICATE = BonePredicate.from(b -> b.name().tagged(BoneTags.TAG, BoneTags.MOB_TAG, BoneTags.PLAYER_TAG));
+    private static final BonePredicate CREATE_HITBOX_PREDICATE = BonePredicate.name("hitbox")
+        .or(BonePredicate.tag(BoneTags.HITBOX))
+        .or(b -> b.getGroup().getMountController().canMount())
+        .build();
+
+    private static final BonePredicate CREATE_NAMETAG_PREDICATE = BonePredicate.tag(BoneTags.TAG, BoneTags.MOB_TAG, BoneTags.PLAYER_TAG).build();
     private static final BonePredicate HITBOX_REFRESH_PREDICATE = BonePredicate.from(r -> r.getHitBox() != null);
+    private static final BonePredicate HEAD_PREDICATE = BonePredicate.tag(BoneTags.HEAD).build();
+    private static final BonePredicate HEAD_WITH_CHILDREN_PREDICATE = BonePredicate.tag(BoneTags.HEAD_WITH_CHILDREN).build(BonePredicate.State.TRUE);
 
     private final EntityTrackerRegistry registry;
 
@@ -103,14 +107,9 @@ public class EntityTracker extends Tracker {
         pipeline.defaultPosition(FunctionUtil.throttleTick(() -> entity.passengerPosition().mul(-1)));
         pipeline.scale(scale);
         Function<Quaternionf, Quaternionf> headRotator = r -> r.mul(MathUtil.toQuaternion(bodyRotator.headRotation()));
-        pipeline.addRotationModifier(
-            BonePredicate.of(BonePredicate.State.NOT_SET, r -> r.name().tagged(BoneTags.HEAD)),
-            headRotator
-        );
-        pipeline.addRotationModifier(
-            BonePredicate.of(BonePredicate.State.TRUE, r -> r.name().tagged(BoneTags.HEAD_WITH_CHILDREN)),
-            headRotator
-        );
+
+        pipeline.addRotationModifier(HEAD_PREDICATE, headRotator);
+        pipeline.addRotationModifier(HEAD_WITH_CHILDREN_PREDICATE, headRotator);
 
         var damageTickProvider = FunctionUtil.throttleTickFloat(entity::damageTick);
         var walkSupplier = FunctionUtil.throttleTickBoolean(() -> entity.onWalk() || damageTickProvider.getAsFloat() > 0.25 || pipeline.bones().stream().anyMatch(e -> {

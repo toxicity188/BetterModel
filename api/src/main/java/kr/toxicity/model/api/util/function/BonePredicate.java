@@ -6,6 +6,7 @@
  */
 package kr.toxicity.model.api.util.function;
 
+import kr.toxicity.model.api.bone.BoneTag;
 import kr.toxicity.model.api.bone.RenderedBone;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +28,25 @@ public interface BonePredicate extends Predicate<RenderedBone> {
      * False
      */
     BonePredicate FALSE = of(State.FALSE, b -> false);
+
+    /**
+     * Gets builder by name
+     * @param name name
+     * @return builder
+     */
+    static @NotNull Builder name(@NotNull String name) {
+        return b -> b.name().name().equalsIgnoreCase(name);
+    }
+
+    /**
+     * Gets builder by tags
+     * @param tags tags
+     * @return builder
+     */
+    static @NotNull Builder tag(@NotNull BoneTag... tags) {
+        if (tags.length == 0) throw new RuntimeException("tags cannot be empty.");
+        return b -> b.name().tagged(tags);
+    }
 
     @Override
     boolean test(@NotNull RenderedBone bone);
@@ -131,5 +151,47 @@ public interface BonePredicate extends Predicate<RenderedBone> {
             case FALSE -> BonePredicate.FALSE;
             case NOT_SET -> this;
         } : this;
+    }
+
+    /**
+     * Builder
+     */
+    @FunctionalInterface
+    interface Builder extends Predicate<RenderedBone> {
+
+        /**
+         * Builds with child state
+         * @return bone predicate
+         */
+        default @NotNull BonePredicate build() {
+            return build(State.NOT_SET);
+        }
+
+        /**
+         * Builds with child state
+         * @param state state
+         * @return bone predicate
+         */
+        default @NotNull BonePredicate build(@NotNull State state) {
+            return of(state, this);
+        }
+
+        @Override
+        @NotNull
+        default Builder and(@NotNull Predicate<? super RenderedBone> other) {
+            return bone -> test(bone) && other.test(bone);
+        }
+
+        @Override
+        @NotNull
+        default Builder or(@NotNull Predicate<? super RenderedBone> other) {
+            return bone -> test(bone) || other.test(bone);
+        }
+
+        @Override
+        @NotNull
+        default Builder negate() {
+            return bone -> !test(bone);
+        }
     }
 }

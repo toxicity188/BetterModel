@@ -672,7 +672,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return bone or null
      */
     public @Nullable RenderedBone bone(@NotNull String name) {
-        return bone(b -> b.name().name().equalsIgnoreCase(name));
+        return bone(BonePredicate.name(name));
     }
 
     /**
