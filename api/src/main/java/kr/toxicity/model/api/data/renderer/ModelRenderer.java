@@ -6,7 +6,6 @@
  */
 package kr.toxicity.model.api.data.renderer;
 
-import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.entity.BaseEntity;
@@ -221,7 +220,7 @@ public record ModelRenderer(
      * @return entity tracker
      */
     public @NotNull EntityTracker create(@NotNull Entity entity) {
-        return create(BetterModel.nms().adapt(entity));
+        return create(BaseEntity.of(entity));
     }
 
     /**
@@ -232,7 +231,7 @@ public record ModelRenderer(
      * @return entity tracker
      */
     public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull TrackerModifier modifier) {
-        return create(BetterModel.nms().adapt(entity), modifier);
+        return create(BaseEntity.of(entity), modifier);
     }
 
     /**
@@ -244,7 +243,7 @@ public record ModelRenderer(
      * @return entity tracker
      */
     public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
-        return create(BetterModel.nms().adapt(entity), modifier, preUpdateConsumer);
+        return create(BaseEntity.of(entity), modifier, preUpdateConsumer);
     }
 
     /**
@@ -255,7 +254,7 @@ public record ModelRenderer(
      * @return entity tracker
      */
     public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull ModelProfile.Uncompleted profile) {
-        return create(BetterModel.nms().adapt(entity), profile);
+        return create(BaseEntity.of(entity), profile);
     }
 
     /**
@@ -267,7 +266,7 @@ public record ModelRenderer(
      * @return entity tracker
      */
     public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier) {
-        return create(BetterModel.nms().adapt(entity), profile, modifier);
+        return create(BaseEntity.of(entity), profile, modifier);
     }
 
     /**
@@ -280,7 +279,7 @@ public record ModelRenderer(
      * @return entity tracker
      */
     public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
-        return create(BetterModel.nms().adapt(entity), profile, modifier, preUpdateConsumer);
+        return create(BaseEntity.of(entity), profile, modifier, preUpdateConsumer);
     }
 
     /**
@@ -290,7 +289,7 @@ public record ModelRenderer(
      * @return entity tracker
      */
     public @NotNull EntityTracker getOrCreate(@NotNull Entity entity) {
-        return getOrCreate(BetterModel.nms().adapt(entity));
+        return getOrCreate(BaseEntity.of(entity));
     }
 
     /**
@@ -301,7 +300,7 @@ public record ModelRenderer(
      * @return entity tracker
      */
     public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull TrackerModifier modifier) {
-        return getOrCreate(BetterModel.nms().adapt(entity), modifier);
+        return getOrCreate(BaseEntity.of(entity), modifier);
     }
 
     /**
@@ -313,7 +312,7 @@ public record ModelRenderer(
      * @return entity tracker
      */
     public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
-        return getOrCreate(BetterModel.nms().adapt(entity), modifier, preUpdateConsumer);
+        return getOrCreate(BaseEntity.of(entity), modifier, preUpdateConsumer);
     }
 
     /**
@@ -360,7 +359,7 @@ public record ModelRenderer(
      * @return entity tracker
      */
     public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull ModelProfile.Uncompleted profile) {
-        return getOrCreate(BetterModel.nms().adapt(entity), profile);
+        return getOrCreate(BaseEntity.of(entity), profile);
     }
 
     /**
@@ -372,7 +371,7 @@ public record ModelRenderer(
      * @return entity tracker
      */
     public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier) {
-        return getOrCreate(BetterModel.nms().adapt(entity), profile, modifier);
+        return getOrCreate(BaseEntity.of(entity), profile, modifier);
     }
 
     /**
@@ -385,7 +384,7 @@ public record ModelRenderer(
      * @return entity tracker
      */
     public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
-        return getOrCreate(BetterModel.nms().adapt(entity), profile, modifier, preUpdateConsumer);
+        return getOrCreate(BaseEntity.of(entity), profile, modifier, preUpdateConsumer);
     }
 
     /**

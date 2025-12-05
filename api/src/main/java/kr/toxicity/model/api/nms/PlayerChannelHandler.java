@@ -6,20 +6,41 @@
  */
 package kr.toxicity.model.api.nms;
 
+import kr.toxicity.model.api.entity.BaseBukkitPlayer;
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.UUID;
+
 /**
  * A player channel
  */
-public interface PlayerChannelHandler extends AutoCloseable, Identifiable, Profiled {
+public interface PlayerChannelHandler extends Identifiable, AutoCloseable {
 
     /**
      * Gets Bukkit player
      * @return player
      */
-    @NotNull Player player();
+    default @NotNull Player player() {
+        return base().entity();
+    }
+
+    @Override
+    default @NotNull UUID uuid() {
+        return base().uuid();
+    }
+
+    @Override
+    default int id() {
+        return base().id();
+    }
+
+    /**
+     * Gets base player
+     * @return base player
+     */
+    @NotNull BaseBukkitPlayer base();
 
     /**
      * Sends correct entity data of this tracker

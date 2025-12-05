@@ -52,7 +52,7 @@ public interface ModelProfile {
      */
     static @NotNull ModelProfile of(@NotNull Player player) {
         var channel = BetterModel.plugin().playerManager().player(player.getUniqueId());
-        return channel != null ? channel.profile() : BetterModel.nms().profile(player);
+        return channel != null ? channel.base().profile() : BetterModel.nms().profile(player);
     }
 
     /**

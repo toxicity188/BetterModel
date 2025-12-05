@@ -38,7 +38,7 @@ object PlayerManagerImpl : PlayerManager, GlobalManager {
             @EventHandler(priority = EventPriority.MONITOR)
             fun PlayerQuitEvent.quit() {
                 playerMap.remove(player.uniqueId)?.use {
-                    SkinManagerImpl.removeCache(it.profile())
+                    SkinManagerImpl.removeCache(it.base().profile())
                 }
             }
         })
@@ -47,7 +47,7 @@ object PlayerManagerImpl : PlayerManager, GlobalManager {
     private fun Player.register() = playerMap.computeIfAbsent(uniqueId) {
         PLUGIN.nms().inject(this)
     }.apply {
-        SkinManagerImpl.complete(profile().asUncompleted())
+        SkinManagerImpl.complete(base().profile().asUncompleted())
     }
 
     override fun reload(pipeline: ReloadPipeline, zipper: PackZipper) {
@@ -55,7 +55,7 @@ object PlayerManagerImpl : PlayerManager, GlobalManager {
 
     override fun end() {
         playerMap.values.removeIf {
-            it.use { used -> SkinManagerImpl.removeCache(used.profile()) }
+            it.use { used -> SkinManagerImpl.removeCache(used.base().profile()) }
             true
         }
     }

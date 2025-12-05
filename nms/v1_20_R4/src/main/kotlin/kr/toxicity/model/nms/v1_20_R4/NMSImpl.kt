@@ -13,12 +13,14 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
 import io.papermc.paper.chunk.system.entity.EntityLookup
 import kr.toxicity.model.api.BetterModel
-import kr.toxicity.model.api.armor.PlayerArmor
 import kr.toxicity.model.api.bone.RenderedBone
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox
+import kr.toxicity.model.api.entity.BaseBukkitEntity
+import kr.toxicity.model.api.entity.BaseBukkitPlayer
 import kr.toxicity.model.api.entity.BaseEntity
 import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.nms.*
+import kr.toxicity.model.api.player.PlayerSkinParts
 import kr.toxicity.model.api.profile.ModelProfile
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.tracker.TrackerUpdateAction
@@ -124,28 +126,25 @@ class NMSImpl : NMS {
 
     inner class PlayerChannelHandlerImpl(
         private val player: CraftPlayer
-    ) : PlayerChannelHandler, ChannelDuplexHandler(), Profiled by ProfiledImpl(
-        PlayerArmor.EMPTY,
-        { profile(player) },
-        { player.handle.toCustomisation() }
-    ) {
+    ) : PlayerChannelHandler, ChannelDuplexHandler() {
         private val connection = player.handle.connection
         private val uuid = player.uniqueId
+        private val base = adapt(player)
 
         init {
             val pipeline = getConnection(connection).channel.pipeline()
             pipeline.addBefore(pipeline.first { it.value is Connection }.key, INJECT_NAME, this)
         }
 
-        override fun id(): Int = connection.player.id
-        override fun uuid(): UUID = uuid
         override fun close() {
             val channel = getConnection(connection).channel
             channel.eventLoop().submit {
                 channel.pipeline().remove(INJECT_NAME)
             }
         }
-        override fun player(): Player = player
+
+        override fun base(): BaseBukkitPlayer = base
+
         private val playerModel get() = connection.player.id.toRegistry()
 
         private fun Int.toPlayerEntity() = toEntity(connection.player.serverLevel())
@@ -350,9 +349,18 @@ class NMSImpl : NMS {
 
     override fun version(): NMSVersion = NMSVersion.V1_20_R4
 
-    override fun adapt(entity: org.bukkit.entity.Entity): BaseEntity {
+    override fun adapt(entity: org.bukkit.entity.Entity): BaseBukkitEntity {
         entity as CraftEntity
-        return if (entity is CraftPlayer) BasePlayerImpl(entity, { profile(entity) }) { entity.handle.toCustomisation() } else BaseEntityImpl(entity)
+        return BaseEntityImpl(entity)
+    }
+
+    override fun adapt(player: Player): BaseBukkitPlayer {
+        player as CraftPlayer
+        return BasePlayerImpl(
+            player,
+            dirtyChecked({ getGameProfile(player.handle) }, { ModelGameProfile(it) }),
+            dirtyChecked({ player.handle.toCustomisation() }, { PlayerSkinParts(it) })
+        )
     }
 
     override fun profile(player: Player): ModelProfile = ModelGameProfile(getGameProfile((player as CraftPlayer).handle))

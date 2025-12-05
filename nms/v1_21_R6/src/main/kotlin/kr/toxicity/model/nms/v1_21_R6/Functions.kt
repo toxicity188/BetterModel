@@ -11,7 +11,6 @@ import io.papermc.paper.adventure.PaperAdventure
 import io.papermc.paper.configuration.GlobalConfiguration
 import it.unimi.dsi.fastutil.ints.IntSet
 import kr.toxicity.model.api.BetterModel
-import kr.toxicity.model.api.player.PlayerSkinParts
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.util.EventUtil
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
@@ -50,6 +49,20 @@ internal inline fun <reified T, reified R> createAdaptedFieldGetter(): (T) -> R 
     }.let { getter ->
         { t ->
             getter[t] as R
+        }
+    }
+}
+
+internal fun <H, T> dirtyChecked(hash: () -> H, function: (H) -> T): () -> T {
+    val lock = Any()
+    var h = hash()
+    var value = function(h)
+    return {
+        val newH = hash()
+        if (h == newH) value else synchronized(lock) {
+            h = newH
+            value = function(h)
+            value
         }
     }
 }
@@ -187,7 +200,7 @@ internal fun Entity.toFakeAddPacket() = ClientboundAddEntityPacket(
     yHeadRot.toDouble()
 )
 
-internal fun Avatar.toCustomisation() = PlayerSkinParts(entityData.get(Avatar.DATA_PLAYER_MODE_CUSTOMISATION).toInt())
+internal fun Avatar.toCustomisation() = entityData.get(Avatar.DATA_PLAYER_MODE_CUSTOMISATION).toInt()
 
 internal fun VanillaComponent.asAdventure() = if (BetterModel.IS_PAPER) {
     PaperAdventure.asAdventure(this)

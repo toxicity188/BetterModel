@@ -9,6 +9,8 @@ package kr.toxicity.model.api.nms;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.data.blueprint.NamedBoundingBox;
+import kr.toxicity.model.api.entity.BaseBukkitEntity;
+import kr.toxicity.model.api.entity.BaseBukkitPlayer;
 import kr.toxicity.model.api.entity.BaseEntity;
 import kr.toxicity.model.api.entity.BasePlayer;
 import kr.toxicity.model.api.mount.MountController;
@@ -162,7 +164,14 @@ public interface NMS {
      * @param entity entity
      * @return adapter
      */
-    @NotNull BaseEntity adapt(@NotNull Entity entity);
+    @NotNull BaseBukkitEntity adapt(@NotNull Entity entity);
+
+    /**
+     * Gets adapted player value getter of target player for Folia
+     * @param player player
+     * @return adapter
+     */
+    @NotNull BaseBukkitPlayer adapt(@NotNull Player player);
 
     /**
      * Gets model skin from player

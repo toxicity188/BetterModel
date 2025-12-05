@@ -21,6 +21,9 @@ internal data class BasePlayerImpl(
     private val profile: () -> ModelProfile,
     private val skinParts: () -> PlayerSkinParts
 ) : BaseBukkitEntity by BaseEntityImpl(delegate), BaseBukkitPlayer, Profiled by ProfiledImpl(PlayerArmor.EMPTY, profile, skinParts) {
+
+    override fun entity(): Player = delegate
+
     override fun updateInventory() {
         delegate.handle.containerMenu.sendAllDataToRemote()
     }

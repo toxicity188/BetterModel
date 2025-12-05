@@ -6,8 +6,13 @@
  */
 package kr.toxicity.model.api.entity;
 
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+
 /**
  * An adapter of bukkit player
  */
 public interface BaseBukkitPlayer extends BaseBukkitEntity, BasePlayer {
+    @Override
+    @NotNull Player entity();
 }

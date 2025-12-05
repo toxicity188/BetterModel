@@ -12,6 +12,7 @@ import kr.toxicity.model.api.tracker.EntityTrackerRegistry;
 import kr.toxicity.model.api.util.TransformedItemStack;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataHolder;
 import org.bukkit.persistence.PersistentDataType;
@@ -26,6 +27,19 @@ import java.util.stream.Stream;
  * An adapter of entity
  */
 public interface BaseEntity extends Identifiable, PersistentDataHolder {
+
+    /**
+     * Gets base entity
+     * @param entity bukkit entity
+     * @return base entity
+     */
+    static @NotNull BaseBukkitEntity of(@NotNull Entity entity) {
+        if (entity instanceof Player player) {
+            var channel = BetterModel.plugin().playerManager().player(player.getUniqueId());
+            if (channel != null) return channel.base();
+        }
+        return BetterModel.nms().adapt(entity);
+    }
 
     /**
      * Gets custom name of this entity
