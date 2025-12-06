@@ -4,7 +4,7 @@
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
-package kr.toxicity.model.api.data.raw;
+package kr.toxicity.model.api.data;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializer;

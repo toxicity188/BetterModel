@@ -10,6 +10,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
 import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.data.Float3;
+import kr.toxicity.model.api.data.Float4;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint;
 import org.jetbrains.annotations.ApiStatus;

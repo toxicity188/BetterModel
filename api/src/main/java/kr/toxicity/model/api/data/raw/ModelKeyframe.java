@@ -9,6 +9,7 @@ package kr.toxicity.model.api.data.raw;
 import com.google.gson.annotations.SerializedName;
 import kr.toxicity.model.api.animation.Timed;
 import kr.toxicity.model.api.animation.VectorPoint;
+import kr.toxicity.model.api.data.Float3;
 import kr.toxicity.model.api.util.interpolator.VectorInterpolator;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +34,7 @@ import java.util.function.Function;
 @ApiStatus.Internal
 public record ModelKeyframe(
     @Nullable KeyframeChannel channel,
-    @SerializedName("data_points") @NotNull List<Datapoint> dataPoints,
+    @SerializedName("data_points") @NotNull List<ModelDatapoint> dataPoints,
     @SerializedName("bezier_left_time") @Nullable Float3 bezierLeftTime,
     @SerializedName("bezier_left_value") @Nullable Float3 bezierLeftValue,
     @SerializedName("bezier_right_time") @Nullable Float3 bezierRightTime,
@@ -54,7 +55,7 @@ public record ModelKeyframe(
      * Gets first data point
      * @return point
      */
-    public @NotNull Datapoint point() {
+    public @NotNull ModelDatapoint point() {
         return dataPoints.getFirst();
     }
 

@@ -22,7 +22,7 @@ import static kr.toxicity.model.api.util.CollectionUtil.filterIsInstance;
 import static kr.toxicity.model.api.util.CollectionUtil.mapToList;
 
 /**
- * A outliner of the model.
+ * An outliner of the model.
  */
 @ApiStatus.Internal
 public sealed interface ModelOutliner {

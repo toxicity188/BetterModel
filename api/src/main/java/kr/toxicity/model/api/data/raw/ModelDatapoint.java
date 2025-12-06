@@ -26,7 +26,7 @@ import java.util.Objects;
  * @param script script
  */
 @ApiStatus.Internal
-public record Datapoint(
+public record ModelDatapoint(
     @Nullable JsonPrimitive x,
     @Nullable JsonPrimitive y,
     @Nullable JsonPrimitive z,

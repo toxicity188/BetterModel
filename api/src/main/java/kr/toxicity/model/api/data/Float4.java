@@ -4,10 +4,11 @@
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
-package kr.toxicity.model.api.data.raw;
+package kr.toxicity.model.api.data;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializer;
+import kr.toxicity.model.api.data.raw.ModelResolution;
 import kr.toxicity.model.api.util.MathUtil;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;

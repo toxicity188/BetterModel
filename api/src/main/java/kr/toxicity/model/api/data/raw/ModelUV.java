@@ -8,6 +8,7 @@ package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import kr.toxicity.model.api.data.Float4;
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

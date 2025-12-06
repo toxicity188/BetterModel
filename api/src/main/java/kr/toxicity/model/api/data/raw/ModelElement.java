@@ -9,6 +9,7 @@ package kr.toxicity.model.api.data.raw;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.annotations.SerializedName;
 import kr.toxicity.model.api.bone.BoneTagRegistry;
+import kr.toxicity.model.api.data.Float3;
 import kr.toxicity.model.api.data.blueprint.BlueprintElement;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;

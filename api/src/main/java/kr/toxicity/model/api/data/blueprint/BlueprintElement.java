@@ -8,7 +8,7 @@ package kr.toxicity.model.api.data.blueprint;
 
 import com.google.gson.JsonObject;
 import kr.toxicity.model.api.bone.BoneName;
-import kr.toxicity.model.api.data.raw.Float3;
+import kr.toxicity.model.api.data.Float3;
 import kr.toxicity.model.api.data.raw.ModelFace;
 import kr.toxicity.model.api.pack.PackObfuscator;
 import kr.toxicity.model.api.util.MathUtil;

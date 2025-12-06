@@ -7,6 +7,7 @@
 package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.annotations.SerializedName;
+import kr.toxicity.model.api.data.Float3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
