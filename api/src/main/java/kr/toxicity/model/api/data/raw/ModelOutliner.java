@@ -22,23 +22,23 @@ import static kr.toxicity.model.api.util.CollectionUtil.filterIsInstance;
 import static kr.toxicity.model.api.util.CollectionUtil.mapToList;
 
 /**
- * A raw children of the model.
+ * A outliner of the model.
  */
 @ApiStatus.Internal
-public sealed interface ModelChildren {
+public sealed interface ModelOutliner {
 
     /**
      * Parser
      */
-    JsonDeserializer<ModelChildren> PARSER = (json, typeOfT, context) -> {
-        if (json.isJsonPrimitive()) return new ModelUUID(json.getAsString());
+    JsonDeserializer<ModelOutliner> PARSER = (json, typeOfT, context) -> {
+        if (json.isJsonPrimitive()) return new Reference(json.getAsString());
         else if (json.isJsonObject()) {
             var children = json.getAsJsonObject().getAsJsonArray("children");
-            return new ModelOutliner(
+            return new Tree(
                 context.deserialize(json, ModelGroup.class),
                 children.asList()
                     .stream()
-                    .map(child -> (ModelChildren) context.deserialize(child, ModelChildren.class))
+                    .map(child -> (ModelOutliner) context.deserialize(child, ModelOutliner.class))
                     .toList()
             );
         }
@@ -56,7 +56,7 @@ public sealed interface ModelChildren {
      * Flattens this children tree
      * @return flatten stream
      */
-    @NotNull Stream<ModelChildren> flatten();
+    @NotNull Stream<ModelOutliner> flatten();
 
     /**
      * Gets uuid
@@ -65,30 +65,30 @@ public sealed interface ModelChildren {
     @NotNull String uuid();
 
     /**
-     * A raw element's uuid.
+     * An uuid reference of model element
      * @param uuid uuid
      */
-    record ModelUUID(@NotNull String uuid) implements ModelChildren {
+    record Reference(@NotNull String uuid) implements ModelOutliner {
         @Override
         public @NotNull BlueprintElement toBlueprint(@NotNull ModelLoadContext context) {
             return Objects.requireNonNull(context.elements.get(uuid())).toBlueprint();
         }
 
         @Override
-        public @NotNull Stream<ModelChildren> flatten() {
+        public @NotNull Stream<ModelOutliner> flatten() {
             return Stream.of(this);
         }
     }
 
     /**
-     * A raw outliner of models.
-     * @param group group
+     * A tree of models
+     * @param group group (legacy BlockBench)
      * @param children children
      */
-    record ModelOutliner(
+    record Tree(
         @NotNull ModelGroup group,
-        @NotNull @Unmodifiable List<ModelChildren> children
-    ) implements ModelChildren {
+        @NotNull @Unmodifiable List<ModelOutliner> children
+    ) implements ModelOutliner {
 
         @Override
         public @NotNull BlueprintElement toBlueprint(@NotNull ModelLoadContext context) {
@@ -106,10 +106,10 @@ public sealed interface ModelChildren {
         }
 
         @Override
-        public @NotNull Stream<ModelChildren> flatten() {
+        public @NotNull Stream<ModelOutliner> flatten() {
             return Stream.concat(
                 Stream.of(this),
-                children.stream().flatMap(ModelChildren::flatten)
+                children.stream().flatMap(ModelOutliner::flatten)
             );
         }
 

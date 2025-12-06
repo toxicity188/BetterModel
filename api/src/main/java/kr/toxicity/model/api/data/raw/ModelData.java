@@ -26,7 +26,7 @@ import static kr.toxicity.model.api.util.CollectionUtil.*;
  * @param meta meta
  * @param resolution resolution
  * @param elements elements
- * @param outliner children
+ * @param outliner outliner
  * @param textures textures
  * @param animations animations
  * @param groups groups (>=BlockBench 5.0.0)
@@ -37,7 +37,7 @@ public record ModelData(
     @NotNull ModelMeta meta,
     @NotNull ModelResolution resolution,
     @NotNull List<ModelElement> elements,
-    @NotNull List<ModelChildren> outliner,
+    @NotNull List<ModelOutliner> outliner,
     @NotNull List<ModelTexture> textures,
     @Nullable List<ModelAnimation> animations,
     @Nullable List<ModelGroup> groups,
@@ -50,7 +50,7 @@ public record ModelData(
         .registerTypeAdapter(Float3.class, Float3.PARSER)
         .registerTypeAdapter(Float4.class, Float4.PARSER)
         .registerTypeAdapter(ModelMeta.class, ModelMeta.PARSER)
-        .registerTypeAdapter(ModelChildren.class, ModelChildren.PARSER)
+        .registerTypeAdapter(ModelOutliner.class, ModelOutliner.PARSER)
         .registerTypeAdapter(ModelPlaceholder.class, ModelPlaceholder.PARSER)
         .registerTypeAdapter(ModelElement.class, ModelElement.PARSER)
         .create();
@@ -77,7 +77,7 @@ public record ModelData(
             meta(),
             associate(elements(), ModelElement::uuid),
             associate(groups(), ModelGroup::uuid),
-            mapToSet(outliner().stream().flatMap(ModelChildren::flatten), ModelChildren::uuid),
+            mapToSet(outliner().stream().flatMap(ModelOutliner::flatten), ModelOutliner::uuid),
             strict
         );
         var group = mapToList(outliner(), children -> children.toBlueprint(context));
