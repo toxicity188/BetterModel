@@ -46,14 +46,14 @@ public sealed interface ModelOutliner {
     };
 
     /**
-     * Converts children to blueprint children
+     * Converts outliner to blueprint element
      * @param context context
-     * @return children
+     * @return element
      */
     @NotNull BlueprintElement toBlueprint(@NotNull ModelLoadContext context);
 
     /**
-     * Flattens this children tree
+     * Flattens this outliner tree
      * @return flatten stream
      */
     @NotNull Stream<ModelOutliner> flatten();
