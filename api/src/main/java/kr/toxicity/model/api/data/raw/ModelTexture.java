@@ -8,6 +8,7 @@ package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.annotations.SerializedName;
 import kr.toxicity.model.api.data.blueprint.BlueprintTexture;
+import kr.toxicity.model.api.util.PackUtil;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,19 +32,31 @@ public record ModelTexture(
     @SerializedName("uv_width") int uvWidth,
     @SerializedName("uv_height") int uvHeight
 ) {
+
     /**
      * Converts this texture to blueprint textures
      * @return converted textures
      */
-    public @NotNull BlueprintTexture toBlueprint() {
-        var nameIndex = name().indexOf('.');
+    public @NotNull BlueprintTexture toBlueprint(@NotNull ModelLoadContext context) {
+        var name = nameWithoutExtension();
         return new BlueprintTexture(
-            nameIndex >= 0 ? name().substring(0, nameIndex) : name(),
+            PackUtil.toPackName(name.startsWith("global_") ? name : context.name + "_" + name),
             Base64.getDecoder().decode(source().substring(source().indexOf(',') + 1)),
             width(),
             height(),
             uvWidth(),
-            uvHeight()
+            uvHeight(),
+            !name.startsWith("-")
         );
+    }
+
+    /**
+     * Gets texture's name without extension
+     * @return name without extension
+     */
+    public @NotNull String nameWithoutExtension() {
+        var name = name();
+        var nameIndex = name.lastIndexOf('.');
+        return nameIndex >= 0 ? name.substring(0, nameIndex) : name;
     }
 }

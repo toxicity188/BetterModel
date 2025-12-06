@@ -52,7 +52,7 @@ public record ModelBlueprint(
         return textures.stream()
             .filter(BlueprintTexture::canBeRendered)
             .map(texture -> new BlueprintImage(
-                texture.packName(obfuscator, name),
+                texture.packName(obfuscator),
                 texture.image(),
                 texture.isAnimatedTexture() ? texture.toMcmeta() : null)
             );

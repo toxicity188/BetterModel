@@ -72,6 +72,7 @@ public record ModelData(
      */
     public @NotNull ModelLoadResult loadBlueprint(@NotNull String name, boolean strict) {
         var context = new ModelLoadContext(
+            name,
             placeholder(),
             meta(),
             associate(elements(), ModelElement::uuid),
@@ -82,9 +83,9 @@ public record ModelData(
         var group = mapToList(outliner(), children -> children.toBlueprint(context));
         return new ModelLoadResult(
             new ModelBlueprint(
-                name,
+                context.name,
                 resolution(),
-                mapToList(textures(), ModelTexture::toBlueprint),
+                mapToList(textures(), texture -> texture.toBlueprint(context)),
                 group,
                 associate(animations().stream().map(raw -> raw.toBlueprint(context, group)), BlueprintAnimation::name)
             ),

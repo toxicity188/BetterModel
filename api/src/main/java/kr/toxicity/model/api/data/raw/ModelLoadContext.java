@@ -20,6 +20,7 @@ import java.util.function.Supplier;
 @RequiredArgsConstructor
 @ApiStatus.Internal
 public final class ModelLoadContext {
+    final @NotNull String name;
     final @NotNull ModelPlaceholder placeholder;
     final @NotNull ModelMeta meta;
     final @NotNull Map<String, ModelElement> elements;

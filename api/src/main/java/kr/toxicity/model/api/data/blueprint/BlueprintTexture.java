@@ -10,7 +10,6 @@ import com.google.gson.JsonObject;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.raw.ModelResolution;
 import kr.toxicity.model.api.pack.PackObfuscator;
-import kr.toxicity.model.api.util.PackUtil;
 import kr.toxicity.model.api.util.json.JsonObjectBuilder;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
  * @param height original height
  * @param uvWidth uv width
  * @param uvHeight uv height
+ * @param canBeRendered this textures can be rendered
  */
 public record BlueprintTexture(
     @NotNull String name,
@@ -29,7 +29,8 @@ public record BlueprintTexture(
     int width,
     int height,
     int uvWidth,
-    int uvHeight
+    int uvHeight,
+    boolean canBeRendered
 ) {
     /**
      * Checks this texture is animated
@@ -46,14 +47,6 @@ public record BlueprintTexture(
     }
 
     /**
-     * Checks this textures can be rendered.
-     * @return can be rendered.
-     */
-    public boolean canBeRendered() {
-        return !name.startsWith("-");
-    }
-
-    /**
      * Generates mcmeta of this image
      * @return mcmeta
      */
@@ -67,32 +60,21 @@ public record BlueprintTexture(
     }
 
     /**
-     * Gets pack name
-     * @param parent parent
-     * @return pack name
-     */
-    public @NotNull String packName(@NotNull String parent) {
-        return PackUtil.toPackName(name().startsWith("global_") ? name() : parent + "_" + name());
-    }
-
-    /**
      * Creates pack name
      * @param obfuscator obfuscator
-     * @param parent parent
      * @return pack name
      */
-    public @NotNull String packName(@NotNull PackObfuscator obfuscator, @NotNull String parent) {
-        return obfuscator.obfuscate(packName(parent));
+    public @NotNull String packName(@NotNull PackObfuscator obfuscator) {
+        return obfuscator.obfuscate(name());
     }
 
     /**
      * Creates pack namespace
      * @param obfuscator obfuscator
-     * @param parentName parent name
      * @return texture namespace
      */
-    public @NotNull String packNamespace(@NotNull PackObfuscator obfuscator, @NotNull String parentName) {
-        return BetterModel.config().namespace() + ":item/" + packName(obfuscator, parentName);
+    public @NotNull String packNamespace(@NotNull PackObfuscator obfuscator) {
+        return BetterModel.config().namespace() + ":item/" + packName(obfuscator);
     }
 
     /**

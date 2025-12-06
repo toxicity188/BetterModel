@@ -164,9 +164,9 @@ public sealed interface BlueprintElement {
                 .jsonObject("textures", textures -> {
                     var index = 0;
                     for (BlueprintTexture texture : parent.textures()) {
-                        textures.property(Integer.toString(index++), texture.packNamespace(obfuscator.textures(), parent.name()));
+                        textures.property(Integer.toString(index++), texture.packNamespace(obfuscator.textures()));
                     }
-                    textures.property("particle", parent.textures().getFirst().packNamespace(obfuscator.textures(), parent.name()));
+                    textures.property("particle", parent.textures().getFirst().packNamespace(obfuscator.textures()));
                 })
                 .jsonArray("elements", mapToJson(cubeElement, cube -> cube.buildJson(tint, scale, parent, this, identifier)))
                 .jsonObject("display", display -> display.jsonObject("fixed", fixed -> {
