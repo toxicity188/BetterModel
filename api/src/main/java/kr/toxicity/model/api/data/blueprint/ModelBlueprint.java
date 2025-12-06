@@ -21,7 +21,7 @@ import java.util.stream.Stream;
  * @param name model name
  * @param resolution resolution
  * @param textures textures
- * @param group children group
+ * @param elements elements
  * @param animations animations
  */
 @ApiStatus.Internal
@@ -29,7 +29,7 @@ public record ModelBlueprint(
     @NotNull String name,
     @NotNull ModelResolution resolution,
     @NotNull List<BlueprintTexture> textures,
-    @NotNull List<BlueprintElement> group,
+    @NotNull List<BlueprintElement> elements,
     @NotNull Map<String, BlueprintAnimation> animations
 ) {
 

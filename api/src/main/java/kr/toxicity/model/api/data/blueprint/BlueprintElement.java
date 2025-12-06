@@ -196,19 +196,17 @@ public sealed interface BlueprintElement {
             return filterIsInstance(children, Cube.class).map(element -> {
                     var from = element.from()
                         .minus(origin)
-                        .toBlockScale()
-                        .toVector();
+                        .toBlockScale();
                     var to = element.to()
                         .minus(origin)
-                        .toBlockScale()
-                        .toVector();
+                        .toBlockScale();
                     return ModelBoundingBox.of(
-                        from.x,
-                        from.y,
-                        from.z,
-                        to.x,
-                        to.y,
-                        to.z
+                        from.x(),
+                        from.y(),
+                        from.z(),
+                        to.x(),
+                        to.y(),
+                        to.z()
                     ).invert();
                 }).max(Comparator.comparingDouble(ModelBoundingBox::length))
                 .map(max -> new NamedBoundingBox(name, max))

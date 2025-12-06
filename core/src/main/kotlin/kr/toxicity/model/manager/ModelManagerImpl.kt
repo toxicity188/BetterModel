@@ -166,17 +166,15 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                 }
             },
             onClose = {
-                jsonObjectOf("model" to jsonObjectOf(
-                    "type" to "range_dispatch",
-                    "property" to "custom_model_data",
-                    "fallback" to jsonObjectOf(
-                        "type" to "minecraft:empty"
-                    ),
-                    "entries" to entries
-                )).run {
-                    zipper.modern().bettermodel().items().add("${CONFIG.itemNamespace()}.json", estimatedSize) {
-                        toByteArray()
-                    }
+                zipper.modern().bettermodel().items().add("${CONFIG.itemNamespace()}.json", estimatedSize) {
+                    jsonObjectOf("model" to jsonObjectOf(
+                        "type" to "range_dispatch",
+                        "property" to "custom_model_data",
+                        "fallback" to jsonObjectOf(
+                            "type" to "minecraft:empty"
+                        ),
+                        "entries" to entries
+                    )).toByteArray()
                 }
             }
         )
@@ -302,7 +300,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
             return ModelRenderer(
                 name,
                 type,
-                group.filterIsInstance<BlueprintElement.Bone>()
+                elements.filterIsInstance<BlueprintElement.Bone>()
                     .associate { it.name() to it.parse() },
                 animations
             )
