@@ -63,10 +63,14 @@ internal fun <H, T> dirtyChecked(hash: () -> H, function: (H) -> T): () -> T {
     var value = function(h)
     return {
         val newH = hash()
-        if (h == newH) value else synchronized(lock) {
-            h = newH
-            value = function(h)
-            value
+        when {
+            h === newH -> value
+            h == newH -> value
+            else -> synchronized(lock) {
+                h = newH
+                value = function(h)
+                value
+            }
         }
     }
 }
