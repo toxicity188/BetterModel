@@ -7,7 +7,7 @@ shadow = "9.3.0"
 minotaur = "2.8.10"
 hangarPublish = "0.1.4"
 
-cloud = "2.0.0-SNAPSHOT" #TODO set this to 2.0.0-beta.14 when cloud-paper 2.0.0-beta.14 is released
+cloud = "2.0.0-beta.14"
 cloud-core = "2.0.0"
 
 [libraries]
@@ -49,7 +49,7 @@ manifestLibrary = [
     "kotlin",
     "bStats",
     "molangCompiler",
-#    "cloud-paper", TODO add remove this when cloud-paper 2.0.0-beta.14 is released
+    "cloud-paper",
     "cloud-core",
     "geantyref",
     "adventure-api",
@@ -61,7 +61,6 @@ manifestLibrary = [
 shadedLibrary = [
     "armormodel",
     "sharedPackets",
-    "cloud-paper", #TODO remove this when cloud-paper 2.0.0-beta.14 is released
     "libby"
 ]
 
