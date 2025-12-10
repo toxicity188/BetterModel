@@ -25,7 +25,7 @@ dependencies {
     compileOnly(libs.bundles.manifestLibrary)
     testImplementation(libs.bundles.manifestLibrary)
 
-    compileOnly("net.citizensnpcs:citizens-main:2.0.40-SNAPSHOT") {
+    compileOnly("net.citizensnpcs:citizens-main:2.0.41-SNAPSHOT") {
         exclude("net.byteflux")
     }
     compileOnly("net.skinsrestorer:skinsrestorer-api:15.9.0")
