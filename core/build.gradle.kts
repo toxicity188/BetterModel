@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.convention.bukkit)
-    alias(libs.plugins.paperweight) apply false
 }
 
 repositories {

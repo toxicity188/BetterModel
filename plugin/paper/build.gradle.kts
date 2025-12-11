@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.resourcefactory.paper)
 }
 
-val libraryDir = layout.buildDirectory.file("generated/paper-library")
+val libraryDir: Provider<RegularFile> = layout.buildDirectory.file("generated/paper-library")
 
 dependencies {
     shade(project(":nms:v1_20_R4")) { isTransitive = false }
