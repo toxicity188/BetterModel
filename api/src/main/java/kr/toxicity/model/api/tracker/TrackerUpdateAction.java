@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiPredicate;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
@@ -138,8 +139,29 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
      * Gets composited action
      * @return composited action
      */
-    static @NotNull Composite composite(@NotNull TrackerUpdateAction... actions) {
-        return new Composite(Arrays.stream(actions).flatMap(TrackerUpdateAction::stream).toList());
+    static @NotNull TrackerUpdateAction composite(@NotNull TrackerUpdateAction... actions) {
+        return switch (actions.length) {
+            case 0 -> none();
+            case 1 -> actions[0];
+            default -> new Composite(Arrays.stream(actions).flatMap(TrackerUpdateAction::stream).toList());
+        };
+    }
+
+    /**
+     * Gets per bone action
+     * @param builder builder
+     * @return per bone action
+     */
+    static @NotNull PerBone perBone(@NotNull Function<RenderedBone, TrackerUpdateAction> builder) {
+        return new PerBone(builder);
+    }
+
+    /**
+     * Gets none action
+     * @return none action
+     */
+    static @NotNull None none() {
+        return None.INSTANCE;
     }
 
     @Override
@@ -354,6 +376,34 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
         @Override
         public @NotNull Stream<TrackerUpdateAction> stream() {
             return actions.stream().flatMap(TrackerUpdateAction::stream);
+        }
+    }
+
+    /**
+     * Per bone
+     * @param builder builder
+     */
+    record PerBone(@NotNull Function<RenderedBone, TrackerUpdateAction> builder) implements TrackerUpdateAction {
+        @Override
+        public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
+            return builder.apply(bone).test(bone, predicate);
+        }
+    }
+
+    /**
+     * No-op update action
+     * Always returns false and performs no mutation
+     */
+    enum None implements TrackerUpdateAction {
+        /**
+         * Instance
+         */
+        INSTANCE
+        ;
+
+        @Override
+        public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
+            return false;
         }
     }
 }
