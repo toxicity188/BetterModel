@@ -8,7 +8,7 @@ include(
     "api",
     "core",
     "purpur",
-    "plugin:spigot",
+    //"plugin:spigot",
     "plugin:paper",
     "nms:v1_20_R4",
     "nms:v1_21_R1",
