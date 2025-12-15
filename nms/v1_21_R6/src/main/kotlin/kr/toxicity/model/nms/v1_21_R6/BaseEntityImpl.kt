@@ -72,8 +72,8 @@ internal data class BaseEntityImpl(
             .coerceAtMost(2F)
     }
 
-    override fun passengerPosition(): Vector3f {
-        return handle().passengerPosition()
+    override fun passengerPosition(dest: Vector3f): Vector3f {
+        return handle().passengerPosition(dest)
     }
 
     override fun trackedBy(): Stream<Player> = delegate.trackedBy.stream()

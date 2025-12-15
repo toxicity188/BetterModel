@@ -174,7 +174,7 @@ public final class RenderPipeline implements BoneEventHandler {
         return match;
     }
 
-    public void defaultPosition(@NotNull Supplier<Vector3f> movement) {
+    public void defaultPosition(@NotNull Function<Vector3f, Vector3f> movement) {
         iterateTree(b -> b.defaultPosition(movement));
     }
 

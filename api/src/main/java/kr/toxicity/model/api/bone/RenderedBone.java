@@ -47,6 +47,7 @@ public final class RenderedBone implements BoneEventHandler {
 
     private static final int INITIAL_TINT_VALUE = 0xFFFFFF;
     private static final Vector3f EMPTY_VECTOR = new Vector3f();
+    private static final Quaternionf EMPTY_QUATERNION = new Quaternionf();
 
     @Getter
     @NotNull
@@ -96,7 +97,8 @@ public final class RenderedBone implements BoneEventHandler {
     private final Map<UUID, BoneStateHandler> perPlayerState = new ConcurrentHashMap<>();
     private volatile ModelRotation rotation = ModelRotation.EMPTY;
 
-    private Supplier<Vector3f> defaultPosition = FunctionUtil.asSupplier(EMPTY_VECTOR);
+    private final Vector3f defaultPositionCache = new Vector3f();
+    private Function<Vector3f, Vector3f> defaultPosition = vec -> vec;
     private FloatSupplier scale = FloatConstantSupplier.ONE;
 
     private Function<Vector3f, Vector3f> positionModifier = p -> p;
@@ -404,16 +406,16 @@ public final class RenderedBone implements BoneEventHandler {
         return InterpolationUtil.lerp(before.rawRotation(), current.rawRotation(), progress);
     }
 
-    public void defaultPosition(@NotNull Supplier<Vector3f> movement) {
+    public void defaultPosition(@NotNull Function<Vector3f, Vector3f> movement) {
         defaultPosition = movement;
     }
 
     private @NotNull Vector3f modifiedPosition(boolean preventModifierUpdate) {
-        return preventModifierUpdate ? lastModifiedPosition : (lastModifiedPosition = positionModifier.apply(new Vector3f()));
+        return preventModifierUpdate ? lastModifiedPosition : (lastModifiedPosition = positionModifier.apply(lastModifiedPosition.set(EMPTY_VECTOR)));
     }
 
     private @NotNull Quaternionf modifiedRotation(boolean preventModifierUpdate) {
-        return preventModifierUpdate ? lastModifiedRotation : (lastModifiedRotation = rotationModifier.apply(new Quaternionf()));
+        return preventModifierUpdate ? lastModifiedRotation : (lastModifiedRotation = rotationModifier.apply(lastModifiedRotation.set(EMPTY_QUATERNION)));
     }
 
     public boolean tint(@NotNull Predicate<RenderedBone> predicate) {
@@ -671,7 +673,7 @@ public final class RenderedBone implements BoneEventHandler {
                         .add(root.group.getPosition()),
                     mul,
                     itemStack.position()
-                ).add(defaultPosition.get()),
+                ).add(defaultPosition.apply(defaultPositionCache)),
                 boneMovement.scale()
                     .mul(itemStack.scale(), new Vector3f())
                     .mul(mul)

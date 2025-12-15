@@ -10,11 +10,9 @@ import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.RenderPipeline;
 import kr.toxicity.model.api.event.CreateDummyTrackerEvent;
 import kr.toxicity.model.api.util.EventUtil;
-import kr.toxicity.model.api.util.FunctionUtil;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Vector3f;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -38,7 +36,6 @@ public final class DummyTracker extends Tracker {
         animate("spawn", AnimationModifier.DEFAULT_WITH_PLAY_ONCE);
         pipeline.scale(() -> scaler().scale(this));
         rotation(() -> new ModelRotation(this.location.getPitch(), this.location.getYaw()));
-        pipeline.defaultPosition(FunctionUtil.asSupplier(new Vector3f()));
         preUpdateConsumer.accept(this);
         EventUtil.call(new CreateDummyTrackerEvent(this));
     }

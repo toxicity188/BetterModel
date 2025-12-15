@@ -133,9 +133,10 @@ public interface BaseEntity extends Identifiable, PersistentDataHolder {
 
     /**
      * Gets entity's passenger point
+     * @param dest destination vector
      * @return passenger point
      */
-    @NotNull Vector3f passengerPosition();
+    @NotNull Vector3f passengerPosition(@NotNull Vector3f dest);
 
     /**
      * Gets tracked player set
