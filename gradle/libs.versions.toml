@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.2.21"
+kotlin = "2.3.0"
 paperweight = "2.0.0-beta.19"
 resourcefactory = "1.3.1"
 
