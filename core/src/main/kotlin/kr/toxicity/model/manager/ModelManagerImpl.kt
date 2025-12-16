@@ -43,12 +43,12 @@ object ModelManagerImpl : ModelManager, GlobalManager {
         pipeline: ReloadPipeline,
         dir: File
     ): List<ImportedModel> {
-        val modelFileMap = ConcurrentHashMap<String, Pair<Path, ModelBlueprint>>()
-        val targetFolder = dir.fileTreeList().use { stream ->
+        val targetFolder = dir.fileTrees().use { stream ->
             stream.filter { it.extension in modelExtensions }.toList()
         }.ifEmpty {
             return emptyList()
         }
+        val modelFileMap = ConcurrentHashMap<String, Pair<Path, ModelBlueprint>>()
         val typeName = type.name.lowercase()
         pipeline.apply {
             status = "Importing $typeName models..."
@@ -123,10 +123,10 @@ object ModelManagerImpl : ModelManager, GlobalManager {
 
         private var indexer = 1
         private var estimatedSize = 0L
-
         private val textures = zipper.assets().bettermodel().textures()
+
         private val legacyModel = ModelBuilder(
-            pack = zipper.legacy().bettermodel().models().resolve("item"),
+            models = zipper.legacy().bettermodel().models().resolve("item"),
             available = CONFIG.pack().generateLegacyModel,
             onBuild = { blueprints, size ->
                 val blueprint = blueprints.first()
@@ -134,7 +134,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                     "predicate" to jsonObjectOf("custom_model_data" to indexer),
                     "model" to "${CONFIG.namespace()}:item/${blueprint.name}"
                 )
-                pack.add("${blueprint.name}.json", size) {
+                models.add("${blueprint.name}.json", size) {
                     blueprint.element.get().toByteArray()
                 }
             },
@@ -145,14 +145,14 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                     "textures" to jsonObjectOf("layer0" to "minecraft:item/$itemName"),
                     "overrides" to entries
                 ).run {
-                    pack.add("${CONFIG.itemNamespace()}.json", estimatedSize) { toByteArray() }
+                    models.add("${CONFIG.itemNamespace()}.json", estimatedSize) { toByteArray() }
                     zipper.legacy().minecraft().models().resolve("item").add("$itemName.json", estimatedSize) { toByteArray() }
                 }
             }
         )
 
         private val modernModel = ModelBuilder(
-            pack = zipper.modern().bettermodel().models().resolve("modern_item"),
+            models = zipper.modern().bettermodel().models().resolve("modern_item"),
             available = CONFIG.pack().generateModernModel,
             onBuild = { blueprints, size ->
                 entries += jsonObjectOf(
@@ -160,7 +160,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                     "model" to blueprints.toModernJson()
                 )
                 blueprints.forEach { json ->
-                    pack.add("${json.name}.json", size / blueprints.size) {
+                    models.add("${json.name}.json", size / blueprints.size) {
                         json.element.get().toByteArray()
                     }
                 }
@@ -198,18 +198,14 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                     var success = false
                     //Modern
                     modernModel.ifAvailable {
-                        group.buildModernJson(textures.obfuscator().withModels(pack.obfuscator()), load)
+                        group.buildModernJson(obfuscator, load)
                     }?.let {
                         modernModel.build(it, size / it.size)
                         success = true
                     }
                     //Legacy
                     legacyModel.ifAvailable {
-                        group.buildLegacyJson(
-                            PLUGIN.version().useModernResource(),
-                            textures.obfuscator().withModels(pack.obfuscator()),
-                            load
-                        )
+                        group.buildLegacyJson(PLUGIN.version().useModernResource(), obfuscator, load)
                     }?.let {
                         legacyModel.build(listOf(it), size)
                         success = true
@@ -238,13 +234,14 @@ object ModelManagerImpl : ModelManager, GlobalManager {
             }
         }
 
-        data class ModelBuilder(
-            val pack: PackBuilder,
+        inner class ModelBuilder(
+            val models: PackBuilder,
             private val available: Boolean,
             private val onBuild: ModelBuilder.(List<BlueprintJson>, Long) -> Unit,
             private val onClose: ModelBuilder.() -> Unit
         ) : AutoCloseable {
             val entries = jsonArrayOf()
+            val obfuscator = textures.obfuscator().withModels(models.obfuscator())
 
             inline fun <T> ifAvailable(block: ModelBuilder.() -> T): T? {
                 return if (available) block() else null
@@ -277,12 +274,12 @@ object ModelManagerImpl : ModelManager, GlobalManager {
             )
         )
 
-        private fun ModelBlueprint.toRenderer(type: ModelRenderer.Type, consumer: (BlueprintElement.Group) -> Int?): ModelRenderer {
+        private fun ModelBlueprint.toRenderer(type: ModelRenderer.Type, builder: (BlueprintElement.Group) -> Int?): ModelRenderer {
             fun BlueprintElement.Bone.parse(): RendererGroup {
                 if (this !is BlueprintElement.Group) return RendererGroup(1.0F, null, this, emptyMap(), null)
                 return RendererGroup(
                     scale(),
-                    if (name.toItemMapper() !== BoneItemMapper.EMPTY) null else consumer(this)?.let { i ->
+                    if (name.toItemMapper() !== BoneItemMapper.EMPTY) null else builder(this)?.let { i ->
                         ItemStack(CONFIG.item()).apply {
                             itemMeta = itemMeta.apply {
                                 @Suppress("DEPRECATION") //To support legacy server :(

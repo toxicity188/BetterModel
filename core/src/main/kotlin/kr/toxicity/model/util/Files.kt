@@ -29,7 +29,7 @@ inline fun copyResourceAs(name: String, block: (InputStream) -> Unit) {
 
 fun File.toImage(): BufferedImage = ImageIO.read(this)
 
-fun File.fileTreeList(): Stream<Path> = Files.find(
+fun File.fileTrees(): Stream<Path> = Files.find(
     toPath(),
     Int.MAX_VALUE,
     { _, attr ->
