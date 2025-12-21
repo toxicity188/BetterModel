@@ -31,7 +31,6 @@ import net.minecraft.world.damagesource.DamageSource
 import net.minecraft.world.effect.MobEffectInstance
 import net.minecraft.world.entity.*
 import net.minecraft.world.entity.ai.attributes.Attributes
-import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.entity.projectile.Projectile
 import net.minecraft.world.entity.projectile.ProjectileDeflection
@@ -62,7 +61,7 @@ internal class HitBoxImpl(
     private val listener: HitBoxListener,
     private val delegate: Entity,
     private var mountController: MountController
-) : ArmorStand(EntityType.ARMOR_STAND, delegate.level()), HitBox {
+) : AbstractHitBox(delegate.level()) {
     private var initialized = false
     private var jumpDelay = 0
     private var mounted = false
@@ -148,7 +147,7 @@ internal class HitBoxImpl(
             listener.mount(craftEntity, entity)
         }
     }
-    
+
     override fun dismount(entity: org.bukkit.entity.Entity) {
         forceDismount = true
         if (interaction.bukkitEntity.removePassenger(entity)) listener.dismount(craftEntity, entity)
@@ -228,7 +227,7 @@ internal class HitBoxImpl(
         if (delegate !is LivingEntity) return
         val travelVector = Vec3(delegate.xxa.toDouble(), delegate.yya.toDouble(), delegate.zza.toDouble())
         if (!mountController.canFly() && delegate.isFallFlying) return
-        
+
         updateFlyStatus(player)
         val riddenInput = rideInput(player, travelVector)
         if (riddenInput.length() > 0.01) {
@@ -242,7 +241,7 @@ internal class HitBoxImpl(
             delegate.jumpFromGround()
         }
     }
-    
+
     private fun movementSpeed() = ifLivingEntity {
         getAttribute(Attributes.MOVEMENT_SPEED)?.value?.toFloat()?.let {
             if (!onFly && !shouldDiscardFriction()) level()
@@ -275,7 +274,7 @@ internal class HitBoxImpl(
             travelVector.z.toFloat()
         )
     ).mul(movementSpeed()).rotateY(-Math.toRadians(player.yRot.toDouble()).toFloat())
-    
+
     override fun tick() {
         delegate.removalReason?.let {
             if (!isRemoved) remove(it)

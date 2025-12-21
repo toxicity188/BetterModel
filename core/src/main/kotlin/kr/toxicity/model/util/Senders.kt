@@ -55,7 +55,7 @@ fun ComponentLike.toHoverEvent() = HoverEvent.showText(this)
 fun CommandSender.audience() = ADVENTURE_PLATFORM?.sender(this) ?: this
 fun Audience.info(message: String) = info(message.toComponent())
 fun Audience.warn(message: String) = warn(message.toComponent())
-fun Audience.infoNotNull(vararg messages: ComponentLike?) = info(*messages.filterNotNull().ifEmpty {
+fun Audience.infoNotNull(vararg messages: ComponentLike?): Unit = info(*messages.filterNotNull().ifEmpty {
     return
 }.toTypedArray())
 fun Audience.info(vararg messages: ComponentLike) = sendMessage(componentWithLineOf(*messages.map { componentOf(INFO, it) }.toTypedArray()))
