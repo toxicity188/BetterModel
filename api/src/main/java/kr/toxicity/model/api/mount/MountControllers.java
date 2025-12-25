@@ -57,7 +57,7 @@ public enum MountControllers implements MountController {
             if (input.z <= 0.0F) {
                 input.z *= 0.25F;
             }
-            return input;
+            return input.normalize();
         }
     },
     /**
@@ -71,7 +71,7 @@ public enum MountControllers implements MountController {
             if (input.z <= 0.0F) {
                 input.z *= 0.25F;
             }
-            return input;
+            return input.normalize();
         }
 
         @Override
