@@ -160,6 +160,28 @@ public sealed interface BlueprintElement {
                 .filter(Cube::hasTexture)
                 .toList();
             if (cubeElement.isEmpty()) return null;
+
+            // Calculate bounds offset to ensure all coordinates stay within Minecraft's limits (-16 to 32)
+            var qua = MathUtil.toQuaternion(identifier.toVector()).invert();
+            float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE, minZ = Float.MAX_VALUE;
+            float maxX = Float.MIN_VALUE, maxY = Float.MIN_VALUE, maxZ = Float.MIN_VALUE;
+
+            for (Cube cube : cubeElement) {
+                var centerOrigin = Cube.centralize(cube.origin(), origin, scale);
+                var groupDelta = Cube.deltaPosition(centerOrigin, qua);
+                var from = cube.calculateFrom(scale, origin, groupDelta);
+                var to = cube.calculateTo(scale, origin, groupDelta);
+
+                minX = Math.min(minX, Math.min(from.x(), to.x()));
+                minY = Math.min(minY, Math.min(from.y(), to.y()));
+                minZ = Math.min(minZ, Math.min(from.z(), to.z()));
+                maxX = Math.max(maxX, Math.max(from.x(), to.x()));
+                maxY = Math.max(maxY, Math.max(from.y(), to.y()));
+                maxZ = Math.max(maxZ, Math.max(from.z(), to.z()));
+            }
+
+            var boundsOffset = Cube.calculateBoundsOffset(minX, minY, minZ, maxX, maxY, maxZ);
+
             return new BlueprintJson(obfuscator.models().obfuscate(jsonName(parent) + "_" + number), () -> JsonObjectBuilder.builder()
                 .jsonObject("textures", textures -> {
                     var index = 0;
@@ -168,7 +190,7 @@ public sealed interface BlueprintElement {
                     }
                     textures.property("particle", parent.textures().getFirst().packNamespace(obfuscator.textures()));
                 })
-                .jsonArray("elements", mapToJson(cubeElement, cube -> cube.buildJson(tint, scale, parent, this, identifier)))
+                .jsonArray("elements", mapToJson(cubeElement, cube -> cube.buildJson(tint, scale, parent, this, identifier, boundsOffset)))
                 .jsonObject("display", display -> display.jsonObject("fixed", fixed -> {
                     if (!identifier.equals(Float3.ZERO)) {
                         fixed.jsonArray("rotation", identifier.convertToMinecraftDegree().toJson());
@@ -297,12 +319,58 @@ public sealed interface BlueprintElement {
             return MathUtil.identifier(rotation());
         }
 
-        private static @NotNull Float3 centralize(@NotNull Float3 target, @NotNull Float3 groupOrigin, float scale) {
+        static @NotNull Float3 centralize(@NotNull Float3 target, @NotNull Float3 groupOrigin, float scale) {
             return target.minus(groupOrigin).div(scale);
         }
 
-        private static @NotNull Float3 deltaPosition(@NotNull Float3 target, @NotNull Quaternionf quaternionf) {
+        static @NotNull Float3 deltaPosition(@NotNull Float3 target, @NotNull Quaternionf quaternionf) {
             return target.rotate(quaternionf).minus(target);
+        }
+
+        // Minecraft coordinate bounds
+        private static final float MIN_BOUND = -16F;
+        private static final float MAX_BOUND = 32F;
+
+        /**
+         * Calculates the final "from" coordinate for this cube
+         */
+        @NotNull Float3 calculateFrom(float scale, @NotNull Float3 groupOrigin, @NotNull Float3 groupDelta) {
+            var inflate = new Float3(inflate() / scale);
+            return centralize(from(), groupOrigin, scale)
+                .plus(groupDelta)
+                .plus(Float3.CENTER)
+                .minus(inflate);
+        }
+
+        /**
+         * Calculates the final "to" coordinate for this cube
+         */
+        @NotNull Float3 calculateTo(float scale, @NotNull Float3 groupOrigin, @NotNull Float3 groupDelta) {
+            var inflate = new Float3(inflate() / scale);
+            return centralize(to(), groupOrigin, scale)
+                .plus(groupDelta)
+                .plus(Float3.CENTER)
+                .plus(inflate);
+        }
+
+        /**
+         * Calculates the offset needed to bring all coordinates within Minecraft's bounds (-16 to 32)
+         */
+        static @NotNull Float3 calculateBoundsOffset(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
+            float offsetX = 0, offsetY = 0, offsetZ = 0;
+
+            // If minimum is below -16, shift up
+            if (minX < MIN_BOUND) offsetX = MIN_BOUND - minX;
+            if (minY < MIN_BOUND) offsetY = MIN_BOUND - minY;
+            if (minZ < MIN_BOUND) offsetZ = MIN_BOUND - minZ;
+
+            // If maximum (after potential shift) exceeds 32, shift down
+            // But prioritize keeping within bounds - if model is too large, warn but clamp to min bound
+            if (maxX + offsetX > MAX_BOUND) offsetX = MAX_BOUND - maxX;
+            if (maxY + offsetY > MAX_BOUND) offsetY = MAX_BOUND - maxY;
+            if (maxZ + offsetZ > MAX_BOUND) offsetZ = MAX_BOUND - maxZ;
+
+            return new Float3(offsetX, offsetY, offsetZ);
         }
 
         private @NotNull JsonObject buildJson(
@@ -310,7 +378,8 @@ public sealed interface BlueprintElement {
             float scale,
             @NotNull ModelBlueprint parent,
             @NotNull BlueprintElement.Group group,
-            @NotNull Float3 identifier
+            @NotNull Float3 identifier,
+            @NotNull Float3 boundsOffset
         ) {
             var qua = MathUtil.toQuaternion(identifier.toVector()).invert();
             var centerOrigin = centralize(origin(), group.origin, scale);
@@ -321,11 +390,13 @@ public sealed interface BlueprintElement {
                     .plus(groupDelta)
                     .plus(Float3.CENTER)
                     .minus(inflate)
+                    .plus(boundsOffset)
                     .toJson())
                 .jsonArray("to", centralize(to(), group.origin, scale)
                     .plus(groupDelta)
                     .plus(Float3.CENTER)
                     .plus(inflate)
+                    .plus(boundsOffset)
                     .toJson())
                 .jsonObject("faces", Objects.requireNonNull(faces()).toJson(parent, tint))
                 .jsonObject("rotation", Optional.of(rotation().minus(identifier))
@@ -335,6 +406,7 @@ public sealed interface BlueprintElement {
                         rotation.add("origin", centerOrigin
                             .plus(groupDelta)
                             .plus(Float3.CENTER)
+                            .plus(boundsOffset)
                             .toJson());
                         return rotation;
                     })
