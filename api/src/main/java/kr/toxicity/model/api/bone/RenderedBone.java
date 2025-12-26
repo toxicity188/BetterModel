@@ -627,9 +627,7 @@ public final class RenderedBone implements BoneEventHandler {
                 def.position().add(modifiedPosition(preventModifierUpdate));
                 def.rotation().mul(modifiedRotation(preventModifierUpdate));
             }
-            synchronized (this) {
-                return afterTransform = def;
-            }
+            return afterTransform = def;
         }
 
         private boolean tick() {
