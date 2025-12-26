@@ -17,6 +17,7 @@ import kr.toxicity.model.api.nms.ModelInteractionHand
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
+import kr.toxicity.model.api.tracker.Tracker
 import kr.toxicity.model.util.PLUGIN
 import kr.toxicity.model.util.registerListener
 import org.bukkit.entity.Entity
@@ -179,7 +180,7 @@ object EntityManager : GlobalManager {
     override fun end() {
         EntityTrackerRegistry.registries {
             it.save()
-            it.close()
+            it.close(Tracker.CloseReason.PLUGIN_DISABLE)
         }
     }
 

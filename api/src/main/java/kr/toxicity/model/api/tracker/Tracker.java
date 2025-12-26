@@ -905,6 +905,7 @@ public abstract class Tracker implements AutoCloseable {
     @RequiredArgsConstructor
     public enum CloseReason {
         REMOVE(false),
+        PLUGIN_DISABLE(true),
         DESPAWN(true)
         ;
         private final boolean save;

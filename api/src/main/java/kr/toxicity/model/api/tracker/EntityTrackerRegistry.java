@@ -302,7 +302,12 @@ public final class EntityTrackerRegistry {
         return close(Tracker.CloseReason.REMOVE);
     }
 
-    private boolean close(@NotNull Tracker.CloseReason reason) {
+    /**
+     * Closes this registry
+     * @param reason close reason
+     * @return success
+     */
+    public boolean close(@NotNull Tracker.CloseReason reason) {
         if (!closed.compareAndSet(false, true)) return false;
         viewedPlayer().forEach(value -> value.sendEntityData(this));
         viewedPlayerMap.clear();
