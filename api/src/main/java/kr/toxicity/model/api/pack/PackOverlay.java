@@ -14,10 +14,15 @@ import java.util.Optional;
 import java.util.function.BooleanSupplier;
 
 /**
- * Pack overlay
- * @param packName name
- * @param range range
- * @param tester tester
+ * Represents a resource pack overlay, allowing for version-specific resources.
+ * <p>
+ * Overlays are used to support multiple Minecraft versions within a single resource pack.
+ * </p>
+ *
+ * @param packName the name of the overlay (e.g., "legacy", "modern")
+ * @param range the version range this overlay applies to
+ * @param tester a supplier to determine if this overlay should be active
+ * @since 1.15.2
  */
 public record PackOverlay(
     @NotNull String packName,
@@ -25,7 +30,8 @@ public record PackOverlay(
     @NotNull BooleanSupplier tester
 ) implements Comparable<PackOverlay> {
     /**
-     * Default
+     * The default overlay (base pack).
+     * @since 1.15.2
      */
     public static final PackOverlay DEFAULT = new PackOverlay(
         "",
@@ -34,7 +40,8 @@ public record PackOverlay(
     );
 
     /**
-     * Legacy
+     * The legacy overlay (for older versions).
+     * @since 1.15.2
      */
     public static final PackOverlay LEGACY = new PackOverlay(
         "legacy",
@@ -43,7 +50,8 @@ public record PackOverlay(
     );
 
     /**
-     * Modern
+     * The modern overlay (for newer versions).
+     * @since 1.15.2
      */
     public static final PackOverlay MODERN = new PackOverlay(
         "modern",
@@ -53,17 +61,21 @@ public record PackOverlay(
 
 
     /**
-     * Gets path
-     * @param namespace namespace
-     * @return path
+     * Generates the root path for this overlay.
+     *
+     * @param namespace the namespace prefix
+     * @return the pack path
+     * @since 1.15.2
      */
     public @NotNull PackPath path(@NotNull String namespace) {
         return packName.isEmpty() ? PackPath.EMPTY : new PackPath(namespace + "_" + packName);
     }
 
     /**
-     * Tests this overlay
-     * @return test value
+     * Checks if this overlay is active.
+     *
+     * @return true if active, false otherwise
+     * @since 1.15.2
      */
     public boolean test() {
         return tester.getAsBoolean();

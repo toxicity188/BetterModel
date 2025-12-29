@@ -8,6 +8,14 @@ package kr.toxicity.model.api.pack;
 
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Represents a namespace within a resource pack, providing access to standard subdirectories.
+ * <p>
+ * This class organizes resources into 'items', 'models', and 'textures' categories.
+ * </p>
+ *
+ * @since 1.15.2
+ */
 public final class PackNamespace {
 
     private final PackBuilder items, models, textures;
@@ -19,14 +27,32 @@ public final class PackNamespace {
         textures = new PackBuilder(assets, subPath.resolve("textures", "item"));
     }
 
+    /**
+     * Returns the builder for the 'items' directory.
+     *
+     * @return the items builder
+     * @since 1.15.2
+     */
     public @NotNull PackBuilder items() {
         return items;
     }
 
+    /**
+     * Returns the builder for the 'models' directory.
+     *
+     * @return the models builder
+     * @since 1.15.2
+     */
     public @NotNull PackBuilder models() {
         return models;
     }
 
+    /**
+     * Returns the builder for the 'textures/item' directory.
+     *
+     * @return the textures builder
+     * @since 1.15.2
+     */
     public @NotNull PackBuilder textures() {
         return textures;
     }

@@ -20,12 +20,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Manages the assembly and zipping of resource pack contents.
+ * <p>
+ * This class coordinates the collection of assets across different overlays (default, legacy, modern)
+ * and prepares the data for final pack generation.
+ * </p>
+ *
+ * @since 1.15.2
+ */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PackZipper {
 
     private static final PackPath PACK_ICON = new PackPath("pack.png");
 
-
+    /**
+     * Creates a new PackZipper instance.
+     *
+     * @return a new PackZipper
+     * @since 1.15.2
+     */
     public static @NotNull PackZipper zipper() {
         return new PackZipper();
     }
@@ -33,24 +47,63 @@ public final class PackZipper {
     private final PackMeta.Builder metaBuilder = PackMeta.builder();
     private final Map<PackOverlay, PackAssets> overlayMap = new ConcurrentHashMap<>();
 
+    /**
+     * Retrieves the default assets collection.
+     *
+     * @return the default assets
+     * @since 1.15.2
+     */
     public @NotNull PackAssets assets() {
         return overlay(PackOverlay.DEFAULT);
     }
+
+    /**
+     * Retrieves the legacy assets collection.
+     *
+     * @return the legacy assets
+     * @since 1.15.2
+     */
     public @NotNull PackAssets legacy() {
         return overlay(PackOverlay.LEGACY);
     }
+
+    /**
+     * Retrieves the modern assets collection.
+     *
+     * @return the modern assets
+     * @since 1.15.2
+     */
     public @NotNull PackAssets modern() {
         return overlay(PackOverlay.MODERN);
     }
 
+    /**
+     * Retrieves the assets collection for a specific overlay.
+     *
+     * @param overlay the overlay
+     * @return the assets collection
+     * @since 1.15.2
+     */
     public @NotNull PackAssets overlay(@NotNull PackOverlay overlay) {
         return overlayMap.computeIfAbsent(overlay, PackAssets::new);
     }
 
+    /**
+     * Returns the builder for the pack metadata.
+     *
+     * @return the metadata builder
+     * @since 1.15.2
+     */
     public @NotNull PackMeta.Builder metaBuilder() {
         return metaBuilder;
     }
 
+    /**
+     * Builds the final pack data, including metadata and all resources.
+     *
+     * @return the build data
+     * @since 1.15.2
+     */
     @ApiStatus.Internal
     public @NotNull BuildData build() {
         var resources = new ArrayList<PackResource>(size());
@@ -70,6 +123,12 @@ public final class PackZipper {
         return new BuildData(meta, resources);
     }
 
+    /**
+     * Returns the total estimated number of resources.
+     *
+     * @return the size
+     * @since 1.15.2
+     */
     public int size() {
         return overlayMap.values().stream().mapToInt(PackAssets::size).sum() + 2;
     }
@@ -87,6 +146,13 @@ public final class PackZipper {
         }
     }
 
+    /**
+     * Holds the result of a build operation.
+     *
+     * @param meta the generated pack metadata
+     * @param resources the list of generated resources
+     * @since 1.15.2
+     */
     public record BuildData(@NotNull PackMeta meta, @NotNull List<PackResource> resources) {
 
     }

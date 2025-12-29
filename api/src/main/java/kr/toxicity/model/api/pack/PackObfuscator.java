@@ -13,51 +13,67 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Pack obfuscator
+ * Defines a strategy for obfuscating resource names in the pack.
+ * <p>
+ * Obfuscation can help reduce file path lengths and protect asset names.
+ * </p>
+ *
+ * @since 1.15.2
  */
 public interface PackObfuscator {
 
     /**
-     * None
+     * A no-op obfuscator that returns the name as-is.
+     * @since 1.15.2
      */
     PackObfuscator NONE = name -> name;
 
     /**
-     * Obfuscate this name
-     * @param rawName raw name
-     * @return obfuscated name
+     * Obfuscates the given raw name.
+     *
+     * @param rawName the original name
+     * @return the obfuscated name
+     * @since 1.15.2
      */
     @NotNull String obfuscate(@NotNull String rawName);
 
     /**
-     * Creates order obfuscator
-     * @return order obfuscator
+     * Creates an order-based obfuscator if obfuscation is enabled in the configuration.
+     *
+     * @return the obfuscator
+     * @since 1.15.2
      */
     static @NotNull PackObfuscator order() {
         return BetterModel.config().pack().useObfuscation() ? new Order() : NONE;
     }
 
     /**
-     * Creates pair with models
-     * @param models models obfuscator
-     * @return obfuscator pair
+     * Creates a pair obfuscator, combining this obfuscator (as textures) with another (as models).
+     *
+     * @param models the models obfuscator
+     * @return the pair obfuscator
+     * @since 1.15.2
      */
     default @NotNull Pair withModels(@NotNull PackObfuscator models) {
         return pair(models, this);
     }
 
     /**
-     * Creates pair obfuscator
-     * @param models models obfuscator
-     * @param textures textures obfuscator
-     * @return pair obfuscator
+     * Creates a pair obfuscator from two separate obfuscators.
+     *
+     * @param models the models obfuscator
+     * @param textures the textures obfuscator
+     * @return the pair obfuscator
+     * @since 1.15.2
      */
     static @NotNull Pair pair(@NotNull PackObfuscator models, @NotNull PackObfuscator textures) {
         return new Pair(models, textures);
     }
 
     /**
-     * Obfuscate by order
+     * An obfuscator that generates short names based on the order of appearance.
+     *
+     * @since 1.15.2
      */
     final class Order implements PackObfuscator {
 
@@ -94,9 +110,11 @@ public interface PackObfuscator {
     }
 
     /**
-     * Pair obfuscator
-     * @param models models obfuscator
-     * @param textures textures obfuscator
+     * A pair of obfuscators for models and textures.
+     *
+     * @param models the models obfuscator
+     * @param textures the textures obfuscator
+     * @since 1.15.2
      */
     record Pair(@NotNull PackObfuscator models, @NotNull PackObfuscator textures) {}
 }

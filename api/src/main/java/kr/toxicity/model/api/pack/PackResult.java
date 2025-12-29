@@ -17,6 +17,15 @@ import java.security.MessageDigest;
 import java.util.*;
 import java.util.stream.Stream;
 
+/**
+ * Represents the result of a pack building process.
+ * <p>
+ * This class holds the generated pack metadata, the output directory, and the collection of generated resources (assets and overlays).
+ * It also provides methods to calculate the pack hash and check for changes.
+ * </p>
+ *
+ * @since 1.15.2
+ */
 @RequiredArgsConstructor
 public final class PackResult {
     private final PackMeta meta;
@@ -30,6 +39,14 @@ public final class PackResult {
     private boolean changed = false;
     private UUID uuid;
 
+    /**
+     * Adds a resource to the result.
+     *
+     * @param overlay the overlay the resource belongs to (or null for base assets)
+     * @param packByte the resource data
+     * @throws IllegalStateException if the result is frozen
+     * @since 1.15.2
+     */
     @ApiStatus.Internal
     public void set(@Nullable PackOverlay overlay, @NotNull PackByte packByte) {
         if (frozen) throw new IllegalStateException("result is frozen.");
@@ -44,29 +61,65 @@ public final class PackResult {
         }
     }
 
+    /**
+     * Freezes the result, preventing further modifications.
+     *
+     * @since 1.15.2
+     */
     public void freeze() {
         freeze(false);
     }
 
+    /**
+     * Checks if the pack content has changed.
+     *
+     * @return true if changed, false otherwise
+     * @since 1.15.2
+     */
     public boolean changed() {
         return changed;
     }
 
+    /**
+     * Freezes the result and sets the changed status.
+     *
+     * @param changed whether the pack content has changed
+     * @throws IllegalStateException if the result is already frozen
+     * @since 1.15.2
+     */
     public void freeze(boolean changed) {
         if (frozen) throw new IllegalStateException("result is frozen.");
         frozen = true;
         this.changed = changed;
     }
 
+    /**
+     * Returns the pack metadata.
+     *
+     * @return the pack metadata
+     * @since 1.15.2
+     */
     @NotNull
     public PackMeta meta() {
         return meta;
     }
 
+    /**
+     * Returns the output directory of the pack.
+     *
+     * @return the directory, or null if not applicable
+     * @since 1.15.2
+     */
     public @Nullable File directory() {
         return directory;
     }
 
+    /**
+     * Calculates and returns the SHA-256 hash of the pack content as a UUID.
+     *
+     * @return the hash UUID
+     * @since 1.15.2
+     */
     public @NotNull UUID hash() {
         if (uuid != null) return uuid;
         synchronized (this) {
@@ -81,14 +134,33 @@ public final class PackResult {
         }
     }
 
+    /**
+     * Returns the total number of resources in the pack.
+     *
+     * @return the size
+     * @since 1.15.2
+     */
     public int size() {
         return assets.size() + overlays.values().stream().mapToInt(Set::size).sum();
     }
 
+    /**
+     * Returns the time elapsed since the result was created.
+     *
+     * @return the elapsed time in milliseconds
+     * @since 1.15.2
+     */
     public long time() {
         return System.currentTimeMillis() - creationTime;
     }
 
+    /**
+     * Returns the resources for a specific overlay.
+     *
+     * @param overlay the overlay
+     * @return the set of resources
+     * @since 1.15.2
+     */
     @NotNull
     @Unmodifiable
     public Set<PackByte> overlays(@NotNull PackOverlay overlay) {
@@ -96,6 +168,12 @@ public final class PackResult {
         return get != null ? Collections.unmodifiableSet(get) : Collections.emptySet();
     }
 
+    /**
+     * Returns a stream of all resources in the pack.
+     *
+     * @return the stream of resources
+     * @since 1.15.2
+     */
     public @NotNull Stream<PackByte> stream() {
         return Stream.concat(
             overlays.values().stream().flatMap(Collection::stream),
@@ -103,6 +181,12 @@ public final class PackResult {
         );
     }
 
+    /**
+     * Returns the base assets of the pack.
+     *
+     * @return the set of assets
+     * @since 1.15.2
+     */
     @NotNull
     @Unmodifiable
     public Set<PackByte> assets() {

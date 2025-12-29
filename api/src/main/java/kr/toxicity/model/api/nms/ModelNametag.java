@@ -13,37 +13,53 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Model nametag
+ * Represents a nametag associated with a model part.
+ * <p>
+ * Nametags are typically implemented as invisible armor stands or text displays
+ * that float above a specific bone.
+ * </p>
+ *
+ * @since 1.15.2
  */
 public interface ModelNametag {
 
     /**
-     * Sets always visible flag
-     * @param alwaysVisible always visible
+     * Sets whether the nametag should always be visible (even through blocks).
+     *
+     * @param alwaysVisible true for always visible, false otherwise
+     * @since 1.15.2
      */
     void alwaysVisible(boolean alwaysVisible);
 
     /**
-     * Sets component
-     * @param component component
+     * Sets the text component of the nametag.
+     *
+     * @param component the text component, or null to clear
+     * @since 1.15.2
      */
     void component(@Nullable Component component);
 
     /**
-     * Teleports this nametag
-     * @param location location
+     * Teleports the nametag to a new location.
+     *
+     * @param location the target location
+     * @since 1.15.2
      */
     void teleport(@NotNull Location location);
 
     /**
-     * Sends nametag to some player
-     * @param player player
+     * Sends the nametag packet to a specific player.
+     *
+     * @param player the target player
+     * @since 1.15.2
      */
     void send(@NotNull Player player);
 
     /**
-     * Removes this nametag
-     * @param bundler bundler
+     * Removes the nametag.
+     *
+     * @param bundler the packet bundler to use
+     * @since 1.15.2
      */
     void remove(@NotNull PacketBundler bundler);
 }

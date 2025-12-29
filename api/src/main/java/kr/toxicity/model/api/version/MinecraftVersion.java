@@ -84,6 +84,7 @@ public record MinecraftVersion(int major, int minor, int patch) implements Compa
     /**
      * Parses version from string
      * @param version version like "1.21.11"
+     * @return parsed version
      */
     public static @NotNull MinecraftVersion parse(@NotNull String version) {
         var split = version.split("\\.");

@@ -11,19 +11,28 @@ import org.jetbrains.annotations.NotNull;
 import java.util.UUID;
 
 /**
- * Identifiable entity
+ * Represents an object that can be identified by a unique ID and a UUID.
+ * <p>
+ * This is commonly used for entities and other tracked objects in the game.
+ * </p>
+ *
+ * @since 1.15.2
  */
 public interface Identifiable {
 
     /**
-     * Gets entity id
-     * @return id
+     * Returns the integer ID of the object (e.g., entity ID).
+     *
+     * @return the ID
+     * @since 1.15.2
      */
     int id();
 
     /**
-     * Gets entity uuid
-     * @return uuid
+     * Returns the UUID of the object.
+     *
+     * @return the UUID
+     * @since 1.15.2
      */
     @NotNull UUID uuid();
 }

@@ -11,23 +11,32 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 /**
- * Display transformer
+ * Handles the transformation (position, scale, rotation) of a display entity.
+ * <p>
+ * This interface abstracts the interpolation logic for smooth animations.
+ * </p>
+ *
+ * @since 1.15.2
  */
 public interface DisplayTransformer {
 
     /**
-     * Transforms this display
-     * @param duration duration
-     * @param position position
-     * @param scale scale
-     * @param rotation rotation
-     * @param bundler bundler
+     * Applies a transformation to the display.
+     *
+     * @param duration the interpolation duration in ticks
+     * @param position the target position
+     * @param scale the target scale
+     * @param rotation the target rotation
+     * @param bundler the packet bundler to use
+     * @since 1.15.2
      */
     void transform(int duration, @NotNull Vector3f position, @NotNull Vector3f scale, @NotNull Quaternionf rotation, @NotNull PacketBundler bundler);
 
     /**
-     * Sends transformation
-     * @param bundler packet bundler
+     * Sends the current transformation state to clients.
+     *
+     * @param bundler the packet bundler to use
+     * @since 1.15.2
      */
     void sendTransformation(@NotNull PacketBundler bundler);
 }

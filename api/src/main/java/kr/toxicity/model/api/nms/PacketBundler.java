@@ -10,42 +10,58 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A packet bundler
+ * Collects multiple packets to be sent together to a player.
+ * <p>
+ * This helps optimize network traffic by grouping related updates (e.g., bone movements)
+ * into a single bundle or batch.
+ * </p>
+ *
+ * @since 1.15.2
  */
 public interface PacketBundler {
 
     /**
-     * Checks this bundler is empty
-     * @return empty or not
+     * Checks if the bundler contains no packets.
+     *
+     * @return true if empty, false otherwise
+     * @since 1.15.2
      */
     boolean isEmpty();
 
     /**
-     * Checks this bundler is not empty
-     * @return is not empty
+     * Checks if the bundler contains at least one packet.
+     *
+     * @return true if not empty, false otherwise
+     * @since 1.15.2
      */
     default boolean isNotEmpty() {
         return !isEmpty();
     }
 
     /**
-     * Gets bundler's packet size.
-     * @return size
+     * Returns the number of packets in the bundler.
+     *
+     * @return the packet count
+     * @since 1.15.2
      */
     int size();
 
     /**
-     * Sends all packets to player
-     * @param player target player
+     * Sends all collected packets to the specified player.
+     *
+     * @param player the target player
+     * @since 1.15.2
      */
     default void send(@NotNull Player player) {
         send(player, () -> {});
     }
 
     /**
-     * Sends all packets to player
-     * @param player target player
-     * @param onSuccess listener on success
+     * Sends all collected packets to the specified player and executes a callback on success.
+     *
+     * @param player the target player
+     * @param onSuccess the callback to run after sending
+     * @since 1.15.2
      */
     void send(@NotNull Player player, @NotNull Runnable onSuccess);
 }

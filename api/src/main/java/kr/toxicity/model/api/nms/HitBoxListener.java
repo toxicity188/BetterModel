@@ -14,26 +14,36 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
- * A listener of hit-box
+ * Listens for events related to a {@link HitBox}, such as damage, interaction, and mounting.
+ * <p>
+ * This interface allows for custom behavior when a hitbox is interacted with.
+ * </p>
+ *
+ * @since 1.15.2
  */
 public interface HitBoxListener {
 
     /**
-     * Empty listener
+     * An empty listener that does nothing.
+     * @since 1.15.2
      */
     HitBoxListener EMPTY = builder().build();
 
     /**
-     * Creates builder of hitbox listener
-     * @return listener builder
+     * Creates a new builder for {@link HitBoxListener}.
+     *
+     * @return a new builder
+     * @since 1.15.2
      */
     static @NotNull Builder builder() {
         return new Builder();
     }
 
     /**
-     * Creates builder by original hitbox listener
-     * @return listener builder
+     * Creates a builder initialized with this listener's current handlers.
+     *
+     * @return a new builder
+     * @since 1.15.2
      */
     default @NotNull Builder toBuilder() {
         return new Builder()
@@ -45,7 +55,9 @@ public interface HitBoxListener {
     }
 
     /**
-     * Builder
+     * Builder for {@link HitBoxListener}.
+     *
+     * @since 1.15.2
      */
     class Builder {
 
@@ -68,9 +80,11 @@ public interface HitBoxListener {
         }
 
         /**
-         * Sets sync listener
-         * @param sync listener
-         * @return self
+         * Adds a sync handler.
+         *
+         * @param sync the sync consumer
+         * @return this builder
+         * @since 1.15.2
          */
         public @NotNull Builder sync(@NotNull Consumer<HitBox> sync) {
             this.sync = this.sync == DEFAULT_SYNC ? sync : this.sync.andThen(sync);
@@ -78,9 +92,11 @@ public interface HitBoxListener {
         }
 
         /**
-         * Sets damage listener
-         * @param damage listener
-         * @return self
+         * Adds a damage handler.
+         *
+         * @param damage the damage handler
+         * @return this builder
+         * @since 1.15.2
          */
         public @NotNull Builder damage(@NotNull OnDamage damage) {
             this.damage = this.damage == DEFAULT_DAMAGE ? damage : this.damage.andThen(damage);
@@ -88,9 +104,11 @@ public interface HitBoxListener {
         }
 
         /**
-         * Sets remove listener
-         * @param remove listener
-         * @return self
+         * Adds a remove handler.
+         *
+         * @param remove the remove consumer
+         * @return this builder
+         * @since 1.15.2
          */
         public @NotNull Builder remove(@NotNull Consumer<HitBox> remove) {
             this.remove = this.remove == DEFAULT_REMOVE ? remove : this.remove.andThen(remove);
@@ -98,9 +116,11 @@ public interface HitBoxListener {
         }
 
         /**
-         * Sets mount listener
-         * @param mount listener
-         * @return self
+         * Adds a mount handler.
+         *
+         * @param mount the mount consumer
+         * @return this builder
+         * @since 1.15.2
          */
         public @NotNull Builder mount(@NotNull BiConsumer<HitBox, Entity> mount) {
             this.mount = this.mount == DEFAULT_MOUNT ? mount : this.mount.andThen(mount);
@@ -108,9 +128,11 @@ public interface HitBoxListener {
         }
 
         /**
-         * Sets dismount listener
-         * @param dismount listener
-         * @return self
+         * Adds a dismount handler.
+         *
+         * @param dismount the dismount consumer
+         * @return this builder
+         * @since 1.15.2
          */
         public @NotNull Builder dismount(@NotNull BiConsumer<HitBox, Entity> dismount) {
             this.dismount = this.dismount == DEFAULT_DISMOUNT ? dismount : this.dismount.andThen(dismount);
@@ -118,8 +140,10 @@ public interface HitBoxListener {
         }
 
         /**
-         * Build it as listener
-         * @return listener
+         * Builds the listener.
+         *
+         * @return the created listener
+         * @since 1.15.2
          */
         public @NotNull HitBoxListener build() {
             return new HitBoxListener() {
@@ -152,23 +176,29 @@ public interface HitBoxListener {
     }
 
     /**
-     * On damage
+     * Functional interface for handling damage events.
+     *
+     * @since 1.15.2
      */
     interface OnDamage {
         /**
-         * Handles damage event
-         * @param hitBox hit-box
-         * @param source damage source
-         * @param damage damage amount
-         * @return should be canceled
+         * Handles a damage event.
+         *
+         * @param hitBox the target hitbox
+         * @param source the damage source
+         * @param damage the damage amount
+         * @return true to cancel the damage, false otherwise
+         * @since 1.15.2
          */
         boolean event(@NotNull HitBox hitBox, @NotNull ModelDamageSource source, double damage);
 
 
         /**
-         * Sums two damage handlers
-         * @param other other
-         * @return new handler
+         * Chains this handler with another.
+         *
+         * @param other the other handler
+         * @return the combined handler
+         * @since 1.15.2
          */
         default @NotNull OnDamage andThen(@NotNull OnDamage other) {
             return (h, s, d) -> event(h, s, d) || other.event(h, s, d);
@@ -176,37 +206,47 @@ public interface HitBoxListener {
     }
 
     /**
-     * Listens to hit-box tick
-     * @param hitBox target hit-box
+     * Called when the hitbox is synchronized (ticked).
+     *
+     * @param hitBox the target hitbox
+     * @since 1.15.2
      */
     void sync(@NotNull HitBox hitBox);
 
     /**
-     * Listens to hit-box damage
-     * @param hitBox target hit-box
-     * @param source damage source
-     * @param damage damage
-     * @return cancel
+     * Called when the hitbox receives damage.
+     *
+     * @param hitBox the target hitbox
+     * @param source the damage source
+     * @param damage the damage amount
+     * @return true if the damage was cancelled
+     * @since 1.15.2
      */
     boolean damage(@NotNull HitBox hitBox, @NotNull ModelDamageSource source, double damage);
 
     /**
-     * Listens to hit-box remove
-     * @param hitBox target hit-box
+     * Called when the hitbox is removed.
+     *
+     * @param hitBox the target hitbox
+     * @since 1.15.2
      */
     void remove(@NotNull HitBox hitBox);
 
     /**
-     * Listens to hit-box mount
-     * @param hitBox target hit-box
-     * @param entity entity
+     * Called when an entity mounts the hitbox.
+     *
+     * @param hitBox the target hitbox
+     * @param entity the mounting entity
+     * @since 1.15.2
      */
     void mount(@NotNull HitBox hitBox, @NotNull Entity entity);
 
     /**
-     * Listens to hit-box dismount
-     * @param hitBox target hit-box
-     * @param entity entity
+     * Called when an entity dismounts the hitbox.
+     *
+     * @param hitBox the target hitbox
+     * @param entity the dismounting entity
+     * @since 1.15.2
      */
     void dismount(@NotNull HitBox hitBox, @NotNull Entity entity);
 }

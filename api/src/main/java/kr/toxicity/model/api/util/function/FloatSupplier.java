@@ -9,6 +9,7 @@ package kr.toxicity.model.api.util.function;
 /**
  * Float supplier
  */
+@FunctionalInterface
 public interface FloatSupplier {
     /**
      * Gets float value

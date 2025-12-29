@@ -40,6 +40,7 @@ public record BlueprintScript(@NotNull String name, @NotNull AnimationIterator.T
 
     /**
      * Creates animation iterator of this script
+     * @param modifier modifier
      * @return animation iterator
      */
     public @NotNull AnimationIterator<TimeScript> iterator(@NotNull AnimationModifier modifier) {

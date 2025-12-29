@@ -21,136 +21,184 @@ import org.joml.Vector3f;
 import java.util.Optional;
 
 /**
- * Gets hit-box
+ * Represents a hitbox for a model part, allowing for interaction and collision detection.
+ * <p>
+ * Hitboxes are often implemented using invisible entities (like Slimes or Interaction entities)
+ * and are linked to specific bones in the model.
+ * </p>
+ *
  * @see org.bukkit.entity.LivingEntity
+ * @since 1.15.2
  */
 public interface HitBox extends Identifiable {
 
     /**
-     * Triggers interact with this hitbox
-     * @param player player
-     * @param hand hand
+     * Triggers an interaction with this hitbox.
+     *
+     * @param player the player interacting
+     * @param hand the hand used
+     * @since 1.15.2
      */
     @ApiStatus.Internal
     void triggerInteract(@NotNull Player player, @NotNull ModelInteractionHand hand);
 
     /**
-     * Triggers interact with this hitbox
-     * @param player player
-     * @param hand hand
-     * @param position position
+     * Triggers an interaction with this hitbox at a specific position.
+     *
+     * @param player the player interacting
+     * @param hand the hand used
+     * @param position the interaction position
+     * @since 1.15.2
      */
     @ApiStatus.Internal
     void triggerInteractAt(@NotNull Player player, @NotNull ModelInteractionHand hand, @NotNull Vector position);
 
     /**
-     * Hides this hitbox from player
-     * @param player target
+     * Hides this hitbox from a specific player.
+     *
+     * @param player the target player
+     * @since 1.15.2
      */
     @ApiStatus.Internal
     void hide(@NotNull Player player);
 
     /**
-     * Shows this hitbox to player
-     * @param player target
+     * Shows this hitbox to a specific player.
+     *
+     * @param player the target player
+     * @since 1.15.2
      */
     @ApiStatus.Internal
     void show(@NotNull Player player);
 
     /**
-     * Gets bone name
-     * @return name
+     * Returns the name of the bone group associated with this hitbox.
+     *
+     * @return the group name
+     * @since 1.15.2
      */
     @NotNull BoneName groupName();
 
     /**
-     * Gets mount controller
-     * @return controller
+     * Returns the mount controller for this hitbox.
+     *
+     * @return the mount controller
+     * @since 1.15.2
      */
     @NotNull MountController mountController();
 
     /**
-     * Sets mount controller
-     * @param controller controller
+     * Sets the mount controller for this hitbox.
+     *
+     * @param controller the new mount controller
+     * @since 1.15.2
      */
     void mountController(@NotNull MountController controller);
 
     /**
-     * Checks passenger of this hit-box is on walk
-     * @return on walk
+     * Checks if the passenger of this hitbox is walking.
+     *
+     * @return true if walking, false otherwise
+     * @since 1.15.2
      */
     boolean onWalk();
 
     /**
-     * Gets source entity
-     * @return source
+     * Returns the source entity of this hitbox.
+     *
+     * @return the source entity
+     * @since 1.15.2
      */
     @NotNull Entity source();
 
     /**
-     * Mounts this hit-box
-     * @param entity target entity
+     * Mounts an entity onto this hitbox.
+     *
+     * @param entity the entity to mount
+     * @since 1.15.2
      */
     void mount(@NotNull Entity entity);
 
     /**
-     * Gets this hit-box has a mount driver.
-     * @return has a mount driver
+     * Checks if this hitbox has a mount driver.
+     *
+     * @return true if it has a driver, false otherwise
+     * @since 1.15.2
      */
     boolean hasMountDriver();
 
     /**
-     * Gets this hit-box has been controlled by another entity
-     * @return has been controlled
+     * Checks if this hitbox is being controlled by another entity.
+     *
+     * @return true if controlled, false otherwise
+     * @since 1.15.2
      */
     default boolean hasBeenControlled() {
         return mountController().canControl() && hasMountDriver();
     }
 
     /**
-     * Dismounts this hit-box
-     * @param entity dismount
+     * Dismounts an entity from this hitbox.
+     *
+     * @param entity the entity to dismount
+     * @since 1.15.2
      */
     void dismount(@NotNull Entity entity);
 
     /**
-     * Dismounts all passengers
+     * Dismounts all passengers from this hitbox.
+     *
+     * @since 1.15.2
      */
     void dismountAll();
 
     /**
-     * Check dismount call is forced by HitBox#dismount(Entity)
-     * @return force dismount
+     * Checks if a dismount operation is forced.
+     *
+     * @return true if forced, false otherwise
+     * @since 1.15.2
      */
     boolean forceDismount();
 
     /**
-     * Gets relative position for source entity
-     * @return relative position
+     * Returns the relative position of this hitbox to its source entity.
+     *
+     * @return the relative position
+     * @since 1.15.2
      */
     @NotNull Vector3f relativePosition();
 
     /**
-     * Removes this hit-box
-     * It differs from Entity#remove because it is thread-safe
+     * Removes this hitbox safely.
+     * <p>
+     * This method is thread-safe, unlike {@link Entity#remove()}.
+     * </p>
+     *
+     * @since 1.15.2
      */
     void removeHitBox();
 
     /**
-     * Gets hit-box listener
-     * @return listener
+     * Returns the listener associated with this hitbox.
+     *
+     * @return the listener
+     * @since 1.15.2
      */
     @NotNull HitBoxListener listener();
 
     /**
-     * Gets a position source of this hitbox.
-     * @return source
+     * Returns the rendered bone that acts as the position source for this hitbox.
+     *
+     * @return the position source bone
+     * @since 1.15.2
      */
     @NotNull RenderedBone positionSource();
 
     /**
-     * Gets this hitbox's tracker.
-     * @return tracker
+     * Returns the entity tracker registry for this hitbox's source entity.
+     *
+     * @return an optional containing the registry, or empty if not found
+     * @since 1.15.2
      */
     default @NotNull Optional<EntityTrackerRegistry> registry() {
         return BetterModel.registry(source().getUniqueId());
