@@ -681,8 +681,8 @@ object SkinManagerImpl : SkinManager, GlobalManager {
     }
 
     private fun ModelProfile.playerEquals() = player()?.let { player ->
-        ModelProfile.of(player)
-    } == this
+        ModelProfile.of(player).info()
+    } == info()
 
     override fun fallback(): SkinData = fallback
 
