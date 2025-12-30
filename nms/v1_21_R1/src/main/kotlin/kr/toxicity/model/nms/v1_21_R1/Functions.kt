@@ -53,20 +53,16 @@ internal inline fun <reified T, reified R> createAdaptedFieldGetter(): (T) -> R 
     }
 }
 
-internal fun <H, T> dirtyChecked(hash: () -> H, function: (H) -> T): () -> T {
+internal fun <H, T> dirtyChecked(hash: () -> H, function: (H) -> T, equalityChecker: (H, H) -> Boolean = { a, b -> a == b }): () -> T {
     val lock = Any()
     var h = hash()
     var value = function(h)
     return {
         val newH = hash()
-        when {
-            h === newH -> value
-            h == newH -> value
-            else -> synchronized(lock) {
-                h = newH
-                value = function(h)
-                value
-            }
+        if (equalityChecker(h, newH)) value else synchronized(lock) {
+            h = newH
+            value = function(h)
+            value
         }
     }
 }

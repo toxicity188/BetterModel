@@ -364,7 +364,11 @@ class NMSImpl : NMS {
         player as CraftPlayer
         return BasePlayerImpl(
             player,
-            dirtyChecked({ getGameProfile(player.handle) }, { ModelGameProfile(it) }),
+            dirtyChecked(
+                { getGameProfile(player.handle) },
+                { ModelGameProfile(it) },
+                { a, b -> a == b && a.properties["texture"] === b.properties["texture"]}
+            ),
             dirtyChecked({ player.handle.toCustomisation() }, { PlayerSkinParts(it) })
         )
     }
