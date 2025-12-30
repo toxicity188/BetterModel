@@ -30,7 +30,6 @@ import org.bukkit.event.player.PlayerChangedWorldEvent
 import org.bukkit.event.player.PlayerInteractAtEntityEvent
 import org.bukkit.event.player.PlayerInteractEntityEvent
 import org.bukkit.event.player.PlayerQuitEvent
-import org.bukkit.event.world.EntitiesLoadEvent
 import org.bukkit.event.world.EntitiesUnloadEvent
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.potion.PotionEffectType
@@ -95,12 +94,12 @@ object EntityManager : GlobalManager {
             }
             (player.vehicle as? HitBox)?.dismount(player)
         }
-        @EventHandler(priority = EventPriority.MONITOR)
-        fun EntitiesLoadEvent.load() { //Chunk load
-            entities.forEach { entity ->
-                BetterModel.registryOrNull(entity.uniqueId)?.refresh()
-            }
-        }
+//        @EventHandler(priority = EventPriority.MONITOR)
+//        fun EntitiesLoadEvent.load() { //Chunk load
+//            entities.forEach { entity ->
+//                BetterModel.registryOrNull(entity.uniqueId)?.refresh()
+//            }
+//        }
         @EventHandler(priority = EventPriority.MONITOR)
         fun EntitiesUnloadEvent.unload() { //Chunk unload
             entities.forEach { entity ->
