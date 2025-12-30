@@ -121,9 +121,11 @@ public final class HttpUtil {
 
     /**
      * Plugin version
+     * @param id id
      * @param versionNumber number
      * @param versionType type
      * @param versions game versions
+     * @param loaders loaders
      */
     public record PluginVersion(
         @NotNull String id,

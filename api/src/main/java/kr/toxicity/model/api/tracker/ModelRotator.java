@@ -172,6 +172,8 @@ public sealed interface ModelRotator extends BiFunction<Tracker, ModelRotation, 
     /**
      * Implementation of a chained rotator.
      *
+     * @param source source rotator
+     * @param delegate delegated rotator
      * @since 1.15.2
      */
     record SourcedRotator(@NotNull ModelRotator source, @NotNull ModelRotator delegate) implements ModelRotator {

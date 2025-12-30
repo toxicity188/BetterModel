@@ -20,22 +20,31 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 /**
- * Model Manager
+ * Manages all loaded models and provides access to them.
+ * <p>
+ * This manager is the primary entry point for retrieving {@link ModelRenderer} instances,
+ * which are used to create and control model trackers.
+ * </p>
+ *
+ * @since 1.15.2
  */
 public interface ModelManager {
 
     /**
-     * Gets renderer by name
-     * @param name name
-     * @return renderer or null
+     * Retrieves a model renderer by its name.
+     *
+     * @param name the name of the model
+     * @return the model renderer, or null if not found
+     * @since 1.15.2
      */
     @Nullable ModelRenderer model(@NotNull String name);
 
 
     /**
-     * @deprecated Use ModelManager#model instead.
-     * @param name name
-     * @return renderer or null
+     * @deprecated Use {@link #model(String)} instead.
+     * @param name the name of the model
+     * @return the model renderer, or null if not found
+     * @since 1.15.2
      */
     @Deprecated
     @Nullable
@@ -44,72 +53,88 @@ public interface ModelManager {
     }
 
     /**
-     * Gets all renderers
-     * @return all renderers
+     * Returns a collection of all loaded model renderers.
+     *
+     * @return an unmodifiable collection of models
+     * @since 1.15.2
      */
     @NotNull @Unmodifiable
     Collection<ModelRenderer> models();
 
     /**
-     * Gets all key of renderer
-     * @return keys
+     * Returns a set of all loaded model names.
+     *
+     * @return an unmodifiable set of model keys
+     * @since 1.15.2
      */
     @NotNull @Unmodifiable
     Set<String> modelKeys();
 
     /**
-     * Gets all renderers for player animation.
-     * @return renderers
+     * Returns a collection of all renderers designated for player limb animations.
+     *
+     * @return an unmodifiable collection of limb models
+     * @since 1.15.2
      */
     @NotNull @Unmodifiable
     Collection<ModelRenderer> limbs();
 
     /**
-     * Gets renderer for player animation by name.
-     * @param name renderer's name
-     * @return renderer or null
+     * Retrieves a player limb renderer by its name.
+     *
+     * @param name the name of the limb model
+     * @return the limb renderer, or null if not found
+     * @since 1.15.2
      */
     @Nullable ModelRenderer limb(@NotNull String name);
 
     /**
-     * Gets all key of renderer
-     * @return keys
+     * Returns a set of all loaded player limb model names.
+     *
+     * @return an unmodifiable set of limb keys
+     * @since 1.15.2
      */
     @NotNull @Unmodifiable
     Set<String> limbKeys();
 
 
     /**
-     * Play's animation to this player
-     * @param player player
-     * @param model model name
-     * @param animation animation name
-     * @return whether to success
+     * Plays an animation on a player.
+     *
+     * @param player the target player
+     * @param model the name of the limb model
+     * @param animation the name of the animation
+     * @return true if the animation started successfully
+     * @since 1.15.2
      */
     default boolean animate(@NotNull Player player, @NotNull String model, @NotNull String animation) {
         return animate(player, model, animation, AnimationModifier.DEFAULT_WITH_PLAY_ONCE);
     }
 
     /**
-     * Play's animation to this player with a specific loop type.
-     * @param player player
-     * @param model model name
-     * @param animation animation name
-     * @param modifier modifier
-     * @return whether to success
+     * Plays an animation on a player with a specific modifier.
+     *
+     * @param player the target player
+     * @param model the name of the limb model
+     * @param animation the name of the animation
+     * @param modifier the animation modifier
+     * @return true if the animation started successfully
+     * @since 1.15.2
      */
     default boolean animate(@NotNull Player player, @NotNull String model, @NotNull String animation, @NotNull AnimationModifier modifier) {
         return animate(player, model, animation, modifier, t -> {});
     }
 
     /**
-     * Play's animation to this player with a specific loop type.
-     * @param player player
-     * @param model model name
-     * @param animation animation name
-     * @param modifier modifier
-     * @param consumer consumer
-     * @return whether to success
+     * Plays an animation on a player with a modifier and a configuration consumer.
+     *
+     * @param player the target player
+     * @param model the name of the limb model
+     * @param animation the name of the animation
+     * @param modifier the animation modifier
+     * @param consumer a consumer to configure the created tracker
+     * @return true if the animation started successfully
+     * @since 1.15.2
      */
     default boolean animate(@NotNull Player player, @NotNull String model, @NotNull String animation, @NotNull AnimationModifier modifier, @NotNull Consumer<EntityTracker> consumer) {
         var get = limb(model);

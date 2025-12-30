@@ -344,6 +344,7 @@ public sealed interface BlueprintElement {
 
         /**
          * Gets max length of this cube
+         * @param origin origin
          * @return cube length
          */
         public float max(@NotNull Float3 origin) {

@@ -29,7 +29,8 @@ Javadoc Standards
 
 - Explain the purpose of the class/method in the context of Minecraft server-side rendering.
 - Document `@param` and `@return` types, especially for complex types like MolangCompiler or DisplayEntity.
-- Include `@since` tags corresponding to the current versioning in build.gradle.kts.
+- For Java Record classes, every component (field) must be documented using the `@param` tag.
+- Include `@since` tags corresponding to the current versioning in gradle.properties.
 
 ### Git & Code Interaction
 Commit Messages: Use conventional commits (e.g., docs: add Javadoc for AnimationController).  

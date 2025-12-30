@@ -67,8 +67,9 @@ public sealed interface ModelElement {
 
     /**
      * A raw model's locator
-     * @param name
-     * @param uuid
+     * @param name name
+     * @param uuid uuid
+     * @param position position
      */
     record Locator(
         @NotNull String name,
@@ -100,7 +101,7 @@ public sealed interface ModelElement {
 
     /**
      * A raw model's camera
-     * @param uuid
+     * @param uuid uuid
      */
     record Camera(
         @NotNull String uuid
@@ -120,8 +121,8 @@ public sealed interface ModelElement {
 
     /**
      * A raw model's null object
-     * @param name
-     * @param uuid
+     * @param name name
+     * @param uuid uuid
      * @param ikTarget ik target
      * @param ikSource ik source
      * @param position position

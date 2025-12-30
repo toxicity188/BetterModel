@@ -8,6 +8,7 @@ package kr.toxicity.model.api.player;
 
 /**
  * Player skin parts
+ * @param bitmask bit mask
  */
 public record PlayerSkinParts(int bitmask) {
     /**

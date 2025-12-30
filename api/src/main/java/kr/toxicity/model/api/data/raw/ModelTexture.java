@@ -35,6 +35,7 @@ public record ModelTexture(
 
     /**
      * Converts this texture to blueprint textures
+     * @param context context
      * @return converted textures
      */
     public @NotNull BlueprintTexture toBlueprint(@NotNull ModelLoadContext context) {

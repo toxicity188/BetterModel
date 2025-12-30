@@ -68,7 +68,7 @@ public final class PackZipper {
     }
 
     /**
-     * Retrieves the modern assets collection.
+     * Retrieves the modern assets' collection.
      *
      * @return the modern assets
      * @since 1.15.2

@@ -16,6 +16,7 @@ import org.joml.Vector3f;
  * Vector point
  * @param function function
  * @param time time
+ * @param bezier bezier config
  * @param interpolator interpolator
  */
 public record VectorPoint(@NotNull FloatFunction<Vector3f> function, float time, @NotNull BezierConfig bezier, @NotNull VectorInterpolator interpolator) implements Timed {

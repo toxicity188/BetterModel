@@ -12,20 +12,29 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Script manager
+ * Manages the parsing and registration of animation scripts.
+ * <p>
+ * This manager allows for the creation of custom script logic that can be embedded within animations.
+ * </p>
+ *
+ * @since 1.15.2
  */
 public interface ScriptManager {
     /**
-     * Creates a script for line
-     * @param script raw script
-     * @return entity script
+     * Parses a raw script string into an {@link AnimationScript}.
+     *
+     * @param script the raw script string
+     * @return the parsed script, or null if parsing failed
+     * @since 1.15.2
      */
     @Nullable AnimationScript build(@NotNull String script);
 
     /**
-     * Adds script parser to registry
-     * @param name parser name
-     * @param script script builder
+     * Registers a new script builder.
+     *
+     * @param name the name of the parser/builder
+     * @param script the script builder instance
+     * @since 1.15.2
      */
     void addBuilder(@NotNull String name, @NotNull ScriptBuilder script);
 }

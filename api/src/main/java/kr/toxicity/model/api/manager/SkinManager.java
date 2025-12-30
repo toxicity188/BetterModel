@@ -13,15 +13,46 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Skin manager
+ * Manages the retrieval and caching of player skins.
+ * <p>
+ * This manager handles fetching skin data from various sources (e.g., Mojang, SkinsRestorer)
+ * and provides a fallback skin when a profile cannot be resolved.
+ * </p>
+ *
+ * @since 1.15.2
  */
 public interface SkinManager {
 
+    /**
+     * Checks if a skin provider (like SkinsRestorer) is supported and available.
+     *
+     * @return true if supported, false otherwise
+     * @since 1.15.2
+     */
     boolean supported();
 
+    /**
+     * Returns the fallback skin data used when a skin cannot be resolved.
+     *
+     * @return the fallback skin data
+     * @since 1.15.2
+     */
     @NotNull SkinData fallback();
 
+    /**
+     * Asynchronously completes an uncompleted model profile to retrieve its skin data.
+     *
+     * @param profile the uncompleted profile
+     * @return a future that completes with the skin data
+     * @since 1.15.2
+     */
     @NotNull CompletableFuture<? extends SkinData> complete(@NotNull ModelProfile.Uncompleted profile);
 
+    /**
+     * Removes a specific profile from the skin cache.
+     *
+     * @param profile the profile to remove
+     * @since 1.15.2
+     */
     void removeCache(@NotNull ModelProfile profile);
 }

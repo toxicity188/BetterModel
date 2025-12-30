@@ -235,6 +235,8 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
 
     /**
      * Action to update brightness.
+     * @param block the block light level
+     * @param sky the skylight level
      * @since 1.15.2
      */
     record Brightness(int block, int sky) implements TrackerUpdateAction {
@@ -271,6 +273,7 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
 
     /**
      * Action to update glow color.
+     * @param glowColor the RGB glow color
      * @since 1.15.2
      */
     record GlowColor(int glowColor) implements TrackerUpdateAction {
@@ -282,6 +285,7 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
 
     /**
      * Action to update view range.
+     * @param viewRange the view range
      * @since 1.15.2
      */
     record ViewRange(float viewRange) implements TrackerUpdateAction {
@@ -318,6 +322,7 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
 
     /**
      * Action to apply a tint color.
+     * @param rgb the RGB tint color
      * @since 1.15.2
      */
     record Tint(int rgb) implements TrackerUpdateAction {
@@ -371,6 +376,7 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
 
     /**
      * Action to update the item stack.
+     * @param itemStack the new item stack
      * @since 1.15.2
      */
     record ItemStack(@NotNull TransformedItemStack itemStack) implements TrackerUpdateAction {
@@ -382,6 +388,7 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
 
     /**
      * Action to update the billboard constraint.
+     * @param billboard the billboard type
      * @since 1.15.2
      */
     record Billboard(@NotNull Display.Billboard billboard) implements TrackerUpdateAction {
@@ -411,6 +418,7 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
 
     /**
      * Action to update movement duration.
+     * @param moveDuration the duration in ticks
      * @since 1.15.2
      */
     record MoveDuration(int moveDuration) implements TrackerUpdateAction {
@@ -422,6 +430,7 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
 
     /**
      * Composite action.
+     * @param actions the list of actions
      * @since 1.15.2
      */
     record Composite(@NotNull @Unmodifiable List<TrackerUpdateAction> actions) implements TrackerUpdateAction {
@@ -442,6 +451,7 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
 
     /**
      * Per-bone dynamic action.
+     * @param builder the function to generate actions
      * @since 1.15.2
      */
     record PerBone(@NotNull Function<RenderedBone, TrackerUpdateAction> builder) implements TrackerUpdateAction {
