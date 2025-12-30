@@ -43,7 +43,13 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
- * Entity tracker
+ * A tracker implementation that is attached to a living entity.
+ * <p>
+ * This tracker synchronizes the model's position, rotation, and animations with the target entity.
+ * It handles hitboxes, nametags, damage tinting, and mounting mechanics.
+ * </p>
+ *
+ * @since 1.15.2
  */
 public class EntityTracker extends Tracker {
 
@@ -67,11 +73,13 @@ public class EntityTracker extends Tracker {
     private EntityHideOption hideOption = EntityHideOption.DEFAULT;
 
     /**
-     * Creates entity tracker
-     * @param registry registry
-     * @param pipeline render instance
-     * @param modifier modifier
-     * @param preUpdateConsumer task on pre-update
+     * Creates a new entity tracker.
+     *
+     * @param registry the entity tracker registry
+     * @param pipeline the render pipeline
+     * @param modifier the tracker modifier
+     * @param preUpdateConsumer a consumer to run before the first update
+     * @since 1.15.2
      */
     @ApiStatus.Internal
     public EntityTracker(@NotNull EntityTrackerRegistry registry, @NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
@@ -157,7 +165,9 @@ public class EntityTracker extends Tracker {
     }
 
     /**
-     * Syncs this tracker to base entity's data.
+     * Synchronizes the tracker with the base entity's data asynchronously.
+     *
+     * @since 1.15.2
      */
     public void updateBaseEntity() {
         BetterModel.plugin().scheduler().asyncTaskLater(1, () -> {
@@ -178,51 +188,63 @@ public class EntityTracker extends Tracker {
     }
 
     /**
-     * Gets registry.
-     * @return registry
+     * Returns the entity tracker registry associated with this tracker.
+     *
+     * @return the registry
+     * @since 1.15.2
      */
     public @NotNull EntityTrackerRegistry registry() {
         return registry;
     }
 
     /**
-     * Creates hit-box
-     * @param listener listener
-     * @param predicate predicate
-     * @return success
+     * Creates hitboxes for the entity based on a predicate.
+     *
+     * @param listener the hitbox listener
+     * @param predicate the bone predicate
+     * @return true if any hitboxes were created
+     * @since 1.15.2
      */
     public boolean createHitBox(@Nullable HitBoxListener listener, @NotNull BonePredicate predicate) {
         return createHitBox(registry.entity(), listener, predicate);
     }
 
     /**
-     * Gets or creates model's hitbox
-     * @param listener listener
-     * @param predicate predicate
-     * @return hitbox or null
+     * Retrieves or creates a hitbox for the entity.
+     *
+     * @param listener the hitbox listener
+     * @param predicate the bone predicate
+     * @return the hitbox, or null if not found/created
+     * @since 1.15.2
      */
     public @Nullable HitBox hitbox(@Nullable HitBoxListener listener, @NotNull Predicate<RenderedBone> predicate) {
         return hitbox(registry.entity(), listener, predicate);
     }
 
     /**
-     * Gets damage tint value
-     * @return value
+     * Returns the current damage tint color value.
+     *
+     * @return the hex color value
+     * @since 1.15.2
      */
     public int damageTintValue() {
         return damageTintValue.get();
     }
 
     /**
-     * Sets damage tint value
-     * @param tint hex color
+     * Sets the damage tint color value.
+     *
+     * @param tint the hex color value
+     * @since 1.15.2
      */
     public void damageTintValue(int tint) {
         damageTintValue.set(tint);
     }
 
     /**
-     * Applies damage tint
+     * Triggers the damage tint effect if enabled.
+     *
+     * @since 1.15.2
      */
     public void damageTint() {
         if (!modifier().damageTint()) return;
@@ -245,22 +267,28 @@ public class EntityTracker extends Tracker {
     }
 
     /**
-     * Gets source entity
-     * @return source
+     * Returns the source entity being tracked.
+     *
+     * @return the source entity
+     * @since 1.15.2
      */
     public @NotNull BaseEntity sourceEntity() {
         return registry.entity();
     }
 
     /**
-     * Cancels damage tint task
+     * Cancels the active damage tint effect.
+     *
+     * @since 1.15.2
      */
     public void cancelDamageTint() {
         damageTint.set(-1);
     }
 
     /**
-     * Refresh this tracker
+     * Refreshes the tracker, updating entity data and hitboxes.
+     *
+     * @since 1.15.2
      */
     @ApiStatus.Internal
     public void refresh() {
@@ -269,35 +297,43 @@ public class EntityTracker extends Tracker {
     }
 
     /**
-     * Marks specific player for spawning
-     * @param player player
-     * @return success
+     * Marks a player for spawning the model.
+     *
+     * @param player the player
+     * @return true if the player was added
+     * @since 1.15.2
      */
     public boolean markPlayerForSpawn(@NotNull OfflinePlayer player) {
         return markForSpawn.add(player.getUniqueId());
     }
 
     /**
-     * Marks specific player for spawning
-     * @param uuids uuids
-     * @return success
+     * Marks a set of players for spawning the model.
+     *
+     * @param uuids the set of player UUIDs
+     * @return true if any players were added
+     * @since 1.15.2
      */
     public boolean markPlayerForSpawn(@NotNull Set<UUID> uuids) {
         return markForSpawn.addAll(uuids);
     }
 
     /**
-     * Unmarks specific player for spawning
-     * @param player player
-     * @return success
+     * Unmarks a player for spawning the model.
+     *
+     * @param player the player
+     * @return true if the player was removed
+     * @since 1.15.2
      */
     public boolean unmarkPlayerForSpawn(@NotNull OfflinePlayer player) {
         return markForSpawn.remove(player.getUniqueId());
     }
 
     /**
-     * Creates tracker data
-     * @return tracker data
+     * Converts the current tracker state to a {@link TrackerData} object.
+     *
+     * @return the tracker data
+     * @since 1.15.2
      */
     public @NotNull TrackerData asTrackerData() {
         return new TrackerData(
@@ -312,41 +348,51 @@ public class EntityTracker extends Tracker {
     }
 
     /**
-     * Gets body rotator
-     * @return body rotator
+     * Returns the entity body rotator.
+     *
+     * @return the body rotator
+     * @since 1.15.2
      */
     public @NotNull EntityBodyRotator bodyRotator() {
         return bodyRotator;
     }
 
     /**
-     * Checks this model can be spawned at given player
-     * @param player target player
-     * @return can be spawned
+     * Checks if the model can be spawned for a specific player.
+     *
+     * @param player the player
+     * @return true if allowed
+     * @since 1.15.2
      */
     public boolean canBeSpawnedAt(@NotNull OfflinePlayer player) {
         return markForSpawn.isEmpty() || markForSpawn.contains(player.getUniqueId());
     }
 
     /**
-     * Gets hide option of this tracker
-     * @return hide option
+     * Returns the hide option for this tracker.
+     *
+     * @return the hide option
+     * @since 1.15.2
      */
     public @NotNull EntityHideOption hideOption() {
         return hideOption;
     }
 
     /**
-     * Sets hide option of this tracker
-     * @param hideOption hide option
+     * Sets the hide option for this tracker.
+     *
+     * @param hideOption the new hide option
+     * @since 1.15.2
      */
     public void hideOption(@NotNull EntityHideOption hideOption) {
         this.hideOption = Objects.requireNonNull(hideOption);
     }
 
     /**
-     * Checks this tracker's data can be saved
-     * @return can be saved
+     * Checks if this tracker's data can be saved.
+     *
+     * @return true if saveable
+     * @since 1.15.2
      */
     public boolean canBeSaved() {
         return pipeline.getParent().type().isCanBeSaved();

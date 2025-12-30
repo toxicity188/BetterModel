@@ -22,86 +22,110 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
- * Tracker update action
+ * Represents an action that updates the state of a {@link RenderedBone}.
+ * <p>
+ * Actions can modify display properties like brightness, glow, item stack, and more.
+ * They are applied to bones matching a specific predicate.
+ * </p>
+ *
+ * @since 1.15.2
  */
 public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, BonePredicate> {
 
     /**
-     * Creates brightness action
-     * @param block block brightness
-     * @param sky sky brightness
-     * @return brightness action
+     * Creates an action to update display brightness.
+     *
+     * @param block the block light level
+     * @param sky the skylight level
+     * @return the action
+     * @since 1.15.2
      */
     static @NotNull Brightness brightness(int block, int sky) {
         return new Brightness(block, sky);
     }
 
     /**
-     * Creates glow action
-     * @param glow should be applying a glow
-     * @return glow action
+     * Creates an action to toggle the glowing effect.
+     *
+     * @param glow true to enable glow
+     * @return the action
+     * @since 1.15.2
      */
     static @NotNull Glow glow(boolean glow) {
         return glow ? Glow.TRUE : Glow.FALSE;
     }
 
     /**
-     * Creates glow color action
-     * @param glowColor glow color
-     * @return glow color action
+     * Creates an action to set the glow color.
+     *
+     * @param glowColor the RGB glow color
+     * @return the action
+     * @since 1.15.2
      */
     static @NotNull GlowColor glowColor(int glowColor) {
         return new GlowColor(glowColor);
     }
 
     /**
-     * Creates view range action
-     * @param viewRange view range
-     * @return view range action
+     * Creates an action to set the view range.
+     *
+     * @param viewRange the view range
+     * @return the action
+     * @since 1.15.2
      */
     static @NotNull ViewRange viewRange(float viewRange) {
         return new ViewRange(viewRange);
     }
 
     /**
-     * Creates tint action
-     * @param rgb rgb
-     * @return tint action
+     * Creates an action to apply a tint color.
+     *
+     * @param rgb the RGB tint color
+     * @return the action
+     * @since 1.15.2
      */
     static @NotNull Tint tint(int rgb) {
         return new Tint(rgb);
     }
 
     /**
-     * Gets previous tint action
-     * @return previous tint action
+     * Creates an action to revert to the previous tint.
+     *
+     * @return the action
+     * @since 1.15.2
      */
     static @NotNull PreviousTint previousTint() {
         return PreviousTint.INSTANCE;
     }
 
     /**
-     * Gets enchant action
-     * @param enchant should be enchanted
-     * @return enchant action
+     * Creates an action to toggle the enchanted glint effect.
+     *
+     * @param enchant true to enable glint
+     * @return the action
+     * @since 1.15.2
      */
     static @NotNull Enchant enchant(boolean enchant) {
         return enchant ? Enchant.TRUE : Enchant.FALSE;
     }
 
     /**
-     * Gets toggle part action
-     * @param toggle should be visible
-     * @return toggle part action
+     * Creates an action to toggle the visibility of a part.
+     *
+     * @param toggle true to show, false to hide
+     * @return the action
+     * @since 1.15.2
      */
     static @NotNull TogglePart togglePart(boolean toggle) {
         return toggle ? TogglePart.TRUE : TogglePart.FALSE;
     }
 
     /**
-     * Creates item stack action
-     * @param itemStack item stack
-     * @return item stack action
+     * Creates an action to update the displayed item stack.
+     *
+     * @param itemStack the new item stack
+     * @return the action
+     * @since 1.15.2
      */
     static @NotNull ItemStack itemStack(@NotNull TransformedItemStack itemStack) {
         Objects.requireNonNull(itemStack);
@@ -109,9 +133,11 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
     }
 
     /**
-     * Creates billboard action
-     * @param billboard billboard
-     * @return billboard action
+     * Creates an action to set the billboard constraint.
+     *
+     * @param billboard the billboard type
+     * @return the action
+     * @since 1.15.2
      */
     static @NotNull Billboard billboard(@NotNull Display.Billboard billboard) {
         Objects.requireNonNull(billboard);
@@ -119,25 +145,32 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
     }
 
     /**
-     * Gets item mapping action
-     * @return item mapping action
+     * Creates an action to update the item mapping.
+     *
+     * @return the action
+     * @since 1.15.2
      */
     static @NotNull ItemMapping itemMapping() {
         return ItemMapping.INSTANCE;
     }
 
     /**
-     * Creates move duration action
-     * @param moveDuration move duration
-     * @return move duration action
+     * Creates an action to set the movement interpolation duration.
+     *
+     * @param moveDuration the duration in ticks
+     * @return the action
+     * @since 1.15.2
      */
     static @NotNull MoveDuration moveDuration(int moveDuration) {
         return new MoveDuration(moveDuration);
     }
 
     /**
-     * Gets composited action
-     * @return composited action
+     * Combines multiple actions into a single composite action.
+     *
+     * @param actions the actions to combine
+     * @return the composite action
+     * @since 1.15.2
      */
     static @NotNull TrackerUpdateAction composite(@NotNull TrackerUpdateAction... actions) {
         return switch (actions.length) {
@@ -148,46 +181,61 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
     }
 
     /**
-     * Gets per bone action
-     * @param builder builder
-     * @return per bone action
+     * Creates an action that generates a specific action for each bone.
+     *
+     * @param builder the function to generate actions
+     * @return the per-bone action
+     * @since 1.15.2
      */
     static @NotNull PerBone perBone(@NotNull Function<RenderedBone, TrackerUpdateAction> builder) {
         return new PerBone(builder);
     }
 
     /**
-     * Gets none action
-     * @return none action
+     * Returns a no-op action.
+     *
+     * @return the none action
+     * @since 1.15.2
      */
     static @NotNull None none() {
         return None.INSTANCE;
     }
 
+    /**
+     * Applies the action to a bone if it matches the predicate.
+     *
+     * @param bone the target bone
+     * @param predicate the predicate to check against
+     * @return true if the bone was updated
+     * @since 1.15.2
+     */
     @Override
     boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate);
 
     /**
-     * Adds other actions to this update action
-     * @param action action
-     * @return merged action
+     * Chains this action with another action.
+     *
+     * @param action the next action
+     * @return the combined action
+     * @since 1.15.2
      */
     default @NotNull TrackerUpdateAction then(@NotNull TrackerUpdateAction action) {
         return composite(this, action);
     }
 
     /**
-     * Gets action stream
-     * @return stream
+     * Returns a stream of actions (useful for flattening composites).
+     *
+     * @return the stream
+     * @since 1.15.2
      */
     default @NotNull Stream<TrackerUpdateAction> stream() {
         return Stream.of(this);
     }
 
     /**
-     * Brightness
-     * @param block block brightness
-     * @param sky sky brightness
+     * Action to update brightness.
+     * @since 1.15.2
      */
     record Brightness(int block, int sky) implements TrackerUpdateAction {
         @Override
@@ -197,16 +245,19 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
     }
 
     /**
-     * Glow
+     * Action to update glow status.
+     * @since 1.15.2
      */
     @RequiredArgsConstructor
     enum Glow implements TrackerUpdateAction {
         /**
-         * True
+         * Enable glow.
+         * @since 1.15.2
          */
         TRUE(true),
         /**
-         * False
+         * Disable glow.
+         * @since 1.15.2
          */
         FALSE(false)
         ;
@@ -219,8 +270,8 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
     }
 
     /**
-     * Glow color
-     * @param glowColor glow color
+     * Action to update glow color.
+     * @since 1.15.2
      */
     record GlowColor(int glowColor) implements TrackerUpdateAction {
         @Override
@@ -230,8 +281,8 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
     }
 
     /**
-     * View range
-     * @param viewRange view range
+     * Action to update view range.
+     * @since 1.15.2
      */
     record ViewRange(float viewRange) implements TrackerUpdateAction {
         @Override
@@ -241,16 +292,19 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
     }
 
     /**
-     * Enchant
+     * Action to update enchantment glint.
+     * @since 1.15.2
      */
     @RequiredArgsConstructor
     enum Enchant implements TrackerUpdateAction {
         /**
-         * True
+         * Enable glint.
+         * @since 1.15.2
          */
         TRUE(true),
         /**
-         * False
+         * Disable glint.
+         * @since 1.15.2
          */
         FALSE(false)
         ;
@@ -263,8 +317,8 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
     }
 
     /**
-     * Tint
-     * @param rgb rgb
+     * Action to apply a tint color.
+     * @since 1.15.2
      */
     record Tint(int rgb) implements TrackerUpdateAction {
         @Override
@@ -274,11 +328,13 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
     }
 
     /**
-     * Previous tint
+     * Action to revert to previous tint.
+     * @since 1.15.2
      */
     enum PreviousTint implements TrackerUpdateAction {
         /**
-         * Instance
+         * Instance.
+         * @since 1.15.2
          */
         INSTANCE
         ;
@@ -289,16 +345,19 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
     }
 
     /**
-     * Toggle part
+     * Action to toggle part visibility.
+     * @since 1.15.2
      */
     @RequiredArgsConstructor
     enum TogglePart implements TrackerUpdateAction {
         /**
-         * True
+         * Show part.
+         * @since 1.15.2
          */
         TRUE(true),
         /**
-         * False
+         * Hide part.
+         * @since 1.15.2
          */
         FALSE(false)
         ;
@@ -311,8 +370,8 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
     }
 
     /**
-     * Item stack
-     * @param itemStack item stack
+     * Action to update the item stack.
+     * @since 1.15.2
      */
     record ItemStack(@NotNull TransformedItemStack itemStack) implements TrackerUpdateAction {
         @Override
@@ -322,8 +381,8 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
     }
 
     /**
-     * Billboard
-     * @param billboard billboard
+     * Action to update the billboard constraint.
+     * @since 1.15.2
      */
     record Billboard(@NotNull Display.Billboard billboard) implements TrackerUpdateAction {
         @Override
@@ -333,11 +392,13 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
     }
 
     /**
-     * Item mapping
+     * Action to update item mapping.
+     * @since 1.15.2
      */
     enum ItemMapping implements TrackerUpdateAction {
         /**
-         * Instance
+         * Instance.
+         * @since 1.15.2
          */
         INSTANCE
         ;
@@ -349,8 +410,8 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
     }
 
     /**
-     * Move duration
-     * @param moveDuration move duration
+     * Action to update movement duration.
+     * @since 1.15.2
      */
     record MoveDuration(int moveDuration) implements TrackerUpdateAction {
         @Override
@@ -360,8 +421,8 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
     }
 
     /**
-     * Composited action
-     * @param actions actions
+     * Composite action.
+     * @since 1.15.2
      */
     record Composite(@NotNull @Unmodifiable List<TrackerUpdateAction> actions) implements TrackerUpdateAction {
         @Override
@@ -380,8 +441,8 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
     }
 
     /**
-     * Per bone
-     * @param builder builder
+     * Per-bone dynamic action.
+     * @since 1.15.2
      */
     record PerBone(@NotNull Function<RenderedBone, TrackerUpdateAction> builder) implements TrackerUpdateAction {
         @Override
@@ -391,12 +452,13 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
     }
 
     /**
-     * No-op update action
-     * Always returns false and performs no mutation
+     * No-op action.
+     * @since 1.15.2
      */
     enum None implements TrackerUpdateAction {
         /**
-         * Instance
+         * Instance.
+         * @since 1.15.2
          */
         INSTANCE
         ;

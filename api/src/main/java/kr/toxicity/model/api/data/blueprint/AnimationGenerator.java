@@ -26,7 +26,13 @@ import java.util.stream.Stream;
 import static kr.toxicity.model.api.util.CollectionUtil.*;
 
 /**
- * Animation generator
+ * Generates animation data by interpolating keyframes and calculating bone movements.
+ * <p>
+ * This class processes raw animation points and generates smooth transitions for position, rotation, and scale.
+ * It handles the creation of intermediate frames to ensure fluid motion, especially for rotations.
+ * </p>
+ *
+ * @since 1.15.2
  */
 @ApiStatus.Internal
 public final class AnimationGenerator {
@@ -36,11 +42,16 @@ public final class AnimationGenerator {
     private final List<AnimationTree> trees;
 
     /**
-     * Creates animator from data
-     * @param length animation length
-     * @param children children
-     * @param pointMap point map
-     * @return generated map
+     * Creates a map of blueprint animators from the provided animation data.
+     * <p>
+     * This method calculates all necessary interpolation frames and builds the final animation structures for each bone.
+     * </p>
+     *
+     * @param length the total length of the animation in seconds
+     * @param children the list of root blueprint elements (bones)
+     * @param pointMap a map containing raw animation data for each bone
+     * @return a map of generated blueprint animators keyed by bone name
+     * @since 1.15.2
      */
     public static @NotNull Map<BoneName, BlueprintAnimator> createMovements(
         float length,
@@ -83,8 +94,13 @@ public final class AnimationGenerator {
     private float secondTime = 0F;
 
     /**
-     * Puts rotation-interpolated keyframe time to given set
-     * @param floats target set
+     * Inserts additional keyframes to smooth out large rotations.
+     * <p>
+     * This ensures that rotations larger than 90 degrees between frames are broken down into smaller steps.
+     * </p>
+     *
+     * @param floats the set of keyframe times to update
+     * @since 1.15.2
      */
     public void interpolateRotation(@NotNull FloatSortedSet floats) {
         var iterator = new FloatArrayList(floats).iterator();
@@ -110,6 +126,12 @@ public final class AnimationGenerator {
         }
     }
 
+    /**
+     * Inserts keyframes for step interpolation (non-continuous transitions).
+     *
+     * @param floats the set of keyframe times to update
+     * @since 1.15.2
+     */
     public void interpolateStep(@NotNull FloatSortedSet floats) {
         trees.stream()
             .map(tree -> tree.data)

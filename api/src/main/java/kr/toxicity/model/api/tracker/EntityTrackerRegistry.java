@@ -47,7 +47,13 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
- * A registry of each entity's tracker
+ * Manages all entity trackers for a specific entity.
+ * <p>
+ * This registry handles the lifecycle of trackers attached to an entity, including loading, saving,
+ * spawning, and despawning. It acts as a central hub for accessing and manipulating models on an entity.
+ * </p>
+ *
+ * @since 1.15.2
  */
 @ToString(onlyExplicitlyIncluded = true)
 public final class EntityTrackerRegistry {
@@ -56,7 +62,8 @@ public final class EntityTrackerRegistry {
     private static final Int2ReferenceMap<EntityTrackerRegistry> ID_REGISTRY_MAP = new Int2ReferenceOpenHashMap<>();
     private static final DuplexLock REGISTRY_LOCK = new DuplexLock();
     /**
-     * Tracker's namespace.
+     * The namespaced key used for tracking ID.
+     * @since 1.15.2
      */
     @NotNull
     public static final NamespacedKey TRACKING_ID = Objects.requireNonNull(NamespacedKey.fromString("bettermodel_tracker"));
@@ -76,35 +83,43 @@ public final class EntityTrackerRegistry {
     private final Map<UUID, MountedHitBox> mountedHitBox = Collections.unmodifiableMap(mountedHitBoxCache);
 
     /**
-     * Gets registry by uuid
-     * @param uuid uuid
-     * @return registry or null
+     * Retrieves a registry by entity UUID.
+     *
+     * @param uuid the entity UUID
+     * @return the registry, or null if not found
+     * @since 1.15.2
      */
     public static @Nullable EntityTrackerRegistry registry(@NotNull UUID uuid) {
         return REGISTRY_LOCK.accessToReadLock(() -> UUID_REGISTRY_MAP.get(uuid));
     }
 
     /**
-     * Gets registry by id
-     * @param id id
-     * @return registry or null
+     * Retrieves a registry by entity ID.
+     *
+     * @param id the entity ID
+     * @return the registry, or null if not found
+     * @since 1.15.2
      */
     public static @Nullable EntityTrackerRegistry registry(int id) {
         return REGISTRY_LOCK.accessToReadLock(() -> ID_REGISTRY_MAP.get(id));
     }
 
     /**
-     * Gets registry by entity
-     * @param entity entity
-     * @return registry or null
+     * Retrieves a registry for a base entity.
+     *
+     * @param entity the base entity
+     * @return the registry, or null if the entity has no model data
+     * @since 1.15.2
      */
     public static @Nullable EntityTrackerRegistry registry(@NotNull BaseEntity entity) {
         return entity.hasModelData() ? getOrCreate(entity) : null;
     }
 
     /**
-     * Uses all registries
-     * @param consumer consumer
+     * Iterates over all active registries.
+     *
+     * @param consumer the consumer to apply
+     * @since 1.15.2
      */
     public static void registries(@NotNull Consumer<EntityTrackerRegistry> consumer) {
         for (EntityTrackerRegistry registry : registries()) {
@@ -113,17 +128,21 @@ public final class EntityTrackerRegistry {
     }
 
     /**
-     * Gets all registries
-     * @return all registries
+     * Returns a list of all active registries.
+     *
+     * @return the list of registries
+     * @since 1.15.2
      */
     public static @NotNull @Unmodifiable List<EntityTrackerRegistry> registries() {
         return REGISTRY_LOCK.accessToReadLock(() -> ImmutableList.copyOf(UUID_REGISTRY_MAP.values()));
     }
 
     /**
-     * Gets or creates registry by entity
-     * @param entity entity
-     * @return registry
+     * Gets or creates a registry for a base entity.
+     *
+     * @param entity the base entity
+     * @return the registry
+     * @since 1.15.2
      */
     @ApiStatus.Internal
     public static @NotNull EntityTrackerRegistry getOrCreate(@NotNull BaseEntity entity) {
@@ -158,49 +177,61 @@ public final class EntityTrackerRegistry {
     }
 
     /**
-     * Gets source entity
-     * @return entity
+     * Returns the source entity.
+     *
+     * @return the entity
+     * @since 1.15.2
      */
     public @NotNull BaseEntity entity() {
         return entity;
     }
 
     /**
-     * Gets entity's uuid
-     * @return uuid
+     * Returns the entity UUID.
+     *
+     * @return the UUID
+     * @since 1.15.2
      */
     public @NotNull UUID uuid() {
         return uuid;
     }
 
     /**
-     * Gets entity's id
-     * @return id
+     * Returns the entity ID.
+     *
+     * @return the ID
+     * @since 1.15.2
      */
     public int id() {
         return id;
     }
 
     /**
-     * Gets all trackers of this registry
-     * @return all trackers
+     * Returns all trackers in this registry.
+     *
+     * @return the trackers
+     * @since 1.15.2
      */
     public @NotNull @Unmodifiable Collection<EntityTracker> trackers() {
         return trackers;
     }
 
     /**
-     * Gets some tracker by its name
-     * @param key key
-     * @return tracker or null
+     * Retrieves a tracker by key.
+     *
+     * @param key the key (model ID), or null for the first tracker
+     * @return the tracker, or null if not found
+     * @since 1.15.2
      */
     public @Nullable EntityTracker tracker(@Nullable String key) {
         return key == null ? first() : trackerMap.get(key);
     }
 
     /**
-     * Gets first tracker of this register
-     * @return first tracker
+     * Returns the first tracker in the registry.
+     *
+     * @return the first tracker, or null if empty
+     * @since 1.15.2
      */
     public @Nullable EntityTracker first() {
         var entry = trackerMap.firstEntry();
@@ -208,10 +239,12 @@ public final class EntityTrackerRegistry {
     }
 
     /**
-     * Creates tracker in this registry
-     * @param key key
-     * @param supplier supplier
-     * @return created tracker
+     * Creates a new tracker in this registry.
+     *
+     * @param key the key (model ID)
+     * @param supplier the supplier to create the tracker
+     * @return the created tracker
+     * @since 1.15.2
      */
     @ApiStatus.Internal
     public @NotNull EntityTracker create(@NotNull String key, @NotNull Function<EntityTrackerRegistry, EntityTracker> supplier) {
@@ -224,10 +257,12 @@ public final class EntityTrackerRegistry {
     }
 
     /**
-     * Gets or creates tracker in this registry
-     * @param key key
-     * @param supplier supplier
-     * @return created tracker
+     * Gets or creates a tracker in this registry.
+     *
+     * @param key the key (model ID)
+     * @param supplier the supplier to create the tracker
+     * @return the tracker
+     * @since 1.15.2
      */
     @ApiStatus.Internal
     public @NotNull EntityTracker getOrCreate(@NotNull String key, @NotNull Function<EntityTrackerRegistry, EntityTracker> supplier) {
@@ -275,9 +310,11 @@ public final class EntityTrackerRegistry {
     }
 
     /**
-     * Removes some tracker in this registry
-     * @param key key
-     * @return success
+     * Removes a tracker from the registry.
+     *
+     * @param key the key (model ID)
+     * @return true if removed successfully
+     * @since 1.15.2
      */
     public boolean remove(@NotNull String key) {
         try (var removed = trackerMap.remove(key)) {
@@ -287,25 +324,31 @@ public final class EntityTrackerRegistry {
     }
 
     /**
-     * Checks this registry is closed
-     * @return is closed
+     * Checks if the registry is closed.
+     *
+     * @return true if closed
+     * @since 1.15.2
      */
     public boolean isClosed() {
         return closed.get();
     }
 
     /**
-     * Closes this registry
-     * @return success
+     * Closes the registry.
+     *
+     * @return true if closed successfully
+     * @since 1.15.2
      */
     public boolean close() {
         return close(Tracker.CloseReason.REMOVE);
     }
 
     /**
-     * Closes this registry
-     * @param reason close reason
-     * @return success
+     * Closes the registry with a specific reason.
+     *
+     * @param reason the close reason
+     * @return true if closed successfully
+     * @since 1.15.2
      */
     public boolean close(@NotNull Tracker.CloseReason reason) {
         if (!closed.compareAndSet(false, true)) return false;
@@ -326,7 +369,9 @@ public final class EntityTrackerRegistry {
     }
 
     /**
-     * Reloads this registry
+     * Reloads the registry, refreshing all trackers.
+     *
+     * @since 1.15.2
      */
     public void reload() {
         closed.set(true);
@@ -342,7 +387,9 @@ public final class EntityTrackerRegistry {
     }
 
     /**
-     * Refreshes this registry
+     * Refreshes the registry state.
+     *
+     * @since 1.15.2
      */
     public void refresh() {
         if (entity.dead()) return;
@@ -354,7 +401,9 @@ public final class EntityTrackerRegistry {
     }
 
     /**
-     * Despawns this registry to all players
+     * Despawns all trackers in the registry.
+     *
+     * @since 1.15.2
      */
     public void despawn() {
         for (EntityTracker value : trackers()) {
@@ -364,8 +413,10 @@ public final class EntityTrackerRegistry {
     }
 
     /**
-     * Loads tracker data in this registry
-     * @param stream stream
+     * Loads trackers from a stream of data.
+     *
+     * @param stream the data stream
+     * @since 1.15.2
      */
     public void load(@NotNull Stream<TrackerData> stream) {
         stream.forEach(parsed -> BetterModel.model(parsed.id()).ifPresent(model -> model.create(entity, parsed.modifier(), parsed::applyAs)));
@@ -373,7 +424,9 @@ public final class EntityTrackerRegistry {
     }
 
     /**
-     * Loads entity's tracker this in this registry
+     * Loads trackers from the entity's persistent data.
+     *
+     * @since 1.15.2
      */
     public void load() {
         load(deserialize(entity.modelData())
@@ -382,7 +435,9 @@ public final class EntityTrackerRegistry {
     }
 
     /**
-     * Saves entity data
+     * Saves the current tracker state to the entity's persistent data.
+     *
+     * @since 1.15.2
      */
     public void save() {
         var data = serialize().toString();
@@ -396,8 +451,10 @@ public final class EntityTrackerRegistry {
     }
 
     /**
-     * Gets all displays as stream
-     * @return all displays
+     * Returns a stream of all displays from all trackers.
+     *
+     * @return the displays
+     * @since 1.15.2
      */
     public @NotNull Stream<ModelDisplay> displays() {
         return trackers()
@@ -406,25 +463,31 @@ public final class EntityTrackerRegistry {
     }
 
     /**
-     * Serializes all tracker's data
-     * @return tracker's data
+     * Serializes the registry state to a JSON array.
+     *
+     * @return the JSON array
+     * @since 1.15.2
      */
     public @NotNull JsonArray serialize() {
         return CollectionUtil.mapToJson(trackers().stream().filter(EntityTracker::canBeSaved), value -> value.asTrackerData().serialize());
     }
 
     /**
-     * Checks this tracker is spawned by some player
-     * @param player player
-     * @return is spawned
+     * Checks if any tracker is spawned for a player.
+     *
+     * @param player the player
+     * @return true if spawned
+     * @since 1.15.2
      */
     public boolean isSpawned(@NotNull Player player) {
         return isSpawned(player.getUniqueId());
     }
     /**
-     * Checks this tracker is spawned by some player
-     * @param uuid player's uuid
-     * @return is spawned
+     * Checks if any tracker is spawned for a player UUID.
+     *
+     * @param uuid the player UUID
+     * @return true if spawned
+     * @since 1.15.2
      */
     public boolean isSpawned(@NotNull UUID uuid) {
         return viewedPlayerMap.containsKey(uuid) && trackers()
@@ -433,18 +496,22 @@ public final class EntityTrackerRegistry {
     }
 
     /**
-     * Spawns this tracker to some player
-     * @param player target player
-     * @return success
+     * Spawns trackers for a player.
+     *
+     * @param player the player
+     * @return true if spawned successfully
+     * @since 1.15.2
      */
     public boolean spawn(@NotNull Player player) {
         initialLoad();
         return spawn(player, false);
     }
     /**
-     * Spawns not spawned tracker to some player
-     * @param player target player
-     * @return success
+     * Spawns trackers for a player only if not already spawned.
+     *
+     * @param player the player
+     * @return true if spawned successfully
+     * @since 1.15.2
      */
     public boolean spawnIfNotSpawned(@NotNull Player player) {
         initialLoad();
@@ -473,17 +540,21 @@ public final class EntityTrackerRegistry {
     }
 
     /**
-     * Gets all viewed player as stream
-     * @return viewed player
+     * Returns a stream of all players viewing this registry.
+     *
+     * @return the players
+     * @since 1.15.2
      */
     public @NotNull Stream<PlayerChannelHandler> viewedPlayer() {
         return viewedPlayerMap.values().stream().map(c -> c.channelHandler);
     }
 
     /**
-     * Removes player from this registry
-     * @param player player
-     * @return success
+     * Removes a player from viewing this registry.
+     *
+     * @param player the player
+     * @return true if removed successfully
+     * @since 1.15.2
      */
     public boolean remove(@NotNull Player player) {
         var cache = viewedPlayerMap.remove(player.getUniqueId());
@@ -497,9 +568,11 @@ public final class EntityTrackerRegistry {
     }
 
     /**
-     * Gets hide option for some player
-     * @param uuid uuid
-     * @return hide option
+     * Returns the hide option for a specific player.
+     *
+     * @param uuid the player UUID
+     * @return the hide option
+     * @since 1.15.2
      */
     public @NotNull EntityHideOption hideOption(@NotNull UUID uuid) {
         var cache = viewedPlayerMap.get(uuid);
@@ -507,8 +580,10 @@ public final class EntityTrackerRegistry {
     }
 
     /**
-     * Gets currently mounted hitbox
-     * @return mounted hitbox
+     * Returns the map of currently mounted hitboxes.
+     *
+     * @return the mounted hitboxes
+     * @since 1.15.2
      */
     @NotNull
     @Unmodifiable
@@ -517,16 +592,20 @@ public final class EntityTrackerRegistry {
     }
 
     /**
-     * Checks this tracker has passenger
-     * @return has passenger
+     * Checks if any hitbox has a passenger.
+     *
+     * @return true if there is a passenger
+     * @since 1.15.2
      */
     public boolean hasPassenger() {
         return !mountedHitBox().isEmpty();
     }
 
     /**
-     * Checks this tracker has controlling passenger
-     * @return has controlling passenger
+     * Checks if any hitbox has a controlling passenger.
+     *
+     * @return true if there is a controlling passenger
+     * @since 1.15.2
      */
     public boolean hasControllingPassenger() {
         return mountedHitBox()
@@ -538,20 +617,24 @@ public final class EntityTrackerRegistry {
 
 
     /**
-     * Hitbox with mount info
-     * @param bone bone
-     * @param entity entity
-     * @param hitBox hitbox
+     * Represents a hitbox that has an entity mounted on it.
+     *
+     * @param bone the bone associated with the hitbox
+     * @param entity the mounted entity
+     * @param hitBox the hitbox itself
+     * @since 1.15.2
      */
     public record MountedHitBox(@NotNull RenderedBone bone, @NotNull Entity entity, @NotNull HitBox hitBox) {
         /**
-         * Dismount this entity from hitbox.
+         * Dismounts the entity from the hitbox.
+         * @since 1.15.2
          */
         public void dismount() {
             hitBox.dismount(entity);
         }
         /**
-         * Dismount all entities from hitbox.
+         * Dismounts all entities from the hitbox.
+         * @since 1.15.2
          */
         public void dismountAll() {
             hitBox.dismountAll();

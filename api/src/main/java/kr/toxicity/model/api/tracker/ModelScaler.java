@@ -16,38 +16,53 @@ import java.util.*;
 import java.util.function.Function;
 
 /**
- * Model scaler
+ * Defines how a model's scale is calculated.
+ * <p>
+ * Scalers can be constant values, derived from entity attributes, or composites of multiple scalers.
+ * They are serializable to JSON for configuration purposes.
+ * </p>
+ *
+ * @since 1.15.2
  */
 public sealed interface ModelScaler {
 
     /**
-     * Deserializer
+     * The global deserializer instance for scalers.
+     * @since 1.15.2
      */
     Deserializer DESERIALIZER = new Deserializer();
 
     /**
-     * Gets this scaler's name
-     * @return name
+     * Returns the name of this scaler type.
+     *
+     * @return the name
+     * @since 1.15.2
      */
     @NotNull String name();
 
     /**
-     * Gets the scale of this tracker
-     * @param tracker tracker
-     * @return scale
+     * Calculates the scale for a given tracker.
+     *
+     * @param tracker the tracker
+     * @return the calculated scale factor
+     * @since 1.15.2
      */
     float scale(@NotNull Tracker tracker);
 
     /**
-     * Gets the data of this scaler
-     * @return data
+     * Returns the configuration data for this scaler as a JSON element.
+     *
+     * @return the data, or null if none
+     * @since 1.15.2
      */
     @Nullable JsonElement data();
 
     /**
-     * Deserializes scaler from JSON
-     * @param element JSON element
-     * @return result
+     * Deserializes a scaler from a JSON object.
+     *
+     * @param element the JSON object
+     * @return the deserialized scaler, or the default scaler if invalid
+     * @since 1.15.2
      */
     static @NotNull ModelScaler deserialize(@NotNull JsonObject element) {
         var scaler = DESERIALIZER.buildScaler(element);
@@ -55,52 +70,64 @@ public sealed interface ModelScaler {
     }
 
     /**
-     * Gets the default scaler (1.0)
-     * @return default scaler
+     * Returns the default scaler (constant 1.0).
+     *
+     * @return the default scaler
+     * @since 1.15.2
      */
     static @NotNull ModelScaler defaultScaler() {
         return DESERIALIZER.defaultScaler();
     }
 
     /**
-     * Gets the entity's attribute scaler
-     * @return entity scaler
+     * Returns a scaler that uses the entity's scale attribute.
+     *
+     * @return the entity scaler
+     * @since 1.15.2
      */
     static @NotNull ModelScaler entity() {
         return DESERIALIZER.entity.deserialize();
     }
 
     /**
-     * Gets the constant scaler (value)
-     * @param value value
-     * @return value scaler
+     * Returns a constant value scaler.
+     *
+     * @param value the scale value
+     * @return the value scaler
+     * @since 1.15.2
      */
     static @NotNull ModelScaler value(float value) {
         return DESERIALIZER.value.deserialize(value);
     }
 
     /**
-     * Gets the composited scaler (a * b)
-     * @param scalers scalers
-     * @return composited scaler
+     * Creates a composite scaler that multiplies the results of multiple scalers.
+     *
+     * @param scalers the scalers to combine
+     * @return the composite scaler
+     * @since 1.15.2
      */
     static @NotNull ModelScaler composite(@NotNull ModelScaler... scalers) {
         return new Composite(new Composite.CompositeGetter(Arrays.asList(scalers)));
     }
 
     /**
-     * Multiplies this scaler
-     * @param value value
-     * @return new scaler
+     * Multiplies this scaler by a constant value.
+     *
+     * @param value the multiplier
+     * @return the new composite scaler
+     * @since 1.15.2
      */
     default @NotNull ModelScaler multiply(float value) {
         return composite(value(value));
     }
 
     /**
-     * Composites this scaler to another one (a * b)
-     * @param scaler other
-     * @return composited scaler
+     * Multiplies this scaler by another scaler.
+     *
+     * @param scaler the other scaler
+     * @return the new composite scaler
+     * @since 1.15.2
      */
     default @NotNull ModelScaler composite(@NotNull ModelScaler scaler) {
         var list = new ArrayList<ModelScaler>();
@@ -114,8 +141,10 @@ public sealed interface ModelScaler {
     }
 
     /**
-     * Serializes this scaler to JSON
-     * @return JSON
+     * Serializes this scaler to a JSON object.
+     *
+     * @return the JSON object
+     * @since 1.15.2
      */
     default @NotNull JsonObject serialize() {
         var json = new JsonObject();
@@ -126,29 +155,37 @@ public sealed interface ModelScaler {
     }
 
     /**
-     * Getter
+     * Functional interface for calculating scale.
+     *
+     * @since 1.15.2
      */
     interface Getter {
         /**
-         * Default
+         * Default getter returning 1.0.
+         * @since 1.15.2
          */
         Getter DEFAULT = t -> 1F;
         /**
-         * Entity
+         * Getter using entity scale.
+         * @since 1.15.2
          */
         Getter ENTITY = t -> t instanceof EntityTracker entityTracker ? (float) entityTracker.registry().entity().scale() : 1F;
 
         /**
-         * Gets scale by tracker
-         * @param tracker tracker
-         * @return scale
+         * Calculates the scale.
+         *
+         * @param tracker the tracker
+         * @return the scale
+         * @since 1.15.2
          */
         float get(@NotNull Tracker tracker);
 
         /**
-         * Gets constant getter from value
-         * @param value value
-         * @return getter
+         * Creates a constant value getter.
+         *
+         * @param value the value
+         * @return the getter
+         * @since 1.15.2
          */
         static @NotNull Getter value(float value) {
             return t -> value;
@@ -156,19 +193,25 @@ public sealed interface ModelScaler {
     }
 
     /**
-     * Builder
+     * Builder interface for creating Getters from JSON.
+     *
+     * @since 1.15.2
      */
     interface Builder {
         /**
-         * Builds getter from JSON
-         * @param data JSON
-         * @return getter or null if invalid
+         * Builds a getter from JSON data.
+         *
+         * @param data the JSON data
+         * @return the getter, or null if invalid
+         * @since 1.15.2
          */
         @Nullable Getter build(@NotNull JsonElement data);
     }
 
     /**
-     * Composited scaler
+     * Implementation of a composite scaler.
+     *
+     * @since 1.15.2
      */
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     final class Composite implements ModelScaler {
@@ -216,20 +259,26 @@ public sealed interface ModelScaler {
     }
 
     /**
-     * Build-in deserializer
+     * Helper interface for built-in deserializers.
+     *
+     * @since 1.15.2
      */
     interface BuiltInDeserializer extends Function<JsonElement, ModelScaler> {
         /**
-         * Deserializes scaler from constant
-         * @param value value
-         * @return scaler
+         * Deserializes from a float value.
+         *
+         * @param value the value
+         * @return the scaler
+         * @since 1.15.2
          */
         default @NotNull ModelScaler deserialize(float value) {
             return apply(new JsonPrimitive(value));
         }
         /**
-         * Deserializes scaler from empty value
-         * @return scaler
+         * Deserializes a default instance.
+         *
+         * @return the scaler
+         * @since 1.15.2
          */
         default @NotNull ModelScaler deserialize() {
             return apply(JsonNull.INSTANCE);
@@ -237,7 +286,9 @@ public sealed interface ModelScaler {
     }
 
     /**
-     * Deserializer
+     * Registry and factory for scalers.
+     *
+     * @since 1.15.2
      */
     final class Deserializer {
 
@@ -266,10 +317,12 @@ public sealed interface ModelScaler {
         }
 
         /**
-         * Adds scaler builder
-         * @param name name
-         * @param builder builder
-         * @return built-in deserializer
+         * Registers a new scaler type.
+         *
+         * @param name the scaler name
+         * @param builder the builder
+         * @return a built-in deserializer helper
+         * @since 1.15.2
          */
         public @NotNull BuiltInDeserializer addScaler(@NotNull String name, @NotNull Builder builder) {
             var put = getterMap.putIfAbsent(name, builder);
@@ -278,9 +331,11 @@ public sealed interface ModelScaler {
         }
 
         /**
-         * Builds scaler from JSON
-         * @param rawData JSON
-         * @return scaler or null if invalid
+         * Builds a scaler from a JSON object.
+         *
+         * @param rawData the JSON object
+         * @return the scaler, or null if invalid
+         * @since 1.15.2
          */
         public @Nullable ModelScaler buildScaler(@NotNull JsonObject rawData) {
             var n = rawData.getAsJsonPrimitive("name");

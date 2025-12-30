@@ -22,7 +22,13 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
- * Entity body rotator
+ * Manages the body and head rotation logic for an entity tracker.
+ * <p>
+ * This class handles the complex interactions between body yaw, head yaw, and pitch,
+ * including smoothing, clamping, and player-specific behaviors.
+ * </p>
+ *
+ * @since 1.15.2
  */
 public final class EntityBodyRotator {
     private final EntityTrackerRegistry registry;
@@ -92,9 +98,11 @@ public final class EntityBodyRotator {
     }
 
     /**
-     * Locks this rotator
-     * @param lock lock
-     * @return success
+     * Locks or unlocks the rotation updates.
+     *
+     * @param lock true to lock, false to unlock
+     * @return true if the state changed
+     * @since 1.15.2
      */
     public boolean lockRotation(boolean lock) {
         return rotationLock.compareAndSet(!lock, lock);
@@ -138,8 +146,10 @@ public final class EntityBodyRotator {
     }
 
     /**
-     * Sets the data of this rotator
-     * @param consumer setter
+     * Configures the rotator using a consumer.
+     *
+     * @param consumer the configuration consumer
+     * @since 1.15.2
      */
     public void setValue(@NotNull Consumer<RotatorData> consumer) {
         Objects.requireNonNull(consumer);
@@ -153,7 +163,9 @@ public final class EntityBodyRotator {
     }
 
     /**
-     * Resets rotator
+     * Resets the rotator to default settings.
+     *
+     * @since 1.15.2
      */
     public void reset() {
         setValue(defaultData());
@@ -175,7 +187,9 @@ public final class EntityBodyRotator {
     }
 
     /**
-     * Rotator data
+     * Configuration data for the entity body rotator.
+     *
+     * @since 1.15.2
      */
     @Setter
     @AllArgsConstructor

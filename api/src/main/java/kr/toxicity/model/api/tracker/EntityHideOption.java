@@ -12,11 +12,16 @@ import org.jetbrains.annotations.NotNull;
 import java.util.stream.Stream;
 
 /**
- * Entity hide option
+ * Configuration for hiding various visual aspects of an entity.
+ * <p>
+ * This record allows selective hiding of equipment, fire effects, the entity body itself, and glowing effects.
+ * </p>
+ *
  * @param equipment whether to hide equipment
  * @param fire whether to hide burning state
  * @param visibility whether to hide entity's body
  * @param glowing whether to hide entity's glowing state
+ * @since 1.15.2
  */
 public record EntityHideOption(
     boolean equipment,
@@ -25,7 +30,8 @@ public record EntityHideOption(
     boolean glowing
 ) {
     /**
-     * Default option
+     * Default option (hides everything).
+     * @since 1.15.2
      */
     public static final EntityHideOption DEFAULT = new EntityHideOption(
         true,
@@ -34,14 +40,17 @@ public record EntityHideOption(
         true
     );
     /**
-     * Disabled option
+     * Disabled option (hides nothing).
+     * @since 1.15.2
      */
     public static final EntityHideOption FALSE = builder().build();
 
     /**
-     * Composites all options to single one
-     * @param options options
-     * @return composited option
+     * Composites multiple options into a single one using OR logic.
+     *
+     * @param options the stream of options
+     * @return the composited option
+     * @since 1.15.2
      */
     public static @NotNull EntityHideOption composite(@NotNull Stream<EntityHideOption> options) {
         return builder()
@@ -50,9 +59,11 @@ public record EntityHideOption(
     }
 
     /**
-     * Deserializes hide option from JSON
-     * @param array JSON array
-     * @return option
+     * Deserializes hide option from a JSON array.
+     *
+     * @param array the JSON array
+     * @return the option
+     * @since 1.15.2
      */
     public static @NotNull EntityHideOption deserialize(@NotNull JsonArray array) {
         return new EntityHideOption(
@@ -64,8 +75,10 @@ public record EntityHideOption(
     }
 
     /**
-     * Serializes hide option to JSON
-     * @return JSON array
+     * Serializes hide option to a JSON array.
+     *
+     * @return the JSON array
+     * @since 1.15.2
      */
     public @NotNull JsonArray serialize() {
         var array = new JsonArray(4);
@@ -77,15 +90,19 @@ public record EntityHideOption(
     }
 
     /**
-     * Creates builder of hide option.
-     * @return builder
+     * Creates a new builder for {@link EntityHideOption}.
+     *
+     * @return the builder
+     * @since 1.15.2
      */
     public static @NotNull Builder builder() {
         return new Builder();
     }
 
     /**
-     * Builder
+     * Builder for {@link EntityHideOption}.
+     *
+     * @since 1.15.2
      */
     public static final class Builder {
         private boolean equipment;
@@ -101,9 +118,11 @@ public record EntityHideOption(
         }
 
         /**
-         * Composites all options to this builder
-         * @param options options
-         * @return self
+         * Composites multiple options into this builder.
+         *
+         * @param options the stream of options
+         * @return this builder
+         * @since 1.15.2
          */
         public @NotNull Builder composite(@NotNull Stream<EntityHideOption> options) {
             options.forEach(this::or);
@@ -111,9 +130,11 @@ public record EntityHideOption(
         }
 
         /**
-         * Merges hide option as OR gate
-         * @param option option
-         * @return self
+         * Merges another hide option using OR logic.
+         *
+         * @param option the option to merge
+         * @return this builder
+         * @since 1.15.2
          */
         public @NotNull Builder or(@NotNull EntityHideOption option) {
             equipment = equipment || option.equipment;
@@ -124,8 +145,10 @@ public record EntityHideOption(
         }
 
         /**
-         * Builds hide option
-         * @return hide option
+         * Builds the {@link EntityHideOption}.
+         *
+         * @return the created option
+         * @since 1.15.2
          */
         public @NotNull EntityHideOption build() {
             return new EntityHideOption(

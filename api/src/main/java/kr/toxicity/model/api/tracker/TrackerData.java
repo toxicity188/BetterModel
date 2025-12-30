@@ -16,14 +16,20 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Tracker data
- * @param id model id
- * @param scaler scaler
- * @param rotator rotator
- * @param modifier modifier
- * @param bodyRotator body rotation
- * @param hideOption hide option
- * @param markForSpawn player uuids that mark for spawning
+ * Represents the persistent data state of a tracker.
+ * <p>
+ * This record holds configuration and state information such as model ID, scaling, rotation,
+ * and visibility options, which can be serialized to JSON.
+ * </p>
+ *
+ * @param id the model ID
+ * @param scaler the model scaler
+ * @param rotator the model rotator
+ * @param modifier the tracker modifier
+ * @param bodyRotator the body rotation data
+ * @param hideOption the entity hide options
+ * @param markForSpawn the set of player UUIDs marked for spawning
+ * @since 1.15.2
  */
 public record TrackerData(
         @NotNull String id,
@@ -35,7 +41,8 @@ public record TrackerData(
         @Nullable @SerializedName("mark-for-spawn") Set<UUID> markForSpawn
 ) {
     /**
-     * Parser
+     * The GSON parser for serializing and deserializing tracker data.
+     * @since 1.15.2
      */
     public static final Gson PARSER = new GsonBuilder()
             .registerTypeAdapter(ModelScaler.class, (JsonDeserializer<ModelScaler>) (json, typeOfT, context) -> json.isJsonObject() ? ModelScaler.deserialize(json.getAsJsonObject()) : ModelScaler.defaultScaler())
@@ -48,6 +55,12 @@ public record TrackerData(
             .registerTypeAdapter(UUID.class, (JsonSerializer<UUID>) (src, typeOfSrc, context) -> new JsonPrimitive(src.toString()))
             .create();
 
+    /**
+     * Applies this data to an existing entity tracker.
+     *
+     * @param tracker the target tracker
+     * @since 1.15.2
+     */
     public void applyAs(@NotNull EntityTracker tracker) {
         tracker.markPlayerForSpawn(markForSpawn());
         tracker.hideOption(hideOption());
@@ -57,17 +70,21 @@ public record TrackerData(
     }
 
     /**
-     * Serializes data as JSON
-     * @return JSON element
+     * Serializes this data to a JSON element.
+     *
+     * @return the JSON element
+     * @since 1.15.2
      */
     public @NotNull JsonElement serialize() {
         return PARSER.toJsonTree(this);
     }
 
     /**
-     * Deserializes data from JSON
-     * @param element JSON element
-     * @return tracker data
+     * Deserializes tracker data from a JSON element.
+     *
+     * @param element the JSON element
+     * @return the tracker data
+     * @since 1.15.2
      */
     public static @NotNull TrackerData deserialize(@NotNull JsonElement element) {
         return element.isJsonPrimitive() ? new TrackerData(
