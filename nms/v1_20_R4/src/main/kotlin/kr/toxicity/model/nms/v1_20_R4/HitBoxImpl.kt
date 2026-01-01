@@ -1,6 +1,6 @@
 /**
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2025 toxicity188
+ * Copyright (c) 2024–2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
@@ -132,7 +132,7 @@ internal class HitBoxImpl(
     override fun setItemSlot(slot: EquipmentSlot, stack: ItemStack) {
     }
     override fun getMainArm(): HumanoidArm = HumanoidArm.RIGHT
-    
+
     override fun mount(entity: org.bukkit.entity.Entity) {
         if (controllingPassenger != null) return
         if (interaction.bukkitEntity.addPassenger(entity)) {
@@ -211,7 +211,7 @@ internal class HitBoxImpl(
                 && (entity !is HitBoxImpl || entity.delegate !== delegate)
     }
 
-    override fun getActiveEffects(): Collection<MobEffectInstance?> {
+    override fun getActiveEffects(): Collection<MobEffectInstance> {
         return ifLivingEntity { getActiveEffects() } ?: emptyList()
     }
 
@@ -227,7 +227,7 @@ internal class HitBoxImpl(
         if (delegate !is LivingEntity) return
         val travelVector = Vec3(delegate.xxa.toDouble(), delegate.yya.toDouble(), delegate.zza.toDouble())
         if (!mountController.canFly() && delegate.isFallFlying) return
-        
+
         updateFlyStatus(player)
         val riddenInput = rideInput(player, travelVector)
         if (riddenInput.length() > 0.01) {
@@ -241,7 +241,7 @@ internal class HitBoxImpl(
             delegate.jumpFromGround()
         }
     }
-    
+
     private fun movementSpeed() = ifLivingEntity {
         getAttribute(Attributes.MOVEMENT_SPEED)?.value?.toFloat()?.let {
             if (!onFly && !shouldDiscardFriction()) level()
@@ -306,8 +306,8 @@ internal class HitBoxImpl(
         listener.sync(craftEntity)
     }
 
-    @Suppress("removal", "NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS", "WRONG_NULLABILITY_FOR_JAVA_OVERRIDE")
-    override fun remove(reason: RemovalReason, cause: org.bukkit.event.entity.EntityRemoveEvent.Cause?) { //Compiler incorrectly considers it as non-null by some reason :(
+    @Suppress("removal")
+    override fun remove(reason: RemovalReason, cause: org.bukkit.event.entity.EntityRemoveEvent.Cause) {
         initialSetup()
         listener.remove(craftEntity)
         interaction.remove(reason)

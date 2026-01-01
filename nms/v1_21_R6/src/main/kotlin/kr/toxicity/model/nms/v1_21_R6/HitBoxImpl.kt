@@ -1,6 +1,6 @@
 /**
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2025 toxicity188
+ * Copyright (c) 2024–2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
@@ -148,7 +148,7 @@ internal class HitBoxImpl(
             listener.mount(craftEntity, entity)
         }
     }
-    
+
     override fun dismount(entity: org.bukkit.entity.Entity) {
         forceDismount = true
         if (interaction.bukkitEntity.removePassenger(entity)) listener.dismount(craftEntity, entity)
@@ -212,7 +212,7 @@ internal class HitBoxImpl(
                 && (entity !is HitBoxImpl || entity.delegate !== delegate)
     }
 
-    override fun getActiveEffects(): Collection<MobEffectInstance?> {
+    override fun getActiveEffects(): Collection<MobEffectInstance> {
         return ifLivingEntity { getActiveEffects() } ?: emptyList()
     }
 
@@ -228,7 +228,7 @@ internal class HitBoxImpl(
         if (delegate !is LivingEntity) return
         val travelVector = Vec3(delegate.xxa.toDouble(), delegate.yya.toDouble(), delegate.zza.toDouble())
         if (!mountController.canFly() && delegate.isFallFlying) return
-        
+
         updateFlyStatus(player)
         val riddenInput = rideInput(player, travelVector)
         if (riddenInput.length() > 0.01) {
@@ -242,7 +242,7 @@ internal class HitBoxImpl(
             delegate.jumpFromGround()
         }
     }
-    
+
     private fun movementSpeed() = ifLivingEntity {
         getAttribute(Attributes.MOVEMENT_SPEED)?.value?.toFloat()?.let {
             if (!onFly && !shouldDiscardFriction()) level()
@@ -275,7 +275,7 @@ internal class HitBoxImpl(
             travelVector.z.toFloat()
         )
     ).mul(movementSpeed()).rotateY(-Math.toRadians(player.yRot.toDouble()).toFloat())
-    
+
     override fun tick() {
         delegate.removalReason?.let {
             if (!isRemoved) remove(it)
