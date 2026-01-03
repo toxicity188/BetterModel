@@ -595,39 +595,44 @@ public final class RenderedBone implements BoneEventHandler {
         }
 
         private @NotNull BoneMovement before() {
-            return beforeTransform != null ? beforeTransform : (beforeTransform = defaultFrame);
+            var before = beforeTransform;
+            return before != null ? before : defaultFrame;
         }
 
         private @NotNull BoneMovement current() {
-            return currentTransform != null ? currentTransform : after();
+            var current = currentTransform;
+            return current != null ? current : after();
         }
 
         @NotNull BoneMovement after() {
             if (afterTransform != null) return afterTransform;
-            var keyframe = state.afterKeyframe();
-            if (keyframe == null) keyframe = AnimationMovement.EMPTY;
-            var preventModifierUpdate = interpolationDuration() < 1;
-            var def = defaultFrame.plus(keyframe);
-            if (parent != null) {
-                var p = parent.state(uuid).after();
-                def = new BoneMovement(
-                    MathUtil.fma(
-                            def.position().rotate(p.rotation()),
-                            p.scale(),
-                            p.position()
-                        ).sub(parent.lastModifiedPosition)
-                        .add(modifiedPosition(preventModifierUpdate)),
-                    def.scale().mul(p.scale()),
-                    (keyframe.globalRotation() ? new Quaternionf() : p.rotation().div(parent.lastModifiedRotation, new Quaternionf()))
-                        .mul(def.rotation())
-                        .mul(modifiedRotation(preventModifierUpdate)),
-                    def.rawRotation()
-                );
-            } else {
-                def.position().add(modifiedPosition(preventModifierUpdate));
-                def.rotation().mul(modifiedRotation(preventModifierUpdate));
+            synchronized (this) {
+                if (afterTransform != null) return afterTransform;
+                var keyframe = state.afterKeyframe();
+                if (keyframe == null) keyframe = AnimationMovement.EMPTY;
+                var preventModifierUpdate = interpolationDuration() < 1;
+                var def = defaultFrame.plus(keyframe);
+                if (parent != null) {
+                    var p = parent.state(uuid).after();
+                    def = new BoneMovement(
+                        MathUtil.fma(
+                                def.position().rotate(p.rotation()),
+                                p.scale(),
+                                p.position()
+                            ).sub(parent.lastModifiedPosition)
+                            .add(modifiedPosition(preventModifierUpdate)),
+                        def.scale().mul(p.scale()),
+                        (keyframe.globalRotation() ? new Quaternionf() : p.rotation().div(parent.lastModifiedRotation, new Quaternionf()))
+                            .mul(def.rotation())
+                            .mul(modifiedRotation(preventModifierUpdate)),
+                        def.rawRotation()
+                    );
+                } else {
+                    def.position().add(modifiedPosition(preventModifierUpdate));
+                    def.rotation().mul(modifiedRotation(preventModifierUpdate));
+                }
+                return afterTransform = def;
             }
-            return afterTransform = def;
         }
 
         private boolean tick() {

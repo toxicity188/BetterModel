@@ -99,7 +99,7 @@ public abstract class Tracker implements AutoCloseable {
             } else b.accept(this);
         }
     );
-    private ScheduledFuture<?> task;
+    private volatile ScheduledFuture<?> task;
     protected ModelRotator rotator = ModelRotator.YAW;
     protected ModelScaler scaler = ModelScaler.entity();
     private Supplier<ModelRotation> rotationSupplier = () -> ModelRotation.EMPTY;
@@ -170,7 +170,8 @@ public abstract class Tracker implements AutoCloseable {
      * @since 1.15.2
      */
     public boolean isScheduled() {
-        return task != null && !task.isCancelled();
+        var currentTask = task;
+        return currentTask != null && !currentTask.isCancelled();
     }
 
     private void start() {
