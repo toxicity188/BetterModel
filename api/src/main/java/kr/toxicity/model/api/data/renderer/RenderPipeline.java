@@ -14,6 +14,7 @@ import kr.toxicity.model.api.nms.HitBox;
 import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.tracker.ModelRotation;
+import kr.toxicity.model.api.util.FunctionUtil;
 import kr.toxicity.model.api.util.function.BonePredicate;
 import kr.toxicity.model.api.util.function.FloatSupplier;
 import lombok.Getter;
@@ -306,7 +307,9 @@ public final class RenderPipeline implements BoneEventHandler {
      * @since 1.15.2
      */
     public void defaultPosition(@NotNull Function<Vector3f, Vector3f> movement) {
-        iterateTree(b -> b.defaultPosition(movement));
+        var vec = new Vector3f();
+        var supplier = FunctionUtil.throttleTick(() -> movement.apply(vec));
+        iterateTree(b -> b.defaultPosition(supplier));
     }
 
     /**

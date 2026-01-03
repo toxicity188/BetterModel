@@ -23,6 +23,7 @@ import kr.toxicity.model.api.util.*;
 import kr.toxicity.model.api.util.function.BonePredicate;
 import kr.toxicity.model.api.util.function.FloatConstantSupplier;
 import kr.toxicity.model.api.util.function.FloatSupplier;
+import kr.toxicity.model.api.util.lock.DuplexLock;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Location;
@@ -36,6 +37,7 @@ import org.joml.Vector3f;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -97,8 +99,7 @@ public final class RenderedBone implements BoneEventHandler {
     private final Map<UUID, BoneStateHandler> perPlayerState = new ConcurrentHashMap<>();
     private volatile ModelRotation rotation = ModelRotation.EMPTY;
 
-    private final Vector3f defaultPositionCache = new Vector3f();
-    private Function<Vector3f, Vector3f> defaultPosition = vec -> vec;
+    private Supplier<Vector3f> defaultPosition = FunctionUtil.asSupplier(EMPTY_VECTOR);
     private FloatSupplier scale = FloatConstantSupplier.ONE;
 
     private Function<Vector3f, Vector3f> positionModifier = p -> p;
@@ -373,25 +374,7 @@ public final class RenderedBone implements BoneEventHandler {
     }
 
     public @NotNull Vector3f worldPosition(@NotNull Vector3f localOffset, @NotNull Vector3f globalOffset, @Nullable UUID uuid) {
-        var state = state(uuid);
-        var progress = state.progress();
-        var current = state.current();
-        var before = state.before();
-        return MathUtil.fma(
-                InterpolationUtil.lerp(before.position(), current.position(), progress)
-                    .add(itemStack.offset())
-                    .add(localOffset)
-                    .rotate(
-                        MathUtil.toQuaternion(InterpolationUtil.lerp(before.rawRotation(), current.rawRotation(), progress))
-                    ),
-                InterpolationUtil.lerp(before.scale(), current.scale(), progress),
-                globalOffset
-
-            )
-            .add(root.getGroup().getPosition())
-            .mul(scale.getAsFloat())
-            .rotateX(-rotation.radianX())
-            .rotateY(-rotation.radianY());
+        return state(uuid).worldPosition(localOffset, globalOffset);
     }
 
     public @NotNull Vector3f worldRotation() {
@@ -399,14 +382,10 @@ public final class RenderedBone implements BoneEventHandler {
     }
 
     public @NotNull Vector3f worldRotation(@Nullable UUID uuid) {
-        var state = state(uuid);
-        var progress = state.progress();
-        var current = state.current();
-        var before = state.before();
-        return InterpolationUtil.lerp(before.rawRotation(), current.rawRotation(), progress);
+        return state(uuid).worldRotation();
     }
 
-    public void defaultPosition(@NotNull Function<Vector3f, Vector3f> movement) {
+    public void defaultPosition(@NotNull Supplier<Vector3f> movement) {
         defaultPosition = movement;
     }
 
@@ -573,13 +552,28 @@ public final class RenderedBone implements BoneEventHandler {
     }
 
     final class BoneStateHandler {
-        private boolean firstTick = true;
-        private boolean skipInterpolation = false;
+
         private final @Nullable UUID uuid;
         private final Consumer<UUID> consumer;
+
+        //States
         private final AnimationStateHandler<AnimationMovement> state;
-        private volatile BoneMovement beforeTransform, afterTransform, currentTransform;
+        private final BoneMovement beforeTransform = new BoneMovement(), afterTransform = new BoneMovement();
+        private BoneMovement currentTransform;
         private final DisplayTransformer transformer = display != null ? display.createTransformer() : null;
+
+        //Flags
+        private boolean firstTick = true;
+        private boolean skipInterpolation = false;
+        private final AtomicBoolean updateAfterTransform = new AtomicBoolean();
+
+        //Caches
+        private final BoneMovement movementCache = new BoneMovement();
+        private final Vector3f positionCache = new Vector3f(), scaleCache = new Vector3f();
+        private final Quaternionf rotationCache = new Quaternionf();
+
+        //Lock
+        private final DuplexLock lock = new DuplexLock();
 
         private BoneStateHandler(@Nullable UUID uuid, @NotNull Consumer<UUID> consumer) {
             this.uuid = uuid;
@@ -595,8 +589,7 @@ public final class RenderedBone implements BoneEventHandler {
         }
 
         private @NotNull BoneMovement before() {
-            var before = beforeTransform;
-            return before != null ? before : defaultFrame;
+            return beforeTransform;
         }
 
         private @NotNull BoneMovement current() {
@@ -605,34 +598,28 @@ public final class RenderedBone implements BoneEventHandler {
         }
 
         @NotNull BoneMovement after() {
-            if (afterTransform != null) return afterTransform;
-            synchronized (this) {
-                if (afterTransform != null) return afterTransform;
-                var keyframe = state.afterKeyframe();
-                if (keyframe == null) keyframe = AnimationMovement.EMPTY;
-                var preventModifierUpdate = interpolationDuration() < 1;
-                var def = defaultFrame.plus(keyframe);
-                if (parent != null) {
-                    var p = parent.state(uuid).after();
-                    def = new BoneMovement(
-                        MathUtil.fma(
-                                def.position().rotate(p.rotation()),
-                                p.scale(),
-                                p.position()
-                            ).sub(parent.lastModifiedPosition)
-                            .add(modifiedPosition(preventModifierUpdate)),
-                        def.scale().mul(p.scale()),
-                        (keyframe.globalRotation() ? new Quaternionf() : p.rotation().div(parent.lastModifiedRotation, new Quaternionf()))
-                            .mul(def.rotation())
-                            .mul(modifiedRotation(preventModifierUpdate)),
-                        def.rawRotation()
-                    );
-                } else {
-                    def.position().add(modifiedPosition(preventModifierUpdate));
-                    def.rotation().mul(modifiedRotation(preventModifierUpdate));
-                }
-                return afterTransform = def;
+            if (!updateAfterTransform.compareAndSet(true, false)) return afterTransform;
+            var keyframe = state.afterKeyframe();
+            if (keyframe == null) keyframe = AnimationMovement.EMPTY;
+            var preventModifierUpdate = interpolationDuration() < 1;
+            var def = defaultFrame.plus(keyframe, movementCache);
+            if (parent != null) {
+                var p = parent.state(uuid).after();
+                MathUtil.fma(
+                        def.position().rotate(p.rotation()),
+                        p.scale(),
+                        p.position()
+                    ).sub(parent.lastModifiedPosition)
+                    .add(modifiedPosition(preventModifierUpdate));
+                def.scale().mul(p.scale());
+                def.rotation().set((keyframe.globalRotation() ? rotationCache.identity() : p.rotation().div(parent.lastModifiedRotation, rotationCache))
+                    .mul(def.rotation())
+                    .mul(modifiedRotation(preventModifierUpdate)));
+            } else {
+                def.position().add(modifiedPosition(preventModifierUpdate));
+                def.rotation().mul(modifiedRotation(preventModifierUpdate));
             }
+            return lock.accessToWriteLock(() -> afterTransform.set(def));
         }
 
         private boolean tick() {
@@ -642,11 +629,9 @@ public final class RenderedBone implements BoneEventHandler {
                     consumer.accept(uuid);
                 }
             }) || firstTick;
-            if (result) {
-                synchronized (this) {
-                    beforeTransform = afterTransform;
-                    afterTransform = null;
-                }
+            if (result && updateAfterTransform.compareAndSet(false, true)) {
+                lock.accessToWriteLock(() -> beforeTransform.set(afterTransform));
+                currentTransform = null;
             }
             firstTick = false;
             return result;
@@ -671,19 +656,47 @@ public final class RenderedBone implements BoneEventHandler {
             transformer.transform(
                 interpolationDuration(),
                 MathUtil.fma(
-                    itemStack.offset().rotate(boneMovement.rotation(), new Vector3f())
+                    itemStack.offset().rotate(boneMovement.rotation(), positionCache)
                         .add(boneMovement.position())
                         .add(root.group.getPosition()),
                     mul,
                     itemStack.position()
-                ).add(defaultPosition.apply(defaultPositionCache)),
+                ).add(defaultPosition.get()),
                 boneMovement.scale()
-                    .mul(itemStack.scale(), new Vector3f())
+                    .mul(itemStack.scale(), scaleCache)
                     .mul(mul)
                     .max(EMPTY_VECTOR),
                 boneMovement.rotation(),
                 bundler
             );
+        }
+
+        private @NotNull Vector3f worldPosition(@NotNull Vector3f localOffset, @NotNull Vector3f globalOffset) {
+            var progress = progress();
+            var current = current();
+            var before = before();
+            return lock.accessToReadLock(() -> MathUtil.fma(
+                    InterpolationUtil.lerp(before.position(), current.position(), progress)
+                        .add(itemStack.offset())
+                        .add(localOffset)
+                        .rotate(
+                            MathUtil.toQuaternion(InterpolationUtil.lerp(before.rawRotation(), current.rawRotation(), progress))
+                        ),
+                    InterpolationUtil.lerp(before.scale(), current.scale(), progress),
+                    globalOffset
+
+                )
+                .add(root.getGroup().getPosition())
+                .mul(scale.getAsFloat())
+                .rotateX(-rotation.radianX())
+                .rotateY(-rotation.radianY()));
+        }
+
+        private @NotNull Vector3f worldRotation() {
+            var progress = progress();
+            var current = current();
+            var before = before();
+            return lock.accessToReadLock(() -> InterpolationUtil.lerp(before.rawRotation(), current.rawRotation(), progress));
         }
     }
 

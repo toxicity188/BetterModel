@@ -29,7 +29,6 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
-import org.joml.Vector3f;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -113,7 +112,7 @@ public class EntityTracker extends Tracker {
             });
 
         //Animation
-        pipeline.defaultPosition(FunctionUtil.throttleTick((Function<Vector3f, Vector3f>) vec -> entity.passengerPosition(vec).mul(-1)));
+        pipeline.defaultPosition(vec -> entity.passengerPosition(vec).mul(-1));
         pipeline.scale(scale);
         Function<Quaternionf, Quaternionf> headRotator = r -> r.mul(MathUtil.toQuaternion(bodyRotator.headRotation()));
 
