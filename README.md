@@ -17,16 +17,31 @@
 ![](https://github.com/user-attachments/assets/ff515577-6a72-48ba-9943-81f00dddb375)
 * * *
 
-**BetterModel** is a plugin-based engine that provide runtime BlockBench model rendering & animating for Minecraft Java Edition.
+# ⚡ Introduction
 
-It implements **fully server-side 3D model** by using an item display entity packet.
+**BetterModel** is a plugin-based engine that provides runtime BlockBench model rendering & animating for Minecraft Java Edition.
+
+It implements **fully server-side 3D models** by using an item display entity packet.
 
 - Importing Generic BlockBench model `.bbmodel`
 - Auto-generating resource pack
 - Playing animation
 - Syncing with base entity
 - Custom hit box
-- Supports 12-limb player animation
+- 12-limb player animation
+
+## 🔥 Key Features & Focus
+BetterModel aims to be a reliable engine that provides stable, high-quality animations for Paper-based high-traffic servers.
+
+- **Stability First**: We take a conservative approach to feature expansion. By avoiding the implementation of features that are difficult to maintain or have limited use cases, we focus on providing a stable API and ensuring overall operational safety.
+- **Performance Optimized**: Our goal is to minimize runtime computation, memory footprint, and network overhead. Through asynchronous design and optimized packet handling, we ensure the engine runs efficiently even under heavy server loads.
+- **Tailored for Large-scale Servers**: We provide essential features specifically designed for high-population servers and MMORPG content creation.
+  - **Per-player Animation**: Individual animation control tailored to each player's perspective.
+  - **Player Model Animation**: Support for sophisticated 12-limb animations based on player models.
+
+## 📗 Wiki
+[![](https://img.shields.io/badge/Github%20Wiki-181717?logo=github&logoColor=white)](https://github.com/toxicity188/BetterModel/wiki)
+[![](https://deepwiki.com/badge.svg)](https://deepwiki.com/toxicity188/BetterModel)
 
 ## 🔧 Build info
 
@@ -49,10 +64,6 @@ It implements **fully server-side 3D model** by using an item display entity pac
 - [molang-compiler](https://github.com/Ocelot5836/molang-compiler): compiling and evaluating molang expression
 - [libby](https://github.com/AlessioDP/libby): runtime library downloader
 
-
-## 📗 Wiki
-[![](https://img.shields.io/badge/Github%20Wiki-181717?logo=github&logoColor=white)](https://github.com/toxicity188/BetterModel/wiki)
-[![](https://deepwiki.com/badge.svg)](https://deepwiki.com/toxicity188/BetterModel)
 
 ## 💻 API
 

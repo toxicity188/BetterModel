@@ -2,28 +2,32 @@
 
 ![](https://github.com/user-attachments/assets/89e191ba-ed4f-44ab-bb98-634cfe568dca)
 
+# BetterModel
+*- Modern Bedrock model engine for Bukkit -*
+
 [![](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/available/modrinth_vector.svg)](https://modrinth.com/plugin/bettermodel)
 [![](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/available/hangar_vector.svg)](https://hangar.papermc.io/toxicity188/BetterModel)
 [![](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/available/github_vector.svg)](https://github.com/toxicity188/BetterModel)
 
 </div>
 
-# ⚡ What is BetterModel?
 * * *
 ![](https://github.com/user-attachments/assets/5a6c1a8c-6fe2-4a67-a10e-e63e40825d35)
 ![](https://github.com/user-attachments/assets/ff515577-6a72-48ba-9943-81f00dddb375)
 * * *
 
-**BetterModel** is a plugin-based engine that provide runtime BlockBench model rendering & animating for Minecraft Java Edition.  
+# ⚡ What is BetterModel?
 
-It implements **fully server-side 3D model** by using an item display entity packet.
+**BetterModel** is a plugin-based engine that provides runtime BlockBench model rendering & animating for Minecraft Java Edition.  
+
+It implements **fully server-side 3D models** by using an item display entity packet.
 
 - Importing Generic BlockBench model `.bbmodel`
 - Auto-generating resource pack
 - Playing animation
 - Syncing with base entity
 - Custom hit box
-- Supports 12-limb player animation
+- 12-limb player animation
 
 ## 🔥 Why do I create BetterModel even though ModelEngine already exists?
 The main reason I created it is:
