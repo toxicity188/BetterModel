@@ -580,11 +580,7 @@ public final class RenderedBone implements BoneEventHandler {
             this.consumer = consumer;
             state = new AnimationStateHandler<>(
                 AnimationMovement.EMPTY,
-                (b, a) -> {
-                    synchronized (this) {
-                        skipInterpolation = (a != null && a.skipInterpolation()) || (parent != null && parent.state(uuid).skipInterpolation);
-                    }
-                }
+                (b, a) -> skipInterpolation = (a != null && a.skipInterpolation()) || (parent != null && parent.state(uuid).skipInterpolation)
             );
         }
 

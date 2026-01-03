@@ -111,10 +111,10 @@ internal class TransformationData {
         } else null
         val forceValue get() = SynchedEntityData.DataValue(accessor.id, accessor.serializer, _t)
 
-        fun set(vector3f: T) {
-            if (dirtyChecker(_t, vector3f)) return
+        fun set(other: T) {
+            if (dirtyChecker(_t, other)) return
             _dirty = true
-            setter(_t, vector3f)
+            setter(_t, other)
         }
     }
 }

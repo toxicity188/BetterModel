@@ -36,6 +36,7 @@ tasks {
             hangar("ViaVersion", "5.7.0")
             hangar("ViaBackwards", "5.7.0")
             hangar("Skript", "2.13.2")
+            hangar("TabTPS", "1.3.30")
         }
     }
     build {
