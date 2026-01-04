@@ -124,7 +124,7 @@ public sealed interface BlueprintElement {
         }
 
         /**
-         * Builds the JSON representation for legacy clients (<=1.21.3).
+         * Builds the JSON representation for legacy clients (1.21.3 or under).
          *
          * @param skipLog whether to skip logging warnings for invalid rotations
          * @param obfuscator the obfuscator for model and texture names
