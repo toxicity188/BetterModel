@@ -31,7 +31,6 @@ import net.minecraft.world.damagesource.DamageSource
 import net.minecraft.world.effect.MobEffectInstance
 import net.minecraft.world.entity.*
 import net.minecraft.world.entity.ai.attributes.Attributes
-import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.entity.projectile.Projectile
 import net.minecraft.world.entity.projectile.ProjectileDeflection
@@ -62,7 +61,7 @@ internal class HitBoxImpl(
     private val listener: HitBoxListener,
     private val delegate: Entity,
     private var mountController: MountController
-) : ArmorStand(EntityType.ARMOR_STAND, delegate.level()), HitBox {
+) : AbstractHitBox(delegate.level()) {
     private var initialized = false
     private var jumpDelay = 0
     private var mounted = false
