@@ -271,7 +271,7 @@ public final class EntityTrackerRegistry {
     }
 
     private boolean putTracker(@NotNull String key, @NotNull EntityTracker created) {
-        if (created.isClosed()) return false;
+        if (isClosed() || created.isClosed()) return false;
         created.handleCloseEvent((t, r) -> {
             if (isClosed()) return;
             if (trackerMap.compute(key, (k, v) -> v == created ? null : v) == null) {
@@ -440,8 +440,8 @@ public final class EntityTrackerRegistry {
      * @since 1.15.2
      */
     public void save() {
-        var data = serialize().toString();
-        runSync(() -> entity.modelData(data));
+        var data = serialize();
+        if (!data.isEmpty()) runSync(() -> entity.modelData(data.toString()));
     }
 
     private void runSync(@NotNull Runnable runnable) {

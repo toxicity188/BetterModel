@@ -94,12 +94,10 @@ object EntityManager : GlobalManager {
             }
             (player.vehicle as? HitBox)?.dismount(player)
         }
-//        @EventHandler(priority = EventPriority.MONITOR)
-//        fun EntitiesLoadEvent.load() { //Chunk load
-//            entities.forEach { entity ->
-//                BetterModel.registryOrNull(entity.uniqueId)?.refresh()
-//            }
-//        }
+        @EventHandler(priority = EventPriority.MONITOR)
+        fun PlayerDeathEvent.death() {
+            BetterModel.registryOrNull(entity.uniqueId)?.despawn()
+        }
         @EventHandler(priority = EventPriority.MONITOR)
         fun EntitiesUnloadEvent.unload() { //Chunk unload
             entities.forEach { entity ->
