@@ -16,9 +16,14 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
- * A movement of each group.
- * @param name group name
- * @param keyframe keyframes
+ * Represents the processed animation data for a single bone within a model blueprint.
+ * <p>
+ * This record holds the sequence of keyframes that define the bone's movement over time.
+ * </p>
+ *
+ * @param name the name of the bone this animator applies to
+ * @param keyframe a list of animation movements representing the keyframes
+ * @since 1.15.2
  */
 public record BlueprintAnimator(
     @NotNull String name,
@@ -26,12 +31,14 @@ public record BlueprintAnimator(
 ) {
 
     /**
-     * Animation data
-     * @param name name
-     * @param position position
-     * @param scale scale
-     * @param rotation rotation
-     * @param rotationGlobal rotation global
+     * Holds the raw, separated animation data points for a bone before final processing.
+     *
+     * @param name the name of the bone
+     * @param position a list of position keyframes
+     * @param scale a list of scale keyframes
+     * @param rotation a list of rotation keyframes
+     * @param rotationGlobal whether the rotation is applied globally
+     * @since 1.15.2
      */
     public record AnimatorData(
         @NotNull String name,
@@ -41,8 +48,10 @@ public record BlueprintAnimator(
         boolean rotationGlobal
     ) {
         /**
-         * Gets flatten points
-         * @return all points
+         * Returns a stream containing all keyframe points (position, scale, and rotation).
+         *
+         * @return a stream of all vector points
+         * @since 1.15.2
          */
         public @NotNull Stream<VectorPoint> allPoints() {
             return Stream.concat(
@@ -56,9 +65,11 @@ public record BlueprintAnimator(
     }
 
     /**
-     * Gets loop iterator.
-     * @param type type
-     * @return iterator
+     * Creates an iterator for the keyframes based on a specified loop type.
+     *
+     * @param type the loop type (e.g., play_once, loop)
+     * @return an animation iterator
+     * @since 1.15.2
      */
     public @NotNull AnimationIterator<AnimationMovement> iterator(@NotNull AnimationIterator.Type type) {
         return type.create(keyframe);

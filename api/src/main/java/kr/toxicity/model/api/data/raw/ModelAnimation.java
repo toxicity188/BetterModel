@@ -28,13 +28,19 @@ import java.util.*;
 import static kr.toxicity.model.api.util.CollectionUtil.associate;
 
 /**
- * Raw animation of a model.
- * @param name name
- * @param loop whether to loop
- * @param uuid uuid
- * @param override override
- * @param length keyframe length
- * @param animators animators
+ * Represents a raw animation definition from a model file.
+ * <p>
+ * This record holds the properties of an animation, such as its name, length, loop mode,
+ * and the animators that define the keyframes for each bone group.
+ * </p>
+ *
+ * @param name the name of the animation
+ * @param loop the loop mode (e.g., play_once, loop, hold)
+ * @param override whether this animation should override others
+ * @param uuid the unique identifier of the animation
+ * @param length the total length of the animation in seconds
+ * @param animators a map of animators, keyed by the UUID of the bone group they affect
+ * @since 1.15.2
  */
 @ApiStatus.Internal
 public record ModelAnimation(
@@ -46,10 +52,12 @@ public record ModelAnimation(
     @Nullable Map<String, ModelAnimator> animators
 ) {
     /**
-     * Converts raw animation to blueprint animation
-     * @param context context
-     * @param children children
-     * @return converted animation
+     * Converts this raw animation data into a processed {@link BlueprintAnimation}.
+     *
+     * @param context the model loading context
+     * @param children the list of root blueprint elements
+     * @return the blueprint animation
+     * @since 1.15.2
      */
     public @NotNull BlueprintAnimation toBlueprint(
         @NotNull ModelLoadContext context,
@@ -112,8 +120,10 @@ public record ModelAnimation(
     }
 
     /**
-     * Gets loop
-     * @return loop
+     * Returns the loop mode of the animation.
+     *
+     * @return the loop mode, defaulting to {@link AnimationIterator.Type#PLAY_ONCE} if null
+     * @since 1.15.2
      */
     @Override
     public @NotNull AnimationIterator.Type loop() {
@@ -121,8 +131,10 @@ public record ModelAnimation(
     }
 
     /**
-     * Gets animators
-     * @return animators
+     * Returns the map of animators for this animation.
+     *
+     * @return the animators, or an empty map if null
+     * @since 1.15.2
      */
     @Override
     @NotNull

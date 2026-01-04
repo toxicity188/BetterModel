@@ -19,11 +19,16 @@ import org.joml.Vector3f;
 import java.util.Objects;
 
 /**
- * A raw JSON vector.
- * @param x x
- * @param y y
- * @param z z
- * @param script script
+ * Represents a single data point within a keyframe, which can be a static value or a Molang script.
+ * <p>
+ * This record holds the raw JSON values for x, y, and z coordinates, or a script string.
+ * </p>
+ *
+ * @param x the x-coordinate value or script
+ * @param y the y-coordinate value or script
+ * @param z the z-coordinate value or script
+ * @param script the script string (used for sound/particle effects)
+ * @since 1.15.2
  */
 @ApiStatus.Internal
 public record ModelDatapoint(
@@ -34,16 +39,21 @@ public record ModelDatapoint(
 ) {
 
     /**
-     * Checks this datapoint has script
-     * @return has script
+     * Checks if this data point contains a script.
+     *
+     * @return true if a script is present, false otherwise
+     * @since 1.15.2
      */
     public boolean hasScript() {
         return script != null;
     }
 
     /**
-     * Gets script
-     * @return script
+     * Returns the script string.
+     *
+     * @return the script
+     * @throws NullPointerException if no script is present
+     * @since 1.15.2
      */
     @Override
     public @NotNull String script() {
@@ -51,9 +61,15 @@ public record ModelDatapoint(
     }
 
     /**
-     * Creates vector function
-     * @param context context
-     * @return vector function
+     * Converts this data point into a function that returns a {@link Vector3f}.
+     * <p>
+     * If the data point contains static values, it returns a constant function.
+     * If it contains Molang expressions, it compiles them into a function that evaluates the expressions.
+     * </p>
+     *
+     * @param context the model loading context
+     * @return a function to get the vector value
+     * @since 1.15.2
      */
     public @NotNull FloatFunction<Vector3f> toFunction(@NotNull ModelLoadContext context) {
         var xb = build(x, context);

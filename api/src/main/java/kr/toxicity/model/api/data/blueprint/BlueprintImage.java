@@ -11,15 +11,22 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Blueprint image.
- * @param name image name
- * @param image image
- * @param mcmeta mcmeta
+ * Represents an image file to be generated as part of the resource pack.
+ * <p>
+ * This record holds the image's name, its binary content, and an optional .mcmeta file for animations.
+ * </p>
+ *
+ * @param name the name of the image file (including extension)
+ * @param image the binary content of the image
+ * @param mcmeta the JSON object for the .mcmeta file, if any
+ * @since 1.15.2
  */
 public record BlueprintImage(@NotNull String name, byte[] image, @Nullable JsonObject mcmeta) {
     /**
-     * Gets estimated size
-     * @return estimated size
+     * Returns the estimated size of the image in bytes.
+     *
+     * @return the image size
+     * @since 1.15.2
      */
     public long estimatedSize() {
         return image.length;

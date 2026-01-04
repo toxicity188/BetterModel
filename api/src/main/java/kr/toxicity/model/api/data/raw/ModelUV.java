@@ -16,10 +16,15 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 
 /**
- * UV data of a model
- * @param uv uv
- * @param rotation rotation
- * @param texture texture
+ * Represents the UV mapping data for a model face.
+ * <p>
+ * This record holds the UV coordinates, rotation, and texture index for a specific face of a model element.
+ * </p>
+ *
+ * @param uv the UV coordinates as a {@link Float4} (u1, v1, u2, v2)
+ * @param rotation the rotation of the UV map in degrees (0, 90, 180, 270)
+ * @param texture the JSON element representing the texture index, can be null
+ * @since 1.15.2
  */
 public record ModelUV(
     @NotNull Float4 uv,
@@ -28,26 +33,33 @@ public record ModelUV(
 ) {
 
     /**
-     * Checks this UV has textures.
-     * @return has texture
+     * Checks if this UV mapping has a valid texture index.
+     *
+     * @return true if a texture is defined, false otherwise
+     * @since 1.15.2
      */
     public boolean hasTexture() {
         return texture != null && texture.isJsonPrimitive() && texture.getAsJsonPrimitive().isNumber();
     }
 
     /**
-     * Gets texture index
-     * @return texture index
+     * Returns the texture index associated with this UV mapping.
+     *
+     * @return the texture index
+     * @throws NullPointerException if no texture is defined
+     * @since 1.15.2
      */
     public int textureIndex() {
         return Objects.requireNonNull(texture).getAsInt();
     }
 
     /**
-     * Gets json data of uv
-     * @param parent parent blueprint
-     * @param tint tint index
-     * @return json
+     * Converts this UV data to a JSON object for the Minecraft model file.
+     *
+     * @param parent the parent model blueprint, used for texture resolution
+     * @param tint the tint index to apply
+     * @return the generated JSON object
+     * @since 1.15.2
      */
     public @NotNull JsonObject toJson(@NotNull ModelBlueprint parent, int tint) {
         var object = new JsonObject();

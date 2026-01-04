@@ -17,19 +17,26 @@ import java.util.Map;
 import static kr.toxicity.model.api.util.CollectionUtil.associate;
 
 /**
- * Model placeholder
- * @param variables variables
+ * Represents animation variable placeholders defined in a model file.
+ * <p>
+ * These placeholders allow for defining reusable values or expressions that can be referenced within Molang scripts in animations.
+ * </p>
+ *
+ * @param variables a map of placeholder variable names to their string values
+ * @since 1.15.2
  */
 public record ModelPlaceholder(
     @NotNull @Unmodifiable Map<String, String> variables
 ) {
     /**
-     * Empty placeholder
+     * An empty placeholder instance with no variables.
+     * @since 1.15.2
      */
     public static final ModelPlaceholder EMPTY = new ModelPlaceholder(Collections.emptyMap());
 
     /**
-     * Parser
+     * A JSON deserializer for parsing placeholders from a multi-line string.
+     * @since 1.15.2
      */
     public static final JsonDeserializer<ModelPlaceholder> PARSER = (json, typeOfT, context) -> new ModelPlaceholder(associate(
         Arrays.stream(json.getAsString().split("\n"))
@@ -40,9 +47,11 @@ public record ModelPlaceholder(
     ));
 
     /**
-     * Parses raw expression
-     * @param expression expression
-     * @return parsed expression
+     * Replaces all placeholder variables in a given expression with their corresponding values.
+     *
+     * @param expression the expression containing placeholders
+     * @return the expression with placeholders substituted
+     * @since 1.15.2
      */
     public @NotNull String parseVariable(@NotNull String expression) {
         for (var entry : variables.entrySet()) {

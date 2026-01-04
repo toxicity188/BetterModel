@@ -12,13 +12,18 @@ import org.joml.Quaterniond;
 import org.joml.Vector3d;
 
 /**
- * Model bounding box
- * @param minX min-x
- * @param minY min-y
- * @param minZ min-z
- * @param maxX max-x
- * @param maxY max-y
- * @param maxZ max-z
+ * Represents an axis-aligned bounding box (AABB) for a model part.
+ * <p>
+ * This record defines the spatial extent of a model element or group, used for hitboxes and collision detection.
+ * </p>
+ *
+ * @param minX the minimum X coordinate
+ * @param minY the minimum Y coordinate
+ * @param minZ the minimum Z coordinate
+ * @param maxX the maximum X coordinate
+ * @param maxY the maximum Y coordinate
+ * @param maxZ the maximum Z coordinate
+ * @since 1.15.2
  */
 public record ModelBoundingBox(
     double minX,
@@ -29,15 +34,18 @@ public record ModelBoundingBox(
     double maxZ
 ) {
     /**
-     * Min hitbox size
+     * A minimal bounding box size (0.1 x 0.1 x 0.1).
+     * @since 1.15.2
      */
     public static final ModelBoundingBox MIN = of(0.1, 0.1, 0.1);
 
     /**
-     * Creates bounding box
-     * @param min min position
-     * @param max max position
-     * @return bounding box
+     * Creates a bounding box from two corner vectors.
+     *
+     * @param min the minimum corner vector
+     * @param max the maximum corner vector
+     * @return the bounding box
+     * @since 1.15.2
      */
     public static @NotNull ModelBoundingBox of(@NotNull Vector3d min, @NotNull Vector3d max) {
         return of(
@@ -51,11 +59,13 @@ public record ModelBoundingBox(
     }
 
     /**
-     * Creates bounding box
-     * @param x x
-     * @param y y
-     * @param z z
-     * @return bounding box
+     * Creates a bounding box centered at the origin with the given dimensions.
+     *
+     * @param x the width (X-axis)
+     * @param y the height (Y-axis)
+     * @param z the depth (Z-axis)
+     * @return the centered bounding box
+     * @since 1.15.2
      */
     public static @NotNull ModelBoundingBox of(double x, double y, double z) {
         return of(
@@ -69,14 +79,19 @@ public record ModelBoundingBox(
     }
 
     /**
-     * Creates bounding box
-     * @param minX min-x
-     * @param minY min-y
-     * @param minZ min-z
-     * @param maxX max-x
-     * @param maxY max-y
-     * @param maxZ max-z
-     * @return bounding box
+     * Creates a bounding box from explicit min/max coordinates.
+     * <p>
+     * This method automatically ensures that min values are less than or equal to max values.
+     * </p>
+     *
+     * @param minX the first X coordinate
+     * @param minY the first Y coordinate
+     * @param minZ the first Z coordinate
+     * @param maxX the second X coordinate
+     * @param maxY the second Y coordinate
+     * @param maxZ the second Z coordinate
+     * @return the normalized bounding box
+     * @since 1.15.2
      */
     public static @NotNull ModelBoundingBox of(
         double minX,
@@ -97,49 +112,61 @@ public record ModelBoundingBox(
     }
 
     /**
-     * Gets bounding box with name
-     * @param name name
-     * @return named box
+     * Associates this bounding box with a bone name.
+     *
+     * @param name the bone name
+     * @return a {@link NamedBoundingBox} wrapping this box
+     * @since 1.15.2
      */
     public @NotNull NamedBoundingBox named(@NotNull BoneName name) {
         return new NamedBoundingBox(name, this);
     }
 
     /**
-     * Gets x
-     * @return x
+     * Returns the width of the bounding box (X-axis extent).
+     *
+     * @return the width
+     * @since 1.15.2
      */
     public double x() {
         return maxX - minX;
     }
 
     /**
-     * Gets y
-     * @return y
+     * Returns the height of the bounding box (Y-axis extent).
+     *
+     * @return the height
+     * @since 1.15.2
      */
     public double y() {
         return maxY - minY;
     }
 
     /**
-     * Gets center y
-     * @return center y
+     * Returns the Y coordinate of the center of the bounding box.
+     *
+     * @return the center Y
+     * @since 1.15.2
      */
     public double centerY() {
         return (maxY + minY) / 2;
     }
 
     /**
-     * Gets z
-     * @return z
+     * Returns the depth of the bounding box (Z-axis extent).
+     *
+     * @return the depth
+     * @since 1.15.2
      */
     public double z() {
         return maxZ - minZ;
     }
 
     /**
-     * Gets center vector point
-     * @return center
+     * Returns the center point of the bounding box as a vector.
+     *
+     * @return the center vector
+     * @since 1.15.2
      */
     public @NotNull Vector3d centerPoint() {
         return new Vector3d(
@@ -150,9 +177,11 @@ public record ModelBoundingBox(
     }
 
     /**
-     * Gets scaled bounding box
-     * @param scale scale
-     * @return scaled bounding box
+     * Scales the bounding box by a uniform factor.
+     *
+     * @param scale the scale factor
+     * @return the scaled bounding box
+     * @since 1.15.2
      */
     public @NotNull ModelBoundingBox times(double scale) {
         return of(
@@ -166,8 +195,10 @@ public record ModelBoundingBox(
     }
 
     /**
-     * Gets centered bounding box
-     * @return centered bounding box
+     * Returns a new bounding box with the same dimensions but centered at the origin (0,0,0).
+     *
+     * @return the centered bounding box
+     * @since 1.15.2
      */
     public @NotNull ModelBoundingBox center() {
         var center = centerPoint();
@@ -182,8 +213,10 @@ public record ModelBoundingBox(
     }
 
     /**
-     * Inverts xz axis of this bounding box
-     * @return inverted bounding box
+     * Inverts the X and Z coordinates of the bounding box.
+     *
+     * @return the inverted bounding box
+     * @since 1.15.2
      */
     public @NotNull ModelBoundingBox invert() {
         return of(
@@ -197,9 +230,11 @@ public record ModelBoundingBox(
     }
 
     /**
-     * Rotates this bounding box
-     * @param quaterniond rotation
-     * @return rotated bounding box
+     * Rotates the bounding box around its center.
+     *
+     * @param quaterniond the rotation quaternion
+     * @return the rotated bounding box
+     * @since 1.15.2
      */
     public @NotNull ModelBoundingBox rotate(@NotNull Quaterniond quaterniond) {
         var centerVec = centerPoint();
@@ -210,32 +245,40 @@ public record ModelBoundingBox(
     }
 
     /**
-     * Gets min position as vector
-     * @return min position
+     * Returns the minimum corner as a vector.
+     *
+     * @return the min vector
+     * @since 1.15.2
      */
     public @NotNull Vector3d min() {
         return new Vector3d(minX, minY, minZ);
     }
 
     /**
-     * Gets max position as vector
-     * @return max position
+     * Returns the maximum corner as a vector.
+     *
+     * @return the max vector
+     * @since 1.15.2
      */
     public @NotNull Vector3d max() {
         return new Vector3d(maxX, maxY, maxZ);
     }
 
     /**
-     * Gets zx length of bounding box
-     * @return zx length
+     * Calculates the diagonal length in the XZ plane.
+     *
+     * @return the XZ diagonal length
+     * @since 1.15.2
      */
     public double lengthZX() {
         return Math.sqrt(Math.pow(x(), 2) + Math.pow(z(), 2));
     }
 
     /**
-     * Gets length of bounding box
-     * @return length
+     * Calculates the full diagonal length of the bounding box.
+     *
+     * @return the diagonal length
+     * @since 1.15.2
      */
     public double length() {
         return Math.sqrt(Math.pow(x(), 2) + Math.pow(y(), 2) + Math.pow(z(), 2));

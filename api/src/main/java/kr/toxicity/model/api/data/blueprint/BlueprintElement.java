@@ -26,58 +26,77 @@ import java.util.stream.Stream;
 import static kr.toxicity.model.api.util.CollectionUtil.*;
 
 /**
- * An element of blueprint.
+ * Represents a processed element within a model blueprint.
+ * <p>
+ * This is a sealed interface with implementations for different types of elements like bones, groups, cubes, and locators.
+ * </p>
+ *
+ * @since 1.15.2
  */
 public sealed interface BlueprintElement {
 
     /**
-     * Bone element
+     * Represents an element that acts as a bone in the model's armature.
+     *
+     * @since 1.15.2
      */
     sealed interface Bone extends BlueprintElement {
 
         /**
-         * Gets bone uuid
-         * @return uuid
+         * Returns the UUID of the bone.
+         *
+         * @return the UUID
+         * @since 1.15.2
          */
         @NotNull UUID uuid();
 
         /**
-         * Gets bone name
-         * @return bone name
+         * Returns the name of the bone.
+         *
+         * @return the bone name
+         * @since 1.15.2
          */
         @NotNull BoneName name();
 
         /**
-         * Gets origin
-         * @return origin
+         * Returns the origin (pivot point) of the bone.
+         *
+         * @return the origin
+         * @since 1.15.2
          */
         @NotNull Float3 origin();
     }
 
     /**
-     * Gets rotation
-     * @return rotation
+     * Returns the rotation of the element.
+     *
+     * @return the rotation, defaulting to zero
+     * @since 1.15.2
      */
     default @NotNull Float3 rotation() {
         return Float3.ZERO;
     }
 
     /**
-     * Gets visibility
-     * @return visibility
+     * Checks if the element is visible.
+     *
+     * @return true if visible, false otherwise
+     * @since 1.15.2
      */
     default boolean visibility() {
         return false;
     }
 
     /**
-     * Blueprint group
-     * @param uuid uuid
-     * @param name group name
-     * @param origin origin
-     * @param rotation rotation
-     * @param children children
-     * @param visibility visibility
+     * Represents a group of elements, forming a bone in the hierarchy.
+     *
+     * @param uuid the UUID of the group
+     * @param name the name of the group/bone
+     * @param origin the pivot point of the group
+     * @param rotation the rotation of the group
+     * @param children the list of child elements
+     * @param visibility whether the group is visible
+     * @since 1.15.2
      */
     record Group(
         @NotNull UUID uuid,
@@ -89,8 +108,10 @@ public sealed interface BlueprintElement {
     ) implements Bone {
 
         /**
-         * Gets origin
-         * @return origin
+         * Returns the origin with inverted X and Z axes.
+         *
+         * @return the inverted origin
+         * @since 1.15.2
          */
         @Override
         @NotNull
@@ -103,11 +124,13 @@ public sealed interface BlueprintElement {
         }
 
         /**
-         * Gets blueprint legacy json
-         * @param skipLog skip log
-         * @param obfuscator obfuscator
-         * @param parent parent
-         * @return json
+         * Builds the JSON representation for legacy clients (<=1.21.3).
+         *
+         * @param skipLog whether to skip logging warnings for invalid rotations
+         * @param obfuscator the obfuscator for model and texture names
+         * @param parent the parent model blueprint
+         * @return the generated blueprint JSON, or null if not applicable
+         * @since 1.15.2
          */
         public @Nullable BlueprintJson buildLegacyJson(
             boolean skipLog,
@@ -123,10 +146,12 @@ public sealed interface BlueprintElement {
         }
 
         /**
-         * Gets blueprint modern json
-         * @param obfuscator obfuscator
-         * @param parent parent
-         * @return json
+         * Builds the JSON representation for modern clients.
+         *
+         * @param obfuscator the obfuscator for model and texture names
+         * @param parent the parent model blueprint
+         * @return a list of generated blueprint JSONs, or null if not applicable
+         * @since 1.15.2
          */
         @Nullable
         @Unmodifiable
@@ -178,8 +203,10 @@ public sealed interface BlueprintElement {
         }
 
         /**
-         * Gets cube scale of this model
-         * @return scale
+         * Calculates the required scale for the cubes in this group.
+         *
+         * @return the scale factor
+         * @since 1.15.2
          */
         public float scale() {
             return (float) Math.max(filterIsInstance(children, Cube.class)
@@ -189,8 +216,10 @@ public sealed interface BlueprintElement {
         }
 
         /**
-         * Gets single hit-box
-         * @return bounding box
+         * Calculates the bounding box for this group to be used as a hitbox.
+         *
+         * @return the named bounding box, or null if no cubes are present
+         * @since 1.15.2
          */
         public @Nullable NamedBoundingBox hitBox() {
             return filterIsInstance(children, Cube.class).map(element -> {
@@ -215,10 +244,12 @@ public sealed interface BlueprintElement {
     }
 
     /**
-     * Blueprint locator
-     * @param uuid uuid
-     * @param name name
-     * @param origin origin
+     * Represents a locator element, used as a named attachment point.
+     *
+     * @param uuid the UUID of the locator
+     * @param name the name of the locator
+     * @param origin the position of the locator
+     * @since 1.15.2
      */
     record Locator(
         @NotNull UUID uuid,
@@ -226,8 +257,10 @@ public sealed interface BlueprintElement {
         @NotNull Float3 origin
     ) implements Bone {
         /**
-         * Gets origin
-         * @return origin
+         * Returns the origin with inverted X and Z axes.
+         *
+         * @return the inverted origin
+         * @since 1.15.2
          */
         @Override
         @NotNull
@@ -237,8 +270,10 @@ public sealed interface BlueprintElement {
     }
 
     /**
-     * Blueprint camera
-     * @param uuid uuid
+     * Represents a camera element (currently a placeholder).
+     *
+     * @param uuid the UUID of the camera
+     * @since 1.15.2
      */
     record Camera(
         @NotNull UUID uuid
@@ -246,12 +281,14 @@ public sealed interface BlueprintElement {
     }
 
     /**
-     * Blueprint null object
-     * @param uuid uuid
-     * @param name name
-     * @param ikTarget ik target
-     * @param ikSource ik source
-     * @param origin origin
+     * Represents a null object, often used for IK or as a simple bone.
+     *
+     * @param uuid the UUID of the null object
+     * @param name the name of the null object
+     * @param ikTarget the UUID of the IK target bone
+     * @param ikSource the UUID of the IK source bone
+     * @param origin the position of the null object
+     * @since 1.15.2
      */
     record NullObject(
         @NotNull UUID uuid,
@@ -261,8 +298,10 @@ public sealed interface BlueprintElement {
         @NotNull Float3 origin
     ) implements Bone {
         /**
-         * Gets origin
-         * @return origin
+         * Returns the origin with inverted X and Z axes.
+         *
+         * @return the inverted origin
+         * @since 1.15.2
          */
         @Override
         @NotNull
@@ -272,15 +311,17 @@ public sealed interface BlueprintElement {
     }
 
     /**
-     * Blueprint cube.
-     * @param name name
-     * @param from min-position
-     * @param to max-position
-     * @param inflate inflate
-     * @param rotation rotation
-     * @param origin origin
-     * @param faces uv
-     * @param visibility visibility
+     * Represents a cube element, the basic building block of a model.
+     *
+     * @param name the name of the cube
+     * @param from the starting coordinate (min corner)
+     * @param to the ending coordinate (max corner)
+     * @param inflate the inflation value
+     * @param rotation the rotation of the cube
+     * @param origin the pivot point of the cube
+     * @param faces the UV mapping for the faces
+     * @param visibility whether the cube is visible
+     * @since 1.15.2
      */
     record Cube(
         @NotNull String name,
@@ -343,9 +384,11 @@ public sealed interface BlueprintElement {
         }
 
         /**
-         * Gets max length of this cube
-         * @param origin origin
-         * @return cube length
+         * Calculates the maximum distance from the origin to any corner of the cube.
+         *
+         * @param origin the reference origin
+         * @return the maximum length
+         * @since 1.15.2
          */
         public float max(@NotNull Float3 origin) {
             var f = from().minus(origin);
@@ -361,8 +404,10 @@ public sealed interface BlueprintElement {
         }
 
         /**
-         * Checks this model has texture
-         * @return model has texture
+         * Checks if this cube has any textures defined.
+         *
+         * @return true if it has textures, false otherwise
+         * @since 1.15.2
          */
         public boolean hasTexture() {
             return faces != null && faces.hasTexture();

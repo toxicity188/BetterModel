@@ -13,9 +13,15 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.util.List;
 
 /**
- * Model load result
- * @param blueprint blueprint
- * @param errors error messages
+ * Represents the result of loading and processing a raw model file.
+ * <p>
+ * This record contains the successfully created {@link ModelBlueprint} and a list of any errors
+ * or warnings that occurred during the loading process.
+ * </p>
+ *
+ * @param blueprint the processed model blueprint
+ * @param errors a list of error or warning messages generated during loading
+ * @since 1.15.2
  */
 public record ModelLoadResult(@NotNull ModelBlueprint blueprint, @NotNull @Unmodifiable List<String> errors) {
 }

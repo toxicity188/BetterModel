@@ -17,10 +17,12 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
- * A raw model animator.
- * @param name group name
- * @param keyframes keyframes
- * @param _rotationGlobal rotation global
+ * Represents a raw animator from a model file, containing a set of keyframes for a specific bone group.
+ *
+ * @param name the name of the bone group this animator affects
+ * @param keyframes the list of keyframes
+ * @param _rotationGlobal whether the rotation is applied globally (true) or locally (false/null)
+ * @since 1.15.2
  */
 @ApiStatus.Internal
 public record ModelAnimator(
@@ -30,32 +32,39 @@ public record ModelAnimator(
 ) {
 
     /**
-     * Gets rotation global
-     * @return rotation global
+     * Checks if the rotation should be applied globally.
+     *
+     * @return true if rotation is global, false otherwise
+     * @since 1.15.2
      */
     public boolean rotationGlobal() {
         return Boolean.TRUE.equals(_rotationGlobal);
     }
 
     /**
-     * Checks this animator is available
-     * @return is available
+     * Checks if this animator is valid and has keyframes.
+     *
+     * @return true if available, false otherwise
+     * @since 1.15.2
      */
     public boolean isAvailable() {
         return name != null && isNotEmpty();
     }
 
     /**
-     * Checks this animator is not empty
-     * @return is not empty
+     * Checks if this animator contains any keyframes.
+     *
+     * @return true if not empty, false otherwise
+     * @since 1.15.2
      */
     public boolean isNotEmpty() {
         return !keyframes().isEmpty();
     }
 
     /**
-     * Gets name
-     * @return name
+     * Returns the name of the bone group this animator affects.
+     *
+     * @return the name of the bone group
      */
     @Override
     public @NotNull String name() {
@@ -63,8 +72,9 @@ public record ModelAnimator(
     }
 
     /**
-     * Gets keyframes
-     * @return keyframes
+     * Returns the list of keyframes for this animator. If no keyframes are present, an empty list is returned.
+     *
+     * @return the list of keyframes
      */
     @Override
     public @NotNull List<ModelKeyframe> keyframes() {
@@ -72,8 +82,10 @@ public record ModelAnimator(
     }
 
     /**
-     * Gets keyframe stream
-     * @return stream
+     * Returns a sorted stream of valid keyframes.
+     *
+     * @return the stream of keyframes
+     * @since 1.15.2
      */
     public @NotNull Stream<ModelKeyframe> stream() {
         return keyframes().stream()

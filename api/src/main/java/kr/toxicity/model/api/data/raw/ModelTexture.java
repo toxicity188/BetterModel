@@ -15,13 +15,18 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Base64;
 
 /**
- * A raw model texture.
- * @param name texture's name
- * @param source texture's base64-encoded byte array
- * @param width width
- * @param height height
- * @param uvWidth uv-width
- * @param uvHeight uv-height
+ * Represents a raw texture definition from a model file.
+ * <p>
+ * This record contains the texture's metadata and its content encoded as a Base64 string.
+ * </p>
+ *
+ * @param name the name of the texture file (e.g., "texture.png")
+ * @param source the Base64-encoded content of the texture image
+ * @param width the width of the texture in pixels
+ * @param height the height of the texture in pixels
+ * @param uvWidth the UV width of the texture
+ * @param uvHeight the UV height of the texture
+ * @since 1.15.2
  */
 @ApiStatus.Internal
 public record ModelTexture(
@@ -34,9 +39,14 @@ public record ModelTexture(
 ) {
 
     /**
-     * Converts this texture to blueprint textures
-     * @param context context
-     * @return converted textures
+     * Converts this raw texture into a processed {@link BlueprintTexture}.
+     * <p>
+     * This method decodes the Base64 source, generates a pack-compliant name, and determines if the texture should be included in the pack.
+     * </p>
+     *
+     * @param context the model loading context
+     * @return the blueprint texture
+     * @since 1.15.2
      */
     public @NotNull BlueprintTexture toBlueprint(@NotNull ModelLoadContext context) {
         var name = nameWithoutExtension();
@@ -52,8 +62,10 @@ public record ModelTexture(
     }
 
     /**
-     * Gets texture's name without extension
-     * @return name without extension
+     * Returns the texture name without its file extension.
+     *
+     * @return the name without extension
+     * @since 1.15.2
      */
     public @NotNull String nameWithoutExtension() {
         var name = name();

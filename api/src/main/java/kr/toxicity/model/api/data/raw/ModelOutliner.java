@@ -22,13 +22,23 @@ import static kr.toxicity.model.api.util.CollectionUtil.filterIsInstance;
 import static kr.toxicity.model.api.util.CollectionUtil.mapToList;
 
 /**
- * An outliner of the model.
+ * Represents the hierarchical structure (outliner) of a model.
+ * <p>
+ * The outliner defines the parent-child relationships between groups and elements (cubes, locators, etc.).
+ * It can be either a direct reference to an element (UUID string) or a tree node (Group) containing children.
+ * </p>
+ *
+ * @since 1.15.2
  */
 @ApiStatus.Internal
 public sealed interface ModelOutliner {
 
     /**
-     * Parser
+     * A JSON deserializer that parses the outliner structure.
+     * <p>
+     * It distinguishes between leaf nodes (UUID strings) and branch nodes (Groups with children).
+     * </p>
+     * @since 1.15.2
      */
     JsonDeserializer<ModelOutliner> PARSER = (json, typeOfT, context) -> {
         if (json.isJsonPrimitive()) return new Reference(json.getAsString());
@@ -46,27 +56,35 @@ public sealed interface ModelOutliner {
     };
 
     /**
-     * Converts outliner to blueprint element
-     * @param context context
-     * @return element
+     * Converts this outliner node into a processed {@link BlueprintElement}.
+     *
+     * @param context the model loading context
+     * @return the blueprint element
+     * @since 1.15.2
      */
     @NotNull BlueprintElement toBlueprint(@NotNull ModelLoadContext context);
 
     /**
-     * Flattens this outliner tree
-     * @return flatten stream
+     * Flattens the outliner tree into a stream of all nodes.
+     *
+     * @return a stream of all outliner nodes
+     * @since 1.15.2
      */
     @NotNull Stream<ModelOutliner> flatten();
 
     /**
-     * Gets uuid
-     * @return uuid
+     * Returns the UUID of this outliner node.
+     *
+     * @return the UUID string
+     * @since 1.15.2
      */
     @NotNull String uuid();
 
     /**
-     * An uuid reference of model element
-     * @param uuid uuid
+     * Represents a leaf node in the outliner, referencing a specific element by UUID.
+     *
+     * @param uuid the UUID of the referenced element
+     * @since 1.15.2
      */
     record Reference(@NotNull String uuid) implements ModelOutliner {
         @Override
@@ -81,9 +99,11 @@ public sealed interface ModelOutliner {
     }
 
     /**
-     * A tree of models
-     * @param group group (legacy BlockBench)
-     * @param children children
+     * Represents a branch node (Group) in the outliner, containing child nodes.
+     *
+     * @param group the group definition
+     * @param children the list of child outliner nodes
+     * @since 1.15.2
      */
     record Tree(
         @NotNull ModelGroup group,

@@ -19,14 +19,20 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A model animation.
- * @param name animation name
- * @param loop loop mode
- * @param length frame length
- * @param override override
- * @param animator group animator
- * @param emptyAnimator empty animation ([0, 0, 0]).
- * @param script script
+ * Represents a complete, processed animation for a model.
+ * <p>
+ * This record contains all the necessary data to play an animation, including keyframes for each bone,
+ * loop settings, and associated scripts.
+ * </p>
+ *
+ * @param name the name of the animation
+ * @param loop the default loop mode
+ * @param length the length of the animation in seconds
+ * @param override whether this animation overrides others
+ * @param animator a map of animators for each bone
+ * @param script the script associated with this animation, if any
+ * @param emptyAnimator a list of empty movements, used as a fallback or for initialization
+ * @since 1.15.2
  */
 public record BlueprintAnimation(
     @NotNull String name,
@@ -39,18 +45,25 @@ public record BlueprintAnimation(
 ) {
 
     /**
-     * Gets animation script
-     * @param modifier modifier
-     * @return script or null
+     * Retrieves the script for this animation, considering the provided modifier.
+     * <p>
+     * If the modifier overrides the animation or specifies a player, the script may be suppressed.
+     * </p>
+     *
+     * @param modifier the animation modifier
+     * @return the script, or null if suppressed
+     * @since 1.15.2
      */
     public @Nullable BlueprintScript script(@NotNull AnimationModifier modifier) {
         return modifier.override(override) || modifier.player() != null ? null : script;
     }
 
     /**
-     * Gets iterator.
-     * @param type type
-     * @return iterator
+     * Creates an iterator for the empty animation sequence.
+     *
+     * @param type the loop type
+     * @return an animation iterator
+     * @since 1.15.2
      */
     public @NotNull AnimationIterator<AnimationMovement> emptyIterator(@NotNull AnimationIterator.Type type) {
         return type.create(emptyAnimator);

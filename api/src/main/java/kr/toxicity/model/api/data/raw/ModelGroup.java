@@ -12,12 +12,18 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A raw group of models.
- * @param name group name
- * @param uuid uuid
- * @param origin origin
- * @param rotation rotation
- * @param _visibility visibility
+ * Represents a group definition in the raw model data.
+ * <p>
+ * Groups are used to organize elements and other groups hierarchically.
+ * This record corresponds to the group structure found in newer BlockBench versions (>= 5.0.0).
+ * </p>
+ *
+ * @param name the name of the group
+ * @param uuid the unique identifier of the group
+ * @param origin the pivot point (origin) of the group
+ * @param rotation the rotation of the group
+ * @param _visibility the visibility state of the group (null means visible)
+ * @since 1.15.2
  */
 public record ModelGroup(
     @NotNull String name,
@@ -27,8 +33,10 @@ public record ModelGroup(
     @Nullable @SerializedName("visibility") Boolean _visibility
 ) {
     /**
-     * Gets origin
-     * @return origin
+     * Returns the origin (pivot point) of the group.
+     *
+     * @return the origin, or {@link Float3#ZERO} if not specified
+     * @since 1.15.2
      */
     @Override
     @NotNull
@@ -37,8 +45,10 @@ public record ModelGroup(
     }
 
     /**
-     * Gets rotation
-     * @return rotation
+     * Returns the rotation of the group.
+     *
+     * @return the rotation, or {@link Float3#ZERO} if not specified
+     * @since 1.15.2
      */
     @Override
     @NotNull
@@ -47,8 +57,10 @@ public record ModelGroup(
     }
 
     /**
-     * Gets visibility
-     * @return visibility
+     * Checks if the group is visible.
+     *
+     * @return true if visible, false otherwise
+     * @since 1.15.2
      */
     public boolean visibility() {
         return !Boolean.FALSE.equals(_visibility);

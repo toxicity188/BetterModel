@@ -22,165 +22,219 @@ import java.io.InputStream;
 import java.util.function.Consumer;
 
 /**
- * A plugin instance of BetterModel.
- * It can be cast as JavaPlugin.
+ * Represents the main plugin interface for BetterModel.
+ * <p>
+ * This interface extends {@link Plugin} and provides access to core managers, configuration,
+ * versioning, and reloading functionality. It serves as the central hub for the plugin's operations.
+ * </p>
+ *
  * @see org.bukkit.plugin.java.JavaPlugin
  * @see BetterModel
+ * @since 1.15.2
  */
 public interface BetterModelPlugin extends Plugin {
 
     /**
-     * Reloads this plugin.
-     * @return reload result
+     * Reloads the plugin with default settings (console sender).
+     *
+     * @return the result of the reload operation
+     * @since 1.15.2
      */
     default @NotNull ReloadResult reload() {
         return reload(ReloadInfo.DEFAULT);
     }
 
     /**
-     * Reloads this plugin.
-     * @param sender sender
-     * @return reload result
+     * Reloads the plugin, specifying the command sender who initiated it.
+     *
+     * @param sender the command sender
+     * @return the result of the reload operation
+     * @since 1.15.2
      */
     default @NotNull ReloadResult reload(@NotNull CommandSender sender) {
         return reload(ReloadInfo.builder().sender(sender).build());
     }
 
     /**
-     * Reloads this plugin.
-     * @param info info
-     * @return reload result
+     * Reloads the plugin with specific reload information.
+     *
+     * @param info the reload configuration
+     * @return the result of the reload operation
+     * @since 1.15.2
      */
     @NotNull ReloadResult reload(@NotNull ReloadInfo info);
 
 
     /**
-     * Check running BetterModel is snapshot.
-     * @return is snapshot
+     * Checks if the running version of BetterModel is a snapshot build.
+     *
+     * @return true if snapshot, false otherwise
+     * @since 1.15.2
      */
     boolean isSnapshot();
 
     /**
-     * Gets BetterModel's config
-     * @return config
+     * Returns the plugin's configuration manager.
+     *
+     * @return the configuration
+     * @since 1.15.2
      */
     @NotNull BetterModelConfig config();
 
     /**
-     * Gets running server's minecraft version.
-     * @return minecraft version
+     * Returns the Minecraft version of the running server.
+     *
+     * @return the Minecraft version
+     * @since 1.15.2
      */
     @NotNull MinecraftVersion version();
 
     /**
-     * Gets plugin semver.
-     * @return semver
+     * Returns the semantic version of the plugin.
+     *
+     * @return the semantic version
+     * @since 1.15.2
      */
     @NotNull Semver semver();
 
     /**
-     * Gets minecraft version volatile code.
-     * @return net.minecraft.server
+     * Returns the NMS (Net.Minecraft.Server) handler for version-specific operations.
+     *
+     * @return the NMS handler
+     * @since 1.15.2
      */
     @NotNull NMS nms();
 
     /**
-     * Gets model manager.
-     * @return model manager
+     * Returns the model manager.
+     *
+     * @return the model manager
+     * @since 1.15.2
      */
     @NotNull ModelManager modelManager();
 
     /**
-     * Gets player manager.
-     * @return player manager
+     * Returns the player manager.
+     *
+     * @return the player manager
+     * @since 1.15.2
      */
     @NotNull PlayerManager playerManager();
 
     /**
-     * Gets script manager.
-     * @return script manager
+     * Returns the script manager.
+     *
+     * @return the script manager
+     * @since 1.15.2
      */
     @NotNull ScriptManager scriptManager();
 
     /**
-     * Gets skin manager.
-     * @return skin manager
+     * Returns the skin manager.
+     *
+     * @return the skin manager
+     * @since 1.15.2
      */
     @NotNull SkinManager skinManager();
     /**
-     * Gets skin manager.
-     * @return skin manager
+     * Returns the profile manager.
+     *
+     * @return the profile manager
+     * @since 1.15.2
      */
     @NotNull ProfileManager profileManager();
 
     /**
-     * Gets plugin scheduler.
-     * @return scheduler
+     * Returns the plugin's scheduler.
+     *
+     * @return the scheduler
+     * @since 1.15.2
      */
     @NotNull ModelScheduler scheduler();
 
     /**
-     * Adds event handler on reload start.
-     * @param consumer task
+     * Registers a handler to be executed when a reload starts.
+     *
+     * @param consumer the handler, receiving the {@link PackZipper}
+     * @since 1.15.2
      */
     void addReloadStartHandler(@NotNull Consumer<PackZipper> consumer);
 
     /**
-     * Adds event handler on the reload end.
-     * @param consumer result consumer
+     * Registers a handler to be executed when a reload ends.
+     *
+     * @param consumer the handler, receiving the {@link ReloadResult}
+     * @since 1.15.2
      */
     void addReloadEndHandler(@NotNull Consumer<ReloadResult> consumer);
 
     /**
-     * Gets logger
-     * @return logger
+     * Returns the plugin's logger.
+     *
+     * @return the logger
+     * @since 1.15.2
      */
     @NotNull BetterModelLogger logger();
 
     /**
-     * Gets evaluator
-     * @return evaluator
+     * Returns the expression evaluator.
+     *
+     * @return the evaluator
+     * @since 1.15.2
      */
     @NotNull BetterModelEvaluator evaluator();
 
     /**
-     * Gets plugin resource from a path
-     * @param path path
+     * Retrieves a resource from the plugin's JAR file.
+     *
+     * @param path the path to the resource
+     * @return an input stream for the resource, or null if not found
+     * @since 1.15.2
      */
     @Nullable InputStream getResource(@NotNull String path);
 
     /**
-     * A result of reload.
+     * Represents the outcome of a plugin reload operation.
+     *
+     * @since 1.15.2
      */
     sealed interface ReloadResult {
 
         /**
-         * Reload success.
-         * @param firstLoad first load
-         * @param assetsTime assets reloading time
-         * @param packResult pack result
+         * Indicates a successful reload.
+         *
+         * @param firstLoad true if this is the first load (startup), false otherwise
+         * @param assetsTime the time taken to reload assets in milliseconds
+         * @param packResult the result of the resource pack generation
+         * @since 1.15.2
          */
         record Success(boolean firstLoad, long assetsTime, @NotNull PackResult packResult) implements ReloadResult {
 
             /**
-             * Gets packing time
-             * @return packing time
+             * Returns the time taken to generate the resource pack.
+             *
+             * @return the packing time in milliseconds
+             * @since 1.15.2
              */
             public long packingTime() {
                 return packResult().time();
             }
 
             /**
-             * Gets total reload time
-             * @return total reload time
+             * Returns the total time taken for the reload operation.
+             *
+             * @return the total time in milliseconds
+             * @since 1.15.2
              */
             public long totalTime() {
                 return assetsTime + packingTime();
             }
 
             /**
-             * Gets pack length
-             * @return length
+             * Returns the size of the generated resource pack.
+             *
+             * @return the size in bytes
+             * @since 1.15.2
              */
             public long length() {
                 var dir = packResult.directory();
@@ -189,18 +243,22 @@ public interface BetterModelPlugin extends Plugin {
         }
 
         /**
-         * Still on reload.
+         * Indicates that a reload is currently in progress.
+         * @since 1.15.2
          */
         enum OnReload implements ReloadResult {
             /**
-             * Singleton instance
+             * Singleton instance.
+             * @since 1.15.2
              */
             INSTANCE
         }
 
         /**
-         * Reload failure.
-         * @param throwable reason
+         * Indicates a failed reload.
+         *
+         * @param throwable the exception that caused the failure
+         * @since 1.15.2
          */
         record Failure(@NotNull Throwable throwable) implements ReloadResult {
         }

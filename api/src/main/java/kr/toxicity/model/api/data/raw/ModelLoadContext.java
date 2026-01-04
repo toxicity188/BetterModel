@@ -15,7 +15,13 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * Load context
+ * Holds the context and state during the model loading process.
+ * <p>
+ * This class provides access to all parts of the raw model data and accumulates errors
+ * that occur during processing. It also controls the loading mode (strict or lenient).
+ * </p>
+ *
+ * @since 1.15.2
  */
 @RequiredArgsConstructor
 @ApiStatus.Internal
@@ -30,6 +36,15 @@ public final class ModelLoadContext {
     private final List<String> _errors = new ArrayList<>();
     final List<String> errors = Collections.unmodifiableList(_errors);
 
+    /**
+     * Tries to execute a supplier, catching exceptions in lenient mode.
+     *
+     * @param supplier the supplier to execute
+     * @param fallbackFunction a function to provide a fallback value and error message on exception
+     * @param <T> the return type
+     * @return the result of the supplier or the fallback value
+     * @since 1.15.2
+     */
     @NotNull <T> T trySupply(@NotNull Supplier<T> supplier, @NotNull Function<Exception, Fallback<T>> fallbackFunction) {
         if (strict) return supplier.get();
         try {
@@ -41,5 +56,13 @@ public final class ModelLoadContext {
         }
     }
 
+    /**
+     * Represents a fallback value and an associated error message.
+     *
+     * @param value the fallback value
+     * @param message the error message
+     * @param <T> the type of the value
+     * @since 1.15.2
+     */
     record Fallback<T>(@NotNull T value, @NotNull String message) {}
 }

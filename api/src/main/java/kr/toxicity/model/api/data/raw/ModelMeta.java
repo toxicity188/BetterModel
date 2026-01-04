@@ -16,26 +16,34 @@ import org.joml.Vector3f;
 import java.util.Arrays;
 
 /**
- * Model meta
- * @param formatVersion format version
+ * Represents metadata about the model file, specifically the format version.
+ * <p>
+ * This record is used to handle differences in coordinate systems and animation data between different BlockBench versions.
+ * </p>
+ *
+ * @param formatVersion the detected format version of the model file
+ * @since 1.15.2
  */
 public record ModelMeta(
     @NotNull FormatVersion formatVersion
 ) {
     /**
-     * Parser
+     * A JSON deserializer for parsing {@link ModelMeta} from the "meta" object in a .bbmodel file.
+     * @since 1.15.2
      */
     public static final JsonDeserializer<ModelMeta> PARSER = (json, type, context) -> new ModelMeta(
         FormatVersion.find(new Semver(json.getAsJsonObject().getAsJsonPrimitive("format_version").getAsString(), Semver.SemverType.LOOSE).getMajor())
     );
 
     /**
-     * Format version
+     * Enumerates supported BlockBench format versions and their specific coordinate conversions.
+     * @since 1.15.2
      */
     @RequiredArgsConstructor
     public enum FormatVersion {
         /**
-         * >=5.0.0
+         * BlockBench version 5.0.0 and later.
+         * @since 1.15.2
          */
         BLOCKBENCH_5(5) {
             @Override
@@ -53,7 +61,8 @@ public record ModelMeta(
             }
         },
         /**
-         * Legacy
+         * Legacy BlockBench versions (pre-5.0.0).
+         * @since 1.15.2
          */
         BLOCKBENCH_LEGACY(0) {
             @Override
@@ -74,9 +83,12 @@ public record ModelMeta(
         private final int major;
 
         /**
-         * Find matched version
-         * @param major major version
-         * @return version
+         * Finds the appropriate format version based on the major version number.
+         *
+         * @param major the major version number
+         * @return the matching format version
+         * @throws java.util.NoSuchElementException if no matching version is found
+         * @since 1.15.2
          */
         public static @NotNull FormatVersion find(int major) {
             return Arrays.stream(values())
@@ -86,23 +98,29 @@ public record ModelMeta(
         }
 
         /**
-         * Converts animation rotation
-         * @param vector target vector
-         * @return converted vector
+         * Converts animation rotation values to the engine's coordinate system.
+         *
+         * @param vector the raw rotation vector
+         * @return the converted rotation vector
+         * @since 1.15.2
          */
         public abstract @NotNull Vector3f convertAnimationRotation(@NotNull Vector3f vector);
 
         /**
-         * Converts animation position
-         * @param vector target vector
-         * @return converted vector
+         * Converts animation position values to the engine's coordinate system.
+         *
+         * @param vector the raw position vector
+         * @return the converted position vector
+         * @since 1.15.2
          */
         public abstract @NotNull Vector3f convertAnimationPosition(@NotNull Vector3f vector);
 
         /**
-         * Converts animation scale
-         * @param vector target vector
-         * @return converted vector
+         * Converts animation scale values to the engine's format (relative to 1.0).
+         *
+         * @param vector the raw scale vector
+         * @return the converted scale vector
+         * @since 1.15.2
          */
         public @NotNull Vector3f convertAnimationScale(@NotNull Vector3f vector) {
             vector.sub(1F, 1F, 1F);

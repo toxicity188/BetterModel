@@ -17,12 +17,18 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 /**
- * Parsed BlockBench model
- * @param name model name
- * @param resolution resolution
- * @param textures textures
- * @param elements elements
- * @param animations animations
+ * Represents a fully processed model blueprint, ready for generation and rendering.
+ * <p>
+ * This record contains all the necessary data derived from a raw model file, including
+ * textures, structural elements (bones/cubes), and animations.
+ * </p>
+ *
+ * @param name the name of the model
+ * @param resolution the texture resolution of the model
+ * @param textures the list of textures used by the model
+ * @param elements the hierarchical list of model elements (bones)
+ * @param animations a map of animations available for this model
+ * @since 1.15.2
  */
 @ApiStatus.Internal
 public record ModelBlueprint(
@@ -34,17 +40,21 @@ public record ModelBlueprint(
 ) {
 
     /**
-     * Checks this blueprint has textures.
-     * @return has textures
+     * Checks if this blueprint contains any renderable textures.
+     *
+     * @return true if at least one texture is renderable, false otherwise
+     * @since 1.15.2
      */
     public boolean hasTexture() {
         return textures.stream().anyMatch(BlueprintTexture::canBeRendered);
     }
 
     /**
-     * Builds blueprint image
-     * @param obfuscator obfuscator
-     * @return images
+     * Generates a stream of {@link BlueprintImage} objects for resource pack generation.
+     *
+     * @param obfuscator the obfuscator to use for texture names
+     * @return a stream of blueprint images
+     * @since 1.15.2
      */
     @NotNull
     @Unmodifiable

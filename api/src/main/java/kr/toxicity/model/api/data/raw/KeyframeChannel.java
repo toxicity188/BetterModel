@@ -10,42 +10,51 @@ import com.google.gson.annotations.SerializedName;
 import org.jetbrains.annotations.ApiStatus;
 
 /**
- * keyframe channel.
+ * Represents the type of property a keyframe affects.
+ *
+ * @since 1.15.2
  */
 @ApiStatus.Internal
 public enum KeyframeChannel {
     /**
-     * Position
+     * Affects the position of a bone.
+     * @since 1.15.2
      */
     @SerializedName("position")
     POSITION,
     /**
-     * Rotation
+     * Affects the rotation of a bone.
+     * @since 1.15.2
      */
     @SerializedName("rotation")
     ROTATION,
     /**
-     * Scale
+     * Affects the scale of a bone.
+     * @since 1.15.2
      */
     @SerializedName("scale")
     SCALE,
     /**
-     * Timeline
+     * Represents a timeline for sound or particle effects.
+     * @since 1.15.2
      */
     @SerializedName("timeline")
     TIMELINE,
     /**
-     * Sound
+     * Represents a sound effect.
+     * @since 1.15.2
      */
     @SerializedName("sound")
     SOUND,
     /**
-     * Particle
+     * Represents a particle effect.
+     * @since 1.15.2
      */
     @SerializedName("particle")
     PARTICLE,
     /**
-     * Not found
+     * Represents an unknown or unsupported channel.
+     * @since 1.15.2
      */
     NOT_FOUND
 }

@@ -19,13 +19,20 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * A raw model's element
+ * Represents a raw element within a model file.
+ * <p>
+ * This interface is a sealed type that permits specific implementations for different element types
+ * found in BlockBench models, such as cubes, locators, null objects, and cameras.
+ * </p>
+ *
+ * @since 1.15.2
  */
 @ApiStatus.Internal
 public sealed interface ModelElement {
 
     /**
-     * Parser
+     * A JSON deserializer that automatically dispatches to the correct {@link ModelElement} implementation based on the "type" field.
+     * @since 1.15.2
      */
     JsonDeserializer<ModelElement> PARSER = (json, type, context) -> {
         var t = json.getAsJsonObject().getAsJsonPrimitive("type");
@@ -40,36 +47,46 @@ public sealed interface ModelElement {
     };
 
     /**
-     * Gets uuid
-     * @return uuid
+     * Returns the unique identifier (UUID) of this element.
+     *
+     * @return the UUID string
+     * @since 1.15.2
      */
     @NotNull String uuid();
 
     /**
-     * Gets type
-     * @return type
+     * Returns the type identifier of this element (e.g., "cube", "locator").
+     *
+     * @return the type string
+     * @since 1.15.2
      */
     @NotNull String type();
 
     /**
-     * Converts to blueprint
-     * @return blueprint
+     * Converts this raw element into a processed {@link BlueprintElement}.
+     *
+     * @return the blueprint element
+     * @since 1.15.2
      */
     @NotNull BlueprintElement toBlueprint();
 
     /**
-     * Checks this element is supported
-     * @return supported
+     * Checks if this element type is supported by the engine.
+     *
+     * @return true if supported, false otherwise
+     * @since 1.15.2
      */
     default boolean isSupported() {
         return true;
     }
 
     /**
-     * A raw model's locator
-     * @param name name
-     * @param uuid uuid
-     * @param position position
+     * Represents a locator element, used for positioning attachments or particles.
+     *
+     * @param name the name of the locator
+     * @param uuid the UUID of the locator
+     * @param position the position of the locator
+     * @since 1.15.2
      */
     record Locator(
         @NotNull String name,
@@ -81,8 +98,10 @@ public sealed interface ModelElement {
             return "locator";
         }
         /**
-         * Gets position
-         * @return position
+         * Returns the position of the locator.
+         *
+         * @return the position, or {@link Float3#ZERO} if not specified
+         * @since 1.15.2
          */
         @Override
         public @NotNull Float3 position() {
@@ -100,8 +119,10 @@ public sealed interface ModelElement {
     }
 
     /**
-     * A raw model's camera
-     * @param uuid uuid
+     * Represents a camera element (currently used as a placeholder).
+     *
+     * @param uuid the UUID of the camera
+     * @since 1.15.2
      */
     record Camera(
         @NotNull String uuid
@@ -120,12 +141,14 @@ public sealed interface ModelElement {
     }
 
     /**
-     * A raw model's null object
-     * @param name name
-     * @param uuid uuid
-     * @param ikTarget ik target
-     * @param ikSource ik source
-     * @param position position
+     * Represents a null object, often used for grouping or IK targets.
+     *
+     * @param name the name of the null object
+     * @param uuid the UUID of the null object
+     * @param ikTarget the UUID of the IK target, if any
+     * @param ikSource the UUID of the IK source, if any
+     * @param position the position of the null object
+     * @since 1.15.2
      */
     record NullObject(
         @NotNull String name,
@@ -140,8 +163,10 @@ public sealed interface ModelElement {
         }
 
         /**
-         * Gets position
-         * @return position
+         * Returns the position of the null object.
+         *
+         * @return the position, or {@link Float3#ZERO} if not specified
+         * @since 1.15.2
          */
         @Override
         public @NotNull Float3 position() {
@@ -167,8 +192,10 @@ public sealed interface ModelElement {
     }
 
     /**
-     * Unsupported model's object
-     * @param type unsupported type
+     * Represents an unsupported element type.
+     *
+     * @param type the unsupported type string
+     * @since 1.15.2
      */
     record Unsupported(@NotNull String type) implements ModelElement {
 
@@ -189,16 +216,18 @@ public sealed interface ModelElement {
     }
 
     /**
-     * A raw model's cube.
-     * @param name name
-     * @param uuid cube's uuid
-     * @param from min-position
-     * @param to max-position
-     * @param inflate inflate
-     * @param rotation rotation
-     * @param origin origin
-     * @param faces uv
-     * @param _visibility visibility
+     * Represents a standard cube element.
+     *
+     * @param name the name of the cube
+     * @param uuid the UUID of the cube
+     * @param from the starting coordinate (min corner)
+     * @param to the ending coordinate (max corner)
+     * @param inflate the inflation value (size increase)
+     * @param rotation the rotation of the cube
+     * @param origin the pivot point (origin) of the cube
+     * @param faces the UV mapping for the faces
+     * @param _visibility the visibility state (null means visible)
+     * @since 1.15.2
      */
     record Cube(
         @NotNull String name,
@@ -218,8 +247,10 @@ public sealed interface ModelElement {
         }
 
         /**
-         * Gets from-position
-         * @return from-position
+         * Returns the starting coordinate (min corner).
+         *
+         * @return the from vector, or {@link Float3#ZERO} if not specified
+         * @since 1.15.2
          */
         @Override
         public @NotNull Float3 from() {
@@ -227,8 +258,10 @@ public sealed interface ModelElement {
         }
 
         /**
-         * Gets to-position
-         * @return to-position
+         * Returns the ending coordinate (max corner).
+         *
+         * @return the to vector, or {@link Float3#ZERO} if not specified
+         * @since 1.15.2
          */
         @Override
         public @NotNull Float3 to() {
@@ -236,16 +269,20 @@ public sealed interface ModelElement {
         }
 
         /**
-         * Gets visibility
-         * @return visibility
+         * Checks if the cube is visible.
+         *
+         * @return true if visible, false otherwise
+         * @since 1.15.2
          */
         public boolean visibility() {
             return !Boolean.FALSE.equals(_visibility);
         }
 
         /**
-         * Gets rotation
-         * @return rotation
+         * Returns the rotation of the cube.
+         *
+         * @return the rotation, or {@link Float3#ZERO} if not specified
+         * @since 1.15.2
          */
         @Override
         public @NotNull Float3 rotation() {

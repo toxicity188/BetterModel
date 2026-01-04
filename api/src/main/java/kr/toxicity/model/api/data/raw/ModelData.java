@@ -24,15 +24,21 @@ import java.util.List;
 import static kr.toxicity.model.api.util.CollectionUtil.*;
 
 /**
- * Raw BlockBench model's data.
- * @param meta meta
- * @param resolution resolution
- * @param elements elements
- * @param outliner outliner
- * @param textures textures
- * @param animations animations
- * @param groups groups (>=BlockBench 5.0.0)
- * @param placeholder placeholder
+ * Represents the raw data structure of a model file, typically parsed from a .bbmodel JSON file.
+ * <p>
+ * This record holds all the top-level components of a BlockBench model, including metadata, elements, textures, and animations.
+ * It serves as the initial data container before being processed into a {@link ModelBlueprint}.
+ * </p>
+ *
+ * @param meta the metadata of the model
+ * @param resolution the texture resolution
+ * @param elements the list of cube/mesh elements
+ * @param outliner the hierarchical structure of the model
+ * @param textures the list of textures used in the model
+ * @param animations the list of animations
+ * @param groups the list of groups (used in BlockBench 5.0.0+)
+ * @param placeholder the animation variable placeholders
+ * @since 1.15.2
  */
 @ApiStatus.Internal
 public record ModelData(
@@ -46,7 +52,8 @@ public record ModelData(
     @Nullable @SerializedName("animation_variable_placeholders") ModelPlaceholder placeholder
 ) {
     /**
-     * Gson parser
+     * The GSON parser configured for deserializing model data.
+     * @since 1.15.2
      */
     public static final Gson GSON = new GsonBuilder()
         .registerTypeAdapter(Float3.class, Float3.PARSER)
@@ -58,19 +65,23 @@ public record ModelData(
         .create();
 
     /**
-     * Converts model data to blueprint
-     * @param name blueprint name
-     * @return blueprint
+     * Converts this raw model data into a processed {@link ModelBlueprint}.
+     *
+     * @param name the name to assign to the blueprint
+     * @return the result of the loading process, containing the blueprint and any errors
+     * @since 1.15.2
      */
     public @NotNull ModelLoadResult loadBlueprint(@NotNull String name) {
         return loadBlueprint(name, BetterModel.config().enableStrictLoading());
     }
 
     /**
-     * Converts model data to blueprint
-     * @param name blueprint name
-     * @param strict strict
-     * @return blueprint
+     * Converts this raw model data into a processed {@link ModelBlueprint} with a specific loading mode.
+     *
+     * @param name the name to assign to the blueprint
+     * @param strict whether to use strict loading mode (fail on unsupported features)
+     * @return the result of the loading process, containing the blueprint and any errors
+     * @since 1.15.2
      */
     public @NotNull ModelLoadResult loadBlueprint(@NotNull String name, boolean strict) {
         var context = new ModelLoadContext(
@@ -82,7 +93,7 @@ public record ModelData(
             mapToSet(outliner().stream().flatMap(ModelOutliner::flatten), ModelOutliner::uuid),
             strict
         );
-        var group = mapToList(outliner(), children -> children.toBlueprint(context));
+        var group = mapToList(outliner(), outliner -> outliner.toBlueprint(context));
         return new ModelLoadResult(
             new ModelBlueprint(
                 context.name,
@@ -96,7 +107,10 @@ public record ModelData(
     }
 
     /**
-     * Asserts this model
+     * Asserts that the model does not contain any unsupported element types.
+     *
+     * @throws RuntimeException if an unsupported element is found
+     * @since 1.15.2
      */
     public void assertSupported() {
         elements().stream()
@@ -108,8 +122,10 @@ public record ModelData(
     }
 
     /**
-     * Gets placeholder
-     * @return placeholder
+     * Returns the animation variable placeholders, or an empty placeholder if none are defined.
+     *
+     * @return the animation variable placeholders
+     * @since 1.15.2
      */
     @Override
     public @NotNull ModelPlaceholder placeholder() {
@@ -117,8 +133,10 @@ public record ModelData(
     }
 
     /**
-     * Gets animation
-     * @return animation
+     * Returns the list of animations, or an empty list if none are defined.
+     *
+     * @return the list of animations
+     * @since 1.15.2
      */
     @Override
     @NotNull
@@ -127,8 +145,10 @@ public record ModelData(
     }
 
     /**
-     * Gets groups
-     * @return groups
+     * Returns the list of groups, or an empty list if none are defined.
+     *
+     * @return the list of groups
+     * @since 1.15.2
      */
     @Override
     public @NotNull List<ModelGroup> groups() {
