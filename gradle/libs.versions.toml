@@ -27,7 +27,7 @@ geantyref = "io.leangen.geantyref:geantyref:2.0.1"
 
 lombok = "org.projectlombok:lombok:1.18.42"
 bStats = "org.bstats:bstats-bukkit:3.1.0"
-dynamicUV = "io.github.toxicity188:dynamicuv:1.1.0"
+dynamicUV = "io.github.toxicity188:dynamicuv:1.2.1"
 armormodel = "io.github.toxicity188:armormodel:1.0.1"
 sharedPackets = "com.github.toxicity188:SharedPackets:1.0.0"
 molangCompiler = "gg.moonflower:molang-compiler:3.1.1.19"
