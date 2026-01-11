@@ -23,6 +23,6 @@ public record BoneRenderContext(@NotNull RenderSource<?> source, @NotNull SkinDa
      * @param source source
      */
     public BoneRenderContext(@NotNull RenderSource<?> source) {
-        this(source, BetterModel.plugin().skinManager().fallback());
+        this(source, BetterModel.platform().skinManager().fallback());
     }
 }

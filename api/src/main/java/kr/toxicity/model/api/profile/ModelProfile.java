@@ -7,9 +7,8 @@
 package kr.toxicity.model.api.profile;
 
 import kr.toxicity.model.api.BetterModel;
-import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Player;
+import kr.toxicity.model.api.platform.PlatformOfflinePlayer;
+import kr.toxicity.model.api.platform.PlatformPlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,8 +49,8 @@ public interface ModelProfile {
      * @param player player
      * @return model profile
      */
-    static @NotNull ModelProfile of(@NotNull Player player) {
-        var channel = BetterModel.plugin().playerManager().player(player.getUniqueId());
+    static @NotNull ModelProfile of(@NotNull PlatformPlayer player) {
+        var channel = BetterModel.platform().playerManager().player(player.uuid());
         return channel != null ? channel.base().profile() : BetterModel.nms().profile(player);
     }
 
@@ -60,8 +59,8 @@ public interface ModelProfile {
      * @param offlinePlayer offline player
      * @return uncompleted profile
      */
-    static @NotNull Uncompleted of(@NotNull OfflinePlayer offlinePlayer) {
-        return BetterModel.plugin().profileManager().supplier().supply(offlinePlayer);
+    static @NotNull Uncompleted of(@NotNull PlatformOfflinePlayer offlinePlayer) {
+        return BetterModel.platform().profileManager().supplier().supply(offlinePlayer);
     }
 
     /**
@@ -70,7 +69,7 @@ public interface ModelProfile {
      * @return uncompleted profile
      */
     static @NotNull Uncompleted of(@NotNull UUID uuid) {
-        return of(Bukkit.getOfflinePlayer(uuid));
+        return of(BetterModel.platform().adapter().offlinePlayer(uuid));
     }
 
     /**
@@ -108,8 +107,8 @@ public interface ModelProfile {
      * Gets player
      * @return player
      */
-    default @Nullable Player player() {
-        return Bukkit.getPlayer(info().id());
+    default @Nullable PlatformPlayer player() {
+        return BetterModel.platform().adapter().player(info().id());
     }
 
     /**

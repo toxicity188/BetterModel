@@ -9,9 +9,9 @@ package kr.toxicity.model.api.tracker;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.RenderPipeline;
 import kr.toxicity.model.api.event.CreateDummyTrackerEvent;
+import kr.toxicity.model.api.platform.PlatformLocation;
+import kr.toxicity.model.api.platform.PlatformPlayer;
 import kr.toxicity.model.api.util.EventUtil;
-import org.bukkit.Location;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -27,7 +27,8 @@ import java.util.function.Consumer;
  * @since 1.15.2
  */
 public final class DummyTracker extends Tracker {
-    private volatile Location location;
+
+    private volatile PlatformLocation location;
 
     /**
      * Creates a new dummy tracker.
@@ -38,12 +39,12 @@ public final class DummyTracker extends Tracker {
      * @param preUpdateConsumer a consumer to run before the first update
      * @since 1.15.2
      */
-    public DummyTracker(@NotNull Location location, @NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<DummyTracker> preUpdateConsumer) {
+    public DummyTracker(@NotNull PlatformLocation location, @NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<DummyTracker> preUpdateConsumer) {
         super(pipeline, modifier);
         this.location = location;
         animate("spawn", AnimationModifier.DEFAULT_WITH_PLAY_ONCE);
         pipeline.scale(() -> scaler().scale(this));
-        rotation(() -> new ModelRotation(this.location.getPitch(), this.location.getYaw()));
+        rotation(() -> new ModelRotation(this.location.pitch(), this.location.yaw()));
         preUpdateConsumer.accept(this);
         EventUtil.call(new CreateDummyTrackerEvent(this));
     }
@@ -54,7 +55,7 @@ public final class DummyTracker extends Tracker {
      * @param location the new location
      * @since 1.15.2
      */
-    public void location(@NotNull Location location) {
+    public void location(@NotNull PlatformLocation location) {
         Objects.requireNonNull(location, "location");
         if (this.location.equals(location)) return;
         synchronized (this) {
@@ -72,7 +73,7 @@ public final class DummyTracker extends Tracker {
      * @since 1.15.2
      */
     @Override
-    public @NotNull Location location() {
+    public @NotNull PlatformLocation location() {
         return location;
     }
 
@@ -82,7 +83,7 @@ public final class DummyTracker extends Tracker {
      * @param player the target player
      * @since 1.15.2
      */
-    public void spawn(@NotNull Player player) {
+    public void spawn(@NotNull PlatformPlayer player) {
         var bundler = pipeline.createBundler();
         spawn(player, bundler);
         bundler.send(player);

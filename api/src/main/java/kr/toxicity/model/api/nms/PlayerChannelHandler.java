@@ -6,9 +6,9 @@
  */
 package kr.toxicity.model.api.nms;
 
-import kr.toxicity.model.api.entity.BaseBukkitPlayer;
+import kr.toxicity.model.api.entity.BasePlayer;
+import kr.toxicity.model.api.platform.PlatformPlayer;
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -29,8 +29,8 @@ public interface PlayerChannelHandler extends Identifiable, AutoCloseable {
      * @return the player
      * @since 1.15.2
      */
-    default @NotNull Player player() {
-        return base().entity();
+    default @NotNull PlatformPlayer player() {
+        return base().platform();
     }
 
     @Override
@@ -49,7 +49,7 @@ public interface PlayerChannelHandler extends Identifiable, AutoCloseable {
      * @return the base player
      * @since 1.15.2
      */
-    @NotNull BaseBukkitPlayer base();
+    @NotNull BasePlayer base();
 
     /**
      * Sends the correct entity data for a specific tracker to the player.

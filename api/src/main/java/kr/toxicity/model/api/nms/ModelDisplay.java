@@ -7,11 +7,11 @@
 package kr.toxicity.model.api.nms;
 
 import kr.toxicity.model.api.entity.BaseEntity;
+import kr.toxicity.model.api.platform.PlatformBillboard;
+import kr.toxicity.model.api.platform.PlatformItemStack;
+import kr.toxicity.model.api.platform.PlatformItemTransform;
+import kr.toxicity.model.api.platform.PlatformLocation;
 import kr.toxicity.model.api.tracker.ModelRotation;
-import org.bukkit.Location;
-import org.bukkit.entity.Display;
-import org.bukkit.entity.ItemDisplay;
-import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -64,7 +64,7 @@ public interface ModelDisplay extends Identifiable {
      * @param location the target location
      * @since 1.15.2
      */
-    void syncPosition(@NotNull Location location);
+    void syncPosition(@NotNull PlatformLocation location);
 
     /**
      * Sets the duration for position/rotation interpolation.
@@ -80,7 +80,7 @@ public interface ModelDisplay extends Identifiable {
      * @param transform the transform type
      * @since 1.15.2
      */
-    void display(@NotNull ItemDisplay.ItemDisplayTransform transform);
+    void display(@NotNull PlatformItemTransform transform);
 
     /**
      * Spawns this display using the provided packet bundler.
@@ -128,7 +128,7 @@ public interface ModelDisplay extends Identifiable {
      * @param bundler the packet bundler
      * @since 1.15.2
      */
-    void teleport(@NotNull Location location, @NotNull PacketBundler bundler);
+    void teleport(@NotNull PlatformLocation location, @NotNull PacketBundler bundler);
 
     /**
      * Sets the item stack to be displayed.
@@ -136,7 +136,7 @@ public interface ModelDisplay extends Identifiable {
      * @param itemStack the item stack
      * @since 1.15.2
      */
-    void item(@NotNull ItemStack itemStack);
+    void item(@NotNull PlatformItemStack itemStack);
 
     /**
      * Creates a transformer for animating this display.
@@ -219,5 +219,5 @@ public interface ModelDisplay extends Identifiable {
      * @param billboard the billboard type
      * @since 1.15.2
      */
-    void billboard(@NotNull Display.Billboard billboard);
+    void billboard(@NotNull PlatformBillboard billboard);
 }

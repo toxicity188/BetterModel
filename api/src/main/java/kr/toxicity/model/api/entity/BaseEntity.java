@@ -8,14 +8,12 @@ package kr.toxicity.model.api.entity;
 
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.nms.Identifiable;
+import kr.toxicity.model.api.platform.PlatformEntity;
+import kr.toxicity.model.api.platform.PlatformLocation;
+import kr.toxicity.model.api.platform.PlatformPlayer;
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry;
 import kr.toxicity.model.api.util.TransformedItemStack;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Location;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
-import org.bukkit.persistence.PersistentDataHolder;
-import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
@@ -26,19 +24,25 @@ import java.util.stream.Stream;
 /**
  * An adapter of entity
  */
-public interface BaseEntity extends Identifiable, PersistentDataHolder {
+public interface BaseEntity extends Identifiable {
 
     /**
      * Gets base entity
      * @param entity bukkit entity
      * @return base entity
      */
-    static @NotNull BaseBukkitEntity of(@NotNull Entity entity) {
-        if (entity instanceof Player player) {
-            var channel = BetterModel.plugin().playerManager().player(player.getUniqueId());
+    static @NotNull BaseEntity of(@NotNull PlatformEntity entity) {
+        if (entity instanceof PlatformPlayer player) {
+            var channel = BetterModel.platform().playerManager().player(player.uuid());
             if (channel != null) return channel.base();
         }
         return BetterModel.nms().adapt(entity);
+    }
+
+    @NotNull PlatformEntity platform();
+
+    default @NotNull PlatformLocation location() {
+        return platform().location();
     }
 
     /**
@@ -142,13 +146,7 @@ public interface BaseEntity extends Identifiable, PersistentDataHolder {
      * Gets tracked player set
      * @return tracked player set
      */
-    @NotNull Stream<Player> trackedBy();
-
-    /**
-     * Gets location
-     * @return location
-     */
-    @NotNull Location location();
+    @NotNull Stream<PlatformPlayer> trackedBy();
 
     /**
      * Gets main hand item
@@ -191,17 +189,11 @@ public interface BaseEntity extends Identifiable, PersistentDataHolder {
      * Gets this entity's model data
      * @return model data
      */
-    default @Nullable String modelData() {
-        return getPersistentDataContainer().get(EntityTrackerRegistry.TRACKING_ID, PersistentDataType.STRING);
-    }
+    @Nullable String modelData();
 
     /**
      * Sets this entity's model data
      * @param modelData model data
      */
-    default void modelData(@Nullable String modelData) {
-        var container = getPersistentDataContainer();
-        if (modelData == null) container.remove(EntityTrackerRegistry.TRACKING_ID);
-        else container.set(EntityTrackerRegistry.TRACKING_ID, PersistentDataType.STRING, modelData);
-    }
+    void modelData(@Nullable String modelData);
 }

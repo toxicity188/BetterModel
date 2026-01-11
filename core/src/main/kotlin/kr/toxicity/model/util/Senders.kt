@@ -6,9 +6,7 @@
  */
 package kr.toxicity.model.util
 
-import kr.toxicity.model.BetterModelLibrary
 import net.kyori.adventure.audience.Audience
-import net.kyori.adventure.platform.bukkit.BukkitAudiences
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.TextComponent
@@ -16,9 +14,6 @@ import net.kyori.adventure.text.event.HoverEvent
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextColor
 import net.kyori.adventure.text.format.TextDecoration
-import org.bukkit.command.CommandSender
-
-val ADVENTURE_PLATFORM = if (BetterModelLibrary.ADVENTURE_PLATFORM.isLoaded) BukkitAudiences.create(PLUGIN) else null
 
 val INFO = " [!] ".toComponent {
     decorate(TextDecoration.BOLD).color(NamedTextColor.GREEN)
@@ -52,7 +47,6 @@ inline fun componentOf(content: String, builder: TextComponent.Builder.() -> Tex
 inline fun componentOf(builder: TextComponent.Builder.() -> TextComponent.Builder) = componentOf().let(builder).build()
 fun ComponentLike.toHoverEvent() = HoverEvent.showText(this)
 
-fun CommandSender.audience() = ADVENTURE_PLATFORM?.sender(this) ?: this
 fun Audience.info(message: String) = info(message.toComponent())
 fun Audience.warn(message: String) = warn(message.toComponent())
 fun Audience.infoNotNull(vararg messages: ComponentLike?): Unit = info(*messages.filterNotNull().ifEmpty {

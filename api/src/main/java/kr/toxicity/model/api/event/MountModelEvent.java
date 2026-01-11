@@ -8,28 +8,22 @@ package kr.toxicity.model.api.event;
 
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.nms.HitBox;
+import kr.toxicity.model.api.platform.PlatformEntity;
 import kr.toxicity.model.api.tracker.EntityTracker;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.entity.Entity;
-import org.bukkit.event.Cancellable;
-import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Mounts to some model's hitbox event
  */
-public final class MountModelEvent extends AbstractModelEvent implements Cancellable {
-    /**
-     * Handler list
-     */
-    public static final HandlerList HANDLER_LIST = new HandlerList();
+public final class MountModelEvent implements CancellableEvent {
 
     private final EntityTracker tracker;
     private final RenderedBone bone;
     private final HitBox hitBox;
-    private final Entity entity;
+    private final PlatformEntity entity;
     @Getter
     @Setter
     private boolean cancelled;
@@ -42,7 +36,7 @@ public final class MountModelEvent extends AbstractModelEvent implements Cancell
      * @param entity entity
      */
     @ApiStatus.Internal
-    public MountModelEvent(@NotNull EntityTracker tracker, @NotNull RenderedBone bone, @NotNull HitBox hitBox, @NotNull Entity entity) {
+    public MountModelEvent(@NotNull EntityTracker tracker, @NotNull RenderedBone bone, @NotNull HitBox hitBox, @NotNull PlatformEntity entity) {
         this.tracker = tracker;
         this.bone = bone;
         this.hitBox = hitBox;
@@ -77,22 +71,7 @@ public final class MountModelEvent extends AbstractModelEvent implements Cancell
      * Gets passenger entity
      * @return entity
      */
-    public Entity entity() {
+    public PlatformEntity entity() {
         return entity;
-    }
-
-    @NotNull
-    @Override
-    public HandlerList getHandlers() {
-        return HANDLER_LIST;
-    }
-
-    /**
-     * Gets a handler list
-     * @return handler list
-     */
-    @SuppressWarnings("unused") //This method is necessary for event API.
-    public static @NotNull HandlerList getHandlerList() {
-        return HANDLER_LIST;
     }
 }

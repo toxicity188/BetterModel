@@ -6,9 +6,9 @@
  */
 package kr.toxicity.model.nms.v1_21_R3
 
-import kr.toxicity.library.sharedpackets.PluginBundlePacket
 import kr.toxicity.model.api.nms.PacketBundler
 import net.kyori.adventure.key.Key
+import net.kyori.adventure.key.Keyed
 import net.minecraft.network.PacketSendListener
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.ClientboundBundlePacket
@@ -39,7 +39,7 @@ internal fun Packet<*>.assumeSize() = when (this) {
     else -> 1
 }
 
-internal interface PluginBundlePacketImpl : PluginBundlePacket<ClientPacket> {
+internal interface PluginBundlePacketImpl : Iterable<ClientPacket>, Keyed {
     val bundlePacket: ClientboundBundlePacket
     fun size(): Int
     fun isEmpty(): Boolean

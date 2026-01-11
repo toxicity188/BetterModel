@@ -7,6 +7,8 @@
 package kr.toxicity.model.api.entity;
 
 import kr.toxicity.model.api.nms.Profiled;
+import kr.toxicity.model.api.platform.PlatformPlayer;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * An adapter of player
@@ -17,4 +19,7 @@ public interface BasePlayer extends BaseEntity, Profiled {
      * Updates current inventory
      */
     void updateInventory();
+
+    @Override
+    @NotNull PlatformPlayer platform();
 }

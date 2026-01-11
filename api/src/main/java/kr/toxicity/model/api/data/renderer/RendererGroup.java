@@ -12,12 +12,11 @@ import kr.toxicity.model.api.data.blueprint.BlueprintElement;
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox;
 import kr.toxicity.model.api.mount.MountController;
 import kr.toxicity.model.api.mount.MountControllers;
+import kr.toxicity.model.api.platform.PlatformItemStack;
 import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.TransformedItemStack;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
@@ -64,7 +63,7 @@ public final class RendererGroup {
      */
     public RendererGroup(
         float scale,
-        @Nullable ItemStack itemStack,
+        @Nullable PlatformItemStack itemStack,
         @NotNull BlueprintElement.Bone group,
         @NotNull Map<BoneName, RendererGroup> children,
         @Nullable ModelBoundingBox box
@@ -75,7 +74,7 @@ public final class RendererGroup {
             new Vector3f(),
             new Vector3f(),
             new Vector3f(scale),
-            itemStack != null ? itemStack : new ItemStack(Material.AIR)
+            itemStack != null ? itemStack : BetterModel.platform().adapter().air()
         );
         this.itemMapper = name().toItemMapper();
         position = group.origin().toBlockScale().toVector();

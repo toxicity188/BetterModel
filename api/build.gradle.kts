@@ -3,7 +3,7 @@ import com.vanniktech.maven.publish.JavadocJar
 import kotlin.io.encoding.Base64
 
 plugins {
-    alias(libs.plugins.convention.bukkit)
+    alias(libs.plugins.convention.standard)
     id("com.vanniktech.maven.publish") version "0.35.0"
     signing
 }
@@ -30,6 +30,8 @@ signing {
 }
 
 dependencies {
+    compileOnly(libs.bundles.minecraft)
+
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
 

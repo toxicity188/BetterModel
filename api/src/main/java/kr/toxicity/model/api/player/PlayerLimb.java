@@ -11,12 +11,12 @@ import kr.toxicity.model.api.armor.PlayerArmor;
 import kr.toxicity.model.api.bone.BoneItemMapper;
 import kr.toxicity.model.api.bone.BoneRenderContext;
 import kr.toxicity.model.api.nms.Profiled;
+import kr.toxicity.model.api.platform.PlatformItemTransform;
 import kr.toxicity.model.api.skin.SkinData;
 import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.TransformedItemStack;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.bukkit.entity.ItemDisplay;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
@@ -39,7 +39,7 @@ public enum PlayerLimb {
             offset(0, 7.5F, 0, 0.5F),
             offset(0, 7.5F, 0, 0.5F),
             SkinData::head,
-            ItemDisplay.ItemDisplayTransform.FIXED
+            PlatformItemTransform.FIXED
     ),
     /**
      * Right arm
@@ -51,7 +51,7 @@ public enum PlayerLimb {
             offset(-0.625F, 1.5F, 0, 0.25F),
             offset(-0.043F, 1.5F, 0, 0.25F),
             SkinData::rightArm,
-            ItemDisplay.ItemDisplayTransform.FIXED
+            PlatformItemTransform.FIXED
     ),
     /**
      * Right forearm
@@ -63,7 +63,7 @@ public enum PlayerLimb {
             offset(-0.625F, 1.5F, 0, 0.25F),
             offset(-0.043F, 1.5F, 0, 0.25F),
             (d, p) -> d.rightForeArm(),
-            ItemDisplay.ItemDisplayTransform.FIXED
+            PlatformItemTransform.FIXED
     ),
     /**
      * Left arm
@@ -75,7 +75,7 @@ public enum PlayerLimb {
             offset(0.625F, 1.5F, 0, 0.25F),
             offset(0.043F, 1.5F, 0, 0.25F),
             SkinData::leftArm,
-            ItemDisplay.ItemDisplayTransform.FIXED
+            PlatformItemTransform.FIXED
     ),
     /**
      * Left forearm
@@ -87,7 +87,7 @@ public enum PlayerLimb {
             offset(0.625F, 1.5F, 0, 0.25F),
             offset(0.043F, 1.5F, 0, 0.25F),
             (d, p) -> d.leftForeArm(),
-            ItemDisplay.ItemDisplayTransform.FIXED
+            PlatformItemTransform.FIXED
     ),
     /**
      * Hip
@@ -99,7 +99,7 @@ public enum PlayerLimb {
             offset(0, 5.75F, 0, 0.25F),
             offset(0, 5.75F, 0, 0.25F),
             SkinData::hip,
-            ItemDisplay.ItemDisplayTransform.FIXED
+            PlatformItemTransform.FIXED
     ),
     /**
      * Waist
@@ -111,7 +111,7 @@ public enum PlayerLimb {
             offset(0, 5.75F, 0, 0.25F),
             offset(0, 5.75F, 0, 0.25F),
             SkinData::waist,
-            ItemDisplay.ItemDisplayTransform.FIXED
+            PlatformItemTransform.FIXED
     ),
     /**
      * Chest
@@ -123,7 +123,7 @@ public enum PlayerLimb {
             offset(0, 5.75F, 0, 0.25F),
             offset(0, 5.75F, 0, 0.25F),
             SkinData::chest,
-            ItemDisplay.ItemDisplayTransform.FIXED
+            PlatformItemTransform.FIXED
     ),
     /**
      * Right leg
@@ -135,7 +135,7 @@ public enum PlayerLimb {
             offset(0, 1.12F, 0, 0.25F),
             offset(0, 1.12F, 0, 0.25F),
             SkinData::rightLeg,
-            ItemDisplay.ItemDisplayTransform.FIXED
+            PlatformItemTransform.FIXED
     ),
     /**
      * Right foreleg
@@ -147,7 +147,7 @@ public enum PlayerLimb {
             offset(0, 1.12F, 0, 0.25F),
             offset(0, 1.12F, 0, 0.25F),
             SkinData::rightForeLeg,
-            ItemDisplay.ItemDisplayTransform.FIXED
+            PlatformItemTransform.FIXED
     ),
     /**
      * LEft leg
@@ -159,7 +159,7 @@ public enum PlayerLimb {
             offset(0, 1.12F, 0, 0.25F),
             offset(0, 1.12F, 0, 0.25F),
             SkinData::leftLeg,
-            ItemDisplay.ItemDisplayTransform.FIXED
+            PlatformItemTransform.FIXED
     ),
     /**
      * Left foreleg
@@ -171,7 +171,7 @@ public enum PlayerLimb {
             offset(0, 1.12F, 0, 0.25F),
             offset(0, 1.12F, 0, 0.25F),
             SkinData::leftForeLeg,
-            ItemDisplay.ItemDisplayTransform.FIXED
+            PlatformItemTransform.FIXED
     ),
     ;
 
@@ -197,7 +197,7 @@ public enum PlayerLimb {
     private final @NotNull Vector3f offset;
     private final @NotNull Vector3f slimOffset;
     private final @NotNull BiFunction<SkinData, PlayerArmor, TransformedItemStack> skinMapper;
-    private final @NotNull ItemDisplay.ItemDisplayTransform transform;
+    private final @NotNull PlatformItemTransform transform;
 
     @Getter
     private final @NotNull LimbItemMapper itemMapper = new LimbItemMapper(this::createItem);
@@ -208,7 +208,7 @@ public enum PlayerLimb {
      * @return item
      */
     public @NotNull TransformedItemStack createItem(@NotNull BoneRenderContext context) {
-        if (BetterModel.plugin().skinManager().supported()) {
+        if (BetterModel.platform().skinManager().supported()) {
             return skinMapper.apply(context.skin(), context.source() instanceof Profiled profiled ? profiled.armors() : PlayerArmor.EMPTY);
         }
         var profile = context.skin().profile();
@@ -226,7 +226,7 @@ public enum PlayerLimb {
 
         @NotNull
         @Override
-        public ItemDisplay.ItemDisplayTransform transform() {
+        public PlatformItemTransform transform() {
             return transform;
         }
 

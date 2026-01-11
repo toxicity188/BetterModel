@@ -6,7 +6,6 @@
  */
 package kr.toxicity.model.api.tracker;
 
-import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.*;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.BoneTags;
@@ -19,6 +18,8 @@ import kr.toxicity.model.api.data.renderer.RenderSource;
 import kr.toxicity.model.api.entity.BaseEntity;
 import kr.toxicity.model.api.event.*;
 import kr.toxicity.model.api.nms.*;
+import kr.toxicity.model.api.platform.PlatformLocation;
+import kr.toxicity.model.api.platform.PlatformPlayer;
 import kr.toxicity.model.api.script.TimeScript;
 import kr.toxicity.model.api.util.EntityUtil;
 import kr.toxicity.model.api.util.EventUtil;
@@ -27,8 +28,6 @@ import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.function.BonePredicate;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.bukkit.Location;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -95,7 +94,7 @@ public abstract class Tracker implements AutoCloseable {
         (b, a) -> {
             if (b == null) return;
             if (b.isSync()) {
-                BetterModel.plugin().scheduler().task(location(), () -> b.accept(this));
+                location().task(() -> b.accept(this));
             } else b.accept(this);
         }
     );
@@ -111,7 +110,7 @@ public abstract class Tracker implements AutoCloseable {
             t.pipeline.tick(s.getViewBundler());
         }
     };
-    private BiConsumer<Tracker, Player> perPlayerHandler = null;
+    private BiConsumer<Tracker, PlatformPlayer> perPlayerHandler = null;
 
     /**
      * Creates a new tracker.
@@ -136,7 +135,7 @@ public abstract class Tracker implements AutoCloseable {
                 LogUtil.handleException("Ticking this tracker has been failed: " + name(), throwable);
             }
         };
-        if (modifier.sightTrace()) pipeline.viewFilter(p -> EntityUtil.canSee(p.getEyeLocation(), location()));
+        if (modifier.sightTrace()) pipeline.viewFilter(p -> EntityUtil.canSee(p.eyeLocation(), location()));
         frame((t, s) -> {
             if (readyForForceUpdate.compareAndSet(true, false)) t.pipeline.iterateTree(b -> b.dirtyUpdate(s.dataBundler));
         });
@@ -297,7 +296,7 @@ public abstract class Tracker implements AutoCloseable {
      * @param perPlayerHandler the per-player handler
      * @since 1.15.2
      */
-    public synchronized void perPlayerTick(@NotNull BiConsumer<Tracker, Player> perPlayerHandler) {
+    public synchronized void perPlayerTick(@NotNull BiConsumer<Tracker, PlatformPlayer> perPlayerHandler) {
         var previous = this.perPlayerHandler;
         this.perPlayerHandler = previous == null ? perPlayerHandler : previous.andThen(perPlayerHandler);
     }
@@ -422,11 +421,11 @@ public abstract class Tracker implements AutoCloseable {
      * @return true if spawned successfully
      * @since 1.15.2
      */
-    protected boolean spawn(@NotNull Player player, @NotNull PacketBundler bundler) {
+    protected boolean spawn(@NotNull PlatformPlayer player, @NotNull PacketBundler bundler) {
         if (isClosed()) return false;
         if (!EventUtil.call(new ModelSpawnAtPlayerEvent(player, this))) return false;
         return pipeline.spawn(player, bundler, spawned -> {
-            LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " is spawned at player " + player.getName() + ": " + name());
+            LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " is spawned at player " + player.name() + ": " + name());
             task(spawned::load);
         });
     }
@@ -438,11 +437,11 @@ public abstract class Tracker implements AutoCloseable {
      * @return true if removed successfully
      * @since 1.15.2
      */
-    public boolean remove(@NotNull Player player) {
+    public boolean remove(@NotNull PlatformPlayer player) {
         if (isClosed()) return false;
         EventUtil.call(new ModelDespawnAtPlayerEvent(player, this));
         var result = pipeline.remove(player);
-        if (result) LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " is despawned at player " + player.getName() + ": " + name());
+        if (result) LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " is despawned at player " + player.name() + ": " + name());
         return result;
     }
 
@@ -462,7 +461,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return the stream of players
      * @since 1.15.2
      */
-    public @NotNull Stream<Player> viewedPlayer() {
+    public @NotNull Stream<PlatformPlayer> viewedPlayer() {
         return pipeline.viewedPlayer();
     }
 
@@ -472,7 +471,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return the location
      * @since 1.15.2
      */
-    public abstract @NotNull Location location();
+    public abstract @NotNull PlatformLocation location();
 
     /**
      * Plays an animation by name with default settings.
@@ -627,7 +626,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return true if the animation was stopped
      * @since 1.15.2
      */
-    public boolean stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, @Nullable Player player) {
+    public boolean stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, @Nullable PlatformPlayer player) {
         var script = scriptProcessor.stopAnimation(animation);
         return pipeline.matchTree(b -> b.stopAnimation(filter, animation, player)) || script;
     }
@@ -722,7 +721,7 @@ public abstract class Tracker implements AutoCloseable {
         return tryUpdate((b, p) -> b.createNametag(p, tag -> {
             consumer.accept(b, tag);
             perPlayerTick((tracker, player) -> {
-                if (pipeline.getSource() instanceof RenderSource.Entity entity && entity.entity().uuid().equals(player.getUniqueId())) return;
+                if (pipeline.getSource() instanceof RenderSource.Entity entity && entity.entity().uuid().equals(player.uuid())) return;
                 tag.teleport(tracker.location());
                 tag.send(player);
             });
@@ -841,7 +840,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return true if hidden successfully
      * @since 1.15.2
      */
-    public boolean hide(@NotNull Player player) {
+    public boolean hide(@NotNull PlatformPlayer player) {
         return EventUtil.call(new PlayerHideTrackerEvent(this, player)) && pipeline.hide(player);
     }
 
@@ -852,7 +851,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return true if hidden
      * @since 1.15.2
      */
-    public boolean isHide(@NotNull Player player) {
+    public boolean isHide(@NotNull PlatformPlayer player) {
         return pipeline.isHide(player);
     }
 
@@ -863,7 +862,7 @@ public abstract class Tracker implements AutoCloseable {
      * @return true if shown successfully
      * @since 1.15.2
      */
-    public boolean show(@NotNull Player player) {
+    public boolean show(@NotNull PlatformPlayer player) {
         return EventUtil.call(new PlayerShowTrackerEvent(this, player)) && pipeline.show(player);
     }
 
@@ -895,8 +894,8 @@ public abstract class Tracker implements AutoCloseable {
      * @return true if spawned
      * @since 1.15.2
      */
-    public boolean isSpawned(@NotNull Player player) {
-        return isSpawned(player.getUniqueId());
+    public boolean isSpawned(@NotNull PlatformPlayer player) {
+        return isSpawned(player.uuid());
     }
 
     /**
@@ -1014,7 +1013,7 @@ public abstract class Tracker implements AutoCloseable {
                 dataBundler = pipeline.createLazyBundler();
             }
             if (viewBundler.isNotEmpty()) {
-                pipeline.viewedPlayer().filter(p -> !perPlayerViewBundler.containsKey(p.getUniqueId())).forEach(viewBundler::send);
+                pipeline.viewedPlayer().filter(p -> !perPlayerViewBundler.containsKey(p.uuid())).forEach(viewBundler::send);
                 viewBundler = pipeline.createParallelBundler();
             }
         }

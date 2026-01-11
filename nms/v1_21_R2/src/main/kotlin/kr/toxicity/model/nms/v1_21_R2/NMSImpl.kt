@@ -183,7 +183,7 @@ class NMSImpl : NMS {
                     val entity = id.toPlayerEntity() ?: return this
                     if (entity is HitBox) return entity.toFakeAddPacket()
                     BetterModel.registry(entity.bukkitEntity).ifPresent {
-                        BetterModel.plugin().scheduler().taskLater(entity.bukkitEntity, 1) {
+                        BetterModel.platform().scheduler().taskLater(entity.bukkitEntity, 1) {
                             it.spawn(player)
                         }
                     }
@@ -244,7 +244,7 @@ class NMSImpl : NMS {
         }
 
         override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
-            fun EntityTrackerRegistry.updatePlayerLimb() = BetterModel.plugin().scheduler().asyncTaskLater(1) {
+            fun EntityTrackerRegistry.updatePlayerLimb() = BetterModel.platform().scheduler().asyncTaskLater(1) {
                 if (isClosed) return@asyncTaskLater
                 player.handle.containerMenu.sendAllDataToRemote()
                 trackers().forEach { tracker ->

@@ -95,7 +95,7 @@ public record ModelAnimation(
         var get = animator.stream()
             .filter(f -> f.point().hasScript())
             .map(d -> AnimationScript.of(Arrays.stream(placeholder.parseVariable(d.point().script()).split("\n"))
-                .map(BetterModel.plugin().scriptManager()::build)
+                .map(BetterModel.platform().scriptManager()::build)
                 .filter(Objects::nonNull)
                 .toList()
             ).time(d.time()))

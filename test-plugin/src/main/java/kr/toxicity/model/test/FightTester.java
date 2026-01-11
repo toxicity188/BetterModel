@@ -82,7 +82,7 @@ public final class FightTester implements ModelTester, Listener {
     }
 
     private void loadMotion() {
-        var dir = new File(BetterModel.plugin().getDataFolder(), "players/knight.bbmodel");
+        var dir = new File(BetterModel.platform().getDataFolder(), "players/knight.bbmodel");
         if (dir.isFile()) return;
         dir.getParentFile().mkdirs();
         try (
@@ -129,7 +129,7 @@ public final class FightTester implements ModelTester, Listener {
             meta.displayName(MiniMessage.miniMessage().deserialize("<gradient:#FF6A00:#FFD800><b>Knight Sword"));
             meta.setUnbreakable(true);
             meta.setItemModel(new NamespacedKey(
-                BetterModel.plugin(),
+                BetterModel.platform(),
                 "knight_sword"
             ));
             meta.addItemFlags(ItemFlag.values());
@@ -141,7 +141,7 @@ public final class FightTester implements ModelTester, Listener {
     private static @NotNull ItemStack createLine() {
         var line = new ItemStack(Material.PAPER);
         line.editMeta(meta -> meta.setItemModel(new NamespacedKey(
-            BetterModel.plugin(),
+            BetterModel.platform(),
             "knight_line"
         )));
         return line;
@@ -237,7 +237,7 @@ public final class FightTester implements ModelTester, Listener {
                 Stream.of(player),
                 player.getTrackedBy().stream()
             ).toList();
-            task = Bukkit.getAsyncScheduler().runAtFixedRate(BetterModel.plugin(), task -> {
+            task = Bukkit.getAsyncScheduler().runAtFixedRate(BetterModel.platform(), task -> {
                 queuedTask.removeIf(BooleanSupplier::getAsBoolean);
                 var c = counter.incrementAndGet();
                 if (c >= count) return;

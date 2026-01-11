@@ -11,7 +11,7 @@ val classifier = project.name
 
 dependencies {
     compileOnly(project(":api"))
-    shade(project(":core")) {
+    shade(project(":core:bukkit-core")) {
         exclude("org.jetbrains.kotlin")
     }
 }

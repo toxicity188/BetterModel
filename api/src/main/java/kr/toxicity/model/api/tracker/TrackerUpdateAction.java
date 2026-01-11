@@ -7,10 +7,10 @@
 package kr.toxicity.model.api.tracker;
 
 import kr.toxicity.model.api.bone.RenderedBone;
+import kr.toxicity.model.api.platform.PlatformBillboard;
 import kr.toxicity.model.api.util.TransformedItemStack;
 import kr.toxicity.model.api.util.function.BonePredicate;
 import lombok.RequiredArgsConstructor;
-import org.bukkit.entity.Display;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
@@ -139,7 +139,7 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
      * @return the action
      * @since 1.15.2
      */
-    static @NotNull Billboard billboard(@NotNull Display.Billboard billboard) {
+    static @NotNull Billboard billboard(@NotNull PlatformBillboard billboard) {
         Objects.requireNonNull(billboard);
         return new Billboard(billboard);
     }
@@ -391,7 +391,7 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
      * @param billboard the billboard type
      * @since 1.15.2
      */
-    record Billboard(@NotNull Display.Billboard billboard) implements TrackerUpdateAction {
+    record Billboard(@NotNull PlatformBillboard billboard) implements TrackerUpdateAction {
         @Override
         public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
             return bone.applyAtDisplay(predicate, display -> display.billboard(billboard));

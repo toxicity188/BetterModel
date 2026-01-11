@@ -63,7 +63,7 @@ public final class HttpUtil {
      * @return latest version
      */
     public static @NotNull LatestVersion versionList() {
-        return versionList(BetterModel.plugin().version());
+        return versionList(BetterModel.platform().version());
     }
 
     /**

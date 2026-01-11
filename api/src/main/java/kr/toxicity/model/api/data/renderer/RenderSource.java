@@ -10,10 +10,10 @@ import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.armor.PlayerArmor;
 import kr.toxicity.model.api.bone.BoneRenderContext;
 import kr.toxicity.model.api.nms.Profiled;
+import kr.toxicity.model.api.platform.PlatformLocation;
 import kr.toxicity.model.api.player.PlayerSkinParts;
 import kr.toxicity.model.api.profile.ModelProfile;
 import kr.toxicity.model.api.tracker.*;
-import org.bukkit.Location;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,7 +41,7 @@ public sealed interface RenderSource<T extends Tracker> {
      * @since 1.15.2
      */
     @ApiStatus.Internal
-    static @NotNull RenderSource.Dummy of(@NotNull Location location) {
+    static @NotNull RenderSource.Dummy of(@NotNull PlatformLocation location) {
         return new BaseDummy(location);
     }
 
@@ -54,7 +54,7 @@ public sealed interface RenderSource<T extends Tracker> {
      * @since 1.15.2
      */
     @ApiStatus.Internal
-    static @NotNull RenderSource.Dummy of(@NotNull Location location, @NotNull ModelProfile.Uncompleted profile) {
+    static @NotNull RenderSource.Dummy of(@NotNull PlatformLocation location, @NotNull ModelProfile.Uncompleted profile) {
         return new ProfiledDummy(location, profile);
     }
 
@@ -89,7 +89,7 @@ public sealed interface RenderSource<T extends Tracker> {
      * @return the location
      * @since 1.15.2
      */
-    @NotNull Location location();
+    @NotNull PlatformLocation location();
 
     /**
      * Creates a new tracker for this render source.
@@ -169,7 +169,7 @@ public sealed interface RenderSource<T extends Tracker> {
      * @param location the location
      * @since 1.15.2
      */
-    record BaseDummy(@NotNull Location location) implements Dummy {
+    record BaseDummy(@NotNull PlatformLocation location) implements Dummy {
         @NotNull
         @Override
         public DummyTracker create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<DummyTracker> preUpdateConsumer) {
@@ -189,7 +189,7 @@ public sealed interface RenderSource<T extends Tracker> {
      * @param profile the model profile
      * @since 1.15.2
      */
-    record ProfiledDummy(@NotNull Location location, @NotNull ModelProfile.Uncompleted profile) implements Dummy {
+    record ProfiledDummy(@NotNull PlatformLocation location, @NotNull ModelProfile.Uncompleted profile) implements Dummy {
         @NotNull
         @Override
         public DummyTracker create(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<DummyTracker> preUpdateConsumer) {
@@ -198,7 +198,7 @@ public sealed interface RenderSource<T extends Tracker> {
 
         @Override
         public @NotNull CompletableFuture<BoneRenderContext> completeContext() {
-            return BetterModel.plugin().skinManager().complete(profile).thenApply(skin -> new BoneRenderContext(this, skin));
+            return BetterModel.platform().skinManager().complete(profile).thenApply(skin -> new BoneRenderContext(this, skin));
         }
     }
 
@@ -222,7 +222,7 @@ public sealed interface RenderSource<T extends Tracker> {
         }
 
         @Override
-        public @NotNull Location location() {
+        public @NotNull PlatformLocation location() {
             return entity.location();
         }
 
@@ -254,13 +254,13 @@ public sealed interface RenderSource<T extends Tracker> {
         }
 
         @Override
-        public @NotNull Location location() {
+        public @NotNull PlatformLocation location() {
             return entity.location();
         }
 
         @Override
         public @NotNull CompletableFuture<BoneRenderContext> completeContext() {
-            return BetterModel.plugin().skinManager().complete(profile).thenApply(skin -> new BoneRenderContext(this, skin));
+            return BetterModel.platform().skinManager().complete(profile).thenApply(skin -> new BoneRenderContext(this, skin));
         }
     }
 
@@ -284,13 +284,13 @@ public sealed interface RenderSource<T extends Tracker> {
         }
 
         @Override
-        public @NotNull Location location() {
+        public @NotNull PlatformLocation location() {
             return entity.location();
         }
 
         @Override
         public @NotNull CompletableFuture<BoneRenderContext> completeContext() {
-            return BetterModel.plugin().skinManager().complete(profile().asUncompleted()).thenApply(skin -> new BoneRenderContext(this, skin));
+            return BetterModel.platform().skinManager().complete(profile().asUncompleted()).thenApply(skin -> new BoneRenderContext(this, skin));
         }
 
         @Override
@@ -329,13 +329,13 @@ public sealed interface RenderSource<T extends Tracker> {
         }
 
         @Override
-        public @NotNull Location location() {
+        public @NotNull PlatformLocation location() {
             return entity.location();
         }
 
         @Override
         public @NotNull CompletableFuture<BoneRenderContext> completeContext() {
-            return BetterModel.plugin().skinManager().complete(externalProfile).thenApply(skin -> new BoneRenderContext(this, skin));
+            return BetterModel.platform().skinManager().complete(externalProfile).thenApply(skin -> new BoneRenderContext(this, skin));
         }
 
         @Override

@@ -6,26 +6,25 @@
  */
 package kr.toxicity.model.command
 
-import kr.toxicity.model.util.PLUGIN
-import org.incendo.cloud.bukkit.CloudBukkitCapabilities
+import net.kyori.adventure.audience.Audience
+import org.incendo.cloud.CommandManager
 import org.incendo.cloud.description.Description
-import org.incendo.cloud.execution.ExecutionCoordinator
-import org.incendo.cloud.paper.LegacyPaperCommandManager
 
 class CommandBuildContext(
+    private val manager: CommandManager<Audience>,
     name: String,
     description: String,
     vararg aliases: String,
 ) {
-    private val manager = LegacyPaperCommandManager.createNative(
-        PLUGIN,
-        ExecutionCoordinator.simpleCoordinator(),
-    ).apply {
-        if (hasCapability(CloudBukkitCapabilities.NATIVE_BRIGADIER)) {
-            registerBrigadier()
-            brigadierManager().setNativeNumberSuggestions(true)
-        } else if (hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) registerAsynchronousCompletions()
-    }
+//    private val manager = LegacyPaperCommandManager.createNative(
+//        PLUGIN,
+//        ExecutionCoordinator.simpleCoordinator(),
+//    ).apply {
+//        if (hasCapability(CloudBukkitCapabilities.NATIVE_BRIGADIER)) {
+//            registerBrigadier()
+//            brigadierManager().setNativeNumberSuggestions(true)
+//        } else if (hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) registerAsynchronousCompletions()
+//    }
     val root = CommandBuilder(
         null,
         manager,

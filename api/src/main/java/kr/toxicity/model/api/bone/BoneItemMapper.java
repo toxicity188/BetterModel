@@ -8,9 +8,9 @@ package kr.toxicity.model.api.bone;
 
 import kr.toxicity.model.api.data.renderer.RenderSource;
 import kr.toxicity.model.api.entity.BaseEntity;
+import kr.toxicity.model.api.platform.PlatformItemTransform;
+import kr.toxicity.model.api.platform.PlatformPlayer;
 import kr.toxicity.model.api.util.TransformedItemStack;
-import org.bukkit.entity.ItemDisplay;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiFunction;
@@ -30,8 +30,8 @@ public interface BoneItemMapper extends BiFunction<BoneRenderContext, Transforme
     BoneItemMapper EMPTY = new BoneItemMapper() {
         @NotNull
         @Override
-        public ItemDisplay.ItemDisplayTransform transform() {
-            return ItemDisplay.ItemDisplayTransform.FIXED;
+        public PlatformItemTransform transform() {
+            return PlatformItemTransform.FIXED;
         }
 
         @Override
@@ -47,20 +47,20 @@ public interface BoneItemMapper extends BiFunction<BoneRenderContext, Transforme
      * @param mapper mapper
      * @return bone item mapper
      */
-    static @NotNull BoneItemMapper player(@NotNull ItemDisplay.ItemDisplayTransform transform, @NotNull Function<Player, TransformedItemStack> mapper) {
+    static @NotNull BoneItemMapper player(@NotNull PlatformItemTransform transform, @NotNull Function<PlatformPlayer, TransformedItemStack> mapper) {
         return new BoneItemMapper() {
 
             private static final TransformedItemStack AIR = TransformedItemStack.empty();
 
             @NotNull
             @Override
-            public ItemDisplay.ItemDisplayTransform transform() {
+            public PlatformItemTransform transform() {
                 return transform;
             }
 
             @Override
             public @NotNull TransformedItemStack apply(@NotNull BoneRenderContext context, @NotNull TransformedItemStack transformedItemStack) {
-                if (context.source() instanceof RenderSource.BasePlayer(Player player)) {
+                if (context.source() instanceof RenderSource.BasePlayer(PlatformPlayer player)) {
                     var get = mapper.apply(player);
                     return get == null ? AIR : get;
                 }
@@ -75,14 +75,14 @@ public interface BoneItemMapper extends BiFunction<BoneRenderContext, Transforme
      * @param mapper mapper
      * @return bone item mapper
      */
-    static @NotNull BoneItemMapper entity(@NotNull ItemDisplay.ItemDisplayTransform transform, @NotNull Function<BaseEntity, TransformedItemStack> mapper) {
+    static @NotNull BoneItemMapper entity(@NotNull PlatformItemTransform transform, @NotNull Function<BaseEntity, TransformedItemStack> mapper) {
         return new BoneItemMapper() {
 
             private static final TransformedItemStack AIR = TransformedItemStack.empty();
 
             @NotNull
             @Override
-            public ItemDisplay.ItemDisplayTransform transform() {
+            public PlatformItemTransform transform() {
                 return transform;
             }
 
@@ -102,12 +102,12 @@ public interface BoneItemMapper extends BiFunction<BoneRenderContext, Transforme
      * @return fixed
      */
     default boolean fixed() {
-        return transform() == ItemDisplay.ItemDisplayTransform.FIXED;
+        return transform() == PlatformItemTransform.FIXED;
     }
 
     /**
      * Gets item display transformation
      * @return transformation
      */
-    @NotNull ItemDisplay.ItemDisplayTransform transform();
+    @NotNull PlatformItemTransform transform();
 }

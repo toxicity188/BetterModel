@@ -6,10 +6,10 @@
  */
 package kr.toxicity.model.api.animation;
 
+import kr.toxicity.model.api.platform.PlatformPlayer;
 import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.function.FloatConstantSupplier;
 import kr.toxicity.model.api.util.function.FloatSupplier;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,7 +32,7 @@ public record AnimationModifier(
     @Nullable AnimationIterator.Type type,
     @Nullable FloatSupplier speed,
     @Nullable Boolean override,
-    @Nullable Player player
+    @Nullable PlatformPlayer player
 ) {
 
     /**
@@ -79,7 +79,7 @@ public record AnimationModifier(
         private AnimationIterator.Type type = null;
         private FloatSupplier speed = null;
         private Boolean override = null;
-        private Player player = null;
+        private PlatformPlayer player = null;
 
         /**
          * Private initializer
@@ -162,7 +162,7 @@ public record AnimationModifier(
          * @param player target player
          * @return self
          */
-        public @NotNull Builder player(@Nullable Player player) {
+        public @NotNull Builder player(@Nullable PlatformPlayer player) {
             this.player = player;
             return this;
         }

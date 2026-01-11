@@ -9,9 +9,9 @@ package kr.toxicity.model.api.bone;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.entity.BaseEntity;
 import kr.toxicity.model.api.nms.Profiled;
+import kr.toxicity.model.api.platform.PlatformItemTransform;
 import kr.toxicity.model.api.player.PlayerLimb;
 import kr.toxicity.model.api.util.TransformedItemStack;
-import org.bukkit.entity.ItemDisplay;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,15 +55,15 @@ public enum BoneTags implements BoneTag {
      * Entity's item in left hand
      */
     LEFT_ITEM(BoneItemMapper.entity(
-            ItemDisplay.ItemDisplayTransform.THIRDPERSON_LEFTHAND,
-            BaseEntity::offHand
+        PlatformItemTransform.THIRDPERSON_LEFTHAND,
+        BaseEntity::offHand
     ), new String[] { "pli", "li" }),
     /**
      * Entity's item in right hand
      */
     RIGHT_ITEM(BoneItemMapper.entity(
-            ItemDisplay.ItemDisplayTransform.THIRDPERSON_RIGHTHAND,
-            BaseEntity::mainHand
+        PlatformItemTransform.THIRDPERSON_RIGHTHAND,
+        BaseEntity::mainHand
     ), new String[] { "pri", "ri" }),
     /**
      * Player head
@@ -120,15 +120,15 @@ public enum BoneTags implements BoneTag {
         @Override
         public @NotNull TransformedItemStack apply(@NotNull BoneRenderContext context, @NotNull TransformedItemStack transformedItemStack) {
             TransformedItemStack cape = null;
-            if (BetterModel.plugin().skinManager().supported() && context.source() instanceof Profiled profiled && profiled.skinParts().isCapeEnabled()) {
+            if (BetterModel.platform().skinManager().supported() && context.source() instanceof Profiled profiled && profiled.skinParts().isCapeEnabled()) {
                 cape = context.skin().cape(profiled.armors());
             }
             return cape != null ? cape : TransformedItemStack.empty();
         }
 
         @Override
-        public @NotNull ItemDisplay.ItemDisplayTransform transform() {
-            return ItemDisplay.ItemDisplayTransform.FIXED;
+        public @NotNull PlatformItemTransform transform() {
+            return PlatformItemTransform.FIXED;
         }
     }, new String[] { "cape" })
     ;

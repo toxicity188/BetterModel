@@ -6,8 +6,8 @@
  */
 package kr.toxicity.model.api.mount;
 
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
+import kr.toxicity.model.api.platform.PlatformLivingEntity;
+import kr.toxicity.model.api.platform.PlatformPlayer;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
@@ -21,7 +21,7 @@ public enum MountControllers implements MountController {
     INVALID {
         @NotNull
         @Override
-        public Vector3f move(@NotNull Player player, @NotNull LivingEntity entity, @NotNull Vector3f input, @NotNull Vector3f travelVector) {
+        public Vector3f move(@NotNull PlatformPlayer player, @NotNull PlatformLivingEntity entity, @NotNull Vector3f input, @NotNull Vector3f travelVector) {
             return new Vector3f();
         }
 
@@ -36,7 +36,7 @@ public enum MountControllers implements MountController {
     NONE {
         @NotNull
         @Override
-        public Vector3f move(@NotNull Player player, @NotNull LivingEntity entity, @NotNull Vector3f input, @NotNull Vector3f travelVector) {
+        public Vector3f move(@NotNull PlatformPlayer player, @NotNull PlatformLivingEntity entity, @NotNull Vector3f input, @NotNull Vector3f travelVector) {
             return new Vector3f();
         }
 
@@ -51,7 +51,7 @@ public enum MountControllers implements MountController {
     WALK {
         @NotNull
         @Override
-        public Vector3f move(@NotNull Player player, @NotNull LivingEntity entity, @NotNull Vector3f input, @NotNull Vector3f travelVector) {
+        public Vector3f move(@NotNull PlatformPlayer player, @NotNull PlatformLivingEntity entity, @NotNull Vector3f input, @NotNull Vector3f travelVector) {
             input.normalize();
             input.y = 0;
             input.x = input.x * 0.5F;
@@ -67,7 +67,7 @@ public enum MountControllers implements MountController {
     FLY {
         @NotNull
         @Override
-        public Vector3f move(@NotNull Player player, @NotNull LivingEntity entity, @NotNull Vector3f input, @NotNull Vector3f travelVector) {
+        public Vector3f move(@NotNull PlatformPlayer player, @NotNull PlatformLivingEntity entity, @NotNull Vector3f input, @NotNull Vector3f travelVector) {
             input.normalize();
             input.x = input.x * 0.5F;
             if (input.z <= 0.0F) {

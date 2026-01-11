@@ -8,6 +8,7 @@ package kr.toxicity.model.api.manager;
 
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.ModelRenderer;
+import kr.toxicity.model.api.platform.PlatformPlayer;
 import kr.toxicity.model.api.tracker.EntityTracker;
 import kr.toxicity.model.api.tracker.TrackerModifier;
 import org.bukkit.entity.Player;
@@ -107,7 +108,7 @@ public interface ModelManager {
      * @return true if the animation started successfully
      * @since 1.15.2
      */
-    default boolean animate(@NotNull Player player, @NotNull String model, @NotNull String animation) {
+    default boolean animate(@NotNull PlatformPlayer player, @NotNull String model, @NotNull String animation) {
         return animate(player, model, animation, AnimationModifier.DEFAULT_WITH_PLAY_ONCE);
     }
 
@@ -121,7 +122,7 @@ public interface ModelManager {
      * @return true if the animation started successfully
      * @since 1.15.2
      */
-    default boolean animate(@NotNull Player player, @NotNull String model, @NotNull String animation, @NotNull AnimationModifier modifier) {
+    default boolean animate(@NotNull PlatformPlayer player, @NotNull String model, @NotNull String animation, @NotNull AnimationModifier modifier) {
         return animate(player, model, animation, modifier, t -> {});
     }
 
@@ -136,7 +137,7 @@ public interface ModelManager {
      * @return true if the animation started successfully
      * @since 1.15.2
      */
-    default boolean animate(@NotNull Player player, @NotNull String model, @NotNull String animation, @NotNull AnimationModifier modifier, @NotNull Consumer<EntityTracker> consumer) {
+    default boolean animate(@NotNull PlatformPlayer player, @NotNull String model, @NotNull String animation, @NotNull AnimationModifier modifier, @NotNull Consumer<EntityTracker> consumer) {
         var get = limb(model);
         if (get == null) return false;
         var create = get.getOrCreate(player, TrackerModifier.DEFAULT, consumer);

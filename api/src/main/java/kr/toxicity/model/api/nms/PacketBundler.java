@@ -6,7 +6,7 @@
  */
 package kr.toxicity.model.api.nms;
 
-import org.bukkit.entity.Player;
+import kr.toxicity.model.api.platform.PlatformPlayer;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -52,7 +52,7 @@ public interface PacketBundler {
      * @param player the target player
      * @since 1.15.2
      */
-    default void send(@NotNull Player player) {
+    default void send(@NotNull PlatformPlayer player) {
         send(player, () -> {});
     }
 
@@ -63,5 +63,5 @@ public interface PacketBundler {
      * @param onSuccess the callback to run after sending
      * @since 1.15.2
      */
-    void send(@NotNull Player player, @NotNull Runnable onSuccess);
+    void send(@NotNull PlatformPlayer player, @NotNull Runnable onSuccess);
 }

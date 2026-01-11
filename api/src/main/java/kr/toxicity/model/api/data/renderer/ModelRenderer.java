@@ -9,14 +9,14 @@ package kr.toxicity.model.api.data.renderer;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.entity.BaseEntity;
+import kr.toxicity.model.api.platform.PlatformEntity;
+import kr.toxicity.model.api.platform.PlatformLocation;
 import kr.toxicity.model.api.profile.ModelProfile;
 import kr.toxicity.model.api.tracker.DummyTracker;
 import kr.toxicity.model.api.tracker.EntityTracker;
 import kr.toxicity.model.api.tracker.TrackerModifier;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.bukkit.Location;
-import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
@@ -100,7 +100,7 @@ public record ModelRenderer(
      * @param location location
      * @return empty tracker
      */
-    public @NotNull DummyTracker create(@NotNull Location location) {
+    public @NotNull DummyTracker create(@NotNull PlatformLocation location) {
         return create(location, TrackerModifier.DEFAULT);
     }
 
@@ -111,7 +111,7 @@ public record ModelRenderer(
      * @param modifier modifier
      * @return empty tracker
      */
-    public @NotNull DummyTracker create(@NotNull Location location, @NotNull TrackerModifier modifier) {
+    public @NotNull DummyTracker create(@NotNull PlatformLocation location, @NotNull TrackerModifier modifier) {
         return create(location, modifier, t -> {
         });
     }
@@ -124,7 +124,7 @@ public record ModelRenderer(
      * @param preUpdateConsumer task on pre-update
      * @return empty tracker
      */
-    public @NotNull DummyTracker create(@NotNull Location location, @NotNull TrackerModifier modifier, @NotNull Consumer<DummyTracker> preUpdateConsumer) {
+    public @NotNull DummyTracker create(@NotNull PlatformLocation location, @NotNull TrackerModifier modifier, @NotNull Consumer<DummyTracker> preUpdateConsumer) {
         var source = RenderSource.of(location);
         return source.create(
             pipeline(source),
@@ -140,7 +140,7 @@ public record ModelRenderer(
      * @param profile  profile
      * @return empty tracker
      */
-    public @NotNull DummyTracker create(@NotNull Location location, @NotNull ModelProfile profile) {
+    public @NotNull DummyTracker create(@NotNull PlatformLocation location, @NotNull ModelProfile profile) {
         return create(location, profile.asUncompleted());
     }
 
@@ -152,7 +152,7 @@ public record ModelRenderer(
      * @param modifier modifier
      * @return empty tracker
      */
-    public @NotNull DummyTracker create(@NotNull Location location, ModelProfile profile, @NotNull TrackerModifier modifier) {
+    public @NotNull DummyTracker create(@NotNull PlatformLocation location, ModelProfile profile, @NotNull TrackerModifier modifier) {
         return create(location, profile.asUncompleted(), modifier);
     }
 
@@ -165,7 +165,7 @@ public record ModelRenderer(
      * @param preUpdateConsumer task on pre-update
      * @return empty tracker
      */
-    public @NotNull DummyTracker create(@NotNull Location location, @NotNull ModelProfile profile, @NotNull TrackerModifier modifier, @NotNull Consumer<DummyTracker> preUpdateConsumer) {
+    public @NotNull DummyTracker create(@NotNull PlatformLocation location, @NotNull ModelProfile profile, @NotNull TrackerModifier modifier, @NotNull Consumer<DummyTracker> preUpdateConsumer) {
         return create(location, profile.asUncompleted(), modifier, preUpdateConsumer);
     }
 
@@ -176,7 +176,7 @@ public record ModelRenderer(
      * @param profile  profile
      * @return empty tracker
      */
-    public @NotNull DummyTracker create(@NotNull Location location, @NotNull ModelProfile.Uncompleted profile) {
+    public @NotNull DummyTracker create(@NotNull PlatformLocation location, @NotNull ModelProfile.Uncompleted profile) {
         return create(location, profile, TrackerModifier.DEFAULT);
     }
 
@@ -188,7 +188,7 @@ public record ModelRenderer(
      * @param modifier modifier
      * @return empty tracker
      */
-    public @NotNull DummyTracker create(@NotNull Location location, ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier) {
+    public @NotNull DummyTracker create(@NotNull PlatformLocation location, ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier) {
         return create(location, profile, modifier, t -> {
         });
     }
@@ -202,7 +202,7 @@ public record ModelRenderer(
      * @param preUpdateConsumer task on pre-update
      * @return empty tracker
      */
-    public @NotNull DummyTracker create(@NotNull Location location, @NotNull ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier, @NotNull Consumer<DummyTracker> preUpdateConsumer) {
+    public @NotNull DummyTracker create(@NotNull PlatformLocation location, @NotNull ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier, @NotNull Consumer<DummyTracker> preUpdateConsumer) {
         var source = RenderSource.of(location, profile);
         return source.create(
             pipeline(source),
@@ -219,7 +219,7 @@ public record ModelRenderer(
      * @param entity entity
      * @return entity tracker
      */
-    public @NotNull EntityTracker create(@NotNull Entity entity) {
+    public @NotNull EntityTracker create(@NotNull PlatformEntity entity) {
         return create(BaseEntity.of(entity));
     }
 
@@ -230,7 +230,7 @@ public record ModelRenderer(
      * @param modifier modifier
      * @return entity tracker
      */
-    public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull TrackerModifier modifier) {
+    public @NotNull EntityTracker create(@NotNull PlatformEntity entity, @NotNull TrackerModifier modifier) {
         return create(BaseEntity.of(entity), modifier);
     }
 
@@ -242,7 +242,7 @@ public record ModelRenderer(
      * @param preUpdateConsumer task on pre-update
      * @return entity tracker
      */
-    public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
+    public @NotNull EntityTracker create(@NotNull PlatformEntity entity, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
         return create(BaseEntity.of(entity), modifier, preUpdateConsumer);
     }
 
@@ -253,7 +253,7 @@ public record ModelRenderer(
      * @param profile  profile
      * @return entity tracker
      */
-    public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull ModelProfile.Uncompleted profile) {
+    public @NotNull EntityTracker create(@NotNull PlatformEntity entity, @NotNull ModelProfile.Uncompleted profile) {
         return create(BaseEntity.of(entity), profile);
     }
 
@@ -265,7 +265,7 @@ public record ModelRenderer(
      * @param modifier modifier
      * @return entity tracker
      */
-    public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier) {
+    public @NotNull EntityTracker create(@NotNull PlatformEntity entity, @NotNull ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier) {
         return create(BaseEntity.of(entity), profile, modifier);
     }
 
@@ -278,7 +278,7 @@ public record ModelRenderer(
      * @param preUpdateConsumer task on pre-update
      * @return entity tracker
      */
-    public @NotNull EntityTracker create(@NotNull Entity entity, @NotNull ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
+    public @NotNull EntityTracker create(@NotNull PlatformEntity entity, @NotNull ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
         return create(BaseEntity.of(entity), profile, modifier, preUpdateConsumer);
     }
 
@@ -288,7 +288,7 @@ public record ModelRenderer(
      * @param entity entity
      * @return entity tracker
      */
-    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity) {
+    public @NotNull EntityTracker getOrCreate(@NotNull PlatformEntity entity) {
         return getOrCreate(BaseEntity.of(entity));
     }
 
@@ -299,7 +299,7 @@ public record ModelRenderer(
      * @param modifier modifier
      * @return entity tracker
      */
-    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull TrackerModifier modifier) {
+    public @NotNull EntityTracker getOrCreate(@NotNull PlatformEntity entity, @NotNull TrackerModifier modifier) {
         return getOrCreate(BaseEntity.of(entity), modifier);
     }
 
@@ -311,7 +311,7 @@ public record ModelRenderer(
      * @param preUpdateConsumer task on pre-update
      * @return entity tracker
      */
-    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
+    public @NotNull EntityTracker getOrCreate(@NotNull PlatformEntity entity, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
         return getOrCreate(BaseEntity.of(entity), modifier, preUpdateConsumer);
     }
 
@@ -322,7 +322,7 @@ public record ModelRenderer(
      * @param profile  profile
      * @return entity tracker
      */
-    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull ModelProfile profile) {
+    public @NotNull EntityTracker getOrCreate(@NotNull PlatformEntity entity, @NotNull ModelProfile profile) {
         return getOrCreate(entity, profile.asUncompleted());
     }
 
@@ -334,7 +334,7 @@ public record ModelRenderer(
      * @param modifier modifier
      * @return entity tracker
      */
-    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull ModelProfile profile, @NotNull TrackerModifier modifier) {
+    public @NotNull EntityTracker getOrCreate(@NotNull PlatformEntity entity, @NotNull ModelProfile profile, @NotNull TrackerModifier modifier) {
         return getOrCreate(entity, profile.asUncompleted(), modifier);
     }
 
@@ -347,7 +347,7 @@ public record ModelRenderer(
      * @param preUpdateConsumer task on pre-update
      * @return entity tracker
      */
-    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull ModelProfile profile, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
+    public @NotNull EntityTracker getOrCreate(@NotNull PlatformEntity entity, @NotNull ModelProfile profile, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
         return getOrCreate(entity, profile.asUncompleted(), modifier, preUpdateConsumer);
     }
 
@@ -358,7 +358,7 @@ public record ModelRenderer(
      * @param profile  profile
      * @return entity tracker
      */
-    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull ModelProfile.Uncompleted profile) {
+    public @NotNull EntityTracker getOrCreate(@NotNull PlatformEntity entity, @NotNull ModelProfile.Uncompleted profile) {
         return getOrCreate(BaseEntity.of(entity), profile);
     }
 
@@ -370,7 +370,7 @@ public record ModelRenderer(
      * @param modifier modifier
      * @return entity tracker
      */
-    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier) {
+    public @NotNull EntityTracker getOrCreate(@NotNull PlatformEntity entity, @NotNull ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier) {
         return getOrCreate(BaseEntity.of(entity), profile, modifier);
     }
 
@@ -383,7 +383,7 @@ public record ModelRenderer(
      * @param preUpdateConsumer task on pre-update
      * @return entity tracker
      */
-    public @NotNull EntityTracker getOrCreate(@NotNull Entity entity, @NotNull ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
+    public @NotNull EntityTracker getOrCreate(@NotNull PlatformEntity entity, @NotNull ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
         return getOrCreate(BaseEntity.of(entity), profile, modifier, preUpdateConsumer);
     }
 

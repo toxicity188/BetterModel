@@ -271,7 +271,7 @@ public final class CollectionUtil {
      */
     @NotNull
     public static <T> Predicate<T> filterWithWarning(@NotNull Predicate<T> predicate, @NotNull Function<T, String> lazyLogFunction) {
-        var logger = BetterModel.plugin().logger();
+        var logger = BetterModel.platform().logger();
         return t -> {
             var testedValue = predicate.test(t);
             if (!testedValue) logger.warn(LogUtil.toLog(lazyLogFunction.apply(t), NamedTextColor.YELLOW));

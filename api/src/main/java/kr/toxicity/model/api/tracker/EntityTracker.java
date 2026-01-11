@@ -19,12 +19,12 @@ import kr.toxicity.model.api.event.DismountModelEvent;
 import kr.toxicity.model.api.event.MountModelEvent;
 import kr.toxicity.model.api.nms.HitBox;
 import kr.toxicity.model.api.nms.HitBoxListener;
+import kr.toxicity.model.api.platform.PlatformLocation;
+import kr.toxicity.model.api.platform.PlatformPlayer;
 import kr.toxicity.model.api.util.EventUtil;
 import kr.toxicity.model.api.util.FunctionUtil;
 import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.function.BonePredicate;
-import org.bukkit.Location;
-import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -138,14 +138,14 @@ public class EntityTracker extends Tracker {
             tag.component(entity.customName());
         });
         pipeline.eventDispatcher().handleCreateHitBox((b, l) -> l.mount((h, e) -> {
-                registry.mountedHitBoxCache.put(e.getUniqueId(), new EntityTrackerRegistry.MountedHitBox(b, e, h));
+                registry.mountedHitBoxCache.put(e.uuid(), new EntityTrackerRegistry.MountedHitBox(b, e, h));
                 EventUtil.call(new MountModelEvent(this, b, h, e));
             })
             .dismount((h, e) -> {
-                registry.mountedHitBoxCache.remove(e.getUniqueId());
+                registry.mountedHitBoxCache.remove(e.uuid());
                 EventUtil.call(new DismountModelEvent(this, b, h, e));
             }));
-        BetterModel.plugin().scheduler().task(entity, () -> {
+        entity.platform().task(() -> {
             if (isClosed()) return;
             createHitBox(null, CREATE_HITBOX_PREDICATE);
         });
@@ -169,7 +169,7 @@ public class EntityTracker extends Tracker {
      * @since 1.15.2
      */
     public void updateBaseEntity() {
-        BetterModel.plugin().scheduler().asyncTaskLater(1, () -> {
+        BetterModel.platform().scheduler().asyncTaskLater(1, () -> {
             updateBaseEntity0();
             forceUpdate(true);
         });
@@ -261,7 +261,7 @@ public class EntityTracker extends Tracker {
     }
 
     @Override
-    public @NotNull Location location() {
+    public @NotNull PlatformLocation location() {
         return sourceEntity().location();
     }
 
@@ -292,7 +292,7 @@ public class EntityTracker extends Tracker {
     @ApiStatus.Internal
     public void refresh() {
         updateBaseEntity0();
-        BetterModel.plugin().scheduler().task(registry.entity(), () -> createHitBox(null, HITBOX_REFRESH_PREDICATE));
+        registry.entity().platform().task(() -> createHitBox(null, HITBOX_REFRESH_PREDICATE));
     }
 
     /**
@@ -302,8 +302,8 @@ public class EntityTracker extends Tracker {
      * @return true if the player was added
      * @since 1.15.2
      */
-    public boolean markPlayerForSpawn(@NotNull OfflinePlayer player) {
-        return markForSpawn.add(player.getUniqueId());
+    public boolean markPlayerForSpawn(@NotNull PlatformPlayer player) {
+        return markForSpawn.add(player.uuid());
     }
 
     /**
@@ -324,8 +324,8 @@ public class EntityTracker extends Tracker {
      * @return true if the player was removed
      * @since 1.15.2
      */
-    public boolean unmarkPlayerForSpawn(@NotNull OfflinePlayer player) {
-        return markForSpawn.remove(player.getUniqueId());
+    public boolean unmarkPlayerForSpawn(@NotNull PlatformPlayer player) {
+        return markForSpawn.remove(player.uuid());
     }
 
     /**
@@ -363,8 +363,8 @@ public class EntityTracker extends Tracker {
      * @return true if allowed
      * @since 1.15.2
      */
-    public boolean canBeSpawnedAt(@NotNull OfflinePlayer player) {
-        return markForSpawn.isEmpty() || markForSpawn.contains(player.getUniqueId());
+    public boolean canBeSpawnedAt(@NotNull PlatformPlayer player) {
+        return markForSpawn.isEmpty() || markForSpawn.contains(player.uuid());
     }
 
     /**

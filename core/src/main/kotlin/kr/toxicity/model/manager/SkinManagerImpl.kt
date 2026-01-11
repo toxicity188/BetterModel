@@ -596,7 +596,7 @@ object SkinManagerImpl : SkinManager, GlobalManager {
 
     private val whiteList = IntList.of(*(0..8).map { 0xFFFFFF }.toIntArray())
 
-    private fun SkinModelData.asItem(colors: IntList = IntList.of()): TransformedItemStack = PLUGIN.nms().createSkinItem(
+    private fun SkinModelData.asItem(colors: IntList = IntList.of()): TransformedItemStack = PLATFORM.nms().createSkinItem(
         namespace,
         data.floats,
         data.flags,
@@ -611,7 +611,7 @@ object SkinManagerImpl : SkinManager, GlobalManager {
                 customModelData(item.type, item.tint, it, item.palette?.let { p -> ArmorManager.armor.colors()[p] })
             } ?: customModelData(item.type, item.tint)
         }
-        return PLUGIN.nms().createSkinItem(
+        return PLATFORM.nms().createSkinItem(
             namespace,
             data.floats,
             data.flags,
@@ -671,12 +671,12 @@ object SkinManagerImpl : SkinManager, GlobalManager {
         .build<UUID, SkinDataImpl>()
 
     private val fallback by lazy {
-        PLUGIN.getResource("fallback_skin.png")!!.use {
+        PLATFORM.getResource("fallback_skin.png")!!.use {
             SkinDataImpl(ModelProfile.UNKNOWN, ImageIO.read(it), null)
         }
     }
 
-    override fun supported(): Boolean = PLUGIN.version() >= MinecraftVersion.V1_21_4
+    override fun supported(): Boolean = PLATFORM.version() >= MinecraftVersion.V1_21_4
 
     private fun handleExpiration(key: UUID, skin: SkinDataImpl) {
         skin.profile().let {
@@ -835,7 +835,7 @@ object SkinManagerImpl : SkinManager, GlobalManager {
             zipper.modern().add(resource.path(), resource.estimatedSize()) {
                 resource.build()
             }
-        } else PLUGIN.loadAssets(pipeline, "pack") { s, i ->
+        } else PLATFORM.loadAssets(pipeline, "pack") { s, i ->
             val read = i.readAllBytes()
             zipper.legacy().add(s) {
                 read

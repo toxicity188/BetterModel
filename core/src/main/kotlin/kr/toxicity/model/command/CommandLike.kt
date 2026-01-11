@@ -7,11 +7,11 @@
 package kr.toxicity.model.command
 
 import kr.toxicity.model.util.*
+import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.format.NamedTextColor.*
 import net.kyori.adventure.text.format.TextDecoration
-import org.bukkit.command.CommandSender
 import org.incendo.cloud.Command
 import org.incendo.cloud.component.CommandComponent
 import org.incendo.cloud.component.CommandComponent.ComponentType.*
@@ -20,15 +20,15 @@ interface CommandLike {
 
     fun toComponent(): TextComponent
 
-    fun build(): List<Command<out CommandSender>>
+    fun build(): List<Command<out Audience>>
 
     data class Cloud(
-        private val command: Command<out CommandSender>
+        private val command: Command<out Audience>
     ) : CommandLike {
 
         override fun toComponent(): TextComponent = command.toComponent()
 
-        private fun Command<out CommandSender>.toComponent() = componentOf {
+        private fun Command<out Audience>.toComponent() = componentOf {
             append("/".toComponent())
             components().forEachIndexed { i, comp ->
                 append(comp.toComponent(i == 0))
@@ -53,7 +53,7 @@ interface CommandLike {
             }))
         }
 
-        private fun CommandComponent<out CommandSender>.toComponent(root: Boolean): TextComponent = componentOf {
+        private fun CommandComponent<out Audience>.toComponent(root: Boolean): TextComponent = componentOf {
             val n = if (root) aliases().minBy { it.length } else name()
             when (type()) {
                 LITERAL -> content(n).color(YELLOW)
@@ -75,6 +75,6 @@ interface CommandLike {
             }.toHoverEvent())
         }
 
-        override fun build(): List<Command<out CommandSender>> = listOf(command)
+        override fun build(): List<Command<out Audience>> = listOf(command)
     }
 }

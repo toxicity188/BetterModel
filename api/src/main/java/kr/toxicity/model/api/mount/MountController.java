@@ -6,8 +6,8 @@
  */
 package kr.toxicity.model.api.mount;
 
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
+import kr.toxicity.model.api.platform.PlatformLivingEntity;
+import kr.toxicity.model.api.platform.PlatformPlayer;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
@@ -24,7 +24,7 @@ public interface MountController {
      * @param travelVector travel vector
      * @return movement
      */
-    @NotNull Vector3f move(@NotNull Player player, @NotNull LivingEntity entity, @NotNull Vector3f input, @NotNull Vector3f travelVector);
+    @NotNull Vector3f move(@NotNull PlatformPlayer player, @NotNull PlatformLivingEntity entity, @NotNull Vector3f input, @NotNull Vector3f travelVector);
 
     /**
      * Moves entity by player's input on the fly
@@ -34,7 +34,7 @@ public interface MountController {
      * @param travelVector travel vector
      * @return movement
      */
-    default @NotNull Vector3f moveOnFly(@NotNull Player player, @NotNull LivingEntity entity, @NotNull Vector3f input, @NotNull Vector3f travelVector) {
+    default @NotNull Vector3f moveOnFly(@NotNull PlatformPlayer player, @NotNull PlatformLivingEntity entity, @NotNull Vector3f input, @NotNull Vector3f travelVector) {
         return move(player, entity, input, travelVector).mul(1.5F);
     }
 
@@ -47,7 +47,7 @@ public interface MountController {
      * @param travelVector travel vector
      * @return movement
      */
-    default Vector3f move(@NotNull MoveType type, @NotNull Player player, @NotNull LivingEntity entity, @NotNull Vector3f input, @NotNull Vector3f travelVector) {
+    default Vector3f move(@NotNull MoveType type, @NotNull PlatformPlayer player, @NotNull PlatformLivingEntity entity, @NotNull Vector3f input, @NotNull Vector3f travelVector) {
         return switch (type) {
             case DEFAULT -> move(player, entity, input, travelVector);
             case FLY -> moveOnFly(player, entity, input, travelVector);
@@ -220,7 +220,7 @@ public interface MountController {
             return new MountController() {
                 @NotNull
                 @Override
-                public Vector3f move(@NotNull Player player, @NotNull LivingEntity entity, @NotNull Vector3f input, @NotNull Vector3f travelVector) {
+                public Vector3f move(@NotNull PlatformPlayer player, @NotNull PlatformLivingEntity entity, @NotNull Vector3f input, @NotNull Vector3f travelVector) {
                     return source.move(player, entity, input, travelVector);
                 }
 

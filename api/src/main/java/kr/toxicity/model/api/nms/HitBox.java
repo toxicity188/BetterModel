@@ -10,10 +10,9 @@ import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.mount.MountController;
+import kr.toxicity.model.api.platform.PlatformEntity;
+import kr.toxicity.model.api.platform.PlatformPlayer;
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
@@ -27,7 +26,6 @@ import java.util.Optional;
  * and are linked to specific bones in the model.
  * </p>
  *
- * @see org.bukkit.entity.LivingEntity
  * @since 1.15.2
  */
 public interface HitBox extends Identifiable {
@@ -40,7 +38,7 @@ public interface HitBox extends Identifiable {
      * @since 1.15.2
      */
     @ApiStatus.Internal
-    void triggerInteract(@NotNull Player player, @NotNull ModelInteractionHand hand);
+    void triggerInteract(@NotNull PlatformPlayer player, @NotNull ModelInteractionHand hand);
 
     /**
      * Triggers an interaction with this hitbox at a specific position.
@@ -51,7 +49,7 @@ public interface HitBox extends Identifiable {
      * @since 1.15.2
      */
     @ApiStatus.Internal
-    void triggerInteractAt(@NotNull Player player, @NotNull ModelInteractionHand hand, @NotNull Vector position);
+    void triggerInteractAt(@NotNull PlatformPlayer player, @NotNull ModelInteractionHand hand, @NotNull Vector3f position);
 
     /**
      * Hides this hitbox from a specific player.
@@ -60,7 +58,7 @@ public interface HitBox extends Identifiable {
      * @since 1.15.2
      */
     @ApiStatus.Internal
-    void hide(@NotNull Player player);
+    void hide(@NotNull PlatformPlayer player);
 
     /**
      * Shows this hitbox to a specific player.
@@ -69,7 +67,7 @@ public interface HitBox extends Identifiable {
      * @since 1.15.2
      */
     @ApiStatus.Internal
-    void show(@NotNull Player player);
+    void show(@NotNull PlatformPlayer player);
 
     /**
      * Returns the name of the bone group associated with this hitbox.
@@ -111,7 +109,7 @@ public interface HitBox extends Identifiable {
      * @return the source entity
      * @since 1.15.2
      */
-    @NotNull Entity source();
+    @NotNull PlatformEntity source();
 
     /**
      * Mounts an entity onto this hitbox.
@@ -119,7 +117,7 @@ public interface HitBox extends Identifiable {
      * @param entity the entity to mount
      * @since 1.15.2
      */
-    void mount(@NotNull Entity entity);
+    void mount(@NotNull PlatformEntity entity);
 
     /**
      * Checks if this hitbox has a mount driver.
@@ -145,7 +143,7 @@ public interface HitBox extends Identifiable {
      * @param entity the entity to dismount
      * @since 1.15.2
      */
-    void dismount(@NotNull Entity entity);
+    void dismount(@NotNull PlatformEntity entity);
 
     /**
      * Dismounts all passengers from this hitbox.
@@ -172,9 +170,6 @@ public interface HitBox extends Identifiable {
 
     /**
      * Removes this hitbox safely.
-     * <p>
-     * This method is thread-safe, unlike {@link Entity#remove()}.
-     * </p>
      *
      * @since 1.15.2
      */
@@ -203,6 +198,6 @@ public interface HitBox extends Identifiable {
      * @since 1.15.2
      */
     default @NotNull Optional<EntityTrackerRegistry> registry() {
-        return BetterModel.registry(source().getUniqueId());
+        return BetterModel.registry(source().uuid());
     }
 }

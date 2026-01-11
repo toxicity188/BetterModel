@@ -6,8 +6,8 @@
  */
 package kr.toxicity.model.api.util;
 
-import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
+import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.platform.PlatformItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
@@ -15,20 +15,20 @@ import java.util.function.Function;
 
 /**
  * ItemStack with offset and scale
- * @see ItemStack
+ * @see PlatformItemStack
  * @param position global position (x, y, z)
  * @param offset offset (x, y, z)
  * @param scale scale (x, y, z)
  * @param itemStack item
  */
-public record TransformedItemStack(@NotNull Vector3f position, @NotNull Vector3f offset, @NotNull Vector3f scale, @NotNull ItemStack itemStack) {
+public record TransformedItemStack(@NotNull Vector3f position, @NotNull Vector3f offset, @NotNull Vector3f scale, @NotNull PlatformItemStack itemStack) {
 
     /**
      * Creates empty transformed item
      * @return empty transformed item
      */
     public static @NotNull TransformedItemStack empty() {
-        return of(new ItemStack(Material.AIR));
+        return of(BetterModel.platform().adapter().air());
     }
 
     /**
@@ -36,7 +36,7 @@ public record TransformedItemStack(@NotNull Vector3f position, @NotNull Vector3f
      * @param itemStack item
      * @return transformed item
      */
-    public static @NotNull TransformedItemStack of(@NotNull ItemStack itemStack) {
+    public static @NotNull TransformedItemStack of(@NotNull PlatformItemStack itemStack) {
         return of(new Vector3f(), new Vector3f(), new Vector3f(1), itemStack);
     }
 
@@ -48,7 +48,7 @@ public record TransformedItemStack(@NotNull Vector3f position, @NotNull Vector3f
      * @param itemStack item
      * @return transformed item
      */
-    public static @NotNull TransformedItemStack of(@NotNull Vector3f position, @NotNull Vector3f offset, @NotNull Vector3f scale, @NotNull ItemStack itemStack) {
+    public static @NotNull TransformedItemStack of(@NotNull Vector3f position, @NotNull Vector3f offset, @NotNull Vector3f scale, @NotNull PlatformItemStack itemStack) {
         return new TransformedItemStack(position, offset, scale, itemStack);
     }
 
@@ -57,7 +57,7 @@ public record TransformedItemStack(@NotNull Vector3f position, @NotNull Vector3f
      * @return air item
      */
     public @NotNull TransformedItemStack asAir() {
-        return of(position, offset, scale, new ItemStack(Material.AIR));
+        return of(position, offset, scale, BetterModel.platform().adapter().air());
     }
 
     /**
@@ -74,7 +74,7 @@ public record TransformedItemStack(@NotNull Vector3f position, @NotNull Vector3f
      * @param mapper mapper
      * @return modified item
      */
-    public @NotNull TransformedItemStack modify(@NotNull Function<ItemStack, ItemStack> mapper) {
+    public @NotNull TransformedItemStack modify(@NotNull Function<PlatformItemStack, PlatformItemStack> mapper) {
         return of(position, offset, scale, mapper.apply(itemStack.clone()));
     }
 
@@ -83,7 +83,7 @@ public record TransformedItemStack(@NotNull Vector3f position, @NotNull Vector3f
      * @return is air
      */
     public boolean isAir() {
-        return ItemUtil.isEmpty(itemStack);
+        return itemStack.isAir();
     }
 
     /**

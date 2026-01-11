@@ -6,9 +6,9 @@
  */
 package kr.toxicity.model.api.nms;
 
+import kr.toxicity.model.api.platform.PlatformLocation;
+import kr.toxicity.model.api.platform.PlatformPlayer;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Location;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,7 +45,7 @@ public interface ModelNametag {
      * @param location the target location
      * @since 1.15.2
      */
-    void teleport(@NotNull Location location);
+    void teleport(@NotNull PlatformLocation location);
 
     /**
      * Sends the nametag packet to a specific player.
@@ -53,7 +53,7 @@ public interface ModelNametag {
      * @param player the target player
      * @since 1.15.2
      */
-    void send(@NotNull Player player);
+    void send(@NotNull PlatformPlayer player);
 
     /**
      * Removes the nametag.

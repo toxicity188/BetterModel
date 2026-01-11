@@ -19,7 +19,7 @@ internal data class ModelGameProfile(
     private val info = ModelProfileInfo(gameProfile.id, gameProfile.name)
     private val skin by lazy {
         gameProfile.properties["textures"].firstOrNull()?.let {
-            BetterModel.plugin().profileManager().skin(it.value)
+            BetterModel.platform().profileManager().skin(it.value)
         } ?: ModelProfileSkin.EMPTY
     }
 

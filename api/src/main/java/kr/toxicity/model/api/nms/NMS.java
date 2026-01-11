@@ -9,18 +9,16 @@ package kr.toxicity.model.api.nms;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox;
-import kr.toxicity.model.api.entity.BaseBukkitEntity;
-import kr.toxicity.model.api.entity.BaseBukkitPlayer;
 import kr.toxicity.model.api.entity.BaseEntity;
 import kr.toxicity.model.api.entity.BasePlayer;
 import kr.toxicity.model.api.mount.MountController;
+import kr.toxicity.model.api.platform.PlatformEntity;
+import kr.toxicity.model.api.platform.PlatformItemStack;
+import kr.toxicity.model.api.platform.PlatformLocation;
+import kr.toxicity.model.api.platform.PlatformPlayer;
 import kr.toxicity.model.api.profile.ModelProfile;
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry;
 import kr.toxicity.model.api.util.TransformedItemStack;
-import org.bukkit.Location;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,7 +44,7 @@ public interface NMS {
      * @return the created model display
      * @since 1.15.2
      */
-    default @NotNull ModelDisplay create(@NotNull Location location) {
+    default @NotNull ModelDisplay create(@NotNull PlatformLocation location) {
         return create(location, 0, d -> {});
     }
 
@@ -58,7 +56,7 @@ public interface NMS {
      * @return the created model display
      * @since 1.15.2
      */
-    default @NotNull ModelDisplay create(@NotNull Location location, @NotNull Consumer<ModelDisplay> initialConsumer) {
+    default @NotNull ModelDisplay create(@NotNull PlatformLocation location, @NotNull Consumer<ModelDisplay> initialConsumer) {
         return create(location, 0, initialConsumer);
     }
 
@@ -71,7 +69,7 @@ public interface NMS {
      * @return the created model display
      * @since 1.15.2
      */
-    @NotNull ModelDisplay create(@NotNull Location location, double yOffset, @NotNull Consumer<ModelDisplay> initialConsumer);
+    @NotNull ModelDisplay create(@NotNull PlatformLocation location, double yOffset, @NotNull Consumer<ModelDisplay> initialConsumer);
 
     /**
      * Creates a nametag for a rendered bone.
@@ -103,7 +101,7 @@ public interface NMS {
      * @return the created channel handler
      * @since 1.15.2
      */
-    @NotNull PlayerChannelHandler inject(@NotNull Player player);
+    @NotNull PlayerChannelHandler inject(@NotNull PlatformLocation player);
 
     /**
      * Creates a packet bundler with an initial capacity.
@@ -139,7 +137,7 @@ public interface NMS {
      * @return the tinted item stack
      * @since 1.15.2
      */
-    @NotNull ItemStack tint(@NotNull ItemStack itemStack, int rgb);
+    @NotNull PlatformItemStack tint(@NotNull PlatformItemStack itemStack, int rgb);
 
     /**
      * Adds a mount packet for an entity tracker to a bundler.
@@ -172,7 +170,7 @@ public interface NMS {
      */
     default void hide(@NotNull PlayerChannelHandler channel, @NotNull EntityTrackerRegistry registry, @NotNull BooleanSupplier condition) {
         if (registry.entity() instanceof BasePlayer) {
-            var plugin = BetterModel.plugin();
+            var plugin = BetterModel.platform();
             plugin.scheduler().asyncTaskLater(plugin.config().playerHideDelay(), () -> {
                 if (condition.getAsBoolean()) hide(channel, registry);
             });
@@ -201,22 +199,22 @@ public interface NMS {
     @NotNull NMSVersion version();
 
     /**
-     * Adapts a Bukkit entity to a {@link BaseBukkitEntity}, handling Folia compatibility.
+     * Adapts a Bukkit entity to a {@link BaseEntity}, handling Folia compatibility.
      *
      * @param entity the Bukkit entity
      * @return the adapted entity
      * @since 1.15.2
      */
-    @NotNull BaseBukkitEntity adapt(@NotNull Entity entity);
+    @NotNull BaseEntity adapt(@NotNull PlatformEntity entity);
 
     /**
-     * Adapts a Bukkit player to a {@link BaseBukkitPlayer}, handling Folia compatibility.
+     * Adapts a Bukkit player to a {@link BasePlayer}, handling Folia compatibility.
      *
      * @param player the Bukkit player
      * @return the adapted player
      * @since 1.15.2
      */
-    @NotNull BaseBukkitPlayer adapt(@NotNull Player player);
+    @NotNull BasePlayer adapt(@NotNull PlatformPlayer player);
 
     /**
      * Retrieves the model profile (skin) for a player.
@@ -225,7 +223,7 @@ public interface NMS {
      * @return the model profile
      * @since 1.15.2
      */
-    @NotNull ModelProfile profile(@NotNull Player player);
+    @NotNull ModelProfile profile(@NotNull PlatformPlayer player);
 
     /**
      * Creates a player head item stack from a model profile.
@@ -234,7 +232,7 @@ public interface NMS {
      * @return the player head item
      * @since 1.15.2
      */
-    @NotNull ItemStack createPlayerHead(@NotNull ModelProfile profile);
+    @NotNull PlatformItemStack createPlayerHead(@NotNull ModelProfile profile);
 
     /**
      * Creates a custom skin item stack.

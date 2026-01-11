@@ -7,7 +7,7 @@
 package kr.toxicity.model.manager
 
 import kr.toxicity.model.manager.debug.ReloadIndicator
-import kr.toxicity.model.util.PLUGIN
+import kr.toxicity.model.util.PLATFORM
 import kr.toxicity.model.util.parallelIOThreadPool
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicInteger
@@ -40,7 +40,7 @@ class ReloadPipeline(
         }
     }
 
-    private val task = PLUGIN.scheduler().asyncTaskTimer(1, 1) {
+    private val task = PLATFORM.scheduler().asyncTaskTimer(1, 1) {
         current.get().run {
             Status(
                 if (goal > 0) toFloat() / goal.toFloat() else 0F,

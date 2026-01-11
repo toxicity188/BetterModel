@@ -7,11 +7,11 @@
 package kr.toxicity.model.command
 
 import kr.toxicity.model.util.*
+import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.format.NamedTextColor.*
 import net.kyori.adventure.text.format.TextDecoration
-import org.bukkit.command.CommandSender
 import org.incendo.cloud.Command
 import org.incendo.cloud.CommandManager
 import org.incendo.cloud.bukkit.BukkitCommandMeta
@@ -20,7 +20,7 @@ import org.incendo.cloud.parser.standard.IntegerParser
 
 class CommandBuilder(
     val parent: CommandBuilder?,
-    val manager: CommandManager<CommandSender>,
+    val manager: CommandManager<Audience>,
     val info: Info
 ) : CommandLike {
 
@@ -29,7 +29,7 @@ class CommandBuilder(
 
         val prefix = listOf(
             emptyComponentOf(),
-            "------ BetterModel ${PLUGIN.semver()} ------".toComponent(GRAY),
+            "------ BetterModel ${PLATFORM.semver()} ------".toComponent(GRAY),
             emptyComponentOf()
         )
 
@@ -89,7 +89,7 @@ class CommandBuilder(
                 val page = ctx.getOrDefault("page", 1)
                     .coerceAtLeast(1)
                     .coerceAtMost(maxPage)
-                ctx.sender().audience().info(*helpComponents[page - 1])
+                ctx.sender().info(*helpComponents[page - 1])
             }
         listOf(
             builder
@@ -105,7 +105,7 @@ class CommandBuilder(
         name: String,
         description: String,
         vararg aliases: String,
-        builder: Command.Builder<CommandSender>.() -> Command.Builder<out CommandSender>
+        builder: Command.Builder<Audience>.() -> Command.Builder<out Audience>
     ) {
         children += CommandLike.Cloud(createBuilder()
             .mapInfo(Info(name, Description.description(description), aliases.toList()))
@@ -125,16 +125,16 @@ class CommandBuilder(
         TODO("Not yet implemented")
     }
 
-    override fun build(): List<Command<out CommandSender>> = buildList {
+    override fun build(): List<Command<out Audience>> = buildList {
         children.flatMapTo(this) { it.build() }
         addAll(helpCommand)
     }
 
-    private fun Command.Builder<CommandSender>.mapInfo(info: Info) = literal(info.name, *info.aliases.toTypedArray())
+    private fun Command.Builder<Audience>.mapInfo(info: Info) = literal(info.name, *info.aliases.toTypedArray())
         .commandDescription(info.description)
         .permission("$permission.${info.name}")
 
-    private fun createBuilder(): Command.Builder<CommandSender> = parent?.createBuilder()?.mapInfo(info) ?: manager.commandBuilder(
+    private fun createBuilder(): Command.Builder<Audience> = parent?.createBuilder()?.mapInfo(info) ?: manager.commandBuilder(
         info.name,
         info.description,
         *info.aliases.toTypedArray()

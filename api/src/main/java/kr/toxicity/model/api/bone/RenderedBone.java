@@ -17,6 +17,9 @@ import kr.toxicity.model.api.data.renderer.RenderSource;
 import kr.toxicity.model.api.data.renderer.RendererGroup;
 import kr.toxicity.model.api.entity.BaseEntity;
 import kr.toxicity.model.api.nms.*;
+import kr.toxicity.model.api.platform.PlatformItemStack;
+import kr.toxicity.model.api.platform.PlatformLocation;
+import kr.toxicity.model.api.platform.PlatformPlayer;
 import kr.toxicity.model.api.tracker.ModelRotation;
 import kr.toxicity.model.api.tracker.Tracker;
 import kr.toxicity.model.api.util.*;
@@ -26,9 +29,6 @@ import kr.toxicity.model.api.util.function.FloatSupplier;
 import kr.toxicity.model.api.util.lock.DuplexLock;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.Location;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -71,7 +71,7 @@ public final class RenderedBone implements BoneEventHandler {
     @NotNull
     final Map<BoneName, RenderedBone> children;
 
-    private final Int2ObjectMap<ItemStack> tintCacheMap = new Int2ObjectOpenHashMap<>();
+    private final Int2ObjectMap<PlatformItemStack> tintCacheMap = new Int2ObjectOpenHashMap<>();
     @Getter
     private final boolean dummyBone;
     private final Object itemLock = new Object();
@@ -136,7 +136,7 @@ public final class RenderedBone implements BoneEventHandler {
             display = BetterModel.nms().create(context.source().location(), context.source() instanceof RenderSource.Entity ? -4096 : 0, d -> {
                 d.display(itemMapper.transform());
                 d.invisible(!group.getParent().visibility());
-                d.viewRange(EntityUtil.ENTITY_MODEL_VIEW_RADIUS);
+                d.viewRange(EntityUtil.entityModelViewRadius());
                 applyItem(d);
             });
         } else display = null;
@@ -151,16 +151,16 @@ public final class RenderedBone implements BoneEventHandler {
         }
     }
 
-    private @NotNull BoneStateHandler state(@Nullable Player player) {
-        return state(player != null ? player.getUniqueId() : null);
+    private @NotNull BoneStateHandler state(@Nullable PlatformPlayer player) {
+        return state(player != null ? player.uuid() : null);
     }
 
     @NotNull BoneStateHandler state(@Nullable UUID uuid) {
         return uuid == null ? globalState : perPlayerState.getOrDefault(uuid, globalState);
     }
 
-    private @NotNull BoneStateHandler getOrCreateState(@Nullable Player player) {
-        return getOrCreateState(player != null ? player.getUniqueId() : null);
+    private @NotNull BoneStateHandler getOrCreateState(@Nullable PlatformPlayer player) {
+        return getOrCreateState(player != null ? player.uuid() : null);
     }
 
     private @NotNull BoneStateHandler getOrCreateState(@Nullable UUID uuid) {
@@ -237,13 +237,7 @@ public final class RenderedBone implements BoneEventHandler {
      * @return success or not
      */
     public boolean enchant(@NotNull Predicate<RenderedBone> predicate, boolean enchant) {
-        return itemStack(predicate, itemStack.modify(i -> {
-            var meta = i.getItemMeta();
-            if (meta == null) return i;
-            meta.setEnchantmentGlintOverride(enchant);
-            i.setItemMeta(meta);
-            return i;
-        }));
+        return itemStack(predicate, itemStack.modify(i -> i.enchant(enchant)));
     }
 
     /**
@@ -425,7 +419,7 @@ public final class RenderedBone implements BoneEventHandler {
         targetDisplay.item(itemStack.isAir() ? itemStack.itemStack() : tintCacheMap.computeIfAbsent(tint, i -> BetterModel.nms().tint(itemStack.itemStack(), i)));
     }
 
-    public void teleport(@NotNull Location location, @NotNull PacketBundler bundler) {
+    public void teleport(@NotNull PlatformLocation location, @NotNull PacketBundler bundler) {
         if (display != null) display.teleport(location, bundler);
     }
 
@@ -465,7 +459,7 @@ public final class RenderedBone implements BoneEventHandler {
      * @param name animation's name
      * @param player player
      */
-    public boolean stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String name, @Nullable Player player) {
+    public boolean stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String name, @Nullable PlatformPlayer player) {
         return filter.test(this) && state(player).state.stopAnimation(name);
     }
 

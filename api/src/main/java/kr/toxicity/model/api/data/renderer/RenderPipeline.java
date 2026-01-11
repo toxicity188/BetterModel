@@ -13,13 +13,13 @@ import kr.toxicity.model.api.bone.*;
 import kr.toxicity.model.api.nms.HitBox;
 import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
+import kr.toxicity.model.api.platform.PlatformPlayer;
 import kr.toxicity.model.api.tracker.ModelRotation;
 import kr.toxicity.model.api.util.FunctionUtil;
 import kr.toxicity.model.api.util.function.BonePredicate;
 import kr.toxicity.model.api.util.function.FloatSupplier;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,8 +59,8 @@ public final class RenderPipeline implements BoneEventHandler {
     private final BoneEventDispatcher eventDispatcher = new BoneEventDispatcher();
     private final BoneIKSolver ikSolver;
 
-    private Predicate<Player> viewFilter = p -> true;
-    private Predicate<Player> hideFilter = p -> hidePlayerSet.contains(p.getUniqueId());
+    private Predicate<PlatformPlayer> viewFilter = p -> true;
+    private Predicate<PlatformPlayer> hideFilter = p -> hidePlayerSet.contains(p.uuid());
 
     private Consumer<PacketBundler> spawnPacketHandler = b -> {};
     private Consumer<PacketBundler> despawnPacketHandler = b -> {};
@@ -155,7 +155,7 @@ public final class RenderPipeline implements BoneEventHandler {
      * @param filter the predicate to filter players
      * @since 1.15.2
      */
-    public void viewFilter(@NotNull Predicate<Player> filter) {
+    public void viewFilter(@NotNull Predicate<PlatformPlayer> filter) {
         this.viewFilter = this.viewFilter.and(Objects.requireNonNull(filter));
     }
 
@@ -165,7 +165,7 @@ public final class RenderPipeline implements BoneEventHandler {
      * @param filter the predicate to hide players
      * @since 1.15.2
      */
-    public void hideFilter(@NotNull Predicate<Player> filter) {
+    public void hideFilter(@NotNull Predicate<PlatformPlayer> filter) {
         this.hideFilter = this.hideFilter.or(Objects.requireNonNull(filter));
     }
 
@@ -390,11 +390,11 @@ public final class RenderPipeline implements BoneEventHandler {
      * @since 1.15.2
      */
     @ApiStatus.Internal
-    public boolean spawn(@NotNull Player player, @NotNull PacketBundler bundler, @NotNull Consumer<SpawnedPlayer> consumer) {
-        var get = BetterModel.plugin().playerManager().player(player.getUniqueId());
+    public boolean spawn(@NotNull PlatformPlayer player, @NotNull PacketBundler bundler, @NotNull Consumer<SpawnedPlayer> consumer) {
+        var get = BetterModel.platform().playerManager().player(player.uuid());
         if (get == null) return false;
         var spawnedPlayer = new SpawnedPlayer(get);
-        playerMap.put(player.getUniqueId(), spawnedPlayer);
+        playerMap.put(player.uuid(), spawnedPlayer);
         spawnPacketHandler.accept(bundler);
         var hided = isHide(player);
         iterateTree(b -> b.spawn(hided, bundler));
@@ -410,8 +410,8 @@ public final class RenderPipeline implements BoneEventHandler {
      * @since 1.15.2
      */
     @ApiStatus.Internal
-    public boolean remove(@NotNull Player player) {
-        if (playerMap.remove(player.getUniqueId()) == null) return false;
+    public boolean remove(@NotNull PlatformPlayer player) {
+        if (playerMap.remove(player.uuid()) == null) return false;
         var bundler = createBundler();
         remove0(bundler);
         bundler.send(player);
@@ -522,7 +522,7 @@ public final class RenderPipeline implements BoneEventHandler {
      * @return the stream of players
      * @since 1.15.2
      */
-    public @NotNull Stream<Player> allPlayer() {
+    public @NotNull Stream<PlatformPlayer> allPlayer() {
         return playerMap.values()
             .stream()
             .map(spawned -> spawned.handler.player());
@@ -534,7 +534,7 @@ public final class RenderPipeline implements BoneEventHandler {
      * @return the stream of visible players
      * @since 1.15.2
      */
-    public @NotNull Stream<Player> nonHidePlayer() {
+    public @NotNull Stream<PlatformPlayer> nonHidePlayer() {
         return playerMap.values()
             .stream()
             .filter(spawned -> spawned.initialLoad)
@@ -548,7 +548,7 @@ public final class RenderPipeline implements BoneEventHandler {
      * @return the stream of viewed players
      * @since 1.15.2
      */
-    public @NotNull Stream<Player> viewedPlayer() {
+    public @NotNull Stream<PlatformPlayer> viewedPlayer() {
         return allPlayer().filter(viewFilter);
     }
 
@@ -559,15 +559,15 @@ public final class RenderPipeline implements BoneEventHandler {
      * @return true if the player was successfully hidden
      * @since 1.15.2
      */
-    public boolean hide(@NotNull Player player) {
-        if (isHide(player) || !hidePlayerSet.add(player.getUniqueId())) return false;
-        if (isSpawned(player.getUniqueId())) {
+    public boolean hide(@NotNull PlatformPlayer player) {
+        if (isHide(player) || !hidePlayerSet.add(player.uuid())) return false;
+        if (isSpawned(player.uuid())) {
             var bundler = createBundler();
             iterateTree(b -> b.forceUpdate(false, bundler));
             hidePacketHandler.accept(bundler);
             if (bundler.isNotEmpty()) bundler.send(player);
         }
-        BetterModel.plugin().scheduler().task(player, () -> hitboxes().forEach(hb -> hb.hide(player)));
+        player.task(() -> hitboxes().forEach(hb -> hb.hide(player)));
         return true;
     }
 
@@ -578,7 +578,7 @@ public final class RenderPipeline implements BoneEventHandler {
      * @return true if hidden
      * @since 1.15.2
      */
-    public boolean isHide(@NotNull Player player) {
+    public boolean isHide(@NotNull PlatformPlayer player) {
         return hideFilter.test(player);
     }
 
@@ -589,15 +589,15 @@ public final class RenderPipeline implements BoneEventHandler {
      * @return true if the player was successfully shown
      * @since 1.15.2
      */
-    public boolean show(@NotNull Player player) {
-        if (!isHide(player) || !hidePlayerSet.remove(player.getUniqueId())) return false;
-        if (isSpawned(player.getUniqueId())) {
+    public boolean show(@NotNull PlatformPlayer player) {
+        if (!isHide(player) || !hidePlayerSet.remove(player.uuid())) return false;
+        if (isSpawned(player.uuid())) {
             var bundler = createBundler();
             iterateTree(b -> b.forceUpdate(true, bundler));
             showPacketHandler.accept(bundler);
             if (bundler.isNotEmpty()) bundler.send(player);
         }
-        BetterModel.plugin().scheduler().task(player, () -> hitboxes().forEach(hb -> hb.show(player)));
+        player.task(() -> hitboxes().forEach(hb -> hb.show(player)));
         return true;
     }
 

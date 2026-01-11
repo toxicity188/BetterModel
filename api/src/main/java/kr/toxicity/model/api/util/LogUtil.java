@@ -54,7 +54,7 @@ public final class LogUtil {
                 list.add(toLog("Unknown", NamedTextColor.RED));
             }
         } else list.add(toLog("If you want to see the stack trace, set debug.exception to true in config.yml", NamedTextColor.LIGHT_PURPLE));
-        BetterModel.plugin().logger().warn(list.toArray(Component[]::new));
+        BetterModel.platform().logger().warn(list.toArray(Component[]::new));
     }
 
     /**
@@ -73,7 +73,7 @@ public final class LogUtil {
      * @param log log
      */
     public static void debug(@NotNull DebugConfig.DebugOption option, @NotNull Supplier<String> log) {
-        debug(option, () -> BetterModel.plugin().logger().info(Component.text()
+        debug(option, () -> BetterModel.platform().logger().info(Component.text()
             .append(toLog("[DEBUG-" + option + "] ", NamedTextColor.YELLOW))
             .append(Component.text(log.get()))
             .build())

@@ -24,7 +24,7 @@ inline fun File.getOrCreateDirectory(name: String, initialConsumer: (File) -> Un
 fun File.subFiles(): List<File> = listFiles()?.toList() ?: emptyList()
 
 inline fun copyResourceAs(name: String, block: (InputStream) -> Unit) {
-    PLUGIN.getResource(name)?.use(block)
+    PLATFORM.getResource(name)?.use(block)
 }
 
 fun File.toImage(): BufferedImage = ImageIO.read(this)

@@ -176,7 +176,7 @@ object ArmorManager : GlobalManager {
         pipeline: ReloadPipeline,
         zipper: PackZipper
     ) {
-        if (!PLUGIN.version().useModernResource() || !CONFIG.module().playerAnimation) {
+        if (!PLATFORM.version().useModernResource() || !CONFIG.module().playerAnimation) {
             armor = ArmorModel.EMPTY
             return
         }
@@ -211,7 +211,7 @@ object ArmorManager : GlobalManager {
         val models = PackObfuscator.order()
         armor = ArmorModel.builder()
             .namespace(CONFIG.namespace())
-            .streamLoader { path -> PLUGIN.getResource(path)!! }
+            .streamLoader { path -> PLATFORM.getResource(path)!! }
             .armors(pipeline
                 .mapParallel(File(folder, "armors").subFiles(), File::length) { it.toArmorImage() }
                 .sortedBy { it.name }

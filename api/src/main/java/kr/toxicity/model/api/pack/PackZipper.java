@@ -135,7 +135,7 @@ public final class PackZipper {
 
     private static @Nullable PackResource loadIcon() {
         try (
-            var icon = BetterModel.plugin().getResource("icon.png")
+            var icon = BetterModel.platform().getResource("icon.png")
         ) {
             if (icon == null) return null;
             var read = icon.readAllBytes();

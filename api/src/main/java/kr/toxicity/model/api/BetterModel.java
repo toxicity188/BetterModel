@@ -19,8 +19,6 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
 
-import static kr.toxicity.model.api.util.ReflectionUtil.classExists;
-
 /**
  * The main entry point for the BetterModel API.
  * <p>
@@ -40,25 +38,9 @@ public final class BetterModel {
     }
 
     /**
-     * Checks if the server is running on the Folia platform.
-     * @since 1.15.2
-     */
-    public static final boolean IS_FOLIA = classExists("io.papermc.paper.threadedregions.RegionizedServer");
-    /**
-     * Checks if the server is running on the Purpur platform.
-     * @since 1.15.2
-     */
-    public static final boolean IS_PURPUR = classExists("org.purpurmc.purpur.PurpurConfig");
-    /**
-     * Checks if the server is running on the Paper platform (or a fork like Purpur/Folia).
-     * @since 1.15.2
-     */
-    public static final boolean IS_PAPER = IS_PURPUR || IS_FOLIA || classExists("io.papermc.paper.configuration.PaperConfigurations");
-
-    /**
      * The singleton plugin instance.
      */
-    private static BetterModelPlugin instance;
+    private static BetterModelPlatform instance;
 
     /**
      * Returns the plugin configuration manager.
@@ -67,7 +49,7 @@ public final class BetterModel {
      * @since 1.15.2
      */
     public static @NotNull BetterModelConfig config() {
-        return plugin().config();
+        return platform().config();
     }
 
     /**
@@ -89,7 +71,7 @@ public final class BetterModel {
      * @since 1.15.2
      */
     public static @Nullable ModelRenderer modelOrNull(@NotNull String name) {
-        return plugin().modelManager().model(name);
+        return platform().modelManager().model(name);
     }
 
     /**
@@ -111,7 +93,7 @@ public final class BetterModel {
      * @since 1.15.2
      */
     public static @Nullable ModelRenderer limbOrNull(@NotNull String name) {
-        return plugin().modelManager().limb(name);
+        return platform().modelManager().limb(name);
     }
 
     /**
@@ -122,7 +104,7 @@ public final class BetterModel {
      * @since 1.15.2
      */
     public static @NotNull Optional<PlayerChannelHandler> player(@NotNull UUID uuid) {
-        return Optional.ofNullable(plugin().playerManager().player(uuid));
+        return Optional.ofNullable(platform().playerManager().player(uuid));
     }
 
     /**
@@ -198,7 +180,7 @@ public final class BetterModel {
      * @since 1.15.2
      */
     public static @NotNull @Unmodifiable Collection<ModelRenderer> models() {
-        return plugin().modelManager().models();
+        return platform().modelManager().models();
     }
 
     /**
@@ -208,7 +190,7 @@ public final class BetterModel {
      * @since 1.15.2
      */
     public static @NotNull @Unmodifiable Collection<ModelRenderer> limbs() {
-        return plugin().modelManager().limbs();
+        return platform().modelManager().limbs();
     }
 
     /**
@@ -218,7 +200,7 @@ public final class BetterModel {
      * @since 1.15.2
      */
     public static @NotNull @Unmodifiable Set<String> modelKeys() {
-        return plugin().modelManager().modelKeys();
+        return platform().modelManager().modelKeys();
     }
 
     /**
@@ -228,7 +210,7 @@ public final class BetterModel {
      * @since 1.15.2
      */
     public static @NotNull @Unmodifiable Set<String> limbKeys() {
-        return plugin().modelManager().limbKeys();
+        return platform().modelManager().limbKeys();
     }
 
     /**
@@ -236,10 +218,9 @@ public final class BetterModel {
      *
      * @return the plugin instance
      * @throws NullPointerException if the plugin has not been initialized
-     * @see org.bukkit.plugin.java.JavaPlugin
      * @since 1.15.2
      */
-    public static @NotNull BetterModelPlugin plugin() {
+    public static @NotNull BetterModelPlatform platform() {
         return Objects.requireNonNull(instance, "BetterModel hasn't been initialized yet!");
     }
 
@@ -250,7 +231,7 @@ public final class BetterModel {
      * @since 1.15.2
      */
     public static @NotNull NMS nms() {
-        return plugin().nms();
+        return platform().nms();
     }
 
     /**
@@ -264,7 +245,7 @@ public final class BetterModel {
      * @since 1.15.2
      */
     @ApiStatus.Internal
-    public static void register(@NotNull BetterModelPlugin instance) {
+    public static void register(@NotNull BetterModelPlatform instance) {
         Objects.requireNonNull(instance, "instance cannot be null.");
         if (BetterModel.instance == instance) throw new RuntimeException("Duplicated instance.");
         BetterModel.instance = instance;

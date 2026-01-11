@@ -9,37 +9,15 @@ package kr.toxicity.model.api.event;
 import kr.toxicity.model.api.profile.ModelProfile;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.event.Cancellable;
-import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
 @Getter
 @Setter
-public final class RemovePlayerSkinEvent extends AbstractModelEvent implements Cancellable {
-    /**
-     * Handler list
-     */
-    public static final HandlerList HANDLER_LIST = new HandlerList();
-
+public final class RemovePlayerSkinEvent implements CancellableEvent {
     private final ModelProfile modelProfile;
     private boolean cancelled;
 
     public RemovePlayerSkinEvent(@NotNull ModelProfile modelProfile) {
-        super(true);
         this.modelProfile = modelProfile;
-    }
-
-    @Override
-    public @NotNull HandlerList getHandlers() {
-        return HANDLER_LIST;
-    }
-
-    /**
-     * Gets a handler list
-     * @return handler list
-     */
-    @SuppressWarnings("unused") //This method is necessary for event API.
-    public static @NotNull HandlerList getHandlerList() {
-        return HANDLER_LIST;
     }
 }

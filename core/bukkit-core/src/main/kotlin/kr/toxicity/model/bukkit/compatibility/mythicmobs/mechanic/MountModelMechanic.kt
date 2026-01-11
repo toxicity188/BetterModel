@@ -1,0 +1,69 @@
+/**
+ * This source file is part of BetterModel.
+ * Copyright (c) 2024–2026 toxicity188
+ * Licensed under the MIT License.
+ * See LICENSE.md file for full license text.
+ */
+package kr.toxicity.model.bukkit.compatibility.mythicmobs.mechanic
+
+import io.lumine.mythic.api.adapters.AbstractEntity
+import io.lumine.mythic.api.config.MythicLineConfig
+import io.lumine.mythic.api.skills.ITargetedEntitySkill
+import io.lumine.mythic.api.skills.SkillMetadata
+import io.lumine.mythic.api.skills.SkillResult
+import kr.toxicity.model.api.bukkit.platform.BukkitAdapter
+import kr.toxicity.model.api.mount.MountControllers
+import kr.toxicity.model.api.nms.HitBoxListener
+import kr.toxicity.model.bukkit.compatibility.mythicmobs.*
+
+class MountModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), ITargetedEntitySkill {
+
+    companion object {
+        private val dismountListener = HitBoxListener.builder()
+            .dismount { h, _ ->
+                h.removeHitBox()
+            }
+            .build()
+    }
+
+    private val model = mlc.modelPlaceholder
+    private val driver = mlc.toPlaceholderBoolean(arrayOf("driver", "d", "drive"), true)
+    private val damagemount = mlc.toPlaceholderBoolean(arrayOf("damagemount", "dmg"), false)
+    private val interact = mlc.toPlaceholderString(arrayOf("mode", "m")) exec@ {
+        when (it) {
+            "walking" -> MountControllers.WALK.modifier()
+            "force_walking" -> MountControllers.WALK.modifier()
+                .canDismountBySelf(false)
+            "flying" -> MountControllers.FLY.modifier()
+            "force_flying" -> MountControllers.FLY.modifier()
+                .canDismountBySelf(false)
+            else -> null
+        }?.canMount(false)
+    }
+
+    private val seat = mlc.toPlaceholderStringList(MM_SEAT) {
+        it.toSet()
+    }
+
+    init {
+        isAsyncSafe = false
+    }
+
+    override fun castAtEntity(p0: SkillMetadata, p1: AbstractEntity): SkillResult {
+        val args = toPlaceholderArgs(p0, p1)
+        return p0.toTracker(model(args))?.let { tracker ->
+            val set = seat(args)
+            tracker.hitbox(dismountListener) {
+                (set.isEmpty() || set.contains(it.name().name)) && it.hitBox?.hasMountDriver() != true
+            }?.let { hitBox ->
+                hitBox.mountController(interact(args)
+                    ?.canControl(driver(args))
+                    ?.canBeDamagedByRider(damagemount(args))
+                    ?.build()
+                    ?: MountControllers.WALK)
+                hitBox.mount(p1.bukkitEntity.let(BukkitAdapter::adapt))
+                SkillResult.SUCCESS
+            }
+        } ?: SkillResult.CONDITION_FAILED
+    }
+}

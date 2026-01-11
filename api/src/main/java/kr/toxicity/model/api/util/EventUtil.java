@@ -6,9 +6,8 @@
  */
 package kr.toxicity.model.api.util;
 
-import org.bukkit.Bukkit;
-import org.bukkit.event.Cancellable;
-import org.bukkit.event.Event;
+import kr.toxicity.model.api.event.CancellableEvent;
+import kr.toxicity.model.api.event.ModelEvent;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,8 +28,8 @@ public final class EventUtil {
      * @param event event
      * @return not canceled
      */
-    public static boolean call(@NotNull Event event) {
+    public static boolean call(@NotNull ModelEvent event) {
         Bukkit.getPluginManager().callEvent(event);
-        return !(event instanceof Cancellable cancellable) || !cancellable.isCancelled();
+        return !(event instanceof CancellableEvent cancellable) || !cancellable.isCancelled();
     }
 }

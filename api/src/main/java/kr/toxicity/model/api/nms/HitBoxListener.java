@@ -7,7 +7,7 @@
 package kr.toxicity.model.api.nms;
 
 import kr.toxicity.model.api.event.ModelDamageSource;
-import org.bukkit.entity.Entity;
+import kr.toxicity.model.api.platform.PlatformEntity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiConsumer;
@@ -64,14 +64,14 @@ public interface HitBoxListener {
         private static final Consumer<HitBox> DEFAULT_SYNC = h -> {};
         private static final OnDamage DEFAULT_DAMAGE = (h, s, d) -> false;
         private static final Consumer<HitBox> DEFAULT_REMOVE = h -> {};
-        private static final BiConsumer<HitBox, Entity> DEFAULT_MOUNT = (h, e) -> {};
-        private static final BiConsumer<HitBox, Entity> DEFAULT_DISMOUNT = (h, e) -> {};
+        private static final BiConsumer<HitBox, PlatformEntity> DEFAULT_MOUNT = (h, e) -> {};
+        private static final BiConsumer<HitBox, PlatformEntity> DEFAULT_DISMOUNT = (h, e) -> {};
 
         private Consumer<HitBox> sync = DEFAULT_SYNC;
         private OnDamage damage = DEFAULT_DAMAGE;
         private Consumer<HitBox> remove = DEFAULT_REMOVE;
-        private BiConsumer<HitBox, Entity> mount = DEFAULT_MOUNT;
-        private BiConsumer<HitBox, Entity> dismount = DEFAULT_DISMOUNT;
+        private BiConsumer<HitBox, PlatformEntity> mount = DEFAULT_MOUNT;
+        private BiConsumer<HitBox, PlatformEntity> dismount = DEFAULT_DISMOUNT;
 
         /**
          * Private initializer
@@ -122,7 +122,7 @@ public interface HitBoxListener {
          * @return this builder
          * @since 1.15.2
          */
-        public @NotNull Builder mount(@NotNull BiConsumer<HitBox, Entity> mount) {
+        public @NotNull Builder mount(@NotNull BiConsumer<HitBox, PlatformEntity> mount) {
             this.mount = this.mount == DEFAULT_MOUNT ? mount : this.mount.andThen(mount);
             return this;
         }
@@ -134,7 +134,7 @@ public interface HitBoxListener {
          * @return this builder
          * @since 1.15.2
          */
-        public @NotNull Builder dismount(@NotNull BiConsumer<HitBox, Entity> dismount) {
+        public @NotNull Builder dismount(@NotNull BiConsumer<HitBox, PlatformEntity> dismount) {
             this.dismount = this.dismount == DEFAULT_DISMOUNT ? dismount : this.dismount.andThen(dismount);
             return this;
         }
@@ -163,13 +163,13 @@ public interface HitBoxListener {
                 }
 
                 @Override
-                public void mount(@NotNull HitBox hitBox, @NotNull Entity entity) {
-                    mount.accept(hitBox, entity);
+                public void mount(@NotNull HitBox hitBox, @NotNull PlatformEntity PlatformEntity) {
+                    mount.accept(hitBox, PlatformEntity);
                 }
 
                 @Override
-                public void dismount(@NotNull HitBox hitBox, @NotNull Entity entity) {
-                    dismount.accept(hitBox, entity);
+                public void dismount(@NotNull HitBox hitBox, @NotNull PlatformEntity PlatformEntity) {
+                    dismount.accept(hitBox, PlatformEntity);
                 }
             };
         }
@@ -233,20 +233,20 @@ public interface HitBoxListener {
     void remove(@NotNull HitBox hitBox);
 
     /**
-     * Called when an entity mounts the hitbox.
+     * Called when an PlatformEntity mounts the hitbox.
      *
      * @param hitBox the target hitbox
-     * @param entity the mounting entity
+     * @param PlatformEntity the mounting PlatformEntity
      * @since 1.15.2
      */
-    void mount(@NotNull HitBox hitBox, @NotNull Entity entity);
+    void mount(@NotNull HitBox hitBox, @NotNull PlatformEntity PlatformEntity);
 
     /**
-     * Called when an entity dismounts the hitbox.
+     * Called when an PlatformEntity dismounts the hitbox.
      *
      * @param hitBox the target hitbox
-     * @param entity the dismounting entity
+     * @param PlatformEntity the dismounting PlatformEntity
      * @since 1.15.2
      */
-    void dismount(@NotNull HitBox hitBox, @NotNull Entity entity);
+    void dismount(@NotNull HitBox hitBox, @NotNull PlatformEntity PlatformEntity);
 }

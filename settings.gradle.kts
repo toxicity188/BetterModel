@@ -1,15 +1,56 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+
+        maven("https://repo.papermc.io/repository/maven-public/")
+        maven("https://maven.fabricmc.net/")
+        maven("https://maven.neoforged.net/releases/")
+    }
+}
+
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+    id("fabric-loom") version "1.14-SNAPSHOT"
+    id("net.neoforged.moddev.repositories") version "2.0.139" //https://projects.neoforged.net/neoforged/ModDevGradle
+}
+
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+        maven("https://repo.papermc.io/repository/maven-public/")
+        maven("https://maven.fabricmc.net/")
+        maven("https://maven.neoforged.net/releases/")
+        maven("https://repo.codemc.org/repository/maven-public/")
+        maven("https://jitpack.io")
+        maven("https://repo.alessiodp.com/releases/")
+        maven("https://maven.blamejared.com/")
+        maven("https://repo.purpurmc.org/snapshots")
+        maven("https://maven.citizensnpcs.co/repo/")
+        maven("https://mvn.lumine.io/repository/maven-public/")
+        maven("https://repo.nexomc.com/releases/")
+    }
 }
 
 rootProject.name = "BetterModel"
 
 include(
+    //api
     "api",
+    "api:bukkit-api",
+    "api:mod-api",
+
+    //core
     "core",
+    "core:bukkit-core",
+    "core:mod-core",
+
     "purpur",
-    "plugin:spigot",
-    "plugin:paper",
+
+    "platform:spigot",
+    "platform:paper",
+
+    //nms
     "nms:v1_20_R4",
     "nms:v1_21_R1",
     "nms:v1_21_R2",
@@ -18,5 +59,7 @@ include(
     "nms:v1_21_R5",
     "nms:v1_21_R6",
     "nms:v1_21_R7",
+
+    //test
     "test-plugin"
 )

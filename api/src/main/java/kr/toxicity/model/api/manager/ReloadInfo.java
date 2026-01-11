@@ -7,8 +7,7 @@
 package kr.toxicity.model.api.manager;
 
 import lombok.Builder;
-import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
+import net.kyori.adventure.audience.Audience;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -22,13 +21,13 @@ import org.jetbrains.annotations.NotNull;
  * @since 1.15.2
  */
 @Builder
-public record ReloadInfo(boolean skipConfig, @NotNull CommandSender sender) {
+public record ReloadInfo(boolean skipConfig, @NotNull Audience sender) {
     /**
      * The default reload info, representing a standard reload initiated from the console.
      * @since 1.15.2
      */
     public static final ReloadInfo DEFAULT = ReloadInfo.builder()
         .skipConfig(false)
-        .sender(Bukkit.getConsoleSender())
+        .sender(Audience.empty())
         .build();
 }

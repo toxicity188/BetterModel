@@ -23,15 +23,14 @@ import kr.toxicity.model.api.nms.HitBox;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
+import kr.toxicity.model.api.platform.PlatformEntity;
+import kr.toxicity.model.api.platform.PlatformPlayer;
 import kr.toxicity.model.api.util.CollectionUtil;
 import kr.toxicity.model.api.util.LogUtil;
 import kr.toxicity.model.api.util.ThreadUtil;
 import kr.toxicity.model.api.util.lock.DuplexLock;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
-import org.bukkit.NamespacedKey;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,12 +60,6 @@ public final class EntityTrackerRegistry {
     private static final Object2ReferenceMap<UUID, EntityTrackerRegistry> UUID_REGISTRY_MAP = new Object2ReferenceOpenHashMap<>();
     private static final Int2ReferenceMap<EntityTrackerRegistry> ID_REGISTRY_MAP = new Int2ReferenceOpenHashMap<>();
     private static final DuplexLock REGISTRY_LOCK = new DuplexLock();
-    /**
-     * The namespaced key used for tracking ID.
-     * @since 1.15.2
-     */
-    @NotNull
-    public static final NamespacedKey TRACKING_ID = Objects.requireNonNull(NamespacedKey.fromString("bettermodel_tracker"));
 
     @ToString.Include
     private final AtomicBoolean closed = new AtomicBoolean();
@@ -304,7 +297,7 @@ public final class EntityTrackerRegistry {
 
     private void refreshPlayer() {
         entity.trackedBy()
-                .map(p -> BetterModel.player(p.getUniqueId()).orElse(null))
+                .map(p -> BetterModel.player(p.uuid()).orElse(null))
                 .filter(Objects::nonNull)
                 .forEach(this::registerPlayer);
     }
@@ -447,7 +440,7 @@ public final class EntityTrackerRegistry {
     private void runSync(@NotNull Runnable runnable) {
         if (ThreadUtil.isTickThread()) {
             runnable.run();
-        } else BetterModel.plugin().scheduler().task(entity.location(), runnable);
+        } else entity.platform().task(runnable);
     }
 
     /**
@@ -479,8 +472,8 @@ public final class EntityTrackerRegistry {
      * @return true if spawned
      * @since 1.15.2
      */
-    public boolean isSpawned(@NotNull Player player) {
-        return isSpawned(player.getUniqueId());
+    public boolean isSpawned(@NotNull PlatformPlayer player) {
+        return isSpawned(player.uuid());
     }
     /**
      * Checks if any tracker is spawned for a player UUID.
@@ -502,7 +495,7 @@ public final class EntityTrackerRegistry {
      * @return true if spawned successfully
      * @since 1.15.2
      */
-    public boolean spawn(@NotNull Player player) {
+    public boolean spawn(@NotNull PlatformPlayer player) {
         initialLoad();
         return spawn(player, false);
     }
@@ -513,14 +506,14 @@ public final class EntityTrackerRegistry {
      * @return true if spawned successfully
      * @since 1.15.2
      */
-    public boolean spawnIfNotSpawned(@NotNull Player player) {
+    public boolean spawnIfNotSpawned(@NotNull PlatformPlayer player) {
         initialLoad();
         return spawn(player, true);
     }
-    private boolean spawn(@NotNull Player player, boolean shouldNotSpawned) {
-        var handler = BetterModel.plugin()
+    private boolean spawn(@NotNull PlatformPlayer player, boolean shouldNotSpawned) {
+        var handler = BetterModel.platform()
                 .playerManager()
-                .player(player.getUniqueId());
+                .player(player.uuid());
         if (handler == null) return false;
         var cache = registerPlayer(handler);
         if (trackerMap.isEmpty()) return false;
@@ -556,8 +549,8 @@ public final class EntityTrackerRegistry {
      * @return true if removed successfully
      * @since 1.15.2
      */
-    public boolean remove(@NotNull Player player) {
-        var cache = viewedPlayerMap.remove(player.getUniqueId());
+    public boolean remove(@NotNull PlatformPlayer player) {
+        var cache = viewedPlayerMap.remove(player.uuid());
         if (cache == null) return false;
         var handler = cache.channelHandler;
         handler.sendEntityData(this);
@@ -624,7 +617,7 @@ public final class EntityTrackerRegistry {
      * @param hitBox the hitbox itself
      * @since 1.15.2
      */
-    public record MountedHitBox(@NotNull RenderedBone bone, @NotNull Entity entity, @NotNull HitBox hitBox) {
+    public record MountedHitBox(@NotNull RenderedBone bone, @NotNull PlatformEntity entity, @NotNull HitBox hitBox) {
         /**
          * Dismounts the entity from the hitbox.
          * @since 1.15.2

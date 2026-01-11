@@ -98,7 +98,7 @@ public record ModelDatapoint(
             return Float2FloatFunction.of(Float.parseFloat(string));
         } catch (NumberFormatException ignored) {
             return context.trySupply(
-                () -> BetterModel.plugin().evaluator().compile(context.placeholder.parseVariable(string)),
+                () -> BetterModel.platform().evaluator().compile(context.placeholder.parseVariable(string)),
                 error -> new ModelLoadContext.Fallback<>(
                     Float2FloatFunction.ZERO,
                     "Cannot parse this datapoint: " + primitive + ", reason: " + error.getMessage()

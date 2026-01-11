@@ -11,8 +11,11 @@ import kr.toxicity.model.api.config.IndicatorConfig;
 import kr.toxicity.model.api.config.ModuleConfig;
 import kr.toxicity.model.api.config.PackConfig;
 import kr.toxicity.model.api.mount.MountController;
+import kr.toxicity.model.api.platform.PlatformItemStack;
 import org.bukkit.Material;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.function.Supplier;
 
 /**
  * BetterModel's config
@@ -65,7 +68,13 @@ public interface BetterModelConfig {
      * Checks resource pack target item type
      * @return material
      */
-    @NotNull Material item();
+    @NotNull Supplier<PlatformItemStack> item();
+
+    /**
+     * Gets item model
+     * @return item model
+     */
+    @NotNull String itemModel();
 
     /**
      * Gets item namespace

@@ -7,7 +7,7 @@
 package kr.toxicity.model.api.manager;
 
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
-import org.bukkit.entity.Player;
+import kr.toxicity.model.api.platform.PlatformPlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,5 +42,5 @@ public interface PlayerManager {
      * @return the channel handler
      * @since 1.15.2
      */
-    @NotNull PlayerChannelHandler player(@NotNull Player player);
+    @NotNull PlayerChannelHandler player(@NotNull PlatformPlayer player);
 }

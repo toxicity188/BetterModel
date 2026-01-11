@@ -1,33 +1,18 @@
 plugins {
-    alias(libs.plugins.convention.bukkit)
-}
-
-repositories {
-    maven("https://maven.citizensnpcs.co/repo/")
-    maven("https://mvn.lumine.io/repository/maven-public/")
-    maven("https://repo.nexomc.com/releases/")
+    alias(libs.plugins.convention.standard)
 }
 
 dependencies {
-    shade(project(":api"))
-    shade(project(":purpur"))
-    rootProject.project("nms").subprojects.forEach {
-        compileOnly(it)
-    }
-    shade(libs.bundles.shadedLibrary) {
+    compileOnly(libs.bundles.minecraft)
+    compileOnly("com.mojang:authlib:7.0.61")
+
+    compileOnly(project(":api"))
+
+    compileOnly(libs.bundles.shadedLibrary) {
         exclude("net.kyori")
         exclude("org.ow2.asm")
         exclude("io.leangen.geantyref")
-        exclude("org.incendo", "cloud-core")
     }
 
     compileOnly(libs.bundles.manifestLibrary)
-    testImplementation(libs.bundles.manifestLibrary)
-
-    compileOnly("net.citizensnpcs:citizens-main:2.0.41-SNAPSHOT") {
-        exclude("net.byteflux")
-    }
-    compileOnly("net.skinsrestorer:skinsrestorer-api:15.9.3")
-    compileOnly("io.lumine:Mythic-Dist:5.11.1")
-    compileOnly("com.nexomc:nexo:1.17.0")
 }

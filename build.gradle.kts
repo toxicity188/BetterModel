@@ -25,7 +25,7 @@ runPaper {
 tasks {
     runServer {
         pluginJars(fileTree("plugins"))
-        pluginJars(project(":plugin:paper").tasks.shadowJar.flatMap {
+        pluginJars(project(":platform:paper").tasks.shadowJar.flatMap {
             it.archiveFile
         })
         pluginJars(project(":test-plugin").tasks.jar.flatMap {
@@ -64,7 +64,7 @@ hangarPublish {
         }
         platforms {
             register(Platforms.PAPER) {
-                jar = project(":plugin:paper").tasks.shadowJar.flatMap {
+                jar = project(":platform:paper").tasks.shadowJar.flatMap {
                     it.archiveFile
                 }
                 platformVersions = SUPPORTED_VERSIONS

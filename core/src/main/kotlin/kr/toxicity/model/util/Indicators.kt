@@ -16,7 +16,7 @@ private typealias Type = IndicatorConfig.IndicatorOption
 
 private val INDICATOR_MAP = EnumMap<Type, (ReloadInfo) -> ReloadIndicator?>(Type::class.java).apply {
     put(Type.PROGRESS_BAR) {
-        BossBarIndicator(it.sender.audience())
+        BossBarIndicator(it.sender)
     }
 }
 

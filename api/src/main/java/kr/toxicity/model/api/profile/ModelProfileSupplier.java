@@ -6,7 +6,7 @@
  */
 package kr.toxicity.model.api.profile;
 
-import org.bukkit.OfflinePlayer;
+import kr.toxicity.model.api.platform.PlatformOfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -26,7 +26,7 @@ public interface ModelProfileSupplier {
      * @param player player
      * @return uncompleted profile
      */
-    default @NotNull ModelProfile.Uncompleted supply(@NotNull OfflinePlayer player) {
-        return supply(new ModelProfileInfo(player.getUniqueId(), player.getName()));
+    default @NotNull ModelProfile.Uncompleted supply(@NotNull PlatformOfflinePlayer player) {
+        return supply(new ModelProfileInfo(player.uuid(), player.name()));
     }
 }

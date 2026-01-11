@@ -19,10 +19,9 @@ import kr.toxicity.model.api.event.ModelImportedEvent
 import kr.toxicity.model.api.manager.ModelManager
 import kr.toxicity.model.api.pack.PackBuilder
 import kr.toxicity.model.api.pack.PackZipper
+import kr.toxicity.model.api.platform.PlatformNamespace
 import kr.toxicity.model.util.*
 import net.kyori.adventure.text.format.NamedTextColor.*
-import org.bukkit.NamespacedKey
-import org.bukkit.inventory.ItemStack
 import java.io.File
 import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
@@ -31,7 +30,7 @@ import kotlin.io.path.fileSize
 
 object ModelManagerImpl : ModelManager, GlobalManager {
 
-    private lateinit var itemModelNamespace: NamespacedKey
+    private lateinit var itemModelNamespace: PlatformNamespace
     private val generalModelMap = hashMapOf<String, ModelRenderer>()
     private val generalModelView = generalModelMap.toImmutableView()
     private val playerModelMap = hashMapOf<String, ModelRenderer>()
@@ -94,7 +93,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                             copyRecursively(folder, overwrite = true)
                             info("ModelEngine's models are successfully migrated.".toComponent(GREEN))
                         } ?: run {
-                        if (PLUGIN.version().useModernResource()) folder.addResource("demon_knight.bbmodel")
+                        if (PLATFORM.version().useModernResource()) folder.addResource("demon_knight.bbmodel")
                     }
                 })
             )
@@ -139,7 +138,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                 }
             },
             onClose = {
-                val itemName = CONFIG.item().name.lowercase()
+                val itemName = CONFIG.itemModel().lowercase()
                 jsonObjectOf(
                     "parent" to "minecraft:item/generated",
                     "textures" to jsonObjectOf("layer0" to "minecraft:item/$itemName"),
@@ -205,7 +204,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                     }
                     //Legacy
                     legacyModel.ifAvailable {
-                        group.buildLegacyJson(PLUGIN.version().useModernResource(), obfuscator, load)
+                        group.buildLegacyJson(PLATFORM.version().useModernResource(), obfuscator, load)
                     }?.let {
                         legacyModel.build(listOf(it), size)
                         success = true
@@ -280,13 +279,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                 return RendererGroup(
                     scale(),
                     if (name.toItemMapper() !== BoneItemMapper.EMPTY) null else builder(this)?.let { i ->
-                        ItemStack(CONFIG.item()).apply {
-                            itemMeta = itemMeta.apply {
-                                @Suppress("DEPRECATION") //To support legacy server :(
-                                setCustomModelData(i)
-                                if (PLUGIN.version().useItemModelName()) itemModel = itemModelNamespace
-                            }
-                        }
+                        CONFIG.item().get().modelData(i, itemModelNamespace)
                     },
                     this,
                     children.filterIsInstance<BlueprintElement.Bone>()
@@ -311,7 +304,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
     }
 
     override fun reload(pipeline: ReloadPipeline, zipper: PackZipper) {
-        itemModelNamespace = NamespacedKey(CONFIG.namespace(), CONFIG.itemNamespace())
+        itemModelNamespace = PlatformNamespace(CONFIG.namespace(), CONFIG.itemNamespace())
         generalModelMap.clear()
         playerModelMap.clear()
         loadModels(pipeline, zipper)

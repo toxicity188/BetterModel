@@ -6,18 +6,18 @@
  */
 package kr.toxicity.model.profile
 
+import kr.toxicity.model.api.platform.PlatformPlayer
 import kr.toxicity.model.api.profile.ModelProfile
 import kr.toxicity.model.api.profile.ModelProfileInfo
 import kr.toxicity.model.api.profile.ModelProfileSupplier
-import org.bukkit.Bukkit
-import org.bukkit.entity.Player
+import kr.toxicity.model.util.PLATFORM
 
 class DefaultHttpModelProfileSupplier : ModelProfileSupplier {
 
     private val http = HttpModelProfileSupplier()
 
     override fun supply(info: ModelProfileInfo): ModelProfile.Uncompleted {
-        val player = Bukkit.getOfflinePlayer(info.id)
-        return if (player is Player) ModelProfile.of(player).asUncompleted() else http.supply(info)
+        val player = PLATFORM.adapter().offlinePlayer(info.id)
+        return if (player is PlatformPlayer) ModelProfile.of(player).asUncompleted() else http.supply(info)
     }
 }

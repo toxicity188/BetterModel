@@ -6,8 +6,8 @@
  */
 package kr.toxicity.model.api.event;
 
-import org.bukkit.Location;
-import org.bukkit.entity.Entity;
+import kr.toxicity.model.api.platform.PlatformEntity;
+import kr.toxicity.model.api.platform.PlatformLocation;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -17,29 +17,28 @@ public interface ModelDamageSource {
 
     /**
      * Gets causing entity
-     * @see org.bukkit.entity.LivingEntity
+     * @see kr.toxicity.model.api.platform.PlatformLivingEntity
      * @return causing entity
      */
-    @Nullable Entity getCausingEntity();
+    @Nullable PlatformEntity getCausingEntity();
 
     /**
      * Gets direct like
-     * @see org.bukkit.entity.Projectile
      * @return direct entity
      */
-    @Nullable Entity getDirectEntity();
+    @Nullable PlatformEntity getDirectEntity();
 
     /**
      * Gets damage location
      * @return damage location
      */
-    @Nullable Location getDamageLocation();
+    @Nullable PlatformEntity getDamageLocation();
 
     /**
      * Gets source location
      * @return source location
      */
-    @Nullable Location getSourceLocation();
+    @Nullable PlatformLocation getSourceLocation();
 
     /**
      * Checks causing entity is not equals with direct entity
