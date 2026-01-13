@@ -27,7 +27,6 @@ import kr.toxicity.model.api.platform.PlatformEntity;
 import kr.toxicity.model.api.platform.PlatformPlayer;
 import kr.toxicity.model.api.util.CollectionUtil;
 import kr.toxicity.model.api.util.LogUtil;
-import kr.toxicity.model.api.util.ThreadUtil;
 import kr.toxicity.model.api.util.lock.DuplexLock;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -289,7 +288,7 @@ public final class EntityTrackerRegistry {
     }
 
     private void initialLoad() {
-        if (ThreadUtil.isFoliaSafe() && loaded.compareAndSet(false, true)) {
+        if (BetterModel.platform().adapter().isRegionSafe() && loaded.compareAndSet(false, true)) {
             load();
             refreshPlayer();
         }
@@ -438,7 +437,7 @@ public final class EntityTrackerRegistry {
     }
 
     private void runSync(@NotNull Runnable runnable) {
-        if (ThreadUtil.isTickThread()) {
+        if (BetterModel.platform().adapter().isTickThread()) {
             runnable.run();
         } else entity.platform().task(runnable);
     }

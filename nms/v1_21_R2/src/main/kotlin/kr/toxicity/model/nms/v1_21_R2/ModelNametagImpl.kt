@@ -7,9 +7,12 @@
 package kr.toxicity.model.nms.v1_21_R2
 
 import com.mojang.math.Transformation
+import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.bone.RenderedBone
 import kr.toxicity.model.api.nms.ModelNametag
 import kr.toxicity.model.api.nms.PacketBundler
+import kr.toxicity.model.api.platform.PlatformLocation
+import kr.toxicity.model.api.platform.PlatformPlayer
 import kr.toxicity.model.api.util.EntityUtil
 import net.kyori.adventure.text.Component
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
@@ -21,8 +24,6 @@ import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.PositionMoveRotation
 import net.minecraft.world.phys.Vec3
-import org.bukkit.Location
-import org.bukkit.entity.Player
 import org.joml.Vector3f
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap

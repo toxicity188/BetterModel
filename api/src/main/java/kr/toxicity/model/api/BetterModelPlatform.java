@@ -14,6 +14,7 @@ import kr.toxicity.model.api.pack.PackZipper;
 import kr.toxicity.model.api.platform.PlatformAdapter;
 import kr.toxicity.model.api.scheduler.ModelScheduler;
 import kr.toxicity.model.api.version.MinecraftVersion;
+import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.audience.Audience;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,6 +32,8 @@ import java.util.function.Consumer;
 public interface BetterModelPlatform {
 
     @NotNull File dataFolder();
+
+    @NotNull JarType jarType();
 
     /**
      * Reloads the plugin with default settings (console sender).
@@ -267,6 +270,18 @@ public interface BetterModelPlatform {
          * @since 1.15.2
          */
         record Failure(@NotNull Throwable throwable) implements ReloadResult {
+        }
+    }
+
+    @RequiredArgsConstructor
+    enum JarType {
+        SPIGOT("spigot"),
+        PAPER("paper");
+
+        private final String raw;
+
+        public String raw() {
+            return raw;
         }
     }
 }

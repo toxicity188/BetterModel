@@ -1,5 +1,6 @@
 package kr.toxicity.model.api.bukkit.platform;
 
+import kr.toxicity.model.api.bukkit.BetterModelBukkit;
 import kr.toxicity.model.api.platform.*;
 import org.bukkit.*;
 import org.bukkit.entity.Entity;
@@ -55,6 +56,16 @@ public final class BukkitAdapter implements PlatformAdapter {
     @Override
     public int serverViewDistance() {
         return Bukkit.getViewDistance();
+    }
+
+    @Override
+    public boolean isTickThread() {
+        return Bukkit.isPrimaryThread();
+    }
+
+    @Override
+    public boolean isRegionSafe() {
+        return !BetterModelBukkit.IS_FOLIA || isTickThread();
     }
 
     @Override

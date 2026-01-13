@@ -14,7 +14,6 @@ import net.kyori.adventure.text.format.NamedTextColor.*
 import net.kyori.adventure.text.format.TextDecoration
 import org.incendo.cloud.Command
 import org.incendo.cloud.CommandManager
-import org.incendo.cloud.bukkit.BukkitCommandMeta
 import org.incendo.cloud.description.Description
 import org.incendo.cloud.parser.standard.IntegerParser
 
@@ -138,5 +137,5 @@ class CommandBuilder(
         info.name,
         info.description,
         *info.aliases.toTypedArray()
-    ).meta(BukkitCommandMeta.BUKKIT_DESCRIPTION, info.description.textDescription())
+    ) //.meta(BukkitCommandMeta.BUKKIT_DESCRIPTION, info.description.textDescription())
 }

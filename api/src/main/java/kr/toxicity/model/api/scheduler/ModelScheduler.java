@@ -6,11 +6,7 @@
  */
 package kr.toxicity.model.api.scheduler;
 
-import kr.toxicity.model.api.entity.BaseEntity;
-import org.bukkit.Location;
-import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * A scheduler of BetterModel

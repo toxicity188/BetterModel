@@ -9,6 +9,7 @@ package kr.toxicity.model.bukkit;
 import kr.toxicity.model.BetterModelPlatformImpl;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.BetterModelLogger;
+import kr.toxicity.model.api.bukkit.BetterModelBukkit;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -21,7 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
-public abstract class AbstractBetterModelPlugin extends JavaPlugin implements BetterModelPlatformImpl {
+public abstract class AbstractBetterModelPlugin extends JavaPlugin implements BetterModelPlatformImpl, BetterModelBukkit {
 
     protected boolean skipInitialReload;
     protected final AtomicBoolean onReload = new AtomicBoolean();

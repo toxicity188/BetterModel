@@ -7,9 +7,12 @@
 package kr.toxicity.model.nms.v1_20_R4
 
 import com.mojang.math.Transformation
+import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.bone.RenderedBone
 import kr.toxicity.model.api.nms.ModelNametag
 import kr.toxicity.model.api.nms.PacketBundler
+import kr.toxicity.model.api.platform.PlatformLocation
+import kr.toxicity.model.api.platform.PlatformPlayer
 import kr.toxicity.model.api.util.EntityUtil
 import net.kyori.adventure.text.Component
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
@@ -20,8 +23,6 @@ import net.minecraft.server.MinecraftServer
 import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.phys.Vec3
-import org.bukkit.Location
-import org.bukkit.entity.Player
 import org.joml.Vector3f
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -63,18 +64,18 @@ internal class ModelNametagImpl(
         this.alwaysVisible = alwaysVisible
     }
 
-    override fun send(player: Player) {
+    override fun send(player: PlatformPlayer) {
         if (display.text == VanillaComponent.empty()) return
         val hb = bone.group.hitBox?.centerPoint() ?: emptyVector
-        val pos = bone.worldPosition(hb, emptyVector, player.uniqueId)
+        val pos = bone.worldPosition(hb, emptyVector, player.uuid())
         display.moveTo(Vec3(
-            location.x + pos.x,
-            location.y + pos.y,
-            location.z + pos.z
+            location.x() + pos.x,
+            location.y() + pos.y,
+            location.z() + pos.z
         ))
-        val inPoint = alwaysVisible || EntityUtil.isCustomNameVisible(player.location, location)
+        val inPoint = alwaysVisible || EntityUtil.isCustomNameVisible(player.location(), location)
         when {
-            inPoint && viewedPlayer.add(player.uniqueId) -> bundlerOfNotNull(
+            inPoint && viewedPlayer.add(player.uuid()) -> bundlerOfNotNull(
                 addPacket,
                 display.entityData.pack()?.let {
                     ClientboundSetEntityDataPacket(display.id, it)
@@ -86,7 +87,7 @@ internal class ModelNametagImpl(
                     ClientboundSetEntityDataPacket(display.id, it)
                 }
             )
-            viewedPlayer.remove(player.uniqueId) -> bundlerOf(removePacket)
+            viewedPlayer.remove(player.uuid()) -> bundlerOf(removePacket)
             else -> null
         }?.send(player)
     }

@@ -9,6 +9,10 @@ public interface PlatformAdapter {
 
     int serverViewDistance();
 
+    boolean isTickThread();
+
+    boolean isRegionSafe();
+
     @Nullable PlatformPlayer player(@NotNull UUID uuid);
 
     @NotNull PlatformOfflinePlayer offlinePlayer(@NotNull UUID uuid);

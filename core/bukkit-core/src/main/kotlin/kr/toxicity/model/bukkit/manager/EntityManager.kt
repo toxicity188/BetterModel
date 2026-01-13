@@ -16,6 +16,7 @@ import kr.toxicity.model.api.tracker.Tracker
 import kr.toxicity.model.bukkit.util.registerListener
 import kr.toxicity.model.manager.GlobalManager
 import kr.toxicity.model.manager.ReloadPipeline
+import kr.toxicity.model.nms.v1_21_R4.wrap
 import kr.toxicity.model.util.PLATFORM
 import org.bukkit.entity.Entity
 import org.bukkit.entity.Player
@@ -37,6 +38,7 @@ import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.world.EntitiesUnloadEvent
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.potion.PotionEffectType
+import org.joml.Vector3f
 
 /**
  * This source file is part of BetterModel.
@@ -58,7 +60,7 @@ object EntityManager : GlobalManager {
         }
         @EventHandler(priority = EventPriority.MONITOR)
         fun EntityAddToWorldEvent.add() {
-            BetterModel.registryOrNull(entity)?.refresh()
+            BetterModel.registryOrNull(entity.wrap())?.refresh()
         }
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         fun EntityJumpEvent.jump() {
@@ -73,7 +75,7 @@ object EntityManager : GlobalManager {
         }
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         fun EntitySpawnEvent.spawn() {
-            BetterModel.registryOrNull(entity)?.refresh()
+            BetterModel.registryOrNull(entity.wrap())?.refresh()
         }
         @EventHandler(priority = EventPriority.MONITOR)
         fun PlayerChangedWorldEvent.change() {
@@ -98,11 +100,12 @@ object EntityManager : GlobalManager {
         }
         @EventHandler(priority = EventPriority.MONITOR)
         fun PlayerQuitEvent.quit() { //Quit
-            BetterModel.registryOrNull(player.uniqueId)?.close()
+            val wrap = player.wrap()
+            BetterModel.registryOrNull(wrap.uuid())?.close()
             PLATFORM.scheduler().asyncTask {
-                EntityTrackerRegistry.registries { registry -> registry.remove(player) }
+                EntityTrackerRegistry.registries { registry -> registry.remove(wrap) }
             }
-            (player.vehicle as? HitBox)?.dismount(player)
+            (player.vehicle as? HitBox)?.dismount(wrap)
         }
         @EventHandler(priority = EventPriority.MONITOR)
         fun PlayerDeathEvent.death() {
@@ -117,21 +120,26 @@ object EntityManager : GlobalManager {
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         fun EntityDeathEvent.death() { //Death
             entity.forEachTracker {
-                if (it.animate("death", AnimationModifier.DEFAULT_WITH_PLAY_ONCE, Tracker::close)) {
+                if (it.animate("death", AnimationModifier.DEFAULT_WITH_PLAY_ONCE) { it.close() }) {
                     it.forRemoval(true)
                 }
             }
         }
         @EventHandler(priority = EventPriority.MONITOR)
         fun PlayerInteractAtEntityEvent.interact() {
+            val pos = clickedPosition
             (rightClicked as? HitBox)?.triggerInteractAt(
-                player,
+                player.wrap(),
                 when (this.hand) {
                     EquipmentSlot.HAND -> ModelInteractionHand.RIGHT
                     EquipmentSlot.OFF_HAND -> ModelInteractionHand.LEFT
                     else -> return
                 },
-                clickedPosition
+                Vector3f(
+                    pos.x.toFloat(),
+                    pos.y.toFloat(),
+                    pos.z.toFloat()
+                )
             )
         }
 
@@ -141,7 +149,7 @@ object EntityManager : GlobalManager {
             val dismount = isRight && player.triggerDismount(rightClicked)
             (rightClicked as? HitBox)?.let {
                 it.triggerInteract(
-                    player,
+                    player.wrap(),
                     when (this.hand) {
                         EquipmentSlot.HAND -> ModelInteractionHand.RIGHT
                         EquipmentSlot.OFF_HAND -> ModelInteractionHand.LEFT
@@ -155,10 +163,10 @@ object EntityManager : GlobalManager {
         fun EntityDamageEvent.damage() { //Damage
             if (this is EntityDamageByEntityEvent) {
                 val victim = entity.run {
-                    if (this is HitBox) source().uniqueId else uniqueId
+                    if (this is HitBox) source().uuid() else uniqueId
                 }
                 val v = damager.vehicle
-                if (v is HitBox && !v.mountController().canBeDamagedByRider() && v.source().uniqueId == victim) {
+                if (v is HitBox && !v.mountController().canBeDamagedByRider() && v.source().uuid() == victim) {
                     isCancelled = true
                     return
                 }
@@ -199,15 +207,15 @@ object EntityManager : GlobalManager {
     private fun Player.triggerDismount(e: Entity): Boolean {
         val previous = vehicle
         if (previous !is HitBox) return false
-        val uuid = if (e is HitBox) e.source().uniqueId else e.uniqueId
-        if (previous.source().uniqueId == uuid && previous.mountController().canDismountBySelf()) {
-            previous.dismount(this)
+        val uuid = if (e is HitBox) e.source().uuid() else e.uniqueId
+        if (previous.source().uuid() == uuid && previous.mountController().canDismountBySelf()) {
+            previous.dismount(wrap())
             return true
         }
         return false
     }
 
     private fun Player.triggerMount(hitBox: HitBox) {
-        if (hitBox.mountController().canMount()) hitBox.mount(this)
+        if (hitBox.mountController().canMount()) hitBox.mount(wrap())
     }
 }

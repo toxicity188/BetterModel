@@ -6,6 +6,7 @@
  */
 package kr.toxicity.model.spigot
 
+import kr.toxicity.model.api.BetterModelPlatform
 import kr.toxicity.model.bukkit.BetterModelPlugin
 import kr.toxicity.model.api.bukkit.BetterModelBukkit
 import kr.toxicity.model.util.toComponent
@@ -24,5 +25,9 @@ class BetterModelPluginSpigot : BetterModelPlugin() {
             return Bukkit.getPluginManager().disablePlugin(this)
         }
         super.onEnable()
+    }
+
+    override fun jarType(): BetterModelPlatform.JarType {
+        return BetterModelPlatform.JarType.SPIGOT
     }
 }

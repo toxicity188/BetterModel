@@ -10,6 +10,7 @@ import com.nexomc.nexo.api.events.resourcepack.NexoPrePackGenerateEvent
 import kr.toxicity.model.api.BetterModelPlatform
 import kr.toxicity.model.bukkit.util.registerListener
 import kr.toxicity.model.bukkit.compatibility.Compatibility
+import kr.toxicity.model.bukkit.util.PLUGIN
 import kr.toxicity.model.util.*
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.event.EventHandler
@@ -17,7 +18,7 @@ import org.bukkit.event.Listener
 
 class NexoCompatibility : Compatibility {
     override fun start() {
-        if (CONFIG.mergeWithExternalResources()) PLATFORM.skipInitialReload()
+        if (CONFIG.mergeWithExternalResources()) PLUGIN.skipInitialReload()
         registerListener(object : Listener {
             @EventHandler
             fun NexoPrePackGenerateEvent.generate() {

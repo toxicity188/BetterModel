@@ -10,6 +10,10 @@ import kr.toxicity.model.api.entity.BaseEntity
 import kr.toxicity.model.api.nms.DisplayTransformer
 import kr.toxicity.model.api.nms.ModelDisplay
 import kr.toxicity.model.api.nms.PacketBundler
+import kr.toxicity.model.api.platform.PlatformBillboard
+import kr.toxicity.model.api.platform.PlatformItemStack
+import kr.toxicity.model.api.platform.PlatformItemTransform
+import kr.toxicity.model.api.platform.PlatformLocation
 import kr.toxicity.model.api.tracker.ModelRotation
 import kr.toxicity.model.api.util.lock.SingleLock
 import net.minecraft.network.protocol.game.*
@@ -87,12 +91,12 @@ internal class ModelDisplayImpl(
         bundler += removePacket
     }
 
-    override fun teleport(location: Location, bundler: PacketBundler) {
+    override fun teleport(location: PlatformLocation, bundler: PacketBundler) {
         display.moveTo(
-            location.x,
-            location.y,
-            location.z,
-            location.yaw,
+            location.x(),
+            location.y(),
+            location.z(),
+            location.yaw(),
             0F
         )
         bundler += ClientboundTeleportEntityPacket(display)

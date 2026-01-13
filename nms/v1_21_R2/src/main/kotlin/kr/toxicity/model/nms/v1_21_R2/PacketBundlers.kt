@@ -52,7 +52,7 @@ internal class SimpleBundler(
     override val bundlePacket = ClientboundBundlePacket(this)
     override fun send(player: PlatformPlayer, onSuccess: Runnable) {
         if (isEmpty) return
-        val connection = (player.unwrap() as CraftPlayer).handle.connection
+        val connection = (player.unwarp() as CraftPlayer).handle.connection
         connection.send(bundlePacket, PacketSendListener.thenRun(onSuccess))
     }
     override fun isEmpty(): Boolean = list.isEmpty()
@@ -76,7 +76,7 @@ internal class LazyBundler : PacketBundler, PluginBundlePacketImpl {
     override val bundlePacket = ClientboundBundlePacket(this)
     override fun send(player: PlatformPlayer, onSuccess: Runnable) {
         if (isEmpty) return
-        val connection = (player.unwrap() as CraftPlayer).handle.connection
+        val connection = (player.unwarp() as CraftPlayer).handle.connection
         connection.send(bundlePacket, PacketSendListener.thenRun(onSuccess))
     }
     override fun isEmpty(): Boolean = size() == 0
@@ -110,7 +110,7 @@ internal class ParallelBundler(
     private var selectedBundler = newBundler
     override fun send(player: PlatformPlayer, onSuccess: Runnable) {
         if (isEmpty) return
-        val connection = (player.unwrap() as CraftPlayer).handle.connection
+        val connection = (player.unwarp() as CraftPlayer).handle.connection
         subBundlers.forEach {
             connection.send(it.bundlePacket)
         }

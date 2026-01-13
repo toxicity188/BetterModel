@@ -8,11 +8,5 @@ dependencies {
 
     compileOnly(project(":api"))
 
-    compileOnly(libs.bundles.shadedLibrary) {
-        exclude("net.kyori")
-        exclude("org.ow2.asm")
-        exclude("io.leangen.geantyref")
-    }
-
-    compileOnly(libs.bundles.manifestLibrary)
+    compileOnly(libs.bundles.core)
 }

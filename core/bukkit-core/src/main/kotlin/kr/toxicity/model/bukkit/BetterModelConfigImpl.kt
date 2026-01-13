@@ -23,21 +23,20 @@ import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.inventory.ItemStack
 import java.io.File
 import java.util.function.Supplier
-import kotlin.compareTo
 
 class BetterModelConfigImpl(yaml: ConfigurationSection) : BetterModelConfig {
 
     private val debug = yaml.getConfigurationSection("debug")?.let {
-        DebugConfig.from(it)
+        DebugConfig.from(it::getBoolean)
     } ?: DebugConfig.DEFAULT
     private val indicator = yaml.getConfigurationSection("indicator")?.let {
-        IndicatorConfig.from(it)
+        IndicatorConfig.from(it::getBoolean)
     } ?: IndicatorConfig.DEFAULT
     private val module = yaml.getConfigurationSection("module")?.let {
-        ModuleConfig.from(it)
+        ModuleConfig.from(it::getBoolean)
     } ?: ModuleConfig.DEFAULT
     private val pack = yaml.getConfigurationSection("pack")?.let {
-        PackConfig.from(it)
+        PackConfig.from(it::getBoolean)
     } ?: PackConfig.DEFAULT
     private val metrics = yaml.getBoolean("metrics", true)
     private val sightTrace = yaml.getBoolean("sight-trace", true)

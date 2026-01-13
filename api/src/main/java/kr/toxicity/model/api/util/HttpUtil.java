@@ -158,7 +158,7 @@ public final class HttpUtil {
          * @return is same platform
          */
         public boolean isSamePlatform() {
-            return BetterModelBukkit.IS_PAPER != loaders.contains("bukkit");
+            return loaders.contains(BetterModel.platform().jarType().raw());
         }
     }
 

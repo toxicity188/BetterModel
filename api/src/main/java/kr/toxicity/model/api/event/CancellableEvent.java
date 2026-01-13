@@ -4,5 +4,5 @@ public interface CancellableEvent extends ModelEvent {
 
     boolean isCancelled();
 
-    boolean setCancelled(boolean isCanceled);
+    void setCancelled(boolean cancel);
 }

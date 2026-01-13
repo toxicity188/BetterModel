@@ -13,12 +13,11 @@ import kr.toxicity.model.api.BetterModelEventBus
 import kr.toxicity.model.api.BetterModelLogger
 import kr.toxicity.model.api.BetterModelPlatform.ReloadResult
 import kr.toxicity.model.api.BetterModelPlatform.ReloadResult.*
-import kr.toxicity.model.api.bukkit.BetterModelBukkit
+import kr.toxicity.model.api.bukkit.platform.BukkitAdapter
+import kr.toxicity.model.api.bukkit.scheduler.BukkitModelScheduler
 import kr.toxicity.model.api.manager.*
 import kr.toxicity.model.api.nms.NMS
 import kr.toxicity.model.api.pack.PackZipper
-import kr.toxicity.model.api.platform.PlatformAdapter
-import kr.toxicity.model.api.scheduler.ModelScheduler
 import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.bukkit.configuration.PluginConfiguration
 import kr.toxicity.model.bukkit.manager.PlayerManagerImpl
@@ -92,9 +91,9 @@ abstract class BetterModelPlugin : AbstractBetterModelPlugin() {
                         "Minecraft version: ${props.version}, NMS version: ${props.nms.version()}".toComponent(AQUA),
                         "Platform: ${
                             when {
-                                BetterModelBukkit.IS_FOLIA -> "Folia"
-                                BetterModelBukkit.IS_PURPUR -> "Purpur"
-                                BetterModelBukkit.IS_PAPER -> "Paper"
+                                IS_FOLIA -> "Folia"
+                                IS_PURPUR -> "Purpur"
+                                IS_PAPER -> "Paper"
                                 else -> "Bukkit"
                             }
                         }".toComponent(AQUA)
@@ -159,8 +158,8 @@ abstract class BetterModelPlugin : AbstractBetterModelPlugin() {
 
     override fun dataFolder(): File = dataFolder
     override fun logger(): BetterModelLogger = logger
-    override fun adapter(): PlatformAdapter = props.adapter
-    override fun scheduler(): ModelScheduler = props.scheduler
+    override fun adapter(): BukkitAdapter = props.adapter
+    override fun scheduler(): BukkitModelScheduler = props.scheduler
     override fun evaluator(): BetterModelEvaluator = props.evaluator
     override fun eventBus(): BetterModelEventBus = props.eventbus
     override fun modelManager(): ModelManager = ModelManagerImpl
