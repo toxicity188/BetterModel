@@ -10,6 +10,7 @@ import kr.toxicity.model.BetterModelPlatformImpl;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.BetterModelLogger;
 import kr.toxicity.model.api.bukkit.BetterModelBukkit;
+import kr.toxicity.model.api.bukkit.platform.BukkitAdapter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -27,6 +28,7 @@ public abstract class AbstractBetterModelPlugin extends JavaPlugin implements Be
     protected boolean skipInitialReload;
     protected final AtomicBoolean onReload = new AtomicBoolean();
     protected final AtomicBoolean firstLoad = new AtomicBoolean();
+    protected final BukkitAdapter adapter = new BukkitAdapter();
     protected final BetterModelLogger logger = new BetterModelLogger() {
 
         private ComponentLogger internalLogger;
@@ -73,6 +75,12 @@ public abstract class AbstractBetterModelPlugin extends JavaPlugin implements Be
     @Override
     public void saveResource(@NotNull String resourcePath) {
         saveResource(resourcePath, false);
+    }
+
+    @Override
+    @NotNull
+    public BukkitAdapter adapter() {
+        return adapter;
     }
 
     public @NotNull Attributes attributes() {

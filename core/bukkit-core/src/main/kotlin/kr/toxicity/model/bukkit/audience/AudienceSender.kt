@@ -3,10 +3,10 @@ package kr.toxicity.model.bukkit.audience
 import kr.toxicity.model.bukkit.util.audience
 import net.kyori.adventure.bossbar.BossBar
 import net.kyori.adventure.text.Component
-import org.bukkit.entity.Player
+import org.bukkit.command.CommandSender
 
-class AudiencePlayer(
-    override val sender: Player
+class AudienceSender(
+    override val sender: CommandSender
 ) : BukkitAudience {
 
     private val audience = sender.audience()

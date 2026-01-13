@@ -5,6 +5,7 @@ plugins {
 
 dependencies {
     compileOnly(project(":api"))
+    compileOnly(project(":api:bukkit-api"))
 
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)

@@ -19,6 +19,7 @@ import kr.toxicity.model.api.manager.*
 import kr.toxicity.model.api.nms.NMS
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.version.MinecraftVersion
+import kr.toxicity.model.bukkit.command.startBukkitCommand
 import kr.toxicity.model.bukkit.configuration.PluginConfiguration
 import kr.toxicity.model.bukkit.manager.PlayerManagerImpl
 import kr.toxicity.model.bukkit.util.ADVENTURE_PLATFORM
@@ -63,6 +64,7 @@ abstract class BetterModelPlugin : AbstractBetterModelPlugin() {
             "This build is dev version: be careful to use it!".toComponent(),
             "Build number: ${props.snapshot}".toComponent(LIGHT_PURPLE)
         )
+        startBukkitCommand()
         registerListener(object : Listener {
             @EventHandler
             fun PlayerJoinEvent.join() {
@@ -158,7 +160,6 @@ abstract class BetterModelPlugin : AbstractBetterModelPlugin() {
 
     override fun dataFolder(): File = dataFolder
     override fun logger(): BetterModelLogger = logger
-    override fun adapter(): BukkitAdapter = props.adapter
     override fun scheduler(): BukkitModelScheduler = props.scheduler
     override fun evaluator(): BetterModelEvaluator = props.evaluator
     override fun eventBus(): BetterModelEventBus = props.eventbus

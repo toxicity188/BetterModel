@@ -57,7 +57,7 @@ public final class EntityUtil {
     public static boolean canSee(@NotNull PlatformLocation player, @NotNull PlatformLocation target) {
         var manager = BetterModel.config();
         if (!manager.sightTrace()) return true;
-        else if (player.world() != target.world()) return false;
+        else if (!player.world().equals(target.world())) return false;
 
         var d = distance(player, target);
         if (d > manager.maxSight()) return false;
@@ -76,7 +76,7 @@ public final class EntityUtil {
      * @return whether target's custom name is visible
      */
     public static boolean isCustomNameVisible(@NotNull PlatformLocation player, @NotNull PlatformLocation target) {
-        if (player.world() != target.world()) return false;
+        if (!player.world().equals(target.world())) return false;
         if (distance(player, target) > 5) return false;
         return isInPoint(player, target);
     }

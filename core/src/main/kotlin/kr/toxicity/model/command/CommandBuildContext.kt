@@ -16,15 +16,6 @@ class CommandBuildContext(
     description: String,
     vararg aliases: String,
 ) {
-//    private val manager = LegacyPaperCommandManager.createNative(
-//        PLUGIN,
-//        ExecutionCoordinator.simpleCoordinator(),
-//    ).apply {
-//        if (hasCapability(CloudBukkitCapabilities.NATIVE_BRIGADIER)) {
-//            registerBrigadier()
-//            brigadierManager().setNativeNumberSuggestions(true)
-//        } else if (hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) registerAsynchronousCompletions()
-//    }
     val root = CommandBuilder(
         null,
         manager,

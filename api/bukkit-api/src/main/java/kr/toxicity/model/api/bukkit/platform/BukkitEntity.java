@@ -2,11 +2,15 @@ package kr.toxicity.model.api.bukkit.platform;
 
 import kr.toxicity.model.api.platform.PlatformEntity;
 import kr.toxicity.model.api.platform.PlatformLocation;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
+@ToString
+@EqualsAndHashCode
 public class BukkitEntity implements PlatformEntity {
 
     private final Entity source;

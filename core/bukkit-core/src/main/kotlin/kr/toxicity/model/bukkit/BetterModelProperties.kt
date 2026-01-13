@@ -12,17 +12,16 @@ import kr.toxicity.model.BetterModelEventBusImpl
 import kr.toxicity.model.api.BetterModelConfig
 import kr.toxicity.model.api.BetterModelPlatform.ReloadResult
 import kr.toxicity.model.api.bukkit.BetterModelBukkit
-import kr.toxicity.model.api.bukkit.platform.BukkitAdapter
 import kr.toxicity.model.api.event.PluginEndReloadEvent
 import kr.toxicity.model.api.event.PluginStartReloadEvent
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.version.MinecraftVersion.*
-import kr.toxicity.model.bukkit.scheduler.BukkitScheduler
-import kr.toxicity.model.bukkit.scheduler.PaperScheduler
 import kr.toxicity.model.bukkit.configuration.PluginConfiguration
 import kr.toxicity.model.bukkit.manager.CompatibilityManager
 import kr.toxicity.model.bukkit.manager.EntityManager
 import kr.toxicity.model.bukkit.manager.PlayerManagerImpl
+import kr.toxicity.model.bukkit.scheduler.BukkitScheduler
+import kr.toxicity.model.bukkit.scheduler.PaperScheduler
 import kr.toxicity.model.manager.*
 import kr.toxicity.model.util.callEvent
 import kr.toxicity.model.util.handleException
@@ -61,7 +60,6 @@ internal class BetterModelProperties(
     val scheduler = if (BetterModelBukkit.IS_FOLIA) PaperScheduler() else BukkitScheduler()
     val evaluator = BetterModelEvaluatorImpl()
     val eventbus = BetterModelEventBusImpl()
-    val adapter = BukkitAdapter()
     @Suppress("DEPRECATION") //To support Spigot :(
     val semver = Semver(plugin.description.version, Semver.SemverType.LOOSE)
     val snapshot = runCatching {
@@ -91,8 +89,7 @@ internal class BetterModelProperties(
             ModelManagerImpl,
             PlayerManagerImpl,
             EntityManager,
-            ScriptManagerImpl,
-            //CommandManager
+            ScriptManagerImpl
         )
     }
 
