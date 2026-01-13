@@ -13,6 +13,7 @@ import io.lumine.mythic.api.skills.SkillResult
 import io.lumine.mythic.bukkit.MythicBukkit
 import kr.toxicity.model.api.nms.HitBoxListener
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.*
+import kr.toxicity.model.bukkit.util.unwarp
 import org.bukkit.entity.Damageable
 import org.bukkit.entity.Entity
 
@@ -43,7 +44,7 @@ class BindHitBoxMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), IN
                 }
                 .damage { _, source, damage ->
                     if (spawned is Damageable) {
-                        spawned.damage(damage, source.causingEntity)
+                        spawned.damage(damage, source.causingEntity?.unwarp())
                         true
                     } else false
                 }

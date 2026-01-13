@@ -9,6 +9,7 @@ package kr.toxicity.model.bukkit.compatibility.skinsrestorer
 import kr.toxicity.model.api.profile.ModelProfile
 import kr.toxicity.model.api.profile.ModelProfileInfo
 import kr.toxicity.model.bukkit.compatibility.Compatibility
+import kr.toxicity.model.bukkit.util.wrap
 import kr.toxicity.model.manager.ProfileManagerImpl
 import kr.toxicity.model.manager.SkinManagerImpl
 import kr.toxicity.model.util.PLATFORM
@@ -25,7 +26,7 @@ class SkinsRestorerCompatibility : Compatibility {
     override fun start() {
         manager.eventBus.subscribe(PLATFORM, SkinApplyEvent::class.java) {
             val player = it.getPlayer(Player::class.java)
-            SkinManagerImpl.removeCache(ModelProfile.of(player))
+            SkinManagerImpl.removeCache(ModelProfile.of(player.wrap()))
         }
         ProfileManagerImpl.supplier {
             SkinsRestorerProfile(it)

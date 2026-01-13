@@ -11,10 +11,10 @@ import io.lumine.mythic.api.config.MythicLineConfig
 import io.lumine.mythic.api.skills.ITargetedEntitySkill
 import io.lumine.mythic.api.skills.SkillMetadata
 import io.lumine.mythic.api.skills.SkillResult
-import kr.toxicity.model.api.bukkit.platform.BukkitAdapter
 import kr.toxicity.model.api.mount.MountControllers
 import kr.toxicity.model.api.nms.HitBoxListener
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.*
+import kr.toxicity.model.bukkit.util.wrap
 
 class MountModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), ITargetedEntitySkill {
 
@@ -61,7 +61,7 @@ class MountModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), IT
                     ?.canBeDamagedByRider(damagemount(args))
                     ?.build()
                     ?: MountControllers.WALK)
-                hitBox.mount(p1.bukkitEntity.let(BukkitAdapter::adapt))
+                hitBox.mount(p1.bukkitEntity.wrap())
                 SkillResult.SUCCESS
             }
         } ?: SkillResult.CONDITION_FAILED

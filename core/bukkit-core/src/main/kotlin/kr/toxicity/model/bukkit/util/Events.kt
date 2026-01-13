@@ -6,10 +6,9 @@
  */
 package kr.toxicity.model.bukkit.util
 
-import kr.toxicity.model.util.PLATFORM
 import org.bukkit.Bukkit
 import org.bukkit.event.Listener
 
 fun registerListener(listener: Listener) {
-    Bukkit.getPluginManager().registerEvents(listener, PLATFORM)
+    Bukkit.getPluginManager().registerEvents(listener, PLUGIN)
 }

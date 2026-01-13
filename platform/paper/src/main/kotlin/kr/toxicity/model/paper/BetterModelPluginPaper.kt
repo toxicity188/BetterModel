@@ -6,7 +6,7 @@
  */
 package kr.toxicity.model.paper
 
-import kr.toxicity.model.BetterModelPluginImpl
+import kr.toxicity.model.bukkit.BetterModelPlugin
 
 @Suppress("UNUSED")
-class BetterModelPluginPaper : BetterModelPluginImpl()
+class BetterModelPluginPaper : BetterModelPlugin()

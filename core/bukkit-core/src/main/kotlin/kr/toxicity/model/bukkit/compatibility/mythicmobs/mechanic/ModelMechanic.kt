@@ -17,6 +17,7 @@ import kr.toxicity.model.bukkit.compatibility.mythicmobs.modelPlaceholder
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.toPlaceholderArgs
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.toPlaceholderBoolean
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.toPlaceholderFloat
+import kr.toxicity.model.bukkit.util.wrap
 
 class ModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
 
@@ -36,7 +37,7 @@ class ModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTarg
             } == true) SkillResult.SUCCESS else SkillResult.CONDITION_FAILED
         } else {
             BetterModel.modelOrNull(mid(args) ?: return SkillResult.CONDITION_FAILED)?.let {
-                it.create(e, TrackerModifier(
+                it.create(e.wrap(), TrackerModifier(
                     st(args),
                     da(args),
                     dt(args)

@@ -6,9 +6,10 @@
  */
 package kr.toxicity.model.nms.v1_21_R4
 
-import kr.toxicity.model.api.entity.BaseBukkitEntity
-import kr.toxicity.model.api.entity.BaseBukkitPlayer
+import kr.toxicity.model.api.bukkit.entity.BaseBukkitEntity
+import kr.toxicity.model.api.bukkit.entity.BaseBukkitPlayer
 import kr.toxicity.model.api.nms.Profiled
+import kr.toxicity.model.api.platform.PlatformPlayer
 import kr.toxicity.model.api.player.PlayerSkinParts
 import kr.toxicity.model.api.profile.ModelProfile
 import org.bukkit.craftbukkit.entity.CraftPlayer
@@ -27,8 +28,12 @@ internal data class BasePlayerImpl(
         delegate.handle.containerMenu.sendAllDataToRemote()
     }
 
-    override fun trackedBy(): Stream<Player> = Stream.concat(
+    override fun platform(): PlatformPlayer = delegate.wrap()
+
+    override fun trackedBy(): Stream<PlatformPlayer> = Stream.concat(
         Stream.of(delegate),
         delegate.trackedBy.stream()
-    )
+    ).map {
+        it.wrap()
+    }
 }

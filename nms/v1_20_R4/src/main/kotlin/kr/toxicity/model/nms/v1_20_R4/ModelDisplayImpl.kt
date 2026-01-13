@@ -22,8 +22,6 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.Items
 import net.minecraft.world.phys.Vec3
-import org.bukkit.Location
-import org.bukkit.inventory.ItemStack
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import java.util.*
@@ -75,9 +73,9 @@ internal class ModelDisplayImpl(
         }
     }
 
-    override fun syncPosition(location: Location) {
+    override fun syncPosition(location: PlatformLocation) {
         display.setOldPosAndRot()
-        display.setPos(Vec3(location.x, location.y, location.z))
+        display.setPos(Vec3(location.x(), location.y(), location.z()))
     }
 
 
@@ -106,7 +104,7 @@ internal class ModelDisplayImpl(
         bundler += ClientboundTeleportEntityPacket(display)
     }
 
-    override fun display(transform: org.bukkit.entity.ItemDisplay.ItemDisplayTransform) {
+    override fun display(transform: PlatformItemTransform) {
         entityDataLock.accessToLock {
             display.itemTransform = ItemDisplayContext.BY_ID.apply(transform.ordinal)
         }
@@ -118,9 +116,9 @@ internal class ModelDisplayImpl(
         }
     }
 
-    override fun item(itemStack: ItemStack) {
+    override fun item(itemStack: PlatformItemStack) {
         entityDataLock.accessToLock {
-            display.itemStack = itemStack.asVanilla()
+            display.itemStack = itemStack.unwarp().asVanilla()
         }
     }
 
@@ -158,7 +156,7 @@ internal class ModelDisplayImpl(
         }
     }
 
-    override fun billboard(billboard: org.bukkit.entity.Display.Billboard) {
+    override fun billboard(billboard: PlatformBillboard) {
         entityDataLock.accessToLock {
             display.billboardConstraints = Display.BillboardConstraints.BY_ID.apply(billboard.ordinal)
         }

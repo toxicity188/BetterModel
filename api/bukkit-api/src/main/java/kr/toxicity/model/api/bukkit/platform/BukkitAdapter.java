@@ -61,4 +61,9 @@ public final class BukkitAdapter implements PlatformAdapter {
     public @NotNull PlatformItemStack air() {
         return adapt(new ItemStack(Material.AIR));
     }
+
+    @Override
+    public @NotNull PlatformLocation zero() {
+        return adapt(new Location(null, 0, 0, 0));
+    }
 }

@@ -8,9 +8,11 @@ package kr.toxicity.model.bukkit
 
 import com.vdurmont.semver4j.Semver
 import kr.toxicity.model.BetterModelEvaluatorImpl
+import kr.toxicity.model.BetterModelEventBusImpl
 import kr.toxicity.model.api.BetterModelConfig
 import kr.toxicity.model.api.BetterModelPlatform.ReloadResult
 import kr.toxicity.model.api.bukkit.BetterModelBukkit
+import kr.toxicity.model.api.bukkit.platform.BukkitAdapter
 import kr.toxicity.model.api.event.PluginEndReloadEvent
 import kr.toxicity.model.api.event.PluginStartReloadEvent
 import kr.toxicity.model.api.pack.PackZipper
@@ -22,7 +24,7 @@ import kr.toxicity.model.bukkit.manager.CompatibilityManager
 import kr.toxicity.model.bukkit.manager.EntityManager
 import kr.toxicity.model.bukkit.manager.PlayerManagerImpl
 import kr.toxicity.model.manager.*
-import kr.toxicity.model.bukkit.util.call
+import kr.toxicity.model.util.callEvent
 import kr.toxicity.model.util.handleException
 import kr.toxicity.model.util.toComponent
 import kr.toxicity.model.util.warn
@@ -58,6 +60,8 @@ internal class BetterModelProperties(
     }
     val scheduler = if (BetterModelBukkit.IS_FOLIA) PaperScheduler() else BukkitScheduler()
     val evaluator = BetterModelEvaluatorImpl()
+    val eventbus = BetterModelEventBusImpl()
+    val adapter = BukkitAdapter()
     @Suppress("DEPRECATION") //To support Spigot :(
     val semver = Semver(plugin.description.version, Semver.SemverType.LOOSE)
     val snapshot = runCatching {
@@ -88,12 +92,12 @@ internal class BetterModelProperties(
             PlayerManagerImpl,
             EntityManager,
             ScriptManagerImpl,
-            CommandManager
+            //CommandManager
         )
     }
 
-    var reloadStartTask: (PackZipper) -> Unit = { PluginStartReloadEvent(it).call() }
-    var reloadEndTask: (ReloadResult) -> Unit = { PluginEndReloadEvent(it).call() }
+    var reloadStartTask: (PackZipper) -> Unit = { callEvent { PluginStartReloadEvent(it) } }
+    var reloadEndTask: (ReloadResult) -> Unit = { callEvent { PluginEndReloadEvent(it) } }
 
     init {
         config = BetterModelConfigImpl(PluginConfiguration.CONFIG.create())

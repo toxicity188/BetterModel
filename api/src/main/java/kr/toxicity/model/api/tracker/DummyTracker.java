@@ -46,7 +46,7 @@ public final class DummyTracker extends Tracker {
         pipeline.scale(() -> scaler().scale(this));
         rotation(() -> new ModelRotation(this.location.pitch(), this.location.yaw()));
         preUpdateConsumer.accept(this);
-        EventUtil.call(new CreateDummyTrackerEvent(this));
+        EventUtil.call(CreateDummyTrackerEvent.class, () -> new CreateDummyTrackerEvent(this));
     }
 
     /**

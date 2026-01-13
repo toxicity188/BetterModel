@@ -11,6 +11,8 @@ import io.papermc.paper.adventure.PaperAdventure
 import io.papermc.paper.configuration.GlobalConfiguration
 import it.unimi.dsi.fastutil.ints.IntSet
 import kr.toxicity.model.api.BetterModel
+import kr.toxicity.model.api.bukkit.BetterModelBukkit
+import kr.toxicity.model.api.event.ModelEvent
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.util.EventUtil
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
@@ -34,12 +36,11 @@ import org.bukkit.Bukkit
 import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.craftbukkit.inventory.CraftItemStack
 import org.bukkit.craftbukkit.util.CraftChatMessage
-import org.bukkit.event.Event
 import org.joml.Vector3f
 import java.util.*
 
 internal inline fun <reified T, reified R> createAdaptedFieldGetter(noinline paperGetter: (T) -> R): (T) -> R {
-    return if (BetterModel.IS_PAPER) paperGetter else createAdaptedFieldGetter()
+    return if (BetterModelBukkit.IS_PAPER) paperGetter else createAdaptedFieldGetter()
 }
 internal inline fun <reified T, reified R> createAdaptedFieldGetter(): (T) -> R {
     return T::class.java.declaredFields.first {
@@ -77,7 +78,7 @@ internal fun BukkitItemStack.asVanilla() = CraftItemStack.asNMSCopy(this)
 internal fun VanillaItemStack.asBukkit() = CraftItemStack.asCraftMirror(this)
 
 internal val ONLINE_MODE by lazy(LazyThreadSafetyMode.NONE) {
-    if (BetterModel.IS_PAPER) GlobalConfiguration.get().proxies.isProxyOnlineMode else Bukkit.getOnlineMode()
+    if (BetterModelBukkit.IS_PAPER) GlobalConfiguration.get().proxies.isProxyOnlineMode else Bukkit.getOnlineMode()
 }
 
 internal fun List<Int>.toIntSet(): IntSet = IntSet.of(*toIntArray())
@@ -88,7 +89,7 @@ internal fun Entity.passengerPosition(dest: Vector3f): Vector3f {
     }
 }
 
-internal fun Event.call(): Boolean = EventUtil.call(this)
+inline fun <reified T : ModelEvent> callEvent(noinline block: () -> T): Boolean = EventUtil.call(T::class.java) { block() }.triggered()
 
 private val DATA_ITEMS = SynchedEntityData::class.java.declaredFields.first {
     it.type.isArray
@@ -152,7 +153,7 @@ internal val Entity.isFlying: Boolean
     }
 
 internal val CraftEntity.vanillaEntity: Entity
-    get() = if (BetterModel.IS_PAPER) handleRaw else handle
+    get() = if (BetterModelBukkit.IS_PAPER) handleRaw else handle
 
 internal fun Entity.moveTo(vec: Vec3) = snapTo(vec)
 internal fun Entity.moveTo(x: Double, y: Double, z: Double, yaw: Float, pitch: Float) = snapTo(x, y, z, yaw, pitch)
@@ -175,8 +176,8 @@ internal fun EntityTrackerRegistry.entityFlag(uuid: UUID, byte: Byte): Byte {
     return b.toByte()
 }
 
-internal fun org.bukkit.util.Vector.toVanilla() = Vec3(x, y, z)
-internal fun Vec3.toBukkit() = org.bukkit.util.Vector(x, y, z)
+internal fun Vector3f.toVanilla() = Vec3(x.toDouble(), y.toDouble(), z.toDouble())
+internal fun Vec3.toBukkit() = Vector3f(x.toFloat(), y.toFloat(), z.toFloat())
 
 internal inline fun LivingEntity.toEquipmentPacket(mapper: (EquipmentSlot) -> ItemStack? = { if (hasItemInSlot(it)) getItemBySlot(it) else null }): ClientboundSetEquipmentPacket? {
     val equip = EquipmentSlot.entries.mapNotNull {
@@ -206,13 +207,13 @@ internal fun Entity.toFakeAddPacket() = ClientboundAddEntityPacket(
 
 internal fun Avatar.toCustomisation() = entityData.get(Avatar.DATA_PLAYER_MODE_CUSTOMISATION).toInt()
 
-internal fun VanillaComponent.asAdventure() = if (BetterModel.IS_PAPER) {
+internal fun VanillaComponent.asAdventure() = if (BetterModelBukkit.IS_PAPER) {
     PaperAdventure.asAdventure(this)
 } else {
     GsonComponentSerializer.gson().deserialize(CraftChatMessage.toJSON(this))
 }
 
-internal fun AdventureComponent.asVanilla() = if (BetterModel.IS_PAPER) {
+internal fun AdventureComponent.asVanilla() = if (BetterModelBukkit.IS_PAPER) {
     PaperAdventure.asVanilla(this)
 } else {
     CraftChatMessage.fromJSON(GsonComponentSerializer.gson().serialize(this))

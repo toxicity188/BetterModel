@@ -49,18 +49,13 @@ internal class ModelNametagImpl(
         billboardConstraints = Display.BillboardConstraints.CENTER
     }
     private var alwaysVisible = false
-    private var location = Location(
-        null,
-        0.0,
-        0.0,
-        0.0
-    )
+    private var location = BetterModel.platform().adapter().zero()
 
     override fun component(component: Component?) {
         display.text = component?.asVanilla() ?: VanillaComponent.empty()
     }
 
-    override fun teleport(location: Location) {
+    override fun teleport(location: PlatformLocation) {
         this.location = location
     }
 

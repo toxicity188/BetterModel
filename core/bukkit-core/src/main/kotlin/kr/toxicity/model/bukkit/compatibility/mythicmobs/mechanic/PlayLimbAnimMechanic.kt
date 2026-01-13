@@ -16,6 +16,7 @@ import kr.toxicity.model.api.animation.AnimationIterator
 import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.util.function.FloatConstantSupplier
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.*
+import kr.toxicity.model.bukkit.util.wrap
 import kr.toxicity.model.util.componentOf
 import kr.toxicity.model.util.toComponent
 import kr.toxicity.model.util.warn
@@ -55,7 +56,7 @@ class PlayLimbAnimMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), 
             }
             val loopType = mode(args)
             val modifier = AnimationModifier(0, 0, loopType, speed(args)?.let(FloatConstantSupplier::of))
-            renderer.getOrCreate(targetPlayer).run {
+            renderer.getOrCreate(targetPlayer.wrap()).run {
                 if (!animate(
                         currentAnimationId,
                         modifier,

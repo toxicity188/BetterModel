@@ -7,12 +7,11 @@
 package kr.toxicity.model.bukkit.purpur
 
 import kr.toxicity.model.api.BetterModel
-import kr.toxicity.model.api.event.CreateTrackerEvent
+import kr.toxicity.model.api.bukkit.platform.BukkitPlayer
+import kr.toxicity.model.api.event.CreateDummyTrackerEvent
+import kr.toxicity.model.api.event.CreateEntityTrackerEvent
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
-import org.bukkit.Bukkit
-import org.bukkit.event.EventHandler
-import org.bukkit.event.Listener
 
 object PurpurHook {
     fun start() {
@@ -22,13 +21,15 @@ object PurpurHook {
             Component.text("BetterModel is currently running in Purpur.").color(NamedTextColor.LIGHT_PURPLE),
             Component.text("Some Purpur features will be enabled.").color(NamedTextColor.LIGHT_PURPLE)
         )
-        Bukkit.getPluginManager().registerEvents(object : Listener {
-            @EventHandler
-            fun CreateTrackerEvent.create() {
-                tracker().pipeline.viewFilter {
-                    !config.usePurpurAfk() || !it.isAfk
-                }
+        BetterModel.eventBus().subscribe(CreateDummyTrackerEvent::class.java) { event ->
+            event.tracker().pipeline.viewFilter {
+                !config.usePurpurAfk() || !(it as BukkitPlayer).source().isAfk
             }
-        }, plugin)
+        }
+        BetterModel.eventBus().subscribe(CreateEntityTrackerEvent::class.java) { event ->
+            event.tracker().pipeline.viewFilter {
+                !config.usePurpurAfk() || !(it as BukkitPlayer).source().isAfk
+            }
+        }
     }
 }

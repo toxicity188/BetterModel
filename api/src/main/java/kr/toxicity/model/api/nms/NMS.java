@@ -101,7 +101,7 @@ public interface NMS {
      * @return the created channel handler
      * @since 1.15.2
      */
-    @NotNull PlayerChannelHandler inject(@NotNull PlatformLocation player);
+    @NotNull PlayerChannelHandler inject(@NotNull PlatformPlayer player);
 
     /**
      * Creates a packet bundler with an initial capacity.

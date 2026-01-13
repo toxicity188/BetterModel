@@ -9,6 +9,7 @@ package kr.toxicity.model.bukkit
 import com.vdurmont.semver4j.Semver
 import kr.toxicity.model.api.BetterModelConfig
 import kr.toxicity.model.api.BetterModelEvaluator
+import kr.toxicity.model.api.BetterModelEventBus
 import kr.toxicity.model.api.BetterModelLogger
 import kr.toxicity.model.api.BetterModelPlatform.ReloadResult
 import kr.toxicity.model.api.BetterModelPlatform.ReloadResult.*
@@ -16,6 +17,7 @@ import kr.toxicity.model.api.bukkit.BetterModelBukkit
 import kr.toxicity.model.api.manager.*
 import kr.toxicity.model.api.nms.NMS
 import kr.toxicity.model.api.pack.PackZipper
+import kr.toxicity.model.api.platform.PlatformAdapter
 import kr.toxicity.model.api.scheduler.ModelScheduler
 import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.bukkit.configuration.PluginConfiguration
@@ -30,7 +32,9 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.server.ServerLoadEvent
+import java.io.File
 import java.io.InputStream
+import java.util.function.BiConsumer
 import java.util.function.Consumer
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
@@ -134,28 +138,31 @@ abstract class BetterModelPlugin : AbstractBetterModelPlugin() {
         }.also(props.reloadEndTask)
     }
 
-    fun loadAssets(pipeline: ReloadPipeline, prefix: String, consumer: (String, InputStream) -> Unit) {
+    override fun loadAssets(pipeline: ReloadPipeline, prefix: String, consumer: BiConsumer<String, InputStream>) {
         JarFile(file).use {
             pipeline.forEachParallel(it.entries()
                 .asSequence()
                 .filter { entry ->
                     entry.name.startsWith(prefix)
-                            && entry.name.length > prefix.length + 1
-                            && !entry.isDirectory
+                        && entry.name.length > prefix.length + 1
+                        && !entry.isDirectory
                 }
                 .toList(),
                 JarEntry::getSize
             ) { entry ->
                 it.getInputStream(entry).use { stream ->
-                    consumer(entry.name.substring(prefix.length + 1), stream)
+                    consumer.accept(entry.name.substring(prefix.length + 1), stream)
                 }
             }
         }
     }
 
+    override fun dataFolder(): File = dataFolder
     override fun logger(): BetterModelLogger = logger
+    override fun adapter(): PlatformAdapter = props.adapter
     override fun scheduler(): ModelScheduler = props.scheduler
     override fun evaluator(): BetterModelEvaluator = props.evaluator
+    override fun eventBus(): BetterModelEventBus = props.eventbus
     override fun modelManager(): ModelManager = ModelManagerImpl
     override fun playerManager(): PlayerManager = PlayerManagerImpl
     override fun scriptManager(): ScriptManager = ScriptManagerImpl

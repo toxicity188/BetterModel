@@ -102,7 +102,7 @@ public abstract class Tracker implements AutoCloseable {
     protected ModelRotator rotator = ModelRotator.YAW;
     protected ModelScaler scaler = ModelScaler.entity();
     private Supplier<ModelRotation> rotationSupplier = () -> ModelRotation.EMPTY;
-    private BiConsumer<Tracker, CloseReason> closeEventHandler = (t, r) -> EventUtil.call(new CloseTrackerEvent(t, r));
+    private BiConsumer<Tracker, CloseReason> closeEventHandler = (t, r) -> EventUtil.call(CloseTrackerEvent.class, () -> new CloseTrackerEvent(t, r));
 
     private ScheduledPacketHandler handler = (t, s) -> {
         if (!tickPause.get()) {
@@ -423,7 +423,7 @@ public abstract class Tracker implements AutoCloseable {
      */
     protected boolean spawn(@NotNull PlatformPlayer player, @NotNull PacketBundler bundler) {
         if (isClosed()) return false;
-        if (!EventUtil.call(new ModelSpawnAtPlayerEvent(player, this))) return false;
+        if (!EventUtil.call(ModelSpawnAtPlayerEvent.class, () -> new ModelSpawnAtPlayerEvent(player, this)).triggered()) return false;
         return pipeline.spawn(player, bundler, spawned -> {
             LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " is spawned at player " + player.name() + ": " + name());
             task(spawned::load);
@@ -439,7 +439,7 @@ public abstract class Tracker implements AutoCloseable {
      */
     public boolean remove(@NotNull PlatformPlayer player) {
         if (isClosed()) return false;
-        EventUtil.call(new ModelDespawnAtPlayerEvent(player, this));
+        EventUtil.call(ModelDespawnAtPlayerEvent.class, () -> new ModelDespawnAtPlayerEvent(player, this));
         var result = pipeline.remove(player);
         if (result) LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " is despawned at player " + player.name() + ": " + name());
         return result;
@@ -841,7 +841,7 @@ public abstract class Tracker implements AutoCloseable {
      * @since 1.15.2
      */
     public boolean hide(@NotNull PlatformPlayer player) {
-        return EventUtil.call(new PlayerHideTrackerEvent(this, player)) && pipeline.hide(player);
+        return EventUtil.call(PlayerHideTrackerEvent.class, () -> new PlayerHideTrackerEvent(this, player)).triggered() && pipeline.hide(player);
     }
 
     /**
@@ -863,7 +863,7 @@ public abstract class Tracker implements AutoCloseable {
      * @since 1.15.2
      */
     public boolean show(@NotNull PlatformPlayer player) {
-        return EventUtil.call(new PlayerShowTrackerEvent(this, player)) && pipeline.show(player);
+        return EventUtil.call(PlayerShowTrackerEvent.class, () -> new PlayerShowTrackerEvent(this, player)).triggered() && pipeline.show(player);
     }
 
     /**
@@ -1031,7 +1031,7 @@ public abstract class Tracker implements AutoCloseable {
 
         public void add() {
             if (counter.getAndIncrement() == 0) {
-                channel().ifPresent(handler -> EventUtil.call(new PlayerPerAnimationStartEvent(Tracker.this, handler.player())));
+                channel().ifPresent(handler -> EventUtil.call(PlayerPerAnimationStartEvent.class, () -> new PlayerPerAnimationStartEvent(Tracker.this, handler.player())));
             }
         }
 
@@ -1042,7 +1042,7 @@ public abstract class Tracker implements AutoCloseable {
                     var bundler = pipeline.createBundler();
                     pipeline.iterateTree(bone -> bone.forceTransformation(bundler));
                     bundler.send(handler.player());
-                    EventUtil.call(new PlayerPerAnimationEndEvent(Tracker.this, handler.player()));
+                    EventUtil.call(PlayerPerAnimationEndEvent.class, () -> new PlayerPerAnimationEndEvent(Tracker.this, handler.player()));
                 });
             }
         }

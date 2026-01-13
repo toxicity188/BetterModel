@@ -6,15 +6,16 @@
  */
 package kr.toxicity.model.nms.v1_21_R4
 
-import kr.toxicity.model.api.entity.BaseBukkitEntity
+import kr.toxicity.model.api.bukkit.entity.BaseBukkitEntity
+import kr.toxicity.model.api.platform.PlatformEntity
+import kr.toxicity.model.api.platform.PlatformLocation
+import kr.toxicity.model.api.platform.PlatformPlayer
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.effect.MobEffects
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.ai.attributes.Attributes
-import org.bukkit.Location
 import org.bukkit.craftbukkit.entity.CraftEntity
-import org.bukkit.entity.Player
 import org.bukkit.persistence.PersistentDataHolder
 import org.joml.Vector3f
 import java.util.*
@@ -76,6 +77,7 @@ internal data class BaseEntityImpl(
         return handle().passengerPosition(dest)
     }
 
-    override fun trackedBy(): Stream<Player> = delegate.trackedBy.stream()
-    override fun location(): Location = delegate.location
+    override fun platform(): PlatformEntity = delegate.wrap()
+    override fun trackedBy(): Stream<PlatformPlayer> = delegate.trackedBy.stream().map { it.wrap() }
+    override fun location(): PlatformLocation = delegate.location.wrap()
 }

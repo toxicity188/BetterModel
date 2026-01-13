@@ -14,4 +14,6 @@ public interface PlatformAdapter {
     @NotNull PlatformOfflinePlayer offlinePlayer(@NotNull UUID uuid);
 
     @NotNull PlatformItemStack air();
+
+    @NotNull PlatformLocation zero();
 }

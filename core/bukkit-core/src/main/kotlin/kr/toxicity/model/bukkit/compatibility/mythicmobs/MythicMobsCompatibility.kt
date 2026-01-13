@@ -10,8 +10,8 @@ import io.lumine.mythic.bukkit.MythicBukkit
 import io.lumine.mythic.bukkit.events.MythicConditionLoadEvent
 import io.lumine.mythic.bukkit.events.MythicMechanicLoadEvent
 import io.lumine.mythic.bukkit.events.MythicTargeterLoadEvent
-import kr.toxicity.model.api.BetterModel
-import kr.toxicity.model.api.entity.BaseBukkitEntity
+import kr.toxicity.model.api.bukkit.BetterModelBukkit
+import kr.toxicity.model.api.bukkit.entity.BaseBukkitEntity
 import kr.toxicity.model.api.script.AnimationScript
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.bukkit.util.registerListener
@@ -34,7 +34,7 @@ class MythicMobsCompatibility : Compatibility {
     override fun start() {
         ScriptManagerImpl.addBuilder("mm") { name ->
             val args = name.args() ?: return@addBuilder AnimationScript.EMPTY
-            AnimationScript.of(BetterModel.IS_FOLIA) script@ { tracker ->
+            AnimationScript.of(BetterModelBukkit.IS_FOLIA) script@ { tracker ->
                 if (!CONFIG.module().model) return@script
                 if (tracker !is EntityTracker) return@script
                 val entity = (tracker.registry().entity() as? BaseBukkitEntity ?: return@script).entity()

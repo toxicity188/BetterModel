@@ -10,6 +10,10 @@ import kr.toxicity.model.api.entity.BaseEntity
 import kr.toxicity.model.api.nms.DisplayTransformer
 import kr.toxicity.model.api.nms.ModelDisplay
 import kr.toxicity.model.api.nms.PacketBundler
+import kr.toxicity.model.api.platform.PlatformBillboard
+import kr.toxicity.model.api.platform.PlatformItemStack
+import kr.toxicity.model.api.platform.PlatformItemTransform
+import kr.toxicity.model.api.platform.PlatformLocation
 import kr.toxicity.model.api.tracker.ModelRotation
 import kr.toxicity.model.api.util.lock.SingleLock
 import net.minecraft.network.protocol.game.*
@@ -23,8 +27,6 @@ import net.minecraft.world.entity.PositionMoveRotation
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.Items
 import net.minecraft.world.phys.Vec3
-import org.bukkit.Location
-import org.bukkit.inventory.ItemStack
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import java.util.*
@@ -76,9 +78,9 @@ internal class ModelDisplayImpl(
         }
     }
 
-    override fun syncPosition(location: Location) {
+    override fun syncPosition(location: PlatformLocation) {
         display.setOldPosAndRot()
-        display.setPos(Vec3(location.x, location.y, location.z))
+        display.setPos(Vec3(location.x(), location.y(), location.z()))
     }
 
     override fun spawn(showItem: Boolean, bundler: PacketBundler) {
@@ -89,12 +91,12 @@ internal class ModelDisplayImpl(
         bundler += removePacket
     }
 
-    override fun teleport(location: Location, bundler: PacketBundler) {
+    override fun teleport(location: PlatformLocation, bundler: PacketBundler) {
         display.moveTo(
-            location.x,
-            location.y,
-            location.z,
-            location.yaw,
+            location.x(),
+            location.y(),
+            location.z(),
+            location.yaw(),
             0F
         )
         bundler += ClientboundTeleportEntityPacket.teleport(display.id, PositionMoveRotation.of(display), emptySet(), display.onGround)
@@ -110,7 +112,7 @@ internal class ModelDisplayImpl(
         )
     }
 
-    override fun display(transform: org.bukkit.entity.ItemDisplay.ItemDisplayTransform) {
+    override fun display(transform: PlatformItemTransform) {
         entityDataLock.accessToLock {
             display.itemTransform = ItemDisplayContext.BY_ID.apply(transform.ordinal)
         }
@@ -122,9 +124,9 @@ internal class ModelDisplayImpl(
         }
     }
 
-    override fun item(itemStack: ItemStack) {
+    override fun item(itemStack: PlatformItemStack) {
         entityDataLock.accessToLock {
-            display.itemStack = itemStack.asVanilla()
+            display.itemStack = itemStack.unwarp().asVanilla()
         }
     }
 
@@ -162,7 +164,7 @@ internal class ModelDisplayImpl(
         }
     }
 
-    override fun billboard(billboard: org.bukkit.entity.Display.Billboard) {
+    override fun billboard(billboard: PlatformBillboard) {
         entityDataLock.accessToLock {
             display.billboardConstraints = Display.BillboardConstraints.BY_ID.apply(billboard.ordinal)
         }

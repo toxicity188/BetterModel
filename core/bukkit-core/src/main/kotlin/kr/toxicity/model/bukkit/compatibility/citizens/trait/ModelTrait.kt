@@ -8,6 +8,7 @@ package kr.toxicity.model.bukkit.compatibility.citizens.trait
 
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.data.renderer.ModelRenderer
+import kr.toxicity.model.bukkit.util.wrap
 import net.citizensnpcs.api.trait.Trait
 import net.citizensnpcs.api.trait.TraitName
 import net.citizensnpcs.api.util.DataKey
@@ -19,7 +20,7 @@ class ModelTrait : Trait("model") {
         get() = _renderer
         set(value) {
             npc?.entity?.let {
-                value?.create(it) ?: BetterModel.registryOrNull(it.uniqueId)?.close()
+                value?.create(it.wrap()) ?: BetterModel.registryOrNull(it.uniqueId)?.close()
             }
             _renderer = value
         }
@@ -41,7 +42,7 @@ class ModelTrait : Trait("model") {
     override fun onSpawn() {
         npc?.entity?.let {
             if (BetterModel.registryOrNull(it.uniqueId) == null) {
-                renderer?.create(it)
+                renderer?.create(it.wrap())
             }
         }
     }

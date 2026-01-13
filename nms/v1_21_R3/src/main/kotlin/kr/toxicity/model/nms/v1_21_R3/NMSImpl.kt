@@ -14,12 +14,17 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.bone.RenderedBone
+import kr.toxicity.model.api.bukkit.BetterModelBukkit
+import kr.toxicity.model.api.bukkit.entity.BaseBukkitEntity
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
-import kr.toxicity.model.api.entity.BaseBukkitEntity
-import kr.toxicity.model.api.entity.BaseBukkitPlayer
 import kr.toxicity.model.api.entity.BaseEntity
+import kr.toxicity.model.api.entity.BasePlayer
 import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.nms.*
+import kr.toxicity.model.api.platform.PlatformEntity
+import kr.toxicity.model.api.platform.PlatformItemStack
+import kr.toxicity.model.api.platform.PlatformLocation
+import kr.toxicity.model.api.platform.PlatformPlayer
 import kr.toxicity.model.api.player.PlayerSkinParts
 import kr.toxicity.model.api.profile.ModelProfile
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
@@ -51,12 +56,9 @@ import net.minecraft.world.item.component.ResolvableProfile
 import net.minecraft.world.level.entity.LevelEntityGetter
 import net.minecraft.world.level.entity.LevelEntityGetterAdapter
 import net.minecraft.world.level.entity.PersistentEntitySectionManager
-import org.bukkit.Location
 import org.bukkit.craftbukkit.CraftWorld
 import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.craftbukkit.entity.CraftPlayer
-import org.bukkit.entity.Player
-import org.bukkit.inventory.ItemStack
 import java.util.*
 import java.util.function.Consumer
 
@@ -76,7 +78,7 @@ class NMSImpl : NMS {
         @Suppress("UNCHECKED_CAST")
         private val ServerLevel.levelGetter
             get(): LevelEntityGetter<Entity> {
-                return if (BetterModel.IS_PAPER) {
+                return if (BetterModelBukkit.IS_PAPER) {
                     `moonrise$getEntityLookup`()
                 } else {
                     spigotChunkAccess?.get(this)?.let {
@@ -84,7 +86,7 @@ class NMSImpl : NMS {
                     } ?: throw RuntimeException("LevelEntityGetter")
                 }
             }
-        private val getEntityById: (LevelEntityGetter<Entity>, Int) -> Entity? = if (BetterModel.IS_PAPER) { g, i ->
+        private val getEntityById: (LevelEntityGetter<Entity>, Int) -> Entity? = if (BetterModelBukkit.IS_PAPER) { g, i ->
             (g as EntityLookup)[i]
         } else LevelEntityGetterAdapter::class.java.declaredFields.first {
             net.minecraft.world.level.entity.EntityLookup::class.java.isAssignableFrom(it.type)
@@ -132,7 +134,7 @@ class NMSImpl : NMS {
     ) : PlayerChannelHandler, ChannelDuplexHandler() {
         private val connection = player.handle.connection
         private val uuid = player.uniqueId
-        private val base = adapt(player)
+        private val base = adapt(player.wrap())
 
         init {
             val pipeline = getConnection(connection).channel.pipeline()
@@ -146,7 +148,7 @@ class NMSImpl : NMS {
             }
         }
 
-        override fun base(): BaseBukkitPlayer = base
+        override fun base(): BasePlayer = base
 
         private val playerModel get() = connection.player.id.toRegistry()
 
@@ -158,7 +160,7 @@ class NMSImpl : NMS {
             if (it is HitBox) ifHitBox(it)
             it.toRegistry()
         })?.takeIf {
-            it.isSpawned(player)
+            it.isSpawned(player.uniqueId)
         }
 
         override fun sendEntityData(registry: EntityTrackerRegistry) {
@@ -174,7 +176,7 @@ class NMSImpl : NMS {
             if (handle is LivingEntity) handle.toEquipmentPacket()?.let {
                 list += it
             }
-            list.send(player)
+            list.send(player.wrap())
         }
 
         private fun <T : ClientGamePacketListener> Packet<in T>.handle(): Packet<in T>? {
@@ -185,9 +187,10 @@ class NMSImpl : NMS {
                 is ClientboundAddEntityPacket -> {
                     val entity = id.toPlayerEntity() ?: return this
                     if (entity is HitBox) return entity.toFakeAddPacket()
-                    BetterModel.registry(entity.bukkitEntity).ifPresent {
-                        BetterModel.platform().scheduler().taskLater(entity.bukkitEntity, 1) {
-                            it.spawn(player)
+                    val wrap = entity.bukkitEntity.wrap()
+                    BetterModel.registry(wrap).ifPresent {
+                        wrap.taskLater(1) {
+                            it.spawn(player.wrap())
                         }
                     }
                 }
@@ -220,7 +223,7 @@ class NMSImpl : NMS {
                     }
                 }
                 is ClientboundRespawnPacket -> playerModel?.let {
-                    bundlerOf(it.mountPacket(connection.player)).send(player)
+                    bundlerOf(it.mountPacket(connection.player)).send(player.wrap())
                 }
                 is ClientboundContainerSetSlotPacket if isEquipment(connection.player) && playerModel?.hideOption(uuid)?.equipment() == true -> {
                     return ClientboundContainerSetSlotPacket(containerId, stateId, slot, EMPTY_ITEM)
@@ -277,7 +280,7 @@ class NMSImpl : NMS {
         }
 
         private fun EntityTrackerRegistry.remove() {
-            remove(player)
+            remove(player.wrap())
         }
     }
 
@@ -301,21 +304,21 @@ class NMSImpl : NMS {
         }
     }
 
-    override fun inject(player: Player): PlayerChannelHandlerImpl = PlayerChannelHandlerImpl(player as CraftPlayer)
+    override fun inject(player: PlatformPlayer): PlayerChannelHandlerImpl = PlayerChannelHandlerImpl(player.unwarp() as CraftPlayer)
 
     override fun createBundler(initialCapacity: Int): PacketBundler = bundlerOf(initialCapacity)
     override fun createLazyBundler(): PacketBundler = lazyBundlerOf()
     override fun createParallelBundler(threshold: Int): PacketBundler = parallelBundlerOf(threshold)
 
-    override fun create(location: Location, yOffset: Double, initialConsumer: Consumer<ModelDisplay>): ModelDisplay = ModelDisplayImpl(ItemDisplay(EntityType.ITEM_DISPLAY, (location.world as CraftWorld).handle).apply {
+    override fun create(location: PlatformLocation, yOffset: Double, initialConsumer: Consumer<ModelDisplay>): ModelDisplay = ModelDisplayImpl(ItemDisplay(EntityType.ITEM_DISPLAY, (location.world().unwarp() as CraftWorld).handle).apply {
         entityData[Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID] = 3
         billboardConstraints = Display.BillboardConstraints.FIXED
         valid = true
         moveTo(
-            location.x,
-            location.y,
-            location.z,
-            location.yaw,
+            location.x(),
+            location.y(),
+            location.z(),
+            location.yaw(),
             0F
         )
         itemTransform = ItemDisplayContext.FIXED
@@ -326,8 +329,8 @@ class NMSImpl : NMS {
 
     override fun createNametag(bone: RenderedBone): ModelNametag = ModelNametagImpl(bone)
 
-    override fun tint(itemStack: ItemStack, rgb: Int): ItemStack {
-        return itemStack.asVanilla().apply {
+    override fun tint(itemStack: PlatformItemStack, rgb: Int): PlatformItemStack {
+        return itemStack.unwarp().asVanilla().apply {
             set(DataComponents.DYED_COLOR, DyedItemColor(rgb, false))
             set(DataComponents.CUSTOM_MODEL_DATA, get(DataComponents.CUSTOM_MODEL_DATA)?.let {
                 CustomModelData(it.floats, it.flags, it.strings, it.colors
@@ -338,7 +341,7 @@ class NMSImpl : NMS {
                     }
                     .ifEmpty { listOf(rgb) })
             })
-        }.asBukkit()
+        }.asBukkit().wrap()
     }
 
     override fun createHitBox(entity: BaseEntity, bone: RenderedBone, boundingBox: ModelBoundingBox, mountController: MountController, listener: HitBoxListener): HitBox? {
@@ -353,40 +356,40 @@ class NMSImpl : NMS {
     }
     override fun version(): NMSVersion = NMSVersion.V1_21_R3
 
-    override fun adapt(entity: org.bukkit.entity.Entity): BaseBukkitEntity {
-        entity as CraftEntity
-        return BaseEntityImpl(entity)
+    override fun adapt(entity: PlatformEntity): BaseBukkitEntity {
+        val craft = entity.unwarp() as CraftEntity
+        return BaseEntityImpl(craft)
     }
 
-    override fun adapt(player: Player): BaseBukkitPlayer {
-        player as CraftPlayer
+    override fun adapt(player: PlatformPlayer): BasePlayer {
+        val craft = player.unwarp() as CraftPlayer
         return BasePlayerImpl(
-            player,
+            craft,
             dirtyChecked(
-                { getGameProfile(player.handle) },
+                { getGameProfile(craft.handle) },
                 { ModelGameProfile(it) },
                 { a, b -> a == b && a.properties["texture"] === b.properties["texture"]}
             ),
-            dirtyChecked({ player.handle.toCustomisation() }, { PlayerSkinParts(it) })
+            dirtyChecked({ craft.handle.toCustomisation() }, { PlayerSkinParts(it) })
         )
     }
 
-    override fun profile(player: Player): ModelProfile = ModelGameProfile(getGameProfile((player as CraftPlayer).handle))
+    override fun profile(player: PlatformPlayer): ModelProfile = ModelGameProfile(getGameProfile((player.unwarp() as CraftPlayer).handle))
 
-    override fun createPlayerHead(profile: ModelProfile): ItemStack = VanillaItemStack(Items.PLAYER_HEAD).apply {
+    override fun createPlayerHead(profile: ModelProfile): PlatformItemStack = VanillaItemStack(Items.PLAYER_HEAD).apply {
         set(DataComponents.PROFILE, ResolvableProfile(GameProfile(
             profile.info().id,
             profile.info().name ?: "",
         ).apply {
             properties.put("textures", Property("textures", profile.skin().raw))
         }))
-    }.asBukkit()
+    }.asBukkit().wrap()
 
     override fun createSkinItem(model: String, floats: List<Float>, flags: List<Boolean>, strings: List<String>, colors: List<Int>): TransformedItemStack {
         return VanillaItemStack(Items.PLAYER_HEAD).run {
             set(DataComponents.CUSTOM_MODEL_DATA, CustomModelData(floats, flags, strings, colors))
             set(DataComponents.ITEM_MODEL, ResourceLocation.parse(model))
-            TransformedItemStack.of(asBukkit())
+            TransformedItemStack.of(asBukkit().wrap())
         }
     }
 

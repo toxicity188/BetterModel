@@ -9,6 +9,7 @@ package kr.toxicity.model.nms.v1_21_R5
 import io.papermc.paper.event.entity.EntityKnockbackEvent
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.bone.RenderedBone
+import kr.toxicity.model.api.bukkit.BetterModelBukkit
 import kr.toxicity.model.api.config.DebugConfig
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import kr.toxicity.model.api.event.ModelDamagedEvent
@@ -18,6 +19,8 @@ import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.HitBoxListener
 import kr.toxicity.model.api.nms.ModelInteractionHand
+import kr.toxicity.model.api.platform.PlatformEntity
+import kr.toxicity.model.api.platform.PlatformPlayer
 import net.minecraft.network.protocol.game.ServerboundInteractPacket
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
@@ -46,7 +49,7 @@ import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.event.entity.CreatureSpawnEvent
 import org.bukkit.event.entity.EntityPotionEffectEvent
 import org.bukkit.event.entity.EntityRemoveEvent
-import org.bukkit.util.Vector
+import org.bukkit.plugin.Plugin
 import org.joml.Vector3f
 import java.util.*
 
@@ -106,7 +109,7 @@ internal class HitBoxImpl(
 
     override fun id(): Int = id
     override fun uuid(): UUID = uuid
-    override fun source(): org.bukkit.entity.Entity = delegate.bukkitEntity
+    override fun source(): PlatformEntity = delegate.bukkitEntity.wrap()
     override fun positionSource(): RenderedBone = bone
     override fun forceDismount(): Boolean = forceDismount
     override fun mountController(): MountController = mountController
@@ -123,9 +126,9 @@ internal class HitBoxImpl(
     }
     override fun getMainArm(): HumanoidArm = HumanoidArm.RIGHT
 
-    override fun mount(entity: org.bukkit.entity.Entity) {
+    override fun mount(entity: PlatformEntity) {
         if (controllingPassenger != null) return
-        if (interaction.bukkitEntity.addPassenger(entity)) {
+        if (interaction.bukkitEntity.addPassenger(entity.unwarp())) {
             if (mountController.canControl()) {
                 mounted = true
                 noGravity = delegate.isNoGravity
@@ -138,9 +141,9 @@ internal class HitBoxImpl(
         }
     }
 
-    override fun dismount(entity: org.bukkit.entity.Entity) {
+    override fun dismount(entity: PlatformEntity) {
         forceDismount = true
-        if (interaction.bukkitEntity.removePassenger(entity)) listener.dismount(craftEntity, entity)
+        if (interaction.bukkitEntity.removePassenger(entity.unwarp())) listener.dismount(craftEntity, entity)
         forceDismount = false
     }
 
@@ -148,7 +151,7 @@ internal class HitBoxImpl(
         forceDismount = true
         interaction.passengers.forEach {
             it.stopRiding(true)
-            listener.dismount(craftEntity, it.bukkitEntity)
+            listener.dismount(craftEntity, it.bukkitEntity.wrap())
         }
         forceDismount = false
     }
@@ -251,8 +254,8 @@ internal class HitBoxImpl(
 
     private fun rideInput(player: ServerPlayer, travelVector: Vec3) = mountController.move(
         if (onFly) MountController.MoveType.FLY else MountController.MoveType.DEFAULT,
-        player.bukkitEntity,
-        delegate.bukkitEntity as org.bukkit.entity.LivingEntity,
+        player.bukkitEntity.wrap(),
+        (delegate.bukkitEntity as org.bukkit.entity.LivingEntity).wrap(),
         Vector3f(
             player.xMovement(),
             player.yMovement(),
@@ -292,7 +295,7 @@ internal class HitBoxImpl(
             position(),
             boundingBox
         ) { pos, step ->
-            if (BetterModel.IS_PAPER) applier.advanceStep(step, pos)
+            if (BetterModelBukkit.IS_PAPER) applier.advanceStep(step, pos)
             level().getBlockState(pos).entityInside(level(), pos, delegate, applier)
             true
         }
@@ -319,9 +322,9 @@ internal class HitBoxImpl(
         return ifLivingEntity { isDeadOrDying } == true
     }
 
-    override fun triggerInteract(player: org.bukkit.entity.Player, hand: ModelInteractionHand) {
+    override fun triggerInteract(player: PlatformPlayer, hand: ModelInteractionHand) {
         interact(
-            (player as CraftPlayer).handle,
+            (player.unwarp() as CraftPlayer).handle,
             when (hand) {
                 ModelInteractionHand.LEFT -> OFF_HAND
                 ModelInteractionHand.RIGHT -> MAIN_HAND
@@ -329,9 +332,9 @@ internal class HitBoxImpl(
         )
     }
 
-    override fun triggerInteractAt(player: org.bukkit.entity.Player, hand: ModelInteractionHand, position: Vector) {
+    override fun triggerInteractAt(player: PlatformPlayer, hand: ModelInteractionHand, position: Vector3f) {
         interactAt(
-            (player as CraftPlayer).handle,
+            (player.unwarp() as CraftPlayer).handle,
             position.toVanilla(),
             when (hand) {
                 ModelInteractionHand.LEFT -> OFF_HAND
@@ -340,36 +343,40 @@ internal class HitBoxImpl(
         )
     }
 
-    override fun hide(player: org.bukkit.entity.Player) {
-        val plugin = BetterModel.platform()
-        player.hideEntity(plugin, bukkitEntity)
-        player.hideEntity(plugin, interaction.bukkitEntity)
+    override fun hide(player: PlatformPlayer) {
+        val plugin = BetterModel.platform() as Plugin
+        player.unwarp().run {
+            hideEntity(plugin, bukkitEntity)
+            hideEntity(plugin, interaction.bukkitEntity)
+        }
     }
 
-    override fun show(player: org.bukkit.entity.Player) {
-        val plugin = BetterModel.platform()
-        player.showEntity(plugin, bukkitEntity)
-        player.showEntity(plugin, interaction.bukkitEntity)
+    override fun show(player: PlatformPlayer) {
+        val plugin = BetterModel.platform() as Plugin
+        player.unwarp().run {
+            showEntity(plugin, bukkitEntity)
+            showEntity(plugin, interaction.bukkitEntity)
+        }
     }
 
     override fun interact(player: Player, hand: InteractionHand): InteractionResult {
         if (player === delegate) return InteractionResult.FAIL
-        val interact = ModelInteractEvent(player.bukkitEntity as org.bukkit.entity.Player, craftEntity, when (hand) {
+        val interact = ModelInteractEvent((player.bukkitEntity as org.bukkit.entity.Player).wrap(), craftEntity, when (hand) {
             MAIN_HAND -> ModelInteractionHand.RIGHT
             OFF_HAND -> ModelInteractionHand.LEFT
         })
-        if (!interact.call()) return InteractionResult.FAIL
+        if (!interact.call().triggered()) return InteractionResult.FAIL
         (player as ServerPlayer).connection.handleInteract(ServerboundInteractPacket.createInteractionPacket(delegate, player.isShiftKeyDown, hand))
         return InteractionResult.SUCCESS
     }
 
     override fun interactAt(player: Player, vec: Vec3, hand: InteractionHand): InteractionResult {
         if (player === delegate) return InteractionResult.FAIL
-        val interact = ModelInteractAtEvent(player.bukkitEntity as org.bukkit.entity.Player, craftEntity, when (hand) {
+        val interact = ModelInteractAtEvent((player.bukkitEntity as org.bukkit.entity.Player).wrap(), craftEntity, when (hand) {
             MAIN_HAND -> ModelInteractionHand.RIGHT
             OFF_HAND -> ModelInteractionHand.LEFT
         }, vec.toBukkit())
-        if (!interact.call()) return InteractionResult.FAIL
+        if (!interact.call().triggered()) return InteractionResult.FAIL
         (player as ServerPlayer).connection.handleInteract(ServerboundInteractPacket.createInteractionPacket(delegate, player.isShiftKeyDown, hand, vec))
         return InteractionResult.SUCCESS
     }
@@ -407,7 +414,7 @@ internal class HitBoxImpl(
         if (source.entity === controllingPassenger && !mountController.canBeDamagedByRider()) return false
         val ds = ModelDamageSourceImpl(source)
         val event = ModelDamagedEvent(craftEntity, ds, amount)
-        if (!event.call()) return false
+        if (!event.call().triggered()) return false
         if (listener.damage(this, ds, amount.toDouble())) return false
         return ifLivingEntity { hurtServer(world, source, event.damage) } == true
     }
@@ -444,7 +451,7 @@ internal class HitBoxImpl(
     override fun getDefaultDimensions(pose: Pose): EntityDimensions = if (initialized) dimensions else super.getDefaultDimensions(pose)
 
     override fun removeHitBox() {
-        BetterModel.platform().scheduler().task(bukkitEntity) {
+        source().task {
             dismountAll()
             remove(ifLivingEntity { removalReason } ?: RemovalReason.KILLED)
         }

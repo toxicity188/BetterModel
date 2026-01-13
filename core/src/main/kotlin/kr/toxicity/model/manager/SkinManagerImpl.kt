@@ -680,7 +680,7 @@ object SkinManagerImpl : SkinManager, GlobalManager {
 
     private fun handleExpiration(key: UUID, skin: SkinDataImpl) {
         skin.profile().let {
-            if (!RemovePlayerSkinEvent(it).call() || it.playerEquals()) profileCache.put(key, skin)
+            if (!callEvent { RemovePlayerSkinEvent(it) } || it.playerEquals()) profileCache.put(key, skin)
         }
     }
 

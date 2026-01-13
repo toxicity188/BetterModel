@@ -7,6 +7,7 @@
 package kr.toxicity.model.nms.v1_21_R4
 
 import kr.toxicity.model.api.nms.PacketBundler
+import kr.toxicity.model.api.platform.PlatformPlayer
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.key.Keyed
 import net.minecraft.network.PacketSendListener
@@ -15,7 +16,6 @@ import net.minecraft.network.protocol.game.ClientboundBundlePacket
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket
 import org.bukkit.craftbukkit.entity.CraftPlayer
-import org.bukkit.entity.Player
 
 private val KEY = Key.key("bettermodel")
 
@@ -50,9 +50,9 @@ internal class SimpleBundler(
     private val list: MutableList<ClientPacket>
 ) : PacketBundler, PluginBundlePacketImpl {
     override val bundlePacket = ClientboundBundlePacket(this)
-    override fun send(player: Player, onSuccess: Runnable) {
+    override fun send(player: PlatformPlayer, onSuccess: Runnable) {
         if (isEmpty) return
-        val connection = (player as CraftPlayer).handle.connection
+        val connection = (player.unwrap() as CraftPlayer).handle.connection
         connection.send(bundlePacket, PacketSendListener.thenRun(onSuccess))
     }
     override fun isEmpty(): Boolean = list.isEmpty()
@@ -74,9 +74,9 @@ internal class LazyBundler : PacketBundler, PluginBundlePacketImpl {
     private var sent = false
 
     override val bundlePacket = ClientboundBundlePacket(this)
-    override fun send(player: Player, onSuccess: Runnable) {
+    override fun send(player: PlatformPlayer, onSuccess: Runnable) {
         if (isEmpty) return
-        val connection = (player as CraftPlayer).handle.connection
+        val connection = (player.unwrap() as CraftPlayer).handle.connection
         connection.send(bundlePacket, PacketSendListener.thenRun(onSuccess))
     }
     override fun isEmpty(): Boolean = size() == 0
@@ -108,9 +108,9 @@ internal class ParallelBundler(
         subBundlers += this
     }
     private var selectedBundler = newBundler
-    override fun send(player: Player, onSuccess: Runnable) {
+    override fun send(player: PlatformPlayer, onSuccess: Runnable) {
         if (isEmpty) return
-        val connection = (player as CraftPlayer).handle.connection
+        val connection = (player.unwrap() as CraftPlayer).handle.connection
         subBundlers.forEach {
             connection.send(it.bundlePacket)
         }

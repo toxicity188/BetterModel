@@ -4,4 +4,5 @@ plugins {
 
 dependencies {
     compileOnly(project(":api"))
+    compileOnly(project(":api:bukkit-api"))
 }

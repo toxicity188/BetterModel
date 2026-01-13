@@ -217,7 +217,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                             load.name.toComponent(GREEN)
                         )
                     }
-                    ModelImportedEvent(load, this).call()
+                    callEvent { ModelImportedEvent(load, this) }
                 }
                 if (hasTexture) load.buildImage(textures.obfuscator()).forEach { image ->
                     textures.add("${image.name}.png", image.estimatedSize()) {

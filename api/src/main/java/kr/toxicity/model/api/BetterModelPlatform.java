@@ -188,6 +188,8 @@ public interface BetterModelPlatform {
      */
     @NotNull BetterModelEvaluator evaluator();
 
+    @NotNull BetterModelEventBus eventBus();
+
     /**
      * Retrieves a resource from the plugin's JAR file.
      *

@@ -10,9 +10,9 @@ import io.lumine.mythic.api.config.MythicLineConfig
 import io.lumine.mythic.api.skills.INoTargetSkill
 import io.lumine.mythic.api.skills.SkillMetadata
 import io.lumine.mythic.api.skills.SkillResult
+import kr.toxicity.model.api.platform.PlatformBillboard
 import kr.toxicity.model.api.tracker.TrackerUpdateAction
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.*
-import org.bukkit.entity.Display
 
 class BillboardMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
 
@@ -20,8 +20,8 @@ class BillboardMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INo
     private val predicate = mlc.bonePredicateNullable
     private val billboard = mlc.toPlaceholderString(arrayOf("billboard", "bb"), "fixed") {
         it?.runCatching {
-            Display.Billboard.valueOf(uppercase())
-        }?.getOrNull() ?: Display.Billboard.FIXED
+            PlatformBillboard.valueOf(uppercase())
+        }?.getOrNull() ?: PlatformBillboard.FIXED
     }
 
     override fun cast(p0: SkillMetadata): SkillResult {

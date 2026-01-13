@@ -32,7 +32,7 @@ public interface ModelDamageSource {
      * Gets damage location
      * @return damage location
      */
-    @Nullable PlatformEntity getDamageLocation();
+    @Nullable PlatformLocation getDamageLocation();
 
     /**
      * Gets source location

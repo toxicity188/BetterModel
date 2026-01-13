@@ -15,6 +15,7 @@ import io.lumine.mythic.api.skills.SkillResult
 import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.util.function.FloatConstantSupplier
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.*
+import kr.toxicity.model.bukkit.util.wrap
 import org.bukkit.entity.Player
 
 class StateMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill, ITargetedEntitySkill {
@@ -42,7 +43,7 @@ class StateMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTarg
                 .start(li(args))
                 .end(lo(args))
                 .speed(sp(args)?.let(FloatConstantSupplier::of))
-                .player(player)
+                .player(player?.wrap())
                 .build())
             SkillResult.SUCCESS
         } ?: SkillResult.CONDITION_FAILED

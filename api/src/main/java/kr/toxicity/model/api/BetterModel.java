@@ -10,8 +10,8 @@ import kr.toxicity.model.api.data.renderer.ModelRenderer;
 import kr.toxicity.model.api.entity.BaseEntity;
 import kr.toxicity.model.api.nms.NMS;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
+import kr.toxicity.model.api.platform.PlatformEntity;
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry;
-import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -125,7 +125,7 @@ public final class BetterModel {
      * @return an optional containing the registry if found
      * @since 1.15.2
      */
-    public static @NotNull Optional<EntityTrackerRegistry> registry(@NotNull Entity entity) {
+    public static @NotNull Optional<EntityTrackerRegistry> registry(@NotNull PlatformEntity entity) {
         return Optional.ofNullable(registryOrNull(entity));
     }
 
@@ -158,7 +158,7 @@ public final class BetterModel {
      * @return the registry, or null
      * @since 1.15.2
      */
-    public static @Nullable EntityTrackerRegistry registryOrNull(@NotNull Entity entity) {
+    public static @Nullable EntityTrackerRegistry registryOrNull(@NotNull PlatformEntity entity) {
         return registryOrNull(nms().adapt(entity));
     }
 
@@ -232,6 +232,10 @@ public final class BetterModel {
      */
     public static @NotNull NMS nms() {
         return platform().nms();
+    }
+
+    public static @NotNull BetterModelEventBus eventBus() {
+        return platform().eventBus();
     }
 
     /**

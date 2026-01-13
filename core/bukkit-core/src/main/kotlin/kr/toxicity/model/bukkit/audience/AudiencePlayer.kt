@@ -1,4 +1,4 @@
-package kr.toxicity.model.audience
+package kr.toxicity.model.bukkit.audience
 
 import kr.toxicity.model.api.platform.PlatformPlayer
 import net.kyori.adventure.audience.Audience

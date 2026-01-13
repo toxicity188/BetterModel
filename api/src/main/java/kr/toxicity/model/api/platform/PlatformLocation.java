@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 
 public interface PlatformLocation extends PlatformRegionHolder {
 
-    @NotNull PlatformWorld world();
+    PlatformWorld world();
 
     double x();
     double y();
@@ -13,5 +13,5 @@ public interface PlatformLocation extends PlatformRegionHolder {
     float pitch();
     float yaw();
 
-    @NotNull PlatformLocation add(double x, double y, double z)
+    @NotNull PlatformLocation add(double x, double y, double z);
 }

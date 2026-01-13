@@ -11,11 +11,11 @@ import io.lumine.mythic.api.config.MythicLineConfig
 import io.lumine.mythic.api.skills.ITargetedEntitySkill
 import io.lumine.mythic.api.skills.SkillMetadata
 import io.lumine.mythic.api.skills.SkillResult
-import kr.toxicity.model.api.bukkit.platform.BukkitAdapter
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.modelPlaceholder
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.toPlaceholderArgs
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.toPlaceholderBoolean
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.toTracker
+import kr.toxicity.model.bukkit.util.wrap
 import org.bukkit.entity.Player
 
 class PairModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), ITargetedEntitySkill {
@@ -27,11 +27,10 @@ class PairModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), ITa
         val target = p1.bukkitEntity as? Player ?: return SkillResult.CONDITION_FAILED
         val args = toPlaceholderArgs(p0, p1)
         p0.toTracker(model(args))?.let {
-            val adapt = BukkitAdapter.adapt(target)
             if (remove(args)) {
-                it.show(adapt)
+                it.show(target.wrap())
             } else {
-                it.hide(adapt)
+                it.hide(target.wrap())
             }
         }
         return SkillResult.SUCCESS

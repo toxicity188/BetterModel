@@ -6,10 +6,14 @@
  */
 package kr.toxicity.model.api.util;
 
+import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.BetterModelEventBus;
 import kr.toxicity.model.api.event.CancellableEvent;
 import kr.toxicity.model.api.event.ModelEvent;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.function.Supplier;
 
 /**
  * Event util
@@ -25,11 +29,10 @@ public final class EventUtil {
 
     /**
      * Calls this event
-     * @param event event
      * @return not canceled
      */
-    public static boolean call(@NotNull ModelEvent event) {
-        Bukkit.getPluginManager().callEvent(event);
-        return !(event instanceof CancellableEvent cancellable) || !cancellable.isCancelled();
+    @NotNull
+    public static <T extends ModelEvent> BetterModelEventBus.Result call(@NotNull Class<T> eventClass, @NotNull Supplier<T> eventSupplier) {
+        return BetterModel.eventBus().call(eventClass, eventSupplier);
     }
 }

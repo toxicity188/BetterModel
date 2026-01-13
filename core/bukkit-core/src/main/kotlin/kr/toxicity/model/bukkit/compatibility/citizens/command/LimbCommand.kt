@@ -10,6 +10,7 @@ import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.animation.AnimationIterator
 import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.tracker.TrackerModifier
+import kr.toxicity.model.bukkit.util.wrap
 import net.citizensnpcs.api.CitizensAPI
 import net.citizensnpcs.api.command.Arg
 import net.citizensnpcs.api.command.Command
@@ -41,8 +42,8 @@ class LimbCommand {
         @Arg(5) type: String?
     ) {
         val targetNpc = CitizensAPI.getNPCRegistry().getById(id.toIntOrNull() ?: return) ?: return
-        val npcEntity = targetNpc.entity as? Player ?: return
-        val targetPlayer = Bukkit.getPlayer(player) ?: return
+        val npcEntity = (targetNpc.entity as? Player)?.wrap() ?: return
+        val targetPlayer = Bukkit.getPlayer(player)?.wrap() ?: return
 
         val animType = type
             ?.let { t ->

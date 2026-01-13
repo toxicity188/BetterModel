@@ -50,18 +50,13 @@ internal class ModelNametagImpl(
         billboardConstraints = Display.BillboardConstraints.CENTER
     }
     private var alwaysVisible = false
-    private var location = Location(
-        null,
-        0.0,
-        0.0,
-        0.0
-    )
+    private var location = BetterModel.platform().adapter().zero()
 
     override fun component(component: Component?) {
         display.text = component?.asVanilla() ?: VanillaComponent.empty()
     }
 
-    override fun teleport(location: Location) {
+    override fun teleport(location: PlatformLocation) {
         this.location = location
     }
 
@@ -69,18 +64,18 @@ internal class ModelNametagImpl(
         this.alwaysVisible = alwaysVisible
     }
 
-    override fun send(player: Player) {
+    override fun send(player: PlatformPlayer) {
         if (display.text == VanillaComponent.empty()) return
         val hb = bone.group.hitBox?.centerPoint() ?: emptyVector
-        val pos = bone.worldPosition(hb, emptyVector, player.uniqueId)
+        val pos = bone.worldPosition(hb, emptyVector, player.uuid())
         display.moveTo(Vec3(
-            location.x + pos.x,
-            location.y + pos.y,
-            location.z + pos.z
+            location.x() + pos.x,
+            location.y() + pos.y,
+            location.z() + pos.z
         ))
-        val inPoint = alwaysVisible || EntityUtil.isCustomNameVisible(player.location, location)
+        val inPoint = alwaysVisible || EntityUtil.isCustomNameVisible(player.location(), location)
         when {
-            inPoint && viewedPlayer.add(player.uniqueId) -> bundlerOfNotNull(
+            inPoint && viewedPlayer.add(player.uuid()) -> bundlerOfNotNull(
                 addPacket,
                 display.entityData.pack()?.let {
                     ClientboundSetEntityDataPacket(display.id, it)
@@ -92,7 +87,7 @@ internal class ModelNametagImpl(
                     ClientboundSetEntityDataPacket(display.id, it)
                 }
             )
-            viewedPlayer.remove(player.uniqueId) -> bundlerOf(removePacket)
+            viewedPlayer.remove(player.uuid()) -> bundlerOf(removePacket)
             else -> null
         }?.send(player)
     }

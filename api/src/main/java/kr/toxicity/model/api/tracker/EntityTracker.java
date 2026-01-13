@@ -139,11 +139,11 @@ public class EntityTracker extends Tracker {
         });
         pipeline.eventDispatcher().handleCreateHitBox((b, l) -> l.mount((h, e) -> {
                 registry.mountedHitBoxCache.put(e.uuid(), new EntityTrackerRegistry.MountedHitBox(b, e, h));
-                EventUtil.call(new MountModelEvent(this, b, h, e));
+                EventUtil.call(MountModelEvent.class, () -> new MountModelEvent(this, b, h, e));
             })
             .dismount((h, e) -> {
                 registry.mountedHitBoxCache.remove(e.uuid());
-                EventUtil.call(new DismountModelEvent(this, b, h, e));
+                EventUtil.call(DismountModelEvent.class, () -> new DismountModelEvent(this, b, h, e));
             }));
         entity.platform().task(() -> {
             if (isClosed()) return;
@@ -155,7 +155,7 @@ public class EntityTracker extends Tracker {
         });
         rotation(bodyRotator::bodyRotation);
         preUpdateConsumer.accept(this);
-        EventUtil.call(new CreateEntityTrackerEvent(this));
+        EventUtil.call(CreateEntityTrackerEvent.class, () -> new CreateEntityTrackerEvent(this));
     }
 
     @Override
