@@ -29,6 +29,7 @@ dependencyResolutionManagement {
         maven("https://maven.citizensnpcs.co/repo/")
         maven("https://mvn.lumine.io/repository/maven-public/")
         maven("https://repo.nexomc.com/releases/")
+        maven("https://maven.nucleoid.xyz/")
     }
 }
 
@@ -49,6 +50,7 @@ include(
 
     "platform:spigot",
     "platform:paper",
+    "platform:fabric",
 
     //nms
     "nms:v1_20_R4",
