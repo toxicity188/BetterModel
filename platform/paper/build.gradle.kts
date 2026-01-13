@@ -45,7 +45,7 @@ tasks.shadowJar {
 }
 
 paperPluginYaml {
-    main = "$group.paper.BetterModelPluginPaper"
+    main = "$group.paper.BetterModelPaper"
     loader = "$group.paper.BetterModelLoader"
     version = project.version.toString()
     name = rootProject.name

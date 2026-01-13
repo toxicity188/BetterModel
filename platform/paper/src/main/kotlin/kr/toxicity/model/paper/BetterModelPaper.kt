@@ -10,7 +10,7 @@ import kr.toxicity.model.api.BetterModelPlatform
 import kr.toxicity.model.bukkit.BetterModelPlugin
 
 @Suppress("UNUSED")
-class BetterModelPluginPaper : BetterModelPlugin() {
+class BetterModelPaper : BetterModelPlugin() {
 
     override fun jarType(): BetterModelPlatform.JarType {
         return BetterModelPlatform.JarType.PAPER
