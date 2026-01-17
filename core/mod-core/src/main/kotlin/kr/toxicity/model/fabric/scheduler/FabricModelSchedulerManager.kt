@@ -25,7 +25,7 @@ object FabricModelSchedulerManager {
             scheduler = FabricModelSchedulerImpl()
         }
 
-        ServerLifecycleEvents.SERVER_STOPPING.register {
+        ServerLifecycleEvents.SERVER_STOPPED.register {
             scheduler?.shutdown()
             scheduler = null
         }
