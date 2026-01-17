@@ -99,62 +99,30 @@ inline fun SynchedEntityData.pack(
         }
 }
 
-fun ClientboundSetEntityDataPacket.toRegistryDataPacket(
-    uuid: UUID,
-    registry: EntityTrackerRegistry
-): ClientboundSetEntityDataPacket {
-    val values = packedItems.map { value ->
-        if (value.id != EntityAccessor.getDataSharedFlagsId().id) {
-            return@map value
-        }
-
-        val actual = registry.entityFlag(uuid, value.value() as Byte)
-        DataValue(value.id, EntityDataSerializers.BYTE, actual)
-    }
-
-    return ClientboundSetEntityDataPacket(id, values)
-}
+fun ClientboundSetEntityDataPacket.toRegistryDataPacket(uuid: UUID, registry: EntityTrackerRegistry) = ClientboundSetEntityDataPacket(id, packedItems().map {
+    if (it.id == EntityAccessor.getDataSharedFlagsId().id) DataValue(
+        it.id,
+        EntityDataSerializers.BYTE,
+        registry.entityFlag(uuid, it.value() as Byte)
+    ) else it
+})
 
 fun EntityTrackerRegistry.entityFlag(uuid: UUID, byte: Byte): Byte {
+    var b = byte.toInt()
     val hideOption = hideOption(uuid)
-    var flag = byte.toInt()
-
-    if (hideOption.fire()) {
-        flag = flag and 1.inv()
-    }
-
-    if (hideOption.visibility()) {
-        flag = flag or (1 shl 5)
-    }
-
-    if (hideOption.glowing()) {
-        flag = flag and (1 shl 6).inv()
-    }
-
-    return flag.toByte()
+    if (hideOption.fire()) b = b and 1.inv()
+    if (hideOption.visibility()) b = b or (1 shl 5)
+    if (hideOption.glowing()) b = b and (1 shl 6).inv()
+    return b.toByte()
 }
 
-inline fun LivingEntity.toEquipmentPacket(
-    mapper: (EquipmentSlot) -> ItemStack? = {
-        if (hasItemInSlot(it)) {
-            getItemBySlot(it)
-        } else {
-            null
-        }
-    }
-): ClientboundSetEquipmentPacket? {
+inline fun LivingEntity.toEquipmentPacket(mapper: (EquipmentSlot) -> ItemStack? = { if (hasItemInSlot(it)) getItemBySlot(it) else null }): ClientboundSetEquipmentPacket? {
     val equip = EquipmentSlot.entries.mapNotNull {
-        mapper(it)?.let { item ->
-            of(it, item)
-        }
+        mapper(it)?.let { item -> of(it, item) }
     }
-
-    return if (equip.isNotEmpty()) {
-        ClientboundSetEquipmentPacket(id, equip)
-    } else {
-        null
-    }
+    return if (equip.isNotEmpty()) ClientboundSetEquipmentPacket(id, equip) else null
 }
+fun LivingEntity.toEmptyEquipmentPacket() = toEquipmentPacket { ItemStack.EMPTY }
 
 fun ClientboundContainerSetSlotPacket.isEquipment(player: Player): Boolean {
     return containerId == 0 &&

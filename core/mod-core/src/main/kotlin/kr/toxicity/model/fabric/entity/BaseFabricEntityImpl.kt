@@ -87,7 +87,7 @@ class BaseFabricEntityImpl(private val entity: Entity) : BaseFabricEntity {
     override fun passengerPosition(dest: Vector3f): Vector3f = entity.passengerPosition(dest)
 
     override fun trackedBy(): Stream<PlatformPlayer> = entity.seenBy.stream().map {
-        it.player.wrap()
+        it.wrap()
     }
 
     override fun mainHand(): TransformedItemStack {

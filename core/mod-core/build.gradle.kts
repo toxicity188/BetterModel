@@ -60,4 +60,7 @@ fabricModJson {
         "cloud" to listOf("*"),
         "polymer-resource-pack" to listOf("*")
     )
+    mixins = listOf(
+        mixin("bettermodel.mixins.json")
+    )
 }

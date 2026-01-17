@@ -11,17 +11,15 @@ import net.kyori.adventure.text.Component
 import net.minecraft.commands.CommandSourceStack
 
 data class AudienceSourceStack(override val source: CommandSourceStack) : AudienceCommandSource {
-    private val audience = source.audience()
-
     override fun sendMessage(message: Component) {
-        audience.sendMessage(message)
+        source.sendMessage(message)
     }
 
     override fun showBossBar(bar: BossBar) {
-        audience.showBossBar(bar)
+        source.showBossBar(bar)
     }
 
     override fun hideBossBar(bar: BossBar) {
-        audience.hideBossBar(bar)
+        source.hideBossBar(bar)
     }
 }

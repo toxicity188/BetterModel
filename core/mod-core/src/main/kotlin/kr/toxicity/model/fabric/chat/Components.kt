@@ -6,21 +6,8 @@
  */
 package kr.toxicity.model.fabric.chat
 
-import com.google.gson.GsonBuilder
-import com.mojang.serialization.JsonOps
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
+import net.kyori.adventure.platform.modcommon.impl.NonWrappingComponentSerializer
 import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.ComponentSerialization
 
-fun net.kyori.adventure.text.Component.asVanilla(): Component = GSON.fromJson(
-    GsonComponentSerializer.gson().serialize(this),
-    Component::class.java
-)
-
-fun Component.asAdventure(): net.kyori.adventure.text.Component = GsonComponentSerializer.gson().deserialize(
-    GSON.toJson(
-        ComponentSerialization.CODEC.encodeStart(JsonOps.INSTANCE, this).getOrThrow()
-    )
-)
-
-private val GSON = GsonBuilder().disableHtmlEscaping().create()
+fun net.kyori.adventure.text.Component.asVanilla(): Component = NonWrappingComponentSerializer.INSTANCE.serialize(this)
+fun Component.asAdventure(): net.kyori.adventure.text.Component = NonWrappingComponentSerializer.INSTANCE.deserialize(this)

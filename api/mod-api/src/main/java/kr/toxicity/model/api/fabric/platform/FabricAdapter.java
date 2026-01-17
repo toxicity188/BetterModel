@@ -11,7 +11,7 @@ import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.fabric.BetterModelFabric;
 import kr.toxicity.model.api.platform.*;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerPlayerConnection;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -31,7 +31,7 @@ public final class FabricAdapter implements PlatformAdapter {
         return new FabricLivingEntity(livingEntity);
     }
 
-    public static @NotNull PlatformPlayer adapt(@NotNull ServerPlayer player) {
+    public static @NotNull PlatformPlayer adapt(@NotNull ServerPlayerConnection player) {
         return new FabricPlayer(player);
     }
 
@@ -63,13 +63,13 @@ public final class FabricAdapter implements PlatformAdapter {
 
     @Override
     public boolean isRegionSafe() {
-        return isTickThread();
+        return true;
     }
 
     @Override
     public @Nullable PlatformPlayer player(@NotNull UUID uuid) {
         var player = server().getPlayerList().getPlayer(uuid);
-        return player == null ? null : new FabricPlayer(player);
+        return player == null ? null : new FabricPlayer(player.connection);
     }
 
     @Override

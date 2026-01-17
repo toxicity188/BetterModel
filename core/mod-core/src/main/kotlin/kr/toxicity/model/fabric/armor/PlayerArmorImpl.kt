@@ -9,15 +9,18 @@ package kr.toxicity.model.fabric.armor
 import kr.toxicity.model.api.armor.ArmorItem
 import kr.toxicity.model.api.armor.PlayerArmor
 import net.minecraft.core.component.DataComponents
+import net.minecraft.server.network.ServerPlayerConnection
 import net.minecraft.world.entity.EquipmentSlot
-import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.component.DyedItemColor
 import net.minecraft.world.item.equipment.EquipmentAssets
 import net.minecraft.world.item.equipment.trim.ArmorTrim
 import kotlin.jvm.optionals.getOrNull
 
-class PlayerArmorImpl(private val player: Player) : PlayerArmor {
+class PlayerArmorImpl(private val connection: ServerPlayerConnection) : PlayerArmor {
+
+    private val player get() = connection.player
+
     override fun helmet(): ArmorItem? = player.getItemBySlot(EquipmentSlot.HEAD).toArmorItem()
 
     override fun leggings(): ArmorItem? = player.getItemBySlot(EquipmentSlot.LEGS).toArmorItem()

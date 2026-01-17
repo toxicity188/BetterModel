@@ -38,7 +38,6 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.item.ItemDisplayContext
-import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import net.minecraft.world.item.component.CustomModelData
 import net.minecraft.world.item.component.DyedItemColor
@@ -117,31 +116,17 @@ class BetterModelNMSImpl : NMS {
 
     override fun hide(channel: PlayerChannelHandler, registry: EntityTrackerRegistry) {
         val target = registry.entity().handle() as? Entity ?: return
-        val bundlers = bundlerOf()
-
-        val dataValues = target.entityData.pack(
-            valueFilter = { value ->
-                value.id == EntityAccessor.getDataSharedFlagsId().id
-            }
-        )
-        dataValues?.let {
-            val packet = ClientboundSetEntityDataPacket(target.id, it)
-            bundlers.add(
-                packet.toRegistryDataPacket(channel.uuid(), registry)
-            )
+        val list = bundlerOf()
+        target.entityData.pack(
+            valueFilter = { it.id == EntityAccessor.getDataSharedFlagsId().id }
+        )?.let {
+            list += ClientboundSetEntityDataPacket(target.id, it).toRegistryDataPacket(channel.uuid(), registry)
         }
-
         if (target is LivingEntity) {
-            val packet = if (registry.hideOption(channel.uuid()).equipment) {
-                target.toEquipmentPacket { ItemStack.EMPTY }
-            } else {
-                target.toEquipmentPacket()
-            }
-
-            packet?.let { bundlers += it }
+            val packet = if (registry.hideOption(channel.uuid()).equipment) target.toEmptyEquipmentPacket() else target.toEquipmentPacket()
+            packet?.let { list += it }
         }
-
-        bundlers.send(channel.player())
+        list.send(channel.player())
     }
 
     override fun createHitBox(
@@ -165,21 +150,20 @@ class BetterModelNMSImpl : NMS {
     override fun adapt(entity: PlatformEntity): BaseEntity = BaseFabricEntityImpl(entity.unwarp())
 
     override fun adapt(player: PlatformPlayer): BasePlayer {
-        val player = player.unwarp()
+        val connection = player.unwarp()
         return BaseFabricPlayerImpl(
-            player,
-            dirtyChecked(
-                { player.gameProfile },
+            connection, dirtyChecked(
+                { connection.player.gameProfile },
                 { ModelProfileImpl(it) }
             ),
             dirtyChecked(
-                { player.getCustomisation() },
+                { connection.player.getCustomisation() },
                 { PlayerSkinParts(it) }
             )
         )
     }
 
-    override fun profile(player: PlatformPlayer): ModelProfile = ModelProfileImpl(player.unwarp().gameProfile)
+    override fun profile(player: PlatformPlayer): ModelProfile = ModelProfileImpl(player.unwarp().player.gameProfile)
 
     override fun createPlayerHead(profile: ModelProfile): PlatformItemStack = Items.PLAYER_HEAD.defaultInstance
         .apply {

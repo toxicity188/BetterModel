@@ -30,6 +30,7 @@ import net.minecraft.core.registries.Registries
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.EntitySpawnReason
 import net.minecraft.world.entity.EntityType
+import net.minecraft.world.phys.Vec3
 import org.incendo.cloud.SenderMapper
 import org.incendo.cloud.context.CommandContext
 import org.incendo.cloud.execution.ExecutionCoordinator
@@ -161,7 +162,7 @@ fun startFabricCommand() {
 private fun hide(context: CommandContext<Audience>) {
     val sender = context.sender()
     val model = context.get<String>("model")
-    val player = context.get<SinglePlayerSelector>("source").single().wrap()
+    val player = context.get<SinglePlayerSelector>("source").single().connection.wrap()
     var success = false
     context.get<MultipleEntitySelector>("entities").values().forEach {
         if (it.toRegistry()?.tracker(model)?.hide(player) == true) success = true
@@ -172,7 +173,7 @@ private fun hide(context: CommandContext<Audience>) {
 private fun show(context: CommandContext<Audience>) {
     val sender = context.sender()
     val model = context.get<String>("model")
-    val player = context.get<SinglePlayerSelector>("source").single().wrap()
+    val player = context.get<SinglePlayerSelector>("source").single().connection.wrap()
     var success = false
     context.get<MultipleEntitySelector>("entities").values().forEach {
         if (it.toRegistry()?.tracker(model)?.show(player) == true) success = true
@@ -184,7 +185,7 @@ private fun disguise(context: CommandContext<AudiencePlayer>) {
     val audience = context.sender()
     val player = audience.player
     val scaling = if (context.getOrDefault("scaling", true)) ModelScaler.entity() else ModelScaler.defaultScaler()
-    context.model("model") { return audience.warn("Unable to find this model: $it") }.getOrCreate(player.wrap(), TrackerModifier.DEFAULT) {
+    context.model("model") { return audience.warn("Unable to find this model: $it") }.getOrCreate(player.connection.wrap(), TrackerModifier.DEFAULT) {
         it.scaler(scaling)
     }
 }
@@ -272,7 +273,7 @@ private fun play(context: CommandContext<AudiencePlayer>) {
     val animation = context.string("animation") { limb.animation(it).orElse(null) ?: return audience.warn("Unable to find this animation: $it") }
     val loopType = context.nullable("loop_type", AnimationIterator.Type.PLAY_ONCE)
     val hide = context.nullable<Boolean>("hide") != false
-    limb.getOrCreate(player.wrap(), TrackerModifier.DEFAULT) {
+    limb.getOrCreate(player.connection.wrap(), TrackerModifier.DEFAULT) {
         it.hideOption(if (hide) EntityHideOption.DEFAULT else EntityHideOption.FALSE)
     }.run {
         if (!animate(animation, AnimationModifier(0, 0, loopType), ::close)) close()
@@ -283,8 +284,9 @@ private fun test(context: CommandContext<Audience>) {
     val audience = context.sender()
     val model = context.model("model") { return audience.warn("Unable to find this model: $it") }
     val animation = context.string("animation") { str -> model.animation(str).orElse(null) ?: return audience.warn("Unable to find this animation: $str") }
-    val player = context.nullable<SinglePlayerSelector>("source")?.single() ?: audience as? ServerPlayer ?: return audience.warn("Unable to find target source.")
-    val location = context.nullable<Coordinates>("location")?.position() ?: player.position().yRot(-Math.toRadians(player.yRot.toDouble()).toFloat())
+    val player = context.nullable<SinglePlayerSelector>("source")?.single() ?: (audience as? AudiencePlayer)?.player ?: return audience.warn("Unable to find target source.")
+    val location = context.nullable<Coordinates>("location")?.position() ?: player.position()
+        .add(Vec3(0.0, 0.0, 10.0).yRot(-Math.toRadians(player.yRot.toDouble()).toFloat()))
 
     model.create(FabricLocation(
         player.level(),
@@ -294,7 +296,7 @@ private fun test(context: CommandContext<Audience>) {
         player.xRot,
         player.yRot + 180
     )).run {
-        spawn(player.wrap())
+        spawn(player.connection.wrap())
         animate(animation, AnimationModifier(0, 0, AnimationIterator.Type.PLAY_ONCE), ::close)
     }
 }

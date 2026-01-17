@@ -295,7 +295,7 @@ class HitBoxEntityImpl(
             } else {
                 MountController.MoveType.DEFAULT
             },
-            FabricPlayer(player),
+            player.connection.wrap(),
             FabricLivingEntity(delegate as LivingEntity),
             Vector3f(
                 player.xMovement(),
@@ -389,7 +389,7 @@ class HitBoxEntityImpl(
 
     override fun triggerInteract(player: PlatformPlayer, hand: ModelInteractionHand) {
         interact(
-            player.unwarp(),
+            player.unwarp().player,
             when (hand) {
                 ModelInteractionHand.LEFT -> InteractionHand.OFF_HAND
                 ModelInteractionHand.RIGHT -> InteractionHand.MAIN_HAND
@@ -399,7 +399,7 @@ class HitBoxEntityImpl(
 
     override fun triggerInteractAt(player: PlatformPlayer, hand: ModelInteractionHand, position: Vector3f) {
         interactAt(
-            player.unwarp(),
+            player.unwarp().player,
             Vec3(position),
             when (hand) {
                 ModelInteractionHand.LEFT -> InteractionHand.OFF_HAND
@@ -422,7 +422,7 @@ class HitBoxEntityImpl(
         }
 
         val interact = ModelInteractEvent(
-            FabricPlayer(player as ServerPlayer),
+            (player as ServerPlayer).connection.wrap(),
             this,
             when (hand) {
                 InteractionHand.MAIN_HAND -> ModelInteractionHand.RIGHT
@@ -449,7 +449,7 @@ class HitBoxEntityImpl(
         }
 
         val interact = ModelInteractAtEvent(
-            FabricPlayer(player as ServerPlayer),
+            (player as ServerPlayer).connection.wrap(),
             this,
             when (hand) {
                 InteractionHand.MAIN_HAND -> ModelInteractionHand.RIGHT

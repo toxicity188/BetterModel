@@ -17,7 +17,7 @@ object FabricModelSchedulerManager {
     }
 
     fun init() {
-        ServerTickEvents.END_SERVER_TICK.register {
+        ServerTickEvents.START_WORLD_TICK.register {
             scheduler?.tick()
         }
 

@@ -6,11 +6,11 @@
  */
 package kr.toxicity.model.fabric.manager
 
-import kr.toxicity.model.api.fabric.platform.FabricPlayer
 import kr.toxicity.model.api.manager.PlayerManager
 import kr.toxicity.model.api.nms.PlayerChannelHandler
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.platform.PlatformPlayer
+import kr.toxicity.model.fabric.wrap
 import kr.toxicity.model.manager.GlobalManager
 import kr.toxicity.model.manager.ReloadPipeline
 import kr.toxicity.model.manager.SkinManagerImpl
@@ -31,7 +31,7 @@ object PlayerManagerImpl : PlayerManager, GlobalManager {
 
     private fun handleJoin(player: ServerPlayer) {
         runCatching {
-            FabricPlayer(player).register()
+            player.connection.wrap().register()
         }.handleFailure {
             "Unable to load ${player.name}'s data."
         }

@@ -200,57 +200,33 @@ class ModelDisplayEntityImpl(
     }
 
     override fun sendDirtyEntityData(bundler: PacketBundler) {
-        val values = entityDataLock.accessToLock {
+        entityDataLock.accessToLock {
             entityData.pack(
                 clean = true,
                 itemFilter = { it.isDirty },
                 valueFilter = { ACCESSOR_IDS.contains(it.id) }
             )
-        }
-
-        values?.let { values ->
-            val flag = !invisible()
-            val mappedValues = values.map { dataValue ->
-                withVisible(dataValue, flag)
-            }
-
-            bundler += ClientboundSetEntityDataPacket(display.id, mappedValues)
+        }?.markVisible(!invisible())?.run {
+            bundler += ClientboundSetEntityDataPacket(display.id, this)
         }
     }
 
     override fun sendEntityData(showItem: Boolean, bundler: PacketBundler) {
-        val values = entityDataLock.accessToLock {
+        entityDataLock.accessToLock {
             entityData.pack(
                 valueFilter = { ACCESSOR_IDS.contains(it.id) }
             )
-        }
-
-        values?.let { values ->
-            val flag = showItem && !invisible()
-            val mappedValues = values.map { dataValue ->
-                withVisible(dataValue, flag)
-            }
-
-            bundler += ClientboundSetEntityDataPacket(display.id, mappedValues)
+        }?.markVisible(showItem && !invisible())?.run {
+            bundler += ClientboundSetEntityDataPacket(display.id, this)
         }
     }
 
-    private fun withVisible(dataValue: SynchedEntityData.DataValue<*>, showItem: Boolean): SynchedEntityData.DataValue<*> {
-        if (dataValue.id != ItemDisplayAccessor.getDataItemStackId().id) {
-            return dataValue
-        }
-
-        val itemStack = if (showItem) {
-            display.itemStack
-        } else {
-            ItemStack.EMPTY
-        }
-
-        return SynchedEntityData.DataValue(
-            dataValue.id,
+    private fun List<SynchedEntityData.DataValue<*>>.markVisible(showItem: Boolean) = map {
+        if (it.id == ItemDisplayAccessor.getDataItemStackId().id) SynchedEntityData.DataValue(
+            it.id,
             EntityDataSerializers.ITEM_STACK,
-            itemStack
-        )
+            if (showItem) display.itemStack else ItemStack.EMPTY
+        ) else it
     }
 
     private fun createAddPacket() = ClientboundAddEntityPacket(
@@ -273,6 +249,8 @@ class ModelDisplayEntityImpl(
         private val ACCESSOR_IDS by lazy {
             listOf(
                 EntityAccessor.getDataSharedFlagsId(),
+
+                DisplayAccessor.getDataPosRotInterpolationDurationId(),
 
                 // index: 7 ~ last
                 DisplayAccessor.getDataBillboardRenderConstraintsId(),

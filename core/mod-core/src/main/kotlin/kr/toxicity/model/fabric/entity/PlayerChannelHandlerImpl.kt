@@ -12,8 +12,6 @@ import io.netty.channel.ChannelPromise
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.entity.BasePlayer
 import kr.toxicity.model.api.fabric.BetterModelFabric
-import kr.toxicity.model.api.fabric.platform.FabricEntity
-import kr.toxicity.model.api.fabric.platform.FabricPlayer
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.PlayerChannelHandler
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
@@ -21,14 +19,14 @@ import kr.toxicity.model.api.tracker.TrackerUpdateAction
 import kr.toxicity.model.fabric.mixin.DisplayAccessor
 import kr.toxicity.model.fabric.mixin.EntityAccessor
 import kr.toxicity.model.fabric.network.*
+import kr.toxicity.model.fabric.wrap
 import kr.toxicity.model.util.CONFIG
 import kr.toxicity.model.util.PLATFORM
-import net.kyori.adventure.key.Keyed
 import net.minecraft.network.Connection
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.*
 import net.minecraft.server.level.ServerLevel
-import net.minecraft.server.level.ServerPlayer
+import net.minecraft.server.network.ServerPlayerConnection
 import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
@@ -37,23 +35,20 @@ import net.minecraft.world.item.ItemStack
 import java.util.stream.IntStream
 
 class PlayerChannelHandlerImpl(
-    private val player: ServerPlayer
-) :
-    PlayerChannelHandler,
-    ChannelDuplexHandler()
-{
-    private val connection = player.connection
+    private val connection: ServerPlayerConnection
+) : PlayerChannelHandler, ChannelDuplexHandler() {
+    private val player get() = connection.player
     private val uuid = player.uuid
 
-    private val basePlayer = PLATFORM.nms().adapt(FabricPlayer(player))
+    private val basePlayer = PLATFORM.nms().adapt(connection.wrap())
 
     init {
-        val pipeline = connection.connection.channel.pipeline()
+        val pipeline = connection.player.connection.connection.channel.pipeline()
         pipeline.addBefore(pipeline.first { it.value is Connection }.key, INJECT_NAME, this)
     }
 
     override fun close() {
-        val channel = connection.connection.channel
+        val channel = connection.player.connection.connection.channel
         channel.eventLoop().submit {
             channel.pipeline().remove(INJECT_NAME)
         }
@@ -93,7 +88,7 @@ class PlayerChannelHandlerImpl(
             list.add(it)
         }
 
-        list.send(FabricPlayer(player))
+        list.send(connection.wrap())
     }
 
     private fun Entity.toFakeAddPacket() = ClientboundAddEntityPacket(
@@ -109,17 +104,19 @@ class PlayerChannelHandlerImpl(
 
     private fun <T : ClientGamePacketListener> Packet<in T>.handle(): Packet<in T>? {
         when (this) {
-            is ClientboundBundlePacket -> return if (subPackets() is Keyed) this else ClientboundBundlePacket(subPackets().mapNotNull {
-                it.handle()
-            })
+            is ClientboundBundlePacket -> {
+                return if ((this as BetterModelBundlePacket).`bettermodel$isBetterModelPacket`()) this else ClientboundBundlePacket(subPackets().mapNotNull {
+                    it.handle()
+                })
+            }
 
             is ClientboundAddEntityPacket -> {
                 val entity = getPlayerEntity(id) ?: return this
                 if (entity is HitBox) return entity.toFakeAddPacket()
-                val wrap = FabricEntity(entity)
+                val wrap = entity.wrap()
                 BetterModel.registry(wrap).ifPresent {
                     wrap.taskLater(1) {
-                        it.spawn(FabricPlayer(player))
+                        it.spawn(connection.wrap())
                     }
                 }
             }
@@ -166,7 +163,7 @@ class PlayerChannelHandlerImpl(
             }
 
             is ClientboundRespawnPacket -> playerModel?.let {
-                bundlerOf(it.mountPacket(connection.player)).send(FabricPlayer(player))
+                bundlerOf(it.mountPacket(connection.player)).send(connection.wrap())
             }
 
             is ClientboundContainerSetSlotPacket if isEquipment(connection.player) && playerModel?.hideOption(uuid)?.equipment() == true -> {
@@ -226,7 +223,7 @@ class PlayerChannelHandlerImpl(
     }
 
     private fun EntityTrackerRegistry.remove() {
-        remove(FabricPlayer(player))
+        remove(connection.wrap())
     }
 
     companion object {

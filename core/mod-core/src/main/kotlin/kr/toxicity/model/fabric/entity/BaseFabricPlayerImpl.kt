@@ -6,33 +6,34 @@
  */
 package kr.toxicity.model.fabric.entity
 
-import kr.toxicity.model.api.armor.PlayerArmor
 import kr.toxicity.model.api.fabric.entity.BaseFabricEntity
 import kr.toxicity.model.api.fabric.entity.BaseFabricPlayer
-import kr.toxicity.model.api.fabric.platform.FabricPlayer
+import kr.toxicity.model.api.nms.Profiled
 import kr.toxicity.model.api.platform.PlatformPlayer
 import kr.toxicity.model.api.player.PlayerSkinParts
 import kr.toxicity.model.api.profile.ModelProfile
 import kr.toxicity.model.fabric.armor.PlayerArmorImpl
-import net.minecraft.server.level.ServerPlayer
+import kr.toxicity.model.fabric.seenBy
+import kr.toxicity.model.fabric.wrap
+import net.minecraft.server.network.ServerPlayerConnection
+import java.util.stream.Stream
 
 class BaseFabricPlayerImpl(
-    private val player: ServerPlayer,
-    private val profileProvider: () -> ModelProfile,
-    private val skinPartsProvider: () -> PlayerSkinParts
-) :
-    BaseFabricPlayer,
-    BaseFabricEntity by BaseFabricEntityImpl(player)
-{
-    private val armors: PlayerArmorImpl = PlayerArmorImpl(player)
+    private val connection: ServerPlayerConnection,
+    private val profile: () -> ModelProfile,
+    private val skinParts: () -> PlayerSkinParts
+) : BaseFabricPlayer, BaseFabricEntity by BaseFabricEntityImpl(connection.player), Profiled by ProfiledImpl(PlayerArmorImpl(connection), profile, skinParts) {
 
-    override fun platform(): PlatformPlayer = FabricPlayer(player)
+    override fun updateInventory() {
+        connection.player.containerMenu.sendAllDataToRemote()
+    }
 
-    override fun updateInventory() = player.containerMenu.sendAllDataToRemote()
+    override fun platform(): PlatformPlayer = connection.wrap()
 
-    override fun armors(): PlayerArmor = armors
-
-    override fun profile(): ModelProfile = profileProvider.invoke()
-
-    override fun skinParts(): PlayerSkinParts = skinPartsProvider.invoke()
+    override fun trackedBy(): Stream<PlatformPlayer> = Stream.concat(
+        Stream.of(connection),
+        connection.player.seenBy.stream()
+    ).map {
+        it.wrap()
+    }
 }

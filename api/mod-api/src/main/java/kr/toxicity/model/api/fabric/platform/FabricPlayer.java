@@ -8,29 +8,29 @@ package kr.toxicity.model.api.fabric.platform;
 
 import kr.toxicity.model.api.platform.PlatformLocation;
 import kr.toxicity.model.api.platform.PlatformPlayer;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerPlayerConnection;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-public record FabricPlayer(@NotNull ServerPlayer source) implements PlatformPlayer {
+public record FabricPlayer(@NotNull ServerPlayerConnection source) implements PlatformPlayer {
     @Override
     public @NotNull UUID uuid() {
-        return source.getUUID();
+        return source.getPlayer().getUUID();
     }
 
     @Override
     public @NotNull PlatformLocation location() {
-        return FabricLocation.of(source);
+        return FabricLocation.of(source.getPlayer());
     }
 
     @Override
     public @NotNull PlatformLocation eyeLocation() {
-        return FabricLocation.ofEye(source);
+        return FabricLocation.ofEye(source.getPlayer());
     }
 
     @Override
     public @NotNull String name() {
-        return source.getPlainTextName();
+        return source.getPlayer().getPlainTextName();
     }
 }

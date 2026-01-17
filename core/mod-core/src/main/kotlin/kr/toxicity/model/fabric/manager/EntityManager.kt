@@ -8,7 +8,6 @@ package kr.toxicity.model.fabric.manager
 
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.animation.AnimationModifier
-import kr.toxicity.model.api.fabric.platform.FabricPlayer
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.ModelInteractionHand
 import kr.toxicity.model.api.pack.PackZipper
@@ -19,6 +18,7 @@ import kr.toxicity.model.fabric.events.ServerEntityDismountCallback
 import kr.toxicity.model.fabric.events.ServerLivingEntityJumpCallback
 import kr.toxicity.model.fabric.events.ServerMobEffectLoadCallback
 import kr.toxicity.model.fabric.events.ServerMobEffectUnloadCallback
+import kr.toxicity.model.fabric.wrap
 import kr.toxicity.model.manager.GlobalManager
 import kr.toxicity.model.manager.ReloadPipeline
 import kr.toxicity.model.util.PLATFORM
@@ -132,7 +132,7 @@ object EntityManager : GlobalManager {
 
         // same as PlayerQuitEvent
         ServerPlayerEvents.LEAVE.register { player ->
-            val fabricPlayer = FabricPlayer(player)
+            val fabricPlayer = player.connection.wrap()
             BetterModel.registryOrNull(fabricPlayer.uuid())?.close()
 
             PLATFORM.scheduler().asyncTask {
@@ -206,11 +206,12 @@ object EntityManager : GlobalManager {
             if (clicker !is ServerPlayer) {
                 return@register InteractionResult.PASS
             }
+            val connection = clicker.connection
 
             // for PlayerInteractAtEntityEvent
             hitResult?.let { hitResult ->
                 (clicked as? HitBox)?.triggerInteractAt(
-                    FabricPlayer(clicker),
+                    connection.wrap(),
                     when (hand) {
                         InteractionHand.MAIN_HAND -> ModelInteractionHand.RIGHT
                         InteractionHand.OFF_HAND -> ModelInteractionHand.LEFT
@@ -229,7 +230,7 @@ object EntityManager : GlobalManager {
 
             (clicked as? HitBox)?.let { hitBox ->
                 hitBox.triggerInteract(
-                    FabricPlayer(clicker),
+                    connection.wrap(),
                     when (hand) {
                         InteractionHand.MAIN_HAND -> ModelInteractionHand.RIGHT
                         InteractionHand.OFF_HAND -> ModelInteractionHand.LEFT
@@ -255,13 +256,13 @@ object EntityManager : GlobalManager {
             return false
         }
 
-        oldVehicle.dismount(FabricPlayer(this))
+        oldVehicle.dismount(connection.wrap())
         return true
     }
 
     private fun ServerPlayer.triggerMount(hitBox: HitBox) {
         if (hitBox.mountController().canMount()) {
-            hitBox.mount(FabricPlayer(this))
+            hitBox.mount(connection.wrap())
         }
     }
 
