@@ -276,7 +276,8 @@ public interface BetterModelPlatform {
     @RequiredArgsConstructor
     enum JarType {
         SPIGOT("spigot"),
-        PAPER("paper");
+        PAPER("paper"),
+        FABRIC("fabric");
 
         private final String raw;
 
