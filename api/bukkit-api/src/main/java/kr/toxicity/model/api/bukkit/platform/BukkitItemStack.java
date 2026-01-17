@@ -35,7 +35,7 @@ public record BukkitItemStack(@NotNull ItemStack source) implements PlatformItem
         var meta = source.getItemMeta();
         if (meta == null) return this;
         meta.setCustomModelData(customModelData);
-        if (namespace != null && BetterModel.platform().version().useItemModelName()) meta.setItemModel(new NamespacedKey(namespace.namespace(), namespace.path()));
+        if (BetterModel.platform().version().useItemModelName()) meta.setItemModel(namespace == null ? null : new NamespacedKey(namespace.namespace(), namespace.path()));
         source.setItemMeta(meta);
         return this;
     }

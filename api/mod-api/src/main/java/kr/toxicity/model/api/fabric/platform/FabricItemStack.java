@@ -6,7 +6,6 @@
  */
 package kr.toxicity.model.api.fabric.platform;
 
-import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.platform.PlatformItemStack;
 import kr.toxicity.model.api.platform.PlatformNamespace;
 import net.minecraft.core.component.DataComponents;
@@ -36,13 +35,10 @@ public record FabricItemStack(@NotNull ItemStack source) implements PlatformItem
             DataComponents.CUSTOM_MODEL_DATA,
             new CustomModelData(List.of((float) customModelData), List.of(), List.of(), List.of())
         );
-        if (namespace != null && BetterModel.platform().version().useItemModelName()) {
-            source.set(
-                DataComponents.ITEM_MODEL,
-                Identifier.fromNamespaceAndPath(namespace.path(), namespace.namespace())
-            );
-        }
-
+        source.set(
+            DataComponents.ITEM_MODEL,
+            namespace == null ? null : Identifier.fromNamespaceAndPath(namespace.namespace(), namespace.path())
+        );
         return this;
     }
 

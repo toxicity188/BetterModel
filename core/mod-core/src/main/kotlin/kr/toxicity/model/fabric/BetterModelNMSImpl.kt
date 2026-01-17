@@ -24,6 +24,7 @@ import kr.toxicity.model.api.platform.PlatformPlayer
 import kr.toxicity.model.api.player.PlayerSkinParts
 import kr.toxicity.model.api.profile.ModelProfile
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
+import kr.toxicity.model.api.util.TransformedItemStack
 import kr.toxicity.model.fabric.entity.*
 import kr.toxicity.model.fabric.mixin.DisplayAccessor
 import kr.toxicity.model.fabric.mixin.EntityAccessor
@@ -32,12 +33,14 @@ import kr.toxicity.model.fabric.profile.ModelProfileImpl
 import kr.toxicity.model.util.PLATFORM
 import net.minecraft.core.component.DataComponents
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
+import net.minecraft.resources.Identifier
 import net.minecraft.util.ARGB
 import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.item.ItemDisplayContext
+import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import net.minecraft.world.item.component.CustomModelData
 import net.minecraft.world.item.component.DyedItemColor
@@ -180,4 +183,12 @@ class BetterModelNMSImpl : NMS {
         }.wrap()
 
     override fun isProxyOnlineMode(): Boolean = (PLATFORM as BetterModelFabric).server().usesAuthentication()
+
+    override fun createSkinItem(model: String, floats: List<Float>, flags: List<Boolean>, strings: List<String>, colors: List<Int>): TransformedItemStack {
+        return ItemStack(Items.PLAYER_HEAD).run {
+            set(DataComponents.CUSTOM_MODEL_DATA, CustomModelData(floats, flags, strings, colors))
+            set(DataComponents.ITEM_MODEL, Identifier.parse(model))
+            TransformedItemStack.of(wrap())
+        }
+    }
 }

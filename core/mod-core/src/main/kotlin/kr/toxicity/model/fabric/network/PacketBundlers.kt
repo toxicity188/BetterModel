@@ -48,8 +48,10 @@ internal interface PluginBundlePacketImpl : Iterable<ClientPacket> {
 internal class SimpleBundler(
     private val list: MutableList<ClientPacket>
 ) : PacketBundler, PluginBundlePacketImpl {
-    override val bundlePacket = ClientboundBundlePacket(this).apply {
-        (this as BetterModelBundlePacket).`bettermodel$setBetterModelPacket`(true)
+    override val bundlePacket by lazy {
+        ClientboundBundlePacket(this).apply {
+            (this as BetterModelBundlePacket).`bettermodel$setBetterModelPacket`(true)
+        }
     }
     override fun send(player: PlatformPlayer, onSuccess: Runnable) {
         if (isEmpty) return
