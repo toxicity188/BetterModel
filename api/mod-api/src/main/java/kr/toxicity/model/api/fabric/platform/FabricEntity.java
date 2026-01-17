@@ -13,14 +13,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-public record FabricEntity(@NotNull Entity entity) implements PlatformEntity {
+public record FabricEntity(@NotNull Entity source) implements PlatformEntity {
     @Override
     public @NotNull UUID uuid() {
-        return entity.getUUID();
+        return source.getUUID();
     }
 
     @Override
     public @NotNull PlatformLocation location() {
-        return FabricLocation.of(entity);
+        return FabricLocation.of(source);
     }
 }

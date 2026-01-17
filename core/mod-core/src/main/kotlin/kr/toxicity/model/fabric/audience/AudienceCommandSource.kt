@@ -4,11 +4,11 @@
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
-package kr.toxicity.model.bukkit.audience
+package kr.toxicity.model.fabric.audience
 
 import net.kyori.adventure.audience.Audience
-import org.bukkit.command.CommandSender
+import net.minecraft.commands.CommandSourceStack
 
-interface BukkitAudience : Audience {
-    val sender: CommandSender
+interface AudienceCommandSource : Audience {
+    val source: CommandSourceStack
 }

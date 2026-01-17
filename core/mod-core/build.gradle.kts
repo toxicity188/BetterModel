@@ -17,18 +17,24 @@ dependencies {
     modImplementation(libs.bundles.fabric)
 
     // mod modules
-    api(project(":api:mod-api", "namedElements"))?.let { include(it) }
+    api(project(":api:mod-api", "namedElements"))
+    include(project(":api:mod-api"))
 
     // non-mod modules
     api(project(":core"))?.let { include(it) }
 
     // mod libraries
-    modApi(libs.adventure.platformFabric)
+    modApi(libs.adventure.platform.fabric)
     modApi(libs.polymer.resource.pack)
     modApi(libs.cloud.fabric)
 
     // non-mod libraries
-    implementation(libs.jackson.dataformat.yaml)?.let { include(it) }
+    implementation(libs.configurate.yaml)
+
+    // include
+    include(libs.bundles.library)
+    include(libs.bundles.core)
+    include(libs.bundles.fabric.include)
 }
 
 fabricModJson {
@@ -36,7 +42,7 @@ fabricModJson {
     version = project.version.toString()
 
     entrypoints = listOf(
-        serverEntrypoint(
+        mainEntrypoint(
             "$group.fabric.BetterModelFabricImpl"
         )
     )
@@ -51,6 +57,7 @@ fabricModJson {
 
         // mod libraries
         "adventure-platform-fabric" to listOf("*"),
+        "cloud" to listOf("*"),
         "polymer-resource-pack" to listOf("*")
     )
 }

@@ -16,13 +16,13 @@ import kr.toxicity.model.api.platform.PlatformItemTransform
 import kr.toxicity.model.api.platform.PlatformLocation
 import kr.toxicity.model.api.tracker.ModelRotation
 import kr.toxicity.model.api.util.lock.SingleLock
-import kr.toxicity.model.fabric.asFabric
 import kr.toxicity.model.fabric.manager.markDirty
 import kr.toxicity.model.fabric.mixin.DisplayAccessor
 import kr.toxicity.model.fabric.mixin.EntityAccessor
 import kr.toxicity.model.fabric.mixin.ItemDisplayAccessor
 import kr.toxicity.model.fabric.network.pack
 import kr.toxicity.model.fabric.network.plusAssign
+import kr.toxicity.model.fabric.unwarp
 import kr.toxicity.model.util.CONFIG
 import net.minecraft.network.protocol.game.*
 import net.minecraft.network.syncher.EntityDataSerializers
@@ -145,7 +145,7 @@ class ModelDisplayEntityImpl(
 
     override fun item(itemStack: PlatformItemStack) {
         entityDataLock.accessToLock {
-            display.itemStack = itemStack.asFabric.stack
+            display.itemStack = itemStack.unwarp()
         }
     }
 

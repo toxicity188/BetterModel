@@ -6,152 +6,102 @@
  */
 package kr.toxicity.model.fabric.config
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonProperty
 import kr.toxicity.model.api.BetterModelConfig
 import kr.toxicity.model.api.config.DebugConfig
 import kr.toxicity.model.api.config.IndicatorConfig
 import kr.toxicity.model.api.config.ModuleConfig
 import kr.toxicity.model.api.config.PackConfig
-import kr.toxicity.model.api.fabric.platform.FabricItemStack
+import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.mount.MountControllers
 import kr.toxicity.model.api.platform.PlatformItemStack
+import kr.toxicity.model.api.util.EntityUtil
+import kr.toxicity.model.fabric.wrap
+import kr.toxicity.model.util.toPackName
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.Identifier
-import net.minecraft.world.item.Item
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.Items
+import org.spongepowered.configurate.ConfigurationNode
+import org.spongepowered.configurate.yaml.YamlConfigurationLoader
+import java.io.File
+import java.nio.file.Path
 import java.util.function.Supplier
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class BetterModelConfigImpl(
-    @param:JsonProperty("debug")
-    val debug: DebugConfig = DebugConfig.DEFAULT,
+fun Path.toConfig() = BetterModelConfigImpl(YamlConfigurationLoader.builder().path(this).build().load())
 
-    @param:JsonProperty("indicator")
-    val indicator: IndicatorConfig = IndicatorConfig.DEFAULT,
+class BetterModelConfigImpl(yaml: ConfigurationNode) : BetterModelConfig {
 
-    @param:JsonProperty("module")
-    val module: ModuleConfig = ModuleConfig.DEFAULT,
-
-    @param:JsonProperty("pack")
-    val pack: PackConfig = PackConfig.DEFAULT,
-
-    @param:JsonProperty("metrics")
-    val metrics: Boolean = true,
-
-    @param:JsonProperty("sight-trace")
-    val sightTrace: Boolean = true,
-
-    @param:JsonProperty("merge-with-external-resources")
-    val mergeWithExternalResources: Boolean = true,
-
-    @param:JsonProperty("item")
-    val itemModel: String = "LEATHER_HORSE_ARMOR",
-
-    @param:JsonProperty("item-namespace")
-    val itemNamespace: String = "bm_models",
-
-    @param:JsonProperty("max-sight")
-    val maxSight: Double = -1.0,
-
-    @param:JsonProperty("min-sight")
-    val minSight: Double = 5.0,
-
-    @param:JsonProperty("namespace")
-    val namespace: String = "bettermodel",
-
-    @param:JsonProperty("pack-type")
-    val packType: BetterModelConfig.PackType = BetterModelConfig.PackType.ZIP,
-
-    @param:JsonProperty("build-folder-location")
-    val buildFolderLocation: String = "BetterModel/build",
-
-    @param:JsonProperty("follow-mob-invisibility")
-    val followMobInvisibility: Boolean = true,
-
-    @param:JsonProperty("use-purpur-afk")
-    val usePurpurAfk: Boolean = true,
-
-    @param:JsonProperty("version-check")
-    val versionCheck: Boolean = true,
-
-    @param:JsonProperty("default-mount-controller")
-    val defaultMountController: MountControllers = MountControllers.WALK,
-
-    @param:JsonProperty("lerp-frame-time")
-    val lerpFrameTime: Int = 5,
-
-    @param:JsonProperty("cancel-player-model-inventory")
-    val cancelPlayerModelInventory: Boolean = false,
-
-    @param:JsonProperty("player-hide-delay")
-    val playerHideDelay: Long = 3L,
-
-    @param:JsonProperty("packet-bundling-size")
-    val packetBundlingSize: Int = 16,
-
-    @param:JsonProperty("enable-strict-loading")
-    val enableStrictLoading: Boolean = false
-) :
-    BetterModelConfig
-{
-    private val itemLike: Item by lazy {
+    private val debug = yaml.node("debug")?.let { node ->
+        DebugConfig.from { node.node(it).getBoolean(false) }
+    } ?: DebugConfig.DEFAULT
+    private val indicator = yaml.node("indicator")?.let { node ->
+        IndicatorConfig.from { node.node(it).getBoolean(false) }
+    } ?: IndicatorConfig.DEFAULT
+    private val module = yaml.node("module")?.let { node ->
+        ModuleConfig.from { node.node(it).getBoolean(false) }
+    } ?: ModuleConfig.DEFAULT
+    private val pack = yaml.node("pack")?.let { node ->
+        PackConfig.from { node.node(it).getBoolean(false) }
+    } ?: PackConfig.DEFAULT
+    private val sightTrace = yaml.node("sight-trace").getBoolean(true)
+    private val mergeWithExternalResources = yaml.node("merge-with-external-resources").getBoolean(false)
+    private val itemModel = yaml.node("item").getString("leather_horse_armor")
+    private val item = runCatching {
         BuiltInRegistries.ITEM.getValue(
             Identifier.withDefaultNamespace(itemModel)
         )
+    }.getOrDefault(Items.LEATHER_HORSE_ARMOR).let {
+        Supplier { ItemStack(it).wrap() }
     }
-
-    private val itemSupplier: Supplier<PlatformItemStack> = {
-        FabricItemStack(
-            ItemStack(itemLike)
-        )
+    private val itemNamespace = yaml.node("item-namespace").getString("bm_models").toPackName()
+    private val maxSight = yaml.node("max-sight").getDouble(-1.0).run {
+        if (this <= 0.0) EntityUtil.renderDistance() else this
     }
+    private val minSight = yaml.node("min-sight").getDouble(5.0)
+    private val namespace = yaml.node("namespace").getString("bettermodel")
+    private val packType = yaml.node("pack-type").getString("zip")?.let {
+        runCatching {
+            BetterModelConfig.PackType.valueOf(it.uppercase())
+        }.getOrNull()
+    } ?: BetterModelConfig.PackType.ZIP
+    private val buildFolderLocation = (yaml.node("build-folder-location").getString("BetterModel/build")).replace('/', File.separatorChar)
+    private val followMobInvisibility = yaml.node("follow-mob-invisibility").getBoolean(true)
+    private val versionCheck = yaml.node("version-check").getBoolean(true)
+    private val defaultMountController = when (yaml.node("default-mount-controller").getString("walk")?.lowercase()) {
+        "invalid" -> MountControllers.INVALID
+        "none" -> MountControllers.NONE
+        "fly" -> MountControllers.FLY
+        else -> MountControllers.WALK
+    }
+    private val lerpFrameTime = yaml.node("lerp-frame-time").getInt(5)
+    private val cancelPlayerModelInventory = yaml.node("cancel-player-model-inventory").getBoolean(false)
+    private val playerHideDelay = yaml.node("player-hide-delay").getLong(3L).coerceAtLeast(1L)
+    private val packetBundlingSize = yaml.node("packet-bundling-size").getInt(16)
+    private val enableStrictLoading = yaml.node("enable-strict-loading").getBoolean(false)
 
-    override fun debug() = debug
-
-    override fun indicator() = indicator
-
-    override fun module() = module
-
-    override fun pack() = pack
-
-    override fun metrics() = metrics
-
-    override fun sightTrace() = sightTrace
-
-    override fun mergeWithExternalResources() = mergeWithExternalResources
-
-    override fun item() = itemSupplier
-
-    override fun itemModel() = itemModel
-
-    override fun itemNamespace() = itemNamespace
-
-    override fun maxSight() = maxSight
-
-    override fun minSight() = minSight
-
-    override fun namespace() = namespace
-
-    override fun packType() = packType
-
-    override fun buildFolderLocation() = buildFolderLocation
-
-    override fun followMobInvisibility() = followMobInvisibility
-
-    override fun usePurpurAfk() = usePurpurAfk
-
-    override fun versionCheck() = versionCheck
-
-    override fun defaultMountController() = defaultMountController
-
-    override fun lerpFrameTime() = lerpFrameTime
-
-    override fun cancelPlayerModelInventory() = cancelPlayerModelInventory
-
-    override fun playerHideDelay() = playerHideDelay
-
-    override fun packetBundlingSize() = packetBundlingSize
-
-    override fun enableStrictLoading() = enableStrictLoading
+    override fun debug(): DebugConfig = debug
+    override fun indicator(): IndicatorConfig = indicator
+    override fun module(): ModuleConfig = module
+    override fun pack(): PackConfig = pack
+    override fun item(): Supplier<PlatformItemStack> = item
+    override fun itemModel(): String = itemModel
+    override fun itemNamespace(): String = itemNamespace
+    override fun metrics(): Boolean = false
+    override fun sightTrace(): Boolean = sightTrace
+    override fun mergeWithExternalResources(): Boolean = mergeWithExternalResources
+    override fun maxSight(): Double = maxSight
+    override fun minSight(): Double = minSight
+    override fun namespace(): String = namespace
+    override fun packType(): BetterModelConfig.PackType = packType
+    override fun buildFolderLocation(): String = buildFolderLocation
+    override fun followMobInvisibility(): Boolean = followMobInvisibility
+    override fun usePurpurAfk(): Boolean = false
+    override fun versionCheck(): Boolean = versionCheck
+    override fun defaultMountController(): MountController = defaultMountController
+    override fun lerpFrameTime(): Int = lerpFrameTime
+    override fun cancelPlayerModelInventory(): Boolean = cancelPlayerModelInventory
+    override fun playerHideDelay(): Long = playerHideDelay
+    override fun packetBundlingSize(): Int = packetBundlingSize
+    override fun enableStrictLoading(): Boolean = enableStrictLoading
 }
+

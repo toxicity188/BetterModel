@@ -12,6 +12,9 @@ import kr.toxicity.model.BetterModelEvaluatorImpl
 import kr.toxicity.model.BetterModelEventBusImpl
 import kr.toxicity.model.BetterModelPlatformImpl
 import kr.toxicity.model.api.*
+import kr.toxicity.model.api.BetterModelPlatform.ReloadResult.Failure
+import kr.toxicity.model.api.BetterModelPlatform.ReloadResult.OnReload
+import kr.toxicity.model.api.BetterModelPlatform.ReloadResult.Success
 import kr.toxicity.model.api.event.PluginEndReloadEvent
 import kr.toxicity.model.api.event.PluginStartReloadEvent
 import kr.toxicity.model.api.fabric.BetterModelFabric
@@ -24,18 +27,26 @@ import kr.toxicity.model.api.platform.PlatformRegionHolder
 import kr.toxicity.model.api.scheduler.ModelScheduler
 import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.fabric.attachment.BetterModelAttachments
+import kr.toxicity.model.fabric.command.startFabricCommand
 import kr.toxicity.model.fabric.config.BetterModelConfigImpl
-import kr.toxicity.model.fabric.config.BetterModelConfigManager
+import kr.toxicity.model.fabric.config.toConfig
 import kr.toxicity.model.fabric.manager.EntityManager
 import kr.toxicity.model.fabric.manager.PlayerManagerImpl
 import kr.toxicity.model.fabric.scheduler.FabricModelSchedulerManager
 import kr.toxicity.model.manager.*
 import kr.toxicity.model.util.callEvent
+import kr.toxicity.model.util.handleException
+import kr.toxicity.model.util.info
+import kr.toxicity.model.util.toComponent
 import kr.toxicity.model.util.toGenerator
 import kr.toxicity.model.util.toIndicator
+import kr.toxicity.model.util.withComma
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.fabricmc.loader.api.FabricLoader
+import net.kyori.adventure.audience.Audience
+import net.kyori.adventure.text.format.NamedTextColor.AQUA
+import net.kyori.adventure.text.format.NamedTextColor.GREEN
 import net.minecraft.DetectedVersion
 import net.minecraft.WorldVersion
 import net.minecraft.server.MinecraftServer
@@ -48,26 +59,23 @@ import java.util.function.BiConsumer
 import java.util.function.Consumer
 import java.util.jar.JarFile
 import kotlin.io.path.exists
-import kotlin.io.path.inputStream
 import kotlin.system.measureTimeMillis
 
-class BetterModelFabricImpl :
-    ModInitializer,
-    BetterModelPlatformImpl,
-    BetterModelFabric
-{
+class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterModelFabric {
     private lateinit var server: MinecraftServer
 
     private val configDir: Path = FabricLoader.getInstance()
         .configDir
-        .resolve(modId())
+        .resolve(modId()).apply {
+            toFile().mkdirs()
+        }
 
     private val jarFile: JarFile
         get() = JarFile(
             File(javaClass.getProtectionDomain().codeSource.location.toURI())
         )
 
-    private var config: BetterModelConfigImpl = loadOrSaveConfig()
+    private lateinit var config: BetterModelConfigImpl
 
     private val worldVersion: WorldVersion = DetectedVersion.tryDetectVersion()
     private val minecraftVersion: MinecraftVersion = MinecraftVersion.parse(worldVersion.id())
@@ -82,7 +90,9 @@ class BetterModelFabricImpl :
         }
         .orElseThrow()
 
-    private val nms = BetterModelNMSImpl()
+    private val nms by lazy {
+        BetterModelNMSImpl()
+    }
     private val logger = BetterModelLoggerImpl()
 
     private var reloadStartTask: (PackZipper) -> Unit = { zipper ->
@@ -100,19 +110,26 @@ class BetterModelFabricImpl :
     private val isLoadingProvider: AtomicBoolean = AtomicBoolean()
     private val isFirstLoadProvider: AtomicBoolean = AtomicBoolean()
 
-    private val allManagers: List<GlobalManager> = listOf(
-        ArmorManager,
-        ProfileManagerImpl,
-        SkinManagerImpl,
-        ModelManagerImpl,
-        PlayerManagerImpl,
-        EntityManager,
-        ScriptManagerImpl
-    )
+    private val allManagers by lazy {
+        listOf(
+            ArmorManager,
+            ProfileManagerImpl,
+            SkinManagerImpl,
+            ModelManagerImpl,
+            PlayerManagerImpl,
+            EntityManager,
+            ScriptManagerImpl
+        )
+    }
 
     override fun onInitialize() {
+        BetterModel.register(this)
+        startFabricCommand()
         ServerLifecycleEvents.SERVER_STARTING.register { server ->
             this.server = server
+        }
+        ServerLifecycleEvents.SERVER_STARTED.register {
+            startUp()
         }
 
         PolymerResourcePackUtils.addModAssets(modId())
@@ -121,31 +138,35 @@ class BetterModelFabricImpl :
         BetterModelAttachments.init()
         FabricModelSchedulerManager.init()
 
-        allManagers.forEach { manager ->
-            manager.start()
+        ServerLifecycleEvents.SERVER_STOPPED.register {
+            allManagers.forEach { manager ->
+                manager.end()
+            }
+        }
+    }
+
+    private fun startUp() {
+        config = loadOrSaveConfig()
+        allManagers.forEach {
+            it.start()
+        }
+        when (val result = reload(ReloadInfo(true, Audience.empty()))) {
+            is Failure -> result.throwable.handleException("Unable to load plugin properly.")
+            is OnReload -> throw RuntimeException("Plugin load failed.")
+            is Success -> info(
+                "Mod is loaded. (${result.totalTime().withComma()} ms)".toComponent(GREEN),
+                "Platform: Fabric".toComponent(AQUA)
+            )
         }
     }
 
     override fun getResource(fileName: String): InputStream? {
-        val path = configDir.resolve(fileName)
-        return if (path.exists()) {
-            path.inputStream()
-        } else {
-            null
-        }
+        return javaClass.getResourceAsStream("/$fileName")
     }
 
     override fun saveResource(fileName: String) {
-        val path = configDir.resolve(fileName)
-        if (path.exists()) {
-            return
-        }
-
-        val inputStream = javaClass.getResourceAsStream("/$fileName")
-            ?: throw IllegalStateException("Resource not found: $fileName")
-
-        inputStream.use { input ->
-            Files.copy(input, path)
+        getResource(fileName)?.use { input ->
+            Files.copy(input, configDir.resolve(fileName))
         }
     }
 
@@ -177,7 +198,7 @@ class BetterModelFabricImpl :
 
     override fun reload(info: ReloadInfo): BetterModelPlatform.ReloadResult {
         if (!isLoadingProvider.compareAndSet(false, true)) {
-            return BetterModelPlatform.ReloadResult.OnReload.INSTANCE
+            return OnReload.INSTANCE
         }
 
         return runCatching {
@@ -204,7 +225,7 @@ class BetterModelFabricImpl :
                 val isFirstLoad = isFirstLoadProvider.compareAndSet(false, true)
                 val packResult = config().packType().toGenerator().create(zipper, pipeline)
 
-                BetterModelPlatform.ReloadResult.Success(
+                Success(
                     isFirstLoad,
                     assetsTime,
                     packResult
@@ -213,7 +234,7 @@ class BetterModelFabricImpl :
 
         }
             .getOrElse { throwable ->
-                BetterModelPlatform.ReloadResult.Failure(throwable)
+                Failure(throwable)
             }
             .also { result ->
                 isLoadingProvider.set(false)
@@ -222,11 +243,9 @@ class BetterModelFabricImpl :
     }
 
     private fun loadOrSaveConfig(): BetterModelConfigImpl {
-        return BetterModelConfigManager.loadOrSave(
-            "config",
-            BetterModelConfigImpl::class
-        ) {
-            BetterModelConfigImpl()
+        return configDir.resolve("config.yml").run {
+            if (!exists()) saveResource("config.yml")
+            toConfig()
         }
     }
 

@@ -4,8 +4,10 @@
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
-package kr.toxicity.model.fabric.entity
+package kr.toxicity.model.fabric
 
+import kr.toxicity.model.api.BetterModel
+import kr.toxicity.model.fabric.entity.EntityHook
 import kr.toxicity.model.fabric.mixin.AvatarAccessor
 import kr.toxicity.model.fabric.mixin.MobAccessor
 import kr.toxicity.model.fabric.world.entityMap
@@ -20,6 +22,10 @@ import net.minecraft.world.entity.ai.goal.RangedCrossbowAttackGoal
 import net.minecraft.world.entity.animal.FlyingAnimal
 import net.minecraft.world.entity.player.Player
 import org.joml.Vector3f
+
+fun Entity.toTracker(model: String?) = toRegistry()?.tracker(model)
+
+fun Entity.toRegistry() = BetterModel.registryOrNull(uuid)
 
 val Entity.isWalking: Boolean
     get() {

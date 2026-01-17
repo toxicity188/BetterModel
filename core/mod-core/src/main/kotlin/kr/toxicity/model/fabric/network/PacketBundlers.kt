@@ -8,8 +8,8 @@ package kr.toxicity.model.fabric.network
 
 import kr.toxicity.model.api.nms.PacketBundler
 import kr.toxicity.model.api.platform.PlatformPlayer
-import kr.toxicity.model.fabric.asFabric
 import kr.toxicity.model.fabric.modId
+import kr.toxicity.model.fabric.unwarp
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.key.Keyed
 import net.minecraft.network.PacketSendListener
@@ -97,7 +97,7 @@ class SimpleBundler internal constructor(
             return
         }
 
-        player.asFabric.player.connection.send(
+        player.unwarp().connection.send(
             bundlePacket,
             PacketSendListener.thenRun(onSuccess)
         )
@@ -139,7 +139,7 @@ class LazyBundler internal constructor() :
             return
         }
 
-        player.asFabric.player.connection.send(
+        player.unwarp().connection.send(
             bundlePacket,
             PacketSendListener.thenRun(onSuccess)
         )
@@ -199,7 +199,7 @@ class ParallelBundler internal constructor(
         }
 
         subBundlers.forEach {
-            player.asFabric.player.connection.send(it.bundlePacket)
+            player.unwarp().connection.send(it.bundlePacket)
         }
     }
 

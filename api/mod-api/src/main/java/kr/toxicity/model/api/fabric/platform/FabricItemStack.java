@@ -18,26 +18,26 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public record FabricItemStack(@NotNull ItemStack stack) implements PlatformItemStack {
+public record FabricItemStack(@NotNull ItemStack source) implements PlatformItemStack {
     @Override
     public boolean isAir() {
-        return stack.isEmpty();
+        return source.isEmpty();
     }
 
     @Override
     public @NotNull PlatformItemStack enchant(boolean enchant) {
-        stack.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, enchant);
+        source.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, enchant);
         return this;
     }
 
     @Override
     public @NotNull PlatformItemStack modelData(int customModelData, @Nullable PlatformNamespace namespace) {
-        stack.set(
+        source.set(
             DataComponents.CUSTOM_MODEL_DATA,
             new CustomModelData(List.of((float) customModelData), List.of(), List.of(), List.of())
         );
         if (namespace != null && BetterModel.platform().version().useItemModelName()) {
-            stack.set(
+            source.set(
                 DataComponents.ITEM_MODEL,
                 Identifier.fromNamespaceAndPath(namespace.path(), namespace.namespace())
             );
@@ -48,6 +48,6 @@ public record FabricItemStack(@NotNull ItemStack stack) implements PlatformItemS
 
     @Override
     public @NotNull PlatformItemStack clone() {
-        return new FabricItemStack(stack.copy());
+        return new FabricItemStack(source.copy());
     }
 }

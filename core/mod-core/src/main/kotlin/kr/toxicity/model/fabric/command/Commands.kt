@@ -4,60 +4,41 @@
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
-package kr.toxicity.model.bukkit.command
+package kr.toxicity.model.fabric.command
 
 import kr.toxicity.model.api.BetterModel
-import kr.toxicity.model.api.BetterModelPlatform.ReloadResult.Failure
-import kr.toxicity.model.api.BetterModelPlatform.ReloadResult.OnReload
-import kr.toxicity.model.api.BetterModelPlatform.ReloadResult.Success
+import kr.toxicity.model.api.BetterModelPlatform.ReloadResult.*
 import kr.toxicity.model.api.animation.AnimationIterator
 import kr.toxicity.model.api.animation.AnimationModifier
+import kr.toxicity.model.api.fabric.platform.FabricLocation
 import kr.toxicity.model.api.tracker.EntityHideOption
 import kr.toxicity.model.api.tracker.ModelScaler
 import kr.toxicity.model.api.tracker.Tracker
 import kr.toxicity.model.api.tracker.TrackerModifier
-import kr.toxicity.model.bukkit.audience.AudiencePlayer
-import kr.toxicity.model.bukkit.audience.AudienceSender
-import kr.toxicity.model.bukkit.audience.BukkitAudience
-import kr.toxicity.model.bukkit.util.PLUGIN
-import kr.toxicity.model.bukkit.util.toRegistry
-import kr.toxicity.model.bukkit.util.toTracker
-import kr.toxicity.model.bukkit.util.wrap
-import kr.toxicity.model.command.command
-import kr.toxicity.model.command.limb
-import kr.toxicity.model.command.model
-import kr.toxicity.model.command.nullable
-import kr.toxicity.model.command.nullableString
-import kr.toxicity.model.command.string
-import kr.toxicity.model.util.LATEST_VERSION
-import kr.toxicity.model.util.PLATFORM
-import kr.toxicity.model.util.componentOf
-import kr.toxicity.model.util.emptyComponentOf
-import kr.toxicity.model.util.handleException
-import kr.toxicity.model.util.info
-import kr.toxicity.model.util.infoNotNull
-import kr.toxicity.model.util.toByteFormat
-import kr.toxicity.model.util.toComponent
-import kr.toxicity.model.util.toHoverEvent
-import kr.toxicity.model.util.warn
-import kr.toxicity.model.util.withComma
+import kr.toxicity.model.command.*
+import kr.toxicity.model.fabric.audience.AudienceCommandSource
+import kr.toxicity.model.fabric.audience.AudiencePlayer
+import kr.toxicity.model.fabric.audience.AudienceSourceStack
+import kr.toxicity.model.fabric.toRegistry
+import kr.toxicity.model.fabric.toTracker
+import kr.toxicity.model.fabric.wrap
+import kr.toxicity.model.util.*
 import net.kyori.adventure.audience.Audience
-import net.kyori.adventure.text.format.NamedTextColor.GRAY
-import net.kyori.adventure.text.format.NamedTextColor.GREEN
-import net.kyori.adventure.text.format.NamedTextColor.YELLOW
-import org.bukkit.command.CommandSender
-import org.bukkit.entity.EntityType
-import org.bukkit.entity.Player
-import org.bukkit.util.Vector
+import net.kyori.adventure.text.format.NamedTextColor.*
+import net.minecraft.commands.CommandSourceStack
+import net.minecraft.core.registries.Registries
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.entity.EntitySpawnReason
+import net.minecraft.world.entity.EntityType
 import org.incendo.cloud.SenderMapper
-import org.incendo.cloud.bukkit.CloudBukkitCapabilities
-import org.incendo.cloud.bukkit.data.MultipleEntitySelector
-import org.incendo.cloud.bukkit.parser.PlayerParser.playerParser
-import org.incendo.cloud.bukkit.parser.location.LocationParser.locationParser
-import org.incendo.cloud.bukkit.parser.selector.MultipleEntitySelectorParser.multipleEntitySelectorParser
 import org.incendo.cloud.context.CommandContext
 import org.incendo.cloud.execution.ExecutionCoordinator
-import org.incendo.cloud.paper.LegacyPaperCommandManager
+import org.incendo.cloud.fabric.FabricServerCommandManager
+import org.incendo.cloud.minecraft.modded.data.Coordinates
+import org.incendo.cloud.minecraft.modded.data.MultipleEntitySelector
+import org.incendo.cloud.minecraft.modded.data.SinglePlayerSelector
+import org.incendo.cloud.minecraft.modded.parser.RegistryEntryParser.registryEntryParser
+import org.incendo.cloud.minecraft.modded.parser.VanillaArgumentParsers.*
 import org.incendo.cloud.parser.standard.BooleanParser.booleanParser
 import org.incendo.cloud.parser.standard.DoubleParser.doubleParser
 import org.incendo.cloud.parser.standard.EnumParser.enumParser
@@ -67,21 +48,15 @@ import org.incendo.cloud.suggestion.SuggestionProvider.blockingStrings
 private val MODEL_SUGGESTION = blockingStrings<Audience> { _, _ -> BetterModel.modelKeys() }
 private val LIMB_SUGGESTION = blockingStrings<Audience> { _, _ -> BetterModel.limbKeys() }
 
-fun startBukkitCommand() {
+fun startFabricCommand() {
     command(
-        LegacyPaperCommandManager(
-            PLUGIN,
+        FabricServerCommandManager(
             ExecutionCoordinator.simpleCoordinator(),
-            SenderMapper.create<CommandSender, Audience>(
-                { sender -> if (sender is Player) AudiencePlayer(sender) else AudienceSender(sender) },
-                { audience -> (audience as BukkitAudience).sender }
+            SenderMapper.create<CommandSourceStack, Audience>(
+                { stack -> stack.player?.let { player -> AudiencePlayer(stack, player) } ?: AudienceSourceStack(stack) },
+                { audience -> (audience as AudienceCommandSource).source }
             )
-        ).apply {
-            if (hasCapability(CloudBukkitCapabilities.NATIVE_BRIGADIER)) {
-                registerBrigadier()
-                brigadierManager().setNativeNumberSuggestions(true)
-            } else if (hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) registerAsynchronousCompletions()
-        },
+        ),
         "bettermodel",
         "All-related command.",
         "bm", "model"
@@ -99,15 +74,15 @@ fun startBukkitCommand() {
             "s"
         ) {
             required("model", stringParser(), MODEL_SUGGESTION)
-                .optional("type", enumParser(EntityType::class.java))
+                .optional("type", registryEntryParser(Registries.ENTITY_TYPE, EntityType::class.java))
                 .optional("scale", doubleParser(0.0625, 16.0))
-                .optional("location", locationParser())
+                .optional("location", vec3Parser(true))
                 .senderType(AudiencePlayer::class.java)
                 .handler(::spawn)
         }
         create(
             "test",
-            "Tests some model's animation to specific player",
+            "Tests some model's animation to specific source",
             "t"
         ) {
             required("model", stringParser(), MODEL_SUGGESTION)
@@ -116,8 +91,8 @@ fun startBukkitCommand() {
                     stringParser(),
                     blockingStrings { ctx, _ -> ctx.nullableString("model") { BetterModel.modelOrNull(it)?.animations()?.keys } ?: emptySet()  }
                 )
-                .optional("player", playerParser())
-                .optional("location", locationParser())
+                .optional("source", singlePlayerSelectorParser())
+                .optional("location", vec3Parser(false))
                 .handler(::test)
         }
         create(
@@ -136,12 +111,12 @@ fun startBukkitCommand() {
             "ud"
         ) {
             senderType(AudiencePlayer::class.java)
-                .optional("model", stringParser(), blockingStrings { ctx, _ -> ctx.sender().sender.toRegistry()?.trackers()?.map(Tracker::name) ?: emptyList() })
+                .optional("model", stringParser(), blockingStrings { ctx, _ -> ctx.sender().player.toRegistry()?.trackers()?.map(Tracker::name) ?: emptyList() })
                 .handler(::undisguise)
         }
         create(
             "play",
-            "Plays player animation",
+            "Plays source animation",
             "p"
         ) {
             required("limb", stringParser(), LIMB_SUGGESTION)
@@ -157,19 +132,19 @@ fun startBukkitCommand() {
         }
         create(
             "hide",
-            "Hides some entities from target player."
+            "Hides some entities from target source."
         ) {
             required("model", stringParser(), MODEL_SUGGESTION)
-                .required("player", playerParser())
+                .required("source", singlePlayerSelectorParser())
                 .required("entities", multipleEntitySelectorParser())
                 .handler(::hide)
         }
         create(
             "show",
-            "Shows some entities to target player."
+            "Shows some entities to target source."
         ) {
             required("model", stringParser(), MODEL_SUGGESTION)
-                .required("player", playerParser())
+                .required("source", singlePlayerSelectorParser())
                 .required("entities", multipleEntitySelectorParser())
                 .handler(::show)
         }
@@ -186,7 +161,7 @@ fun startBukkitCommand() {
 private fun hide(context: CommandContext<Audience>) {
     val sender = context.sender()
     val model = context.get<String>("model")
-    val player = context.get<Player>("player").wrap()
+    val player = context.get<SinglePlayerSelector>("source").single().wrap()
     var success = false
     context.get<MultipleEntitySelector>("entities").values().forEach {
         if (it.toRegistry()?.tracker(model)?.hide(player) == true) success = true
@@ -197,7 +172,7 @@ private fun hide(context: CommandContext<Audience>) {
 private fun show(context: CommandContext<Audience>) {
     val sender = context.sender()
     val model = context.get<String>("model")
-    val player = context.get<Player>("player").wrap()
+    val player = context.get<SinglePlayerSelector>("source").single().wrap()
     var success = false
     context.get<MultipleEntitySelector>("entities").values().forEach {
         if (it.toRegistry()?.tracker(model)?.show(player) == true) success = true
@@ -207,7 +182,7 @@ private fun show(context: CommandContext<Audience>) {
 
 private fun disguise(context: CommandContext<AudiencePlayer>) {
     val audience = context.sender()
-    val player = audience.sender
+    val player = audience.player
     val scaling = if (context.getOrDefault("scaling", true)) ModelScaler.entity() else ModelScaler.defaultScaler()
     context.model("model") { return audience.warn("Unable to find this model: $it") }.getOrCreate(player.wrap(), TrackerModifier.DEFAULT) {
         it.scaler(scaling)
@@ -216,7 +191,7 @@ private fun disguise(context: CommandContext<AudiencePlayer>) {
 
 private fun undisguise(context: CommandContext<AudiencePlayer>) {
     val audience = context.sender()
-    val player = audience.sender
+    val player = audience.player
     val model = context.nullable<String>("model")
     if (model != null) {
         player.toTracker(model)?.close() ?: audience.warn("Cannot find this model to undisguise: $model")
@@ -225,19 +200,16 @@ private fun undisguise(context: CommandContext<AudiencePlayer>) {
 
 private fun spawn(context: CommandContext<AudiencePlayer>) {
     val audience = context.sender()
-    val player = audience.sender
+    val player = audience.player
     val model = context.model("model") { return audience.warn("Unable to find this model: $it") }
-    val type = context.nullable("type", EntityType.HUSK)
+    val type = context.nullable<EntityType<*>>("type", EntityType.HUSK)
     val scale = context.nullable("scale", 1.0)
-    val loc = context.nullable("location") { player.location }
-    loc.run {
-        (world ?: player.world).spawnEntity(
-            this,
-            type
-        )
-    }.takeIf {
-        it.isValid
-    }?.let { entity ->
+    val loc = context.nullable<Coordinates>("location")
+    type.spawn(
+        player.level(),
+        loc?.blockPos() ?: player.blockPosition(),
+        EntitySpawnReason.COMMAND
+    )?.let { entity ->
         model.create(entity.wrap(), TrackerModifier.DEFAULT) { tracker -> tracker.scaler(ModelScaler.entity().multiply(scale.toFloat())) }
     } ?: audience.warn("Entity spawning has been blocked.")
 }
@@ -295,7 +267,7 @@ private fun reload(context: CommandContext<Audience>) {
 
 private fun play(context: CommandContext<AudiencePlayer>) {
     val audience = context.sender()
-    val player = audience.sender
+    val player = audience.player
     val limb = context.limb("limb") { return audience.warn("Unable to find this limb: $it") }
     val animation = context.string("animation") { limb.animation(it).orElse(null) ?: return audience.warn("Unable to find this animation: $it") }
     val loopType = context.nullable("loop_type", AnimationIterator.Type.PLAY_ONCE)
@@ -311,14 +283,17 @@ private fun test(context: CommandContext<Audience>) {
     val audience = context.sender()
     val model = context.model("model") { return audience.warn("Unable to find this model: $it") }
     val animation = context.string("animation") { str -> model.animation(str).orElse(null) ?: return audience.warn("Unable to find this animation: $str") }
-    val player = context.nullable("player") { audience as? Player ?: return audience.warn("Unable to find target player.") }
-    val location = context.nullable("location") {
-        player.location.apply {
-            add(Vector(0, 0, 10).rotateAroundY(-Math.toRadians(yaw.toDouble())))
-            yaw += 180
-        }
-    }
-    model.create(location.wrap()).run {
+    val player = context.nullable<SinglePlayerSelector>("source")?.single() ?: audience as? ServerPlayer ?: return audience.warn("Unable to find target source.")
+    val location = context.nullable<Coordinates>("location")?.position() ?: player.position().yRot(-Math.toRadians(player.yRot.toDouble()).toFloat())
+
+    model.create(FabricLocation(
+        player.level(),
+        location.x,
+        location.y,
+        location.z,
+        player.xRot,
+        player.yRot + 180
+    )).run {
         spawn(player.wrap())
         animate(animation, AnimationModifier(0, 0, AnimationIterator.Type.PLAY_ONCE), ::close)
     }

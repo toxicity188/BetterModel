@@ -13,24 +13,24 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-public record FabricPlayer(@NotNull ServerPlayer player) implements PlatformPlayer {
+public record FabricPlayer(@NotNull ServerPlayer source) implements PlatformPlayer {
     @Override
     public @NotNull UUID uuid() {
-        return player.getUUID();
+        return source.getUUID();
     }
 
     @Override
     public @NotNull PlatformLocation location() {
-        return FabricLocation.of(player);
+        return FabricLocation.of(source);
     }
 
     @Override
     public @NotNull PlatformLocation eyeLocation() {
-        return FabricLocation.ofEye(player);
+        return FabricLocation.ofEye(source);
     }
 
     @Override
     public @NotNull String name() {
-        return player.getPlainTextName();
+        return source.getPlainTextName();
     }
 }

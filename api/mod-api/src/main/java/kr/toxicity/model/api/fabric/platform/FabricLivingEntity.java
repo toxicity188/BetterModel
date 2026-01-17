@@ -13,19 +13,19 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-public record FabricLivingEntity(@NotNull LivingEntity livingEntity) implements PlatformLivingEntity {
+public record FabricLivingEntity(@NotNull LivingEntity source) implements PlatformLivingEntity {
     @Override
     public @NotNull UUID uuid() {
-        return livingEntity.getUUID();
+        return source.getUUID();
     }
 
     @Override
     public @NotNull PlatformLocation location() {
-        return FabricLocation.of(livingEntity);
+        return FabricLocation.of(source);
     }
 
     @Override
     public @NotNull PlatformLocation eyeLocation() {
-        return FabricLocation.ofEye(livingEntity);
+        return FabricLocation.ofEye(source);
     }
 }

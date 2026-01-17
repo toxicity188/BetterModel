@@ -7,12 +7,10 @@
 package kr.toxicity.model.fabric.entity
 
 import kr.toxicity.model.api.fabric.entity.BaseFabricEntity
-import kr.toxicity.model.api.fabric.platform.FabricEntity
-import kr.toxicity.model.api.fabric.platform.FabricItemStack
-import kr.toxicity.model.api.fabric.platform.FabricPlayer
 import kr.toxicity.model.api.platform.PlatformEntity
 import kr.toxicity.model.api.platform.PlatformPlayer
 import kr.toxicity.model.api.util.TransformedItemStack
+import kr.toxicity.model.fabric.*
 import kr.toxicity.model.fabric.chat.asAdventure
 import net.kyori.adventure.text.Component
 import net.minecraft.server.level.ServerPlayer
@@ -25,9 +23,8 @@ import java.util.*
 import java.util.stream.Stream
 
 class BaseFabricEntityImpl(private val entity: Entity) : BaseFabricEntity {
-    override fun platform(): PlatformEntity {
-        return FabricEntity(entity)
-    }
+
+    override fun platform(): PlatformEntity = entity.wrap()
 
     override fun customName(): Component? {
         return if (entity is ServerPlayer) {
@@ -89,18 +86,13 @@ class BaseFabricEntityImpl(private val entity: Entity) : BaseFabricEntity {
 
     override fun passengerPosition(dest: Vector3f): Vector3f = entity.passengerPosition(dest)
 
-    override fun trackedBy(): Stream<PlatformPlayer> {
-        return entity.seenBy.stream()
-            .map {
-                FabricPlayer(it.player)
-            }
+    override fun trackedBy(): Stream<PlatformPlayer> = entity.seenBy.stream().map {
+        it.player.wrap()
     }
 
     override fun mainHand(): TransformedItemStack {
         return if (entity is LivingEntity) {
-            TransformedItemStack.of(
-                FabricItemStack(entity.mainHandItem)
-            )
+            TransformedItemStack.of(entity.mainHandItem.wrap())
         } else {
             TransformedItemStack.empty()
         }
@@ -108,9 +100,7 @@ class BaseFabricEntityImpl(private val entity: Entity) : BaseFabricEntity {
 
     override fun offHand(): TransformedItemStack {
         return if (entity is LivingEntity) {
-            TransformedItemStack.of(
-                FabricItemStack(entity.offhandItem)
-            )
+            TransformedItemStack.of(entity.offhandItem.wrap())
         } else {
             TransformedItemStack.empty()
         }

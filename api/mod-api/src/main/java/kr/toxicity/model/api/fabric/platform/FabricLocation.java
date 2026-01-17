@@ -46,7 +46,7 @@ public record FabricLocation(@Nullable Level level, double x, double y, double z
             throw new IllegalStateException("level is not set");
         }
 
-        return new FabricWorld(level);
+        return FabricAdapter.adapt(level);
     }
 
     @Override

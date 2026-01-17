@@ -15,7 +15,6 @@ import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import kr.toxicity.model.api.entity.BaseEntity
 import kr.toxicity.model.api.entity.BasePlayer
 import kr.toxicity.model.api.fabric.BetterModelFabric
-import kr.toxicity.model.api.fabric.platform.FabricItemStack
 import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.nms.*
 import kr.toxicity.model.api.platform.PlatformEntity
@@ -72,7 +71,7 @@ class BetterModelNMSImpl : NMS {
 
     override fun createNametag(bone: RenderedBone): ModelNametag = ModelNametagImpl(bone)
 
-    override fun inject(player: PlatformPlayer): PlayerChannelHandler = PlayerChannelHandlerImpl(player.asFabric.player)
+    override fun inject(player: PlatformPlayer): PlayerChannelHandler = PlayerChannelHandlerImpl(player.unwarp())
 
     override fun createBundler(initialCapacity: Int): PacketBundler = bundlerOf(initialCapacity)
 
@@ -81,18 +80,10 @@ class BetterModelNMSImpl : NMS {
     override fun createParallelBundler(threshold: Int): PacketBundler = parallelBundlerOf(threshold)
 
     override fun tint(itemStack: PlatformItemStack, rgb: Int): PlatformItemStack {
-        val stack = itemStack.asFabric.stack.apply {
-            set(
-                DataComponents.DYED_COLOR,
-                DyedItemColor(rgb)
-            )
-            set(
-                DataComponents.CUSTOM_MODEL_DATA,
-                get(DataComponents.CUSTOM_MODEL_DATA)?.withMappedColors(rgb)
-            )
-        }
-
-        return FabricItemStack(stack)
+        return itemStack.unwarp().apply {
+            set(DataComponents.DYED_COLOR, DyedItemColor(rgb))
+            set(DataComponents.CUSTOM_MODEL_DATA, get(DataComponents.CUSTOM_MODEL_DATA)?.withMappedColors(rgb))
+        }.wrap()
     }
 
     private fun CustomModelData.withMappedColors(rgb: Int): CustomModelData {
@@ -171,10 +162,10 @@ class BetterModelNMSImpl : NMS {
 
     override fun version(): NMSVersion = NMSVersion.V1_21_R7
 
-    override fun adapt(entity: PlatformEntity): BaseEntity = BaseFabricEntityImpl(entity.asFabric.entity)
+    override fun adapt(entity: PlatformEntity): BaseEntity = BaseFabricEntityImpl(entity.unwarp())
 
     override fun adapt(player: PlatformPlayer): BasePlayer {
-        val player = player.asFabric.player
+        val player = player.unwarp()
         return BaseFabricPlayerImpl(
             player,
             dirtyChecked(
@@ -188,7 +179,7 @@ class BetterModelNMSImpl : NMS {
         )
     }
 
-    override fun profile(player: PlatformPlayer): ModelProfile = ModelProfileImpl(player.asFabric.player.gameProfile)
+    override fun profile(player: PlatformPlayer): ModelProfile = ModelProfileImpl(player.unwarp().gameProfile)
 
     override fun createPlayerHead(profile: ModelProfile): PlatformItemStack = Items.PLAYER_HEAD.defaultInstance
         .apply {
@@ -202,10 +193,7 @@ class BetterModelNMSImpl : NMS {
                 PropertyMap(gameProfileProperty)
             )
             set(DataComponents.PROFILE, ResolvableProfile.createResolved(gameProfile))
-        }
-        .let {
-            FabricItemStack(it)
-        }
+        }.wrap()
 
     override fun isProxyOnlineMode(): Boolean = (PLATFORM as BetterModelFabric).server().usesAuthentication()
 }

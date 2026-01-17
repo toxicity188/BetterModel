@@ -21,7 +21,7 @@ import kr.toxicity.model.api.nms.HitBoxListener
 import kr.toxicity.model.api.nms.ModelInteractionHand
 import kr.toxicity.model.api.platform.PlatformEntity
 import kr.toxicity.model.api.platform.PlatformPlayer
-import kr.toxicity.model.fabric.asFabric
+import kr.toxicity.model.fabric.*
 import kr.toxicity.model.fabric.world.damagesource.ModelDamageSourceImpl
 import kr.toxicity.model.util.CONFIG
 import net.minecraft.core.particles.DustParticleOptions
@@ -142,7 +142,7 @@ class HitBoxEntityImpl(
             return
         }
 
-        entity.asFabric.entity.startRiding(this, true, true)
+        entity.unwarp().startRiding(this, true, true)
         if (mountController.canControl()) {
             mounted = true
             noGravity = delegate.isNoGravity
@@ -154,7 +154,7 @@ class HitBoxEntityImpl(
     override fun dismount(entity: PlatformEntity) {
         forceDismount = true
 
-        entity.asFabric.entity.stopRiding()
+        entity.unwarp().stopRiding()
         listener.dismount(this, entity)
 
         forceDismount = false
@@ -389,7 +389,7 @@ class HitBoxEntityImpl(
 
     override fun triggerInteract(player: PlatformPlayer, hand: ModelInteractionHand) {
         interact(
-            player.asFabric.player,
+            player.unwarp(),
             when (hand) {
                 ModelInteractionHand.LEFT -> InteractionHand.OFF_HAND
                 ModelInteractionHand.RIGHT -> InteractionHand.MAIN_HAND
@@ -399,7 +399,7 @@ class HitBoxEntityImpl(
 
     override fun triggerInteractAt(player: PlatformPlayer, hand: ModelInteractionHand, position: Vector3f) {
         interactAt(
-            player.asFabric.player,
+            player.unwarp(),
             Vec3(position),
             when (hand) {
                 ModelInteractionHand.LEFT -> InteractionHand.OFF_HAND

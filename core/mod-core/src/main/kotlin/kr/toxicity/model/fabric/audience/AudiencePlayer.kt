@@ -4,28 +4,27 @@
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
-package kr.toxicity.model.bukkit.audience
+package kr.toxicity.model.fabric.audience
 
-import kr.toxicity.model.bukkit.util.audience
 import net.kyori.adventure.bossbar.BossBar
 import net.kyori.adventure.text.Component
-import org.bukkit.entity.Player
+import net.minecraft.commands.CommandSourceStack
+import net.minecraft.server.level.ServerPlayer
 
-class AudiencePlayer(
-    override val sender: Player
-) : BukkitAudience {
-
-    private val audience = sender.audience()
+data class AudiencePlayer(
+    override val source: CommandSourceStack,
+    val player: ServerPlayer
+) : AudienceCommandSource {
 
     override fun sendMessage(message: Component) {
-        audience.sendMessage(message)
+        player.sendMessage(message)
     }
 
     override fun showBossBar(bar: BossBar) {
-        audience.showBossBar(bar)
+        player.showBossBar(bar)
     }
 
     override fun hideBossBar(bar: BossBar) {
-        audience.hideBossBar(bar)
+        player.hideBossBar(bar)
     }
 }
