@@ -8,15 +8,15 @@ import org.spongepowered.asm.mixin.Unique;
 @Mixin(value = ClientboundBundlePacket.class)
 public abstract class ClientboundBundlePacketMixin implements BetterModelBundlePacket {
     @Unique
-    private boolean isBetterModelPacket;
+    private boolean bettermodel$isBetterModelPacket;
 
     @Override
     public boolean bettermodel$isBetterModelPacket() {
-        return isBetterModelPacket;
+        return bettermodel$isBetterModelPacket;
     }
 
     @Override
     public void bettermodel$setBetterModelPacket(boolean isBetterModel) {
-        isBetterModelPacket = isBetterModel;
+        bettermodel$isBetterModelPacket = isBetterModel;
     }
 }

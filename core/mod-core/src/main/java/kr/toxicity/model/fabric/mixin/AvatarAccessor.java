@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 @Mixin(value = Avatar.class)
 public interface AvatarAccessor {
     @Accessor("DATA_PLAYER_MODE_CUSTOMISATION")
-    static @NotNull EntityDataAccessor<Byte> getDataPlayerModeCustomisation() {
+    static @NotNull EntityDataAccessor<Byte> bettermodel$getDataPlayerModeCustomisation() {
         throw new UnsupportedOperationException("Implemented via mixin");
     }
 }

@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 @Mixin(value = Entity.class)
 public interface EntityAccessor {
     @Accessor(value = "DATA_SHARED_FLAGS_ID")
-    static @NotNull EntityDataAccessor<Byte> getDataSharedFlagsId() {
+    static @NotNull EntityDataAccessor<Byte> bettermodel$getDataSharedFlagsId() {
         throw new UnsupportedOperationException("Implemented via mixin");
     }
 }

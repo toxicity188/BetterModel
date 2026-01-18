@@ -15,5 +15,5 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 @Mixin(value = Mob.class)
 public interface MobAccessor {
     @Accessor(value = "goalSelector")
-    @NotNull GoalSelector getGoalSelector();
+    @NotNull GoalSelector bettermodel$getGoalSelector();
 }

@@ -68,7 +68,7 @@ class ModelDisplayEntityImpl(
         if (forceInvisibility.compareAndSet(!invisible, invisible)) {
             entityData.packDirty()
             entityDataLock.accessToLock {
-                entityData.markDirty(ItemDisplayAccessor.getDataItemStackId())
+                entityData.markDirty(ItemDisplayAccessor.`bettermodel$getDataItemStackId`())
             }
         }
     }
@@ -83,7 +83,7 @@ class ModelDisplayEntityImpl(
             display.setGlowingTag(entity.glow() || forceGlow.get())
             if (CONFIG.followMobInvisibility() && beforeInvisible != afterInvisible) {
                 display.isInvisible = afterInvisible
-                entityData.markDirty(ItemDisplayAccessor.getDataItemStackId())
+                entityData.markDirty(ItemDisplayAccessor.`bettermodel$getDataItemStackId`())
             }
         }
     }
@@ -139,7 +139,7 @@ class ModelDisplayEntityImpl(
 
     override fun moveDuration(duration: Int) {
         entityDataLock.accessToLock {
-            entityData[DisplayAccessor.getDataPosRotInterpolationDurationId()] = duration
+            entityData[DisplayAccessor.`bettermodel$getDataPosRotInterpolationDurationId`()] = duration
         }
     }
 
@@ -222,7 +222,7 @@ class ModelDisplayEntityImpl(
     }
 
     private fun List<SynchedEntityData.DataValue<*>>.markVisible(showItem: Boolean) = map {
-        if (it.id == ItemDisplayAccessor.getDataItemStackId().id) SynchedEntityData.DataValue(
+        if (it.id == ItemDisplayAccessor.`bettermodel$getDataItemStackId`().id) SynchedEntityData.DataValue(
             it.id,
             EntityDataSerializers.ITEM_STACK,
             if (showItem) display.itemStack else ItemStack.EMPTY
@@ -248,23 +248,23 @@ class ModelDisplayEntityImpl(
     companion object {
         private val ACCESSOR_IDS by lazy {
             listOf(
-                EntityAccessor.getDataSharedFlagsId(),
+                EntityAccessor.`bettermodel$getDataSharedFlagsId`(),
 
-                DisplayAccessor.getDataPosRotInterpolationDurationId(),
+                DisplayAccessor.`bettermodel$getDataPosRotInterpolationDurationId`(),
 
                 // index: 7 ~ last
-                DisplayAccessor.getDataBillboardRenderConstraintsId(),
-                DisplayAccessor.getDataBrightnessOverrideId(),
-                DisplayAccessor.getDataViewRangeId(),
-                DisplayAccessor.getDataShadowRadiusId(),
-                DisplayAccessor.getDataShadowStrengthId(),
-                DisplayAccessor.getDataWidthId(),
-                DisplayAccessor.getDataHeightId(),
-                DisplayAccessor.getDataGlowColorOverrideId(),
+                DisplayAccessor.`bettermodel$getDataBillboardRenderConstraintsId`(),
+                DisplayAccessor.`bettermodel$getDataBrightnessOverrideId`(),
+                DisplayAccessor.`bettermodel$getDataViewRangeId`(),
+                DisplayAccessor.`bettermodel$getDataShadowRadiusId`(),
+                DisplayAccessor.`bettermodel$getDataShadowStrengthId`(),
+                DisplayAccessor.`bettermodel$getDataWidthId`(),
+                DisplayAccessor.`bettermodel$getDataHeightId`(),
+                DisplayAccessor.`bettermodel$getDataGlowColorOverrideId`(),
 
                 // all
-                ItemDisplayAccessor.getDataItemStackId(),
-                ItemDisplayAccessor.getDataItemDisplayId()
+                ItemDisplayAccessor.`bettermodel$getDataItemStackId`(),
+                ItemDisplayAccessor.`bettermodel$getDataItemDisplayId`()
             ).map { accessor ->
                 accessor.id
             }

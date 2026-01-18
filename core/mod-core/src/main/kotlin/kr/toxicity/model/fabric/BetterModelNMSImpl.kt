@@ -58,7 +58,7 @@ class BetterModelNMSImpl : NMS {
 
         val itemDisplay = Display.ItemDisplay(type, level).apply {
             billboardConstraints = Display.BillboardConstraints.FIXED
-            entityData[DisplayAccessor.getDataPosRotInterpolationDurationId()] = 3
+            entityData[DisplayAccessor.`bettermodel$getDataPosRotInterpolationDurationId`()] = 3
             itemTransform = ItemDisplayContext.FIXED
             snapTo(location.x(), location.y(), location.z(), location.yaw(), 0.0f)
         }
@@ -121,7 +121,7 @@ class BetterModelNMSImpl : NMS {
         val target = registry.entity().handle() as? Entity ?: return
         val list = bundlerOf()
         target.entityData.pack(
-            valueFilter = { it.id == EntityAccessor.getDataSharedFlagsId().id }
+            valueFilter = { it.id == EntityAccessor.`bettermodel$getDataSharedFlagsId`().id }
         )?.let {
             list += ClientboundSetEntityDataPacket(target.id, it).toRegistryDataPacket(channel.uuid(), registry)
         }

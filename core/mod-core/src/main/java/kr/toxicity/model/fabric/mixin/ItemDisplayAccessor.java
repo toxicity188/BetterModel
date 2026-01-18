@@ -16,12 +16,12 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 @Mixin(value = Display.ItemDisplay.class)
 public interface ItemDisplayAccessor {
     @Accessor(value = "DATA_ITEM_STACK_ID")
-    static @NotNull EntityDataAccessor<ItemStack> getDataItemStackId() {
+    static @NotNull EntityDataAccessor<ItemStack> bettermodel$getDataItemStackId() {
         throw new UnsupportedOperationException("Implemented via mixin");
     }
 
     @Accessor(value = "DATA_ITEM_DISPLAY_ID")
-    static @NotNull EntityDataAccessor<Byte> getDataItemDisplayId() {
+    static @NotNull EntityDataAccessor<Byte> bettermodel$getDataItemDisplayId() {
         throw new UnsupportedOperationException("Implemented via mixin");
     }
 }

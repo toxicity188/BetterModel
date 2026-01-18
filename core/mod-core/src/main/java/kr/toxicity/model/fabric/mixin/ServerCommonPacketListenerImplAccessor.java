@@ -15,5 +15,5 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 @Mixin(value = ServerCommonPacketListenerImpl.class)
 public interface ServerCommonPacketListenerImplAccessor {
     @Accessor(value = "connection")
-    @NotNull Connection getConnection();
+    @NotNull Connection bettermodel$getConnection();
 }

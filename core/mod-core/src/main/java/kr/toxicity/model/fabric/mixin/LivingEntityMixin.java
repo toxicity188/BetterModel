@@ -51,7 +51,7 @@ public abstract class LivingEntityMixin extends Entity {
             shift = At.Shift.AFTER
         )
     )
-    private void koto$invokeEffectLoadCallbacks(@NotNull MobEffectInstance effect, @NotNull Entity source, @NotNull CallbackInfo ci) {
+    private void bettermodel$invokeEffectLoadCallbacks(@NotNull MobEffectInstance effect, @NotNull Entity source, @NotNull CallbackInfo ci) {
         if (level().isClientSide()) return;
 
         ServerMobEffectLoadCallback.EVENT.invoker().onLoad(bettermodel$livingEntity(), effect);
@@ -65,7 +65,7 @@ public abstract class LivingEntityMixin extends Entity {
             shift = At.Shift.AFTER
         )
     )
-    private void koto$invokeEffectUnloadCallbacks(@NotNull Collection<MobEffectInstance> effects, @NotNull CallbackInfo ci, @Local @NotNull MobEffectInstance effect) {
+    private void bettermodel$invokeEffectUnloadCallbacks(@NotNull Collection<MobEffectInstance> effects, @NotNull CallbackInfo ci, @Local @NotNull MobEffectInstance effect) {
         if (level().isClientSide()) return;
 
         ServerMobEffectUnloadCallback.EVENT.invoker().onUnload(bettermodel$livingEntity(), effect);

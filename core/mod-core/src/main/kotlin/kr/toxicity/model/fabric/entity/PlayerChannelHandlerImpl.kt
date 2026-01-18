@@ -79,7 +79,7 @@ class PlayerChannelHandlerImpl(
         )
 
         handle.entityData.pack(
-            valueFilter = { it.id == EntityAccessor.getDataSharedFlagsId().id }
+            valueFilter = { it.id == EntityAccessor.`bettermodel$getDataSharedFlagsId`().id }
         )?.let {
             list.add(ClientboundSetEntityDataPacket(handle.id, it))
         }
@@ -234,7 +234,7 @@ class PlayerChannelHandlerImpl(
                 EntityType.ITEM_DISPLAY,
                 (PLATFORM as BetterModelFabric).server().overworld()
             ).run {
-                entityData.set(DisplayAccessor.getDataPosRotInterpolationDurationId(), 3)
+                entityData.set(DisplayAccessor.`bettermodel$getDataPosRotInterpolationDurationId`(), 3)
                 entityData.nonDefaultValues!!
             }
         }

@@ -75,7 +75,7 @@ private fun Entity.checkEntityWalkingState(): Boolean {
 }
 
 private fun Mob.isRangedAttacking(): Boolean {
-    return (this as MobAccessor).goalSelector.availableGoals.any { wrapper ->
+    return (this as MobAccessor).`bettermodel$getGoalSelector`().availableGoals.any { wrapper ->
         wrapper.isRunning && wrapper.goal.isRangedAttackGoal()
     }
 }
@@ -88,7 +88,7 @@ private fun Goal.isRangedAttackGoal(): Boolean {
 
 fun Avatar.getCustomisation(): Int {
     return entityData.get(
-        AvatarAccessor.getDataPlayerModeCustomisation()
+        AvatarAccessor.`bettermodel$getDataPlayerModeCustomisation`()
     ).toInt()
 }
 

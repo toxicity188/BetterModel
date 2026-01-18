@@ -53,7 +53,7 @@ class ModelNametagImpl(
         EntityType.TEXT_DISPLAY,
         (PLATFORM as BetterModelFabric).server().overworld()
     ).apply {
-        entityData[DisplayAccessor.getDataPosRotInterpolationDurationId()] = 3
+        entityData[DisplayAccessor.`bettermodel$getDataPosRotInterpolationDurationId`()] = 3
         setTransformation(emptyTransformation)
         billboardConstraints = Display.BillboardConstraints.CENTER
     }

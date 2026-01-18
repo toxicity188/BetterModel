@@ -15,5 +15,5 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 @Mixin(value = Connection.class)
 public interface ConnectionAccessor {
     @Accessor(value = "channel")
-    @NotNull Channel getChannel();
+    @NotNull Channel bettermodel$getChannel();
 }

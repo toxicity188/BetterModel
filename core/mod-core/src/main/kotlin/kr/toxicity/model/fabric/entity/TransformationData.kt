@@ -18,14 +18,14 @@ class TransformationData {
 
     private val durationDataValue
         get() = SynchedEntityData.DataValue(
-            DisplayAccessor.getDataTransformationInterpolationDurationId().id,
-            DisplayAccessor.getDataTransformationInterpolationDurationId().serializer,
+            DisplayAccessor.`bettermodel$getDataTransformationInterpolationDurationId`().id,
+            DisplayAccessor.`bettermodel$getDataTransformationInterpolationDurationId`().serializer,
             duration
         )
 
     private val translation = Item(
         Vector3f(),
-        DisplayAccessor.getDataTranslationId(),
+        DisplayAccessor.`bettermodel$getDataTranslationId`(),
         { a, b ->
             // unchecked cast
             MathUtil.isSimilar(a as Vector3f, b as Vector3f)
@@ -38,7 +38,7 @@ class TransformationData {
 
     private val scale = Item(
         Vector3f(),
-        DisplayAccessor.getDataScaleId(),
+        DisplayAccessor.`bettermodel$getDataScaleId`(),
         { a, b ->
             // unchecked cast
             MathUtil.isSimilar(a as Vector3f, b as Vector3f)
@@ -51,7 +51,7 @@ class TransformationData {
 
     private val rotation = Item(
         Quaternionf(),
-        DisplayAccessor.getDataLeftRotationId(),
+        DisplayAccessor.`bettermodel$getDataLeftRotationId`(),
         { a, b ->
             // unchecked cast
             MathUtil.isSimilar(a as Quaternionf, b as Quaternionf)
@@ -141,7 +141,7 @@ class TransformationData {
     }
 
     companion object {
-        private val INTERPOLATION_DELAY_VALUE = DisplayAccessor.getDataTransformationInterpolationStartDeltaTicksId()
+        private val INTERPOLATION_DELAY_VALUE = DisplayAccessor.`bettermodel$getDataTransformationInterpolationStartDeltaTicksId`()
             .let { accessor ->
                 SynchedEntityData.DataValue(accessor.id, accessor.serializer, 0)
             }
