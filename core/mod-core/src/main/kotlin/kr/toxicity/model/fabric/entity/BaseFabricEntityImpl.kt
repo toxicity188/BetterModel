@@ -22,7 +22,10 @@ import org.joml.Vector3f
 import java.util.*
 import java.util.stream.Stream
 
-class BaseFabricEntityImpl(private val entity: Entity) : BaseFabricEntity {
+class BaseFabricEntityImpl(private var entity: Entity) : BaseFabricEntity {
+    fun setEntity(entity: Entity) {
+        this.entity = entity
+    }
 
     override fun platform(): PlatformEntity = entity.wrap()
 
@@ -38,11 +41,17 @@ class BaseFabricEntityImpl(private val entity: Entity) : BaseFabricEntity {
 
     override fun id(): Int = entity.id
 
-    override fun dead(): Boolean = entity.removalReason != null || entity is LivingEntity && entity.isDeadOrDying
+    override fun dead(): Boolean {
+        val entity = entity
+        return entity.removalReason != null || entity is LivingEntity && entity.isDeadOrDying
+    }
 
     override fun ground(): Boolean = entity.onGround()
 
-    override fun invisible(): Boolean = entity.isInvisible || entity is LivingEntity && entity.hasEffect(MobEffects.INVISIBILITY)
+    override fun invisible(): Boolean {
+        val entity = entity
+        return entity.isInvisible || entity is LivingEntity && entity.hasEffect(MobEffects.INVISIBILITY)
+    }
 
     override fun glow(): Boolean = entity.isCurrentlyGlowing
 
@@ -50,7 +59,14 @@ class BaseFabricEntityImpl(private val entity: Entity) : BaseFabricEntity {
 
     override fun fly(): Boolean = entity.isFlying
 
-    override fun scale(): Double = if (entity is LivingEntity) entity.scale.toDouble() else 1.0
+    override fun scale(): Double {
+        val entity = entity
+        return if (entity is LivingEntity) {
+            entity.scale.toDouble()
+        } else {
+            1.0
+        }
+    }
 
     override fun pitch(): Float = entity.xRot
 
@@ -59,6 +75,7 @@ class BaseFabricEntityImpl(private val entity: Entity) : BaseFabricEntity {
     override fun headYaw(): Float = if (entity is LivingEntity) entity.yHeadRot else bodyYaw()
 
     override fun damageTick(): Float {
+        val entity = entity
         if (entity !is LivingEntity || entity.invulnerableTime <= 0.0f) {
             return 0F
         }
@@ -70,6 +87,7 @@ class BaseFabricEntityImpl(private val entity: Entity) : BaseFabricEntity {
     }
 
     override fun walkSpeed(): Float {
+        val entity = entity
         if (entity !is LivingEntity) {
             return 0.0f
         }
@@ -91,6 +109,7 @@ class BaseFabricEntityImpl(private val entity: Entity) : BaseFabricEntity {
     }
 
     override fun mainHand(): TransformedItemStack {
+        val entity = entity
         return if (entity is LivingEntity) {
             TransformedItemStack.of(entity.mainHandItem.wrap())
         } else {
@@ -99,6 +118,7 @@ class BaseFabricEntityImpl(private val entity: Entity) : BaseFabricEntity {
     }
 
     override fun offHand(): TransformedItemStack {
+        val entity = entity
         return if (entity is LivingEntity) {
             TransformedItemStack.of(entity.offhandItem.wrap())
         } else {

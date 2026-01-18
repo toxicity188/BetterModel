@@ -14,6 +14,7 @@ import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.tracker.Tracker
+import kr.toxicity.model.fabric.entity.BaseFabricEntityImpl
 import kr.toxicity.model.fabric.events.ServerEntityDismountCallback
 import kr.toxicity.model.fabric.events.ServerLivingEntityJumpCallback
 import kr.toxicity.model.fabric.events.ServerMobEffectLoadCallback
@@ -112,6 +113,12 @@ object EntityManager : GlobalManager {
     }
 
     private fun registerLifecycleEvents() {
+        ServerEntityWorldChangeEvents.AFTER_ENTITY_CHANGE_WORLD.register { oldEntity, newEntity, _, _ ->
+            BetterModel.registryOrNull(oldEntity.uuid)?.let { registry ->
+                (registry.entity() as BaseFabricEntityImpl).setEntity(newEntity)
+            }
+        }
+
         // same as EntityAddToWorldEvent, EntitySpawnEvent
         ServerEntityEvents.ENTITY_LOAD.register { entity, _ ->
             BetterModel.registryOrNull(entity.uuid)?.refresh()
