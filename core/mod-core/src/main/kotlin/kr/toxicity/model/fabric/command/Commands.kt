@@ -27,7 +27,6 @@ import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.format.NamedTextColor.*
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.core.registries.Registries
-import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.EntitySpawnReason
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.phys.Vec3

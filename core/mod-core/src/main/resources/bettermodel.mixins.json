@@ -3,8 +3,8 @@
     "package": "kr.toxicity.model.fabric.mixin",
     "compatibilityLevel": "JAVA_21",
     "mixins": [
-        "ClientboundBundlePacketMixin",
         "AvatarAccessor",
+        "ClientboundBundlePacketMixin",
         "ConnectionAccessor",
         "DisplayAccessor",
         "EntityAccessor",
