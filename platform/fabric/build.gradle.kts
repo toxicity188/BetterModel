@@ -67,6 +67,12 @@ sourceSets["testmod"].resourceFactory {
         id = "bettermodel-testmod"
         version = project.version.toString()
 
+        entrypoints = listOf(
+            mainEntrypoint(
+                "$group.test.RollTest"
+            )
+        )
+
         depends = mapOf(
             // mod modules
             "bettermodel" to listOf("*")
@@ -76,15 +82,17 @@ sourceSets["testmod"].resourceFactory {
 
 tasks.remapJar {
     manifest {
-        attributes(mapOf(
-            "Dev-Build" to (BUILD_NUMBER ?: -1),
-            "Version" to versionString,
-            "Author" to "toxicity188",
-            "Url" to "https://github.com/toxicity188/BetterModel",
-            "Created-By" to "Gradle $gradle",
-            "Build-Jdk" to "${System.getProperty("java.vendor")} ${System.getProperty("java.version")}",
-            "Build-OS" to "${System.getProperty("os.arch")} ${System.getProperty("os.name")}"
-        ))
+        attributes(
+            mapOf(
+                "Dev-Build" to (BUILD_NUMBER ?: -1),
+                "Version" to versionString,
+                "Author" to "toxicity188",
+                "Url" to "https://github.com/toxicity188/BetterModel",
+                "Created-By" to "Gradle $gradle",
+                "Build-Jdk" to "${System.getProperty("java.vendor")} ${System.getProperty("java.version")}",
+                "Build-OS" to "${System.getProperty("os.arch")} ${System.getProperty("os.name")}"
+            )
+        )
     }
     archiveBaseName = rootProject.name
     archiveClassifier = classifier
