@@ -43,9 +43,7 @@ dependencies {
     })
     modImplementation(libs.bundles.fabric)
 
-    // mod modules
-    api(project(":core:mod-core", "namedElements"))
-    include(project(":core:mod-core"))
+    api(project(":core:mod-core", "namedElements")); include(project(":core:mod-core"))
 }
 
 fabricModJson {
