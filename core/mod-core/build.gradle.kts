@@ -16,14 +16,14 @@ dependencies {
     })
     modImplementation(libs.bundles.fabric)
 
-    api(project(":core"))?.let { include(it) }
+    api(project(":core")); include(project(":core"))
     api(project(":api:mod-api", "namedElements")); include(project(":api:mod-api"))
 
-    api(libs.bundles.fabric.library)?.let { include(it) }
-    modApi(libs.bundles.fabric.mod)?.let { include(it) }
+    api(libs.bundles.fabric.library); include(libs.bundles.fabric.library)
+    modApi(libs.bundles.fabric.mod); include(libs.bundles.fabric.mod)
 
-    api(libs.bundles.core)?.let { include(it) }
-    api(libs.bundles.library)?.let { include(it) }
+    api(libs.bundles.core); include(libs.bundles.core)
+    api(libs.bundles.library); include(libs.bundles.library)
 }
 
 fabricModJson {

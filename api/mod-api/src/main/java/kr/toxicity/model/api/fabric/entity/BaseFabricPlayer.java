@@ -7,6 +7,13 @@
 package kr.toxicity.model.api.fabric.entity;
 
 import kr.toxicity.model.api.entity.BasePlayer;
+import net.minecraft.server.level.ServerPlayer;
+import org.jetbrains.annotations.NotNull;
 
 public interface BaseFabricPlayer extends BaseFabricEntity, BasePlayer {
+
+    @Override
+    default @NotNull ServerPlayer entity() {
+        return (ServerPlayer) handle();
+    }
 }

@@ -23,7 +23,7 @@ import java.util.*
 import java.util.stream.Stream
 
 class BaseFabricEntityImpl(private var entity: Entity) : BaseFabricEntity {
-    fun setEntity(entity: Entity) {
+    override fun entity(entity: Entity) {
         this.entity = entity
     }
 
