@@ -218,7 +218,7 @@ public final class BetterModel {
      *
      * @return the platform instance
      * @throws NullPointerException if the platform has not been initialized
-     * @since 1.15.2
+     * @since 2.0.0
      */
     public static @NotNull BetterModelPlatform platform() {
         return Objects.requireNonNull(instance, "BetterModel hasn't been initialized yet!");
