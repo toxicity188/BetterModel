@@ -7,15 +7,7 @@
 package kr.toxicity.model.bukkit.util
 
 import kr.toxicity.model.api.BetterModel
-import kr.toxicity.model.api.nms.NMSVersion
-import kr.toxicity.model.util.PLATFORM
-import org.bukkit.NamespacedKey
-import org.bukkit.Registry
 import org.bukkit.entity.Entity
-
-val ATTRIBUTE_SCALE by lazy {
-    Registry.ATTRIBUTE.get(NamespacedKey.minecraft(if (PLATFORM.nms().version() >= NMSVersion.V1_21_R2) "scale" else "generic.scale"))!!
-}
 
 fun Entity.toTracker(model: String?) = toRegistry()?.tracker(model)
 fun Entity.toRegistry() = BetterModel.registryOrNull(uniqueId)
