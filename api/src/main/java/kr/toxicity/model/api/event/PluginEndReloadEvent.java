@@ -10,7 +10,13 @@ import kr.toxicity.model.api.BetterModelPlatform;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Plugin reload end event
+ * Triggered when the BetterModel platform finishes reloading.
+ * <p>
+ * This event provides the result of the reload operation.
+ * </p>
+ *
+ * @param result the result of the reload
+ * @since 2.0.0
  */
 public record PluginEndReloadEvent(
     @NotNull BetterModelPlatform.ReloadResult result

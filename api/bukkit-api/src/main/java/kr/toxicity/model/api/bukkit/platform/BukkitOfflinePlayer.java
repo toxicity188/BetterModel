@@ -12,6 +12,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
+/**
+ * Represents a Bukkit offline player wrapped as a {@link PlatformOfflinePlayer}.
+ *
+ * @param source the source Bukkit offline player
+ * @since 2.0.0
+ */
 public record BukkitOfflinePlayer(@NotNull OfflinePlayer source) implements PlatformOfflinePlayer {
     @Override
     public @NotNull UUID uuid() {

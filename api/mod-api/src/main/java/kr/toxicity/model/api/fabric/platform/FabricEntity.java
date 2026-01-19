@@ -13,6 +13,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
+/**
+ * Represents a Fabric entity wrapped as a {@link PlatformEntity}.
+ *
+ * @param source the source NMS entity
+ * @since 2.0.0
+ */
 public record FabricEntity(@NotNull Entity source) implements PlatformEntity {
     @Override
     public @NotNull UUID uuid() {

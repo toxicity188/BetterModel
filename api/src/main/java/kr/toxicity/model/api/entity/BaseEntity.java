@@ -39,8 +39,18 @@ public interface BaseEntity extends Identifiable {
         return BetterModel.nms().adapt(entity);
     }
 
+    /**
+     * Gets the platform-specific entity object.
+     * @since 2.0.0
+     * @return The platform entity.
+     */
     @NotNull PlatformEntity platform();
 
+    /**
+     * Gets the current location of the entity.
+     * @since 2.0.0
+     * @return The entity's location.
+     */
     default @NotNull PlatformLocation location() {
         return platform().location();
     }

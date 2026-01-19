@@ -12,7 +12,14 @@ import kr.toxicity.model.api.data.renderer.ModelRenderer;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Model imported event
+ * Triggered when a model is successfully imported and registered.
+ * <p>
+ * This event provides access to the raw blueprint and the created renderer.
+ * </p>
+ *
+ * @param blueprint the model blueprint
+ * @param renderer the model renderer
+ * @since 2.0.0
  */
 public record ModelImportedEvent(
     @NotNull ModelBlueprint blueprint,

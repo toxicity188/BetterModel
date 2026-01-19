@@ -10,7 +10,13 @@ import kr.toxicity.model.api.tracker.DummyTracker;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Create event of fake tracker
+ * Triggered when a new {@link DummyTracker} is created.
+ * <p>
+ * This event allows plugins/mods to perform initialization or tracking logic for dummy trackers.
+ * </p>
+ *
+ * @param tracker the newly created dummy tracker
+ * @since 2.0.0
  */
 public record CreateDummyTrackerEvent(
     @NotNull DummyTracker tracker

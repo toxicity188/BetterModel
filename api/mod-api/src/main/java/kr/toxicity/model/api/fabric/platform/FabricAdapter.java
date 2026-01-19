@@ -11,6 +11,7 @@ import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.fabric.BetterModelFabric;
 import kr.toxicity.model.api.platform.*;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerPlayerConnection;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -21,32 +22,101 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
+/**
+ * Provides an adapter for converting Fabric/NMS objects to BetterModel platform objects.
+ * <p>
+ * This class implements {@link PlatformAdapter} and offers static utility methods for adapting
+ * entities, players, items, and worlds.
+ * </p>
+ *
+ * @since 2.0.0
+ */
 public final class FabricAdapter implements PlatformAdapter {
 
+    /**
+     * Adapts an NMS entity to a {@link PlatformEntity}.
+     *
+     * @param entity the NMS entity
+     * @return the platform entity
+     * @since 2.0.0
+     */
     public static @NotNull PlatformEntity adapt(@NotNull Entity entity) {
         return new FabricEntity(entity);
     }
 
+    /**
+     * Adapts an NMS living entity to a {@link PlatformLivingEntity}.
+     *
+     * @param livingEntity the NMS living entity
+     * @return the platform living entity
+     * @since 2.0.0
+     */
     public static @NotNull PlatformLivingEntity adapt(@NotNull LivingEntity livingEntity) {
         return new FabricLivingEntity(livingEntity);
     }
 
-    public static @NotNull PlatformPlayer adapt(@NotNull ServerPlayerConnection player) {
-        return new FabricPlayer(player);
+    /**
+     * Adapts an NMS player connection to a {@link PlatformPlayer}.
+     *
+     * @param connection the NMS player connection
+     * @return the platform player
+     * @since 2.0.0
+     */
+    public static @NotNull PlatformPlayer adapt(@NotNull ServerPlayerConnection connection) {
+        return new FabricPlayer(connection);
     }
 
+    /**
+     * Adapts an NMS server player to a {@link PlatformPlayer}.
+     *
+     * @param player the NMS server player
+     * @return the platform player
+     * @since 2.0.0
+     */
+    public static @NotNull PlatformPlayer adapt(@NotNull ServerPlayer player) {
+        return adapt(player.connection);
+    }
+
+    /**
+     * Adapts a UUID to a {@link PlatformOfflinePlayer}.
+     *
+     * @param uuid the player UUID
+     * @return the platform offline player
+     * @since 2.0.0
+     */
     public static @NotNull PlatformOfflinePlayer adapt(@NotNull UUID uuid) {
         return new FabricOfflinePlayer(uuid, null);
     }
 
+    /**
+     * Adapts a GameProfile to a {@link PlatformOfflinePlayer}.
+     *
+     * @param profile the game profile
+     * @return the platform offline player
+     * @since 2.0.0
+     */
     public static @NotNull PlatformOfflinePlayer adapt(@NotNull GameProfile profile) {
         return new FabricOfflinePlayer(profile.id(), profile.name());
     }
 
+    /**
+     * Adapts an NMS item stack to a {@link PlatformItemStack}.
+     *
+     * @param itemStack the NMS item stack
+     * @return the platform item stack
+     * @since 2.0.0
+     */
     public static @NotNull PlatformItemStack adapt(@NotNull ItemStack itemStack) {
         return new FabricItemStack(itemStack);
     }
 
+    /**
+     * Adapts an NMS level to a {@link PlatformWorld}.
+     *
+     * @param world the NMS level
+     * @return the platform world
+     * @since 2.0.0
+     */
     public static @NotNull PlatformWorld adapt(@NotNull Level world) {
         return new FabricWorld(world);
     }
@@ -69,18 +139,18 @@ public final class FabricAdapter implements PlatformAdapter {
     @Override
     public @Nullable PlatformPlayer player(@NotNull UUID uuid) {
         var player = server().getPlayerList().getPlayer(uuid);
-        return player == null ? null : new FabricPlayer(player.connection);
+        return player == null ? null : adapt(player);
     }
 
     @Override
     public @NotNull PlatformOfflinePlayer offlinePlayer(@NotNull UUID uuid) {
         var profile = server().services().profileResolver().fetchById(uuid).orElse(null);
-        return profile == null ? FabricAdapter.adapt(uuid) : FabricAdapter.adapt(profile);
+        return profile == null ? adapt(uuid) : adapt(profile);
     }
 
     @Override
     public @NotNull PlatformItemStack air() {
-        return new FabricItemStack(ItemStack.EMPTY);
+        return adapt(ItemStack.EMPTY);
     }
 
     @Override

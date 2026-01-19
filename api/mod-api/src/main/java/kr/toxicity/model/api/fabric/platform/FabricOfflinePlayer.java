@@ -12,5 +12,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
+/**
+ * Represents a Fabric offline player wrapped as a {@link PlatformOfflinePlayer}.
+ *
+ * @param uuid the player UUID
+ * @param name the player name, or null if unknown
+ * @since 2.0.0
+ */
 public record FabricOfflinePlayer(@NotNull UUID uuid, @Nullable String name) implements PlatformOfflinePlayer {
 }

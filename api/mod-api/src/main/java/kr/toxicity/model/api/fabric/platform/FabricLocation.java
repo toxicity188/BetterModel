@@ -17,7 +17,25 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Represents a Fabric location wrapped as a {@link PlatformLocation}.
+ *
+ * @param level the NMS level
+ * @param x the x coordinate
+ * @param y the y coordinate
+ * @param z the z coordinate
+ * @param pitch the pitch
+ * @param yaw the yaw
+ * @since 2.0.0
+ */
 public record FabricLocation(@Nullable Level level, double x, double y, double z, float pitch, float yaw) implements PlatformLocation {
+    /**
+     * Creates a FabricLocation from an entity's position.
+     *
+     * @param entity the entity
+     * @return the location
+     * @since 2.0.0
+     */
     public static @NotNull FabricLocation of(@NotNull Entity entity) {
         return new FabricLocation(
             entity.level(),
@@ -29,6 +47,13 @@ public record FabricLocation(@Nullable Level level, double x, double y, double z
         );
     }
 
+    /**
+     * Creates a FabricLocation from an entity's eye position.
+     *
+     * @param entity the entity
+     * @return the eye location
+     * @since 2.0.0
+     */
     public static @NotNull FabricLocation ofEye(@NotNull Entity entity) {
         return new FabricLocation(
             entity.level(),

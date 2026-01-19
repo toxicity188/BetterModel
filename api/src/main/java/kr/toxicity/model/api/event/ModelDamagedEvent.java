@@ -13,7 +13,12 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A damage event of hit-box entity
+ * Triggered when a model's hitbox is damaged.
+ * <p>
+ * This event allows modifying the damage amount or cancelling the damage entirely.
+ * </p>
+ *
+ * @since 2.0.0
  */
 @Getter
 @Setter
@@ -26,10 +31,12 @@ public final class ModelDamagedEvent implements CancellableEvent {
     private boolean cancelled;
 
     /**
-     * Creates damage event
-     * @param hitBox hit-box
-     * @param source source
-     * @param damage damage amount
+     * Creates a new ModelDamagedEvent.
+     *
+     * @param hitBox the hitbox being damaged
+     * @param source the source of the damage
+     * @param damage the amount of damage
+     * @since 2.0.0
      */
     @ApiStatus.Internal
     public ModelDamagedEvent(@NotNull HitBox hitBox, @NotNull ModelDamageSource source, float damage) {

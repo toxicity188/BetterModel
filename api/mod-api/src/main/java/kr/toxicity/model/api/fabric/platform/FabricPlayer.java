@@ -13,6 +13,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
+/**
+ * Represents a Fabric player wrapped as a {@link PlatformPlayer}.
+ *
+ * @param source the source NMS player connection
+ * @since 2.0.0
+ */
 public record FabricPlayer(@NotNull ServerPlayerConnection source) implements PlatformPlayer {
     @Override
     public @NotNull UUID uuid() {

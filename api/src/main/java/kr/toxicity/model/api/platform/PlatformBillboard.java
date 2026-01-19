@@ -6,6 +6,14 @@
  */
 package kr.toxicity.model.api.platform;
 
+/**
+ * Defines the billboard constraints for a display entity.
+ * <p>
+ * Billboard settings control how the display rotates to face the player.
+ * </p>
+ *
+ * @since 2.0.0
+ */
 public enum PlatformBillboard {
     /**
      * No rotation (default).

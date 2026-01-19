@@ -8,5 +8,14 @@ package kr.toxicity.model.api.fabric.scheduler;
 
 import kr.toxicity.model.api.scheduler.ModelScheduler;
 
+/**
+ * Represents a Fabric-specific scheduler for model tasks.
+ * <p>
+ * This interface extends {@link ModelScheduler} to provide methods for scheduling tasks
+ * within the Fabric environment.
+ * </p>
+ *
+ * @since 2.0.0
+ */
 public interface FabricModelScheduler extends ModelScheduler {
 }

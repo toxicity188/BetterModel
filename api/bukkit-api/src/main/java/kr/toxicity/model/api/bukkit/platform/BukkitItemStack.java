@@ -14,6 +14,12 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Represents a Bukkit item stack wrapped as a {@link PlatformItemStack}.
+ *
+ * @param source the source Bukkit item stack
+ * @since 2.0.0
+ */
 public record BukkitItemStack(@NotNull ItemStack source) implements PlatformItemStack {
     @Override
     public boolean isAir() {

@@ -17,6 +17,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+/**
+ * Represents a Fabric item stack wrapped as a {@link PlatformItemStack}.
+ *
+ * @param source the source NMS item stack
+ * @since 2.0.0
+ */
 public record FabricItemStack(@NotNull ItemStack source) implements PlatformItemStack {
     @Override
     public boolean isAir() {
@@ -44,6 +50,6 @@ public record FabricItemStack(@NotNull ItemStack source) implements PlatformItem
 
     @Override
     public @NotNull PlatformItemStack clone() {
-        return new FabricItemStack(source.copy());
+        return FabricAdapter.adapt(source.copy());
     }
 }

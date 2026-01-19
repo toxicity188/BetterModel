@@ -98,31 +98,67 @@ public record TrackerData(
         ) : PARSER.fromJson(element, TrackerData.class);
     }
 
+    /**
+     * Returns the model scaler, or a default entity scaler if not specified.
+     *
+     * @return the model scaler
+     * @since 1.15.2
+     */
     @Override
     public @NotNull ModelScaler scaler() {
         return scaler != null ? scaler : ModelScaler.entity();
     }
 
+    /**
+     * Returns the model rotator, or a default YAW rotator if not specified.
+     *
+     * @return the model rotator
+     * @since 1.15.2
+     */
     @Override
     public @NotNull ModelRotator rotator() {
         return rotator != null ? rotator : ModelRotator.YAW;
     }
 
+    /**
+     * Returns the entity hide option, or the default hide option if not specified.
+     *
+     * @return the entity hide option
+     * @since 1.15.2
+     */
     @Override
     public @NotNull EntityHideOption hideOption() {
         return hideOption != null ? hideOption : EntityHideOption.DEFAULT;
     }
 
+    /**
+     * Returns the set of player UUIDs marked for spawning, or an empty set if not specified.
+     *
+     * @return the set of player UUIDs marked for spawning
+     * @since 1.15.2
+     */
     @Override
     public @NotNull Set<UUID> markForSpawn() {
         return markForSpawn != null ? markForSpawn : Collections.emptySet();
     }
 
+    /**
+     * Returns the body rotation data, or default body rotation data if not specified.
+     *
+     * @return the body rotation data
+     * @since 1.15.2
+     */
     @Override
     public @NotNull EntityBodyRotator.RotatorData bodyRotator() {
         return bodyRotator != null ? bodyRotator : EntityBodyRotator.defaultData();
     }
 
+    /**
+     * Serializes this TrackerData object to a JSON string.
+     *
+     * @return a JSON string representation of this object
+     * @since 1.15.2
+     */
     @NotNull
     @Override
     public String toString() {

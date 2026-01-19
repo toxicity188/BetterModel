@@ -15,6 +15,12 @@ import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Represents a Bukkit location wrapped as a {@link PlatformLocation}.
+ *
+ * @param source the source Bukkit location
+ * @since 2.0.0
+ */
 public record BukkitLocation(@NotNull Location source) implements PlatformLocation {
 
     @Override

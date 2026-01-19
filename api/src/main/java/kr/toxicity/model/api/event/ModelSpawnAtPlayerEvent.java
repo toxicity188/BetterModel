@@ -14,7 +14,12 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Spawn tracker to some player
+ * Triggered when a model tracker is about to be spawned for a specific player.
+ * <p>
+ * This event allows preventing the model from spawning for that player.
+ * </p>
+ *
+ * @since 2.0.0
  */
 @Getter
 @Setter
@@ -25,9 +30,11 @@ public final class ModelSpawnAtPlayerEvent implements CancellableEvent {
     private boolean cancelled;
 
     /**
-     * Creates event
-     * @param player player
-     * @param tracker tracker
+     * Creates a new ModelSpawnAtPlayerEvent.
+     *
+     * @param player the player for whom the model is spawning
+     * @param tracker the tracker being spawned
+     * @since 2.0.0
      */
     @ApiStatus.Internal
     public ModelSpawnAtPlayerEvent(@NotNull PlatformPlayer player, @NotNull Tracker tracker) {

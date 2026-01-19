@@ -11,7 +11,14 @@ import kr.toxicity.model.api.tracker.Tracker;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Starting per-player animation event
+ * Triggered when a per-player animation sequence starts.
+ * <p>
+ * This event signifies that a specific animation is beginning to play for only one player.
+ * </p>
+ *
+ * @param tracker the tracker playing the animation
+ * @param player the player viewing the animation
+ * @since 2.0.0
  */
 public record PlayerPerAnimationStartEvent(
     @NotNull Tracker tracker,

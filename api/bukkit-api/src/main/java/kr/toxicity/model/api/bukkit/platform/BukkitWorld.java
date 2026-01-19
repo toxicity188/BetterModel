@@ -10,5 +10,11 @@ import kr.toxicity.model.api.platform.PlatformWorld;
 import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Represents a Bukkit world wrapped as a {@link PlatformWorld}.
+ *
+ * @param source the source Bukkit world
+ * @since 2.0.0
+ */
 public record BukkitWorld(@NotNull World source) implements PlatformWorld {
 }

@@ -11,50 +11,69 @@ import kr.toxicity.model.api.platform.PlatformLocation;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A damage source of hit-box
+ * Represents the source of damage inflicted on a model's hitbox.
+ * <p>
+ * This interface abstracts the platform-specific damage source details.
+ * </p>
+ *
+ * @since 2.0.0
  */
 public interface ModelDamageSource {
 
     /**
-     * Gets causing entity
+     * Returns the entity that caused the damage (e.g., the shooter of an arrow).
+     *
+     * @return the causing entity, or null if none
      * @see kr.toxicity.model.api.platform.PlatformLivingEntity
-     * @return causing entity
+     * @since 2.0.0
      */
     @Nullable PlatformEntity getCausingEntity();
 
     /**
-     * Gets direct like
-     * @return direct entity
+     * Returns the entity that directly inflicted the damage (e.g., the arrow itself).
+     *
+     * @return the direct entity, or null if none
+     * @since 2.0.0
      */
     @Nullable PlatformEntity getDirectEntity();
 
     /**
-     * Gets damage location
-     * @return damage location
+     * Returns the location where the damage occurred.
+     *
+     * @return the damage location, or null if unknown
+     * @since 2.0.0
      */
     @Nullable PlatformLocation getDamageLocation();
 
     /**
-     * Gets source location
-     * @return source location
+     * Returns the location of the damage source.
+     *
+     * @return the source location, or null if unknown
+     * @since 2.0.0
      */
     @Nullable PlatformLocation getSourceLocation();
 
     /**
-     * Checks causing entity is not equals with direct entity
-     * @return is indirect
+     * Checks if the damage was indirect (e.g., projectile).
+     *
+     * @return true if indirect, false otherwise
+     * @since 2.0.0
      */
     boolean isIndirect();
 
     /**
-     * Gets food exhaustion
-     * @return food exhaustion
+     * Returns the amount of food exhaustion caused by this damage.
+     *
+     * @return the food exhaustion
+     * @since 2.0.0
      */
     float getFoodExhaustion();
 
     /**
-     * Checks this damage should be scaled by difficulty
-     * @return should be scaled
+     * Checks if this damage should be scaled based on difficulty.
+     *
+     * @return true if scalable, false otherwise
+     * @since 2.0.0
      */
     boolean scalesWithDifficulty();
 }

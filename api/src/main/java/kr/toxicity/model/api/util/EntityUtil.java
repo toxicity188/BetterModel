@@ -14,13 +14,19 @@ import org.jetbrains.annotations.NotNull;
 import static java.lang.Math.*;
 
 /**
- * Entity
+ * Utility class for entity-related calculations, primarily visibility checks.
+ * <p>
+ * This class provides methods to determine if an entity is within a player's field of view
+ * or render distance, optimizing client-side rendering performance.
+ * </p>
+ *
+ * @since 2.0.0
  */
 @ApiStatus.Internal
 public final class EntityUtil {
 
     /**
-     * No initializer
+     * Private initializer to prevent instantiation.
      */
     private EntityUtil() {
         throw new RuntimeException();
@@ -40,19 +46,33 @@ public final class EntityUtil {
      */
     private static final double X_RENDER_THRESHOLD = Y_RENDER_THRESHOLD * 1.78;
 
+    /**
+     * Calculates the render distance in blocks based on the server's view distance.
+     *
+     * @return the render distance
+     * @since 2.0.0
+     */
     public static double renderDistance() {
         return BetterModel.platform().adapter().serverViewDistance() << 3;
     }
 
+    /**
+     * Calculates the entity model view radius based on the server's view distance.
+     *
+     * @return the view radius
+     * @since 2.0.0
+     */
     public static float entityModelViewRadius() {
         return (float) BetterModel.platform().adapter().serverViewDistance() / 4;
     }
 
     /**
-     * Checks this player can see that entity
-     * @param player player's location
-     * @param target target's location
-     * @return whether target is in user's screen
+     * Checks if a player can see a target entity based on sight tracing configuration.
+     *
+     * @param player the player's location
+     * @param target the target entity's location
+     * @return true if the target is visible, false otherwise
+     * @since 2.0.0
      */
     public static boolean canSee(@NotNull PlatformLocation player, @NotNull PlatformLocation target) {
         var manager = BetterModel.config();
@@ -70,10 +90,12 @@ public final class EntityUtil {
     }
 
     /**
-     * Checks this target's custom name is visible at player
-     * @param player player's location
-     * @param target target's location
-     * @return whether target's custom name is visible
+     * Checks if a target entity's custom name is visible to a player.
+     *
+     * @param player the player's location
+     * @param target the target entity's location
+     * @return true if the custom name is visible, false otherwise
+     * @since 2.0.0
      */
     public static boolean isCustomNameVisible(@NotNull PlatformLocation player, @NotNull PlatformLocation target) {
         if (!player.world().equals(target.world())) return false;
@@ -86,10 +108,12 @@ public final class EntityUtil {
     }
 
     /**
-     * Checks this target is in player's point
-     * @param player player's location
-     * @param target target's location
-     * @return whether target is player's point
+     * Checks if a target entity is directly in the player's crosshair (point of view).
+     *
+     * @param player the player's location
+     * @param target the target entity's location
+     * @return true if the target is in the player's point of view
+     * @since 2.0.0
      */
     public static boolean isInPoint(@NotNull PlatformLocation player, @NotNull PlatformLocation target) {
         return isInDegree(player, target, IN_POINT_THRESHOLD, IN_POINT_THRESHOLD);

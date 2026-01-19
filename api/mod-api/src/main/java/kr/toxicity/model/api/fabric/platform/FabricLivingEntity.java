@@ -13,6 +13,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
+/**
+ * Represents a Fabric living entity wrapped as a {@link PlatformLivingEntity}.
+ *
+ * @param source the source NMS living entity
+ * @since 2.0.0
+ */
 public record FabricLivingEntity(@NotNull LivingEntity source) implements PlatformLivingEntity {
     @Override
     public @NotNull UUID uuid() {

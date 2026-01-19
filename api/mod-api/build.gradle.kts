@@ -1,4 +1,5 @@
 plugins {
+    alias(libs.plugins.convention.api)
     alias(libs.plugins.convention.mod)
     alias(libs.plugins.resourcefactory.fabric)
     id("fabric-loom")

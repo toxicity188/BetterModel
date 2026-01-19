@@ -22,7 +22,7 @@ import java.util.*;
 /**
  * The main entry point for the BetterModel API.
  * <p>
- * This class provides static access to the plugin instance, configuration, model managers,
+ * This class provides static access to the platform instance, configuration, model managers,
  * NMS handlers, and entity registries. It serves as a service provider for interacting with the BetterModel engine.
  * </p>
  *
@@ -38,12 +38,12 @@ public final class BetterModel {
     }
 
     /**
-     * The singleton plugin instance.
+     * The singleton platform instance.
      */
     private static BetterModelPlatform instance;
 
     /**
-     * Returns the plugin configuration manager.
+     * Returns the platform configuration manager.
      *
      * @return the configuration manager
      * @since 1.15.2
@@ -214,10 +214,10 @@ public final class BetterModel {
     }
 
     /**
-     * Returns the singleton instance of the BetterModel plugin.
+     * Returns the singleton instance of the BetterModel platform.
      *
-     * @return the plugin instance
-     * @throws NullPointerException if the plugin has not been initialized
+     * @return the platform instance
+     * @throws NullPointerException if the platform has not been initialized
      * @since 1.15.2
      */
     public static @NotNull BetterModelPlatform platform() {
@@ -239,12 +239,12 @@ public final class BetterModel {
     }
 
     /**
-     * Registers the plugin instance.
+     * Registers the platform instance.
      * <p>
-     * This method is intended for internal use only during plugin initialization.
+     * This method is intended for internal use only during platform initialization.
      * </p>
      *
-     * @param instance the plugin instance
+     * @param instance the platform instance
      * @throws RuntimeException if an instance is already registered
      * @since 1.15.2
      */

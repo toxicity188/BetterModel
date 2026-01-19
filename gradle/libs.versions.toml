@@ -13,9 +13,6 @@ cloud-core = "2.0.0"
 
 configurate = "4.2.0"
 
-neoforge = "21.11.0-beta"
-neoform = "1.21.11-20251209.172050" #https://projects.neoforged.net/neoforged/neoform
-
 [libraries]
 kotlin = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 
@@ -124,6 +121,7 @@ shadow = { id = "com.gradleup.shadow" }
 minotaur = { id = "com.modrinth.minotaur" }
 hangar = { id = "io.papermc.hangar-publish-plugin" }
 
+convention-api = { id = "api-conventions" }
 convention-plugin = { id = "plugin-conventions" }
 convention-standard = { id = "standard-conventions" }
 convention-bukkit = { id = "bukkit-conventions" }
