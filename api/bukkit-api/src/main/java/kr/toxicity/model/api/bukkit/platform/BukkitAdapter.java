@@ -52,17 +52,6 @@ public final class BukkitAdapter implements PlatformAdapter {
     }
 
     /**
-     * Adapts a Bukkit player to a {@link PlatformPlayer}.
-     *
-     * @param player the Bukkit player
-     * @return the platform player
-     * @since 2.0.0
-     */
-    public static @NotNull PlatformPlayer adapt(@NotNull Player player) {
-        return new BukkitPlayer(player);
-    }
-
-    /**
      * Adapts a Bukkit offline player to a {@link PlatformOfflinePlayer}.
      *
      * @param player the Bukkit offline player
@@ -71,6 +60,17 @@ public final class BukkitAdapter implements PlatformAdapter {
      */
     public static @NotNull PlatformOfflinePlayer adapt(@NotNull OfflinePlayer player) {
         return new BukkitOfflinePlayer(player);
+    }
+
+    /**
+     * Adapts a Bukkit player to a {@link PlatformPlayer}.
+     *
+     * @param player the Bukkit player
+     * @return the platform player
+     * @since 2.0.0
+     */
+    public static @NotNull PlatformPlayer adapt(@NotNull Player player) {
+        return new BukkitPlayer(player);
     }
 
     /**
