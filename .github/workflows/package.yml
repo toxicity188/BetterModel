@@ -49,7 +49,7 @@ jobs:
           echo "id=$deployment_id" >> $GITHUB_OUTPUT
         shell: bash
       - name: Publish package
-        run: ./gradlew :api:publishAllPublicationToGitHubPackagesRepository --stacktrace
+        run: ./gradlew publishAllPublicationToGitHubPackagesRepository --stacktrace
       - name: Set Deployment Status (success)
         if: success()
         run: |
