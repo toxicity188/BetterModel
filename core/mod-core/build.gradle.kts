@@ -47,7 +47,6 @@ fabricModJson {
         // mod libraries
         "adventure-platform-fabric" to listOf("*"),
         "cloud" to listOf("*"),
-        "polymer-autohost" to listOf("*"),
         "polymer-resource-pack" to listOf("*")
     )
     mixins = listOf(
