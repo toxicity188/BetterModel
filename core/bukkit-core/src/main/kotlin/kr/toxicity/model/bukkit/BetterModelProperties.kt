@@ -45,9 +45,7 @@ internal class BetterModelProperties(
         V1_21_6, V1_21_7, V1_21_8 -> kr.toxicity.model.nms.v1_21_R5.NMSImpl()
         V1_21_5 -> kr.toxicity.model.nms.v1_21_R4.NMSImpl()
         V1_21_4 -> kr.toxicity.model.nms.v1_21_R3.NMSImpl()
-        V1_21_2, V1_21_3 -> kr.toxicity.model.nms.v1_21_R2.NMSImpl()
         V1_21, V1_21_1 -> kr.toxicity.model.nms.v1_21_R1.NMSImpl()
-        V1_20_5, V1_20_6 -> kr.toxicity.model.nms.v1_20_R4.NMSImpl()
         else if BetterModelBukkit.IS_PAPER -> {
             warn(
                 "Note: this version is officially untested.".toComponent(),

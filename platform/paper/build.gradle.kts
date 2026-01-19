@@ -9,9 +9,7 @@ plugins {
 val libraryDir: Provider<RegularFile> = layout.buildDirectory.file("generated/paper-library")
 
 dependencies {
-    shade(project(":nms:v1_20_R4")) { isTransitive = false }
     shade(project(":nms:v1_21_R1")) { isTransitive = false }
-    shade(project(":nms:v1_21_R2")) { isTransitive = false }
     shade(project(":nms:v1_21_R3")) { isTransitive = false }
     shade(project(":nms:v1_21_R4")) { isTransitive = false }
     shade(project(":nms:v1_21_R5")) { isTransitive = false }

@@ -50,10 +50,6 @@ public record MinecraftVersion(int major, int minor, int patch) implements Compa
      */
     public static final MinecraftVersion V1_21_4 = of(1, 21, 4);
     /**
-     * 1.21.3
-     */
-    public static final MinecraftVersion V1_21_3 = of(1, 21, 3);
-    /**
      * 1.21.2
      */
     public static final MinecraftVersion V1_21_2 = of(1, 21, 2);
@@ -65,14 +61,6 @@ public record MinecraftVersion(int major, int minor, int patch) implements Compa
      * 1.21
      */
     public static final MinecraftVersion V1_21 = of(1, 21, 0);
-    /**
-     * 1.20.6
-     */
-    public static final MinecraftVersion V1_20_6 = of(1, 20, 6);
-    /**
-     * 1.20.5
-     */
-    public static final MinecraftVersion V1_20_5 = of(1, 20, 5);
 
     /**
      * Comparator
