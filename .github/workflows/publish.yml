@@ -2,7 +2,7 @@ name: Publish plugin
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "v2" ]
 
 permissions:
   contents: read

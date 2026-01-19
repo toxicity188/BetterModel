@@ -2,7 +2,7 @@ name: Package plugin
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "v2" ]
 
 permissions:
   contents: read
@@ -11,7 +11,6 @@ permissions:
 
 jobs:
   build:
-    if: github.actor == 'toxicity188'
     runs-on: ubuntu-latest
     env:
       SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
