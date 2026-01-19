@@ -11,7 +11,14 @@ import kr.toxicity.model.api.tracker.Tracker;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Ending per-player animation event
+ * Triggered when a per-player animation sequence ends.
+ * <p>
+ * This event signifies that a specific animation playing only for one player has finished.
+ * </p>
+ *
+ * @param tracker the tracker playing the animation
+ * @param player the player who viewed the animation
+ * @since 2.0.0
  */
 public record PlayerPerAnimationEndEvent(
     @NotNull Tracker tracker,

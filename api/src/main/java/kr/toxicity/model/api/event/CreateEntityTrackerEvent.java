@@ -10,7 +10,13 @@ import kr.toxicity.model.api.tracker.EntityTracker;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Create event of entity tracker
+ * Triggered when a new {@link EntityTracker} is created.
+ * <p>
+ * This event allows plugins/mods to perform initialization or tracking logic for entity trackers.
+ * </p>
+ *
+ * @param tracker the newly created entity tracker
+ * @since 2.0.0
  */
 public record CreateEntityTrackerEvent(
     @NotNull EntityTracker tracker

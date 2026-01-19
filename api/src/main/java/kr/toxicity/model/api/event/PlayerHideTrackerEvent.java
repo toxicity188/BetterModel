@@ -14,7 +14,12 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Hides this tracker to some player
+ * Triggered when a tracker is about to be hidden from a specific player.
+ * <p>
+ * This event allows preventing the tracker from being hidden.
+ * </p>
+ *
+ * @since 2.0.0
  */
 @Getter
 @Setter
@@ -25,9 +30,11 @@ public final class PlayerHideTrackerEvent implements CancellableEvent {
     private boolean cancelled;
 
     /**
-     * Creates event
-     * @param tracker tracker
-     * @param player player
+     * Creates a new PlayerHideTrackerEvent.
+     *
+     * @param tracker the tracker being hidden
+     * @param player the player from whom the tracker is being hidden
+     * @since 2.0.0
      */
     @ApiStatus.Internal
     public PlayerHideTrackerEvent(@NotNull Tracker tracker, @NotNull PlatformPlayer player) {

@@ -15,7 +15,12 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * An interacted event of damage event
+ * Triggered when a player interacts with a model's hitbox.
+ * <p>
+ * This event corresponds to a right-click interaction.
+ * </p>
+ *
+ * @since 2.0.0
  */
 @Getter
 public class ModelInteractEvent implements CancellableEvent {
@@ -27,10 +32,12 @@ public class ModelInteractEvent implements CancellableEvent {
     private final @NotNull ModelInteractionHand hand;
 
     /**
-     * Creates interact event
-     * @param who player
-     * @param hitbox hit-box
-     * @param hand interacted hand
+     * Creates a new ModelInteractEvent.
+     *
+     * @param who the player interacting
+     * @param hitbox the hitbox being interacted with
+     * @param hand the hand used for interaction
+     * @since 2.0.0
      */
     @ApiStatus.Internal
     public ModelInteractEvent(@NotNull PlatformPlayer who, @NotNull HitBox hitbox, @NotNull ModelInteractionHand hand) {

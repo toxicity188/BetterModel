@@ -1,3 +1,9 @@
+/**
+ * This source file is part of BetterModel.
+ * Copyright (c) 2024–2026 toxicity188
+ * Licensed under the MIT License.
+ * See LICENSE.md file for full license text.
+ */
 package kr.toxicity.model.api.bukkit.platform;
 
 import kr.toxicity.model.api.BetterModel;
@@ -9,6 +15,12 @@ import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Represents a Bukkit location wrapped as a {@link PlatformLocation}.
+ *
+ * @param source the source Bukkit location
+ * @since 2.0.0
+ */
 public record BukkitLocation(@NotNull Location source) implements PlatformLocation {
 
     @Override

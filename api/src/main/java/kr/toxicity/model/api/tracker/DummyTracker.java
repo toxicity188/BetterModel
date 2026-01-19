@@ -21,7 +21,7 @@ import java.util.function.Consumer;
  * A tracker implementation that is not attached to any entity.
  * <p>
  * Dummy trackers are positioned at a fixed location in the world and can be moved manually.
- * They are useful for static models or models controlled entirely by scripts/plugins.
+ * They are useful for static models or models controlled entirely by scripts/plugins/mods.
  * </p>
  *
  * @since 1.15.2

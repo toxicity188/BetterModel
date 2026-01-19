@@ -14,7 +14,12 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Shows this tracker to some player
+ * Triggered when a tracker is about to be shown to a specific player.
+ * <p>
+ * This event allows preventing the tracker from being shown.
+ * </p>
+ *
+ * @since 2.0.0
  */
 @Getter
 @Setter
@@ -26,9 +31,11 @@ public final class PlayerShowTrackerEvent implements CancellableEvent {
     private boolean cancelled;
 
     /**
-     * Creates event
-     * @param tracker tracker
-     * @param player player
+     * Creates a new PlayerShowTrackerEvent.
+     *
+     * @param tracker the tracker being shown
+     * @param player the player to whom the tracker is being shown
+     * @since 2.0.0
      */
     @ApiStatus.Internal
     public PlayerShowTrackerEvent(@NotNull Tracker tracker, @NotNull PlatformPlayer player) {
@@ -37,8 +44,10 @@ public final class PlayerShowTrackerEvent implements CancellableEvent {
     }
 
     /**
-     * Gets tracker
-     * @return tracker
+     * Returns the tracker being shown.
+     *
+     * @return the tracker
+     * @since 2.0.0
      */
     public @NotNull Tracker tracker() {
         return tracker;

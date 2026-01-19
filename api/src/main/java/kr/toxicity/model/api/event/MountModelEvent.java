@@ -16,7 +16,12 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Mounts to some model's hitbox event
+ * Triggered when an entity mounts a model's hitbox.
+ * <p>
+ * This event allows plugins/mods to intercept and potentially cancel the mounting process.
+ * </p>
+ *
+ * @since 2.0.0
  */
 public final class MountModelEvent implements CancellableEvent {
 
@@ -29,11 +34,13 @@ public final class MountModelEvent implements CancellableEvent {
     private boolean cancelled;
 
     /**
-     * Creates event
-     * @param tracker tracker
-     * @param bone bone
-     * @param hitBox hitbox
-     * @param entity entity
+     * Creates a new MountModelEvent.
+     *
+     * @param tracker the entity tracker associated with the model
+     * @param bone the bone associated with the hitbox
+     * @param hitBox the hitbox being mounted
+     * @param entity the entity attempting to mount
+     * @since 2.0.0
      */
     @ApiStatus.Internal
     public MountModelEvent(@NotNull EntityTracker tracker, @NotNull RenderedBone bone, @NotNull HitBox hitBox, @NotNull PlatformEntity entity) {
@@ -44,32 +51,40 @@ public final class MountModelEvent implements CancellableEvent {
     }
 
     /**
-     * Gets entity tracker
-     * @return entity tracker
+     * Returns the entity tracker associated with the model.
+     *
+     * @return the entity tracker
+     * @since 2.0.0
      */
     public @NotNull EntityTracker tracker() {
         return tracker;
     }
 
     /**
-     * Gets source bone
-     * @return bone
+     * Returns the bone associated with the hitbox.
+     *
+     * @return the rendered bone
+     * @since 2.0.0
      */
     public @NotNull RenderedBone bone() {
         return bone;
     }
 
     /**
-     * Gets hitbox
-     * @return hitbox
+     * Returns the hitbox being mounted.
+     *
+     * @return the hitbox
+     * @since 2.0.0
      */
     public @NotNull HitBox hitbox() {
         return hitBox;
     }
 
     /**
-     * Gets passenger entity
-     * @return entity
+     * Returns the entity attempting to mount the hitbox.
+     *
+     * @return the passenger entity
+     * @since 2.0.0
      */
     public PlatformEntity entity() {
         return entity;

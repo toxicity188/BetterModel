@@ -1,20 +1,28 @@
 plugins {
+    alias(libs.plugins.convention.api)
     alias(libs.plugins.convention.mod)
-    id("net.neoforged.moddev")
+    alias(libs.plugins.resourcefactory.fabric)
+    id("fabric-loom")
 }
 
 dependencies {
-    compileOnly(project(":api"))
+    minecraft("com.mojang:minecraft:${property("minecraft_version")}")
+    mappings(loom.layered {
+        officialMojangMappings()
+        parchment("io.papermc.parchment.data:parchment:${property("parchment_version")}")
+    })
+    modImplementation(libs.bundles.fabric)
 
-    compileOnly(libs.lombok)
-    annotationProcessor(libs.lombok)
-
-    testCompileOnly(libs.lombok)
-    testAnnotationProcessor(libs.lombok)
+    api(project(":api"))?.let { include(it) }
 }
 
-neoForge {
-    enable {
-        neoFormVersion = libs.versions.neoform.get()
-    }
+fabricModJson {
+    id = "bettermodel-api"
+    version = project.version.toString()
+
+    depends = mapOf(
+        "minecraft" to listOf("~${property("minecraft_version")}"),
+        "fabricloader" to listOf("*"),
+        "fabric-api" to listOf("*")
+    )
 }

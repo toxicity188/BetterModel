@@ -24,29 +24,42 @@ import java.io.InputStream;
 import java.util.function.Consumer;
 
 /**
- * Represents the main plugin interface for BetterModel.
+ * Represents the main platform interface for BetterModel.
  *
  * @see BetterModel
  * @since 1.15.2
  */
 public interface BetterModelPlatform {
 
+    /**
+     * Returns the data folder for the BetterModel plugin.
+     * This is where configuration files, data files, and other plugin-specific resources are stored.
+     *
+     * @return the data folder as a {@link File} object.
+     * @since 2.0.0
+     */
     @NotNull File dataFolder();
 
+    /**
+     * Returns the type of JAR file this platform is running on (e.g., SPIGOT, PAPER, FABRIC).
+     *
+     * @return the {@link JarType} enum representing the platform's JAR type.
+     * @since 2.0.0
+     */
     @NotNull JarType jarType();
 
     /**
-     * Reloads the plugin with default settings (console sender).
+     * Reloads the platform with default settings (console sender).
      *
      * @return the result of the reload operation
-     * @since 1.15.2
+     * @since 2.0.0
      */
     default @NotNull ReloadResult reload() {
         return reload(ReloadInfo.DEFAULT);
     }
 
     /**
-     * Reloads the plugin, specifying the command sender who initiated it.
+     * Reloads the platform, specifying the command sender who initiated it.
      *
      * @param sender the command sender
      * @return the result of the reload operation
@@ -57,7 +70,7 @@ public interface BetterModelPlatform {
     }
 
     /**
-     * Reloads the plugin with specific reload information.
+     * Reloads the platform with specific reload information.
      *
      * @param info the reload configuration
      * @return the result of the reload operation
@@ -75,7 +88,7 @@ public interface BetterModelPlatform {
     boolean isSnapshot();
 
     /**
-     * Returns the plugin's configuration manager.
+     * Returns the platform's configuration manager.
      *
      * @return the configuration
      * @since 1.15.2
@@ -91,7 +104,7 @@ public interface BetterModelPlatform {
     @NotNull MinecraftVersion version();
 
     /**
-     * Returns the semantic version of the plugin.
+     * Returns the semantic version of the platform.
      *
      * @return the semantic version
      * @since 1.15.2
@@ -146,7 +159,7 @@ public interface BetterModelPlatform {
     @NotNull ProfileManager profileManager();
 
     /**
-     * Returns the plugin's scheduler.
+     * Returns the platform's scheduler.
      *
      * @return the scheduler
      * @since 1.15.2
@@ -176,7 +189,7 @@ public interface BetterModelPlatform {
     void addReloadEndHandler(@NotNull Consumer<ReloadResult> consumer);
 
     /**
-     * Returns the plugin's logger.
+     * Returns the platform's logger.
      *
      * @return the logger
      * @since 1.15.2
@@ -191,10 +204,16 @@ public interface BetterModelPlatform {
      */
     @NotNull BetterModelEvaluator evaluator();
 
+    /**
+     * Returns the event bus.
+     *
+     * @return the event bus
+     * @since 2.0.0
+     */
     @NotNull BetterModelEventBus eventBus();
 
     /**
-     * Retrieves a resource from the plugin's JAR file.
+     * Retrieves a resource from the platform's JAR file.
      *
      * @param path the path to the resource
      * @return an input stream for the resource, or null if not found
@@ -203,7 +222,7 @@ public interface BetterModelPlatform {
     @Nullable InputStream getResource(@NotNull String path);
 
     /**
-     * Represents the outcome of a plugin reload operation.
+     * Represents the outcome of a platform reload operation.
      *
      * @since 1.15.2
      */
@@ -273,13 +292,38 @@ public interface BetterModelPlatform {
         }
     }
 
+    /**
+     * Represents the type of JAR file the platform is running on.
+     * This enum helps identify the specific server implementation (e.g., Spigot, Paper, Fabric).
+     *
+     * @since 2.0.0
+     */
     @RequiredArgsConstructor
     enum JarType {
+        /**
+         * Indicates a Spigot-based server.
+         * @since 2.0.0
+         */
         SPIGOT("spigot"),
-        PAPER("paper");
+        /**
+         * Indicates a Paper-based server.
+         * @since 2.0.0
+         */
+        PAPER("paper"),
+        /**
+         * Indicates a Fabric-based server.
+         * @since 2.0.0
+         */
+        FABRIC("fabric");
 
         private final String raw;
 
+        /**
+         * Returns the raw string representation of the JAR type.
+         *
+         * @return the raw string (e.g., "spigot", "paper", "fabric")
+         * @since 2.0.0
+         */
         public String raw() {
             return raw;
         }

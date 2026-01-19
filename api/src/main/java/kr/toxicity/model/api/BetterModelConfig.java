@@ -17,169 +17,231 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.Supplier;
 
 /**
- * BetterModel's config
+ * Represents the main configuration interface for BetterModel.
+ * <p>
+ * This interface provides access to various configuration settings, including debug options,
+ * pack generation settings, module toggles, and runtime behaviors.
+ * </p>
+ *
+ * @since 1.15.2
  */
 public interface BetterModelConfig {
 
     /**
-     * Gets debug config
-     * @return debug config
+     * Returns the debug configuration.
+     *
+     * @return the debug config
+     * @since 1.15.2
      */
     @NotNull DebugConfig debug();
 
     /**
-     * Gets indicator config
-     * @return indicator config
+     * Returns the indicator configuration.
+     *
+     * @return the indicator config
+     * @since 1.15.2
      */
     @NotNull IndicatorConfig indicator();
 
     /**
-     * Gets module config
-     * @return module config
+     * Returns the module configuration.
+     *
+     * @return the module config
+     * @since 1.15.2
      */
     @NotNull ModuleConfig module();
 
     /**
-     * Gets pack config
-     * @return pack config
+     * Returns the resource pack configuration.
+     *
+     * @return the pack config
+     * @since 1.15.2
      */
     @NotNull PackConfig pack();
 
     /**
-     * Checks metrics is enabled
-     * @return enabled
+     * Checks if metrics collection is enabled.
+     *
+     * @return true if enabled, false otherwise
+     * @since 1.15.2
      */
     boolean metrics();
 
     /**
-     * Check sight trace is enabled
-     * @return enabled
+     * Checks if sight tracing (visibility checking) is enabled.
+     *
+     * @return true if enabled, false otherwise
+     * @since 1.15.2
      */
     boolean sightTrace();
 
     /**
-     * Checks BetterModel should try merging resource pack with external plugin.
-     * @return merge with external resources.
+     * Checks if BetterModel should attempt to merge its resource pack with external plugins/mods.
+     *
+     * @return true to merge, false otherwise
+     * @since 1.15.2
      */
     boolean mergeWithExternalResources();
 
     /**
-     * Checks resource pack target item type
-     * @return material
+     * Returns a supplier for the platform item stack used as the base for model items.
+     *
+     * @return a supplier providing the target item stack
+     * @since 2.0.0
      */
     @NotNull Supplier<PlatformItemStack> item();
 
     /**
-     * Gets item model
-     * @return item model
+     * Returns the item model string identifier used for the resource pack target item.
+     *
+     * @return the item model string
+     * @since 2.0.0
      */
     @NotNull String itemModel();
 
     /**
-     * Gets item namespace
-     * @return item namespace
+     * Returns the namespace used for the target item.
+     *
+     * @return the item namespace
+     * @since 1.15.2
      */
     @NotNull String itemNamespace();
 
     /**
-     * Gets max range of sight trace
-     * @return max
+     * Returns the maximum range for sight tracing.
+     *
+     * @return the max range
+     * @since 1.15.2
      */
     double maxSight();
 
     /**
-     * Gets min range of sight trace
-     * @return min
+     * Returns the minimum range for sight tracing.
+     *
+     * @return the min range
+     * @since 1.15.2
      */
     double minSight();
 
     /**
-     * Gets namespace of resource pack
-     * @return namespace
+     * Returns the namespace used for the generated resource pack.
+     *
+     * @return the namespace
+     * @since 1.15.2
      */
     @NotNull String namespace();
 
     /**
-     * Gets a pack type
-     * @return type
+     * Returns the type of resource pack generation (Folder, Zip, or None).
+     *
+     * @return the pack type
+     * @since 1.15.2
      */
     @NotNull PackType packType();
 
     /**
-     * Gets build folder location
-     * @return build folder
+     * Returns the location of the build folder for resource packs.
+     *
+     * @return the build folder path
+     * @since 1.15.2
      */
     @NotNull String buildFolderLocation();
 
     /**
-     * Check model tracker will follow source entity's invisibility
-     * @return follow invisibility
+     * Checks if model trackers should follow the source entity's invisibility status.
+     *
+     * @return true to follow invisibility, false otherwise
+     * @since 1.15.2
      */
     boolean followMobInvisibility();
 
     /**
-     * Checks use Purpur afk.
-     * @return use Purpur afk
+     * Checks if Purpur's AFK API should be used.
+     *
+     * @return true to use Purpur AFK, false otherwise
+     * @since 1.15.2
      */
     boolean usePurpurAfk();
 
     /**
-     * Should BetterModel sends version update message when op has joined.
-     * @return send or not
+     * Checks if version update notifications should be sent to OPs on join.
+     *
+     * @return true to send notifications, false otherwise
+     * @since 1.15.2
      */
     boolean versionCheck();
 
     /**
-     * Gets the default mount controller
+     * Returns the default mount controller used for entities.
+     *
+     * @return the default mount controller
      * @see kr.toxicity.model.api.mount.MountControllers
-     * @return mount controller
+     * @since 1.15.2
      */
     @NotNull MountController defaultMountController();
 
     /**
-     * Gets lerp frame time
-     * @return lerp frame time
+     * Returns the interpolation frame time (lerp) in milliseconds.
+     *
+     * @return the lerp frame time
+     * @since 1.15.2
      */
     int lerpFrameTime();
 
     /**
-     * Whether any swap inventory packet should be canceled if the player has some model
-     * @return cancel
+     * Checks if inventory swap packets should be cancelled for players with active models.
+     *
+     * @return true to cancel, false otherwise
+     * @since 1.15.2
      */
     boolean cancelPlayerModelInventory();
 
     /**
-     * Gets entity hide delay of player
-     * @return player hide
+     * Returns the delay in ticks before hiding a player's model after they become invisible.
+     *
+     * @return the hide delay
+     * @since 1.15.2
      */
     long playerHideDelay();
 
     /**
-     * Gets packet bundling size
-     * @return packet bundling size
+     * Returns the threshold size for packet bundling.
+     *
+     * @return the packet bundling size
+     * @since 1.15.2
      */
     int packetBundlingSize();
 
     /**
-     * Gets whether strict loading is enabled
-     * @return strict loading
+     * Checks if strict loading mode is enabled.
+     * <p>
+     * Strict loading causes the platform to fail fast on model loading errors.
+     * </p>
+     *
+     * @return true if strict loading is enabled, false otherwise
+     * @since 1.15.2
      */
     boolean enableStrictLoading();
 
     /**
-     * Pack type
+     * Enumerates the types of resource pack generation.
+     *
+     * @since 1.15.2
      */
     enum PackType {
         /**
-         * Build to folder
+         * Generate the resource pack as a folder structure.
+         * @since 1.15.2
          */
         FOLDER,
         /**
-         * Build to zip
+         * Generate the resource pack as a ZIP archive.
+         * @since 1.15.2
          */
         ZIP,
         /**
-         * Nothing to build
+         * Do not generate a resource pack.
+         * @since 1.15.2
          */
         NONE
     }

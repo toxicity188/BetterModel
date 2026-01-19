@@ -11,7 +11,7 @@ import net.kyori.adventure.audience.Audience;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents the context for a plugin reload operation.
+ * Represents the context for a platform reload operation.
  * <p>
  * This record holds information about who initiated the reload and whether certain parts of the reload should be skipped.
  * </p>

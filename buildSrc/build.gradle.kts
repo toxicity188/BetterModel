@@ -17,4 +17,5 @@ dependencies {
 
     implementation("org.jetbrains.dokka:dokka-gradle-plugin:2.1.0")
     implementation("com.github.hierynomus.license:com.github.hierynomus.license.gradle.plugin:0.16.1")
+    implementation("com.vanniktech.maven.publish:com.vanniktech.maven.publish.gradle.plugin:0.36.0")
 }

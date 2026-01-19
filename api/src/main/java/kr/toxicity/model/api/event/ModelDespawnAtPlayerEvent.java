@@ -11,7 +11,14 @@ import kr.toxicity.model.api.tracker.Tracker;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Despawn tracker to some player
+ * Triggered when a model tracker is despawned for a specific player.
+ * <p>
+ * This event notifies plugins/mods that a model is no longer visible to a player.
+ * </p>
+ *
+ * @param player the player for whom the model is despawning
+ * @param tracker the tracker being despawned
+ * @since 2.0.0
  */
 public record ModelDespawnAtPlayerEvent(
     @NotNull PlatformPlayer player,

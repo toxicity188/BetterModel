@@ -12,7 +12,6 @@ pluginManagement {
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
     id("fabric-loom") version "1.14-SNAPSHOT"
-    id("net.neoforged.moddev.repositories") version "2.0.139" //https://projects.neoforged.net/neoforged/ModDevGradle
 }
 
 dependencyResolutionManagement {
@@ -29,6 +28,7 @@ dependencyResolutionManagement {
         maven("https://maven.citizensnpcs.co/repo/")
         maven("https://mvn.lumine.io/repository/maven-public/")
         maven("https://repo.nexomc.com/releases/")
+        maven("https://maven.nucleoid.xyz/")
     }
 }
 
@@ -49,6 +49,7 @@ include(
 
     "platform:spigot",
     "platform:paper",
+    "platform:fabric",
 
     //nms
     "nms:v1_20_R4",

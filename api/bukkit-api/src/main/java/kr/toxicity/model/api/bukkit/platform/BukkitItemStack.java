@@ -1,3 +1,9 @@
+/**
+ * This source file is part of BetterModel.
+ * Copyright (c) 2024–2026 toxicity188
+ * Licensed under the MIT License.
+ * See LICENSE.md file for full license text.
+ */
 package kr.toxicity.model.api.bukkit.platform;
 
 import kr.toxicity.model.api.BetterModel;
@@ -8,6 +14,12 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Represents a Bukkit item stack wrapped as a {@link PlatformItemStack}.
+ *
+ * @param source the source Bukkit item stack
+ * @since 2.0.0
+ */
 public record BukkitItemStack(@NotNull ItemStack source) implements PlatformItemStack {
     @Override
     public boolean isAir() {
@@ -29,7 +41,7 @@ public record BukkitItemStack(@NotNull ItemStack source) implements PlatformItem
         var meta = source.getItemMeta();
         if (meta == null) return this;
         meta.setCustomModelData(customModelData);
-        if (namespace != null && BetterModel.platform().version().useItemModelName()) meta.setItemModel(new NamespacedKey(namespace.namespace(), namespace.path()));
+        if (BetterModel.platform().version().useItemModelName()) meta.setItemModel(namespace == null ? null : new NamespacedKey(namespace.namespace(), namespace.path()));
         source.setItemMeta(meta);
         return this;
     }

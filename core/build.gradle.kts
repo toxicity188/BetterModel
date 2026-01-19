@@ -9,4 +9,5 @@ dependencies {
     compileOnly(project(":api"))
 
     compileOnly(libs.bundles.core)
+    compileOnly(libs.cloud.core)
 }

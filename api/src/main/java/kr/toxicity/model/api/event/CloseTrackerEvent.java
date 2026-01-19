@@ -10,7 +10,14 @@ import kr.toxicity.model.api.tracker.Tracker;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Closing tracker event
+ * Triggered when a tracker is closed.
+ * <p>
+ * This event provides information about the tracker being closed and the reason for closure.
+ * </p>
+ *
+ * @param tracker the tracker being closed
+ * @param reason the reason for closing the tracker
+ * @since 2.0.0
  */
 public record CloseTrackerEvent(
     @NotNull Tracker tracker,

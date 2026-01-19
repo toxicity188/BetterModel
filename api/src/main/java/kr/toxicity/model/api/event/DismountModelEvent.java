@@ -16,7 +16,12 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Dismounts from some model's hitbox event
+ * Triggered when an entity dismounts from a model's hitbox.
+ * <p>
+ * This event allows plugins/mods to intercept and potentially cancel the dismounting process.
+ * </p>
+ *
+ * @since 2.0.0
  */
 public final class DismountModelEvent implements CancellableEvent {
 
@@ -29,11 +34,13 @@ public final class DismountModelEvent implements CancellableEvent {
     private boolean cancelled;
 
     /**
-     * Creates event
-     * @param tracker tracker
-     * @param bone bone
-     * @param hitbox hitbox
-     * @param entity entity
+     * Creates a new DismountModelEvent.
+     *
+     * @param tracker the entity tracker associated with the model
+     * @param bone the bone associated with the hitbox
+     * @param hitbox the hitbox being dismounted
+     * @param entity the entity dismounting
+     * @since 2.0.0
      */
     @ApiStatus.Internal
     public DismountModelEvent(@NotNull EntityTracker tracker, @NotNull RenderedBone bone, @NotNull HitBox hitbox, @NotNull PlatformEntity entity) {
@@ -44,32 +51,40 @@ public final class DismountModelEvent implements CancellableEvent {
     }
 
     /**
-     * Gets entity tracker
-     * @return entity tracker
+     * Returns the entity tracker associated with the model.
+     *
+     * @return the entity tracker
+     * @since 2.0.0
      */
     public @NotNull EntityTracker tracker() {
         return tracker;
     }
 
     /**
-     * Gets source bone
-     * @return bone
+     * Returns the bone associated with the hitbox.
+     *
+     * @return the rendered bone
+     * @since 2.0.0
      */
     public @NotNull RenderedBone bone() {
         return bone;
     }
 
     /**
-     * Gets hitbox
-     * @return hitbox
+     * Returns the hitbox being dismounted.
+     *
+     * @return the hitbox
+     * @since 2.0.0
      */
     public @NotNull HitBox hitbox() {
         return hitbox;
     }
 
     /**
-     * Gets passenger entity
-     * @return entity
+     * Returns the entity dismounting the hitbox.
+     *
+     * @return the passenger entity
+     * @since 2.0.0
      */
     public PlatformEntity entity() {
         return entity;
