@@ -103,7 +103,8 @@ modrinth {
     gameVersions = SUPPORTED_VERSIONS
     dependencies {
         required.project(
-            "fabric-api"
+            "fabric-api",
+            "fabric-language-kotlin"
         )
         optional.project(
             "skinsrestorer"
