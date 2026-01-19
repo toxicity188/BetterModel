@@ -32,9 +32,9 @@ import net.minecraft.world.item.ItemStack
 import java.util.*
 import java.util.stream.IntStream
 
-val Connection.channel get() = (this as ConnectionAccessor).channel
+val Connection.channel get() = (this as ConnectionAccessor).`bettermodel$getChannel`()
 
-val ServerGamePacketListenerImpl.connection get() = (this as ServerCommonPacketListenerImplAccessor).connection
+val ServerGamePacketListenerImpl.connection get() = (this as ServerCommonPacketListenerImplAccessor).`bettermodel$getConnection`()
 
 val Player.hotbarSlot get() = inventory.selectedSlot + 36
 
@@ -79,7 +79,7 @@ inline fun SynchedEntityData.pack(
     crossinline required: (List<Pair<DataItem<*>, DataValue<*>>>) -> Boolean = { it.isNotEmpty() }
 ): List<DataValue<*>>? {
     return (this as SynchedEntityDataAccessor)
-        .itemsById
+        .`bettermodel$getItemsById`()
         .mapNotNull {
             val item = it.takeIf(itemFilter)
                 ?: return@mapNotNull null
@@ -100,7 +100,7 @@ inline fun SynchedEntityData.pack(
 }
 
 fun ClientboundSetEntityDataPacket.toRegistryDataPacket(uuid: UUID, registry: EntityTrackerRegistry) = ClientboundSetEntityDataPacket(id, packedItems().map {
-    if (it.id == EntityAccessor.getDataSharedFlagsId().id) DataValue(
+    if (it.id == EntityAccessor.`bettermodel$getDataSharedFlagsId`().id) DataValue(
         it.id,
         EntityDataSerializers.BYTE,
         registry.entityFlag(uuid, it.value() as Byte)

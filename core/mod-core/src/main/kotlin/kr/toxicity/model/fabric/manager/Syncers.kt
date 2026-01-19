@@ -11,6 +11,6 @@ import net.minecraft.network.syncher.EntityDataAccessor
 import net.minecraft.network.syncher.SynchedEntityData
 
 fun <T : Any> SynchedEntityData.markDirty(accessor: EntityDataAccessor<T>) {
-    (this as SynchedEntityDataAccessor).getItem(accessor).isDirty = true
-    setDirty(true)
+    (this as SynchedEntityDataAccessor).`bettermodel$getItem`(accessor).isDirty = true
+    `bettermodel$setDirty`(true)
 }

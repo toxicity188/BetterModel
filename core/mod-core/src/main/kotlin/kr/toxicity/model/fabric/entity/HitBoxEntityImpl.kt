@@ -14,7 +14,6 @@ import kr.toxicity.model.api.event.ModelInteractAtEvent
 import kr.toxicity.model.api.event.ModelInteractEvent
 import kr.toxicity.model.api.fabric.platform.FabricEntity
 import kr.toxicity.model.api.fabric.platform.FabricLivingEntity
-import kr.toxicity.model.api.fabric.platform.FabricPlayer
 import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.HitBoxListener

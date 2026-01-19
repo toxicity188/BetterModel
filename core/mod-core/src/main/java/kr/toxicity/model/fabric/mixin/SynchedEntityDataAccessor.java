@@ -16,11 +16,11 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 @Mixin(value = SynchedEntityData.class)
 public interface SynchedEntityDataAccessor {
     @Accessor(value = "itemsById")
-    @NotNull SynchedEntityData.DataItem<?>[] getItemsById();
+    @NotNull SynchedEntityData.DataItem<?>[] bettermodel$getItemsById();
 
     @Accessor(value = "isDirty")
-    void setDirty(boolean dirty);
+    void bettermodel$setDirty(boolean dirty);
 
     @Invoker(value = "getItem")
-    <T> SynchedEntityData.@NotNull DataItem<T> getItem(@NotNull EntityDataAccessor<T> key);
+    <T> SynchedEntityData.@NotNull DataItem<T> bettermodel$getItem(@NotNull EntityDataAccessor<T> key);
 }

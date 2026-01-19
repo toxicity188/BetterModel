@@ -12,7 +12,6 @@ dependencies {
     })
     modImplementation(libs.bundles.fabric)
 
-    // non-mod modules
     api(project(":api"))?.let { include(it) }
 }
 

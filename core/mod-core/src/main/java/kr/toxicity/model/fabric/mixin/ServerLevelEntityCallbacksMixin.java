@@ -23,7 +23,7 @@ public abstract class ServerLevelEntityCallbacksMixin {
         method = "onTrackingStart(Lnet/minecraft/world/entity/Entity;)V",
         at = @At(value = "TAIL")
     )
-    private void koto$invokeLoadCallbacks(Entity entity, CallbackInfo ci) {
+    private void bettermodel$invokeLoadCallbacks(Entity entity, CallbackInfo ci) {
         if (entity.level().isClientSide()) return;
 
         if (entity instanceof LivingEntity livingEntity) {
@@ -37,7 +37,7 @@ public abstract class ServerLevelEntityCallbacksMixin {
         method = "onTrackingEnd(Lnet/minecraft/world/entity/Entity;)V",
         at = @At(value = "HEAD")
     )
-    private void koto$invokeUnloadCallbacks(Entity entity, CallbackInfo ci) {
+    private void bettermodel$invokeUnloadCallbacks(Entity entity, CallbackInfo ci) {
         if (entity.level().isClientSide()) return;
 
         if (entity instanceof LivingEntity livingEntity) {

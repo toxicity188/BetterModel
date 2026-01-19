@@ -16,25 +16,14 @@ dependencies {
     })
     modImplementation(libs.bundles.fabric)
 
-    // mod modules
-    api(project(":api:mod-api", "namedElements"))
-    include(project(":api:mod-api"))
-
-    // non-mod modules
     api(project(":core"))?.let { include(it) }
+    api(project(":api:mod-api", "namedElements")); include(project(":api:mod-api"))
 
-    // mod libraries
-    modApi(libs.adventure.platform.fabric)
-    modApi(libs.polymer.resource.pack)
-    modApi(libs.cloud.fabric)
+    api(libs.bundles.fabric.library)?.let { include(it) }
+    modApi(libs.bundles.fabric.mod)?.let { include(it) }
 
-    // non-mod libraries
-    implementation(libs.configurate.yaml)
-
-    // include
-    include(libs.bundles.library)
-    include(libs.bundles.core)
-    include(libs.bundles.fabric.include)
+    api(libs.bundles.core)?.let { include(it) }
+    api(libs.bundles.library)?.let { include(it) }
 }
 
 fabricModJson {
@@ -58,6 +47,7 @@ fabricModJson {
         // mod libraries
         "adventure-platform-fabric" to listOf("*"),
         "cloud" to listOf("*"),
+        "polymer-autohost" to listOf("*"),
         "polymer-resource-pack" to listOf("*")
     )
     mixins = listOf(
