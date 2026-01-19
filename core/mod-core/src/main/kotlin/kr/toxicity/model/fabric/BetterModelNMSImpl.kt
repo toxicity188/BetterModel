@@ -82,7 +82,7 @@ class BetterModelNMSImpl : NMS {
     override fun createParallelBundler(threshold: Int): PacketBundler = parallelBundlerOf(threshold)
 
     override fun tint(itemStack: PlatformItemStack, rgb: Int): PlatformItemStack {
-        return itemStack.unwarp().apply {
+        return itemStack.clone().unwarp().apply {
             set(DataComponents.DYED_COLOR, DyedItemColor(rgb))
             set(DataComponents.CUSTOM_MODEL_DATA, get(DataComponents.CUSTOM_MODEL_DATA)?.withMappedColors(rgb))
         }.wrap()

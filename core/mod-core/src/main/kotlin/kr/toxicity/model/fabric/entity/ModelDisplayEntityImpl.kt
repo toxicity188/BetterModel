@@ -145,7 +145,7 @@ class ModelDisplayEntityImpl(
 
     override fun item(itemStack: PlatformItemStack) {
         entityDataLock.accessToLock {
-            display.itemStack = itemStack.unwarp()
+            display.itemStack = itemStack.clone().unwarp()
         }
     }
 
