@@ -54,9 +54,12 @@ class BetterModelConfigImpl(yaml: ConfigurationNode) : BetterModelConfig {
         Supplier { ItemStack(it).wrap() }
     }
     private val itemNamespace = yaml.node("item-namespace").getString("bm_models").toPackName()
-    private val maxSight = yaml.node("max-sight").getDouble(-1.0).run {
-        if (this <= 0.0) EntityUtil.renderDistance() else this
+    private val maxSight by lazy {
+        yaml.node("max-sight").getDouble(-1.0).run {
+            if (this <= 0.0) EntityUtil.renderDistance() else this
+        }
     }
+
     private val minSight = yaml.node("min-sight").getDouble(5.0)
     private val namespace = yaml.node("namespace").getString("bettermodel")
     private val packType = yaml.node("pack-type").getString("zip")?.let {
