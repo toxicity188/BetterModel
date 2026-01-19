@@ -105,14 +105,14 @@ tasks {
 modrinth {
     loaders = listOf("fabric", "quilt")
     uploadFile.set(tasks.remapJar)
-    gameVersions = SUPPORTED_VERSIONS
+    gameVersions = listOf("1.21.11")
     dependencies {
         required.project(
             "fabric-api",
             "fabric-language-kotlin"
         )
-        optional.project(
-            "skinsrestorer"
-        )
+//        optional.project(
+//            "skinsrestorer"
+//        )
     }
 }

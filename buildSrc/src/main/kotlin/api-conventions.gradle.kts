@@ -9,7 +9,8 @@ plugins {
     signing
 }
 
-val artifactBaseId = "${rootProject.name}-${name}".lowercase()
+val gitHubPackagesId = rootProject.name.lowercase()
+val artifactBaseId = "$gitHubPackagesId-$name"
 val artifactVersion = project.version.toString().substringBeforeLast('-')
 
 java {
@@ -76,7 +77,7 @@ publishing {
     repositories {
         maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/toxicity188/$artifactBaseId")
+            url = uri("https://maven.pkg.github.com/toxicity188/$gitHubPackagesId")
             credentials {
                 username = "toxicity188"
                 password = System.getenv("PACKAGES_API_TOKEN")
