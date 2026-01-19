@@ -53,3 +53,7 @@ fabricModJson {
         mixin("bettermodel.mixins.json")
     )
 }
+
+tasks.runServer {
+    enabled = false
+}

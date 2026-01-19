@@ -26,3 +26,7 @@ fabricModJson {
         "fabric-api" to listOf("*")
     )
 }
+
+tasks.runServer {
+    enabled = false
+}
