@@ -8,6 +8,7 @@ package kr.toxicity.model.fabric
 
 import com.vdurmont.semver4j.Semver
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils
+import eu.pb4.polymer.resourcepack.api.ResourcePackBuilder
 import kr.toxicity.model.BetterModelEvaluatorImpl
 import kr.toxicity.model.BetterModelEventBusImpl
 import kr.toxicity.model.BetterModelPlatformImpl
@@ -19,6 +20,7 @@ import kr.toxicity.model.api.fabric.BetterModelFabric
 import kr.toxicity.model.api.fabric.platform.FabricAdapter
 import kr.toxicity.model.api.manager.*
 import kr.toxicity.model.api.nms.NMS
+import kr.toxicity.model.api.pack.PackResult
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.platform.PlatformAdapter
 import kr.toxicity.model.api.platform.PlatformRegionHolder
@@ -42,6 +44,8 @@ import net.kyori.adventure.text.format.NamedTextColor.GREEN
 import net.minecraft.DetectedVersion
 import net.minecraft.WorldVersion
 import net.minecraft.server.MinecraftServer
+import net.minecraft.server.packs.metadata.pack.PackFormat
+import net.minecraft.util.InclusiveRange
 import java.io.File
 import java.io.InputStream
 import java.nio.file.Files
@@ -120,12 +124,20 @@ class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterMod
         ServerLifecycleEvents.SERVER_STARTING.register { server ->
             this.server = server
         }
-        ServerLifecycleEvents.SERVER_STARTED.register {
-            startUp()
-        }
 
         PolymerResourcePackUtils.addModAssets(modId())
         PolymerResourcePackUtils.markAsRequired()
+
+        config = loadOrSaveConfig()
+        PolymerResourcePackUtils.RESOURCE_PACK_CREATION_EVENT.register { builder ->
+            loadAndIncludeAssets(builder)
+        }
+
+        ServerLifecycleEvents.SERVER_STARTED.register {
+            allManagers.forEach {
+                it.start()
+            }
+        }
 
         BetterModelAttachments.init()
         FabricModelSchedulerManager.init()
@@ -137,18 +149,53 @@ class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterMod
         }
     }
 
-    private fun startUp() {
-        config = loadOrSaveConfig()
-        allManagers.forEach {
-            it.start()
+    private fun loadAndIncludeAssets(builder: ResourcePackBuilder) {
+        when (
+            val reloadResult = reload(ReloadInfo(false, Audience.empty()))
+        ) {
+            is Failure -> {
+                reloadResult.throwable.handleException("Unable to load mod properly.")
+            }
+
+            is OnReload -> {
+                throw RuntimeException("mod load failed.")
+            }
+
+            is Success -> {
+                includeAssets(builder, reloadResult.packResult())
+                info(
+                    "Mod is loaded. (${reloadResult.totalTime().withComma()} ms)".toComponent(GREEN),
+                    "Platform: Fabric".toComponent(AQUA)
+                )
+            }
         }
-        when (val result = reload(ReloadInfo(true, Audience.empty()))) {
-            is Failure -> result.throwable.handleException("Unable to load plugin properly.")
-            is OnReload -> throw RuntimeException("Plugin load failed.")
-            is Success -> info(
-                "Mod is loaded. (${result.totalTime().withComma()} ms)".toComponent(GREEN),
-                "Platform: Fabric".toComponent(AQUA)
-            )
+    }
+
+    private fun includeAssets(builder: ResourcePackBuilder, packResult: PackResult) {
+        packResult.stream().forEach { packByte ->
+            val path = packByte.path.path
+            if (path == "pack.png") {
+                return@forEach
+            }
+
+            if (path != "pack.mcmeta") {
+                builder.addData(path, packByte.bytes)
+                return@forEach
+            }
+
+            packResult.meta().overlays?.entries?.forEach { entry ->
+                if (entry.directory == "bettermodel_legacy") {
+                    return@forEach
+                }
+
+                val min = entry.minFormat.run { PackFormat(major, minor) }
+                val max = entry.maxFormat.run { PackFormat(major, minor) }
+                val range = InclusiveRange(min, max)
+
+                builder.packMcMetaBuilder.addOverlay(range, entry.directory)
+            }
+
+            return@forEach
         }
     }
 

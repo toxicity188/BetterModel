@@ -32,7 +32,6 @@ fabric-api = "net.fabricmc.fabric-api:fabric-api:0.141.1+1.21.11"
 fabric-loader = "net.fabricmc:fabric-loader:0.18.4"
 fabric-language-kotlin = "net.fabricmc:fabric-language-kotlin:1.13.8+kotlin.2.3.0"
 
-polymer-autohost = "eu.pb4:polymer-autohost:0.15.1+1.21.11"
 polymer-resource-pack = "eu.pb4:polymer-resource-pack:0.15.1+1.21.11"
 
 configurate-core = { module = "org.spongepowered:configurate-core", version.ref = "configurate" }
@@ -83,7 +82,6 @@ fabric-library = [
 fabric-mod = [
     "adventure-platform-fabric",
     "cloud-fabric",
-    "polymer-autohost",
     "polymer-resource-pack",
 ]
 
