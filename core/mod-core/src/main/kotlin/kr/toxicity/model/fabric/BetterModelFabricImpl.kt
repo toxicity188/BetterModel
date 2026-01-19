@@ -129,14 +129,22 @@ class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterMod
         PolymerResourcePackUtils.markAsRequired()
 
         config = loadOrSaveConfig()
+
+        val initialLoad = AtomicBoolean()
+
         PolymerResourcePackUtils.RESOURCE_PACK_CREATION_EVENT.register { builder ->
-            loadAndIncludeAssets(builder)
+            val isInitialLoad = initialLoad.compareAndSet(false, true)
+            reload {
+                includeAssets(builder, it.packResult)
+                if (isInitialLoad) loadLog(it)
+            }
         }
 
         ServerLifecycleEvents.SERVER_STARTED.register {
             allManagers.forEach {
                 it.start()
             }
+            if (initialLoad.compareAndSet(false, true)) reload { loadLog(it) }
         }
 
         BetterModelAttachments.init()
@@ -149,54 +157,39 @@ class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterMod
         }
     }
 
-    private fun loadAndIncludeAssets(builder: ResourcePackBuilder) {
-        when (
-            val reloadResult = reload(ReloadInfo(false, Audience.empty()))
-        ) {
-            is Failure -> {
-                reloadResult.throwable.handleException("Unable to load mod properly.")
-            }
-
-            is OnReload -> {
-                throw RuntimeException("mod load failed.")
-            }
-
-            is Success -> {
-                includeAssets(builder, reloadResult.packResult())
-                info(
-                    "Mod is loaded. (${reloadResult.totalTime().withComma()} ms)".toComponent(GREEN),
-                    "Platform: Fabric".toComponent(AQUA)
-                )
-            }
+    private fun reload(callback: (Success) -> Unit) {
+        when (val result = reload(ReloadInfo(false, Audience.empty()))) {
+            is Failure -> result.throwable.handleException("Unable to load mod properly.")
+            is OnReload -> throw RuntimeException("mod load failed.")
+            is Success -> callback(result)
         }
     }
 
     private fun includeAssets(builder: ResourcePackBuilder, packResult: PackResult) {
         packResult.stream().forEach { packByte ->
-            val path = packByte.path.path
-            if (path == "pack.png") {
-                return@forEach
+            when (val path = packByte.path.path) {
+                "pack.png", "pack.mcmeta" -> return@forEach
+                else ->  builder.addData(path, packByte.bytes)
             }
-
-            if (path != "pack.mcmeta") {
-                builder.addData(path, packByte.bytes)
-                return@forEach
-            }
-
-            packResult.meta().overlays?.entries?.forEach { entry ->
-                if (entry.directory == "bettermodel_legacy") {
-                    return@forEach
-                }
-
-                val min = entry.minFormat.run { PackFormat(major, minor) }
-                val max = entry.maxFormat.run { PackFormat(major, minor) }
-                val range = InclusiveRange(min, max)
-
-                builder.packMcMetaBuilder.addOverlay(range, entry.directory)
-            }
-
-            return@forEach
         }
+        packResult.meta().overlays?.entries?.forEach { entry ->
+            if (entry.directory == "bettermodel_legacy") {
+                return@forEach
+            }
+
+            val min = entry.minFormat.run { PackFormat(major, minor) }
+            val max = entry.maxFormat.run { PackFormat(major, minor) }
+            val range = InclusiveRange(min, max)
+
+            builder.packMcMetaBuilder.addOverlay(range, entry.directory)
+        }
+    }
+
+    private fun loadLog(success: Success) {
+        info(
+            "Mod is loaded. (${success.totalTime().withComma()} ms)".toComponent(GREEN),
+            "Platform: Fabric".toComponent(AQUA)
+        )
     }
 
     override fun getResource(fileName: String): InputStream? {

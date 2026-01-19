@@ -9,15 +9,26 @@ package kr.toxicity.model.fabric.scheduler
 import kr.toxicity.model.api.fabric.platform.FabricRegionHolder
 import kr.toxicity.model.api.fabric.scheduler.FabricModelScheduler
 import kr.toxicity.model.api.scheduler.ModelTask
-import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.concurrent.Executors
-import java.util.concurrent.Future
-import java.util.concurrent.TimeUnit
+import kr.toxicity.model.api.util.LogUtil
+import java.util.concurrent.*
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 
 class FabricModelSchedulerImpl : FabricModelScheduler, FabricRegionHolder {
 
-    private val scheduler = Executors.newSingleThreadScheduledExecutor()
+    private val scheduler = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors(), object : ThreadFactory {
+
+        private val integer = AtomicInteger()
+
+        override fun newThread(r: Runnable): Thread {
+            val thread = Thread(r)
+            thread.setDaemon(true)
+            thread.setName("BetterModel-Async-Scheduler-" + integer.getAndIncrement())
+            thread.setUncaughtExceptionHandler { t: Thread, e: Throwable -> LogUtil.handleException("Exception has occurred in " + t.name, e) }
+            return thread
+        }
+    })
+
     private val queue = ConcurrentLinkedQueue<SyncTask>()
 
     override fun asyncTask(runnable: Runnable): ModelTask {
