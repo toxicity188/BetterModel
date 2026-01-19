@@ -234,6 +234,12 @@ public final class BetterModel {
         return platform().nms();
     }
 
+    /**
+     * Returns the event bus.
+     *
+     * @return the event bus
+     * @since 2.0.0
+     */
     public static @NotNull BetterModelEventBus eventBus() {
         return platform().eventBus();
     }

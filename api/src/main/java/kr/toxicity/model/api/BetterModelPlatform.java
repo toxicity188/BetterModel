@@ -204,6 +204,12 @@ public interface BetterModelPlatform {
      */
     @NotNull BetterModelEvaluator evaluator();
 
+    /**
+     * Returns the event bus.
+     *
+     * @return the event bus
+     * @since 2.0.0
+     */
     @NotNull BetterModelEventBus eventBus();
 
     /**
