@@ -31,7 +31,7 @@ bukkitPluginYaml {
     foliaSupported = true
     apiVersion = "1.20"
     author = "toxicity188"
-    description = "Modern Bedrock model engine for Bukkit"
+    description = "Modern Bedrock model engine for Minecraft Java Edition"
     website = "https://modrinth.com/plugin/bettermodel"
     softDepend = listOf(
         "MythicMobs",

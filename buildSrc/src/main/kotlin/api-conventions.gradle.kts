@@ -48,7 +48,7 @@ mavenPublishing {
     ))
     pom {
         name = artifactBaseId
-        description = "Modern Bedrock model engine for Bukkit"
+        description = "Modern Bedrock model engine for Minecraft Java Edition"
         inceptionYear = "2024"
         url = "https://github.com/toxicity188/BetterModel/"
         licenses {

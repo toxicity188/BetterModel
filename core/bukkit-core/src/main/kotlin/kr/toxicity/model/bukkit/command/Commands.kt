@@ -88,7 +88,7 @@ fun startBukkitCommand() {
     ) {
         create(
             "reload",
-            "Reloads this plugin.",
+            "Reloads BetterModel.",
             "re", "rl"
         ) {
             handler(::reload)
@@ -261,7 +261,7 @@ private fun reload(context: CommandContext<Audience>) {
     PLATFORM.scheduler().asyncTask {
         audience.info("Start reloading. please wait...")
         when (val result = PLATFORM.reload(audience)) {
-            is OnReload -> audience.warn("This plugin is still on reload!")
+            is OnReload -> audience.warn("BetterModel is still on reload!")
             is Success -> {
                 audience.info(
                     emptyComponentOf(),

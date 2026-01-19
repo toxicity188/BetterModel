@@ -1,5 +1,5 @@
 # Overview
-This document defines the roles, responsibilities, and operational guidelines for AI agents interacting with the BetterModel repository. As a modern Bedrock model engine for Bukkit, maintaining technical precision and documentation integrity is paramount.
+This document defines the roles, responsibilities, and operational guidelines for AI agents interacting with the BetterModel repository. As a Modern Bedrock model engine for Minecraft Java Edition, maintaining technical precision and documentation integrity is paramount.
 
 ## Agent Roles & Scopes
 * Documentation Specialist (Current Priority)

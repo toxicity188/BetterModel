@@ -49,7 +49,7 @@ abstract class BetterModelPlugin : AbstractBetterModelPlugin() {
             BetterModelProperties(this)
         }.getOrElse {
             warn(
-                "Unable to start this plugin.".toComponent(),
+                "Unable to start BetterModel.".toComponent(),
                 "Reason: ${it.message ?: "Unknown"}".toComponent(RED),
                 "Stack trace: ${it.stackTraceToString()}".toComponent(RED),
                 "Plugin will be automatically disabled.".toComponent(DARK_RED)

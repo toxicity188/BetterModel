@@ -51,7 +51,7 @@ paperPluginYaml {
     apiVersion = "1.20"
     author = "toxicity188"
     contributors = listOf("https://github.com/toxicity188/BetterModel/graphs/contributors")
-    description = "Modern Bedrock model engine for Bukkit"
+    description = "Modern Bedrock model engine for Minecraft Java Edition"
     website = "https://modrinth.com/plugin/bettermodel"
     dependencies {
         server(
