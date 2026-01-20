@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.convention.mod)
-    alias(libs.plugins.resourcefactory.fabric)
     id("fabric-loom")
 }
 
@@ -28,7 +27,8 @@ dependencies {
 
 fabricModJson {
     id = "bettermodel-core"
-    version = project.version.toString()
+    name = "${rootProject.name}-core"
+    description = "BetterModel's mod core module."
 
     entrypoints = listOf(
         mainEntrypoint(
@@ -52,6 +52,8 @@ fabricModJson {
     mixins = listOf(
         mixin("bettermodel.mixins.json")
     )
+
+    version = project.version.toString()
 }
 
 tasks.runServer {

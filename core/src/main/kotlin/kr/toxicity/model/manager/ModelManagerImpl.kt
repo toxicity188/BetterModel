@@ -8,8 +8,6 @@ package kr.toxicity.model.manager
 
 import com.google.gson.JsonArray
 import kr.toxicity.model.api.bone.BoneItemMapper
-import kr.toxicity.model.api.bone.BoneTagRegistry
-import kr.toxicity.model.api.bone.BoneTags
 import kr.toxicity.model.api.data.blueprint.BlueprintElement
 import kr.toxicity.model.api.data.blueprint.BlueprintJson
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint
@@ -298,9 +296,6 @@ object ModelManagerImpl : ModelManager, GlobalManager {
     }
 
     override fun start() {
-        BoneTags.entries.forEach {
-            BoneTagRegistry.addTag(it)
-        }
     }
 
     override fun reload(pipeline: ReloadPipeline, zipper: PackZipper) {

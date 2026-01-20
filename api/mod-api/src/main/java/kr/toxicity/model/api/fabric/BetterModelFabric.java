@@ -7,7 +7,7 @@
 package kr.toxicity.model.api.fabric;
 
 import kr.toxicity.model.api.BetterModelPlatform;
-import kr.toxicity.model.api.platform.PlatformRegionHolder;
+import kr.toxicity.model.api.fabric.scheduler.FabricModelScheduler;
 import net.minecraft.server.MinecraftServer;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,10 +30,11 @@ public interface BetterModelFabric extends BetterModelPlatform {
     @NotNull MinecraftServer server();
 
     /**
-     * Returns the platform region holder for managing thread-safe region access.
+     * Returns the Fabric-specific scheduler.
      *
-     * @return the region holder
+     * @return the scheduler
      * @since 2.0.0
      */
-    @NotNull PlatformRegionHolder regionHolder();
+    @Override
+    @NotNull FabricModelScheduler scheduler();
 }

@@ -8,8 +8,8 @@ package kr.toxicity.model.api.fabric.platform;
 
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.fabric.BetterModelFabric;
+import kr.toxicity.model.api.fabric.scheduler.FabricModelScheduler;
 import kr.toxicity.model.api.platform.PlatformLocation;
-import kr.toxicity.model.api.platform.PlatformRegionHolder;
 import kr.toxicity.model.api.platform.PlatformWorld;
 import kr.toxicity.model.api.scheduler.ModelTask;
 import net.minecraft.world.entity.Entity;
@@ -88,15 +88,15 @@ public record FabricLocation(@Nullable Level level, double x, double y, double z
 
     @Override
     public @Nullable ModelTask task(@NotNull Runnable runnable) {
-        return regionHolder().task(runnable);
+        return scheduler().task(runnable);
     }
 
     @Override
     public @Nullable ModelTask taskLater(long delay, @NotNull Runnable runnable) {
-        return regionHolder().taskLater(delay, runnable);
+        return scheduler().taskLater(delay, runnable);
     }
 
-    private @NotNull PlatformRegionHolder regionHolder() {
-        return ((BetterModelFabric) BetterModel.platform()).regionHolder();
+    private @NotNull FabricModelScheduler scheduler() {
+        return ((BetterModelFabric) BetterModel.platform()).scheduler();
     }
 }

@@ -13,7 +13,6 @@ import kr.toxicity.model.api.BetterModelEventBus
 import kr.toxicity.model.api.BetterModelLogger
 import kr.toxicity.model.api.BetterModelPlatform.ReloadResult
 import kr.toxicity.model.api.BetterModelPlatform.ReloadResult.*
-import kr.toxicity.model.api.bukkit.platform.BukkitAdapter
 import kr.toxicity.model.api.bukkit.scheduler.BukkitModelScheduler
 import kr.toxicity.model.api.manager.*
 import kr.toxicity.model.api.nms.NMS
@@ -23,9 +22,11 @@ import kr.toxicity.model.bukkit.command.startBukkitCommand
 import kr.toxicity.model.bukkit.configuration.PluginConfiguration
 import kr.toxicity.model.bukkit.manager.PlayerManagerImpl
 import kr.toxicity.model.bukkit.util.ADVENTURE_PLATFORM
+import kr.toxicity.model.bukkit.util.audience
 import kr.toxicity.model.bukkit.util.registerListener
 import kr.toxicity.model.manager.*
 import kr.toxicity.model.util.*
+import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.format.NamedTextColor.*
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
@@ -71,7 +72,7 @@ abstract class BetterModelPlugin : AbstractBetterModelPlugin() {
                 if (!player.isOp || !config().versionCheck()) return
                 props.scheduler.asyncTask {
                     val result = LATEST_VERSION
-                    player.infoNotNull(
+                    player.audience().infoNotNull(
                         result.release
                             ?.takeIf { props.semver < it.versionNumber() }
                             ?.let { version -> componentOf("New BetterModel release found: ") { append(version.toURLComponent()) } },
@@ -85,7 +86,7 @@ abstract class BetterModelPlugin : AbstractBetterModelPlugin() {
             @EventHandler
             fun ServerLoadEvent.load() {
                 if (skipInitialReload || type != ServerLoadEvent.LoadType.STARTUP) return
-                when (val result = reload(ReloadInfo(true, Bukkit.getConsoleSender()))) {
+                when (val result = reload(ReloadInfo(true, Audience.empty()))) {
                     is Failure -> result.throwable.handleException("Unable to load plugin properly.")
                     is OnReload -> throw RuntimeException("Plugin load failed.")
                     is Success -> info(

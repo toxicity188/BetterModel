@@ -130,31 +130,32 @@ fun startFabricCommand() {
                 .senderType(AudiencePlayer::class.java)
                 .handler(::play)
         }
-        create(
-            "hide",
-            "Hides some entities from target source."
-        ) {
-            required("model", stringParser(), MODEL_SUGGESTION)
-                .required("source", singlePlayerSelectorParser())
-                .required("entities", multipleEntitySelectorParser())
-                .handler(::hide)
-        }
-        create(
-            "show",
-            "Shows some entities to target source."
-        ) {
-            required("model", stringParser(), MODEL_SUGGESTION)
-                .required("source", singlePlayerSelectorParser())
-                .required("entities", multipleEntitySelectorParser())
-                .handler(::show)
-        }
-        create(
-            "version",
-            "Checks BetterModel's version",
-            "v"
-        ) {
-            handler(::version)
-        }
+// TODO NOT implemented yet
+//        create(
+//            "hide",
+//            "Hides some entities from target source."
+//        ) {
+//            required("model", stringParser(), MODEL_SUGGESTION)
+//                .required("source", singlePlayerSelectorParser())
+//                .required("entities", multipleEntitySelectorParser())
+//                .handler(::hide)
+//        }
+//        create(
+//            "show",
+//            "Shows some entities to target source."
+//        ) {
+//            required("model", stringParser(), MODEL_SUGGESTION)
+//                .required("source", singlePlayerSelectorParser())
+//                .required("entities", multipleEntitySelectorParser())
+//                .handler(::show)
+//        }
+//        create(
+//            "version",
+//            "Checks BetterModel's version",
+//            "v"
+//        ) {
+//            handler(::version)
+//        }
     }
 }
 

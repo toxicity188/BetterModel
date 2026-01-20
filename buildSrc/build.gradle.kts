@@ -14,6 +14,7 @@ dependencies {
     implementation(libs.build.shadow)
     implementation(libs.build.hangarPublish)
     implementation(libs.build.minotaur)
+    implementation(libs.build.resourcefactory)
 
     implementation("org.jetbrains.dokka:dokka-gradle-plugin:2.1.0")
     implementation("com.github.hierynomus.license:com.github.hierynomus.license.gradle.plugin:0.16.1")

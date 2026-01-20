@@ -23,6 +23,12 @@ public final class BoneTagRegistry {
         throw new RuntimeException();
     }
 
+    static {
+        for (BoneTags value : BoneTags.values()) {
+            addTag(value);
+        }
+    }
+
     /**
      * Adds some tag to this registry
      * @param tag tag
@@ -33,7 +39,6 @@ public final class BoneTagRegistry {
             if ((checkDuplicate = BY_NAME.put(s, tag)) != null) throw new RuntimeException("Duplicated tags: " + tag.name() + " between " + checkDuplicate.name());
         }
     }
-
 
     /**
      * Gets bone tag by tag name

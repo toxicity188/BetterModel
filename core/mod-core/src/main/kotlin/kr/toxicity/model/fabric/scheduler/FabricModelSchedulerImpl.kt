@@ -10,11 +10,14 @@ import kr.toxicity.model.api.fabric.platform.FabricRegionHolder
 import kr.toxicity.model.api.fabric.scheduler.FabricModelScheduler
 import kr.toxicity.model.api.scheduler.ModelTask
 import kr.toxicity.model.api.util.LogUtil
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import java.util.concurrent.*
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 
-class FabricModelSchedulerImpl : FabricModelScheduler, FabricRegionHolder {
+object FabricModelSchedulerImpl : FabricModelScheduler, FabricRegionHolder {
 
     private val scheduler = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors(), object : ThreadFactory {
 
@@ -29,34 +32,56 @@ class FabricModelSchedulerImpl : FabricModelScheduler, FabricRegionHolder {
         }
     })
 
+    private val enabled = AtomicBoolean(true)
+
     private val queue = ConcurrentLinkedQueue<SyncTask>()
 
     override fun asyncTask(runnable: Runnable): ModelTask {
-        return scheduler.submit(runnable).wrap()
+        return AsyncTask(runnable) {
+            submit(it)
+        }
     }
 
     override fun asyncTaskLater(delay: Long, runnable: Runnable): ModelTask {
-        return scheduler.schedule(runnable, delay * 50, TimeUnit.MILLISECONDS).wrap()
+        return AsyncTask(runnable) {
+           schedule(it, delay * 50, TimeUnit.MILLISECONDS)
+        }
     }
 
     override fun asyncTaskTimer(delay: Long, period: Long, runnable: Runnable): ModelTask {
-        return scheduler.scheduleAtFixedRate(runnable, delay * 50, period * 50, TimeUnit.MILLISECONDS).wrap()
+        return AsyncTask(runnable) {
+            scheduleAtFixedRate(it, delay * 50, period * 50, TimeUnit.MILLISECONDS)
+        }
     }
 
     override fun task(runnable: Runnable): ModelTask? {
-        if (scheduler.isShutdown) return null
+        if (!enabled.get()) return null
         return SyncTask(runnable).apply { queue += this }
     }
 
     override fun taskLater(delay: Long, runnable: Runnable): ModelTask? {
-        if (scheduler.isShutdown) return null
+        if (!enabled.get()) return null
         return SyncTask(runnable, delay).apply { queue += this }
     }
 
-    private fun Future<*>.wrap() = object : ModelTask {
-        override fun isCancelled(): Boolean = this@wrap.isCancelled
+    private class AsyncTask(
+        private val runnable: Runnable,
+        scheduleFunction: (ScheduledExecutorService).(Runnable) -> Future<*>
+    ) : Runnable, ModelTask {
+
+        private val future = scheduler.scheduleFunction(this)
+
+        override fun run() {
+            if (enabled.get()) {
+                runnable.run()
+            } else {
+                future.cancel(true)
+            }
+        }
+        override fun isCancelled(): Boolean = future.isCancelled
+
         override fun cancel() {
-            cancel(true)
+            future.cancel(true)
         }
     }
 
@@ -69,7 +94,7 @@ class FabricModelSchedulerImpl : FabricModelScheduler, FabricRegionHolder {
 
         fun run() = if (atomicCounter.getAndDecrement() <= 0) {
             synchronized(this) {
-                task.run()
+                if (enabled.get()) task.run()
             }
             true
         } else false
@@ -92,13 +117,23 @@ class FabricModelSchedulerImpl : FabricModelScheduler, FabricRegionHolder {
         }
     }
 
-    fun tick() {
+    private fun tick() {
         queue.removeIf {
             it.run()
         }
     }
 
-    fun shutdown() {
-        scheduler.close()
+    fun init() {
+        ServerTickEvents.START_WORLD_TICK.register {
+            tick()
+        }
+
+        ServerLifecycleEvents.SERVER_STARTING.register {
+            enabled.set(true)
+        }
+
+        ServerLifecycleEvents.SERVER_STOPPED.register {
+            enabled.set(false)
+        }
     }
 }

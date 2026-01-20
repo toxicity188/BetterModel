@@ -18,13 +18,12 @@ import kr.toxicity.model.api.event.PluginEndReloadEvent
 import kr.toxicity.model.api.event.PluginStartReloadEvent
 import kr.toxicity.model.api.fabric.BetterModelFabric
 import kr.toxicity.model.api.fabric.platform.FabricAdapter
+import kr.toxicity.model.api.fabric.scheduler.FabricModelScheduler
 import kr.toxicity.model.api.manager.*
 import kr.toxicity.model.api.nms.NMS
 import kr.toxicity.model.api.pack.PackResult
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.platform.PlatformAdapter
-import kr.toxicity.model.api.platform.PlatformRegionHolder
-import kr.toxicity.model.api.scheduler.ModelScheduler
 import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.fabric.attachment.BetterModelAttachments
 import kr.toxicity.model.fabric.command.startFabricCommand
@@ -32,7 +31,7 @@ import kr.toxicity.model.fabric.config.BetterModelConfigImpl
 import kr.toxicity.model.fabric.config.toConfig
 import kr.toxicity.model.fabric.manager.EntityManager
 import kr.toxicity.model.fabric.manager.PlayerManagerImpl
-import kr.toxicity.model.fabric.scheduler.FabricModelSchedulerManager
+import kr.toxicity.model.fabric.scheduler.FabricModelSchedulerImpl
 import kr.toxicity.model.manager.*
 import kr.toxicity.model.util.*
 import net.fabricmc.api.ModInitializer
@@ -148,7 +147,7 @@ class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterMod
         }
 
         BetterModelAttachments.init()
-        FabricModelSchedulerManager.init()
+        FabricModelSchedulerImpl.init()
 
         ServerLifecycleEvents.SERVER_STOPPED.register {
             allManagers.forEach { manager ->
@@ -158,7 +157,7 @@ class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterMod
     }
 
     private fun reload(callback: (Success) -> Unit) {
-        when (val result = reload(ReloadInfo(false, Audience.empty()))) {
+        when (val result = reload(ReloadInfo(true, Audience.empty()))) {
             is Failure -> result.throwable.handleException("Unable to load mod properly.")
             is OnReload -> throw RuntimeException("mod load failed.")
             is Success -> callback(result)
@@ -325,9 +324,7 @@ class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterMod
 
     override fun server(): MinecraftServer = server
 
-    override fun regionHolder(): PlatformRegionHolder = FabricModelSchedulerManager.get()
-
-    override fun scheduler(): ModelScheduler = FabricModelSchedulerManager.get()
+    override fun scheduler(): FabricModelScheduler = FabricModelSchedulerImpl
 
     override fun adapter(): PlatformAdapter = FabricAdapter()
 }

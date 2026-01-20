@@ -8,16 +8,15 @@ package kr.toxicity.model.spigot
 
 import kr.toxicity.model.api.BetterModelPlatform
 import kr.toxicity.model.bukkit.BetterModelPlugin
-import kr.toxicity.model.api.bukkit.BetterModelBukkit
 import kr.toxicity.model.util.toComponent
 import kr.toxicity.model.util.warn
 import org.bukkit.Bukkit
 
 @Suppress("UNUSED")
-class BetterModelPluginSpigot : BetterModelPlugin() {
+class BetterModelSpigot : BetterModelPlugin() {
 
     override fun onEnable() {
-        if (BetterModelBukkit.IS_PAPER) {
+        if (IS_PAPER) {
             warn(
                 "You're using Paper, so you have to use Paper jar!".toComponent(),
                 "Please download Paper jar from Modrinth! (https://modrinth.com/plugin/bettermodel)".toComponent()

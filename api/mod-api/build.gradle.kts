@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.convention.api)
     alias(libs.plugins.convention.mod)
-    alias(libs.plugins.resourcefactory.fabric)
     id("fabric-loom")
 }
 
@@ -18,13 +17,16 @@ dependencies {
 
 fabricModJson {
     id = "bettermodel-api"
-    version = project.version.toString()
+    name = "${rootProject.name}-api"
+    description = "BetterModel's mod API module."
 
     depends = mapOf(
         "minecraft" to listOf("~${property("minecraft_version")}"),
         "fabricloader" to listOf("*"),
         "fabric-api" to listOf("*")
     )
+
+    version = project.version.toString()
 }
 
 tasks.runServer {

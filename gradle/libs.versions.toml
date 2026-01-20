@@ -55,6 +55,7 @@ build-kotlin-jvm = { module = "org.jetbrains.kotlin.jvm:org.jetbrains.kotlin.jvm
 build-shadow = { module = "com.gradleup.shadow:com.gradleup.shadow.gradle.plugin", version.ref = "shadow" }
 build-minotaur = { module = "com.modrinth.minotaur:com.modrinth.minotaur.gradle.plugin", version.ref = "minotaur" }
 build-hangarPublish = { module = "io.papermc.hangar-publish-plugin:io.papermc.hangar-publish-plugin.gradle.plugin", version.ref = "hangarPublish" }
+build-resourcefactory = { module = "xyz.jpenilla:resource-factory", version.ref = "resourcefactory" }
 
 [bundles]
 minecraft = [
@@ -112,9 +113,9 @@ shadedLibrary = [
 ]
 
 [plugins]
-resourcefactory-bukkit = { id = "xyz.jpenilla.resource-factory-bukkit-convention", version.ref = "resourcefactory" }
-resourcefactory-paper = { id = "xyz.jpenilla.resource-factory-paper-convention", version.ref = "resourcefactory" }
-resourcefactory-fabric = { id = "xyz.jpenilla.resource-factory-fabric-convention", version.ref = "resourcefactory" }
+resourcefactory-bukkit = { id = "xyz.jpenilla.resource-factory-bukkit-convention" }
+resourcefactory-paper = { id = "xyz.jpenilla.resource-factory-paper-convention" }
+#resourcefactory-fabric = { id = "xyz.jpenilla.resource-factory-fabric-convention" }
 paperweight = { id = "io.papermc.paperweight.userdev", version.ref = "paperweight" }
 
 shadow = { id = "com.gradleup.shadow" }

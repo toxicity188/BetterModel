@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.convention.mod)
-    alias(libs.plugins.resourcefactory.fabric)
     alias(libs.plugins.convention.modrinth)
     id("fabric-loom")
 }
@@ -48,7 +47,8 @@ dependencies {
 
 fabricModJson {
     id = "bettermodel"
-    version = project.version.toString()
+    name = rootProject.name
+    description = "Modern Bedrock model engine for Minecraft Java Edition"
 
     depends = mapOf(
         "minecraft" to listOf("~${property("minecraft_version")}"),
@@ -58,6 +58,8 @@ fabricModJson {
         // mod modules
         "bettermodel-core" to listOf("*")
     )
+
+    version = project.version.toString()
 }
 
 sourceSets["testmod"].resourceFactory {
