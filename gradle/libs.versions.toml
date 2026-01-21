@@ -7,6 +7,8 @@ shadow = "9.3.1"
 minotaur = "2.8.10"
 hangarPublish = "0.1.4"
 
+fabric-api = "0.141.1+1.21.11"
+
 cloud-bukkit = "2.0.0-beta.14"
 cloud-mod = "2.0.0-beta.15"
 cloud-core = "2.0.0"
@@ -25,7 +27,6 @@ adventure-option = "net.kyori:option:1.1.0"
 adventure-platform-bukkit = "net.kyori:adventure-platform-bukkit:4.4.1"
 adventure-platform-fabric = "net.kyori:adventure-platform-fabric:6.8.0"
 
-fabric-api = "net.fabricmc.fabric-api:fabric-api:0.141.1+1.21.11"
 fabric-loader = "net.fabricmc:fabric-loader:0.18.4"
 fabric-language-kotlin = "net.fabricmc:fabric-language-kotlin:1.13.8+kotlin.2.3.0"
 
@@ -67,7 +68,6 @@ minecraft = [
 ]
 
 fabric = [
-    "fabric-api",
     "fabric-loader",
     "fabric-language-kotlin"
 ]
