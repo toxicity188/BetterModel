@@ -115,17 +115,16 @@ shadedLibrary = [
 [plugins]
 resourcefactory-bukkit = { id = "xyz.jpenilla.resource-factory-bukkit-convention" }
 resourcefactory-paper = { id = "xyz.jpenilla.resource-factory-paper-convention" }
-#resourcefactory-fabric = { id = "xyz.jpenilla.resource-factory-fabric-convention" }
+resourcefactory-fabric = { id = "xyz.jpenilla.resource-factory-fabric-convention" }
 paperweight = { id = "io.papermc.paperweight.userdev", version.ref = "paperweight" }
 
 shadow = { id = "com.gradleup.shadow" }
 minotaur = { id = "com.modrinth.minotaur" }
 hangar = { id = "io.papermc.hangar-publish-plugin" }
 
-convention-api = { id = "api-conventions" }
+convention-publish = { id = "publish-conventions" }
 convention-plugin = { id = "plugin-conventions" }
 convention-standard = { id = "standard-conventions" }
 convention-bukkit = { id = "bukkit-conventions" }
 convention-paperweight = { id = "paperweight-conventions" }
-convention-mod = { id = "mod-conventions" }
 convention-modrinth = { id = "modrinth-conventions" }

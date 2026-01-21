@@ -1,6 +1,7 @@
 plugins {
-    alias(libs.plugins.convention.mod)
+    alias(libs.plugins.convention.publish)
     alias(libs.plugins.convention.modrinth)
+    alias(libs.plugins.resourcefactory.fabric)
     id("fabric-loom")
 }
 
@@ -17,6 +18,10 @@ sourceSets {
 }
 
 loom {
+    // Access winder
+    accessWidenerPath = file("src/main/resources/bettermodel.accesswidener")
+
+    // Run
     runs {
         create("testClient") {
             client()
@@ -31,18 +36,30 @@ loom {
         }
     }
 
+    // Test mod
     createRemapConfigurations(sourceSets["testmod"])
 }
 
+
 dependencies {
+    // Minecraft
     minecraft("com.mojang:minecraft:${property("minecraft_version")}")
     mappings(loom.layered {
         officialMojangMappings()
         parchment("io.papermc.parchment.data:parchment:${property("parchment_version")}")
     })
+
+    api(project(":api")); include(project(":api"))
+    api(project(":core")); include(project(":core"))
+
     modImplementation(libs.bundles.fabric)
 
-    api(project(":core:mod-core", "namedElements")); include(project(":core:mod-core"))
+    api(libs.bundles.fabric.library); include(libs.bundles.fabric.library)
+    modApi(libs.bundles.fabric.mod); include(libs.bundles.fabric.mod)
+
+    api(libs.bundles.core); include(libs.bundles.core)
+    api(libs.bundles.library); include(libs.bundles.library)
+
 }
 
 fabricModJson {
@@ -50,14 +67,39 @@ fabricModJson {
     name = rootProject.name
     description = "Modern Bedrock model engine for Minecraft Java Edition"
 
+    entrypoints = listOf(
+        mainEntrypoint(
+            "$group.impl.fabric.BetterModelFabric"
+        )
+    )
+
     depends = mapOf(
         "minecraft" to listOf("~${property("minecraft_version")}"),
         "fabricloader" to listOf("*"),
         "fabric-api" to listOf("*"),
 
-        // mod modules
-        "bettermodel-core" to listOf("*")
+        // mod libraries
+        "adventure-platform-fabric" to listOf("*"),
+        "cloud" to listOf("*"),
+        "polymer-resource-pack" to listOf("*")
     )
+
+    mixins = listOf(
+        mixin("bettermodel.mixins.json")
+    )
+
+    authors = listOf(
+        person("toxicity188")
+    )
+    contributors = listOf(
+        person("Kouvali (Fabric Port)")
+    )
+    contact {
+        sources = "https://github.com/toxicity188/BetterModel/"
+        issues = "https://github.com/toxicity188/BetterModel/issues"
+    }
+    icon("assets/icon.png")
+    mitLicense()
 
     version = project.version.toString()
 }
@@ -81,6 +123,12 @@ sourceSets["testmod"].resourceFactory {
 }
 
 tasks {
+    jar {
+        from(rootProject.layout.projectDirectory.file("LICENSE.md"))
+        from(rootProject.layout.projectDirectory.file(".idea/icon.png")) {
+            rename { "assets/icon.png" }
+        }
+    }
     remapJar {
         manifest {
             attributes(

@@ -1,0 +1,22 @@
+{
+    "required": true,
+    "package": "kr.toxicity.model.mixin",
+    "compatibilityLevel": "JAVA_21",
+    "mixins": [
+        "AvatarAccessor",
+        "ClientboundBundlePacketMixin",
+        "ConnectionAccessor",
+        "DisplayAccessor",
+        "EntityAccessor",
+        "EntityMixin",
+        "ItemDisplayAccessor",
+        "LivingEntityMixin",
+        "MobAccessor",
+        "ServerCommonPacketListenerImplAccessor",
+        "ServerLevelEntityCallbacksMixin",
+        "SynchedEntityDataAccessor"
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    }
+}

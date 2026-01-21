@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.convention.api)
+    alias(libs.plugins.convention.publish)
 }
 
 dependencies {

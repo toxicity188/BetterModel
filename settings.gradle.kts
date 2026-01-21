@@ -38,12 +38,12 @@ include(
     //api
     "api",
     "api:bukkit-api",
-    "api:mod-api",
+    //"api:mod-api",
 
     //core
     "core",
     "core:bukkit-core",
-    "core:mod-core",
+    //"core:mod-core",
 
     "purpur",
 
