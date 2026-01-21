@@ -8,11 +8,13 @@ package kr.toxicity.model.manager
 
 import com.google.gson.JsonArray
 import kr.toxicity.model.api.bone.BoneItemMapper
+import kr.toxicity.model.api.data.ModelAsset
 import kr.toxicity.model.api.data.blueprint.BlueprintElement
 import kr.toxicity.model.api.data.blueprint.BlueprintJson
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint
 import kr.toxicity.model.api.data.renderer.ModelRenderer
 import kr.toxicity.model.api.data.renderer.RendererGroup
+import kr.toxicity.model.api.event.ModelAssetsEvent
 import kr.toxicity.model.api.event.ModelImportedEvent
 import kr.toxicity.model.api.manager.ModelManager
 import kr.toxicity.model.api.pack.PackBuilder
@@ -21,10 +23,8 @@ import kr.toxicity.model.api.platform.PlatformNamespace
 import kr.toxicity.model.util.*
 import net.kyori.adventure.text.format.NamedTextColor.*
 import java.io.File
-import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.extension
-import kotlin.io.path.fileSize
 
 object ModelManagerImpl : ModelManager, GlobalManager {
 
@@ -40,18 +40,19 @@ object ModelManagerImpl : ModelManager, GlobalManager {
         pipeline: ReloadPipeline,
         dir: File
     ): List<ImportedModel> {
-        val targetFolder = dir.fileTrees().use { stream ->
-            stream.filter { it.extension in modelExtensions }.toList()
-        }.ifEmpty {
-            return emptyList()
-        }
-        val modelFileMap = ConcurrentHashMap<String, Pair<Path, ModelBlueprint>>()
+        val targetAssets = ModelAssetsEvent(type, dir.fileTrees().use { stream ->
+            stream.filter { it.extension in modelExtensions }.map(ModelAsset::of).toMutableSet()
+        }).apply { call() }
+            .assets
+            .ifEmpty { return emptyList() }
+            .toList()
+        val modelFileMap = ConcurrentHashMap<String, Pair<ModelAsset, ModelBlueprint>>()
         val typeName = type.name.lowercase()
         pipeline.apply {
             status = "Importing $typeName models..."
-            goal = targetFolder.size
-        }.forEachParallel(targetFolder, Path::fileSize) {
-            val load = it.toFile().toTexturedModel() ?: return@forEachParallel
+            goal = targetAssets.size
+        }.forEachParallel(targetAssets, ModelAsset::sizeAssume) {
+            val load = it.toTexturedModel() ?: return@forEachParallel
             modelFileMap.compute(load.name) { _, v ->
                 val index = pipeline.progress()
                 if (v != null) {
@@ -76,7 +77,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
         return modelFileMap.values
             .asSequence()
             .sortedBy { it.first }
-            .map { ImportedModel(it.first.fileSize(), type,it.second) }
+            .map { ImportedModel(it.first.sizeAssume, type,it.second) }
             .toList()
     }
 

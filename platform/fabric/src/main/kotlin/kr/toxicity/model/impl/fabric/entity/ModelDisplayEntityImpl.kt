@@ -6,6 +6,7 @@
  */
 package kr.toxicity.model.impl.fabric.entity
 
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet
 import kr.toxicity.model.api.entity.BaseEntity
 import kr.toxicity.model.api.nms.DisplayTransformer
 import kr.toxicity.model.api.nms.ModelDisplay
@@ -247,26 +248,28 @@ class ModelDisplayEntityImpl(
 
     companion object {
         private val ACCESSOR_IDS by lazy {
-            listOf(
-                EntityAccessor.`bettermodel$getDataSharedFlagsId`(),
+            IntOpenHashSet().apply {
+                setOf(
+                    EntityAccessor.`bettermodel$getDataSharedFlagsId`(),
 
-                DisplayAccessor.`bettermodel$getDataPosRotInterpolationDurationId`(),
+                    DisplayAccessor.`bettermodel$getDataPosRotInterpolationDurationId`(),
 
-                // index: 7 ~ last
-                DisplayAccessor.`bettermodel$getDataBillboardRenderConstraintsId`(),
-                DisplayAccessor.`bettermodel$getDataBrightnessOverrideId`(),
-                DisplayAccessor.`bettermodel$getDataViewRangeId`(),
-                DisplayAccessor.`bettermodel$getDataShadowRadiusId`(),
-                DisplayAccessor.`bettermodel$getDataShadowStrengthId`(),
-                DisplayAccessor.`bettermodel$getDataWidthId`(),
-                DisplayAccessor.`bettermodel$getDataHeightId`(),
-                DisplayAccessor.`bettermodel$getDataGlowColorOverrideId`(),
+                    // index: 7 ~ last
+                    DisplayAccessor.`bettermodel$getDataBillboardRenderConstraintsId`(),
+                    DisplayAccessor.`bettermodel$getDataBrightnessOverrideId`(),
+                    DisplayAccessor.`bettermodel$getDataViewRangeId`(),
+                    DisplayAccessor.`bettermodel$getDataShadowRadiusId`(),
+                    DisplayAccessor.`bettermodel$getDataShadowStrengthId`(),
+                    DisplayAccessor.`bettermodel$getDataWidthId`(),
+                    DisplayAccessor.`bettermodel$getDataHeightId`(),
+                    DisplayAccessor.`bettermodel$getDataGlowColorOverrideId`(),
 
-                // all
-                ItemDisplayAccessor.`bettermodel$getDataItemStackId`(),
-                ItemDisplayAccessor.`bettermodel$getDataItemDisplayId`()
-            ).map { accessor ->
-                accessor.id
+                    // all
+                    ItemDisplayAccessor.`bettermodel$getDataItemStackId`(),
+                    ItemDisplayAccessor.`bettermodel$getDataItemDisplayId`()
+                ).mapTo(this) {
+                    it.id
+                }
             }
         }
     }

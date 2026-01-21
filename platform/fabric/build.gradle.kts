@@ -1,3 +1,5 @@
+import xyz.jpenilla.resourcefactory.fabric.Environment
+
 plugins {
     alias(libs.plugins.convention.publish)
     alias(libs.plugins.convention.modrinth)
@@ -85,6 +87,8 @@ fabricModJson {
             "$group.impl.fabric.BetterModelFabric"
         )
     )
+
+    environment = Environment.ANY
 
     depends = mapOf(
         "minecraft" to listOf("~${property("minecraft_version")}"),

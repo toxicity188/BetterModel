@@ -26,6 +26,15 @@ public final class PackUtil {
     private static final Pattern REPLACE_SOURCE = Pattern.compile("[^a-z0-9_.]");
 
     /**
+     * Asserts that the given raw string is a valid pack name.
+     * Throws a {@link IllegalArgumentException} if the name contains illegal characters.
+     * @param raw The raw string to validate.
+     */
+    public static void assertPackName(@NotNull String raw) {
+        if (REPLACE_SOURCE.matcher(raw).find()) throw new IllegalArgumentException("Illegal pack name: " + raw);
+    }
+
+    /**
      * Converts some path to compatible with Minecraft resource location
      * @param raw raw path
      * @return converted path

@@ -13,10 +13,12 @@ import kr.toxicity.model.api.animation.AnimationEventHandler;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.bukkit.platform.BukkitAdapter;
+import kr.toxicity.model.api.data.ModelAsset;
+import kr.toxicity.model.api.data.renderer.ModelRenderer;
+import kr.toxicity.model.api.event.ModelAssetsEvent;
 import kr.toxicity.model.api.event.PluginStartReloadEvent;
 import kr.toxicity.model.api.pack.PackNamespace;
 import kr.toxicity.model.api.platform.PlatformPlayer;
-import kr.toxicity.model.api.util.LogUtil;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.*;
@@ -34,10 +36,6 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -71,29 +69,20 @@ public final class FightTester implements ModelTester, Listener {
             var path = event.zipper()
                 .modern()
                 .bettermodel();
-            loadMotion();
             loadItem(path, "knight_sword");
             loadItem(path, "knight_line");
+        });
+        BetterModel.eventBus().subscribe(ModelAssetsEvent.class, event -> {
+            if (event.type() == ModelRenderer.Type.PLAYER) event.addAsset(ModelAsset.of(
+                "knight",
+                () -> Objects.requireNonNull(test.getResource("knight.bbmodel"))
+            ));
         });
     }
 
     @Override
     public void end(@NotNull BetterModelTest test) {
         HandlerList.unregisterAll(this);
-    }
-
-    private void loadMotion() {
-        var dir = new File(BetterModel.platform().dataFolder(), "players/knight.bbmodel");
-        if (dir.isFile()) return;
-        dir.getParentFile().mkdirs();
-        try (
-            var stream = new FileOutputStream(dir);
-            var buffered = new BufferedOutputStream(stream)
-        ) {
-            buffered.write(test.asByte("knight.bbmodel").get());
-        } catch (IOException e) {
-            LogUtil.handleException("Unable to load knight.bbmodel", e);
-        }
     }
 
     private void loadItem(@NotNull PackNamespace path, @NotNull String itemName) {

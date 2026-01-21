@@ -10,27 +10,21 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonPrimitive
+import kr.toxicity.model.api.data.ModelAsset
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint
-import kr.toxicity.model.api.data.raw.ModelData
-import java.io.File
 
-fun File.toTexturedModel(): ModelBlueprint? = runCatching {
-    reader().use {
-        ModelData.GSON.fromJson(it, ModelData::class.java)
-            .apply { assertSupported() }
-            .loadBlueprint(nameWithoutExtension.toPackName())
-            .let { result ->
-                if (result.errors.isNotEmpty()) warn(
-                    *buildList {
-                        add("Error has been occurred while parsing this model: ${result.blueprint.name}")
-                        addAll(result.errors)
-                    }.map { error -> error.toComponent() }.toTypedArray()
-                )
-                result.blueprint
-            }
+fun ModelAsset.toTexturedModel(): ModelBlueprint? = runCatching {
+    toResult().let { result ->
+        if (result.errors.isNotEmpty()) warn(
+            *buildList {
+                add("Error has been occurred while parsing this model: ${result.blueprint.name}")
+                addAll(result.errors)
+            }.map { error -> error.toComponent() }.toTypedArray()
+        )
+        result.blueprint
     }
 }.handleFailure {
-    "Unable to load this model: $path"
+    "Unable to load this model: $name"
 }.getOrNull()
 
 fun buildJsonArray(capacity: Int = 10, block: JsonArray.() -> Unit) = JsonArray(capacity).apply(block)
