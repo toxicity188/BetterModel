@@ -1,6 +1,7 @@
 import com.vanniktech.maven.publish.JavaLibrary
 import com.vanniktech.maven.publish.JavadocJar
 import com.vanniktech.maven.publish.SourcesJar
+import gradle.kotlin.dsl.accessors._b90e605d271fc98d5b21881bd3ffe39c.compileOnly
 import kotlin.io.encoding.Base64
 
 plugins {
@@ -32,6 +33,8 @@ signing {
 }
 
 dependencies {
+    api(libs.bundles.library)
+
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
 
