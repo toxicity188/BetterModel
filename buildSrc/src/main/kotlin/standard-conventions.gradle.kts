@@ -19,7 +19,7 @@ rootProject.dependencies.dokka(project)
 dependencies {
     testImplementation(kotlin("test"))
 
-    compileOnly(libs.bundles.library)
+    api(libs.bundles.library)
     testImplementation(libs.bundles.library)
 }
 

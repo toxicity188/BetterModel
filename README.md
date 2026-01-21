@@ -105,10 +105,11 @@ BetterModel aims to be a reliable engine that provides stable, high-quality anim
 ```kotlin
 repositories {
     mavenCentral()
+    maven("https://maven.blamejared.com/") // For transitive dependency in bettermodel-fabric
+    maven("https://maven.nucleoid.xyz/") // For transitive dependency in bettermodel-fabric
 }
 
 dependencies {
-    compileOnly("io.github.toxicity188:bettermodel-api:VERSION") // standard api
     compileOnly("io.github.toxicity188:bettermodel-bukkit-api:VERSION") // bukkit(spigot, paper, etc) api
     //modApi("io.github.toxicity188:bettermodel-fabric:VERSION") // mod(fabric)
 }
@@ -123,10 +124,11 @@ repositories {
             password = YOUR_GITHUB_TOKEN
         }
     }
+    maven("https://maven.blamejared.com/") // For transitive dependency in bettermodel-fabric
+    maven("https://maven.nucleoid.xyz/") // For transitive dependency in bettermodel-fabric
 }
 
 dependencies {
-    compileOnly("io.github.toxicity188:bettermodel-api:VERSION-SNAPSHOT") // standard api
     compileOnly("io.github.toxicity188:bettermodel-bukkit-api:VERSION-SNAPSHOT") // bukkit(spigot, paper, etc) api
     //modApi("io.github.toxicity188:bettermodel-fabric:VERSION-SNAPSHOT") // mod(fabric)
 }
@@ -140,10 +142,11 @@ dependencies {
 ```groovy
 repositories {
     mavenCentral()
+    maven 'https://maven.blamejared.com/' // For transitive dependency in bettermodel-fabric
+    maven 'https://maven.nucleoid.xyz/' // For transitive dependency in bettermodel-fabric
 }
 
 dependencies {
-    compileOnly 'io.github.toxicity188:bettermodel-api:VERSION' // standard api
     compileOnly 'io.github.toxicity188:bettermodel-bukkit-api:VERSION' // bukkit(spigot, paper, etc) api
     //modApi 'io.github.toxicity188:bettermodel-fabric:VERSION' // mod(fabric)
 }
@@ -159,10 +162,11 @@ repositories {
             password = YOUR_GITHUB_TOKEN
         }
     }
+    maven 'https://maven.blamejared.com/' // For transitive dependency in bettermodel-fabric
+    maven 'https://maven.nucleoid.xyz/' // For transitive dependency in bettermodel-fabric
 }
 
 dependencies {
-    compileOnly 'io.github.toxicity188:bettermodel-api:VERSION-SNAPSHOT' // standard api
     compileOnly 'io.github.toxicity188:bettermodel-bukkit-api:VERSION-SNAPSHOT' // bukkit(spigot, paper, etc) api
     //modApi 'io.github.toxicity188:bettermodel-fabric:VERSION-SNAPSHOT' // mod(fabric)
 }
@@ -182,12 +186,6 @@ dependencies {
 </repositories>
 
 <dependencies>
-    <dependency>
-        <groupId>io.github.toxicity188</groupId>
-        <artifactId>bettermodel-api</artifactId>
-        <version>VERSION</version>
-        <scope>provided</scope>
-    </dependency>
     <dependency>
         <groupId>io.github.toxicity188</groupId>
         <artifactId>bettermodel-bukkit-api</artifactId>

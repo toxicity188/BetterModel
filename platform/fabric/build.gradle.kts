@@ -67,11 +67,11 @@ dependencies {
 
     modImplementation(libs.bundles.fabric)
 
-    api(libs.bundles.fabric.library); include(libs.bundles.fabric.library)
+    implementation(libs.bundles.fabric.library); include(libs.bundles.fabric.library)
     modApi(libs.bundles.fabric.mod); include(libs.bundles.fabric.mod)
 
-    api(libs.bundles.core); include(libs.bundles.core)
-    api(libs.bundles.library); include(libs.bundles.library)
+    implementation(libs.bundles.core); include(libs.bundles.core)
+    include(libs.bundles.library)
 
 }
 
