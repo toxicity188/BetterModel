@@ -4,7 +4,7 @@ plugins {
 }
 
 loom {
-    accessWidenerPath = file("src/main/resources/bettermodel.accesswidener")
+    accessWidenerPath = file("src/main/resources/bettermodel-core.accesswidener")
 }
 
 dependencies {
@@ -50,7 +50,7 @@ fabricModJson {
         "polymer-resource-pack" to listOf("*")
     )
     mixins = listOf(
-        mixin("bettermodel.mixins.json")
+        mixin("bettermodel-core.mixins.json")
     )
 
     version = project.version.toString()
