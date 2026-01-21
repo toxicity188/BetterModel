@@ -6,9 +6,9 @@ plugins {
 }
 
 val versionString = "${rootProject.version}+${property("minecraft_version")}"
-val classifier = project.name
 
-project.version = versionString
+val jarName = "${rootProject.name}-$versionString-${project.name}.jar"
+val jarDir: Provider<Directory> = rootProject.layout.buildDirectory.dir("libs")
 
 sourceSets {
     create("testmod") {
@@ -165,9 +165,13 @@ tasks {
                 )
             )
         }
-        archiveBaseName = rootProject.name
-        archiveClassifier = classifier
-        destinationDirectory = rootProject.layout.buildDirectory.dir("libs")
+        doLast {
+            copy {
+                from(archiveFile)
+                rename { jarName }
+                into(jarDir)
+            }
+        }
     }
     runServer {
         enabled = false
@@ -176,7 +180,7 @@ tasks {
 
 modrinth {
     loaders = listOf("fabric", "quilt")
-    uploadFile.set(tasks.remapJar)
+    uploadFile.set(jarDir.map { it.file(jarName) })
     gameVersions = listOf("1.21.11")
     dependencies {
         required.project(
