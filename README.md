@@ -110,7 +110,7 @@ repositories {
 dependencies {
     compileOnly("io.github.toxicity188:bettermodel-api:VERSION") // standard api
     compileOnly("io.github.toxicity188:bettermodel-bukkit-api:VERSION") // bukkit(spigot, paper, etc) api
-    //modApi("io.github.toxicity188:bettermodel-mod-api:VERSION") // mod(fabric) api
+    //modApi("io.github.toxicity188:bettermodel-fabric:VERSION") // mod(fabric)
 }
 ```
 
@@ -128,7 +128,7 @@ repositories {
 dependencies {
     compileOnly("io.github.toxicity188:bettermodel-api:VERSION-SNAPSHOT") // standard api
     compileOnly("io.github.toxicity188:bettermodel-bukkit-api:VERSION-SNAPSHOT") // bukkit(spigot, paper, etc) api
-    //modApi("io.github.toxicity188:bettermodel-mod-api:VERSION-SNAPSHOT") // mod(fabric) api
+    //modApi("io.github.toxicity188:bettermodel-fabric:VERSION-SNAPSHOT") // mod(fabric)
 }
 ```
 </details>
@@ -145,7 +145,7 @@ repositories {
 dependencies {
     compileOnly 'io.github.toxicity188:bettermodel-api:VERSION' // standard api
     compileOnly 'io.github.toxicity188:bettermodel-bukkit-api:VERSION' // bukkit(spigot, paper, etc) api
-    //modApi 'io.github.toxicity188:bettermodel-mod-api:VERSION' // mod(fabric) api
+    //modApi 'io.github.toxicity188:bettermodel-fabric:VERSION' // mod(fabric)
 }
 ```
 
@@ -164,7 +164,7 @@ repositories {
 dependencies {
     compileOnly 'io.github.toxicity188:bettermodel-api:VERSION-SNAPSHOT' // standard api
     compileOnly 'io.github.toxicity188:bettermodel-bukkit-api:VERSION-SNAPSHOT' // bukkit(spigot, paper, etc) api
-    //modApi 'io.github.toxicity188:bettermodel-mod-api:VERSION-SNAPSHOT' // mod(fabric) api
+    //modApi 'io.github.toxicity188:bettermodel-fabric:VERSION-SNAPSHOT' // mod(fabric)
 }
 ```
 </details>
