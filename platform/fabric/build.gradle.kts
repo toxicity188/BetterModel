@@ -52,6 +52,19 @@ dependencies {
     api(project(":api")); include(project(":api"))
     api(project(":core")); include(project(":core"))
 
+    setOf(
+        "fabric-api-base",
+        "fabric-command-api-v2",
+        "fabric-data-attachment-api-v1",
+        "fabric-entity-events-v1",
+        "fabric-events-interaction-v0",
+        "fabric-lifecycle-events-v1",
+        "fabric-networking-api-v1",
+        "fabric-transitive-access-wideners-v1"
+    ).forEach {
+        modImplementation(fabricApi.module(it, libs.versions.fabric.api.get()))
+    }
+
     modImplementation(libs.bundles.fabric)
 
     api(libs.bundles.fabric.library); include(libs.bundles.fabric.library)
@@ -76,7 +89,16 @@ fabricModJson {
     depends = mapOf(
         "minecraft" to listOf("~${property("minecraft_version")}"),
         "fabricloader" to listOf("*"),
-        "fabric-api" to listOf("*"),
+
+        // fabric-api
+        "fabric-api-base" to listOf("*"),
+        "fabric-command-api-v2" to listOf("*"),
+        "fabric-data-attachment-api-v1" to listOf("*"),
+        "fabric-entity-events-v1" to listOf("*"),
+        "fabric-events-interaction-v0" to listOf("*"),
+        "fabric-lifecycle-events-v1" to listOf("*"),
+        "fabric-networking-api-v1" to listOf("*"),
+        "fabric-transitive-access-wideners-v1" to listOf("*"),
 
         // mod libraries
         "adventure-platform-fabric" to listOf("*"),
