@@ -12,6 +12,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomModelData;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,6 +25,21 @@ import java.util.List;
  * @since 2.0.0
  */
 public record FabricItemStack(@NotNull ItemStack source) implements PlatformItemStack {
+    @ApiStatus.Internal
+    public FabricItemStack {
+    }
+
+    /**
+     * Creates a FabricItemStack from the source.
+     *
+     * @param source the source item stack
+     * @return the instance
+     * @since 2.0.0
+     */
+    public static @NotNull FabricItemStack of(@NotNull ItemStack source) {
+        return new FabricItemStack(source);
+    }
+
     @Override
     public boolean isAir() {
         return source.isEmpty();

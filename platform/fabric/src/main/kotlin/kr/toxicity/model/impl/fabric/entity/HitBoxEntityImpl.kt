@@ -106,7 +106,7 @@ class HitBoxEntityImpl(
 
     override fun uuid(): UUID = uuid
 
-    override fun source(): PlatformEntity = FabricEntity(delegate)
+    override fun source(): PlatformEntity = FabricEntity.of(delegate)
 
     override fun positionSource(): RenderedBone = bone
 
@@ -164,7 +164,7 @@ class HitBoxEntityImpl(
 
         interaction.passengers.forEach { passenger ->
             passenger.stopRiding()
-            listener.dismount(this, FabricEntity(passenger))
+            listener.dismount(this, FabricEntity.of(passenger))
         }
 
         forceDismount = false
@@ -295,7 +295,7 @@ class HitBoxEntityImpl(
                 MountController.MoveType.DEFAULT
             },
             player.connection.wrap(),
-            FabricLivingEntity(delegate as LivingEntity),
+            FabricLivingEntity.of(delegate as LivingEntity),
             Vector3f(
                 player.xMovement(),
                 player.yMovement(),

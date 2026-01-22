@@ -7,6 +7,7 @@
 package kr.toxicity.model.api.fabric.platform;
 
 import kr.toxicity.model.api.platform.PlatformOfflinePlayer;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,4 +21,19 @@ import java.util.UUID;
  * @since 2.0.0
  */
 public record FabricOfflinePlayer(@NotNull UUID uuid, @Nullable String name) implements PlatformOfflinePlayer {
+    @ApiStatus.Internal
+    public FabricOfflinePlayer {
+    }
+
+    /**
+     * Creates a FabricOfflinePlayer from the UUID and name.
+     *
+     * @param uuid the player uuid
+     * @param name the player name
+     * @return the instance
+     * @since 2.0.0
+     */
+    public static @NotNull FabricOfflinePlayer of(@NotNull UUID uuid, @Nullable String name) {
+        return new FabricOfflinePlayer(uuid, name);
+    }
 }

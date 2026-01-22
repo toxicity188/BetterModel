@@ -84,7 +84,7 @@ class RollTest : ModInitializer {
 
         val yaw = player.lastClientInput.toYaw()
         val tracker = renderer.getOrCreate(
-            FabricPlayer(player.connection),
+            FabricPlayer.of(player.connection),
             TrackerModifier.DEFAULT
         ) { tracker ->
             tracker.rotation {

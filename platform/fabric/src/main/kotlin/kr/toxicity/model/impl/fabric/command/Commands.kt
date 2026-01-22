@@ -289,7 +289,7 @@ private fun test(context: CommandContext<Audience>) {
     val location = context.nullable<Coordinates>("location")?.position() ?: player.position()
         .add(Vec3(0.0, 0.0, 10.0).yRot(-Math.toRadians(player.yRot.toDouble()).toFloat()))
 
-    model.create(FabricLocation(
+    model.create(FabricLocation.of(
         player.level(),
         location.x,
         location.y,

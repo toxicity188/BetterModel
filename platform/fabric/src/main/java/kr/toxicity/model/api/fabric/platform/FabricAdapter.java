@@ -41,7 +41,7 @@ public final class FabricAdapter implements PlatformAdapter {
      * @since 2.0.0
      */
     public static @NotNull PlatformEntity adapt(@NotNull Entity entity) {
-        return new FabricEntity(entity);
+        return FabricEntity.of(entity);
     }
 
     /**
@@ -52,7 +52,7 @@ public final class FabricAdapter implements PlatformAdapter {
      * @since 2.0.0
      */
     public static @NotNull PlatformLivingEntity adapt(@NotNull LivingEntity livingEntity) {
-        return new FabricLivingEntity(livingEntity);
+        return FabricLivingEntity.of(livingEntity);
     }
 
     /**
@@ -63,7 +63,7 @@ public final class FabricAdapter implements PlatformAdapter {
      * @since 2.0.0
      */
     public static @NotNull PlatformPlayer adapt(@NotNull ServerPlayerConnection connection) {
-        return new FabricPlayer(connection);
+        return FabricPlayer.of(connection);
     }
 
     /**
@@ -85,7 +85,7 @@ public final class FabricAdapter implements PlatformAdapter {
      * @since 2.0.0
      */
     public static @NotNull PlatformOfflinePlayer adapt(@NotNull UUID uuid) {
-        return new FabricOfflinePlayer(uuid, null);
+        return FabricOfflinePlayer.of(uuid, null);
     }
 
     /**
@@ -96,7 +96,7 @@ public final class FabricAdapter implements PlatformAdapter {
      * @since 2.0.0
      */
     public static @NotNull PlatformOfflinePlayer adapt(@NotNull GameProfile profile) {
-        return new FabricOfflinePlayer(profile.id(), profile.name());
+        return FabricOfflinePlayer.of(profile.id(), profile.name());
     }
 
     /**
@@ -107,7 +107,7 @@ public final class FabricAdapter implements PlatformAdapter {
      * @since 2.0.0
      */
     public static @NotNull PlatformItemStack adapt(@NotNull ItemStack itemStack) {
-        return new FabricItemStack(itemStack);
+        return FabricItemStack.of(itemStack);
     }
 
     /**
@@ -118,7 +118,7 @@ public final class FabricAdapter implements PlatformAdapter {
      * @since 2.0.0
      */
     public static @NotNull PlatformWorld adapt(@NotNull Level world) {
-        return new FabricWorld(world);
+        return FabricWorld.of(world);
     }
 
     @Override
@@ -155,7 +155,7 @@ public final class FabricAdapter implements PlatformAdapter {
 
     @Override
     public @NotNull PlatformLocation zero() {
-        return new FabricLocation(null, 0, 0, 0, 0, 0);
+        return FabricLocation.of(null, 0, 0, 0);
     }
 
     private @NotNull MinecraftServer server() {
