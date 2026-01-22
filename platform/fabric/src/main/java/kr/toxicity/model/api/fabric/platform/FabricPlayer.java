@@ -9,6 +9,7 @@ package kr.toxicity.model.api.fabric.platform;
 import kr.toxicity.model.api.platform.PlatformLocation;
 import kr.toxicity.model.api.platform.PlatformPlayer;
 import net.minecraft.server.network.ServerPlayerConnection;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -20,6 +21,21 @@ import java.util.UUID;
  * @since 2.0.0
  */
 public record FabricPlayer(@NotNull ServerPlayerConnection source) implements PlatformPlayer {
+    @ApiStatus.Internal
+    public FabricPlayer {
+    }
+
+    /**
+     * Creates a FabricPlayer from the source.
+     *
+     * @param source the source player connection
+     * @return the instance
+     * @since 2.0.0
+     */
+    public static @NotNull FabricPlayer of(@NotNull ServerPlayerConnection source) {
+        return new FabricPlayer(source);
+    }
+
     @Override
     public @NotNull UUID uuid() {
         return source.getPlayer().getUUID();

@@ -14,13 +14,13 @@ import kr.toxicity.model.api.platform.PlatformLocation
 import net.minecraft.world.damagesource.DamageSource
 
 class ModelDamageSourceImpl(private val source: DamageSource) : ModelDamageSource {
-    override fun getCausingEntity(): PlatformEntity? = source.entity?.let { FabricEntity(it) }
+    override fun getCausingEntity(): PlatformEntity? = source.entity?.let { FabricEntity.of(it) }
 
-    override fun getDirectEntity(): PlatformEntity? = source.directEntity?.let { FabricEntity(it) }
+    override fun getDirectEntity(): PlatformEntity? = source.directEntity?.let { FabricEntity.of(it) }
 
     override fun getDamageLocation(): PlatformLocation? {
         return source.sourcePositionRaw()?.let { pos ->
-            FabricLocation(
+            FabricLocation.of(
                 source.entity?.level(),
                 pos.x, pos.y, pos.z,
                 0f, 0f
@@ -30,7 +30,7 @@ class ModelDamageSourceImpl(private val source: DamageSource) : ModelDamageSourc
 
     override fun getSourceLocation(): PlatformLocation? {
         return source.sourcePosition?.let { pos ->
-            FabricLocation(
+            FabricLocation.of(
                 source.entity?.level(),
                 pos.x, pos.y, pos.z,
                 0f, 0f
