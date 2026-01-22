@@ -30,7 +30,7 @@ import kr.toxicity.model.util.warn
 import org.bstats.bukkit.Metrics
 import org.bukkit.Bukkit
 
-private typealias Latest = kr.toxicity.model.nms.v1_21_R7.NMSImpl
+private typealias Latest = kr.toxicity.model.bukkit.nms.v1_21_R7.NMSImpl
 
 internal class BetterModelProperties(
     private val plugin: AbstractBetterModelPlugin
@@ -41,11 +41,11 @@ internal class BetterModelProperties(
     val version = parse(Bukkit.getBukkitVersion().substringBefore('-'))
     val nms = when (version) {
         V1_21_11 -> Latest()
-        V1_21_9, V1_21_10 -> kr.toxicity.model.nms.v1_21_R6.NMSImpl()
-        V1_21_6, V1_21_7, V1_21_8 -> kr.toxicity.model.nms.v1_21_R5.NMSImpl()
-        V1_21_5 -> kr.toxicity.model.nms.v1_21_R4.NMSImpl()
-        V1_21_4 -> kr.toxicity.model.nms.v1_21_R3.NMSImpl()
-        V1_21, V1_21_1 -> kr.toxicity.model.nms.v1_21_R1.NMSImpl()
+        V1_21_9, V1_21_10 -> kr.toxicity.model.bukkit.nms.v1_21_R6.NMSImpl()
+        V1_21_6, V1_21_7, V1_21_8 -> kr.toxicity.model.bukkit.nms.v1_21_R5.NMSImpl()
+        V1_21_5 -> kr.toxicity.model.bukkit.nms.v1_21_R4.NMSImpl()
+        V1_21_4 -> kr.toxicity.model.bukkit.nms.v1_21_R3.NMSImpl()
+        V1_21, V1_21_1 -> kr.toxicity.model.bukkit.nms.v1_21_R1.NMSImpl()
         else if BetterModelBukkit.IS_PAPER -> {
             warn(
                 "Note: this version is officially untested.".toComponent(),

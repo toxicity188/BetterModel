@@ -22,7 +22,7 @@ import kr.toxicity.model.api.tracker.Tracker
 import kr.toxicity.model.bukkit.util.registerListener
 import kr.toxicity.model.manager.GlobalManager
 import kr.toxicity.model.manager.ReloadPipeline
-import kr.toxicity.model.nms.v1_21_R4.wrap
+import kr.toxicity.model.bukkit.nms.v1_21_R4.wrap
 import kr.toxicity.model.util.PLATFORM
 import org.bukkit.entity.Entity
 import org.bukkit.entity.Player
