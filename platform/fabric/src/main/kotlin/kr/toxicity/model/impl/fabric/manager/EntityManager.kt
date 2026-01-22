@@ -99,9 +99,9 @@ object EntityManager : GlobalManager {
 
         // same as EntityDismountEvent
         ServerEntityDismountCallback.EVENT.register { _, vehicle ->
-            vehicle is HitBox &&
-                (vehicle.mountController().canFly() || !vehicle.mountController().canDismountBySelf()) &&
-                !vehicle.forceDismount()
+            vehicle !is HitBox ||
+                !(vehicle.mountController().canFly() || !vehicle.mountController().canDismountBySelf()) ||
+                vehicle.forceDismount()
         }
 
         // same as EntityJumpEvent
