@@ -84,7 +84,7 @@ fabricModJson {
 
     entrypoints = listOf(
         mainEntrypoint(
-            "$group.impl.fabric.BetterModelFabric"
+            "$group.impl.fabric.BetterModelFabricImpl"
         )
     )
 

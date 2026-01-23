@@ -7,6 +7,7 @@
 package kr.toxicity.model.api;
 
 import com.vdurmont.semver4j.Semver;
+import kr.toxicity.model.api.event.ModelEventApplication;
 import kr.toxicity.model.api.manager.*;
 import kr.toxicity.model.api.nms.NMS;
 import kr.toxicity.model.api.pack.PackResult;
@@ -29,7 +30,7 @@ import java.util.function.Consumer;
  * @see BetterModel
  * @since 1.15.2
  */
-public interface BetterModelPlatform {
+public interface BetterModelPlatform extends ModelEventApplication {
 
     /**
      * Returns the data folder for the BetterModel plugin.

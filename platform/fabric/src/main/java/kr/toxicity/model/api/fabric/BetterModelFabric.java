@@ -6,6 +6,7 @@
  */
 package kr.toxicity.model.api.fabric;
 
+import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.BetterModelPlatform;
 import kr.toxicity.model.api.fabric.scheduler.FabricModelScheduler;
 import net.minecraft.server.MinecraftServer;
@@ -21,6 +22,17 @@ import org.jetbrains.annotations.NotNull;
  * @since 2.0.0
  */
 public interface BetterModelFabric extends BetterModelPlatform {
+
+    /**
+     * Returns the current {@link BetterModelFabric} instance.
+     *
+     * @return the current platform instance
+     * @since 2.0.0
+     */
+    static @NotNull BetterModelFabric platform() {
+        return (BetterModelFabric) BetterModel.platform();
+    }
+
     /**
      * Returns the underlying Minecraft server instance.
      *

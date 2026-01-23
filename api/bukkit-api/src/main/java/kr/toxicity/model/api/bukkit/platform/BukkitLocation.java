@@ -6,7 +6,6 @@
  */
 package kr.toxicity.model.api.bukkit.platform;
 
-import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.bukkit.BetterModelBukkit;
 import kr.toxicity.model.api.platform.PlatformLocation;
 import kr.toxicity.model.api.platform.PlatformWorld;
@@ -60,11 +59,11 @@ public record BukkitLocation(@NotNull Location source) implements PlatformLocati
 
     @Override
     public @Nullable ModelTask task(@NotNull Runnable runnable) {
-        return ((BetterModelBukkit) BetterModel.platform()).scheduler().task(source, runnable);
+        return BetterModelBukkit.platform().scheduler().task(source, runnable);
     }
 
     @Override
     public @Nullable ModelTask taskLater(long delay, @NotNull Runnable runnable) {
-        return ((BetterModelBukkit) BetterModel.platform()).scheduler().taskLater(source, delay, runnable);
+        return BetterModelBukkit.platform().scheduler().taskLater(source, delay, runnable);
     }
 }

@@ -8,7 +8,6 @@ package kr.toxicity.model.bukkit
 
 import com.vdurmont.semver4j.Semver
 import kr.toxicity.model.BetterModelEvaluatorImpl
-import kr.toxicity.model.BetterModelEventBusImpl
 import kr.toxicity.model.api.BetterModelConfig
 import kr.toxicity.model.api.BetterModelPlatform.ReloadResult
 import kr.toxicity.model.api.bukkit.BetterModelBukkit
@@ -57,7 +56,7 @@ internal class BetterModelProperties(
     }
     val scheduler = if (BetterModelBukkit.IS_FOLIA) PaperScheduler() else BukkitScheduler()
     val evaluator = BetterModelEvaluatorImpl()
-    val eventbus = BetterModelEventBusImpl()
+    val eventbus = BukkitModelEventBusImpl()
     @Suppress("DEPRECATION") //To support Spigot :(
     val semver = Semver(plugin.description.version, Semver.SemverType.LOOSE)
     val snapshot = runCatching {

@@ -56,7 +56,7 @@ import java.util.jar.JarFile
 import kotlin.io.path.exists
 import kotlin.system.measureTimeMillis
 
-class BetterModelFabric : ModInitializer, BetterModelPlatformImpl, BetterModelFabric {
+class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterModelFabric {
     private lateinit var server: MinecraftServer
 
     private val configDir: Path = FabricLoader.getInstance()
@@ -327,4 +327,6 @@ class BetterModelFabric : ModInitializer, BetterModelPlatformImpl, BetterModelFa
     override fun scheduler(): FabricModelScheduler = FabricModelSchedulerImpl
 
     override fun adapter(): PlatformAdapter = FabricAdapter()
+
+    override fun isEnabled(): Boolean = true
 }

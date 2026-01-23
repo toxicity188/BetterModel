@@ -6,6 +6,7 @@
  */
 package kr.toxicity.model.api.bukkit;
 
+import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.BetterModelPlatform;
 import kr.toxicity.model.api.bukkit.platform.BukkitAdapter;
 import kr.toxicity.model.api.bukkit.scheduler.BukkitModelScheduler;
@@ -41,6 +42,16 @@ public interface BetterModelBukkit extends BetterModelPlatform {
     boolean IS_PAPER = IS_PURPUR || IS_FOLIA || classExists("io.papermc.paper.configuration.PaperConfigurations");
 
     /**
+     * Returns the current {@link BetterModelBukkit} instance.
+     *
+     * @return the current platform instance
+     * @since 2.0.0
+     */
+    static @NotNull BetterModelBukkit platform() {
+        return (BetterModelBukkit) BetterModel.platform();
+    }
+
+    /**
      * Returns the Bukkit-specific scheduler.
      *
      * @return the scheduler
@@ -57,4 +68,13 @@ public interface BetterModelBukkit extends BetterModelPlatform {
      */
     @Override
     @NotNull BukkitAdapter adapter();
+
+    /**
+     * Returns the Bukkit-specific event bus.
+     *
+     * @return the event bus
+     * @since 2.0.0
+     */
+    @Override
+    @NotNull BukkitModelEventBus eventBus();
 }

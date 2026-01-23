@@ -15,18 +15,18 @@ import net.kyori.adventure.text.format.NamedTextColor
 
 object PurpurHook {
     fun start() {
-        val plugin = BetterModel.platform()
+        val platform = BetterModel.platform()
         val config = BetterModel.config()
-        plugin.logger().info(
+        platform.logger().info(
             Component.text("BetterModel is currently running in Purpur.").color(NamedTextColor.LIGHT_PURPLE),
             Component.text("Some Purpur features will be enabled.").color(NamedTextColor.LIGHT_PURPLE)
         )
-        BetterModel.eventBus().subscribe(CreateDummyTrackerEvent::class.java) { event ->
+        BetterModel.eventBus().subscribe(platform, CreateDummyTrackerEvent::class.java) { event ->
             event.tracker().pipeline.viewFilter {
                 !config.usePurpurAfk() || !(it as BukkitPlayer).source().isAfk
             }
         }
-        BetterModel.eventBus().subscribe(CreateEntityTrackerEvent::class.java) { event ->
+        BetterModel.eventBus().subscribe(platform, CreateEntityTrackerEvent::class.java) { event ->
             event.tracker().pipeline.viewFilter {
                 !config.usePurpurAfk() || !(it as BukkitPlayer).source().isAfk
             }

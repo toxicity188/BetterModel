@@ -7,6 +7,8 @@
 package kr.toxicity.model.api;
 
 import kr.toxicity.model.api.event.ModelEvent;
+import kr.toxicity.model.api.event.ModelEventApplication;
+import kr.toxicity.model.api.event.ModelEventListener;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,12 +29,15 @@ public interface BetterModelEventBus {
     /**
      * Subscribes a consumer to a specific event type.
      *
+     * @param application the application that subscribes to the event
      * @param eventClass the class of the event to subscribe to
      * @param consumer the consumer to handle the event
      * @param <T> the type of the event
+     * @return a listener handle that can be used to unregister the subscription
      * @since 2.0.0
      */
-    <T extends ModelEvent> void subscribe(@NotNull Class<T> eventClass, @NotNull Consumer<T> consumer);
+    @NotNull
+    <T extends ModelEvent> ModelEventListener subscribe(@NotNull ModelEventApplication application, @NotNull Class<T> eventClass, @NotNull Consumer<T> consumer);
 
     /**
      * Publishes an event to all registered subscribers.

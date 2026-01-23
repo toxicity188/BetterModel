@@ -12,6 +12,7 @@ import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationEventHandler;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.bone.RenderedBone;
+import kr.toxicity.model.api.bukkit.BetterModelBukkit;
 import kr.toxicity.model.api.bukkit.platform.BukkitAdapter;
 import kr.toxicity.model.api.data.ModelAsset;
 import kr.toxicity.model.api.data.renderer.ModelRenderer;
@@ -65,14 +66,14 @@ public final class FightTester implements ModelTester, Listener {
             if (sender instanceof Player player) giveKnightSword(player);
             return true;
         });
-        BetterModel.eventBus().subscribe(PluginStartReloadEvent.class, event -> {
+        BetterModelBukkit.platform().eventBus().subscribe(test, PluginStartReloadEvent.class, event -> {
             var path = event.zipper()
                 .modern()
                 .bettermodel();
             loadItem(path, "knight_sword");
             loadItem(path, "knight_line");
         });
-        BetterModel.eventBus().subscribe(ModelAssetsEvent.class, event -> {
+        BetterModelBukkit.platform().eventBus().subscribe(test, ModelAssetsEvent.class, event -> {
             if (event.type() == ModelRenderer.Type.PLAYER) event.addAsset(ModelAsset.of(
                 "knight",
                 () -> Objects.requireNonNull(test.getResource("knight.bbmodel"))

@@ -9,10 +9,10 @@ package kr.toxicity.model.bukkit
 import com.vdurmont.semver4j.Semver
 import kr.toxicity.model.api.BetterModelConfig
 import kr.toxicity.model.api.BetterModelEvaluator
-import kr.toxicity.model.api.BetterModelEventBus
 import kr.toxicity.model.api.BetterModelLogger
 import kr.toxicity.model.api.BetterModelPlatform.ReloadResult
 import kr.toxicity.model.api.BetterModelPlatform.ReloadResult.*
+import kr.toxicity.model.api.bukkit.BukkitModelEventBus
 import kr.toxicity.model.api.bukkit.scheduler.BukkitModelScheduler
 import kr.toxicity.model.api.manager.*
 import kr.toxicity.model.api.nms.NMS
@@ -163,7 +163,7 @@ abstract class BetterModelPlugin : AbstractBetterModelPlugin() {
     override fun logger(): BetterModelLogger = logger
     override fun scheduler(): BukkitModelScheduler = props.scheduler
     override fun evaluator(): BetterModelEvaluator = props.evaluator
-    override fun eventBus(): BetterModelEventBus = props.eventbus
+    override fun eventBus(): BukkitModelEventBus = props.eventbus
     override fun modelManager(): ModelManager = ModelManagerImpl
     override fun playerManager(): PlayerManager = PlayerManagerImpl
     override fun scriptManager(): ScriptManager = ScriptManagerImpl
