@@ -6,7 +6,6 @@
  */
 package kr.toxicity.model.api.fabric.platform;
 
-import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.fabric.BetterModelFabric;
 import kr.toxicity.model.api.fabric.scheduler.FabricModelScheduler;
 import kr.toxicity.model.api.platform.PlatformLocation;
@@ -187,6 +186,6 @@ public record FabricLocation(@Nullable Level level, double x, double y, double z
     }
 
     private @NotNull FabricModelScheduler scheduler() {
-        return ((BetterModelFabric) BetterModel.platform()).scheduler();
+        return BetterModelFabric.platform().scheduler();
     }
 }

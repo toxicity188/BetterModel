@@ -31,7 +31,6 @@ import java.util.Objects;
  */
 public interface BaseBukkitEntity extends BaseEntity, PersistentDataHolder {
 
-
     /**
      * The namespaced key used for storing tracker data in the entity's persistent data container.
      * @since 2.0.0
