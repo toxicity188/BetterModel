@@ -6,11 +6,8 @@
  */
 package kr.toxicity.model.api.data.blueprint;
 
-import kr.toxicity.model.api.animation.AnimationIterator;
-import kr.toxicity.model.api.animation.AnimationMovement;
-import kr.toxicity.model.api.animation.VectorPoint;
+import kr.toxicity.model.api.animation.*;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -27,7 +24,7 @@ import java.util.stream.Stream;
  */
 public record BlueprintAnimator(
     @NotNull String name,
-    @NotNull @Unmodifiable List<AnimationMovement> keyframe
+    @NotNull AnimationKeyframe keyframe
 ) {
 
     /**
@@ -71,7 +68,7 @@ public record BlueprintAnimator(
      * @return an animation iterator
      * @since 1.15.2
      */
-    public @NotNull AnimationIterator<AnimationMovement> iterator(@NotNull AnimationIterator.Type type) {
+    public @NotNull AnimationIterator<AnimationProgress> iterator(@NotNull AnimationIterator.Type type) {
         return type.create(keyframe);
     }
 }

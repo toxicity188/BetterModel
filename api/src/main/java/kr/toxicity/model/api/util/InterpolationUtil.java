@@ -9,7 +9,7 @@ package kr.toxicity.model.api.util;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import it.unimi.dsi.fastutil.floats.FloatSortedSet;
 import kr.toxicity.model.api.BetterModel;
-import kr.toxicity.model.api.animation.AnimationMovement;
+import kr.toxicity.model.api.animation.AnimationKeyframe;
 import kr.toxicity.model.api.animation.VectorPoint;
 import kr.toxicity.model.api.tracker.Tracker;
 import org.jetbrains.annotations.ApiStatus;
@@ -19,7 +19,6 @@ import org.joml.Vector3f;
 
 import java.util.List;
 
-import static kr.toxicity.model.api.util.FunctionUtil.takeIf;
 import static kr.toxicity.model.api.util.MathUtil.*;
 
 /**
@@ -39,17 +38,17 @@ public final class InterpolationUtil {
     private static final float FRAME_HASH_REVERT = 1 / FRAME_HASH;
 
     /**
-     * Builds animation movement
+     * Builds animation keyframe
      * @param position position point
      * @param rotation rotation point
      * @param scale scale point
      * @param rotationGlobal rotation global
      * @param points keyframe time set
-     * @return animation movement list
+     * @return animation keyframe
      */
     @NotNull
     @Unmodifiable
-    public static List<AnimationMovement> buildAnimation(
+    public static AnimationKeyframe buildAnimation(
         @NotNull List<VectorPoint> position,
         @NotNull List<VectorPoint> rotation,
         @NotNull List<VectorPoint> scale,
@@ -59,26 +58,24 @@ public final class InterpolationUtil {
         var pp = interpolatorFor(position);
         var sp = interpolatorFor(scale);
         var rp = interpolatorFor(rotation);
-        var array = new AnimationMovement[points.size()];
+        var keyframe = AnimationKeyframe.builder(points.size(), rotationGlobal);
         var before = 0F;
         var iterator = points.iterator();
-        var i = 0;
         while (iterator.hasNext()) {
             var f = iterator.nextFloat();
             var pr = pp.build(f);
             var sr = sp.build(f);
             var rr = rp.build(f);
-            array[i++] = new AnimationMovement(
+            keyframe.write(
                 roundTime(f - before),
-                takeIf(pr.vector, MathUtil::isNotZero),
-                takeIf(sr.vector, MathUtil::isNotZero),
-                takeIf(rr.vector, MathUtil::isNotZero),
-                rotationGlobal,
+                pr.vector,
+                sr.vector,
+                rr.vector,
                 pr.skipInterpolation || sr.skipInterpolation || rr.skipInterpolation
             );
             before = f;
         }
-        return List.of(array);
+        return keyframe.build();
     }
 
     /**

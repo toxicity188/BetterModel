@@ -6,16 +6,13 @@
  */
 package kr.toxicity.model.api.data.blueprint;
 
-import kr.toxicity.model.api.animation.AnimationIterator;
-import kr.toxicity.model.api.animation.AnimationModifier;
-import kr.toxicity.model.api.animation.AnimationMovement;
+import kr.toxicity.model.api.animation.*;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.script.BlueprintScript;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,7 +38,7 @@ public record BlueprintAnimation(
     boolean override,
     @NotNull @Unmodifiable Map<BoneName, BlueprintAnimator> animator,
     @Nullable BlueprintScript script,
-    @NotNull List<AnimationMovement> emptyAnimator
+    @NotNull TimedStorage<AnimationProgress> emptyAnimator
 ) {
 
     /**
@@ -65,7 +62,7 @@ public record BlueprintAnimation(
      * @return an animation iterator
      * @since 1.15.2
      */
-    public @NotNull AnimationIterator<AnimationMovement> emptyIterator(@NotNull AnimationIterator.Type type) {
+    public @NotNull AnimationIterator<AnimationProgress> emptyIterator(@NotNull AnimationIterator.Type type) {
         return type.create(emptyAnimator);
     }
 }

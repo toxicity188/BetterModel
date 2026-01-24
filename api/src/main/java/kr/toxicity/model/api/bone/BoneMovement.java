@@ -6,8 +6,6 @@
  */
 package kr.toxicity.model.api.bone;
 
-import kr.toxicity.model.api.animation.AnimationMovement;
-import kr.toxicity.model.api.util.MathUtil;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -42,31 +40,6 @@ public record BoneMovement(
             new Quaternionf(),
             new Vector3f()
         );
-    }
-
-    /**
-     * Applies an animation movement to this bone movement, returning the result in a destination object.
-     *
-     * @param movement the animation movement to apply
-     * @param dest the destination BoneMovement object to store the result
-     * @return the modified destination BoneMovement
-     * @since 1.15.2
-     */
-    public @NotNull BoneMovement plus(@NotNull AnimationMovement movement, @NotNull BoneMovement dest) {
-        var pos = movement.position();
-        var scl = movement.scale();
-        var rot = movement.rotation();
-
-        var destPos = position.get(dest.position);
-        var destScl = scale.get(dest.scale);
-        var destRot = rotation.get(dest.rotation);
-        var destRawRot = rawRotation.get(dest.rawRotation);
-
-        if (pos != null) destPos.add(pos);
-        if (scl != null) destScl.mul(scl.x + 1, scl.y + 1, scl.z + 1);
-        if (rot != null) MathUtil.toQuaternion(destRawRot.add(rot), destRot);
-
-        return dest;
     }
 
     /**

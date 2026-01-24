@@ -8,7 +8,7 @@ package kr.toxicity.model.api.data.raw;
 
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationIterator;
-import kr.toxicity.model.api.animation.AnimationMovement;
+import kr.toxicity.model.api.animation.AnimationProgress;
 import kr.toxicity.model.api.animation.VectorPoint;
 import kr.toxicity.model.api.bone.BoneTagRegistry;
 import kr.toxicity.model.api.data.blueprint.AnimationGenerator;
@@ -81,13 +81,11 @@ public record ModelAnimation(
                 .filter(ModelAnimator::isNotEmpty)
                 .map(a -> toScript(a, context.placeholder))
                 .orElseGet(() -> BlueprintScript.fromEmpty(this)),
-            animators.isEmpty() ? AnimationMovement.withEmpty(length()) : animators.values()
+            animators.isEmpty() ? AnimationProgress.emptyStorage(length()) : animators.values()
                 .iterator()
                 .next()
                 .keyframe()
-                .stream()
-                .map(AnimationMovement::empty)
-                .toList()
+                .toEmpty()
         );
     }
 

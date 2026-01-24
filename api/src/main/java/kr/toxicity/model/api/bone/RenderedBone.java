@@ -551,7 +551,7 @@ public final class RenderedBone implements BoneEventHandler {
         private final Consumer<UUID> consumer;
 
         //States
-        private final AnimationStateHandler<AnimationMovement> state;
+        private final AnimationStateHandler<AnimationProgress> state;
         private final BoneMovement beforeTransform = new BoneMovement(), afterTransform = new BoneMovement();
         private BoneMovement currentTransform;
         private final DisplayTransformer transformer = display != null ? display.createTransformer() : null;
@@ -573,7 +573,7 @@ public final class RenderedBone implements BoneEventHandler {
             this.uuid = uuid;
             this.consumer = consumer;
             state = new AnimationStateHandler<>(
-                AnimationMovement.EMPTY,
+                AnimationProgress.EMPTY,
                 (b, a) -> skipInterpolation = (a != null && a.skipInterpolation()) || (parent != null && parent.state(uuid).skipInterpolation)
             );
         }
@@ -590,9 +590,9 @@ public final class RenderedBone implements BoneEventHandler {
         @NotNull BoneMovement after() {
             if (!updateAfterTransform.compareAndSet(true, false)) return afterTransform;
             var keyframe = state.afterKeyframe();
-            if (keyframe == null) keyframe = AnimationMovement.EMPTY;
+            if (keyframe == null) keyframe = AnimationProgress.EMPTY;
             var preventModifierUpdate = interpolationDuration() < 1;
-            var def = defaultFrame.plus(keyframe, movementCache);
+            var def = keyframe.animate(defaultFrame, movementCache);
             if (parent != null) {
                 var p = parent.state(uuid).after();
                 MathUtil.fma(

@@ -12,78 +12,94 @@ import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
-import java.util.List;
 
 /**
- * A keyframe iterator of animation.
- * @param <T> keyframe type
+ * An iterator for traversing animation keyframes.
+ * <p>
+ * This interface supports different looping modes (play once, loop, hold on last)
+ * and allows resetting the iteration state.
+ * </p>
+ *
+ * @param <T> the type of keyframe (must implement {@link Timed})
+ * @since 1.15.2
  */
 public sealed interface AnimationIterator<T extends Timed> extends Iterator<T> {
 
     /**
-     * Clears this iterator
+     * Resets the iterator to its initial state.
+     * @since 1.15.2
      */
     void clear();
 
     /**
-     * Gets an animation type
-     * @return type
+     * Returns the type of this animation iterator.
+     *
+     * @return the animation type
+     * @since 1.15.2
      */
     @NotNull Type type();
 
     /**
-     * Animation type
+     * Defines the behavior of the animation iterator.
+     * @since 1.15.2
      */
     @RequiredArgsConstructor
     enum Type {
         /**
-         * Play once
+         * Plays the animation once and then stops.
+         * @since 1.15.2
          */
         @SerializedName("once")
         PLAY_ONCE {
             @Override
-            public @NotNull <T extends Timed> AnimationIterator<T> create(@NotNull List<T> keyframes) {
+            public @NotNull <T extends Timed> AnimationIterator<T> create(@NotNull TimedStorage<T> keyframes) {
                 return new PlayOnce<>(keyframes);
             }
         },
         /**
-         * Loop
+         * Loops the animation continuously.
+         * @since 1.15.2
          */
         @SerializedName("loop")
         LOOP {
             @Override
-            public @NotNull <T extends Timed> AnimationIterator<T> create(@NotNull List<T> keyframes) {
+            public @NotNull <T extends Timed> AnimationIterator<T> create(@NotNull TimedStorage<T> keyframes) {
                 return new Loop<>(keyframes);
             }
         },
         /**
-         * Hold on last
+         * Plays the animation once and holds the last frame.
+         * @since 1.15.2
          */
         @SerializedName("hold")
         HOLD_ON_LAST {
             @Override
-            public @NotNull <T extends Timed> AnimationIterator<T> create(@NotNull List<T> keyframes) {
+            public @NotNull <T extends Timed> AnimationIterator<T> create(@NotNull TimedStorage<T> keyframes) {
                 return new HoldOnLast<>(keyframes);
             }
         }
         ;
 
         /**
-         * Creates iterator by given keyframes
-         * @param keyframes keyframes
-         * @return iterator
-         * @param <T> keyframe type
+         * Creates a new iterator for the given keyframes based on this type.
+         *
+         * @param keyframes the keyframes to iterate over
+         * @param <T> the type of keyframe
+         * @return a new animation iterator
+         * @since 1.15.2
          */
-        public abstract <T extends Timed> @NotNull AnimationIterator<T> create(@NotNull List<T> keyframes);
+        public abstract <T extends Timed> @NotNull AnimationIterator<T> create(@NotNull TimedStorage<T> keyframes);
     }
 
     /**
-     * Play once
-     * @param <T> keyframe time
+     * Implementation for {@link Type#PLAY_ONCE}.
+     *
+     * @param <T> the type of keyframe
+     * @since 1.15.2
      */
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     final class PlayOnce<T extends Timed> implements AnimationIterator<T> {
-        private final List<T> keyframe;
+        private final TimedStorage<T> keyframe;
         private int index = 0;
 
         @Override
@@ -110,12 +126,14 @@ public sealed interface AnimationIterator<T extends Timed> extends Iterator<T> {
     }
 
     /**
-     * Hold on last
-     * @param <T> keyframe time
+     * Implementation for {@link Type#HOLD_ON_LAST}.
+     *
+     * @param <T> the type of keyframe
+     * @since 1.15.2
      */
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     final class HoldOnLast<T extends Timed> implements AnimationIterator<T> {
-        private final List<T> keyframe;
+        private final TimedStorage<T> keyframe;
         private int index = 0;
 
         @Override
@@ -143,12 +161,14 @@ public sealed interface AnimationIterator<T extends Timed> extends Iterator<T> {
     }
 
     /**
-     * Loop
-     * @param <T> keyframe time
+     * Implementation for {@link Type#LOOP}.
+     *
+     * @param <T> the type of keyframe
+     * @since 1.15.2
      */
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     final class Loop<T extends Timed> implements AnimationIterator<T> {
-        private final List<T> keyframe;
+        private final TimedStorage<T> keyframe;
         private int index = 0;
 
         @Override
