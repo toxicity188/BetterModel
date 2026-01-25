@@ -11,6 +11,6 @@
         "eu.pb4:polymer-resource-pack"
     ],
     "baseBranches": [
-        "dev"
+        "v2-dev"
     ]
 }
