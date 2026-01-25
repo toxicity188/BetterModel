@@ -54,7 +54,7 @@ public interface AnimationProgress extends Timed {
     }
 
     /**
-     * Converts this progress to an empty progress at the same time.
+     * Converts this progress to empty progress at the same time.
      *
      * @return an empty progress
      * @since 2.0.0

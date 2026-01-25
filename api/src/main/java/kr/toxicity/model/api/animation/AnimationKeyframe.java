@@ -127,21 +127,19 @@ public record AnimationKeyframe(
         public @NotNull AnimationKeyframe build() {
             return new AnimationKeyframe(progresses);
         }
-
-
     }
 
     private static class ArrayProgress implements AnimationProgress {
 
-        private final AnimationArray set;
+        private final AnimationArray array;
 
         private final int index;
         private final int x;
         private final int y;
         private final int z;
 
-        ArrayProgress(@NotNull AnimationKeyframe.AnimationArray set, int index) {
-            this.set = set;
+        ArrayProgress(@NotNull AnimationArray array, int index) {
+            this.array = array;
 
             this.index = index;
             var vectorIndex = index * 3;
@@ -158,26 +156,26 @@ public record AnimationKeyframe(
             var destRot = movement.rotation().get(dest.rotation());
             var destRawRot = movement.rawRotation().get(dest.rawRotation());
 
-            destPos.add(set.position[x], set.position[y], set.position[z]);
-            destScl.mul(set.scale[x], set.scale[y], set.scale[z]);
-            MathUtil.toQuaternion(destRawRot.add(set.rotation[x], set.rotation[y], set.rotation[z]), destRot);
+            destPos.add(array.position[x], array.position[y], array.position[z]);
+            destScl.mul(array.scale[x], array.scale[y], array.scale[z]);
+            MathUtil.toQuaternion(destRawRot.add(array.rotation[x], array.rotation[y], array.rotation[z]), destRot);
 
             return dest;
         }
 
         @Override
         public boolean skipInterpolation() {
-            return set.skipInterpolation[index];
+            return array.skipInterpolation[index];
         }
 
         @Override
         public boolean globalRotation() {
-            return set.rotateGlobal;
+            return array.rotateGlobal;
         }
 
         @Override
         public float time() {
-            return set.times[index];
+            return array.times[index];
         }
     }
 

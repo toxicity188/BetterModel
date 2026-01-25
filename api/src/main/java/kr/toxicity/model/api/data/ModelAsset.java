@@ -6,6 +6,7 @@
  */
 package kr.toxicity.model.api.data;
 
+import com.google.gson.JsonParseException;
 import kr.toxicity.model.api.data.raw.ModelData;
 import kr.toxicity.model.api.data.raw.ModelLoadResult;
 import kr.toxicity.model.api.util.PackUtil;
@@ -123,7 +124,9 @@ public record ModelAsset(
             result.assertSupported();
             return result.loadBlueprint(name);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Unable to load this asset: " + this, e);
+        } catch (JsonParseException e) {
+            throw new RuntimeException("Unable to parse this json asset: " + this, e);
         }
     }
 
