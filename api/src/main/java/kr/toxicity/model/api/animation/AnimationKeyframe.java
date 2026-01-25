@@ -129,24 +129,7 @@ public record AnimationKeyframe(
         }
     }
 
-    private static class ArrayProgress implements AnimationProgress {
-
-        private final AnimationArray array;
-
-        private final int index;
-        private final int x;
-        private final int y;
-        private final int z;
-
-        ArrayProgress(@NotNull AnimationArray array, int index) {
-            this.array = array;
-
-            this.index = index;
-            var vectorIndex = index * 3;
-            this.x = vectorIndex;
-            this.y = vectorIndex + 1;
-            this.z = vectorIndex + 2;
-        }
+    private record ArrayProgress(@NotNull AnimationArray array, int index) implements AnimationProgress {
 
         @Override
         public @NotNull BoneMovement animate(@NotNull BoneMovement movement, @NotNull BoneMovement dest) {
@@ -156,9 +139,17 @@ public record AnimationKeyframe(
             var destRot = movement.rotation().get(dest.rotation());
             var destRawRot = movement.rawRotation().get(dest.rawRotation());
 
-            destPos.add(array.position[x], array.position[y], array.position[z]);
-            destScl.mul(array.scale[x], array.scale[y], array.scale[z]);
-            MathUtil.toQuaternion(destRawRot.add(array.rotation[x], array.rotation[y], array.rotation[z]), destRot);
+            var position = array.position;
+            var scale = array.scale;
+            var rotation = array.rotation;
+
+            var x = index * 3;
+            var y = x + 1;
+            var z = x + 2;
+
+            destPos.add(position[x], position[y], position[z]);
+            destScl.mul(scale[x], scale[y], scale[z]);
+            MathUtil.toQuaternion(destRawRot.add(rotation[x], rotation[y], rotation[z]), destRot);
 
             return dest;
         }
