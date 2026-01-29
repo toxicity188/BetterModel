@@ -43,8 +43,8 @@ public final class BoneIKSolver {
         if (target == null) return;
         var source = ikSource == null ? target.root : boneMap.getOrDefault(ikSource, target.root);
         var list = source.flatten()
-                .filter(bone -> !bone.flattenBones().contains(locator) && bone.flattenBones().contains(target))
-                .toArray(RenderedBone[]::new);
+            .filter(bone -> !bone.flattenBones().contains(locator) && bone.flattenBones().contains(target))
+            .toArray(RenderedBone[]::new);
         if (list.length < 2) return;
         locators.put(locator, new IKChain(source, list, new IKCache(list.length)));
     }
@@ -64,14 +64,10 @@ public final class BoneIKSolver {
         for (var entry : locators.entrySet()) {
             var locator = entry.getKey();
             var value = entry.getValue();
-            var root = value.bones[0];
-            var movements = value.cache.movements;
-            for (int i = 0; i < value.bones.length; i++) {
-                movements[i] = value.bones[i].state(uuid).after();
-            }
+            var root = value.first();
             fabrik(
-                movements,
-                value.source.state(uuid).after().rotation().invert(value.cache.rotation),
+                value.movements(uuid),
+                value.invertedParentRotation(uuid),
                 value.cache.buffer,
                 locator.state(uuid).after().position().get(value.cache.destination)
                     .add(locator.root.group.getPosition())
@@ -81,7 +77,24 @@ public final class BoneIKSolver {
         }
     }
 
-    private record IKChain(@NotNull RenderedBone source, @NotNull RenderedBone[] bones, @NotNull IKCache cache) {}
+    private record IKChain(@NotNull RenderedBone source, @NotNull RenderedBone[] bones, @NotNull IKCache cache) {
+
+        private @NotNull RenderedBone first() {
+            return bones[0];
+        }
+
+        private @NotNull Quaternionf invertedParentRotation(@Nullable UUID uuid) {
+            return source.state(uuid).after().rotation().invert(cache.rotation);
+        }
+
+        private @NotNull BoneMovement[] movements(@Nullable UUID uuid) {
+            var movements = cache.movements;
+            for (int i = 0; i < bones.length; i++) {
+                movements[i] = bones[i].state(uuid).after();
+            }
+            return movements;
+        }
+    }
 
     private record IKCache(@NotNull BoneMovement[] movements, float[] buffer, @NotNull Vector3f destination, @NotNull Quaternionf rotation) {
         private IKCache(int length) {
