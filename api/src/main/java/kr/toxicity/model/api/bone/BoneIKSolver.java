@@ -16,7 +16,6 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -28,6 +27,7 @@ import java.util.UUID;
 public final class BoneIKSolver {
 
     private static final int MAX_IK_ITERATION = 20;
+    private static final float DISTANCE_THRESHOLD_SQ = MathUtil.FRAME_EPSILON * MathUtil.FRAME_EPSILON;
 
     private final Map<UUID, RenderedBone> boneMap;
     private final Map<RenderedBone, IKChain> locators = new LinkedHashMap<>();
@@ -44,9 +44,9 @@ public final class BoneIKSolver {
         var source = ikSource == null ? target.root : boneMap.getOrDefault(ikSource, target.root);
         var list = source.flatten()
                 .filter(bone -> !bone.flattenBones().contains(locator) && bone.flattenBones().contains(target))
-                .toList();
-        if (list.size() < 2) return;
-        locators.put(locator, new IKChain(source, list, new IKCache(list.size())));
+                .toArray(RenderedBone[]::new);
+        if (list.length < 2) return;
+        locators.put(locator, new IKChain(source, list, new IKCache(list.length)));
     }
 
     /**
@@ -64,67 +64,69 @@ public final class BoneIKSolver {
         for (var entry : locators.entrySet()) {
             var locator = entry.getKey();
             var value = entry.getValue();
-            var root = value.bones.getFirst();
+            var root = value.bones[0];
+            var movements = value.cache.movements;
+            for (int i = 0; i < value.bones.length; i++) {
+                movements[i] = value.bones[i].state(uuid).after();
+            }
             fabrik(
-                    value.bones.stream()
-                            .map(bone -> bone.state(uuid).after())
-                            .toList(),
-                    value.source.state(uuid).after().rotation().invert(value.cache.rotation),
-                    value.cache.buffer,
-                    locator.state(uuid).after().position().get(value.cache.destination)
-                            .add(locator.root.group.getPosition())
-                            .sub(root.state(uuid).after().position())
-                            .sub(root.root.group.getPosition())
+                movements,
+                value.source.state(uuid).after().rotation().invert(value.cache.rotation),
+                value.cache.buffer,
+                locator.state(uuid).after().position().get(value.cache.destination)
+                    .add(locator.root.group.getPosition())
+                    .sub(root.state(uuid).after().position())
+                    .sub(root.root.group.getPosition())
             );
         }
     }
 
-    private record IKChain(@NotNull RenderedBone source, @NotNull List<RenderedBone> bones, @NotNull IKCache cache) {}
+    private record IKChain(@NotNull RenderedBone source, @NotNull RenderedBone[] bones, @NotNull IKCache cache) {}
 
-    private record IKCache(float[] buffer, @NotNull Vector3f destination, @NotNull Quaternionf rotation) {
+    private record IKCache(@NotNull BoneMovement[] movements, float[] buffer, @NotNull Vector3f destination, @NotNull Quaternionf rotation) {
         private IKCache(int length) {
-            this(new float[length - 1], new Vector3f(), new Quaternionf());
+            this(new BoneMovement[length], new float[length - 1], new Vector3f(), new Quaternionf());
         }
     }
 
-    private static void fabrik(@NotNull List<BoneMovement> bones, @NotNull Quaternionf parentRot, float[] lengths, @NotNull Vector3f target) {
-        var first = bones.getFirst().position();
-        var last = bones.getLast().position();
+    private static void fabrik(@NotNull BoneMovement[] bones, @NotNull Quaternionf parentRot, float[] lengths, @NotNull Vector3f target) {
+        var first = bones[0].position();
+        var last = bones[bones.length - 1].position();
 
         var vecCache = new Vector3f();
         var rootPos = first.get(vecCache);
 
-        for (int i = 0; i < bones.size() - 1; i++) {
-            var before = bones.get(i);
-            var after = bones.get(i + 1);
+        for (int i = 0; i < bones.length - 1; i++) {
+            var before = bones[i];
+            var after = bones[i + 1];
             lengths[i] = before.position().distance(after.position());
         }
         for (int iter = 0; iter < MAX_IK_ITERATION; iter++) {
             // Forward
             last.set(target);
-            for (int i = bones.size() - 2; i >= 0; i--) {
-                var current = bones.get(i).position();
-                var next = bones.get(i + 1).position();
+            for (int i = bones.length - 2; i >= 0; i--) {
+                var current = bones[i].position();
+                var next = bones[i + 1].position();
                 var dist = current.distance(next);
                 if (dist < MathUtil.FLOAT_COMPARISON_EPSILON) continue;
                 InterpolationUtil.lerp(next, current, lengths[i] / dist, current);
             }
             // Backward
             first.set(rootPos);
-            for (int i = 0; i < bones.size() - 1; i++) {
-                var current = bones.get(i).position();
-                var next = bones.get(i + 1).position();
+            for (int i = 0; i < bones.length - 1; i++) {
+                var current = bones[i].position();
+                var next = bones[i + 1].position();
                 var dist = current.distance(next);
                 if (dist < MathUtil.FLOAT_COMPARISON_EPSILON) continue;
                 InterpolationUtil.lerp(current, next, lengths[i] / dist, next);
             }
             // Check
-            if (last.distance(target) < MathUtil.FRAME_EPSILON) break;
+            if (last.distanceSquared(target) < DISTANCE_THRESHOLD_SQ) break;
         }
         var rotCache = new Quaternionf();
-        for (int i = 0; i < bones.size() - 1; i++) {
-            var current = bones.get(i);
-            var next = bones.get(i + 1);
+        for (int i = 0; i < bones.length - 1; i++) {
+            var current = bones[i];
+            var next = bones[i + 1];
 
             var dir = next.position().sub(current.position(), vecCache);
             current.rotation().set(MathUtil.fromToRotation(dir.normalize(), rotCache).mul(parentRot).mul(current.rotation()));

@@ -311,7 +311,7 @@ private fun test(context: CommandContext<Audience>) {
     val audience = context.sender()
     val model = context.model("model") { return audience.warn("Unable to find this model: $it") }
     val animation = context.string("animation") { str -> model.animation(str).orElse(null) ?: return audience.warn("Unable to find this animation: $str") }
-    val player = context.nullable("player") { audience as? Player ?: return audience.warn("Unable to find target player.") }
+    val player = context.nullable("player") { (audience as? AudiencePlayer)?.sender ?: return audience.warn("Unable to find target player.") }
     val location = context.nullable("location") {
         player.location.apply {
             add(Vector(0, 0, 10).rotateAroundY(-Math.toRadians(yaw.toDouble())))
