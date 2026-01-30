@@ -9,6 +9,7 @@ package kr.toxicity.model.api.bukkit.platform;
 import kr.toxicity.model.api.platform.PlatformOfflinePlayer;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -25,7 +26,7 @@ public record BukkitOfflinePlayer(@NotNull OfflinePlayer source) implements Plat
     }
 
     @Override
-    public @NotNull String name() {
+    public @Nullable String name() {
         return source.getName();
     }
 }

@@ -16,11 +16,11 @@ import org.jetbrains.annotations.NotNull;
  * </p>
  *
  * @param player the player associated with the animation
- * @param string the signal string
+ * @param signal the signal
  * @since 2.0.0
  */
 public record AnimationSignalEvent(
     @NotNull PlatformPlayer player,
-    @NotNull String string
+    @NotNull String signal
 ) implements ModelEvent {
 }

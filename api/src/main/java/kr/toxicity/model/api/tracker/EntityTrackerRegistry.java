@@ -296,9 +296,9 @@ public final class EntityTrackerRegistry {
 
     private void refreshPlayer() {
         entity.trackedBy()
-                .map(p -> BetterModel.player(p.uuid()).orElse(null))
-                .filter(Objects::nonNull)
-                .forEach(this::registerPlayer);
+            .map(p -> BetterModel.player(p.uuid()).orElse(null))
+            .filter(Objects::nonNull)
+            .forEach(this::registerPlayer);
     }
 
     /**
@@ -422,8 +422,8 @@ public final class EntityTrackerRegistry {
      */
     public void load() {
         load(deserialize(entity.modelData())
-                .stream()
-                .map(TrackerData::deserialize));
+            .stream()
+            .map(TrackerData::deserialize));
     }
 
     /**
@@ -450,8 +450,8 @@ public final class EntityTrackerRegistry {
      */
     public @NotNull Stream<ModelDisplay> displays() {
         return trackers()
-                .stream()
-                .flatMap(Tracker::displays);
+            .stream()
+            .flatMap(Tracker::displays);
     }
 
     /**
@@ -483,8 +483,8 @@ public final class EntityTrackerRegistry {
      */
     public boolean isSpawned(@NotNull UUID uuid) {
         return viewedPlayerMap.containsKey(uuid) && trackers()
-                .stream()
-                .anyMatch(t -> t.isSpawned(uuid));
+            .stream()
+            .anyMatch(t -> t.isSpawned(uuid));
     }
 
     /**
@@ -511,8 +511,8 @@ public final class EntityTrackerRegistry {
     }
     private boolean spawn(@NotNull PlatformPlayer player, boolean shouldNotSpawned) {
         var handler = BetterModel.platform()
-                .playerManager()
-                .player(player.uuid());
+            .playerManager()
+            .player(player.uuid());
         if (handler == null) return false;
         var cache = registerPlayer(handler);
         if (trackerMap.isEmpty()) return false;
@@ -601,10 +601,10 @@ public final class EntityTrackerRegistry {
      */
     public boolean hasControllingPassenger() {
         return mountedHitBox()
-                .values()
-                .stream()
-                .map(MountedHitBox::hitBox)
-                .anyMatch(HitBox::hasBeenControlled);
+            .values()
+            .stream()
+            .map(MountedHitBox::hitBox)
+            .anyMatch(HitBox::hasBeenControlled);
     }
 
 
@@ -650,9 +650,9 @@ public final class EntityTrackerRegistry {
 
         private synchronized void reapplyHideOption() {
             hideOption = EntityHideOption.composite(trackers()
-                    .stream()
-                    .filter(t -> t.isSpawned(channelHandler.uuid()))
-                    .map(EntityTracker::hideOption));
+                .stream()
+                .filter(t -> t.isSpawned(channelHandler.uuid()))
+                .map(EntityTracker::hideOption));
         }
     }
 }

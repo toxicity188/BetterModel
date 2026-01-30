@@ -65,7 +65,7 @@ public final class RenderedBone implements BoneEventHandler {
     @Getter
     final RenderedBone parent;
 
-    private Set<RenderedBone> flattenBones;
+    private SequencedSet<RenderedBone> flattenBones;
 
     @Getter
     @NotNull
@@ -476,7 +476,7 @@ public final class RenderedBone implements BoneEventHandler {
         return flattenBones().stream();
     }
 
-    public @NotNull Set<RenderedBone> flattenBones() {
+    public @NotNull SequencedSet<RenderedBone> flattenBones() {
         if (flattenBones != null) return flattenBones;
         synchronized (this) {
             if (flattenBones != null) return flattenBones;
@@ -484,7 +484,7 @@ public final class RenderedBone implements BoneEventHandler {
                 Stream.of(this),
                 children.values().stream().flatMap(RenderedBone::flatten)
             ).collect(Collectors.toCollection(LinkedHashSet::new));
-            return flattenBones = Collections.unmodifiableSet(set);
+            return flattenBones = Collections.unmodifiableSequencedSet(set);
         }
     }
 
@@ -589,8 +589,7 @@ public final class RenderedBone implements BoneEventHandler {
 
         @NotNull BoneMovement after() {
             if (!updateAfterTransform.compareAndSet(true, false)) return afterTransform;
-            var keyframe = state.afterKeyframe();
-            if (keyframe == null) keyframe = AnimationProgress.EMPTY;
+            var keyframe = state.afterKeyframe(AnimationProgress.EMPTY);
             var preventModifierUpdate = interpolationDuration() < 1;
             var def = keyframe.animate(defaultFrame, movementCache);
             if (parent != null) {

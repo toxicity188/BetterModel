@@ -477,5 +477,10 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
         public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
             return false;
         }
+
+        @Override
+        public @NotNull Stream<TrackerUpdateAction> stream() {
+            return Stream.empty();
+        }
     }
 }

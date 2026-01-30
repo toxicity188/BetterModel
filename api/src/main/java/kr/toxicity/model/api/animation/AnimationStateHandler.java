@@ -67,6 +67,28 @@ public final class AnimationStateHandler<T extends Timed> {
     }
 
     /**
+     * Gets before keyframe
+     * @param defaultValue default value
+     * @return before keyframe
+     */
+    @NotNull
+    public T beforeKeyframe(@NotNull T defaultValue) {
+        var value = value(beforeKeyframe);
+        return value != null ? value : defaultValue;
+    }
+
+    /**
+     * Gets after keyframe
+     * @param defaultValue default value
+     * @return after keyframe
+     */
+    @NotNull
+    public T afterKeyframe(@NotNull T defaultValue) {
+        var value = value(afterKeyframe);
+        return value != null ? value : defaultValue;
+    }
+
+    /**
      * Gets running animation
      * @return animation
      */
