@@ -8,6 +8,8 @@ package kr.toxicity.model.api.util.function;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Function;
+
 /**
  * Float constant function
  * @param value value
@@ -17,5 +19,15 @@ public record FloatConstantFunction<T>(@NotNull T value) implements FloatFunctio
     @Override
     public @NotNull T apply(float value) {
         return this.value;
+    }
+
+    @Override
+    public @NotNull <R> FloatFunction<R> map(@NotNull Function<T, R> mapper) {
+        return FloatFunction.of(mapper.apply(value));
+    }
+
+    @Override
+    public @NotNull FloatFunction<T> memoize() {
+        return this;
     }
 }

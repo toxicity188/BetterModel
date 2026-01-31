@@ -33,145 +33,145 @@ public enum PlayerLimb {
      * Head
      */
     HEAD(
-            position(0),
-            scale(7.4688F, 0.5F),
-            scale(7.4688F, 0.5F),
-            offset(0, 7.5F, 0, 0.5F),
-            offset(0, 7.5F, 0, 0.5F),
-            SkinData::head,
-            PlatformItemTransform.FIXED
+        position(0),
+        scale(7.4688F, 0.5F),
+        scale(7.4688F, 0.5F),
+        offset(0, 7.5F, 0, 0.5F),
+        offset(0, 7.5F, 0, 0.5F),
+        SkinData::head,
+        PlatformItemTransform.FIXED
     ),
     /**
      * Right arm
      */
     RIGHT_ARM(
-            position(1),
-            scale(3.7188F,5.5938F,3.7188F, 0.25F),
-            scale(2.7891F,5.5938F,3.7188F, 0.25F),
-            offset(-0.625F, 1.5F, 0, 0.25F),
-            offset(-0.043F, 1.5F, 0, 0.25F),
-            SkinData::rightArm,
-            PlatformItemTransform.FIXED
+        position(1),
+        scale(3.7188F,5.5938F,3.7188F, 0.25F),
+        scale(2.7891F,5.5938F,3.7188F, 0.25F),
+        offset(-0.625F, 1.5F, 0, 0.25F),
+        offset(-0.043F, 1.5F, 0, 0.25F),
+        SkinData::rightArm,
+        PlatformItemTransform.FIXED
     ),
     /**
      * Right forearm
      */
     RIGHT_FOREARM(
-            position(2),
-            scale(3.7188F,5.5938F,3.7188F, 0.25F),
-            scale(2.7891F,5.5938F,3.7188F, 0.25F),
-            offset(-0.625F, 1.5F, 0, 0.25F),
-            offset(-0.043F, 1.5F, 0, 0.25F),
-            (d, p) -> d.rightForeArm(),
-            PlatformItemTransform.FIXED
+        position(2),
+        scale(3.7188F,5.5938F,3.7188F, 0.25F),
+        scale(2.7891F,5.5938F,3.7188F, 0.25F),
+        offset(-0.625F, 1.5F, 0, 0.25F),
+        offset(-0.043F, 1.5F, 0, 0.25F),
+        (d, p) -> d.rightForeArm(),
+        PlatformItemTransform.FIXED
     ),
     /**
      * Left arm
      */
     LEFT_ARM(
-            position(3),
-            scale(3.7188F,5.5938F,3.7188F, 0.25F),
-            scale(2.7891F,5.5938F,3.7188F, 0.25F),
-            offset(0.625F, 1.5F, 0, 0.25F),
-            offset(0.043F, 1.5F, 0, 0.25F),
-            SkinData::leftArm,
-            PlatformItemTransform.FIXED
+        position(3),
+        scale(3.7188F,5.5938F,3.7188F, 0.25F),
+        scale(2.7891F,5.5938F,3.7188F, 0.25F),
+        offset(0.625F, 1.5F, 0, 0.25F),
+        offset(0.043F, 1.5F, 0, 0.25F),
+        SkinData::leftArm,
+        PlatformItemTransform.FIXED
     ),
     /**
      * Left forearm
      */
     LEFT_FOREARM(
-            position(4),
-            scale(3.7188F,5.5938F,3.7188F, 0.25F),
-            scale(2.7891F,5.5938F,3.7188F, 0.25F),
-            offset(0.625F, 1.5F, 0, 0.25F),
-            offset(0.043F, 1.5F, 0, 0.25F),
-            (d, p) -> d.leftForeArm(),
-            PlatformItemTransform.FIXED
+        position(4),
+        scale(3.7188F,5.5938F,3.7188F, 0.25F),
+        scale(2.7891F,5.5938F,3.7188F, 0.25F),
+        offset(0.625F, 1.5F, 0, 0.25F),
+        offset(0.043F, 1.5F, 0, 0.25F),
+        (d, p) -> d.leftForeArm(),
+        PlatformItemTransform.FIXED
     ),
     /**
      * Hip
      */
     HIP(
-            position(5),
-            scale(7.4688F,3.7188F,3.7188F, 0.25F),
-            scale(7.4688F,3.7188F,3.7188F, 0.25F),
-            offset(0, 5.75F, 0, 0.25F),
-            offset(0, 5.75F, 0, 0.25F),
-            SkinData::hip,
-            PlatformItemTransform.FIXED
+        position(5),
+        scale(7.4688F,3.7188F,3.7188F, 0.25F),
+        scale(7.4688F,3.7188F,3.7188F, 0.25F),
+        offset(0, 5.75F, 0, 0.25F),
+        offset(0, 5.75F, 0, 0.25F),
+        SkinData::hip,
+        PlatformItemTransform.FIXED
     ),
     /**
      * Waist
      */
     WAIST(
-            position(6),
-            scale(7.4688F,3.7188F,3.7188F, 0.25F),
-            scale(7.4688F,3.7188F,3.7188F, 0.25F),
-            offset(0, 5.75F, 0, 0.25F),
-            offset(0, 5.75F, 0, 0.25F),
-            SkinData::waist,
-            PlatformItemTransform.FIXED
+        position(6),
+        scale(7.4688F,3.7188F,3.7188F, 0.25F),
+        scale(7.4688F,3.7188F,3.7188F, 0.25F),
+        offset(0, 5.75F, 0, 0.25F),
+        offset(0, 5.75F, 0, 0.25F),
+        SkinData::waist,
+        PlatformItemTransform.FIXED
     ),
     /**
      * Chest
      */
     CHEST(
-            position(7),
-            scale(7.4688F,3.7188F,3.7188F, 0.25F),
-            scale(7.4688F,3.7188F,3.7188F, 0.25F),
-            offset(0, 5.75F, 0, 0.25F),
-            offset(0, 5.75F, 0, 0.25F),
-            SkinData::chest,
-            PlatformItemTransform.FIXED
+        position(7),
+        scale(7.4688F,3.7188F,3.7188F, 0.25F),
+        scale(7.4688F,3.7188F,3.7188F, 0.25F),
+        offset(0, 5.75F, 0, 0.25F),
+        offset(0, 5.75F, 0, 0.25F),
+        SkinData::chest,
+        PlatformItemTransform.FIXED
     ),
     /**
      * Right leg
      */
     RIGHT_LEG(
-            position(8),
-            scale(3.7188F,5.5938F,3.7188F, 0.25F),
-            scale(3.7188F,5.5938F,3.7188F, 0.25F),
-            offset(0, 1.12F, 0, 0.25F),
-            offset(0, 1.12F, 0, 0.25F),
-            SkinData::rightLeg,
-            PlatformItemTransform.FIXED
+        position(8),
+        scale(3.7188F,5.5938F,3.7188F, 0.25F),
+        scale(3.7188F,5.5938F,3.7188F, 0.25F),
+        offset(0, 1.12F, 0, 0.25F),
+        offset(0, 1.12F, 0, 0.25F),
+        SkinData::rightLeg,
+        PlatformItemTransform.FIXED
     ),
     /**
      * Right foreleg
      */
     RIGHT_FORELEG(
-            position(9),
-            scale(3.7188F,5.5938F,3.7188F, 0.25F),
-            scale(3.7188F,5.5938F,3.7188F, 0.25F),
-            offset(0, 1.12F, 0, 0.25F),
-            offset(0, 1.12F, 0, 0.25F),
-            SkinData::rightForeLeg,
-            PlatformItemTransform.FIXED
+        position(9),
+        scale(3.7188F,5.5938F,3.7188F, 0.25F),
+        scale(3.7188F,5.5938F,3.7188F, 0.25F),
+        offset(0, 1.12F, 0, 0.25F),
+        offset(0, 1.12F, 0, 0.25F),
+        SkinData::rightForeLeg,
+        PlatformItemTransform.FIXED
     ),
     /**
      * LEft leg
      */
     LEFT_LEG(
-            position(10),
-            scale(3.7188F,5.5938F,3.7188F, 0.25F),
-            scale(3.7188F,5.5938F,3.7188F, 0.25F),
-            offset(0, 1.12F, 0, 0.25F),
-            offset(0, 1.12F, 0, 0.25F),
-            SkinData::leftLeg,
-            PlatformItemTransform.FIXED
+        position(10),
+        scale(3.7188F,5.5938F,3.7188F, 0.25F),
+        scale(3.7188F,5.5938F,3.7188F, 0.25F),
+        offset(0, 1.12F, 0, 0.25F),
+        offset(0, 1.12F, 0, 0.25F),
+        SkinData::leftLeg,
+        PlatformItemTransform.FIXED
     ),
     /**
      * Left foreleg
      */
     LEFT_FORELEG(
-            position(11),
-            scale(3.7188F,5.5938F,3.7188F, 0.25F),
-            scale(3.7188F,5.5938F,3.7188F, 0.25F),
-            offset(0, 1.12F, 0, 0.25F),
-            offset(0, 1.12F, 0, 0.25F),
-            SkinData::leftForeLeg,
-            PlatformItemTransform.FIXED
+        position(11),
+        scale(3.7188F,5.5938F,3.7188F, 0.25F),
+        scale(3.7188F,5.5938F,3.7188F, 0.25F),
+        offset(0, 1.12F, 0, 0.25F),
+        offset(0, 1.12F, 0, 0.25F),
+        SkinData::leftForeLeg,
+        PlatformItemTransform.FIXED
     ),
     ;
 

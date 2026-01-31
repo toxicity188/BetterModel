@@ -32,28 +32,28 @@ import java.util.UUID;
  * @since 1.15.2
  */
 public record TrackerData(
-        @NotNull String id,
-        @Nullable ModelScaler scaler,
-        @Nullable ModelRotator rotator,
-        @NotNull TrackerModifier modifier,
-        @Nullable @SerializedName("body-rotator") EntityBodyRotator.RotatorData bodyRotator,
-        @Nullable @SerializedName("hide-option") EntityHideOption hideOption,
-        @Nullable @SerializedName("mark-for-spawn") Set<UUID> markForSpawn
+    @NotNull String id,
+    @Nullable ModelScaler scaler,
+    @Nullable ModelRotator rotator,
+    @NotNull TrackerModifier modifier,
+    @Nullable @SerializedName("body-rotator") EntityBodyRotator.RotatorData bodyRotator,
+    @Nullable @SerializedName("hide-option") EntityHideOption hideOption,
+    @Nullable @SerializedName("mark-for-spawn") Set<UUID> markForSpawn
 ) {
     /**
      * The GSON parser for serializing and deserializing tracker data.
      * @since 1.15.2
      */
     public static final Gson PARSER = new GsonBuilder()
-            .registerTypeAdapter(ModelScaler.class, (JsonDeserializer<ModelScaler>) (json, typeOfT, context) -> json.isJsonObject() ? ModelScaler.deserialize(json.getAsJsonObject()) : ModelScaler.defaultScaler())
-            .registerTypeAdapter(ModelScaler.class, (JsonSerializer<ModelScaler>) (src, typeOfSrc, context) -> src.serialize())
-            .registerTypeAdapter(ModelRotator.class, (JsonDeserializer<ModelRotator>) (json, typeOfT, context) -> json.isJsonObject() ? ModelRotator.deserialize(json.getAsJsonObject()) : ModelRotator.YAW)
-            .registerTypeAdapter(ModelRotator.class, (JsonSerializer<ModelRotator>) (src, typeOfSrc, context) -> src.serialize())
-            .registerTypeAdapter(EntityHideOption.class, (JsonDeserializer<EntityHideOption>) (json, typeOfT, context) -> json.isJsonArray() ? EntityHideOption.deserialize(json.getAsJsonArray()) : EntityHideOption.DEFAULT)
-            .registerTypeAdapter(EntityHideOption.class, (JsonSerializer<EntityHideOption>) (src, typeOfSrc, context) -> src.serialize())
-            .registerTypeAdapter(UUID.class, (JsonDeserializer<UUID>) (json, typeOfT, context) -> UUID.fromString(json.getAsString()))
-            .registerTypeAdapter(UUID.class, (JsonSerializer<UUID>) (src, typeOfSrc, context) -> new JsonPrimitive(src.toString()))
-            .create();
+        .registerTypeAdapter(ModelScaler.class, (JsonDeserializer<ModelScaler>) (json, typeOfT, context) -> json.isJsonObject() ? ModelScaler.deserialize(json.getAsJsonObject()) : ModelScaler.defaultScaler())
+        .registerTypeAdapter(ModelScaler.class, (JsonSerializer<ModelScaler>) (src, typeOfSrc, context) -> src.serialize())
+        .registerTypeAdapter(ModelRotator.class, (JsonDeserializer<ModelRotator>) (json, typeOfT, context) -> json.isJsonObject() ? ModelRotator.deserialize(json.getAsJsonObject()) : ModelRotator.YAW)
+        .registerTypeAdapter(ModelRotator.class, (JsonSerializer<ModelRotator>) (src, typeOfSrc, context) -> src.serialize())
+        .registerTypeAdapter(EntityHideOption.class, (JsonDeserializer<EntityHideOption>) (json, typeOfT, context) -> json.isJsonArray() ? EntityHideOption.deserialize(json.getAsJsonArray()) : EntityHideOption.DEFAULT)
+        .registerTypeAdapter(EntityHideOption.class, (JsonSerializer<EntityHideOption>) (src, typeOfSrc, context) -> src.serialize())
+        .registerTypeAdapter(UUID.class, (JsonDeserializer<UUID>) (json, typeOfT, context) -> UUID.fromString(json.getAsString()))
+        .registerTypeAdapter(UUID.class, (JsonSerializer<UUID>) (src, typeOfSrc, context) -> new JsonPrimitive(src.toString()))
+        .create();
 
     /**
      * Applies this data to an existing entity tracker.
@@ -88,13 +88,13 @@ public record TrackerData(
      */
     public static @NotNull TrackerData deserialize(@NotNull JsonElement element) {
         return element.isJsonPrimitive() ? new TrackerData(
-                element.getAsString(),
-                ModelScaler.entity(),
-                null,
-                TrackerModifier.DEFAULT,
-                EntityBodyRotator.defaultData(),
-                null,
-                null
+            element.getAsString(),
+            ModelScaler.entity(),
+            null,
+            TrackerModifier.DEFAULT,
+            EntityBodyRotator.defaultData(),
+            null,
+            null
         ) : PARSER.fromJson(element, TrackerData.class);
     }
 

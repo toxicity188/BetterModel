@@ -44,11 +44,7 @@ public interface FloatFunction<T> {
      * @param <R> return type
      */
     default <R> @NotNull FloatFunction<R> map(@NotNull Function<T, R> mapper) {
-        if (this instanceof FloatConstantFunction<T>(T value)) {
-            return of(mapper.apply(value));
-        } else {
-            return f -> mapper.apply(apply(f));
-        }
+        return f -> mapper.apply(apply(f));
     }
 
     /**
@@ -56,7 +52,6 @@ public interface FloatFunction<T> {
      * @return memoized function
      */
     default @NotNull FloatFunction<T> memoize() {
-        if (this instanceof FloatConstantFunction<T>) return this;
         var map = new Int2ReferenceOpenHashMap<T>();
         return f -> map.computeIfAbsent(MathUtil.similarHashCode(f), i -> apply(f));
     }
