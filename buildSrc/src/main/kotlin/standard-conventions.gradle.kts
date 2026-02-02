@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "kr.toxicity.model"
-version = property("plugin_version").toString() + (BUILD_NUMBER?.let { "-SNAPSHOT-$it" } ?: "")
+version = property("project_version").toString() + (BUILD_NUMBER?.let { "-SNAPSHOT-$it" } ?: "")
 
 val shade = configurations.create("shade")
 
