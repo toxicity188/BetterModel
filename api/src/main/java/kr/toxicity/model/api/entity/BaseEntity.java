@@ -28,13 +28,13 @@ public interface BaseEntity extends Identifiable {
 
     /**
      * Gets base entity
-     * @param entity bukkit entity
+     * @param entity platform entity
      * @return base entity
      */
     static @NotNull BaseEntity of(@NotNull PlatformEntity entity) {
         if (entity instanceof PlatformPlayer player) {
             var channel = BetterModel.platform().playerManager().player(player.uuid());
-            if (channel != null) return channel.base();
+            return channel != null ? channel.base() : BetterModel.nms().adapt(player);
         }
         return BetterModel.nms().adapt(entity);
     }
