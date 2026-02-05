@@ -187,10 +187,8 @@ modrinth {
     uploadFile.set(jarDir.map { it.file(jarName) })
     gameVersions = listOf("1.21.11")
     dependencies {
-        required.project(
-            "fabric-api",
-            "fabric-language-kotlin"
-        )
+        required.version("fabric-api", libs.versions.fabric.api.get())
+        required.version("fabric-language-kotlin", "1.13.8+kotlin.2.3.0")
 //        optional.project(
 //            "skinsrestorer"
 //        )

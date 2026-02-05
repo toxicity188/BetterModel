@@ -7,7 +7,7 @@ shadow = "9.3.1"
 minotaur = "2.8.10"
 hangarPublish = "0.1.4"
 
-fabric-api = "0.141.2+1.21.11"
+fabric-api = "0.141.3+1.21.11"
 
 cloud-bukkit = "2.0.0-beta.14"
 cloud-mod = "2.0.0-beta.15"
