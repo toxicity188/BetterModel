@@ -17,9 +17,9 @@ import java.util.function.Predicate;
  * @param useObfuscation use obfuscation
  */
 public record PackConfig(
-        boolean generateModernModel,
-        boolean generateLegacyModel,
-        boolean useObfuscation
+    boolean generateModernModel,
+    boolean generateLegacyModel,
+    boolean useObfuscation
 ) {
     /**
      * Default config

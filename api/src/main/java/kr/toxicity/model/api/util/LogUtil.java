@@ -39,7 +39,7 @@ public final class LogUtil {
      * @param throwable exception
      */
     public static void handleException(@NotNull String message, @NotNull Throwable throwable) {
-        var list = new ArrayList<Component>();
+        var list = new ArrayList<Component>(4);
         list.add(Component.text(message));
         list.add(toLog("Reason: " + throwable.getMessage(), NamedTextColor.YELLOW));
         if (BetterModel.config().debug().has(DebugConfig.DebugOption.EXCEPTION)) {

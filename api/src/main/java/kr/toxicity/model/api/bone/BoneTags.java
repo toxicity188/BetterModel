@@ -14,6 +14,9 @@ import kr.toxicity.model.api.player.PlayerLimb;
 import kr.toxicity.model.api.util.TransformedItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
+
+import java.util.List;
 
 /**
  * Builtin tags
@@ -22,97 +25,97 @@ public enum BoneTags implements BoneTag {
     /**
      * Follows entity's head rotation
      */
-    HEAD(new String[] { "h" }),
+    HEAD("h"),
     /**
      * Follows entity's head rotation
      */
-    HEAD_WITH_CHILDREN(new String[] { "hi" }),
+    HEAD_WITH_CHILDREN("hi"),
     /**
      * Creates a hitbox following this bone
      */
-    HITBOX(new String[] { "b", "ob" }),
+    HITBOX("b", "ob"),
     /**
      * It can be used as a seat
      */
-    SEAT(new String[] { "p" }),
+    SEAT("p"),
     /**
      * It can be used as a seat but not controllable
      */
-    SUB_SEAT(new String[] { "sp" }),
+    SUB_SEAT("sp"),
     /**
      * Nametag
      */
-    TAG(new String[] { "tag" }),
+    TAG("tag"),
     /**
      * Mob's nametag
      */
-    MOB_TAG(new String[] { "mtag" }),
+    MOB_TAG("mtag"),
     /**
      * Player's nametag
      */
-    PLAYER_TAG(new String[] { "ptag" }),
+    PLAYER_TAG("ptag"),
     /**
      * Entity's item in left hand
      */
     LEFT_ITEM(BoneItemMapper.entity(
         PlatformItemTransform.THIRDPERSON_LEFTHAND,
         BaseEntity::offHand
-    ), new String[] { "pli", "li" }),
+    ), "pli", "li"),
     /**
      * Entity's item in right hand
      */
     RIGHT_ITEM(BoneItemMapper.entity(
         PlatformItemTransform.THIRDPERSON_RIGHTHAND,
         BaseEntity::mainHand
-    ), new String[] { "pri", "ri" }),
+    ), "pri", "ri"),
     /**
      * Player head
      */
-    PLAYER_HEAD(PlayerLimb.HEAD.getItemMapper(), new String[] { "ph" }),
+    PLAYER_HEAD(PlayerLimb.HEAD.getItemMapper(), "ph"),
     /**
      * Player right arm
      */
-    PLAYER_RIGHT_ARM(PlayerLimb.RIGHT_ARM.getItemMapper(), new String[] { "pra" }),
+    PLAYER_RIGHT_ARM(PlayerLimb.RIGHT_ARM.getItemMapper(), "pra"),
     /**
      * Player right forearm
      */
-    PLAYER_RIGHT_FOREARM(PlayerLimb.RIGHT_FOREARM.getItemMapper(), new String[] { "prfa" }),
+    PLAYER_RIGHT_FOREARM(PlayerLimb.RIGHT_FOREARM.getItemMapper(), "prfa"),
     /**
      * Player left arm
      */
-    PLAYER_LEFT_ARM(PlayerLimb.LEFT_ARM.getItemMapper(), new String[] { "pla" }),
+    PLAYER_LEFT_ARM(PlayerLimb.LEFT_ARM.getItemMapper(), "pla"),
     /**
      * Player left forearm
      */
-    PLAYER_LEFT_FOREARM(PlayerLimb.LEFT_FOREARM.getItemMapper(), new String[] { "plfa" }),
+    PLAYER_LEFT_FOREARM(PlayerLimb.LEFT_FOREARM.getItemMapper(), "plfa"),
     /**
      * Player left hip
      */
-    PLAYER_HIP(PlayerLimb.HIP.getItemMapper(), new String[] { "phip" }),
+    PLAYER_HIP(PlayerLimb.HIP.getItemMapper(), "phip"),
     /**
      * Player left waist
      */
-    PLAYER_WAIST(PlayerLimb.WAIST.getItemMapper(), new String[] { "pw" }),
+    PLAYER_WAIST(PlayerLimb.WAIST.getItemMapper(), "pw"),
     /**
      * Player left chest
      */
-    PLAYER_CHEST(PlayerLimb.CHEST.getItemMapper(), new String[] { "pc" }),
+    PLAYER_CHEST(PlayerLimb.CHEST.getItemMapper(), "pc"),
     /**
      * Player right leg
      */
-    PLAYER_RIGHT_LEG(PlayerLimb.RIGHT_LEG.getItemMapper(), new String[] { "prl" }),
+    PLAYER_RIGHT_LEG(PlayerLimb.RIGHT_LEG.getItemMapper(), "prl"),
     /**
      * Player right foreleg
      */
-    PLAYER_RIGHT_FORELEG(PlayerLimb.RIGHT_FORELEG.getItemMapper(), new String[] { "prfl" }),
+    PLAYER_RIGHT_FORELEG(PlayerLimb.RIGHT_FORELEG.getItemMapper(), "prfl"),
     /**
      * Player left leg
      */
-    PLAYER_LEFT_LEG(PlayerLimb.LEFT_LEG.getItemMapper(), new String[] { "pll" }),
+    PLAYER_LEFT_LEG(PlayerLimb.LEFT_LEG.getItemMapper(), "pll"),
     /**
      * Player left foreleg
      */
-    PLAYER_LEFT_FORELEG(PlayerLimb.LEFT_FORELEG.getItemMapper(), new String[] { "plfl" }),
+    PLAYER_LEFT_FORELEG(PlayerLimb.LEFT_FORELEG.getItemMapper(), "plfl"),
     /**
      * Cape
      */
@@ -130,22 +133,22 @@ public enum BoneTags implements BoneTag {
         public @NotNull PlatformItemTransform transform() {
             return PlatformItemTransform.FIXED;
         }
-    }, new String[] { "cape" })
+    }, "cape")
     ;
 
-    BoneTags(@NotNull String[] tags) {
+    BoneTags(@NotNull String... tags) {
         this(null, tags);
     }
 
-    BoneTags(@Nullable BoneItemMapper itemMapper, @NotNull String[] tags) {
+    BoneTags(@Nullable BoneItemMapper itemMapper, @NotNull String... tags) {
         this.itemMapper = itemMapper;
-        this.tags = tags;
+        this.tags = List.of(tags);
     }
 
     @Nullable
     private final BoneItemMapper itemMapper;
     @NotNull
-    private final String[] tags;
+    private final List<String> tags;
 
     @Nullable
     @Override
@@ -154,8 +157,9 @@ public enum BoneTags implements BoneTag {
     }
 
     @NotNull
+    @Unmodifiable
     @Override
-    public String[] tags() {
+    public List<String> tags() {
         return tags;
     }
 }

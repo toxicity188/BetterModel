@@ -10,6 +10,7 @@ import com.google.gson.JsonParseException;
 import kr.toxicity.model.api.data.raw.ModelData;
 import kr.toxicity.model.api.data.raw.ModelLoadResult;
 import kr.toxicity.model.api.util.PackUtil;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
@@ -37,6 +38,13 @@ public record ModelAsset(
     long sizeAssume,
     @NotNull StreamSupplier supplier
 ) implements Comparable<ModelAsset> {
+
+    /**
+     * Internal constructor for ModelAsset.
+     */
+    @ApiStatus.Internal
+    public ModelAsset {
+    }
 
     /**
      * Creates a new ModelAsset from a name and byte array.

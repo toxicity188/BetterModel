@@ -31,4 +31,24 @@ public record BlueprintImage(@NotNull String name, byte[] image, @Nullable JsonO
     public long estimatedSize() {
         return image.length;
     }
+
+    /**
+     * Returns the name of the image file with a .png extension.
+     *
+     * @return the png file name
+     * @since 2.0.1
+     */
+    public @NotNull String pngName() {
+        return name + ".png";
+    }
+
+    /**
+     * Returns the name of the metadata file associated with the png.
+     *
+     * @return the mcmeta file name
+     * @since 2.0.1
+     */
+    public @NotNull String mcmetaName() {
+        return pngName() + ".mcmeta";
+    }
 }

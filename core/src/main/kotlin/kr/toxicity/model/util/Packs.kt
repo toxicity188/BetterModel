@@ -44,7 +44,7 @@ class FolderGenerator : PackGenerator {
     private val file = File(DATA_FOLDER.parent, CONFIG.buildFolderLocation())
     override val exists: Boolean = file.exists()
     private val fileTree by lazy {
-        sortedMapOf<String, Path>(Comparator.reverseOrder()).apply {
+        sortedMapOf<String, Path>(reverseOrder()).apply {
             val after = CONFIG.buildFolderLocation() + File.separatorChar
             Files.walk(file.apply {
                 mkdirs()

@@ -39,22 +39,24 @@ object ModelManagerImpl : ModelManager, GlobalManager {
         type: ModelRenderer.Type,
         pipeline: ReloadPipeline,
         dir: File
-    ): List<ImportedModel> {
+    ): Sequence<ImportedModel> {
         val targetAssets = ModelAssetsEvent(type, dir.fileTrees().use { stream ->
-            stream.filter { it.extension in modelExtensions }.map(ModelAsset::of).toMutableSet()
+            stream.filter { it.extension.lowercase() in modelExtensions }
+                .map(ModelAsset::of)
+                .toMutableSet()
         }).apply { call() }
             .assets
-            .ifEmpty { return emptyList() }
+            .ifEmpty { return emptySequence() }
             .toList()
-        val modelFileMap = ConcurrentHashMap<String, Pair<ModelAsset, ModelBlueprint>>()
+        val modelFileMap = ConcurrentHashMap<String, Pair<ModelAsset, ModelBlueprint>>(targetAssets.size)
         val typeName = type.name.lowercase()
         pipeline.apply {
             status = "Importing $typeName models..."
             goal = targetAssets.size
         }.forEachParallel(targetAssets, ModelAsset::sizeAssume) {
+            val index = pipeline.progress()
             val load = it.toTexturedModel() ?: return@forEachParallel
             modelFileMap.compute(load.name) { _, v ->
-                val index = pipeline.progress()
                 if (v != null) {
                     // A model with the same name already exists from a different file
                     warn(
@@ -62,7 +64,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                         "Duplicated file: $it".toComponent(RED),
                         "And: ${v.first}".toComponent(RED)
                     )
-                    return@compute v
+                    if (v.first < it) return@compute v
                 }
                 debugPack {
                     componentOf(
@@ -78,7 +80,6 @@ object ModelManagerImpl : ModelManager, GlobalManager {
             .asSequence()
             .sortedBy { it.first }
             .map { ImportedModel(it.first.sizeAssume, type,it.second) }
-            .toList()
     }
 
     private fun loadModels(pipeline: ReloadPipeline, zipper: PackZipper) {
@@ -116,7 +117,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
     }
 
     private class ModelPipeline(
-        private val zipper: PackZipper
+        zipper: PackZipper
     ) : AutoCloseable {
 
         private var indexer = 1
@@ -127,13 +128,13 @@ object ModelManagerImpl : ModelManager, GlobalManager {
             models = zipper.legacy().bettermodel().models().resolve("item"),
             available = CONFIG.pack().generateLegacyModel,
             onBuild = { blueprints, size ->
-                val blueprint = blueprints.first()
+                val json = blueprints.first()
                 entries += jsonObjectOf(
                     "predicate" to jsonObjectOf("custom_model_data" to indexer),
-                    "model" to "${CONFIG.namespace()}:item/${blueprint.name}"
+                    "model" to "${CONFIG.namespace()}:item/${json.name}"
                 )
-                models.add("${blueprint.name}.json", size) {
-                    blueprint.element.get().toByteArray()
+                models.add(json.jsonName(), size) {
+                    json.buildJson().toByteArray()
                 }
             },
             onClose = {
@@ -158,8 +159,8 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                     "model" to blueprints.toModernJson()
                 )
                 blueprints.forEach { json ->
-                    models.add("${json.name}.json", size / blueprints.size) {
-                        json.element.get().toByteArray()
+                    models.add(json.jsonName(), size / blueprints.size) {
+                        json.buildJson().toByteArray()
                     }
                 }
             },
@@ -184,52 +185,52 @@ object ModelManagerImpl : ModelManager, GlobalManager {
 
         fun addModelTo(
             targetMap: MutableMap<String, ModelRenderer>,
-            model: List<ImportedModel>
+            model: Sequence<ImportedModel>
         ) {
-            if (model.isEmpty()) return
-            model.forEach { importedModel ->
-                val size = importedModel.jsonSize
-                val load = importedModel.blueprint
-                val hasTexture = load.hasTexture()
-                targetMap[load.name] = load.toRenderer(importedModel.type) render@ { group ->
-                    if (!hasTexture) return@render null
-                    var success = false
-                    //Modern
+            model.forEach { addModelTo(targetMap, it) }
+        }
+
+        private fun addModelTo(
+            targetMap: MutableMap<String, ModelRenderer>,
+            importedModel: ImportedModel
+        ) {
+            val size = importedModel.jsonSize
+            val blueprint = importedModel.blueprint
+            val hasTexture = blueprint.hasTexture()
+            targetMap[blueprint.name] = blueprint.toRenderer(importedModel.type) render@ { group ->
+                if (!hasTexture) return@render null
+                listOfNotNull(
                     modernModel.ifAvailable {
-                        group.buildModernJson(obfuscator, load)
-                    }?.let {
-                        modernModel.build(it, size / it.size)
-                        success = true
-                    }
-                    //Legacy
+                        group.buildModernJson(obfuscator, blueprint)
+                            ?.let { build(it, size / it.size) }
+                    },
                     legacyModel.ifAvailable {
-                        group.buildLegacyJson(PLATFORM.version().useModernResource(), obfuscator, load)
-                    }?.let {
-                        legacyModel.build(listOf(it), size)
-                        success = true
+                        group.buildLegacyJson(PLATFORM.version().useModernResource(), obfuscator, blueprint)
+                            ?.let { build(listOf(it), size) }
                     }
-                    if (success) indexer++ else null
-                }.apply {
-                    debugPack {
-                        componentOf(
-                            "This model was successfully imported: ".toComponent(),
-                            load.name.toComponent(GREEN)
-                        )
-                    }
-                    callEvent { ModelImportedEvent(load, this) }
+                ).run {
+                    if (isNotEmpty()) indexer++ else null
                 }
-                if (hasTexture) load.buildImage(textures.obfuscator()).forEach { image ->
-                    textures.add("${image.name}.png", image.estimatedSize()) {
-                        image.toByteArray()
-                    }
-                    image.mcmeta()?.let { meta ->
-                        textures.add("${image.name}.png.mcmeta", -1) {
-                            meta.toByteArray()
-                        }
-                    }
+            }.apply {
+                debugPack {
+                    componentOf(
+                        "This model was successfully imported: ".toComponent(),
+                        blueprint.name.toComponent(GREEN)
+                    )
                 }
-                estimatedSize += size
+                callEvent { ModelImportedEvent(blueprint, this) }
             }
+            if (hasTexture) blueprint.buildImage(textures.obfuscator()).forEach { image ->
+                textures.add(image.pngName(), image.estimatedSize()) {
+                    image.toByteArray()
+                }
+                image.mcmeta()?.let { meta ->
+                    textures.add(image.mcmetaName(), -1) {
+                        meta.toByteArray()
+                    }
+                }
+            }
+            estimatedSize += size
         }
 
         inner class ModelBuilder(

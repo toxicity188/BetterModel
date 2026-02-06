@@ -14,16 +14,10 @@ import java.util.*;
  * Bone tag registry
  */
 public final class BoneTagRegistry {
-    private static final Map<String, BoneTag> BY_NAME = new HashMap<>();
 
-    /**
-     * No initializer
-     */
-    private BoneTagRegistry() {
-        throw new RuntimeException();
-    }
+    private final Map<String, BoneTag> byName = new HashMap<>();
 
-    static {
+    BoneTagRegistry() {
         for (BoneTags value : BoneTags.values()) {
             addTag(value);
         }
@@ -33,10 +27,10 @@ public final class BoneTagRegistry {
      * Adds some tag to this registry
      * @param tag tag
      */
-    public static void addTag(@NotNull BoneTag tag) {
+    public void addTag(@NotNull BoneTag tag) {
         BoneTag checkDuplicate;
         for (String s : tag.tags()) {
-            if ((checkDuplicate = BY_NAME.put(s, tag)) != null) throw new RuntimeException("Duplicated tags: " + tag.name() + " between " + checkDuplicate.name());
+            if ((checkDuplicate = byName.put(s, tag)) != null) throw new RuntimeException("Duplicated tags: " + tag.name() + " between " + checkDuplicate.name());
         }
     }
 
@@ -45,8 +39,8 @@ public final class BoneTagRegistry {
      * @param tag tag name
      * @return optional tag
      */
-    public static @NotNull Optional<BoneTag> byTagName(@NotNull String tag) {
-        return Optional.ofNullable(BY_NAME.get(tag));
+    public @NotNull Optional<BoneTag> byTagName(@NotNull String tag) {
+        return Optional.ofNullable(byName.get(tag));
     }
 
     /**
@@ -54,14 +48,15 @@ public final class BoneTagRegistry {
      * @param rawName raw name
      * @return bone name
      */
-    public static @NotNull BoneName parse(@NotNull String rawName) {
+    public @NotNull BoneName parse(@NotNull String rawName) {
         rawName = rawName.toLowerCase(Locale.ROOT);
         var tagArray = List.of(rawName.split("_"));
         if (tagArray.size() < 2) return new BoneName(Collections.emptySet(), rawName, rawName);
-        var set = new HashSet<BoneTag>();
+        var maxSize = tagArray.size() - 1;
+        var set = new HashSet<BoneTag>(maxSize);
         for (String s : tagArray) {
             var tag = byTagName(s).orElse(null);
-            if (tag != null && set.size() < tagArray.size() - 1) {
+            if (tag != null && set.size() < maxSize) {
                 set.add(tag);
             } else return new BoneName(Collections.unmodifiableSet(set), String.join("_", tagArray.subList(set.size(), tagArray.size())), rawName);
         }

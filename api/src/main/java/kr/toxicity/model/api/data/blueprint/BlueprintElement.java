@@ -222,7 +222,8 @@ public sealed interface BlueprintElement {
          * @since 1.15.2
          */
         public @Nullable ModelBoundingBox hitBox() {
-            return filterIsInstance(children, Cube.class).map(element -> {
+            return filterIsInstance(children, Cube.class)
+                .map(element -> {
                     var from = element.from()
                         .minus(origin)
                         .toBlockScale();
@@ -237,7 +238,8 @@ public sealed interface BlueprintElement {
                         to.y(),
                         to.z()
                     ).invert();
-                }).max(Comparator.comparingDouble(ModelBoundingBox::length))
+                })
+                .max(Comparator.comparingDouble(ModelBoundingBox::length))
                 .orElse(null);
         }
     }

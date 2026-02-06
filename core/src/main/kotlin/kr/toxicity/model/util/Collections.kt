@@ -16,7 +16,7 @@ import java.util.stream.Stream
 fun <K, V> MutableMap<K, V>.toImmutableView(): Map<K, V> = Collections.unmodifiableMap(this)
 
 fun <T> Stream<T>.toSet(): Set<T> = collect(Collectors.toUnmodifiableSet())
-fun <T> Stream<T>.toMutableSet(): Set<T> = collect(Collectors.toSet())
+fun <T> Stream<T>.toMutableSet(): MutableSet<T> = collect(Collectors.toSet())
 
 fun parallelIOThreadPool() = try {
     ParallelIOThreadPool()

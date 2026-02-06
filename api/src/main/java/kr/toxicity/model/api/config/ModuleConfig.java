@@ -16,15 +16,15 @@ import java.util.function.Predicate;
  * @param playerAnimation create player animation
  */
 public record ModuleConfig(
-        boolean model,
-        boolean playerAnimation
+    boolean model,
+    boolean playerAnimation
 ) {
     /**
      * Default config
      */
     public static final ModuleConfig DEFAULT = new ModuleConfig(
-            true,
-            true
+        true,
+        true
     );
 
     /**

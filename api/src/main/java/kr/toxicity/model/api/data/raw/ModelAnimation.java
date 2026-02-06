@@ -10,7 +10,7 @@ import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationProgress;
 import kr.toxicity.model.api.animation.VectorPoint;
-import kr.toxicity.model.api.bone.BoneTagRegistry;
+import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.data.blueprint.AnimationGenerator;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimator;
@@ -69,7 +69,7 @@ public record ModelAnimation(
                 .map(Map.Entry::getValue)
                 .filter(ModelAnimator::isAvailable)
                 .map(a -> buildAnimationData(context, a)),
-            data -> BoneTagRegistry.parse(data.name())
+            data -> BoneName.of(data.name())
         ));
         return new BlueprintAnimation(
             name(),

@@ -48,7 +48,7 @@ public record BlueprintTexture(
      * @since 1.15.2
      */
     public boolean isAnimatedTexture() {
-        if (uvWidth > 0 && uvHeight > 0) {
+        if (hasUVSize()) {
             var h = (float) height / uvHeight;
             var w = (float) width / uvWidth;
             return h > w;

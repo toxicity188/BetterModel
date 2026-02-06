@@ -7,7 +7,7 @@
 package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonDeserializer;
-import kr.toxicity.model.api.bone.BoneTagRegistry;
+import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.data.blueprint.BlueprintElement;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -117,7 +117,7 @@ public sealed interface ModelOutliner {
             var selectedGroup = context.groups.getOrDefault(uuid(), group);
             return new BlueprintElement.Group(
                 UUID.fromString(selectedGroup.uuid()),
-                BoneTagRegistry.parse(selectedGroup.name()),
+                BoneName.of(selectedGroup.name()),
                 selectedGroup.origin(),
                 selectedGroup.rotation().invertXZ(),
                 child,

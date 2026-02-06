@@ -6,6 +6,7 @@
  */
 package kr.toxicity.model.api.bone;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
@@ -19,6 +20,23 @@ import java.util.Set;
  * @param rawName original name
  */
 public record BoneName(@NotNull @Unmodifiable Set<BoneTag> tags, @NotNull String name, @NotNull String rawName) {
+
+    /**
+     * Internal constructor for BoneName.
+     */
+    @ApiStatus.Internal
+    public BoneName {
+    }
+
+    /**
+     * Creates a new BoneName by parsing the raw name string.
+     * @param rawName the raw string to parse
+     * @since 2.0.1
+     * @return a parsed BoneName instance
+     */
+    public static @NotNull BoneName of(@NotNull String rawName) {
+        return BoneTag.REGISTRY.parse(rawName);
+    }
 
     /**
      * Checks this name has some tags

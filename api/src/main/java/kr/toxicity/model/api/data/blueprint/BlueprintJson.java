@@ -25,4 +25,24 @@ public record BlueprintJson(
     @NotNull String name,
     @NotNull Supplier<JsonElement> element
 ) {
+
+    /**
+     * Returns the name of the image file with a .json extension.
+     *
+     * @return the JSON file name
+     * @since 2.0.1
+     */
+    public @NotNull String jsonName() {
+        return name + ".json";
+    }
+
+    /**
+     * Builds and returns the JSON content by invoking the supplier.
+     *
+     * @since 2.0.1
+     * @return the generated JSON element
+     */
+    public @NotNull JsonElement buildJson() {
+        return element.get();
+    }
 }
