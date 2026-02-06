@@ -188,7 +188,7 @@ modrinth {
     gameVersions = listOf("1.21.11")
     dependencies {
         required.version("fabric-api", libs.versions.fabric.api.get())
-        required.version("fabric-language-kotlin", "1.13.8+kotlin.2.3.0")
+        required.version("fabric-language-kotlin", libs.versions.fabric.language.kotlin.get())
 //        optional.project(
 //            "skinsrestorer"
 //        )
