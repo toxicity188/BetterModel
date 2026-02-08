@@ -50,16 +50,16 @@ private val MODEL_SUGGESTION = blockingStrings<Audience> { _, _ -> BetterModel.m
 private val LIMB_SUGGESTION = blockingStrings<Audience> { _, _ -> BetterModel.limbKeys() }
 
 fun startFabricCommand() {
-    command(
-        FabricServerCommandManager(
-            ExecutionCoordinator.simpleCoordinator(),
-            SenderMapper.create<CommandSourceStack, Audience>(
-                { stack -> stack.player?.let { player -> AudiencePlayer(stack, player) } ?: AudienceSourceStack(stack) },
-                { audience -> (audience as AudienceCommandSource).source }
-            )
-        ),
+    FabricServerCommandManager(
+        ExecutionCoordinator.simpleCoordinator(),
+        SenderMapper.create<CommandSourceStack, Audience>(
+            { stack -> stack.player?.let { player -> AudiencePlayer(stack, player) } ?: AudienceSourceStack(stack) },
+            { audience -> (audience as AudienceCommandSource).source }
+        )
+    ).register(
         "bettermodel",
         "All-related command.",
+        { it },
         "bm", "model"
     ) {
         create(

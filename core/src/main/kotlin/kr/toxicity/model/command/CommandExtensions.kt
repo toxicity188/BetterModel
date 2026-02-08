@@ -9,16 +9,17 @@ package kr.toxicity.model.command
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.data.renderer.ModelRenderer
 import net.kyori.adventure.audience.Audience
+import org.incendo.cloud.Command
 import org.incendo.cloud.CommandManager
 import org.incendo.cloud.context.CommandContext
 
-fun command(
-    manager: CommandManager<Audience>,
+fun CommandManager<Audience>.register(
     name: String,
     description: String,
+    commandMapper: CommandBuilder.(Command.Builder<Audience>) -> Command.Builder<Audience>,
     vararg aliases: String,
     block: CommandBuilder.() -> Unit
-) = CommandBuildContext(manager, name, description, *aliases).run {
+) = CommandBuildContext(this, commandMapper, name, description, *aliases).run {
     root.block()
     build()
 }

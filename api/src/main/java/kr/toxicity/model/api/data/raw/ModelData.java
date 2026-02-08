@@ -10,6 +10,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
 import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.data.Float3;
 import kr.toxicity.model.api.data.Float4;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
@@ -58,6 +59,7 @@ public record ModelData(
     public static final Gson GSON = new GsonBuilder()
         .registerTypeAdapter(Float3.class, Float3.PARSER)
         .registerTypeAdapter(Float4.class, Float4.PARSER)
+        .registerTypeAdapter(BoneName.class, BoneName.PARSER)
         .registerTypeAdapter(ModelMeta.class, ModelMeta.PARSER)
         .registerTypeAdapter(ModelOutliner.class, ModelOutliner.PARSER)
         .registerTypeAdapter(ModelPlaceholder.class, ModelPlaceholder.PARSER)

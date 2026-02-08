@@ -13,13 +13,12 @@ import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.format.NamedTextColor.*
 import net.kyori.adventure.text.format.TextDecoration
 import org.incendo.cloud.Command
-import org.incendo.cloud.CommandManager
 import org.incendo.cloud.description.Description
 import org.incendo.cloud.parser.standard.IntegerParser
 
 class CommandBuilder(
     val parent: CommandBuilder?,
-    val manager: CommandManager<Audience>,
+    val context: CommandBuildContext,
     val info: Info
 ) : CommandLike {
 
@@ -133,9 +132,9 @@ class CommandBuilder(
         .commandDescription(info.description)
         .permission("$permission.${info.name}")
 
-    private fun createBuilder(): Command.Builder<Audience> = parent?.createBuilder()?.mapInfo(info) ?: manager.commandBuilder(
+    private fun createBuilder(): Command.Builder<Audience> = parent?.createBuilder()?.mapInfo(info) ?: context.commandMapper(this, context.manager.commandBuilder(
         info.name,
         info.description,
         *info.aliases.toTypedArray()
-    ) //.meta(BukkitCommandMeta.BUKKIT_DESCRIPTION, info.description.textDescription())
+    ))
 }

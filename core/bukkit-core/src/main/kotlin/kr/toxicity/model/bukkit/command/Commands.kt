@@ -23,7 +23,7 @@ import kr.toxicity.model.bukkit.util.PLUGIN
 import kr.toxicity.model.bukkit.util.toRegistry
 import kr.toxicity.model.bukkit.util.toTracker
 import kr.toxicity.model.bukkit.util.wrap
-import kr.toxicity.model.command.command
+import kr.toxicity.model.command.register
 import kr.toxicity.model.command.limb
 import kr.toxicity.model.command.model
 import kr.toxicity.model.command.nullable
@@ -50,6 +50,7 @@ import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
 import org.bukkit.util.Vector
 import org.incendo.cloud.SenderMapper
+import org.incendo.cloud.bukkit.BukkitCommandMeta
 import org.incendo.cloud.bukkit.CloudBukkitCapabilities
 import org.incendo.cloud.bukkit.data.MultipleEntitySelector
 import org.incendo.cloud.bukkit.parser.PlayerParser.playerParser
@@ -68,22 +69,22 @@ private val MODEL_SUGGESTION = blockingStrings<Audience> { _, _ -> BetterModel.m
 private val LIMB_SUGGESTION = blockingStrings<Audience> { _, _ -> BetterModel.limbKeys() }
 
 fun startBukkitCommand() {
-    command(
-        LegacyPaperCommandManager(
-            PLUGIN,
-            ExecutionCoordinator.simpleCoordinator(),
-            SenderMapper.create<CommandSender, Audience>(
-                { sender -> if (sender is Player) AudiencePlayer(sender) else AudienceSender(sender) },
-                { audience -> (audience as BukkitAudience).sender }
-            )
-        ).apply {
-            if (hasCapability(CloudBukkitCapabilities.NATIVE_BRIGADIER)) {
-                registerBrigadier()
-                brigadierManager().setNativeNumberSuggestions(true)
-            } else if (hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) registerAsynchronousCompletions()
-        },
+    LegacyPaperCommandManager(
+        PLUGIN,
+        ExecutionCoordinator.simpleCoordinator(),
+        SenderMapper.create<CommandSender, Audience>(
+            { sender -> if (sender is Player) AudiencePlayer(sender) else AudienceSender(sender) },
+            { audience -> (audience as BukkitAudience).sender }
+        )
+    ).apply {
+        if (hasCapability(CloudBukkitCapabilities.NATIVE_BRIGADIER)) {
+            registerBrigadier()
+            brigadierManager().setNativeNumberSuggestions(true)
+        } else if (hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) registerAsynchronousCompletions()
+    }.register(
         "bettermodel",
         "All-related command.",
+        { it.meta(BukkitCommandMeta.BUKKIT_DESCRIPTION, info.description.textDescription()) },
         "bm", "model"
     ) {
         create(

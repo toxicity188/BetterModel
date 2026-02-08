@@ -7,18 +7,20 @@
 package kr.toxicity.model.command
 
 import net.kyori.adventure.audience.Audience
+import org.incendo.cloud.Command
 import org.incendo.cloud.CommandManager
 import org.incendo.cloud.description.Description
 
 class CommandBuildContext(
-    private val manager: CommandManager<Audience>,
+    val manager: CommandManager<Audience>,
+    val commandMapper: CommandBuilder.(Command.Builder<Audience>) -> Command.Builder<Audience>,
     name: String,
     description: String,
     vararg aliases: String,
 ) {
     val root = CommandBuilder(
         null,
-        manager,
+        this,
         CommandBuilder.Info(name, Description.description(description), aliases.toList())
     )
 

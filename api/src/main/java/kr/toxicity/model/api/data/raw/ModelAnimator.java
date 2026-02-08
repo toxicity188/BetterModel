@@ -7,6 +7,7 @@
 package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.annotations.SerializedName;
+import kr.toxicity.model.api.bone.BoneName;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,7 +27,7 @@ import java.util.stream.Stream;
  */
 @ApiStatus.Internal
 public record ModelAnimator(
-    @Nullable String name,
+    @Nullable BoneName name,
     @Nullable List<ModelKeyframe> keyframes,
     @Nullable @SerializedName("rotation_global") Boolean _rotationGlobal
 ) {
@@ -67,7 +68,7 @@ public record ModelAnimator(
      * @return the name of the bone group
      */
     @Override
-    public @NotNull String name() {
+    public @NotNull BoneName name() {
         return Objects.requireNonNull(name);
     }
 
