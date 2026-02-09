@@ -89,6 +89,9 @@ class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterMod
         BetterModelNMSImpl()
     }
     private val logger = BetterModelLoggerImpl()
+    private val evaluator = BetterModelEvaluatorImpl()
+    private val eventBus = BetterModelEventBusImpl()
+    private val adapter = FabricAdapter()
 
     private var reloadStartTask: (PackZipper) -> Unit = { zipper ->
         callEvent {
@@ -318,15 +321,15 @@ class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterMod
 
     override fun logger(): BetterModelLogger = logger
 
-    override fun evaluator(): BetterModelEvaluator = BetterModelEvaluatorImpl()
+    override fun evaluator(): BetterModelEvaluator = evaluator
 
-    override fun eventBus(): BetterModelEventBus = BetterModelEventBusImpl()
+    override fun eventBus(): BetterModelEventBus = eventBus
 
     override fun server(): MinecraftServer = server
 
     override fun scheduler(): FabricModelScheduler = FabricModelSchedulerImpl
 
-    override fun adapter(): PlatformAdapter = FabricAdapter()
+    override fun adapter(): PlatformAdapter = adapter
 
     override fun isEnabled(): Boolean = true
 }
