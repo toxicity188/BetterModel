@@ -31,7 +31,7 @@ adventure-platform-fabric = "net.kyori:adventure-platform-fabric:6.8.0"
 fabric-loader = "net.fabricmc:fabric-loader:0.18.4"
 fabric-language-kotlin = { module = "net.fabricmc:fabric-language-kotlin", version.ref = "fabric-language-kotlin" }
 
-polymer-resource-pack = "eu.pb4:polymer-resource-pack:0.15.1+1.21.11"
+polymer-resource-pack = "eu.pb4:polymer-resource-pack:0.15.2+1.21.11"
 
 configurate-core = { module = "org.spongepowered:configurate-core", version.ref = "configurate" }
 configurate-yaml = { module = "org.spongepowered:configurate-yaml", version.ref = "configurate" }
