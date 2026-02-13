@@ -539,7 +539,7 @@ public final class RenderPipeline implements BoneEventHandler {
             .stream()
             .filter(spawned -> spawned.initialLoad)
             .map(spawned -> spawned.handler.player())
-            .filter(viewFilter);
+            .filter(p -> !hideFilter.test(p));
     }
 
     /**
