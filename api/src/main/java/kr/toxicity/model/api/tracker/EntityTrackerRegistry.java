@@ -104,7 +104,9 @@ public final class EntityTrackerRegistry {
      * @since 1.15.2
      */
     public static @Nullable EntityTrackerRegistry registry(@NotNull BaseEntity entity) {
-        return entity.hasModelData() ? getOrCreate(entity) : null;
+        var get = registry(entity.uuid());
+        if (get != null) return get;
+        return entity.hasModelData() ? create(entity) : null;
     }
 
     /**
@@ -138,9 +140,12 @@ public final class EntityTrackerRegistry {
      */
     @ApiStatus.Internal
     public static @NotNull EntityTrackerRegistry getOrCreate(@NotNull BaseEntity entity) {
+        var get = registry(entity.uuid());
+        return get != null ? get : create(entity);
+    }
+
+    private static @NotNull EntityTrackerRegistry create(@NotNull BaseEntity entity) {
         var uuid = entity.uuid();
-        var get = registry(uuid);
-        if (get != null) return get;
         EntityTrackerRegistry registry;
         synchronized (uuid) {
             var get2 = registry(uuid);
