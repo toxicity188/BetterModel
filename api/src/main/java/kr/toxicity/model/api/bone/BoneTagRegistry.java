@@ -7,6 +7,7 @@
 package kr.toxicity.model.api.bone;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -35,12 +36,23 @@ public final class BoneTagRegistry {
     }
 
     /**
-     * Gets bone tag by tag name
+     * Gets a bone tag by its name wrapped in an Optional.
      * @param tag tag name
-     * @return optional tag
+     * @return bone tag
+     * @since 1.15.2
      */
     public @NotNull Optional<BoneTag> byTagName(@NotNull String tag) {
-        return Optional.ofNullable(byName.get(tag));
+        return Optional.ofNullable(byTagNameOrNull(tag));
+    }
+
+    /**
+     * Gets a bone tag by its name.
+     * @param tag tag name
+     * @return bone tag or null
+     * @since 2.0.2
+     */
+    public @Nullable BoneTag byTagNameOrNull(@NotNull String tag) {
+        return byName.get(tag);
     }
 
     /**
@@ -50,16 +62,17 @@ public final class BoneTagRegistry {
      */
     public @NotNull BoneName parse(@NotNull String rawName) {
         rawName = rawName.toLowerCase(Locale.ROOT);
-        var tagArray = List.of(rawName.split("_"));
-        if (tagArray.size() < 2) return new BoneName(Collections.emptySet(), rawName, rawName);
-        var maxSize = tagArray.size() - 1;
+        var tagArray = rawName.split("_");
+        if (tagArray.length < 2) return new BoneName(Collections.emptySet(), rawName, rawName);
+        var tagList = List.of(tagArray);
+        var maxSize = tagList.size() - 1;
         var set = new HashSet<BoneTag>(maxSize);
-        for (String s : tagArray) {
-            var tag = byTagName(s).orElse(null);
+        for (String s : tagList) {
+            var tag = byTagNameOrNull(s);
             if (tag != null && set.size() < maxSize) {
                 set.add(tag);
-            } else return new BoneName(Collections.unmodifiableSet(set), String.join("_", tagArray.subList(set.size(), tagArray.size())), rawName);
+            } else return new BoneName(Collections.unmodifiableSet(set), String.join("_", tagList.subList(set.size(), tagList.size())), rawName);
         }
-        return new BoneName(Collections.unmodifiableSet(set), String.join("_", tagArray.subList(set.size(), tagArray.size())), rawName);
+        return new BoneName(Collections.unmodifiableSet(set), String.join("_", tagList.subList(set.size(), tagList.size())), rawName);
     }
 }

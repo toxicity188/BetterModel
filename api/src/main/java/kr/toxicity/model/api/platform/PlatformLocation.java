@@ -8,6 +8,8 @@ package kr.toxicity.model.api.platform;
 
 import org.jetbrains.annotations.NotNull;
 
+import static java.lang.Math.*;
+
 /**
  * Represents a location in the underlying platform.
  * <p>
@@ -77,4 +79,29 @@ public interface PlatformLocation extends PlatformRegionHolder {
      * @since 2.0.0
      */
     @NotNull PlatformLocation add(double x, double y, double z);
+
+    /**
+     * Calculates the distance between this location and another location.
+     *
+     * @param other the other location
+     * @return the distance
+     * @since 2.0.2
+     */
+    default double distance(@NotNull PlatformLocation other) {
+        return sqrt(distanceSquared(other));
+    }
+
+    /**
+     * Calculates the squared distance between this location and another location.
+     *
+     * @param other the other location
+     * @return the squared distance
+     * @since 2.0.2
+     */
+    default double distanceSquared(@NotNull PlatformLocation other) {
+        var x = x() - other.x();
+        var y = y() - other.y();
+        var z = z() - other.z();
+        return fma(x, x, fma(y, y, z * z));
+    }
 }
