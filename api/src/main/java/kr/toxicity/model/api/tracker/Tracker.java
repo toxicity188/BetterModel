@@ -38,6 +38,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -677,6 +678,26 @@ public abstract class Tracker implements AutoCloseable {
     }
 
     //--- Update action ---
+
+    /**
+     * Registers a hitbox-listener builder hook that is applied when hitboxes are created.
+     * <p>
+     * This delegates to {@link kr.toxicity.model.api.bone.BoneEventDispatcher#handleCreateHitBox(BiFunction)}
+     * in this tracker's render pipeline event dispatcher.
+     * </p>
+     *
+     * <pre>{@code
+     * tracker.listenHitBox((bone, builder) -> builder.interact(event -> {
+     *     // custom interaction handling
+     * }));
+     * }</pre>
+     *
+     * @param function the hitbox listener builder transformer
+     * @since 2.0.2
+     */
+    public void listenHitBox(@NotNull BiFunction<RenderedBone, HitBoxListener.Builder, HitBoxListener.Builder> function) {
+        pipeline.eventDispatcher().handleCreateHitBox(function);
+    }
 
     /**
      * Creates a hitbox for bones matching a predicate.

@@ -7,6 +7,8 @@
 package kr.toxicity.model.api.nms;
 
 import kr.toxicity.model.api.event.ModelDamageSource;
+import kr.toxicity.model.api.event.ModelInteractAtEvent;
+import kr.toxicity.model.api.event.ModelInteractEvent;
 import kr.toxicity.model.api.platform.PlatformEntity;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,6 +51,8 @@ public interface HitBoxListener {
         return new Builder()
                 .sync(this::sync)
                 .damage(this::damage)
+                .interact(this::interact)
+                .interactAt(this::interactAt)
                 .remove(this::remove)
                 .mount(this::mount)
                 .dismount(this::dismount);
@@ -63,12 +67,16 @@ public interface HitBoxListener {
 
         private static final Consumer<HitBox> DEFAULT_SYNC = h -> {};
         private static final OnDamage DEFAULT_DAMAGE = (h, s, d) -> false;
+        private static final Consumer<ModelInteractEvent> DEFAULT_INTERACT = h -> {};
+        private static final Consumer<ModelInteractAtEvent> DEFAULT_INTERACT_AT = h -> {};
         private static final Consumer<HitBox> DEFAULT_REMOVE = h -> {};
         private static final BiConsumer<HitBox, PlatformEntity> DEFAULT_MOUNT = (h, e) -> {};
         private static final BiConsumer<HitBox, PlatformEntity> DEFAULT_DISMOUNT = (h, e) -> {};
 
         private Consumer<HitBox> sync = DEFAULT_SYNC;
         private OnDamage damage = DEFAULT_DAMAGE;
+        private Consumer<ModelInteractEvent> interact = DEFAULT_INTERACT;
+        private Consumer<ModelInteractAtEvent> interactAt = DEFAULT_INTERACT_AT;
         private Consumer<HitBox> remove = DEFAULT_REMOVE;
         private BiConsumer<HitBox, PlatformEntity> mount = DEFAULT_MOUNT;
         private BiConsumer<HitBox, PlatformEntity> dismount = DEFAULT_DISMOUNT;
@@ -100,6 +108,30 @@ public interface HitBoxListener {
          */
         public @NotNull Builder damage(@NotNull OnDamage damage) {
             this.damage = this.damage == DEFAULT_DAMAGE ? damage : this.damage.andThen(damage);
+            return this;
+        }
+
+        /**
+         * Adds an interact handler.
+         *
+         * @param interact the interact handler
+         * @return this builder
+         * @since 2.0.2
+         */
+        public @NotNull Builder interact(@NotNull Consumer<ModelInteractEvent> interact) {
+            this.interact = this.interact == DEFAULT_INTERACT ? interact : this.interact.andThen(interact);
+            return this;
+        }
+
+        /**
+         * Adds an interact-at handler.
+         *
+         * @param interactAt the interact-at handler
+         * @return this builder
+         * @since 2.0.2
+         */
+        public @NotNull Builder interactAt(@NotNull Consumer<ModelInteractAtEvent> interactAt) {
+            this.interactAt = this.interactAt == DEFAULT_INTERACT_AT ? interactAt : this.interactAt.andThen(interactAt);
             return this;
         }
 
@@ -155,6 +187,16 @@ public interface HitBoxListener {
                 @Override
                 public boolean damage(@NotNull HitBox hitBox, @NotNull ModelDamageSource source, double damage) {
                     return Builder.this.damage.event(hitBox, source, damage);
+                }
+
+                @Override
+                public void interact(@NotNull ModelInteractEvent event) {
+                    interact.accept(event);
+                }
+
+                @Override
+                public void interactAt(@NotNull ModelInteractAtEvent event) {
+                    interactAt.accept(event);
                 }
 
                 @Override
@@ -223,6 +265,22 @@ public interface HitBoxListener {
      * @since 1.15.2
      */
     boolean damage(@NotNull HitBox hitBox, @NotNull ModelDamageSource source, double damage);
+
+    /**
+     * Called when the hitbox receives an interaction.
+     *
+     * @param event the interaction event
+     * @since 2.0.2
+     */
+    void interact(@NotNull ModelInteractEvent event);
+
+    /**
+     * Called when the hitbox receives an interaction at a specific position.
+     *
+     * @param event the interaction-at event
+     * @since 2.0.2
+     */
+    void interactAt(@NotNull ModelInteractAtEvent event);
 
     /**
      * Called when the hitbox is removed.
