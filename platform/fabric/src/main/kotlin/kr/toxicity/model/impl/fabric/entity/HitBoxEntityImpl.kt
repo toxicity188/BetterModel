@@ -419,20 +419,22 @@ class HitBoxEntityImpl(
         if (player === delegate) {
             return InteractionResult.FAIL
         }
+        val serverPlayer = player as ServerPlayer
 
         val interact = ModelInteractEvent(
-            (player as ServerPlayer).connection.wrap(),
+            serverPlayer.connection.wrap(),
             this,
             when (hand) {
                 InteractionHand.MAIN_HAND -> ModelInteractionHand.RIGHT
                 InteractionHand.OFF_HAND -> ModelInteractionHand.LEFT
             }
         )
+        listener.interact(interact)
         if (!interact.call().triggered()) {
             return InteractionResult.FAIL
         }
 
-        player.connection.handleInteract(
+        serverPlayer.connection.handleInteract(
             ServerboundInteractPacket.createInteractionPacket(
                 delegate,
                 player.isShiftKeyDown,
@@ -446,9 +448,10 @@ class HitBoxEntityImpl(
         if (player === delegate) {
             return InteractionResult.FAIL
         }
+        val serverPlayer = player as ServerPlayer
 
         val interact = ModelInteractAtEvent(
-            (player as ServerPlayer).connection.wrap(),
+            serverPlayer.connection.wrap(),
             this,
             when (hand) {
                 InteractionHand.MAIN_HAND -> ModelInteractionHand.RIGHT
@@ -456,12 +459,12 @@ class HitBoxEntityImpl(
             },
             vec.toVector3f()
         )
-
+        listener.interactAt(interact)
         if (!interact.call().triggered()) {
             return InteractionResult.FAIL
         }
 
-        player.connection.handleInteract(
+        serverPlayer.connection.handleInteract(
             ServerboundInteractPacket.createInteractionPacket(
                 delegate,
                 player.isShiftKeyDown,

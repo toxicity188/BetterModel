@@ -364,6 +364,7 @@ internal class HitBoxImpl(
             MAIN_HAND -> ModelInteractionHand.RIGHT
             OFF_HAND -> ModelInteractionHand.LEFT
         })
+        listener.interact(interact)
         if (!interact.call().triggered()) return InteractionResult.FAIL
         (player as ServerPlayer).connection.handleInteract(ServerboundInteractPacket.createInteractionPacket(delegate, player.isShiftKeyDown, hand))
         return InteractionResult.SUCCESS
@@ -375,6 +376,7 @@ internal class HitBoxImpl(
             MAIN_HAND -> ModelInteractionHand.RIGHT
             OFF_HAND -> ModelInteractionHand.LEFT
         }, vec.toBukkit())
+        listener.interactAt(interact)
         if (!interact.call().triggered()) return InteractionResult.FAIL
         (player as ServerPlayer).connection.handleInteract(ServerboundInteractPacket.createInteractionPacket(delegate, player.isShiftKeyDown, hand, vec))
         return InteractionResult.SUCCESS
