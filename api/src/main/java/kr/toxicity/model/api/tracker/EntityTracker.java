@@ -137,7 +137,7 @@ public class EntityTracker extends Tracker {
             } else tag.alwaysVisible(entity instanceof BasePlayer);
             tag.component(entity.customName());
         });
-        pipeline.eventDispatcher().handleCreateHitBox((b, l) -> l.mount((h, e) -> {
+        listenHitBox((b, l) -> l.mount((h, e) -> {
                 registry.mountedHitBoxCache.put(e.uuid(), new EntityTrackerRegistry.MountedHitBox(b, e, h));
                 EventUtil.call(MountModelEvent.class, () -> new MountModelEvent(this, b, h, e));
             })

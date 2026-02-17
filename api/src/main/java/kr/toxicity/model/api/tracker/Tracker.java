@@ -37,11 +37,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.BiPredicate;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.function.*;
 import java.util.stream.Stream;
 
 /**
@@ -677,7 +673,7 @@ public abstract class Tracker implements AutoCloseable {
         return pipeline.matchTree(AnimationPredicate.of(filter), (b, a) -> b.replaceAnimation(a, target, animation, modifier));
     }
 
-    //--- Update action ---
+    //--- Listener ---
 
     /**
      * Registers a hitbox-listener builder hook that is applied when hitboxes are created.
@@ -698,6 +694,46 @@ public abstract class Tracker implements AutoCloseable {
     public void listenHitBox(@NotNull BiFunction<RenderedBone, HitBoxListener.Builder, HitBoxListener.Builder> function) {
         pipeline.eventDispatcher().handleCreateHitBox(function);
     }
+
+    /**
+     * Registers an interaction listener for newly created hitboxes.
+     * <p>
+     * This is a convenience wrapper over {@link #listenHitBox(BiFunction)}.
+     * </p>
+     *
+     * <pre>{@code
+     * tracker.listenInteract(event -> {
+     *     // custom interaction handling
+     * });
+     * }</pre>
+     *
+     * @param consumer the interaction consumer
+     * @since 2.0.2
+     */
+    public void listenInteract(@NotNull Consumer<ModelInteractEvent> consumer) {
+        listenHitBox((bone, builder) -> builder.interact(consumer));
+    }
+
+    /**
+     * Registers an interaction-at listener for newly created hitboxes.
+     * <p>
+     * This is a convenience wrapper over {@link #listenHitBox(BiFunction)}.
+     * </p>
+     *
+     * <pre>{@code
+     * tracker.listenInteractAt(event -> {
+     *     // custom interaction-at handling
+     * });
+     * }</pre>
+     *
+     * @param consumer the interaction-at consumer
+     * @since 2.0.2
+     */
+    public void listenInteractAt(@NotNull Consumer<ModelInteractAtEvent> consumer) {
+        listenHitBox((bone, builder) -> builder.interactAt(consumer));
+    }
+
+    //--- Update action ---
 
     /**
      * Creates a hitbox for bones matching a predicate.
