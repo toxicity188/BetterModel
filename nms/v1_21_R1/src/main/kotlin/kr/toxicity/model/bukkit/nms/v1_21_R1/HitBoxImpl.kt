@@ -386,8 +386,8 @@ internal class HitBoxImpl(
         if (source.entity === controllingPassenger && !mountController.canBeDamagedByRider()) return false
         val ds = ModelDamageSourceImpl(source)
         val event = ModelDamagedEvent(craftEntity, ds, amount)
+        listener.damage(event)
         if (!event.call().triggered()) return false
-        if (listener.damage(this, ds, amount.toDouble())) return false
         return ifLivingEntity { hurt(source, event.damage) } == true
     }
 

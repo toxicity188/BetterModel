@@ -42,11 +42,11 @@ class BindHitBoxMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), IN
                     if (!spawned.isValid) hitBox.removeHitBox()
                     else spawned.teleportAsync((hitBox as Entity).location)
                 }
-                .damage { _, source, damage ->
+                .damage { event ->
                     if (spawned is Damageable) {
-                        spawned.damage(damage, source.causingEntity?.unwarp())
-                        true
-                    } else false
+                        spawned.damage(event.damage.toDouble(), event.source.causingEntity?.unwarp())
+                        event.isCancelled = true
+                    }
                 }
                 .remove {
                     spawned.remove()

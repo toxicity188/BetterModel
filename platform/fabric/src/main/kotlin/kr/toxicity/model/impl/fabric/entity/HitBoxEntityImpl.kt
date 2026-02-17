@@ -495,7 +495,8 @@ class HitBoxEntityImpl(
         val sourceImpl = ModelDamageSourceImpl(source)
         val event = ModelDamagedEvent(this, sourceImpl, amount)
 
-        if (!event.call().triggered() || listener.damage(this, sourceImpl, amount.toDouble())) {
+        listener.damage(event)
+        if (!event.call().triggered()) {
             return false
         }
 
