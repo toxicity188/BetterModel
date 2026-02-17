@@ -6,7 +6,7 @@
  */
 package kr.toxicity.model.api.nms;
 
-import kr.toxicity.model.api.event.ModelDamageSource;
+import kr.toxicity.model.api.event.ModelDamagedEvent;
 import kr.toxicity.model.api.event.ModelInteractAtEvent;
 import kr.toxicity.model.api.event.ModelInteractEvent;
 import kr.toxicity.model.api.platform.PlatformEntity;
@@ -66,7 +66,7 @@ public interface HitBoxListener {
     class Builder {
 
         private static final Consumer<HitBox> DEFAULT_SYNC = h -> {};
-        private static final OnDamage DEFAULT_DAMAGE = (h, s, d) -> false;
+        private static final Consumer<ModelDamagedEvent> DEFAULT_DAMAGE = h -> {};
         private static final Consumer<ModelInteractEvent> DEFAULT_INTERACT = h -> {};
         private static final Consumer<ModelInteractAtEvent> DEFAULT_INTERACT_AT = h -> {};
         private static final Consumer<HitBox> DEFAULT_REMOVE = h -> {};
@@ -74,7 +74,7 @@ public interface HitBoxListener {
         private static final BiConsumer<HitBox, PlatformEntity> DEFAULT_DISMOUNT = (h, e) -> {};
 
         private Consumer<HitBox> sync = DEFAULT_SYNC;
-        private OnDamage damage = DEFAULT_DAMAGE;
+        private Consumer<ModelDamagedEvent> damage = DEFAULT_DAMAGE;
         private Consumer<ModelInteractEvent> interact = DEFAULT_INTERACT;
         private Consumer<ModelInteractAtEvent> interactAt = DEFAULT_INTERACT_AT;
         private Consumer<HitBox> remove = DEFAULT_REMOVE;
@@ -104,9 +104,9 @@ public interface HitBoxListener {
          *
          * @param damage the damage handler
          * @return this builder
-         * @since 1.15.2
+         * @since 2.0.2
          */
-        public @NotNull Builder damage(@NotNull OnDamage damage) {
+        public @NotNull Builder damage(@NotNull Consumer<ModelDamagedEvent> damage) {
             this.damage = this.damage == DEFAULT_DAMAGE ? damage : this.damage.andThen(damage);
             return this;
         }
@@ -185,8 +185,8 @@ public interface HitBoxListener {
                 }
 
                 @Override
-                public boolean damage(@NotNull HitBox hitBox, @NotNull ModelDamageSource source, double damage) {
-                    return Builder.this.damage.event(hitBox, source, damage);
+                public void damage(@NotNull ModelDamagedEvent event) {
+                    Builder.this.damage.accept(event);
                 }
 
                 @Override
@@ -218,36 +218,6 @@ public interface HitBoxListener {
     }
 
     /**
-     * Functional interface for handling damage events.
-     *
-     * @since 1.15.2
-     */
-    interface OnDamage {
-        /**
-         * Handles a damage event.
-         *
-         * @param hitBox the target hitbox
-         * @param source the damage source
-         * @param damage the damage amount
-         * @return true to cancel the damage, false otherwise
-         * @since 1.15.2
-         */
-        boolean event(@NotNull HitBox hitBox, @NotNull ModelDamageSource source, double damage);
-
-
-        /**
-         * Chains this handler with another.
-         *
-         * @param other the other handler
-         * @return the combined handler
-         * @since 1.15.2
-         */
-        default @NotNull OnDamage andThen(@NotNull OnDamage other) {
-            return (h, s, d) -> event(h, s, d) || other.event(h, s, d);
-        }
-    }
-
-    /**
      * Called when the hitbox is synchronized (ticked).
      *
      * @param hitBox the target hitbox
@@ -258,13 +228,10 @@ public interface HitBoxListener {
     /**
      * Called when the hitbox receives damage.
      *
-     * @param hitBox the target hitbox
-     * @param source the damage source
-     * @param damage the damage amount
-     * @return true if the damage was cancelled
-     * @since 1.15.2
+     * @param event the damage event
+     * @since 2.0.2
      */
-    boolean damage(@NotNull HitBox hitBox, @NotNull ModelDamageSource source, double damage);
+    void damage(@NotNull ModelDamagedEvent event);
 
     /**
      * Called when the hitbox receives an interaction.
