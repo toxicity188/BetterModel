@@ -6,6 +6,7 @@
  */
 package kr.toxicity.model.impl.fabric.entity
 
+import kr.toxicity.model.api.bone.BoneMovement
 import kr.toxicity.model.api.bone.RenderedBone
 import kr.toxicity.model.api.config.DebugConfig
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
@@ -54,6 +55,7 @@ class HitBoxEntityImpl(
     AbstractArmorStand(EntityType.ARMOR_STAND, delegate.level()),
     HitBox
 {
+    private val posCache = BoneMovement()
     private var initialized = false
     private var jumpDelay = 0
     private var mounted = false
@@ -121,7 +123,7 @@ class HitBoxEntityImpl(
     }
 
     override fun relativePosition(): Vector3f {
-        return bone.hitBoxPosition().add(
+        return bone.hitBoxPosition(posCache).add(
             delegate.x.toFloat(),
             delegate.y.toFloat(),
             delegate.z.toFloat()

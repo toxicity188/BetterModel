@@ -8,6 +8,7 @@ package kr.toxicity.model.bukkit.nms.v1_21_R7
 
 import io.papermc.paper.event.entity.EntityKnockbackEvent
 import kr.toxicity.model.api.BetterModel
+import kr.toxicity.model.api.bone.BoneMovement
 import kr.toxicity.model.api.bone.RenderedBone
 import kr.toxicity.model.api.bukkit.BetterModelBukkit
 import kr.toxicity.model.api.config.DebugConfig
@@ -60,6 +61,7 @@ internal class HitBoxImpl(
     private val delegate: Entity,
     private var mountController: MountController
 ) : AbstractHitBox(delegate.level()) {
+    private val posCache = BoneMovement()
     private var initialized = false
     private var jumpDelay = 0
     private var mounted = false
@@ -118,7 +120,7 @@ internal class HitBoxImpl(
         this.mountController = controller
     }
     override fun relativePosition(): Vector3f = delegate.position().run {
-        bone.hitBoxPosition().add(x.toFloat(), y.toFloat(), z.toFloat())
+        bone.hitBoxPosition(posCache).add(x.toFloat(), y.toFloat(), z.toFloat())
     }
     override fun listener(): HitBoxListener = listener
     override fun getItemBySlot(slot: EquipmentSlot): ItemStack = ItemStack.EMPTY

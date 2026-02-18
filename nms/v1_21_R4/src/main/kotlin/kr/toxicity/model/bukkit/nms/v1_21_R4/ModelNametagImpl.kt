@@ -8,6 +8,8 @@ package kr.toxicity.model.bukkit.nms.v1_21_R4
 
 import com.mojang.math.Transformation
 import kr.toxicity.model.api.BetterModel
+import kr.toxicity.model.api.bone.BoneMovement
+import kr.toxicity.model.api.bone.BonePosition
 import kr.toxicity.model.api.bone.RenderedBone
 import kr.toxicity.model.api.nms.ModelNametag
 import kr.toxicity.model.api.nms.PacketBundler
@@ -50,6 +52,7 @@ internal class ModelNametagImpl(
         setTransformation(emptyTransformation)
         billboardConstraints = Display.BillboardConstraints.CENTER
     }
+    private val posCache = BoneMovement()
     private var alwaysVisible = false
     private var location = BetterModel.platform().adapter().zero()
 
@@ -68,7 +71,7 @@ internal class ModelNametagImpl(
     override fun send(player: PlatformPlayer) {
         if (display.text == VanillaComponent.empty()) return
         val hb = bone.group.hitBox?.centerPoint() ?: emptyVector
-        val pos = bone.worldPosition(hb, emptyVector, player.uuid())
+        val pos = bone.worldPosition(BonePosition(emptyVector, hb, player.uuid()), posCache)
         display.moveTo(Vec3(
             location.x() + pos.x,
             location.y() + pos.y,

@@ -52,6 +52,7 @@ public final class RenderedBone implements BoneEventHandler {
     private static final int INITIAL_TINT_VALUE = 0xFFFFFF;
     private static final Vector3f EMPTY_VECTOR = new Vector3f();
     private static final Quaternionf EMPTY_QUATERNION = new Quaternionf();
+    private static final BonePosition EMPTY_POSITION = new BonePosition(EMPTY_VECTOR, EMPTY_VECTOR, null);
 
     @Getter
     @NotNull
@@ -358,19 +359,19 @@ public final class RenderedBone implements BoneEventHandler {
     }
 
     public @NotNull Vector3f worldPosition() {
-        return worldPosition(EMPTY_VECTOR);
+        return worldPosition(EMPTY_POSITION);
     }
 
-    public @NotNull Vector3f worldPosition(@NotNull Vector3f localOffset) {
-        return worldPosition(localOffset, EMPTY_VECTOR);
+    public @NotNull Vector3f worldPosition(@NotNull BonePosition position) {
+        return worldPosition(position, new BoneMovement());
     }
 
-    public @NotNull Vector3f worldPosition(@NotNull Vector3f localOffset, @NotNull Vector3f globalOffset) {
-        return worldPosition(localOffset, globalOffset, null);
+    public @NotNull Vector3f worldPosition(@NotNull BoneMovement cache) {
+        return worldPosition(EMPTY_POSITION, cache);
     }
 
-    public @NotNull Vector3f worldPosition(@NotNull Vector3f localOffset, @NotNull Vector3f globalOffset, @Nullable UUID uuid) {
-        return state(uuid).worldPosition(localOffset, globalOffset);
+    public @NotNull Vector3f worldPosition(@NotNull BonePosition position, @NotNull BoneMovement cache) {
+        return state(position.state()).worldPosition(position, cache);
     }
 
     public @NotNull Vector3f worldRotation() {
@@ -515,16 +516,14 @@ public final class RenderedBone implements BoneEventHandler {
 
     @NotNull
     public Vector3f hitBoxPosition() {
-        var box = getGroup().getHitBox();
-        if (box != null) return worldPosition(box.centerPoint());
-        return worldPosition();
+        return hitBoxPosition(new BoneMovement());
     }
 
     @NotNull
-    public Quaternionf hitBoxViewRotation() {
-        return MathUtil.toQuaternion(worldRotation())
-            .rotateLocalX(-rotation.radianX())
-            .rotateLocalY(-rotation.radianY());
+    public Vector3f hitBoxPosition(@NotNull BoneMovement cache) {
+        var box = getGroup().getHitBox();
+        if (box != null) return worldPosition(new BonePosition(EMPTY_VECTOR, box.centerPoint(), null), cache);
+        return worldPosition(cache);
     }
 
     public float hitBoxScale() {
@@ -651,25 +650,25 @@ public final class RenderedBone implements BoneEventHandler {
             );
         }
 
-        private @NotNull Vector3f worldPosition(@NotNull Vector3f localOffset, @NotNull Vector3f globalOffset) {
+        private @NotNull Vector3f worldPosition(@NotNull BonePosition position, @NotNull BoneMovement cache) {
             var progress = progress();
             var current = current();
             var before = before();
-            return lock.accessToReadLock(() -> MathUtil.fma(
-                    InterpolationUtil.lerp(before.position(), current.position(), progress)
-                        .add(itemStack.offset())
-                        .add(localOffset)
-                        .rotate(
-                            MathUtil.toQuaternion(InterpolationUtil.lerp(before.rawRotation(), current.rawRotation(), progress))
-                        ),
-                    InterpolationUtil.lerp(before.scale(), current.scale(), progress),
-                    globalOffset
-
-                )
-                .add(root.getGroup().getPosition())
-                .mul(scale.getAsFloat())
-                .rotateX(-rotation.radianX())
-                .rotateY(-rotation.radianY()));
+            return lock.accessToReadLock(() -> {
+                var interpolated = before.lerp(current, progress, cache);
+                return MathUtil.fma(
+                        interpolated.position()
+                            .add(itemStack.offset())
+                            .add(position.localOffset())
+                            .rotate(interpolated.rotation()),
+                        interpolated.scale(),
+                        position.globalOffset()
+                    )
+                    .add(root.getGroup().getPosition())
+                    .mul(scale.getAsFloat())
+                    .rotateX(-rotation.radianX())
+                    .rotateY(-rotation.radianY());
+            });
         }
 
         private @NotNull Vector3f worldRotation() {

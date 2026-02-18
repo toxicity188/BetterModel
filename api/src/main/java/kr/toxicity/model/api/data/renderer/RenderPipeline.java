@@ -436,6 +436,8 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     public boolean matchTree(@NotNull BonePredicate predicate, BiPredicate<RenderedBone, BonePredicate> mapper) {
         Objects.requireNonNull(predicate);
         Objects.requireNonNull(mapper);
+        if (predicate == BonePredicate.FALSE) return false;
+        if (predicate == BonePredicate.TRUE || predicate.applyAtChildren() == BonePredicate.State.NOT_SET) return matchTree(b -> mapper.test(b, predicate));
         var result = false;
         for (RenderedBone value : boneMap.values()) {
             if (value.matchTree(predicate, mapper)) result = true;

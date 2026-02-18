@@ -6,6 +6,8 @@
  */
 package kr.toxicity.model.api.bone;
 
+import kr.toxicity.model.api.util.InterpolationUtil;
+import kr.toxicity.model.api.util.MathUtil;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -36,7 +38,7 @@ public record BoneMovement(
     public BoneMovement() {
         this(
             new Vector3f(),
-            new Vector3f(),
+            new Vector3f(1),
             new Quaternionf(),
             new Vector3f()
         );
@@ -55,5 +57,21 @@ public record BoneMovement(
         rotation.set(movement.rotation);
         rawRotation.set(movement.rawRotation);
         return this;
+    }
+
+    /**
+     * Linearly interpolates between this movement and another movement.
+     *
+     * @param to the target movement
+     * @param alpha the interpolation factor (0.0 to 1.0)
+     * @param dest the destination movement to store the result
+     * @return the destination movement
+     * @since 2.0.2
+     */
+    public @NotNull BoneMovement lerp(@NotNull BoneMovement to, float alpha, @NotNull BoneMovement dest) {
+        InterpolationUtil.lerp(position, to.position, alpha, dest.position);
+        InterpolationUtil.lerp(scale, to.scale, alpha, dest.scale);
+        MathUtil.toQuaternion(InterpolationUtil.lerp(rawRotation, to.rawRotation, alpha, dest.rawRotation), dest.rotation);
+        return dest;
     }
 }

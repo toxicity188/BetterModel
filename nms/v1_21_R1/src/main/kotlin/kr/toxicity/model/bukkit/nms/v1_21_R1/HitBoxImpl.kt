@@ -7,6 +7,7 @@
 package kr.toxicity.model.bukkit.nms.v1_21_R1
 
 import kr.toxicity.model.api.BetterModel
+import kr.toxicity.model.api.bone.BoneMovement
 import kr.toxicity.model.api.bone.RenderedBone
 import kr.toxicity.model.api.config.DebugConfig
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
@@ -56,6 +57,7 @@ internal class HitBoxImpl(
     private val delegate: Entity,
     private var mountController: MountController
 ) : AbstractHitBox(delegate.level()) {
+    private val posCache = BoneMovement()
     private var initialized = false
     private var jumpDelay = 0
     private var mounted = false
@@ -112,7 +114,7 @@ internal class HitBoxImpl(
         this.mountController = controller
     }
     override fun relativePosition(): Vector3f = delegate.position().run {
-        bone.hitBoxPosition().add(x.toFloat(), y.toFloat(), z.toFloat())
+        bone.hitBoxPosition(posCache).add(x.toFloat(), y.toFloat(), z.toFloat())
     }
     override fun listener(): HitBoxListener = listener
 

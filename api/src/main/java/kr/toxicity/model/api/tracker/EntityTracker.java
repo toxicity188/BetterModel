@@ -9,6 +9,7 @@ package kr.toxicity.model.api.tracker;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationModifier;
+import kr.toxicity.model.api.bone.BoneMovement;
 import kr.toxicity.model.api.bone.BoneTags;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.data.renderer.RenderPipeline;
@@ -97,8 +98,9 @@ public class EntityTracker extends Tracker {
                     if (entity instanceof BasePlayer) d.moveDuration(1);
                 });
                 var baseScale = (float) (box.x() + box.z()) / 4F;
+                var posCache = new BoneMovement();
                 tick(((t, s) -> {
-                    var wPos = bone.hitBoxPosition();
+                    var wPos = bone.hitBoxPosition(posCache);
                     shadow.shadowRadius(scale.getAsFloat() * baseScale);
                     shadow.syncEntity(entity);
                     shadow.syncPosition(location().add(wPos.x, wPos.y, wPos.z));
