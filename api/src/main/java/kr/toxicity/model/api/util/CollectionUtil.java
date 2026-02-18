@@ -247,19 +247,18 @@ public final class CollectionUtil {
     }
 
     /**
-     * Associates collection to map
-     * @param collection collection
-     * @param keyMapper key mapper
-     * @param valueMapper value mapper
-     * @return unmodifiable map
-     * @param <E> element
+     * Map some map's value.
+     * @param original original map
+     * @param mapper value mapper
+     * @return unmodifiable sequenced map
      * @param <K> key
      * @param <V> value
+     * @param <R> new value
      */
     @NotNull
     @Unmodifiable
-    public static <E, K, V> Map<K, V> associate(@NotNull Collection<E> collection, @NotNull Function<E, K> keyMapper, @NotNull Function<E, V> valueMapper) {
-        return collection.isEmpty() ? Collections.emptyMap() : associate(collection.stream(), keyMapper, valueMapper);
+    public static <K, V, R> SequencedMap<K, R> mapValueSequenced(@NotNull Map<K, V> original, @NotNull Function<V, R> mapper) {
+        return associateSequenced(original.entrySet(), Map.Entry::getKey, e -> mapper.apply(e.getValue()));
     }
 
     /**
@@ -277,6 +276,22 @@ public final class CollectionUtil {
             if (!testedValue) logger.warn(LogUtil.toLog(lazyLogFunction.apply(t), NamedTextColor.YELLOW));
             return testedValue;
         };
+    }
+
+    /**
+     * Associates collection to map
+     * @param collection collection
+     * @param keyMapper key mapper
+     * @param valueMapper value mapper
+     * @return unmodifiable map
+     * @param <E> element
+     * @param <K> key
+     * @param <V> value
+     */
+    @NotNull
+    @Unmodifiable
+    public static <E, K, V> Map<K, V> associate(@NotNull Collection<E> collection, @NotNull Function<E, K> keyMapper, @NotNull Function<E, V> valueMapper) {
+        return collection.isEmpty() ? Collections.emptyMap() : associate(collection.stream(), keyMapper, valueMapper);
     }
 
     /**
@@ -321,6 +336,74 @@ public final class CollectionUtil {
     @Unmodifiable
     public static <E, K, V> Map<K, V> associate(@NotNull Stream<E> stream, @NotNull Function<E, K> keyMapper, @NotNull Function<E, V> valueMapper) {
         return stream.collect(Collectors.toUnmodifiableMap(keyMapper, valueMapper));
+    }
+
+    /**
+     * Associates collection to sequenced map
+     * @param collection collection
+     * @param keyMapper key mapper
+     * @param valueMapper value mapper
+     * @return unmodifiable sequenced map
+     * @param <E> element
+     * @param <K> key
+     * @param <V> value
+     */
+    @NotNull
+    @Unmodifiable
+    public static <E, K, V> SequencedMap<K, V> associateSequenced(@NotNull Collection<E> collection, @NotNull Function<E, K> keyMapper, @NotNull Function<E, V> valueMapper) {
+        return collection.isEmpty() ? Collections.emptyNavigableMap() : associateSequenced(collection.stream(), keyMapper, valueMapper);
+    }
+
+    /**
+     * Associates stream to sequenced map
+     * @param collection collection
+     * @param keyMapper key mapper
+     * @return unmodifiable sequenced map
+     * @param <E> element
+     * @param <K> key
+     */
+    @NotNull
+    @Unmodifiable
+    public static <E, K> SequencedMap<K, E> associateSequenced(@NotNull Collection<E> collection, @NotNull Function<E, K> keyMapper) {
+        return collection.isEmpty() ? Collections.emptyNavigableMap() : associateSequenced(collection.stream(), keyMapper);
+    }
+
+    /**
+     * Associates stream to sequenced map
+     * @param stream stream
+     * @param keyMapper key mapper
+     * @return unmodifiable sequenced map
+     * @param <E> element
+     * @param <K> key
+     */
+    @NotNull
+    @Unmodifiable
+    public static <E, K> SequencedMap<K, E> associateSequenced(@NotNull Stream<E> stream, @NotNull Function<E, K> keyMapper) {
+        return associateSequenced(stream, keyMapper, e -> e);
+    }
+
+    /**
+     * Associates stream to sequenced map
+     * @param stream stream
+     * @param keyMapper key mapper
+     * @param valueMapper value mapper
+     * @return unmodifiable sequenced map
+     * @param <E> element
+     * @param <K> key
+     * @param <V> value
+     */
+    @NotNull
+    @Unmodifiable
+    public static <E, K, V> SequencedMap<K, V> associateSequenced(@NotNull Stream<E> stream, @NotNull Function<E, K> keyMapper, @NotNull Function<E, V> valueMapper) {
+        return stream.collect(Collectors.collectingAndThen(
+            Collectors.toMap(
+                keyMapper,
+                valueMapper,
+                (oldV, newV) -> { throw new IllegalStateException("Duplicate key: " + oldV + " and " + newV); },
+                LinkedHashMap::new
+            ),
+            Collections::unmodifiableSequencedMap
+        ));
     }
 
     /**

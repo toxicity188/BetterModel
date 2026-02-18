@@ -134,7 +134,7 @@ public abstract class Tracker implements AutoCloseable {
         };
         if (modifier.sightTrace()) pipeline.viewFilter(p -> EntityUtil.canSee(p.eyeLocation(), location()));
         frame((t, s) -> {
-            if (readyForForceUpdate.compareAndSet(true, false)) t.pipeline.iterateTree(b -> b.dirtyUpdate(s.dataBundler));
+            if (readyForForceUpdate.compareAndSet(true, false)) t.pipeline.forEach(b -> b.dirtyUpdate(s.dataBundler));
         });
         tick((t, s) -> pipeline.rotate(
             t.rotation(),
@@ -1097,7 +1097,7 @@ public abstract class Tracker implements AutoCloseable {
                 bundlerSet.perPlayerViewBundler.remove(uuid);
                 channel().ifPresent(handler -> {
                     var bundler = pipeline.createBundler();
-                    pipeline.iterateTree(bone -> bone.forceTransformation(bundler));
+                    pipeline.forEach(bone -> bone.forceTransformation(bundler));
                     bundler.send(handler.player());
                     EventUtil.call(PlayerPerAnimationEndEvent.class, () -> new PlayerPerAnimationEndEvent(Tracker.this, handler.player()));
                 });

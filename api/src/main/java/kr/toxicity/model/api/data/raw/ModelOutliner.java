@@ -127,7 +127,7 @@ public sealed interface ModelOutliner {
 
         @Override
         public @NotNull Stream<ModelOutliner> flatten() {
-            return Stream.concat(
+            return children.isEmpty() ? Stream.of(this) : Stream.concat(
                 Stream.of(this),
                 children.stream().flatMap(ModelOutliner::flatten)
             );

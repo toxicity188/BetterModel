@@ -24,10 +24,11 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.SequencedMap;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import static kr.toxicity.model.api.util.CollectionUtil.mapValue;
+import static kr.toxicity.model.api.util.CollectionUtil.mapValueSequenced;
 
 /**
  * A blueprint renderer.
@@ -40,7 +41,7 @@ import static kr.toxicity.model.api.util.CollectionUtil.mapValue;
 public record ModelRenderer(
     @NotNull String name,
     @NotNull Type type,
-    @NotNull @Unmodifiable Map<BoneName, RendererGroup> rendererGroups,
+    @NotNull @Unmodifiable SequencedMap<BoneName, RendererGroup> rendererGroups,
     @NotNull @Unmodifiable Map<String, BlueprintAnimation> animations
 ) {
     /**
@@ -625,7 +626,7 @@ public record ModelRenderer(
     }
 
     private @NotNull RenderPipeline pipeline(@NotNull RenderSource<?> source) {
-        return new RenderPipeline(this, source, mapValue(rendererGroups, value -> value.create(source)));
+        return new RenderPipeline(this, source, mapValueSequenced(rendererGroups, value -> value.create(source)));
     }
 
     /**

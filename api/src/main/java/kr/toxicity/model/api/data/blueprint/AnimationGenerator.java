@@ -178,7 +178,7 @@ public final class AnimationGenerator {
 
         @NotNull
         Stream<AnimationTree> flatten() {
-            return Stream.concat(
+            return children.isEmpty() ? Stream.of(this) : Stream.concat(
                 Stream.of(this),
                 children.stream().flatMap(AnimationTree::flatten)
             );

@@ -22,11 +22,11 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 import org.joml.Vector3f;
 
-import java.util.Map;
+import java.util.SequencedMap;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import static kr.toxicity.model.api.util.CollectionUtil.mapValue;
+import static kr.toxicity.model.api.util.CollectionUtil.mapValueSequenced;
 
 /**
  * A group of models.
@@ -43,7 +43,7 @@ public final class RendererGroup {
     private final TransformedItemStack itemStack;
     @Getter
     @Unmodifiable
-    private final Map<BoneName, RendererGroup> children;
+    private final SequencedMap<BoneName, RendererGroup> children;
     @Getter
     private final @Nullable ModelBoundingBox hitBox;
 
@@ -65,7 +65,7 @@ public final class RendererGroup {
         float scale,
         @Nullable PlatformItemStack itemStack,
         @NotNull BlueprintElement.Bone group,
-        @NotNull Map<BoneName, RendererGroup> children,
+        @NotNull SequencedMap<BoneName, RendererGroup> children,
         @Nullable ModelBoundingBox box
     ) {
         this.parent = group;
@@ -88,7 +88,7 @@ public final class RendererGroup {
     }
 
     public @NotNull Stream<RendererGroup> flatten() {
-        return Stream.concat(
+        return children.isEmpty() ? Stream.of(this) : Stream.concat(
             Stream.of(this),
             children.values().stream().flatMap(RendererGroup::flatten)
         );
@@ -130,7 +130,7 @@ public final class RendererGroup {
                 MathUtil.toQuaternion(rotation),
                 rotation
             ),
-            parent -> mapValue(children, value -> value.create(context, parent))
+            parent -> mapValueSequenced(children, value -> value.create(context, parent))
         );
     }
 

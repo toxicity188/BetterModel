@@ -23,6 +23,7 @@ import kr.toxicity.model.api.platform.PlatformPlayer;
 import kr.toxicity.model.api.tracker.ModelRotation;
 import kr.toxicity.model.api.tracker.Tracker;
 import kr.toxicity.model.api.util.*;
+import kr.toxicity.model.api.util.collection.SingletonSequencedSet;
 import kr.toxicity.model.api.util.function.BonePredicate;
 import kr.toxicity.model.api.util.function.FloatConstantSupplier;
 import kr.toxicity.model.api.util.function.FloatSupplier;
@@ -32,6 +33,7 @@ import lombok.Setter;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
@@ -65,11 +67,11 @@ public final class RenderedBone implements BoneEventHandler {
     @Getter
     final RenderedBone parent;
 
-    private SequencedSet<RenderedBone> flattenBones;
+    private volatile SequencedSet<RenderedBone> flattenBones;
 
     @Getter
     @NotNull
-    final Map<BoneName, RenderedBone> children;
+    final SequencedMap<BoneName, RenderedBone> children;
 
     private final Int2ObjectMap<PlatformItemStack> tintCacheMap = new Int2ObjectOpenHashMap<>();
     @Getter
@@ -121,7 +123,7 @@ public final class RenderedBone implements BoneEventHandler {
         @Nullable RenderedBone parent,
         @NotNull BoneRenderContext context,
         @NotNull BoneMovement movement,
-        @NotNull Function<RenderedBone, Map<BoneName, RenderedBone>> childrenMapper
+        @NotNull Function<RenderedBone, SequencedMap<BoneName, RenderedBone>> childrenMapper
     ) {
         this.group = group;
         this.parent = parent;
@@ -476,31 +478,20 @@ public final class RenderedBone implements BoneEventHandler {
         return flattenBones().stream();
     }
 
-    public @NotNull SequencedSet<RenderedBone> flattenBones() {
+    @Unmodifiable
+    @NotNull
+    public SequencedSet<RenderedBone> flattenBones() {
         if (flattenBones != null) return flattenBones;
         synchronized (this) {
             if (flattenBones != null) return flattenBones;
-            var set = Stream.concat(
+            return flattenBones = children.isEmpty() ? SingletonSequencedSet.of(this) : Stream.concat(
                 Stream.of(this),
                 children.values().stream().flatMap(RenderedBone::flatten)
-            ).collect(Collectors.toCollection(LinkedHashSet::new));
-            return flattenBones = Collections.unmodifiableSequencedSet(set);
+            ).collect(Collectors.collectingAndThen(
+                Collectors.toCollection(LinkedHashSet::new),
+                Collections::unmodifiableSequencedSet
+            ));
         }
-    }
-
-    public void iterateTree(@NotNull Consumer<RenderedBone> boneConsumer) {
-        boneConsumer.accept(this);
-        for (RenderedBone value : children.values()) {
-            value.iterateTree(boneConsumer);
-        }
-    }
-
-    public boolean matchTree(@NotNull Predicate<RenderedBone> bonePredicate) {
-        var result = bonePredicate.test(this);
-        for (RenderedBone value : children.values()) {
-            if (value.matchTree(bonePredicate)) result = true;
-        }
-        return result;
     }
 
     public boolean matchTree(@NotNull BonePredicate predicate, @NotNull BiPredicate<RenderedBone, BonePredicate> mapper) {

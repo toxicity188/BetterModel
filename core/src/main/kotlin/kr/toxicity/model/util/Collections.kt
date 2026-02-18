@@ -13,7 +13,10 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.stream.Collectors
 import java.util.stream.Stream
 
+fun <K, V> emptySequencedMap(): SequencedMap<K, V> = Collections.emptyNavigableMap()
+
 fun <K, V> MutableMap<K, V>.toImmutableView(): Map<K, V> = Collections.unmodifiableMap(this)
+fun <K, V> SequencedMap<K, V>.toImmutableView(): SequencedMap<K, V> = Collections.unmodifiableSequencedMap(this)
 
 fun <T> Stream<T>.toSet(): Set<T> = collect(Collectors.toUnmodifiableSet())
 fun <T> Stream<T>.toMutableSet(): MutableSet<T> = collect(Collectors.toSet())

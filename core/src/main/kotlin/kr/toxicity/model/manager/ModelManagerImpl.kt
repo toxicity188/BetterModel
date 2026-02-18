@@ -23,6 +23,7 @@ import kr.toxicity.model.api.platform.PlatformNamespace
 import kr.toxicity.model.util.*
 import net.kyori.adventure.text.format.NamedTextColor.*
 import java.io.File
+import java.util.SequencedMap
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.extension
 
@@ -275,23 +276,25 @@ object ModelManagerImpl : ModelManager, GlobalManager {
 
         private fun ModelBlueprint.toRenderer(type: ModelRenderer.Type, builder: (BlueprintElement.Group) -> Int?): ModelRenderer {
             fun BlueprintElement.Bone.parse(): RendererGroup {
-                if (this !is BlueprintElement.Group) return RendererGroup(1.0F, null, this, emptyMap(), null)
+                if (this !is BlueprintElement.Group) return RendererGroup(1.0F, null, this, emptySequencedMap(), null)
                 return RendererGroup(
                     scale(),
                     if (name.toItemMapper() !== BoneItemMapper.EMPTY) null else builder(this)?.let { i ->
                         CONFIG.item().get().modelData(i, itemModelNamespace)
                     },
                     this,
-                    children.filterIsInstance<BlueprintElement.Bone>()
-                        .associate { it.name() to it.parse() },
+                    (children.filterIsInstance<BlueprintElement.Bone>()
+                        .associate { it.name() to it.parse() } as SequencedMap)
+                        .toImmutableView(),
                     hitBox(),
                 )
             }
             return ModelRenderer(
                 name,
                 type,
-                elements.filterIsInstance<BlueprintElement.Bone>()
-                    .associate { it.name() to it.parse() },
+                (elements.filterIsInstance<BlueprintElement.Bone>()
+                    .associate { it.name() to it.parse() } as SequencedMap)
+                    .toImmutableView(),
                 animations
             )
         }

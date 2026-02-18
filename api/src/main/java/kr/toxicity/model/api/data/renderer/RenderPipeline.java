@@ -33,6 +33,7 @@ import java.util.function.*;
 import java.util.stream.Stream;
 
 import static kr.toxicity.model.api.util.CollectionUtil.associate;
+import static kr.toxicity.model.api.util.CollectionUtil.associateSequenced;
 
 /**
  * Represents the rendering pipeline for a specific model instance.
@@ -43,15 +44,15 @@ import static kr.toxicity.model.api.util.CollectionUtil.associate;
  *
  * @since 1.15.2
  */
-public final class RenderPipeline implements BoneEventHandler {
+public final class RenderPipeline implements BoneEventHandler, Iterable<RenderedBone> {
 
     @Getter
     private final ModelRenderer parent;
     @Getter
     private final RenderSource<?> source;
 
-    private final Map<BoneName, RenderedBone> boneMap;
-    private final Map<BoneName, RenderedBone> flattenBoneMap;
+    private final SequencedMap<BoneName, RenderedBone> boneMap;
+    private final SequencedMap<BoneName, RenderedBone> flattenBoneMap;
     private final int displayAmount;
     private final Map<UUID, SpawnedPlayer> playerMap = new ConcurrentHashMap<>();
     private final Set<UUID> hidePlayerSet = ConcurrentHashMap.newKeySet();
@@ -81,13 +82,13 @@ public final class RenderPipeline implements BoneEventHandler {
     public RenderPipeline(
         @NotNull ModelRenderer parent,
         @NotNull RenderSource<?> source,
-        @NotNull Map<BoneName, RenderedBone> boneMap
+        @NotNull SequencedMap<BoneName, RenderedBone> boneMap
     ) {
         this.parent = parent;
         this.source = source;
         this.boneMap = boneMap;
         //Bone
-        flattenBoneMap = associate(
+        flattenBoneMap = associateSequenced(
             boneMap.values()
                 .stream()
                 .flatMap(RenderedBone::flatten)
@@ -278,7 +279,7 @@ public final class RenderPipeline implements BoneEventHandler {
         var match = matchTree(RenderedBone::tick);
         if (match) {
             ikSolver.solve();
-            iterateTree(b -> b.sendTransformation(null, bundler));
+            forEach(b -> b.sendTransformation(null, bundler));
         }
         return match;
     }
@@ -295,7 +296,7 @@ public final class RenderPipeline implements BoneEventHandler {
         var match = matchTree(b -> b.tick(uuid));
         if (match) {
             ikSolver.solve(uuid);
-            iterateTree(b -> b.sendTransformation(uuid, bundler));
+            forEach(b -> b.sendTransformation(uuid, bundler));
         }
         return match;
     }
@@ -309,7 +310,7 @@ public final class RenderPipeline implements BoneEventHandler {
     public void defaultPosition(@NotNull Function<Vector3f, Vector3f> movement) {
         var vec = new Vector3f();
         var supplier = FunctionUtil.throttleTick(() -> movement.apply(vec));
-        iterateTree(b -> b.defaultPosition(supplier));
+        forEach(b -> b.defaultPosition(supplier));
     }
 
     /**
@@ -319,7 +320,7 @@ public final class RenderPipeline implements BoneEventHandler {
      * @since 1.15.2
      */
     public void scale(@NotNull FloatSupplier scale) {
-        iterateTree(b -> b.scale(scale));
+        forEach(b -> b.scale(scale));
     }
 
     /**
@@ -397,7 +398,7 @@ public final class RenderPipeline implements BoneEventHandler {
         playerMap.put(player.uuid(), spawnedPlayer);
         spawnPacketHandler.accept(bundler);
         var hided = isHide(player);
-        iterateTree(b -> b.spawn(hided, bundler));
+        forEach(b -> b.spawn(hided, bundler));
         consumer.accept(spawnedPlayer);
         return true;
     }
@@ -421,7 +422,7 @@ public final class RenderPipeline implements BoneEventHandler {
     @ApiStatus.Internal
     private void remove0(@NotNull PacketBundler bundler) {
         despawnPacketHandler.accept(bundler);
-        iterateTree(b -> b.remove(bundler));
+        forEach(b -> b.remove(bundler));
     }
 
     /**
@@ -470,23 +471,10 @@ public final class RenderPipeline implements BoneEventHandler {
     public boolean matchTree(@NotNull Predicate<RenderedBone> predicate) {
         Objects.requireNonNull(predicate);
         var result = false;
-        for (RenderedBone value : boneMap.values()) {
-            if (value.matchTree(predicate)) result = true;
+        for (RenderedBone value : this) {
+            if (predicate.test(value)) result = true;
         }
         return result;
-    }
-
-    /**
-     * Iterates over all bones in the tree.
-     *
-     * @param consumer the consumer to apply to each bone
-     * @since 1.15.2
-     */
-    public void iterateTree(@NotNull Consumer<RenderedBone> consumer) {
-        Objects.requireNonNull(consumer);
-        for (RenderedBone value : boneMap.values()) {
-            value.iterateTree(consumer);
-        }
     }
 
     /**
@@ -563,7 +551,7 @@ public final class RenderPipeline implements BoneEventHandler {
         if (isHide(player) || !hidePlayerSet.add(player.uuid())) return false;
         if (isSpawned(player.uuid())) {
             var bundler = createBundler();
-            iterateTree(b -> b.forceUpdate(false, bundler));
+            forEach(b -> b.forceUpdate(false, bundler));
             hidePacketHandler.accept(bundler);
             if (bundler.isNotEmpty()) bundler.send(player);
         }
@@ -593,12 +581,24 @@ public final class RenderPipeline implements BoneEventHandler {
         if (!isHide(player) || !hidePlayerSet.remove(player.uuid())) return false;
         if (isSpawned(player.uuid())) {
             var bundler = createBundler();
-            iterateTree(b -> b.forceUpdate(true, bundler));
+            forEach(b -> b.forceUpdate(true, bundler));
             showPacketHandler.accept(bundler);
             if (bundler.isNotEmpty()) bundler.send(player);
         }
         player.task(() -> hitboxes().forEach(hb -> hb.show(player)));
         return true;
+    }
+
+    @Override
+    @NotNull
+    public Iterator<RenderedBone> iterator() {
+        return flattenBoneMap.values().iterator();
+    }
+
+    @Override
+    @NotNull
+    public Spliterator<RenderedBone> spliterator() {
+        return flattenBoneMap.values().spliterator();
     }
 
     /**
@@ -620,7 +620,7 @@ public final class RenderPipeline implements BoneEventHandler {
             initialLoad = true;
             if (isHide(handler.player())) return;
             var b = createBundler();
-            iterateTree(bone -> bone.forceUpdate(b));
+            forEach(bone -> bone.forceUpdate(b));
             if (b.isNotEmpty()) b.send(handler.player());
         }
     }
