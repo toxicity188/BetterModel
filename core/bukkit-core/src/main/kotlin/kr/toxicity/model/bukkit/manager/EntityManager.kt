@@ -97,7 +97,7 @@ object EntityManager : GlobalManager {
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         fun EntityPotionEffectEvent.potion() { //Apply potion effect
             if (action == EntityPotionEffectEvent.Action.CHANGED) return
-            if (oldEffect?.let { effectSet.contains(it.type) } == true || newEffect?.let { effectSet.contains(it.type) } == true) entity.forEachTracker { it.updateBaseEntity() }
+            if (oldEffect?.let { it.type in effectSet } == true || newEffect?.let { it.type in effectSet } == true) entity.forEachTracker { it.updateBaseEntity() }
         }
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         fun EntityDismountEvent.dismount() { //Dismount

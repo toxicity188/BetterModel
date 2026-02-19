@@ -84,15 +84,6 @@ public record ModelRenderer(
         return Optional.ofNullable(animations().get(name));
     }
 
-    /**
-     * Gets model's name.
-     *
-     * @return name
-     */
-    public @NotNull String name() {
-        return name;
-    }
-
     //----- Dummy -----
 
     /**

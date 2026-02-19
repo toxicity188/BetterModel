@@ -42,11 +42,11 @@ public final class BoneIKSolver {
         var target = boneMap.get(ikTarget);
         if (target == null) return;
         var source = ikSource == null ? target.root : boneMap.getOrDefault(ikSource, target.root);
-        var list = source.flatten()
+        var chainArray = source.flatten()
             .filter(bone -> !bone.flattenBones().contains(locator) && bone.flattenBones().contains(target))
             .toArray(RenderedBone[]::new);
-        if (list.length < 2) return;
-        locators.put(locator, new IKChain(source, list, new IKCache(list.length)));
+        if (chainArray.length < 2) return;
+        locators.put(locator, new IKChain(source, chainArray, new IKCache(chainArray.length)));
     }
 
     /**
