@@ -697,7 +697,7 @@ public abstract class Tracker implements AutoCloseable {
      * </p>
      *
      * <pre>{@code
-     * tracker.listenHitBox(ModelInteractEvent.class, event -> {
+     * tracker.listenHitBox(HitBoxInteractEvent.class, event -> {
      *     // custom interaction handling
      * });
      * }</pre>
