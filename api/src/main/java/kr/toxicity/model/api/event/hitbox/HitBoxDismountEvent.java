@@ -4,25 +4,20 @@
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
-package kr.toxicity.model.api.event;
+package kr.toxicity.model.api.event.hitbox;
 
 import kr.toxicity.model.api.nms.HitBox;
+import kr.toxicity.model.api.platform.PlatformEntity;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Triggered when a hitbox is synchronized.
+ * An event called when an entity dismounts from a hit box.
  *
- * @param hitBox synchronized hitbox
+ * @param hitBox the hit box
+ * @param entity the entity
  * @since 2.1.0
  */
-public record HitBoxSyncEvent(@NotNull HitBox hitBox) implements HitBoxEvent {
-
-    /**
-     * Returns the synchronized hitbox.
-     *
-     * @return synchronized hitbox
-     * @since 2.1.0
-     */
+public record HitBoxDismountEvent(@NotNull HitBox hitBox, @NotNull PlatformEntity entity) implements HitBoxEvent {
     @Override
     public @NotNull HitBox getHitBox() {
         return hitBox;

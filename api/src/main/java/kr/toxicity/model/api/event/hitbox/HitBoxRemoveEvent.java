@@ -4,7 +4,7 @@
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
-package kr.toxicity.model.api.event;
+package kr.toxicity.model.api.event.hitbox;
 
 import kr.toxicity.model.api.nms.HitBox;
 import org.jetbrains.annotations.NotNull;

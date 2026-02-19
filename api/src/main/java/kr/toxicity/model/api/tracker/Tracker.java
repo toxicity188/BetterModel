@@ -18,6 +18,7 @@ import kr.toxicity.model.api.data.renderer.RenderPipeline;
 import kr.toxicity.model.api.data.renderer.RenderSource;
 import kr.toxicity.model.api.entity.BaseEntity;
 import kr.toxicity.model.api.event.*;
+import kr.toxicity.model.api.event.hitbox.HitBoxEvent;
 import kr.toxicity.model.api.nms.*;
 import kr.toxicity.model.api.platform.PlatformLocation;
 import kr.toxicity.model.api.platform.PlatformPlayer;
@@ -690,41 +691,24 @@ public abstract class Tracker implements AutoCloseable {
     }
 
     /**
-     * Registers an interaction listener for newly created hitboxes.
+     * Registers a hitbox event listener for newly created hitboxes.
      * <p>
      * This is a convenience wrapper over {@link #listenHitBox(BiFunction)}.
      * </p>
      *
      * <pre>{@code
-     * tracker.listenInteract(event -> {
+     * tracker.listenHitBox(ModelInteractEvent.class, event -> {
      *     // custom interaction handling
      * });
      * }</pre>
      *
-     * @param consumer the interaction consumer
-     * @since 2.0.2
+     * @param eventClass target hitbox event class
+     * @param consumer event consumer
+     * @param <T> event type
+     * @since 2.1.0
      */
-    public void listenInteract(@NotNull Consumer<ModelInteractEvent> consumer) {
-        listenHitBox((bone, builder) -> builder.interact(consumer));
-    }
-
-    /**
-     * Registers an interaction-at listener for newly created hitboxes.
-     * <p>
-     * This is a convenience wrapper over {@link #listenHitBox(BiFunction)}.
-     * </p>
-     *
-     * <pre>{@code
-     * tracker.listenInteractAt(event -> {
-     *     // custom interaction-at handling
-     * });
-     * }</pre>
-     *
-     * @param consumer the interaction-at consumer
-     * @since 2.0.2
-     */
-    public void listenInteractAt(@NotNull Consumer<ModelInteractAtEvent> consumer) {
-        listenHitBox((bone, builder) -> builder.interactAt(consumer));
+    public <T extends HitBoxEvent> void listenHitBox(@NotNull Class<T> eventClass, @NotNull Consumer<T> consumer) {
+        listenHitBox((bone, builder) -> builder.listen(eventClass, consumer));
     }
 
     //--- Update action ---

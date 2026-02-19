@@ -6,14 +6,8 @@
  */
 package kr.toxicity.model.api.nms;
 
-import kr.toxicity.model.api.event.DismountModelEvent;
-import kr.toxicity.model.api.event.HitBoxEvent;
-import kr.toxicity.model.api.event.HitBoxRemoveEvent;
-import kr.toxicity.model.api.event.HitBoxSyncEvent;
-import kr.toxicity.model.api.event.ModelDamagedEvent;
-import kr.toxicity.model.api.event.ModelInteractAtEvent;
-import kr.toxicity.model.api.event.ModelInteractEvent;
-import kr.toxicity.model.api.event.MountModelEvent;
+import com.google.common.collect.ImmutableMap;
+import kr.toxicity.model.api.event.hitbox.*;
 import kr.toxicity.model.api.platform.PlatformEntity;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,7 +39,7 @@ public interface HitBoxListener {
      * @since 1.15.2
      */
     static @NotNull Builder builder() {
-        return new Builder();
+        return new Builder(new HashMap<>());
     }
 
     /**
@@ -54,16 +48,7 @@ public interface HitBoxListener {
      * @return a new builder
      * @since 1.15.2
      */
-    default @NotNull Builder toBuilder() {
-        return new Builder()
-                .sync(this::sync)
-                .damage(this::damage)
-                .interact(this::interact)
-                .interactAt(this::interactAt)
-                .remove(this::remove)
-                .mount(this::mount)
-                .dismount(this::dismount);
-    }
+    @NotNull Builder toBuilder();
 
     /**
      * Builder for {@link HitBoxListener}.
@@ -72,12 +57,13 @@ public interface HitBoxListener {
      */
     final class Builder {
 
-        private final Map<Class<? extends HitBoxEvent>, Consumer<?>> listeners = new HashMap<>();
+        private final Map<Class<? extends HitBoxEvent>, Consumer<?>> listeners;
 
         /**
          * Private initializer.
          */
-        private Builder() {
+        private Builder(@NotNull Map<Class<? extends HitBoxEvent>, Consumer<?>> listeners) {
+            this.listeners = listeners;
         }
 
         /**
@@ -91,8 +77,7 @@ public interface HitBoxListener {
          */
         @SuppressWarnings("unchecked")
         public <T extends HitBoxEvent> @NotNull Builder listen(@NotNull Class<T> eventClass, @NotNull Consumer<T> consumer) {
-            var old = listeners.get(eventClass);
-            listeners.put(eventClass, old == null ? consumer : ((Consumer<T>) old).andThen(consumer));
+            listeners.compute(eventClass, (k, old) -> old == null ? consumer : ((Consumer<T>) old).andThen(consumer));
             return this;
         }
 
@@ -114,8 +99,8 @@ public interface HitBoxListener {
          * @return this builder
          * @since 2.0.2
          */
-        public @NotNull Builder damage(@NotNull Consumer<ModelDamagedEvent> damage) {
-            return listen(ModelDamagedEvent.class, damage);
+        public @NotNull Builder damage(@NotNull Consumer<HitBoxDamagedEvent> damage) {
+            return listen(HitBoxDamagedEvent.class, damage);
         }
 
         /**
@@ -125,8 +110,8 @@ public interface HitBoxListener {
          * @return this builder
          * @since 2.0.2
          */
-        public @NotNull Builder interact(@NotNull Consumer<ModelInteractEvent> interact) {
-            return listen(ModelInteractEvent.class, interact);
+        public @NotNull Builder interact(@NotNull Consumer<HitBoxInteractEvent> interact) {
+            return listen(HitBoxInteractEvent.class, interact);
         }
 
         /**
@@ -136,8 +121,8 @@ public interface HitBoxListener {
          * @return this builder
          * @since 2.0.2
          */
-        public @NotNull Builder interactAt(@NotNull Consumer<ModelInteractAtEvent> interactAt) {
-            return listen(ModelInteractAtEvent.class, interactAt);
+        public @NotNull Builder interactAt(@NotNull Consumer<HitBoxInteractAtEvent> interactAt) {
+            return listen(HitBoxInteractAtEvent.class, interactAt);
         }
 
         /**
@@ -159,7 +144,7 @@ public interface HitBoxListener {
          * @since 1.15.2
          */
         public @NotNull Builder mount(@NotNull BiConsumer<HitBox, PlatformEntity> mount) {
-            return listen(MountModelEvent.class, event -> mount.accept(event.getHitBox(), event.entity()));
+            return listen(HitBoxMountEvent.class, event -> mount.accept(event.getHitBox(), event.entity()));
         }
 
         /**
@@ -170,7 +155,7 @@ public interface HitBoxListener {
          * @since 1.15.2
          */
         public @NotNull Builder dismount(@NotNull BiConsumer<HitBox, PlatformEntity> dismount) {
-            return listen(DismountModelEvent.class, event -> dismount.accept(event.getHitBox(), event.entity()));
+            return listen(HitBoxDismountEvent.class, event -> dismount.accept(event.getHitBox(), event.entity()));
         }
 
         /**
@@ -179,53 +164,20 @@ public interface HitBoxListener {
          * @return the created listener
          * @since 1.15.2
          */
+        @SuppressWarnings("unchecked")
         public @NotNull HitBoxListener build() {
-            var copied = new HashMap<>(listeners);
+            var copied = ImmutableMap.copyOf(listeners);
             return new HitBoxListener() {
                 @Override
                 @SuppressWarnings("unchecked")
                 public void handle(@NotNull HitBoxEvent event) {
                     var consumer = (Consumer<HitBoxEvent>) copied.get(event.getClass());
-                    if (consumer != null) {
-                        consumer.accept(event);
-                    }
+                    if (consumer != null) consumer.accept(event);
                 }
 
                 @Override
-                public void sync(@NotNull HitBox hitBox) {
-                    handle(new HitBoxSyncEvent(hitBox));
-                }
-
-                @Override
-                public void damage(@NotNull ModelDamagedEvent event) {
-                    handle(event);
-                }
-
-                @Override
-                public void interact(@NotNull ModelInteractEvent event) {
-                    handle(event);
-                }
-
-                @Override
-                public void interactAt(@NotNull ModelInteractAtEvent event) {
-                    handle(event);
-                }
-
-                @Override
-                public void remove(@NotNull HitBox hitBox) {
-                    handle(new HitBoxRemoveEvent(hitBox));
-                }
-
-                @Override
-                public void mount(@NotNull HitBox hitBox, @NotNull PlatformEntity PlatformEntity) {
-                    var bone = hitBox.positionSource();
-                    handle(new MountModelEvent(bone.tracker(), bone, hitBox, PlatformEntity));
-                }
-
-                @Override
-                public void dismount(@NotNull HitBox hitBox, @NotNull PlatformEntity PlatformEntity) {
-                    var bone = hitBox.positionSource();
-                    handle(new DismountModelEvent(bone.tracker(), bone, hitBox, PlatformEntity));
+                public @NotNull Builder toBuilder() {
+                    return new Builder(new HashMap<>(copied));
                 }
             };
         }
@@ -238,62 +190,4 @@ public interface HitBoxListener {
      * @since 2.1.0
      */
     void handle(@NotNull HitBoxEvent event);
-
-    /**
-     * Called when the hitbox is synchronized (ticked).
-     *
-     * @param hitBox the target hitbox
-     * @since 1.15.2
-     */
-    void sync(@NotNull HitBox hitBox);
-
-    /**
-     * Called when the hitbox receives damage.
-     *
-     * @param event the damage event
-     * @since 2.0.2
-     */
-    void damage(@NotNull ModelDamagedEvent event);
-
-    /**
-     * Called when the hitbox receives an interaction.
-     *
-     * @param event the interaction event
-     * @since 2.0.2
-     */
-    void interact(@NotNull ModelInteractEvent event);
-
-    /**
-     * Called when the hitbox receives an interaction at a specific position.
-     *
-     * @param event the interaction-at event
-     * @since 2.0.2
-     */
-    void interactAt(@NotNull ModelInteractAtEvent event);
-
-    /**
-     * Called when the hitbox is removed.
-     *
-     * @param hitBox the target hitbox
-     * @since 1.15.2
-     */
-    void remove(@NotNull HitBox hitBox);
-
-    /**
-     * Called when an PlatformEntity mounts the hitbox.
-     *
-     * @param hitBox the target hitbox
-     * @param PlatformEntity the mounting PlatformEntity
-     * @since 1.15.2
-     */
-    void mount(@NotNull HitBox hitBox, @NotNull PlatformEntity PlatformEntity);
-
-    /**
-     * Called when an PlatformEntity dismounts the hitbox.
-     *
-     * @param hitBox the target hitbox
-     * @param PlatformEntity the dismounting PlatformEntity
-     * @since 1.15.2
-     */
-    void dismount(@NotNull HitBox hitBox, @NotNull PlatformEntity PlatformEntity);
 }

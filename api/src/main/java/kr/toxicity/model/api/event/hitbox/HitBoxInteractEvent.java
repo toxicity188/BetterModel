@@ -4,8 +4,9 @@
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
-package kr.toxicity.model.api.event;
+package kr.toxicity.model.api.event.hitbox;
 
+import kr.toxicity.model.api.event.CancellableEvent;
 import kr.toxicity.model.api.nms.HitBox;
 import kr.toxicity.model.api.nms.ModelInteractionHand;
 import kr.toxicity.model.api.platform.PlatformPlayer;
@@ -23,37 +24,26 @@ import org.jetbrains.annotations.NotNull;
  * @since 2.0.0
  */
 @Getter
-public class ModelInteractEvent implements CancellableEvent, HitBoxEvent {
+public class HitBoxInteractEvent implements CancellableEvent, HitBoxEvent {
 
     @Setter
     private boolean cancelled;
     private final PlatformPlayer who;
-    private final @NotNull HitBox hitbox;
+    private final @NotNull HitBox hitBox;
     private final @NotNull ModelInteractionHand hand;
 
     /**
-     * Creates a new ModelInteractEvent.
+     * Creates a new HitBoxInteractEvent.
      *
      * @param who the player interacting
-     * @param hitbox the hitbox being interacted with
+     * @param hitBox the hitbox being interacted with
      * @param hand the hand used for interaction
      * @since 2.0.0
      */
     @ApiStatus.Internal
-    public ModelInteractEvent(@NotNull PlatformPlayer who, @NotNull HitBox hitbox, @NotNull ModelInteractionHand hand) {
+    public HitBoxInteractEvent(@NotNull PlatformPlayer who, @NotNull HitBox hitBox, @NotNull ModelInteractionHand hand) {
         this.who = who;
-        this.hitbox = hitbox;
+        this.hitBox = hitBox;
         this.hand = hand;
-    }
-
-    /**
-     * Returns the hitbox being interacted with.
-     *
-     * @return the hitbox
-     * @since 2.1.0
-     */
-    @Override
-    public @NotNull HitBox getHitBox() {
-        return hitbox;
     }
 }
