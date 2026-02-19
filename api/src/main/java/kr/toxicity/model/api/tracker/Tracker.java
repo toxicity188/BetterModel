@@ -7,6 +7,7 @@
 package kr.toxicity.model.api.tracker;
 
 import kr.toxicity.model.api.animation.*;
+import kr.toxicity.model.api.bone.BoneMovement;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.BoneTags;
 import kr.toxicity.model.api.bone.RenderedBone;
@@ -21,11 +22,9 @@ import kr.toxicity.model.api.nms.*;
 import kr.toxicity.model.api.platform.PlatformLocation;
 import kr.toxicity.model.api.platform.PlatformPlayer;
 import kr.toxicity.model.api.script.TimeScript;
-import kr.toxicity.model.api.util.EntityUtil;
-import kr.toxicity.model.api.util.EventUtil;
-import kr.toxicity.model.api.util.LogUtil;
-import kr.toxicity.model.api.util.MathUtil;
+import kr.toxicity.model.api.util.*;
 import kr.toxicity.model.api.util.function.BonePredicate;
+import kr.toxicity.model.api.util.function.FloatSupplier;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.ApiStatus;
@@ -86,6 +85,20 @@ public abstract class Tracker implements AutoCloseable {
     protected final TrackerModifier modifier;
     private final Runnable updater;
     private final BundlerSet bundlerSet;
+    private final FloatSupplier heightSupplier = FunctionUtil.throttleTickFloat(TRACKER_TICK_INTERVAL, new FloatSupplier() {
+
+        private final BoneMovement heightCache = new BoneMovement();
+
+        @Override
+        public float getAsFloat() {
+            return (float) bones()
+                .stream()
+                .filter(bone -> bone.name().tagged(BoneTags.HEAD, BoneTags.HEAD_WITH_CHILDREN))
+                .mapToDouble(bone -> bone.hitBoxPosition(heightCache).y)
+                .max()
+                .orElse(0F);
+        }
+    });
     private final AnimationStateHandler<TimeScript> scriptProcessor = new AnimationStateHandler<>(
         TimeScript.EMPTY,
         (b, a) -> {
@@ -313,10 +326,6 @@ public abstract class Tracker implements AutoCloseable {
         });
     }
 
-    protected void update() {
-        updater.run();
-    }
-
     /**
      * Returns the name of the model being tracked.
      *
@@ -334,12 +343,7 @@ public abstract class Tracker implements AutoCloseable {
      * @since 1.15.2
      */
     public double height() {
-        return bones()
-            .stream()
-            .filter(bone -> bone.name().tagged(BoneTags.HEAD, BoneTags.HEAD_WITH_CHILDREN))
-            .mapToDouble(bone -> bone.hitBoxPosition().y)
-            .max()
-            .orElse(0F);
+        return heightSupplier.getAsFloat();
     }
 
     /**
@@ -450,16 +454,6 @@ public abstract class Tracker implements AutoCloseable {
      */
     public int playerCount() {
         return pipeline.playerCount();
-    }
-
-    /**
-     * Returns a stream of players currently viewing the model.
-     *
-     * @return the stream of players
-     * @since 1.15.2
-     */
-    public @NotNull Stream<PlatformPlayer> viewedPlayer() {
-        return pipeline.viewedPlayer();
     }
 
     /**
