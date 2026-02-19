@@ -28,6 +28,7 @@ public final class BoneIKSolver {
 
     private static final int MAX_IK_ITERATION = 20;
     private static final float DISTANCE_THRESHOLD_SQ = MathUtil.FRAME_EPSILON * MathUtil.FRAME_EPSILON;
+    private static final Vector3f FROM_VECTOR = new Vector3f(0, -1, 0).normalize();
 
     private final Map<UUID, RenderedBone> boneMap;
     private final Map<RenderedBone, IKChain> locators = new LinkedHashMap<>();
@@ -142,7 +143,7 @@ public final class BoneIKSolver {
             var next = bones[i + 1];
 
             var dir = next.position().sub(current.position(), vecCache);
-            current.rotation().set(MathUtil.fromToRotation(dir.normalize(), rotCache).mul(parentRot).mul(current.rotation()));
+            current.rotation().set(rotCache.identity().rotateTo(FROM_VECTOR, dir.normalize()).mul(parentRot).mul(current.rotation()));
         }
     }
 }
