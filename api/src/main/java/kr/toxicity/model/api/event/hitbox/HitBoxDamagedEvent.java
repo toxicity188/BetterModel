@@ -4,8 +4,10 @@
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
-package kr.toxicity.model.api.event;
+package kr.toxicity.model.api.event.hitbox;
 
+import kr.toxicity.model.api.event.CancellableEvent;
+import kr.toxicity.model.api.event.ModelDamageSource;
 import kr.toxicity.model.api.nms.HitBox;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
  */
 @Getter
 @Setter
-public final class ModelDamagedEvent implements CancellableEvent {
+public final class HitBoxDamagedEvent implements CancellableEvent, HitBoxEvent {
 
     private final @NotNull HitBox hitBox;
     private final ModelDamageSource source;
@@ -39,7 +41,7 @@ public final class ModelDamagedEvent implements CancellableEvent {
      * @since 2.0.0
      */
     @ApiStatus.Internal
-    public ModelDamagedEvent(@NotNull HitBox hitBox, @NotNull ModelDamageSource source, float damage) {
+    public HitBoxDamagedEvent(@NotNull HitBox hitBox, @NotNull ModelDamageSource source, float damage) {
         this.hitBox = hitBox;
         this.source = source;
         this.damage = damage;

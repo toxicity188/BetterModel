@@ -12,9 +12,13 @@ import kr.toxicity.model.api.bone.BoneMovement
 import kr.toxicity.model.api.bone.RenderedBone
 import kr.toxicity.model.api.config.DebugConfig
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
-import kr.toxicity.model.api.event.ModelDamagedEvent
-import kr.toxicity.model.api.event.ModelInteractAtEvent
-import kr.toxicity.model.api.event.ModelInteractEvent
+import kr.toxicity.model.api.event.hitbox.HitBoxMountEvent
+import kr.toxicity.model.api.event.hitbox.HitBoxSyncEvent
+import kr.toxicity.model.api.event.hitbox.HitBoxRemoveEvent
+import kr.toxicity.model.api.event.hitbox.HitBoxDismountEvent
+import kr.toxicity.model.api.event.hitbox.HitBoxDamagedEvent
+import kr.toxicity.model.api.event.hitbox.HitBoxInteractAtEvent
+import kr.toxicity.model.api.event.hitbox.HitBoxInteractEvent
 import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.HitBoxListener
@@ -139,13 +143,13 @@ internal class HitBoxImpl(
                     collides = false
                 }
             }
-            listener.mount(craftEntity, entity)
+            HitBoxMountEvent(this, entity).also(listener::handle).call()
         }
     }
 
     override fun dismount(entity: PlatformEntity) {
         forceDismount = true
-        if (interaction.bukkitEntity.removePassenger(entity.unwarp())) listener.dismount(craftEntity, entity)
+        if (interaction.bukkitEntity.removePassenger(entity.unwarp())) HitBoxDismountEvent(this, entity).also(listener::handle).call()
         forceDismount = false
     }
 
@@ -153,7 +157,7 @@ internal class HitBoxImpl(
         forceDismount = true
         interaction.passengers.forEach {
             it.stopRiding(true)
-            listener.dismount(craftEntity, it.bukkitEntity.wrap())
+            HitBoxDismountEvent(this, it.bukkitEntity.wrap()).also(listener::handle).call()
         }
         forceDismount = false
     }
@@ -298,12 +302,12 @@ internal class HitBoxImpl(
         updateInWaterStateAndDoFluidPushing()
         if (isInLava) delegate.lavaHurt()
         firstTick = false
-        listener.sync(craftEntity)
+        HitBoxSyncEvent(craftEntity).also(listener::handle).call()
     }
 
     override fun remove(reason: RemovalReason, cause: EntityRemoveEvent.Cause?) {
         initialSetup()
-        listener.remove(craftEntity)
+        HitBoxRemoveEvent(craftEntity).also(listener::handle).call()
         interaction.remove(reason)
         super.remove(reason, cause)
     }
@@ -356,11 +360,12 @@ internal class HitBoxImpl(
 
     override fun interact(player: Player, hand: InteractionHand): InteractionResult {
         if (player === delegate) return InteractionResult.FAIL
-        val interact = ModelInteractEvent((player.bukkitEntity as org.bukkit.entity.Player).wrap(), craftEntity, when (hand) {
-            MAIN_HAND -> ModelInteractionHand.RIGHT
-            OFF_HAND -> ModelInteractionHand.LEFT
-        })
-        listener.interact(interact)
+        val interact = HitBoxInteractEvent(
+            (player.bukkitEntity as org.bukkit.entity.Player).wrap(), craftEntity, when (hand) {
+                MAIN_HAND -> ModelInteractionHand.RIGHT
+                OFF_HAND -> ModelInteractionHand.LEFT
+            }
+        ).also(listener::handle)
         if (!interact.call().triggered()) return InteractionResult.FAIL
         (player as ServerPlayer).connection.handleInteract(ServerboundInteractPacket.createInteractionPacket(delegate, player.isShiftKeyDown, hand))
         return InteractionResult.SUCCESS
@@ -368,11 +373,12 @@ internal class HitBoxImpl(
 
     override fun interactAt(player: Player, vec: Vec3, hand: InteractionHand): InteractionResult {
         if (player === delegate) return InteractionResult.FAIL
-        val interact = ModelInteractAtEvent((player.bukkitEntity as org.bukkit.entity.Player).wrap(), craftEntity, when (hand) {
-            MAIN_HAND -> ModelInteractionHand.RIGHT
-            OFF_HAND -> ModelInteractionHand.LEFT
-        }, vec.toBukkit())
-        listener.interactAt(interact)
+        val interact = HitBoxInteractAtEvent(
+            (player.bukkitEntity as org.bukkit.entity.Player).wrap(), craftEntity, when (hand) {
+                MAIN_HAND -> ModelInteractionHand.RIGHT
+                OFF_HAND -> ModelInteractionHand.LEFT
+            }, vec.toBukkit()
+        ).also(listener::handle)
         if (!interact.call().triggered()) return InteractionResult.FAIL
         (player as ServerPlayer).connection.handleInteract(ServerboundInteractPacket.createInteractionPacket(delegate, player.isShiftKeyDown, hand, vec))
         return InteractionResult.SUCCESS
@@ -410,8 +416,7 @@ internal class HitBoxImpl(
         if (source.entity === delegate || delegate.isInvulnerable) return false
         if (source.entity === controllingPassenger && !mountController.canBeDamagedByRider()) return false
         val ds = ModelDamageSourceImpl(source)
-        val event = ModelDamagedEvent(craftEntity, ds, amount)
-        listener.damage(event)
+        val event = HitBoxDamagedEvent(craftEntity, ds, amount).also(listener::handle)
         if (!event.call().triggered()) return false
         return ifLivingEntity { hurtServer(world, source, event.damage) } == true
     }

@@ -10,9 +10,13 @@ import kr.toxicity.model.api.bone.BoneMovement
 import kr.toxicity.model.api.bone.RenderedBone
 import kr.toxicity.model.api.config.DebugConfig
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
-import kr.toxicity.model.api.event.ModelDamagedEvent
-import kr.toxicity.model.api.event.ModelInteractAtEvent
-import kr.toxicity.model.api.event.ModelInteractEvent
+import kr.toxicity.model.api.event.hitbox.HitBoxMountEvent
+import kr.toxicity.model.api.event.hitbox.HitBoxSyncEvent
+import kr.toxicity.model.api.event.hitbox.HitBoxRemoveEvent
+import kr.toxicity.model.api.event.hitbox.HitBoxDismountEvent
+import kr.toxicity.model.api.event.hitbox.HitBoxDamagedEvent
+import kr.toxicity.model.api.event.hitbox.HitBoxInteractAtEvent
+import kr.toxicity.model.api.event.hitbox.HitBoxInteractEvent
 import kr.toxicity.model.api.fabric.platform.FabricEntity
 import kr.toxicity.model.api.fabric.platform.FabricLivingEntity
 import kr.toxicity.model.api.mount.MountController
@@ -149,14 +153,14 @@ class HitBoxEntityImpl(
             noGravity = delegate.isNoGravity
         }
 
-        listener.mount(this, entity)
+        HitBoxMountEvent(this, entity).also(listener::handle).call()
     }
 
     override fun dismount(entity: PlatformEntity) {
         forceDismount = true
 
         entity.unwarp().stopRiding()
-        listener.dismount(this, entity)
+        HitBoxDismountEvent(this, entity).also(listener::handle).call()
 
         forceDismount = false
     }
@@ -166,7 +170,7 @@ class HitBoxEntityImpl(
 
         interaction.passengers.forEach { passenger ->
             passenger.stopRiding()
-            listener.dismount(this, FabricEntity.of(passenger))
+            HitBoxDismountEvent(this, FabricEntity.of(passenger)).also(listener::handle).call()
         }
 
         forceDismount = false
@@ -372,13 +376,13 @@ class HitBoxEntityImpl(
         }
 
         firstTick = false
-        listener.sync(this)
+        HitBoxSyncEvent(this).also(listener::handle).call()
     }
 
     override fun remove(reason: RemovalReason) {
         initialSetup()
 
-        listener.remove(this)
+        HitBoxRemoveEvent(this).also(listener::handle).call()
         interaction.remove(reason)
 
         super.remove(reason)
@@ -423,15 +427,14 @@ class HitBoxEntityImpl(
         }
         val serverPlayer = player as ServerPlayer
 
-        val interact = ModelInteractEvent(
+        val interact = HitBoxInteractEvent(
             serverPlayer.connection.wrap(),
             this,
             when (hand) {
                 InteractionHand.MAIN_HAND -> ModelInteractionHand.RIGHT
                 InteractionHand.OFF_HAND -> ModelInteractionHand.LEFT
             }
-        )
-        listener.interact(interact)
+        ).also(listener::handle)
         if (!interact.call().triggered()) {
             return InteractionResult.FAIL
         }
@@ -452,7 +455,7 @@ class HitBoxEntityImpl(
         }
         val serverPlayer = player as ServerPlayer
 
-        val interact = ModelInteractAtEvent(
+        val interact = HitBoxInteractAtEvent(
             serverPlayer.connection.wrap(),
             this,
             when (hand) {
@@ -460,8 +463,7 @@ class HitBoxEntityImpl(
                 InteractionHand.OFF_HAND -> ModelInteractionHand.LEFT
             },
             vec.toVector3f()
-        )
-        listener.interactAt(interact)
+        ).also(listener::handle)
         if (!interact.call().triggered()) {
             return InteractionResult.FAIL
         }
@@ -495,9 +497,8 @@ class HitBoxEntityImpl(
         }
 
         val sourceImpl = ModelDamageSourceImpl(source)
-        val event = ModelDamagedEvent(this, sourceImpl, amount)
+        val event = HitBoxDamagedEvent(this, sourceImpl, amount).also(listener::handle)
 
-        listener.damage(event)
         if (!event.call().triggered()) {
             return false
         }
