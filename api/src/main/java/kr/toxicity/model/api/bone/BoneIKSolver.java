@@ -65,15 +65,15 @@ public final class BoneIKSolver {
         for (var entry : locators.entrySet()) {
             var locator = entry.getKey();
             var value = entry.getValue();
-            var root = value.first();
+            var root = value.first().root;
             fabrik(
                 value.movements(uuid),
                 value.invertedParentRotation(uuid),
-                value.cache.buffer,
+                value.cache.lengths,
                 locator.state(uuid).after().position().get(value.cache.destination)
                     .add(locator.root.group.getPosition())
                     .sub(root.state(uuid).after().position())
-                    .sub(root.root.group.getPosition())
+                    .sub(root.group.getPosition())
             );
         }
     }
@@ -97,7 +97,7 @@ public final class BoneIKSolver {
         }
     }
 
-    private record IKCache(@NotNull BoneMovement[] movements, float[] buffer, @NotNull Vector3f destination, @NotNull Quaternionf rotation) {
+    private record IKCache(@NotNull BoneMovement[] movements, float[] lengths, @NotNull Vector3f destination, @NotNull Quaternionf rotation) {
         private IKCache(int length) {
             this(new BoneMovement[length], new float[length - 1], new Vector3f(), new Quaternionf());
         }
