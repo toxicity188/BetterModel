@@ -11,6 +11,10 @@ import kr.toxicity.model.api.bone.BoneMovement
 import kr.toxicity.model.api.bone.RenderedBone
 import kr.toxicity.model.api.config.DebugConfig
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
+import kr.toxicity.model.api.event.MountModelEvent
+import kr.toxicity.model.api.event.HitBoxSyncEvent
+import kr.toxicity.model.api.event.HitBoxRemoveEvent
+import kr.toxicity.model.api.event.DismountModelEvent
 import kr.toxicity.model.api.event.ModelDamagedEvent
 import kr.toxicity.model.api.event.ModelInteractAtEvent
 import kr.toxicity.model.api.event.ModelInteractEvent
@@ -136,13 +140,13 @@ internal class HitBoxImpl(
                     collides = false
                 }
             }
-            listener.mount(craftEntity, entity)
+            MountModelEvent(bone.tracker(), bone, craftEntity, entity).also(listener::handle).call()
         }
     }
 
     override fun dismount(entity: PlatformEntity) {
         forceDismount = true
-        if (interaction.bukkitEntity.removePassenger(entity.unwarp())) listener.dismount(craftEntity, entity)
+        if (interaction.bukkitEntity.removePassenger(entity.unwarp())) DismountModelEvent(bone.tracker(), bone, craftEntity, entity).also(listener::handle).call()
         forceDismount = false
     }
 
@@ -150,7 +154,7 @@ internal class HitBoxImpl(
         forceDismount = true
         interaction.passengers.forEach {
             it.stopRiding(true)
-            listener.dismount(craftEntity, it.bukkitEntity.wrap())
+            DismountModelEvent(bone.tracker(), bone, craftEntity, it.bukkitEntity.wrap()).also(listener::handle).call()
         }
         forceDismount = false
     }
@@ -284,13 +288,13 @@ internal class HitBoxImpl(
         updateInWaterStateAndDoFluidPushing()
         if (isInLava) delegate.lavaHurt()
         firstTick = false
-        listener.sync(craftEntity)
+        HitBoxSyncEvent(craftEntity).also(listener::handle).call()
     }
 
     @Suppress("removal")
     override fun remove(reason: RemovalReason, cause: org.bukkit.event.entity.EntityRemoveEvent.Cause?) {
         initialSetup()
-        listener.remove(craftEntity)
+        HitBoxRemoveEvent(craftEntity).also(listener::handle).call()
         interaction.remove(reason)
         super.remove(reason, cause)
     }
@@ -346,8 +350,7 @@ internal class HitBoxImpl(
         val interact = ModelInteractEvent((player.bukkitEntity as org.bukkit.entity.Player).wrap(), craftEntity, when (hand) {
             MAIN_HAND -> ModelInteractionHand.RIGHT
             OFF_HAND -> ModelInteractionHand.LEFT
-        })
-        listener.interact(interact)
+        }).also(listener::handle)
         if (!interact.call().triggered()) return InteractionResult.FAIL
         (player as ServerPlayer).connection.handleInteract(ServerboundInteractPacket.createInteractionPacket(delegate, player.isShiftKeyDown, hand))
         return InteractionResult.SUCCESS
@@ -358,8 +361,7 @@ internal class HitBoxImpl(
         val interact = ModelInteractAtEvent((player.bukkitEntity as org.bukkit.entity.Player).wrap(), craftEntity, when (hand) {
             MAIN_HAND -> ModelInteractionHand.RIGHT
             OFF_HAND -> ModelInteractionHand.LEFT
-        }, vec.toBukkit())
-        listener.interactAt(interact)
+        }, vec.toBukkit()).also(listener::handle)
         if (!interact.call().triggered()) return InteractionResult.FAIL
         (player as ServerPlayer).connection.handleInteract(ServerboundInteractPacket.createInteractionPacket(delegate, player.isShiftKeyDown, hand, vec))
         return InteractionResult.SUCCESS
@@ -387,8 +389,7 @@ internal class HitBoxImpl(
         if (source.entity === delegate || delegate.isInvulnerable) return false
         if (source.entity === controllingPassenger && !mountController.canBeDamagedByRider()) return false
         val ds = ModelDamageSourceImpl(source)
-        val event = ModelDamagedEvent(craftEntity, ds, amount)
-        listener.damage(event)
+        val event = ModelDamagedEvent(craftEntity, ds, amount).also(listener::handle)
         if (!event.call().triggered()) return false
         return ifLivingEntity { hurt(source, event.damage) } == true
     }

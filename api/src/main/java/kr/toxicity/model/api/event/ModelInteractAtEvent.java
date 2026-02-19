@@ -29,5 +29,16 @@ public record ModelInteractAtEvent(
     @NotNull HitBox hitbox,
     @NotNull ModelInteractionHand hand,
     @NotNull Vector3f position
-) implements ModelEvent {
+) implements HitBoxEvent {
+
+    /**
+     * Returns the hitbox being interacted with.
+     *
+     * @return the hitbox
+     * @since 2.1.0
+     */
+    @Override
+    public @NotNull HitBox getHitBox() {
+        return hitbox;
+    }
 }

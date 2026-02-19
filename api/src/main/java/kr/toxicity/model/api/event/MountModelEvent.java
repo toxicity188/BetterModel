@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @since 2.0.0
  */
-public final class MountModelEvent implements CancellableEvent {
+public final class MountModelEvent implements CancellableEvent, HitBoxEvent {
 
     private final EntityTracker tracker;
     private final RenderedBone bone;
@@ -88,5 +88,16 @@ public final class MountModelEvent implements CancellableEvent {
      */
     public PlatformEntity entity() {
         return entity;
+    }
+
+    /**
+     * Returns the hitbox being mounted.
+     *
+     * @return the hitbox
+     * @since 2.1.0
+     */
+    @Override
+    public @NotNull HitBox getHitBox() {
+        return hitBox;
     }
 }

@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
  */
 @Getter
 @Setter
-public final class ModelDamagedEvent implements CancellableEvent {
+public final class ModelDamagedEvent implements CancellableEvent, HitBoxEvent {
 
     private final @NotNull HitBox hitBox;
     private final ModelDamageSource source;
@@ -43,5 +43,16 @@ public final class ModelDamagedEvent implements CancellableEvent {
         this.hitBox = hitBox;
         this.source = source;
         this.damage = damage;
+    }
+
+    /**
+     * Returns the hitbox being damaged.
+     *
+     * @return the hitbox
+     * @since 2.1.0
+     */
+    @Override
+    public @NotNull HitBox getHitBox() {
+        return hitBox;
     }
 }

@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
  * @since 2.0.0
  */
 @Getter
-public class ModelInteractEvent implements CancellableEvent {
+public class ModelInteractEvent implements CancellableEvent, HitBoxEvent {
 
     @Setter
     private boolean cancelled;
@@ -44,5 +44,16 @@ public class ModelInteractEvent implements CancellableEvent {
         this.who = who;
         this.hitbox = hitbox;
         this.hand = hand;
+    }
+
+    /**
+     * Returns the hitbox being interacted with.
+     *
+     * @return the hitbox
+     * @since 2.1.0
+     */
+    @Override
+    public @NotNull HitBox getHitBox() {
+        return hitbox;
     }
 }
