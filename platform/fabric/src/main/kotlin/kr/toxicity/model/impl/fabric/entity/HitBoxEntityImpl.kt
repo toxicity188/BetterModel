@@ -11,7 +11,6 @@ import kr.toxicity.model.api.bone.RenderedBone
 import kr.toxicity.model.api.config.DebugConfig
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import kr.toxicity.model.api.event.hitbox.HitBoxMountEvent
-import kr.toxicity.model.api.event.hitbox.HitBoxSyncEvent
 import kr.toxicity.model.api.event.hitbox.HitBoxRemoveEvent
 import kr.toxicity.model.api.event.hitbox.HitBoxDismountEvent
 import kr.toxicity.model.api.event.hitbox.HitBoxDamagedEvent
@@ -376,7 +375,7 @@ class HitBoxEntityImpl(
         }
 
         firstTick = false
-        HitBoxSyncEvent(this).also(listener::handle).call()
+        listener.sync(this)
     }
 
     override fun remove(reason: RemovalReason) {

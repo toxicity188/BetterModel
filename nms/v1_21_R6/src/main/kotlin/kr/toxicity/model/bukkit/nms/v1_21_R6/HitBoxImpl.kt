@@ -14,7 +14,6 @@ import kr.toxicity.model.api.bukkit.BetterModelBukkit
 import kr.toxicity.model.api.config.DebugConfig
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import kr.toxicity.model.api.event.hitbox.HitBoxMountEvent
-import kr.toxicity.model.api.event.hitbox.HitBoxSyncEvent
 import kr.toxicity.model.api.event.hitbox.HitBoxRemoveEvent
 import kr.toxicity.model.api.event.hitbox.HitBoxDismountEvent
 import kr.toxicity.model.api.event.hitbox.HitBoxDamagedEvent
@@ -309,7 +308,7 @@ internal class HitBoxImpl(
         updateInWaterStateAndDoFluidPushing()
         if (isInLava) delegate.lavaHurt()
         firstTick = false
-        HitBoxSyncEvent(craftEntity).also(listener::handle).call()
+        listener.sync(craftEntity)
     }
 
     override fun remove(reason: RemovalReason, cause: EntityRemoveEvent.Cause?) {

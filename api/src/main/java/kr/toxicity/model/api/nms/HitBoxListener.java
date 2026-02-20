@@ -10,6 +10,7 @@ import com.google.common.collect.ImmutableMap;
 import kr.toxicity.model.api.event.hitbox.*;
 import kr.toxicity.model.api.platform.PlatformEntity;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,16 +40,8 @@ public interface HitBoxListener {
      * @since 1.15.2
      */
     static @NotNull Builder builder() {
-        return new Builder(new HashMap<>());
+        return new Builder(new HashMap<>(), null);
     }
-
-    /**
-     * Creates a builder initialized with this listener's current handlers.
-     *
-     * @return a new builder
-     * @since 1.15.2
-     */
-    @NotNull Builder toBuilder();
 
     /**
      * Builder for {@link HitBoxListener}.
@@ -58,12 +51,17 @@ public interface HitBoxListener {
     final class Builder {
 
         private final Map<Class<? extends HitBoxEvent>, Consumer<?>> listeners;
+        private Consumer<HitBox> syncConsumer;
 
         /**
          * Private initializer.
          */
-        private Builder(@NotNull Map<Class<? extends HitBoxEvent>, Consumer<?>> listeners) {
+        private Builder(
+            @NotNull Map<Class<? extends HitBoxEvent>, Consumer<?>> listeners,
+            @Nullable Consumer<HitBox> syncConsumer
+        ) {
             this.listeners = listeners;
+            this.syncConsumer = syncConsumer;
         }
 
         /**
@@ -89,7 +87,9 @@ public interface HitBoxListener {
          * @since 1.15.2
          */
         public @NotNull Builder sync(@NotNull Consumer<HitBox> sync) {
-            return listen(HitBoxSyncEvent.class, event -> sync.accept(event.getHitBox()));
+            var previous = syncConsumer;
+            syncConsumer = previous != null ? previous.andThen(sync) : sync;
+            return this;
         }
 
         /**
@@ -167,6 +167,7 @@ public interface HitBoxListener {
         @SuppressWarnings("unchecked")
         public @NotNull HitBoxListener build() {
             var copied = ImmutableMap.copyOf(listeners);
+            var sync = syncConsumer;
             return new HitBoxListener() {
                 @Override
                 @SuppressWarnings("unchecked")
@@ -176,8 +177,13 @@ public interface HitBoxListener {
                 }
 
                 @Override
+                public void sync(@NotNull HitBox hitBox) {
+                    if (sync != null) sync.accept(hitBox);
+                }
+
+                @Override
                 public @NotNull Builder toBuilder() {
-                    return new Builder(new HashMap<>(copied));
+                    return new Builder(new HashMap<>(copied), sync);
                 }
             };
         }
@@ -190,4 +196,20 @@ public interface HitBoxListener {
      * @since 2.1.0
      */
     void handle(@NotNull HitBoxEvent event);
+
+    /**
+     * Handles tick method.
+     *
+     * @param hitBox target hitbox
+     * @since 2.1.0
+     */
+    void sync(@NotNull HitBox hitBox);
+
+    /**
+     * Creates a builder initialized with this listener's current handlers.
+     *
+     * @return a new builder
+     * @since 1.15.2
+     */
+    @NotNull Builder toBuilder();
 }
