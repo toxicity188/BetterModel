@@ -142,13 +142,13 @@ internal class HitBoxImpl(
                     collides = false
                 }
             }
-            HitBoxMountEvent(this, entity).also(listener::handle).call()
+            listener.handle(HitBoxMountEvent(this, entity))
         }
     }
 
     override fun dismount(entity: PlatformEntity) {
         forceDismount = true
-        if (interaction.bukkitEntity.removePassenger(entity.unwarp())) HitBoxDismountEvent(this, entity).also(listener::handle).call()
+        if (interaction.bukkitEntity.removePassenger(entity.unwarp())) listener.handle(HitBoxDismountEvent(this, entity))
         forceDismount = false
     }
 
@@ -156,7 +156,7 @@ internal class HitBoxImpl(
         forceDismount = true
         interaction.passengers.forEach {
             it.stopRiding(true)
-            HitBoxDismountEvent(this, it.bukkitEntity.wrap()).also(listener::handle).call()
+            listener.handle(HitBoxDismountEvent(this, it.bukkitEntity.wrap()))
         }
         forceDismount = false
     }
@@ -313,7 +313,7 @@ internal class HitBoxImpl(
 
     override fun remove(reason: RemovalReason, cause: EntityRemoveEvent.Cause?) {
         initialSetup()
-        HitBoxRemoveEvent(craftEntity).also(listener::handle).call()
+        listener.handle(HitBoxRemoveEvent(craftEntity))
         interaction.remove(reason)
         super.remove(reason, cause)
     }
@@ -371,8 +371,8 @@ internal class HitBoxImpl(
                 MAIN_HAND -> ModelInteractionHand.RIGHT
                 OFF_HAND -> ModelInteractionHand.LEFT
             }
-        ).also(listener::handle)
-        if (!interact.call().triggered()) return InteractionResult.FAIL
+        )
+        if (!listener.handle(interact)) return InteractionResult.FAIL
         (player as ServerPlayer).connection.handleInteract(ServerboundInteractPacket.createInteractionPacket(delegate, player.isShiftKeyDown, hand))
         return InteractionResult.SUCCESS
     }
@@ -384,8 +384,8 @@ internal class HitBoxImpl(
                 MAIN_HAND -> ModelInteractionHand.RIGHT
                 OFF_HAND -> ModelInteractionHand.LEFT
             }, vec.toBukkit()
-        ).also(listener::handle)
-        if (!interact.call().triggered()) return InteractionResult.FAIL
+        )
+        if (!listener.handle(interact)) return InteractionResult.FAIL
         (player as ServerPlayer).connection.handleInteract(ServerboundInteractPacket.createInteractionPacket(delegate, player.isShiftKeyDown, hand, vec))
         return InteractionResult.SUCCESS
     }
@@ -422,8 +422,8 @@ internal class HitBoxImpl(
         if (source.entity === delegate || delegate.isInvulnerable) return false
         if (source.entity === controllingPassenger && !mountController.canBeDamagedByRider()) return false
         val ds = ModelDamageSourceImpl(source)
-        val event = HitBoxDamagedEvent(craftEntity, ds, amount).also(listener::handle)
-        if (!event.call().triggered()) return false
+        val event = HitBoxDamagedEvent(craftEntity, ds, amount)
+        if (!listener.handle(event)) return false
         return ifLivingEntity { hurtServer(world, source, event.damage) } == true
     }
 

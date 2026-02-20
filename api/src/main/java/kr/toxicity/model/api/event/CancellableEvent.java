@@ -31,4 +31,9 @@ public interface CancellableEvent extends ModelEvent {
      * @since 2.0.0
      */
     void setCancelled(boolean cancel);
+
+    @Override
+    default boolean call() {
+        return ModelEvent.super.call() && !isCancelled();
+    }
 }

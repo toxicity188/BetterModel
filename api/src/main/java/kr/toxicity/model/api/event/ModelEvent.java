@@ -24,10 +24,10 @@ public interface ModelEvent {
     /**
      * Dispatches this event to the global event bus.
      *
-     * @return the result of the event call
+     * @return the event is successfully triggered
      * @since 2.0.0
      */
-    default @NotNull BetterModelEventBus.Result call() {
-        return BetterModel.eventBus().call(this);
+    default boolean call() {
+        return BetterModel.eventBus().call(this).triggered();
     }
 }

@@ -9,6 +9,7 @@ package kr.toxicity.model.api.nms;
 import com.google.common.collect.ImmutableMap;
 import kr.toxicity.model.api.event.hitbox.*;
 import kr.toxicity.model.api.platform.PlatformEntity;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -171,9 +172,12 @@ public interface HitBoxListener {
             return new HitBoxListener() {
                 @Override
                 @SuppressWarnings("unchecked")
-                public void handle(@NotNull HitBoxEvent event) {
+                public boolean handle(@NotNull HitBoxEvent event) {
                     var consumer = (Consumer<HitBoxEvent>) copied.get(event.getClass());
-                    if (consumer != null) consumer.accept(event);
+                    if (consumer != null) {
+                        consumer.accept(event);
+                    }
+                    return event.call();
                 }
 
                 @Override
@@ -193,9 +197,11 @@ public interface HitBoxListener {
      * Handles a hitbox event.
      *
      * @param event target event
+     * @return whether target event is triggered
      * @since 2.1.0
      */
-    void handle(@NotNull HitBoxEvent event);
+    @ApiStatus.Internal
+    boolean handle(@NotNull HitBoxEvent event);
 
     /**
      * Handles tick method.
@@ -203,6 +209,7 @@ public interface HitBoxListener {
      * @param hitBox target hitbox
      * @since 2.1.0
      */
+    @ApiStatus.Internal
     void sync(@NotNull HitBox hitBox);
 
     /**

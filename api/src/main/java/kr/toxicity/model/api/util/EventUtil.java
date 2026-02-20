@@ -8,7 +8,6 @@ package kr.toxicity.model.api.util;
 
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.BetterModelEventBus;
-import kr.toxicity.model.api.event.CancellableEvent;
 import kr.toxicity.model.api.event.ModelEvent;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -45,21 +44,5 @@ public final class EventUtil {
     @NotNull
     public static <T extends ModelEvent> BetterModelEventBus.Result call(@NotNull Class<T> eventClass, @NotNull Supplier<T> eventSupplier) {
         return BetterModel.eventBus().call(eventClass, eventSupplier);
-    }
-
-    /**
-     * Calls an event and checks if it was cancelled.
-     * <p>
-     * If the event is cancellable, this method returns true only if the event was NOT cancelled.
-     * If the event is not cancellable, it always returns true.
-     * </p>
-     *
-     * @param event the event to call
-     * @return true if the event should proceed (not cancelled), false otherwise
-     * @since 2.0.0
-     */
-    public static boolean call(@NotNull ModelEvent event) {
-        event.call();
-        return !(event instanceof CancellableEvent cancellableEvent) || !cancellableEvent.isCancelled();
     }
 }

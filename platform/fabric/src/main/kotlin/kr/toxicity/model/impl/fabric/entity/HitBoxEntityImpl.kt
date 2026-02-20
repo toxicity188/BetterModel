@@ -152,14 +152,14 @@ class HitBoxEntityImpl(
             noGravity = delegate.isNoGravity
         }
 
-        HitBoxMountEvent(this, entity).also(listener::handle).call()
+        listener.handle(HitBoxMountEvent(this, entity))
     }
 
     override fun dismount(entity: PlatformEntity) {
         forceDismount = true
 
         entity.unwarp().stopRiding()
-        HitBoxDismountEvent(this, entity).also(listener::handle).call()
+        listener.handle(HitBoxDismountEvent(this, entity))
 
         forceDismount = false
     }
@@ -169,7 +169,7 @@ class HitBoxEntityImpl(
 
         interaction.passengers.forEach { passenger ->
             passenger.stopRiding()
-            HitBoxDismountEvent(this, FabricEntity.of(passenger)).also(listener::handle).call()
+            listener.handle(HitBoxDismountEvent(this, passenger.wrap()))
         }
 
         forceDismount = false
@@ -381,7 +381,7 @@ class HitBoxEntityImpl(
     override fun remove(reason: RemovalReason) {
         initialSetup()
 
-        HitBoxRemoveEvent(this).also(listener::handle).call()
+        listener.handle(HitBoxRemoveEvent(this))
         interaction.remove(reason)
 
         super.remove(reason)
@@ -433,10 +433,8 @@ class HitBoxEntityImpl(
                 InteractionHand.MAIN_HAND -> ModelInteractionHand.RIGHT
                 InteractionHand.OFF_HAND -> ModelInteractionHand.LEFT
             }
-        ).also(listener::handle)
-        if (!interact.call().triggered()) {
-            return InteractionResult.FAIL
-        }
+        )
+        if (!listener.handle(interact)) return InteractionResult.FAIL
 
         serverPlayer.connection.handleInteract(
             ServerboundInteractPacket.createInteractionPacket(
@@ -462,10 +460,8 @@ class HitBoxEntityImpl(
                 InteractionHand.OFF_HAND -> ModelInteractionHand.LEFT
             },
             vec.toVector3f()
-        ).also(listener::handle)
-        if (!interact.call().triggered()) {
-            return InteractionResult.FAIL
-        }
+        )
+        if (!listener.handle(interact)) return InteractionResult.FAIL
 
         serverPlayer.connection.handleInteract(
             ServerboundInteractPacket.createInteractionPacket(
@@ -496,11 +492,8 @@ class HitBoxEntityImpl(
         }
 
         val sourceImpl = ModelDamageSourceImpl(source)
-        val event = HitBoxDamagedEvent(this, sourceImpl, amount).also(listener::handle)
-
-        if (!event.call().triggered()) {
-            return false
-        }
+        val event = HitBoxDamagedEvent(this, sourceImpl, amount)
+        if (!listener.handle(event)) return false
 
         return delegate is LivingEntity &&
             delegate.hurtServer(world, source, event.damage)
