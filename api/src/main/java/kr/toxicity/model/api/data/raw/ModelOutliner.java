@@ -121,7 +121,6 @@ public sealed interface ModelOutliner {
                 selectedGroup.origin(),
                 selectedGroup.rotation().invertXZ(),
                 child,
-                selectedGroup.name().toLowerCase().contains("glow") ? 15 : selectedGroup.lightEmission(),
                 filtered.isEmpty() ? selectedGroup.visibility() : filtered.stream().anyMatch(BlueprintElement.Cube::visibility)
             );
         }

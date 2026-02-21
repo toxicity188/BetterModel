@@ -14,7 +14,6 @@ import kr.toxicity.model.api.animation.VectorPoint;
 import kr.toxicity.model.api.tracker.Tracker;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
 import org.joml.Vector3f;
 
 import java.util.List;
@@ -47,7 +46,6 @@ public final class InterpolationUtil {
      * @return animation keyframe
      */
     @NotNull
-    @Unmodifiable
     public static AnimationKeyframe buildAnimation(
         @NotNull List<VectorPoint> position,
         @NotNull List<VectorPoint> rotation,

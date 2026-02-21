@@ -108,8 +108,8 @@ public final class JsonObjectBuilder {
      * @param property property
      * @return self
      */
-    public @NotNull JsonObjectBuilder property(@NotNull String name, @NotNull Number property) {
-        object.addProperty(name, property);
+    public @NotNull JsonObjectBuilder property(@NotNull String name, @Nullable Number property) {
+        if (property != null) object.addProperty(name, property);
         return this;
     }
 }
