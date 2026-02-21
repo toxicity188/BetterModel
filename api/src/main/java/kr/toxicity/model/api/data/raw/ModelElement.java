@@ -291,6 +291,17 @@ public sealed interface ModelElement {
             return rotation != null ? rotation : Float3.ZERO;
         }
 
+        /**
+         * Returns the light emission level of the cube.
+         *
+         * @return the light emission level (0-15)
+         * @since 2.1.0
+         */
+        @Override
+        public int lightEmission() {
+            return name().toLowerCase().contains("glow") ? 15 : lightEmission;
+        }
+
         @Override
         public @NotNull BlueprintElement toBlueprint() {
             return new BlueprintElement.Cube(
@@ -301,7 +312,7 @@ public sealed interface ModelElement {
                 rotation(),
                 origin(),
                 faces(),
-                name().toLowerCase().contains("glow") ? 15 : lightEmission(),
+                Optional.of(lightEmission()).filter(i -> i > 0).orElse(null),
                 visibility()
             );
         }

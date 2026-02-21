@@ -55,6 +55,10 @@ public enum BoneTags implements BoneTag {
      */
     PLAYER_TAG("ptag"),
     /**
+     * Glow
+     */
+    GLOW("glow"),
+    /**
      * Entity's item in left hand
      */
     LEFT_ITEM(BoneItemMapper.entity(

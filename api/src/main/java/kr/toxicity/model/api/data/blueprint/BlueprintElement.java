@@ -8,6 +8,7 @@ package kr.toxicity.model.api.data.blueprint;
 
 import com.google.gson.JsonObject;
 import kr.toxicity.model.api.bone.BoneName;
+import kr.toxicity.model.api.bone.BoneTags;
 import kr.toxicity.model.api.data.Float3;
 import kr.toxicity.model.api.data.raw.ModelFace;
 import kr.toxicity.model.api.pack.PackObfuscator;
@@ -321,7 +322,7 @@ public sealed interface BlueprintElement {
      * @param rotation the rotation of the cube
      * @param origin the pivot point of the cube
      * @param faces the UV mapping for the faces
-     * @param lightEmission the light emission level (0-15)
+     * @param lightEmission the light emission level (1-15 or null if 0)
      * @param visibility whether the cube is visible
      * @since 1.15.2
      */
@@ -333,7 +334,7 @@ public sealed interface BlueprintElement {
         @NotNull Float3 rotation,
         @NotNull Float3 origin,
         @Nullable ModelFace faces,
-        int lightEmission,
+        @Nullable Integer lightEmission,
         boolean visibility
     ) implements BlueprintElement {
 
@@ -361,7 +362,7 @@ public sealed interface BlueprintElement {
             var groupDelta = deltaPosition(centerOrigin, qua);
             var inflate = new Float3(inflate() / scale);
             return JsonObjectBuilder.builder()
-                .property("light_emission", hasLightEmission() ? lightEmission : null)
+                .property("light_emission", group.name.tagged(BoneTags.GLOW) ? Integer.valueOf(15) : lightEmission)
                 .jsonArray("from", centralize(from(), group.origin, scale)
                     .plus(groupDelta)
                     .plus(Float3.CENTER)
@@ -415,16 +416,6 @@ public sealed interface BlueprintElement {
          */
         public boolean hasTexture() {
             return faces != null && faces.hasTexture();
-        }
-
-        /**
-         * Checks if this cube has light emission.
-         *
-         * @return true if light emission is greater than 0
-         * @since 2.1.0
-         */
-        public boolean hasLightEmission() {
-            return lightEmission > 0;
         }
 
         private @NotNull JsonObject getRotation(@NotNull Float3 rot) {
