@@ -22,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
  * @param uuid the unique identifier of the group
  * @param origin the pivot point (origin) of the group
  * @param rotation the rotation of the group
+ * @param lightEmission the light emission level (0-15)
  * @param _visibility the visibility state of the group (null means visible)
  * @since 1.15.2
  */
@@ -30,6 +31,7 @@ public record ModelGroup(
     @NotNull String uuid,
     @Nullable Float3 origin,
     @Nullable Float3 rotation,
+    @SerializedName("light_emission") int lightEmission,
     @Nullable @SerializedName("visibility") Boolean _visibility
 ) {
     /**

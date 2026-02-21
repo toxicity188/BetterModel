@@ -95,6 +95,7 @@ public sealed interface BlueprintElement {
      * @param origin the pivot point of the group
      * @param rotation the rotation of the group
      * @param children the list of child elements
+     * @param lightEmission the light emission level (0-15)
      * @param visibility whether the group is visible
      * @since 1.15.2
      */
@@ -104,6 +105,7 @@ public sealed interface BlueprintElement {
         @NotNull Float3 origin,
         @NotNull Float3 rotation,
         @NotNull List<BlueprintElement> children,
+        int lightEmission,
         boolean visibility
     ) implements Bone {
 
@@ -117,6 +119,16 @@ public sealed interface BlueprintElement {
         @NotNull
         public Float3 origin() {
             return origin.invertXZ();
+        }
+
+        /**
+         * Checks if this group has light emission.
+         *
+         * @return true if light emission is greater than 0
+         * @since 2.0.0
+         */
+        public boolean hasLightEmission() {
+            return lightEmission > 0;
         }
 
         private @NotNull String jsonName(@NotNull ModelBlueprint parent) {
@@ -185,21 +197,26 @@ public sealed interface BlueprintElement {
                 .filter(Cube::hasTexture)
                 .toList();
             if (cubeElement.isEmpty()) return null;
-            return new BlueprintJson(obfuscator.models().obfuscate(jsonName(parent) + "_" + number), () -> JsonObjectBuilder.builder()
-                .jsonObject("textures", textures -> {
-                    var index = 0;
-                    for (BlueprintTexture texture : parent.textures()) {
-                        textures.property(Integer.toString(index++), texture.packNamespace(obfuscator.textures()));
-                    }
-                    textures.property("particle", parent.textures().getFirst().packNamespace(obfuscator.textures()));
-                })
-                .jsonArray("elements", mapToJson(cubeElement, cube -> cube.buildJson(tint, scale, parent, this, identifier)))
-                .jsonObject("display", display -> display.jsonObject("fixed", fixed -> {
-                    if (!identifier.equals(Float3.ZERO)) {
-                        fixed.jsonArray("rotation", identifier.convertToMinecraftDegree().toJson());
-                    }
-                }))
-                .build());
+            return new BlueprintJson(obfuscator.models().obfuscate(jsonName(parent) + "_" + number), () -> {
+                var builder = JsonObjectBuilder.builder()
+                    .jsonObject("textures", textures -> {
+                        var index = 0;
+                        for (BlueprintTexture texture : parent.textures()) {
+                            textures.property(Integer.toString(index++), texture.packNamespace(obfuscator.textures()));
+                        }
+                        textures.property("particle", parent.textures().getFirst().packNamespace(obfuscator.textures()));
+                    })
+                    .jsonArray("elements", mapToJson(cubeElement, cube -> cube.buildJson(tint, scale, parent, this, identifier)))
+                    .jsonObject("display", display -> display.jsonObject("fixed", fixed -> {
+                        if (!identifier.equals(Float3.ZERO)) {
+                            fixed.jsonArray("rotation", identifier.convertToMinecraftDegree().toJson());
+                        }
+                    }));
+                if (hasLightEmission()) {
+                    builder.property("light_emission", lightEmission);
+                }
+                return builder.build();
+            });
         }
 
         /**
@@ -321,6 +338,7 @@ public sealed interface BlueprintElement {
      * @param rotation the rotation of the cube
      * @param origin the pivot point of the cube
      * @param faces the UV mapping for the faces
+     * @param lightEmission the light emission level (0-15)
      * @param visibility whether the cube is visible
      * @since 1.15.2
      */
@@ -332,6 +350,7 @@ public sealed interface BlueprintElement {
         @NotNull Float3 rotation,
         @NotNull Float3 origin,
         @Nullable ModelFace faces,
+        int lightEmission,
         boolean visibility
     ) implements BlueprintElement {
 
@@ -358,7 +377,7 @@ public sealed interface BlueprintElement {
             var centerOrigin = centralize(origin(), group.origin, scale);
             var groupDelta = deltaPosition(centerOrigin, qua);
             var inflate = new Float3(inflate() / scale);
-            return JsonObjectBuilder.builder()
+            var builder = JsonObjectBuilder.builder()
                 .jsonArray("from", centralize(from(), group.origin, scale)
                     .plus(groupDelta)
                     .plus(Float3.CENTER)
@@ -380,8 +399,11 @@ public sealed interface BlueprintElement {
                             .toJson());
                         return rotation;
                     })
-                    .orElse(null))
-                .build();
+                    .orElse(null));
+            if (hasLightEmission()) {
+                builder.property("light_emission", lightEmission);
+            }
+            return builder.build();
         }
 
         /**
@@ -412,6 +434,16 @@ public sealed interface BlueprintElement {
          */
         public boolean hasTexture() {
             return faces != null && faces.hasTexture();
+        }
+
+        /**
+         * Checks if this cube has light emission.
+         *
+         * @return true if light emission is greater than 0
+         * @since 2.0.0
+         */
+        public boolean hasLightEmission() {
+            return lightEmission > 0;
         }
 
         private @NotNull JsonObject getRotation(@NotNull Float3 rot) {
