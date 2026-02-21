@@ -226,6 +226,7 @@ public sealed interface ModelElement {
      * @param rotation the rotation of the cube
      * @param origin the pivot point (origin) of the cube
      * @param faces the UV mapping for the faces
+     * @param lightEmission the light emission level (0-15)
      * @param _visibility the visibility state (null means visible)
      * @since 1.15.2
      */
@@ -238,6 +239,7 @@ public sealed interface ModelElement {
         @Nullable Float3 rotation,
         @NotNull Float3 origin,
         @Nullable ModelFace faces,
+        @SerializedName("light_emission") int lightEmission,
         @SerializedName("visibility") @Nullable Boolean _visibility
     ) implements ModelElement {
 
@@ -299,6 +301,7 @@ public sealed interface ModelElement {
                 rotation(),
                 origin(),
                 faces(),
+                name().toLowerCase().contains("glow") ? 15 : lightEmission(),
                 visibility()
             );
         }
