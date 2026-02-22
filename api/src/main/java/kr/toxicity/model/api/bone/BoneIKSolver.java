@@ -68,7 +68,7 @@ public final class BoneIKSolver {
             var root = value.first().root;
             fabrik(
                 value.movements(uuid),
-                value.invertedParentRotation(uuid),
+                value.invertedFirstRotation(uuid),
                 value.cache.lengths,
                 locator.state(uuid).after().position().get(value.cache.destination)
                     .add(locator.root.group.getPosition())
@@ -84,8 +84,8 @@ public final class BoneIKSolver {
             return bones[0];
         }
 
-        private @NotNull Quaternionf invertedParentRotation(@Nullable UUID uuid) {
-            return source.state(uuid).after().rotation().invert(cache.rotation);
+        private @NotNull Quaternionf invertedFirstRotation(@Nullable UUID uuid) {
+            return first().state(uuid).after().rotation().invert(cache.rotation);
         }
 
         private @NotNull BoneMovement[] movements(@Nullable UUID uuid) {
@@ -103,7 +103,7 @@ public final class BoneIKSolver {
         }
     }
 
-    private static void fabrik(@NotNull BoneMovement[] bones, @NotNull Quaternionf parentRot, float[] lengths, @NotNull Vector3f target) {
+    private static void fabrik(@NotNull BoneMovement[] bones, @NotNull Quaternionf firstRot, float[] lengths, @NotNull Vector3f target) {
         var first = bones[0].position();
         var last = bones[bones.length - 1].position();
 
@@ -143,7 +143,7 @@ public final class BoneIKSolver {
             var next = bones[i + 1];
 
             var dir = next.position().sub(current.position(), vecCache);
-            current.rotation().set(rotCache.identity().rotateTo(FROM_VECTOR, dir.normalize()).mul(parentRot).mul(current.rotation()));
+            current.rotation().set(rotCache.identity().rotateTo(FROM_VECTOR, dir.normalize()).mul(firstRot).mul(current.rotation()));
         }
     }
 }
