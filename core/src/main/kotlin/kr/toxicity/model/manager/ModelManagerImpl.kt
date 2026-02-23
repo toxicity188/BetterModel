@@ -95,6 +95,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                             info("ModelEngine's models are successfully migrated.".toComponent(GREEN))
                         } ?: run {
                         if (PLATFORM.version().useModernResource()) folder.addResource("demon_knight.bbmodel")
+                        folder.addResource("blue_wizard.bbmodel")
                     }
                 })
             )

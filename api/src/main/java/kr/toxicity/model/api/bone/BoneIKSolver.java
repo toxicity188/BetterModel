@@ -47,7 +47,7 @@ public final class BoneIKSolver {
             .filter(bone -> !bone.flattenBones().contains(locator) && bone.flattenBones().contains(target))
             .toArray(RenderedBone[]::new);
         if (chainArray.length < 2) return;
-        locators.put(locator, new IKChain(source, chainArray, new IKCache(chainArray.length)));
+        locators.put(locator, new IKChain(chainArray));
     }
 
     /**
@@ -65,19 +65,22 @@ public final class BoneIKSolver {
         for (var entry : locators.entrySet()) {
             var locator = entry.getKey();
             var value = entry.getValue();
-            var root = value.first().root;
             fabrik(
                 value.movements(uuid),
                 value.invertedFirstRotation(uuid),
                 value.cache.lengths,
                 locator.state(uuid).after().position().get(value.cache.destination)
                     .add(locator.root.group.getPosition())
-                    .sub(root.group.getPosition())
+                    .sub(value.first().root.group.getPosition())
             );
         }
     }
 
-    private record IKChain(@NotNull RenderedBone source, @NotNull RenderedBone[] bones, @NotNull IKCache cache) {
+    private record IKChain(@NotNull RenderedBone[] bones, @NotNull IKCache cache) {
+
+        private IKChain(@NotNull RenderedBone[] bones) {
+            this(bones, new IKCache(bones.length));
+        }
 
         private @NotNull RenderedBone first() {
             return bones[0];
