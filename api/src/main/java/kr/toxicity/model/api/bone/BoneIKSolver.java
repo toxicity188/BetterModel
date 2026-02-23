@@ -72,7 +72,6 @@ public final class BoneIKSolver {
                 value.cache.lengths,
                 locator.state(uuid).after().position().get(value.cache.destination)
                     .add(locator.root.group.getPosition())
-                    .sub(root.state(uuid).after().position())
                     .sub(root.group.getPosition())
             );
         }
