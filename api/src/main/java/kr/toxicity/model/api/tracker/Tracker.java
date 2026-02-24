@@ -1013,7 +1013,7 @@ public abstract class Tracker implements AutoCloseable {
      *
      * @since 1.15.2
      */
-    public class BundlerSet {
+    public final class BundlerSet {
         @Getter
         private PacketBundler tickBundler = pipeline.createBundler();
         @Getter
@@ -1055,7 +1055,7 @@ public abstract class Tracker implements AutoCloseable {
     }
 
     @RequiredArgsConstructor
-    private class PerPlayerCache {
+    private final class PerPlayerCache {
         private final UUID uuid;
         private final AtomicInteger counter = new AtomicInteger();
         private PacketBundler bundler = pipeline.createParallelBundler();
