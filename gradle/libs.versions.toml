@@ -47,7 +47,7 @@ cloud-core = { module = "org.incendo:cloud-core", version.ref = "cloud-core" }
 geantyref = "io.leangen.geantyref:geantyref:2.0.1"
 
 lombok = "org.projectlombok:lombok:1.18.42"
-bStats = "org.bstats:bstats-bukkit:3.1.0"
+bStats = "org.bstats:bstats-bukkit:3.2.0"
 dynamicUV = "io.github.toxicity188:dynamicuv:1.2.2"
 armormodel = "io.github.toxicity188:armormodel:1.0.2"
 molangCompiler = "gg.moonflower:molang-compiler:3.1.1.19"
