@@ -35,11 +35,12 @@ import net.minecraft.world.entity.PositionMoveRotation
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
-import net.minecraft.world.phys.Vec3
+import org.joml.Vector3d
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 class ModelDisplayEntityImpl(
+    private val pos: Vector3d,
     val display: Display.ItemDisplay,
     val yOffset: Double
 ) :
@@ -49,6 +50,8 @@ class ModelDisplayEntityImpl(
 
     private val forceGlow = AtomicBoolean()
     private val forceInvisibility = AtomicBoolean()
+
+    private val oldPos = Vector3d(pos)
 
     override fun id(): Int = display.id
 
@@ -90,8 +93,8 @@ class ModelDisplayEntityImpl(
     }
 
     override fun syncPosition(location: PlatformLocation) {
-        display.setOldPosAndRot()
-        display.setPos(Vec3(location.x(), location.y(), location.z()))
+        oldPos.set(pos)
+        pos.set(location.x(), location.y(), location.z())
     }
 
     override fun spawn(showItem: Boolean, bundler: PacketBundler) {
@@ -99,7 +102,7 @@ class ModelDisplayEntityImpl(
     }
 
     override fun remove(bundler: PacketBundler) {
-        bundler += createRemovePacket()
+        bundler += removePacket
     }
 
     override fun teleport(location: PlatformLocation, bundler: PacketBundler) {
@@ -121,10 +124,7 @@ class ModelDisplayEntityImpl(
 
     override fun sendPosition(adapter: BaseEntity, bundler: PacketBundler) {
         val handle = adapter.handle() as Entity
-        if (display.position() == display.oldPosition()) {
-            return
-        }
-
+        if (oldPos.distanceSquared(pos) < 1e-8) return
         bundler += ClientboundEntityPositionSyncPacket(
             display.id,
             PositionMoveRotation.of(handle),
@@ -233,9 +233,9 @@ class ModelDisplayEntityImpl(
     private fun createAddPacket() = ClientboundAddEntityPacket(
         display.id,
         display.uuid,
-        display.x,
-        display.y + yOffset,
-        display.z,
+        pos.x,
+        pos.y + yOffset,
+        pos.z,
         display.xRot,
         display.yRot,
         display.type,
@@ -244,7 +244,7 @@ class ModelDisplayEntityImpl(
         display.yHeadRot.toDouble()
     )
 
-    private fun createRemovePacket() = ClientboundRemoveEntitiesPacket(display.id)
+    private val removePacket = ClientboundRemoveEntitiesPacket(display.id)
 
     companion object {
         private val ACCESSOR_IDS by lazy {

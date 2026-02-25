@@ -26,13 +26,14 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.PositionMoveRotation
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.Items
-import net.minecraft.world.phys.Vec3
 import org.joml.Quaternionf
+import org.joml.Vector3d
 import org.joml.Vector3f
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 internal class ModelDisplayImpl(
+    private val pos: Vector3d,
     val display: ItemDisplay,
     val yOffset: Double
 ) : ModelDisplay {
@@ -41,6 +42,8 @@ internal class ModelDisplayImpl(
     private val entityDataLock = SingleLock()
     private val forceGlow = AtomicBoolean()
     private val forceInvisibility = AtomicBoolean()
+
+    private val oldPos = Vector3d(pos)
 
     override fun id(): Int = display.id
     override fun uuid(): UUID = display.uuid
@@ -79,8 +82,8 @@ internal class ModelDisplayImpl(
     }
 
     override fun syncPosition(location: PlatformLocation) {
-        display.setOldPosAndRot()
-        display.setPos(Vec3(location.x(), location.y(), location.z()))
+        oldPos.set(pos)
+        pos.set(location.x(), location.y(), location.z())
     }
 
 
@@ -105,11 +108,11 @@ internal class ModelDisplayImpl(
 
     override fun sendPosition(adapter: BaseEntity, bundler: PacketBundler) {
         val handle = adapter.handle() as Entity
-        if (display.position() == display.oldPosition()) return
+        if (oldPos.distanceSquared(pos) < 1e-8) return
         bundler += ClientboundEntityPositionSyncPacket(
             display.id,
             PositionMoveRotation.of(handle),
-            handle.onGround
+            handle.onGround()
         )
     }
 
@@ -211,9 +214,9 @@ internal class ModelDisplayImpl(
         get() = ClientboundAddEntityPacket(
             display.id,
             display.uuid,
-            display.x,
-            display.y + yOffset,
-            display.z,
+            pos.x,
+            pos.y + yOffset,
+            pos.z,
             display.xRot,
             display.yRot,
             display.type,
@@ -222,8 +225,7 @@ internal class ModelDisplayImpl(
             display.yHeadRot.toDouble()
         )
 
-    private val removePacket
-        get() = ClientboundRemoveEntitiesPacket(display.id)
+    private val removePacket = ClientboundRemoveEntitiesPacket(display.id)
 
     private class DisplayTransformerImpl(
         source: ItemDisplay

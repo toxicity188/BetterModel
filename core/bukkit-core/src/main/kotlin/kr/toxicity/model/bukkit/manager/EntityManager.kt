@@ -46,12 +46,6 @@ import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.potion.PotionEffectType
 import org.joml.Vector3f
 
-/**
- * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
- * Licensed under the MIT License.
- * See LICENSE.md file for full license text.
- */
 object EntityManager : GlobalManager {
 
     private val effectSet = ReferenceSet.of(

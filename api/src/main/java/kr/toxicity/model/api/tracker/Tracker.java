@@ -711,8 +711,6 @@ public abstract class Tracker implements AutoCloseable {
         listenHitBox((bone, builder) -> builder.listen(eventClass, consumer));
     }
 
-    //--- Update action ---
-
     /**
      * Creates a hitbox for bones matching a predicate.
      *
@@ -762,6 +760,8 @@ public abstract class Tracker implements AutoCloseable {
             });
         }), predicate);
     }
+
+    //--- Update action ---
 
     /**
      * Forces an update action on all bones.

@@ -60,6 +60,7 @@ import net.minecraft.world.level.entity.PersistentEntitySectionManager
 import org.bukkit.craftbukkit.CraftWorld
 import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.craftbukkit.entity.CraftPlayer
+import org.joml.Vector3d
 import java.util.*
 import java.util.function.Consumer
 
@@ -311,19 +312,17 @@ class NMSImpl : NMS {
     override fun createLazyBundler(): PacketBundler = lazyBundlerOf()
     override fun createParallelBundler(threshold: Int): PacketBundler = parallelBundlerOf(threshold)
 
-    override fun create(location: PlatformLocation, yOffset: Double, initialConsumer: Consumer<ModelDisplay>): ModelDisplay = ModelDisplayImpl(ItemDisplay(EntityType.ITEM_DISPLAY, (location.world().unwarp() as CraftWorld).handle).apply {
-        entityData[Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID] = 3
-        billboardConstraints = Display.BillboardConstraints.FIXED
-        valid = true
-        moveTo(
-            location.x(),
-            location.y(),
-            location.z(),
-            location.yaw(),
-            0F
-        )
-        itemTransform = ItemDisplayContext.FIXED
-    }, yOffset).apply {
+    override fun create(location: PlatformLocation, yOffset: Double, initialConsumer: Consumer<ModelDisplay>): ModelDisplay = ModelDisplayImpl(
+        Vector3d(location.x(), location.y(), location.z()),
+        ItemDisplay(EntityType.ITEM_DISPLAY, (location.world().unwarp() as CraftWorld).handle).apply {
+            entityData[Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID] = 3
+            billboardConstraints = Display.BillboardConstraints.FIXED
+            valid = true
+            yRot = location.yaw()
+            itemTransform = ItemDisplayContext.FIXED
+        },
+        yOffset
+    ).apply {
         initialConsumer.accept(this)
         display.entityData.packDirty()
     }

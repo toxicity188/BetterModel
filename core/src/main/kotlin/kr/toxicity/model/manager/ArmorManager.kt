@@ -84,7 +84,9 @@ object ArmorManager : GlobalManager {
     private data class VersionManifest(
         val latest: ManifestLatest,
         val versions: List<ManifestVersion>
-    )
+    ) {
+        val manifest get() = versions.associateBy { it.id }[latest.release]!!
+    }
 
     private data class ManifestLatest(
         val release: String
@@ -93,15 +95,21 @@ object ArmorManager : GlobalManager {
     private data class ManifestVersion(
         val id: String,
         val url: String
-    )
+    ) {
+        fun toURI(): URI = URI.create(url)
+    }
 
     private data class VersionHash(
         val downloads: Map<String, HashDownload>
-    )
+    ) {
+        val client by downloads
+    }
 
     private data class HashDownload(
         val url: String
-    )
+    ) {
+        fun toURI(): URI = URI.create(url)
+    }
 
     private data class MinecraftClient(
         val version: String,
@@ -117,23 +125,20 @@ object ArmorManager : GlobalManager {
             },
             HttpResponse.BodyHandlers.ofInputStream()
         ).thenComposeAsync { response1 ->
-            val manifest = response1.toJson(VersionManifest::class.java).run {
-                versions.associateBy { it.id }[latest.release]!!
-            }
+            val manifest = response1.toJson(VersionManifest::class.java).manifest
             val cache = File(cacheFolder, "${manifest.id}.jar")
             if (cache.exists() && cache.length() > 0) CompletableFuture.supplyAsync { MinecraftClient(manifest.id, cache) }
             else sendAsync(
                 buildHttpRequest {
                     GET()
-                    uri(URI.create(manifest.url))
+                    uri(manifest.toURI())
                 },
                 HttpResponse.BodyHandlers.ofInputStream()
             ).thenComposeAsync { response2 ->
-                val hash = response2.toJson(VersionHash::class.java)
                 sendAsync(
                     buildHttpRequest {
                         GET()
-                        uri(URI.create(hash.downloads["client"]!!.url))
+                        uri(response2.toJson(VersionHash::class.java).client.toURI())
                     },
                     HttpResponse.BodyHandlers.ofInputStream()
                 ).thenComposeAsync { response3 ->

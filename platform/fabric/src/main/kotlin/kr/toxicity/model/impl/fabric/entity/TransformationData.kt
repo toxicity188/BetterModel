@@ -28,7 +28,7 @@ class TransformationData {
         DisplayAccessor.`bettermodel$getDataTranslationId`(),
         { a, b ->
             // unchecked cast
-            MathUtil.isSimilar(a as Vector3f, b as Vector3f)
+            MathUtil.isSimilar(a, b)
         },
         { a, b ->
             // unchecked cast
@@ -41,7 +41,7 @@ class TransformationData {
         DisplayAccessor.`bettermodel$getDataScaleId`(),
         { a, b ->
             // unchecked cast
-            MathUtil.isSimilar(a as Vector3f, b as Vector3f)
+            MathUtil.isSimilar(a, b)
         },
         { a, b ->
             // unchecked cast

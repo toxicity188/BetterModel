@@ -45,6 +45,7 @@ import net.minecraft.world.item.Items
 import net.minecraft.world.item.component.CustomModelData
 import net.minecraft.world.item.component.DyedItemColor
 import net.minecraft.world.item.component.ResolvableProfile
+import org.joml.Vector3d
 import java.util.function.Consumer
 
 class BetterModelNMSImpl : NMS {
@@ -60,10 +61,10 @@ class BetterModelNMSImpl : NMS {
             billboardConstraints = Display.BillboardConstraints.FIXED
             entityData[DisplayAccessor.`bettermodel$getDataPosRotInterpolationDurationId`()] = 3
             itemTransform = ItemDisplayContext.FIXED
-            snapTo(location.x(), location.y(), location.z(), location.yaw(), 0.0f)
+            yRot = location.yaw()
         }
 
-        val modelDisplay = ModelDisplayEntityImpl(itemDisplay, yOffset).apply {
+        val modelDisplay = ModelDisplayEntityImpl(Vector3d(location.x(), location.y(), location.z()), itemDisplay, yOffset).apply {
             initialConsumer.accept(this)
             display.entityData.packDirty()
         }

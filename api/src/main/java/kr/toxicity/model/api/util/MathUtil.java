@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+import org.joml.Vector3fc;
 
 import static java.lang.Math.*;
 
@@ -71,6 +72,18 @@ public final class MathUtil {
     public static final float FLOAT_COMPARISON_EPSILON = 1E-5F;
 
     /**
+     * Squared vector comparison epsilon value
+     */
+    public static final float VECTOR_COMPARISON_EPSILON_SQ = 1E-8F;
+
+    /**
+     * Quaternion comparison epsilon value
+     */
+    public static final float QUATERNION_COMPARISON_EPSILON = 1E-5F;
+
+    private static final Vector3f ZERO_VECTOR = new Vector3f();
+
+    /**
      * Float comparator
      */
     public static final FloatComparator FRAME_COMPARATOR = (a, b) -> isSimilar(a, b, FRAME_EPSILON) ? 0 : Float.compare(a, b);
@@ -110,8 +123,8 @@ public final class MathUtil {
      * @param b b
      * @return similar or not
      */
-    public static boolean isSimilar(@NotNull Vector3f a, @NotNull Vector3f b) {
-        return isSimilar(a, b, FLOAT_COMPARISON_EPSILON);
+    public static boolean isSimilar(@NotNull Vector3fc a, @NotNull Vector3fc b) {
+        return isSimilar(a, b, VECTOR_COMPARISON_EPSILON_SQ);
     }
 
     /**
@@ -121,10 +134,8 @@ public final class MathUtil {
      * @param epsilon epsilon
      * @return similar or not
      */
-    public static boolean isSimilar(@NotNull Vector3f a, @NotNull Vector3f b, float epsilon) {
-        return isSimilar(a.x, b.x, epsilon)
-            && isSimilar(a.y, b.y, epsilon)
-            && isSimilar(a.z, b.z, epsilon);
+    public static boolean isSimilar(@NotNull Vector3fc a, @NotNull Vector3fc b, float epsilon) {
+        return a.distanceSquared(b) < epsilon;
     }
 
     /**
@@ -134,7 +145,7 @@ public final class MathUtil {
      * @return similar or not
      */
     public static boolean isSimilar(@NotNull Quaternionf a, @NotNull Quaternionf b) {
-        return isSimilar(a, b, FLOAT_COMPARISON_EPSILON);
+        return isSimilar(a, b, QUATERNION_COMPARISON_EPSILON);
     }
 
     /**
@@ -145,10 +156,7 @@ public final class MathUtil {
      * @return similar or not
      */
     public static boolean isSimilar(@NotNull Quaternionf a, @NotNull Quaternionf b, float epsilon) {
-        return isSimilar(a.x, b.x, epsilon)
-            && isSimilar(a.y, b.y, epsilon)
-            && isSimilar(a.z, b.z, epsilon)
-            && isSimilar(a.w, b.w, epsilon);
+        return abs(fma(a.x, b.x, fma(a.y, b.y, fma(a.z, b.z, a.w * b.w)))) > 1.0F - epsilon;
     }
 
     /**
@@ -324,10 +332,10 @@ public final class MathUtil {
 
     /**
      * Checks this vector is zero
-     * @param vector3f vector
+     * @param vector vector
      * @return is zero
      */
-    public static boolean isZero(@NotNull Vector3f vector3f) {
-        return isSimilar(vector3f.x, 0F) && isSimilar(vector3f.y, 0F) && isSimilar(vector3f.z, 0F);
+    public static boolean isZero(@NotNull Vector3f vector) {
+        return isSimilar(vector, ZERO_VECTOR);
     }
 }

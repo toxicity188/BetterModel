@@ -131,6 +131,13 @@ fun startFabricCommand() {
                 .senderType(AudiencePlayer::class.java)
                 .handler(::play)
         }
+        create(
+            "version",
+            "Checks BetterModel's version",
+            "v"
+        ) {
+            handler(::version)
+        }
 // TODO NOT implemented yet
 //        create(
 //            "hide",
@@ -149,13 +156,6 @@ fun startFabricCommand() {
 //                .required("source", singlePlayerSelectorParser())
 //                .required("entities", multipleEntitySelectorParser())
 //                .handler(::show)
-//        }
-//        create(
-//            "version",
-//            "Checks BetterModel's version",
-//            "v"
-//        ) {
-//            handler(::version)
 //        }
     }
 }

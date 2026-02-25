@@ -15,6 +15,7 @@ import kr.toxicity.model.api.platform.PlatformItemStack
 import kr.toxicity.model.api.platform.PlatformItemTransform
 import kr.toxicity.model.api.platform.PlatformLocation
 import kr.toxicity.model.api.tracker.ModelRotation
+import kr.toxicity.model.api.util.MathUtil
 import kr.toxicity.model.api.util.lock.SingleLock
 import net.minecraft.network.protocol.game.*
 import net.minecraft.network.syncher.EntityDataSerializers
@@ -25,13 +26,14 @@ import net.minecraft.world.entity.Display.ItemDisplay
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.Items
-import net.minecraft.world.phys.Vec3
 import org.joml.Quaternionf
+import org.joml.Vector3d
 import org.joml.Vector3f
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 internal class ModelDisplayImpl(
+    private val pos: Vector3d,
     val display: ItemDisplay,
     val yOffset: Double
 ) : ModelDisplay {
@@ -40,6 +42,8 @@ internal class ModelDisplayImpl(
     private val entityDataLock = SingleLock()
     private val forceGlow = AtomicBoolean()
     private val forceInvisibility = AtomicBoolean()
+
+    private val oldPos = Vector3d(pos)
 
     override fun id(): Int = display.id
     override fun uuid(): UUID = display.uuid
@@ -78,8 +82,8 @@ internal class ModelDisplayImpl(
     }
 
     override fun syncPosition(location: PlatformLocation) {
-        display.setOldPosAndRot()
-        display.setPos(Vec3(location.x(), location.y(), location.z()))
+        oldPos.set(pos)
+        pos.set(location.x(), location.y(), location.z())
     }
 
 
@@ -104,8 +108,17 @@ internal class ModelDisplayImpl(
 
     override fun sendPosition(adapter: BaseEntity, bundler: PacketBundler) {
         val handle = adapter.handle() as Entity
-        if (display.position() == Vec3(handle.xOld, handle.yOld, handle.zOld)) return
-        bundler += ClientboundTeleportEntityPacket(display)
+        if (oldPos.distanceSquared(pos) < 1e-8) return
+        bundler += useByteBuf {
+            it.writeInt(display.id)
+            it.writeDouble(handle.x)
+            it.writeDouble(handle.y)
+            it.writeDouble(handle.z)
+            it.writeByte((handle.yRot * MathUtil.DEGREES_TO_PACKED_BYTE).toInt())
+            it.writeByte((handle.xRot * MathUtil.DEGREES_TO_PACKED_BYTE).toInt())
+            it.writeBoolean(handle.onGround())
+            ClientboundTeleportEntityPacket.STREAM_CODEC.decode(it)
+        }
     }
 
     override fun display(transform: PlatformItemTransform) {
@@ -206,9 +219,9 @@ internal class ModelDisplayImpl(
         get() = ClientboundAddEntityPacket(
             display.id,
             display.uuid,
-            display.x,
-            display.y + yOffset,
-            display.z,
+            pos.x,
+            pos.y + yOffset,
+            pos.z,
             display.xRot,
             display.yRot,
             display.type,
@@ -217,8 +230,7 @@ internal class ModelDisplayImpl(
             display.yHeadRot.toDouble()
         )
 
-    private val removePacket
-        get() = ClientboundRemoveEntitiesPacket(display.id)
+    private val removePacket = ClientboundRemoveEntitiesPacket(display.id)
 
     private class DisplayTransformerImpl(
         source: ItemDisplay
