@@ -170,7 +170,7 @@ public class EntityTracker extends Tracker {
      * @since 1.15.2
      */
     public void updateBaseEntity() {
-        BetterModel.platform().scheduler().asyncTaskLater(1, () -> {
+        registry.entity().platform().taskLater(1, () -> {
             updateBaseEntity0();
             forceUpdate(true);
         });
