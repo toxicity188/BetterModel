@@ -46,6 +46,8 @@ public final class RendererGroup {
     private final SequencedMap<BoneName, RendererGroup> children;
     @Getter
     private final @Nullable ModelBoundingBox hitBox;
+    @Getter
+    private final @NotNull Vector3f hitBoxPoint;
 
     @Getter
     private final @NotNull BoneItemMapper itemMapper;
@@ -77,9 +79,10 @@ public final class RendererGroup {
             itemStack != null ? itemStack : BetterModel.platform().adapter().air()
         );
         this.itemMapper = name().toItemMapper();
-        position = group.origin().toBlockScale().toVector();
+        this.position = group.origin().toBlockScale().toVector();
         this.hitBox = box;
-        rotation = group.rotation().toVector();
+        this.hitBoxPoint = box == null ? new Vector3f() : box.centerPoint();
+        this.rotation = group.rotation().toVector();
         if (name().tagged(BoneTags.SEAT)) {
             mountController = BetterModel.config().defaultMountController();
         } else if (name().tagged(BoneTags.SUB_SEAT)) {
