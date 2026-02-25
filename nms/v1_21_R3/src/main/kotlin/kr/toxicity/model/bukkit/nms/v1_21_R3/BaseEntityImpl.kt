@@ -49,8 +49,9 @@ internal data class BaseEntityImpl(
 
     override fun pitch(): Float = handle().xRot
     override fun ground(): Boolean = handle().onGround()
-    override fun bodyYaw(): Float = handle().yRot
-    override fun headYaw(): Float = if (handle() is LivingEntity) handle().yHeadRot else bodyYaw()
+    override fun bodyYaw(): Float = handle().let { if (it is LivingEntity) it.yBodyRot else it.yRot }
+    override fun yaw(): Float = handle().yRot
+    override fun headYaw(): Float = handle().let { if (it is LivingEntity) it.yHeadRot else it.yRot }
     override fun fly(): Boolean = handle().isFlying
 
     override fun damageTick(): Float {

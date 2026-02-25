@@ -13,6 +13,7 @@ import kr.toxicity.model.api.nms.Profiled
 import kr.toxicity.model.api.platform.PlatformPlayer
 import kr.toxicity.model.api.player.PlayerSkinParts
 import kr.toxicity.model.api.profile.ModelProfile
+import net.minecraft.util.Mth
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.entity.Player
 import java.util.stream.Stream
@@ -37,4 +38,12 @@ internal data class BasePlayerImpl(
     ).map {
         it.wrap()
     }
+
+    override fun bodyYaw(): Float {
+        val handle = delegate.handle
+        var yaw = -45 * handle.xMovement()
+        if (handle.zMovement() < 0) yaw *= -1
+        return Mth.wrapDegrees(handle.yHeadRot + yaw)
+    }
 }
+

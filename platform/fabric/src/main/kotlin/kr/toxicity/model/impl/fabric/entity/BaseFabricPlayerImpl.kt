@@ -15,7 +15,10 @@ import kr.toxicity.model.api.profile.ModelProfile
 import kr.toxicity.model.impl.fabric.armor.PlayerArmorImpl
 import kr.toxicity.model.impl.fabric.seenBy
 import kr.toxicity.model.impl.fabric.wrap
+import kr.toxicity.model.impl.fabric.xMovement
+import kr.toxicity.model.impl.fabric.zMovement
 import net.minecraft.server.network.ServerPlayerConnection
+import net.minecraft.util.Mth
 import java.util.stream.Stream
 
 class BaseFabricPlayerImpl(
@@ -35,5 +38,12 @@ class BaseFabricPlayerImpl(
         connection.player.seenBy.stream()
     ).map {
         it.wrap()
+    }
+
+    override fun bodyYaw(): Float {
+        val handle = connection.player
+        var yaw = -45 * handle.xMovement()
+        if (handle.zMovement() < 0) yaw *= -1
+        return Mth.wrapDegrees(handle.yHeadRot + yaw)
     }
 }

@@ -6,7 +6,6 @@
  */
 package kr.toxicity.model.api.util.lazy;
 
-import kr.toxicity.model.api.util.FunctionUtil;
 import kr.toxicity.model.api.util.InterpolationUtil;
 import kr.toxicity.model.api.util.function.FloatSupplier;
 import org.jetbrains.annotations.ApiStatus;
@@ -90,23 +89,22 @@ public final class LazyFloatProvider {
 
     /**
      * Gets lazy provider of vector
-     * @param tick throttle tick
      * @param requiredTime required time
      * @param delegate source provider
      * @return lazy provider
      */
-    public static @NotNull Supplier<Vector3f> ofVector(long tick, @NotNull FloatSupplier requiredTime, @NotNull Supplier<Vector3f> delegate) {
+    public static @NotNull Supplier<Vector3f> ofVector(@NotNull FloatSupplier requiredTime, @NotNull Supplier<Vector3f> delegate) {
         Objects.requireNonNull(requiredTime);
         Objects.requireNonNull(delegate);
         var xLazy = new LazyFloatProvider(requiredTime);
         var yLazy = new LazyFloatProvider(requiredTime);
         var zLazy = new LazyFloatProvider(requiredTime);
-        return FunctionUtil.throttleTick(tick, () -> {
+        return () -> {
             var get = delegate.get();
             get.x = xLazy.updateAndGet(get.x);
             get.y = yLazy.updateAndGet(get.y);
             get.z = zLazy.updateAndGet(get.z);
             return get;
-        });
+        };
     }
 }

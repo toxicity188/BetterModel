@@ -70,9 +70,11 @@ class BaseFabricEntityImpl(private var entity: Entity) : BaseFabricEntity {
 
     override fun pitch(): Float = entity.xRot
 
-    override fun bodyYaw(): Float = entity.yRot
+    override fun bodyYaw(): Float = entity.let { if (it is LivingEntity) it.yBodyRot else it.yRot }
 
-    override fun headYaw(): Float = if (entity is LivingEntity) entity.yHeadRot else bodyYaw()
+    override fun yaw(): Float = entity.yRot
+
+    override fun headYaw(): Float = entity.let { if (it is LivingEntity) it.yHeadRot else it.yRot }
 
     override fun damageTick(): Float {
         val entity = entity

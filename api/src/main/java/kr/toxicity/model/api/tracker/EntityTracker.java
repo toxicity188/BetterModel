@@ -24,7 +24,6 @@ import kr.toxicity.model.api.platform.PlatformLocation;
 import kr.toxicity.model.api.platform.PlatformPlayer;
 import kr.toxicity.model.api.util.EventUtil;
 import kr.toxicity.model.api.util.FunctionUtil;
-import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.function.BonePredicate;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -116,7 +115,7 @@ public class EntityTracker extends Tracker {
         //Animation
         pipeline.defaultPosition(vec -> entity.passengerPosition(vec).mul(-1));
         pipeline.scale(scale);
-        Function<Quaternionf, Quaternionf> headRotator = r -> r.mul(MathUtil.toQuaternion(bodyRotator.headRotation()));
+        Function<Quaternionf, Quaternionf> headRotator = r -> r.mul(bodyRotator.headRotation());
 
         pipeline.addRotationModifier(HEAD_PREDICATE, headRotator);
         pipeline.addRotationModifier(HEAD_WITH_CHILDREN_PREDICATE, headRotator);

@@ -131,6 +131,12 @@ public interface BaseEntity extends Identifiable {
      * Gets entity's yaw (y-rot)
      * @return yaw
      */
+    float yaw();
+
+    /**
+     * Gets entity's head yaw (y-rot)
+     * @return head yaw
+     */
     float headYaw();
 
     /**
