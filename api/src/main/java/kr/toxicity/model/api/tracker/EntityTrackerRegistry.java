@@ -404,7 +404,11 @@ public final class EntityTrackerRegistry {
      */
     public void despawn() {
         for (EntityTracker value : trackers()) {
-            if (!value.forRemoval()) value.despawn();
+            if (value.forRemoval()) {
+                if (!value.isClosed()) value.close(Tracker.CloseReason.DESPAWN);
+            } else {
+                value.despawn();
+            }
         }
         viewedPlayerMap.clear();
     }

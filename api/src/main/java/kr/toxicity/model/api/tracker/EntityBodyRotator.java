@@ -10,6 +10,7 @@ import com.google.gson.annotations.SerializedName;
 import kr.toxicity.model.api.entity.BaseEntity;
 import kr.toxicity.model.api.util.FunctionUtil;
 import kr.toxicity.model.api.util.MathUtil;
+import kr.toxicity.model.api.util.function.FloatSupplier;
 import kr.toxicity.model.api.util.lazy.LazyFloatProvider;
 import lombok.AllArgsConstructor;
 import lombok.Setter;
@@ -19,6 +20,7 @@ import org.joml.Vector3f;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -40,6 +42,11 @@ public final class EntityBodyRotator {
     private final LazyFloatProvider provider;
     private final Supplier<Quaternionf> headSupplier;
     private final Supplier<ModelRotation> bodySupplier;
+    private final FloatSupplier pitchSupplier;
+    private final FloatSupplier bodyYawSupplier;
+    private final FloatSupplier headYawSupplier;
+    private final BooleanSupplier walkSupplier;
+    private final FloatSupplier yawSupplier;
     private final AtomicBoolean rotationLock = new AtomicBoolean();
     private int tick;
     private final Quaternionf headRotation = new Quaternionf();
@@ -73,20 +80,25 @@ public final class EntityBodyRotator {
     EntityBodyRotator(@NotNull EntityTrackerRegistry registry) {
         this.registry = registry;
         this.entity = registry.entity();
+        this.pitchSupplier = FunctionUtil.throttleTickFloat(entity::pitch);
+        this.bodyYawSupplier = FunctionUtil.throttleTickFloat(entity::bodyYaw);
+        this.headYawSupplier = FunctionUtil.throttleTickFloat(entity::headYaw);
+        this.walkSupplier = FunctionUtil.throttleTickBoolean(entity::onWalk);
+        this.yawSupplier = FunctionUtil.throttleTickFloat(entity::yaw);
         this.rotation = new ModelRotation(
-            entity.pitch(),
-            entity.yaw()
+            pitchSupplier.getAsFloat(),
+            yawSupplier.getAsFloat()
         );
-        this.provider = new LazyFloatProvider(entity.yaw(), () -> rotationDuration * MathUtil.MINECRAFT_TICK_MILLS);
+        this.provider = new LazyFloatProvider(yawSupplier.getAsFloat(), () -> rotationDuration * MathUtil.MINECRAFT_TICK_MILLS);
         var vector = new Vector3f();
         var vectorSupplier = LazyFloatProvider.ofVector(() -> 3 * MathUtil.MINECRAFT_TICK_MILLS, () -> vector.set(
-            clampHead(entity.pitch()),
-            clampHead(wrapDegrees(bodyRotation().y() - entity.headYaw())),
+            clampHead(pitchSupplier.getAsFloat()),
+            clampHead(wrapDegrees(bodyRotation().y() - headYawSupplier.getAsFloat())),
             0
         ));
         headSupplier = FunctionUtil.throttleTick(Tracker.TRACKER_TICK_INTERVAL, () -> MathUtil.toQuaternion(vectorSupplier.get(), headRotation));
         bodySupplier = FunctionUtil.throttleTick(() -> new ModelRotation(
-            entity.pitch(),
+            pitchSupplier.getAsFloat(),
             bodyRotation0()
         ));
         reset();
@@ -116,16 +128,16 @@ public final class EntityBodyRotator {
     }
 
     private float bodyRotation0() {
-        if (playerMode) return entity.bodyYaw();
-        if (registry.hasControllingPassenger()) return entity.yaw();
-        if (entity.onWalk()) {
+        if (playerMode) return bodyYawSupplier.getAsFloat();
+        if (registry.hasControllingPassenger()) return yawSupplier.getAsFloat();
+        if (walkSupplier.getAsBoolean()) {
             tick = rotationDelay;
             return stableBodyYaw();
-        } else if (MathUtil.isSimilar(entity.headYaw(), rotation.y(), DEGREE_EPSILON)) {
+        } else if (MathUtil.isSimilar(headYawSupplier.getAsFloat(), rotation.y(), DEGREE_EPSILON)) {
             tick = 0;
-            return entity.headYaw();
+            return headYawSupplier.getAsFloat();
         } else if (++tick > rotationDelay) {
-            var headYaw = entity.headYaw();
+            var headYaw = headYawSupplier.getAsFloat();
             var providedYaw = provider.updateAndGet(headYaw);
             return wrapDegrees(clampBody(providedYaw, headYaw));
         }
@@ -135,7 +147,7 @@ public final class EntityBodyRotator {
 
     private float stableBodyYaw() {
         var bodyYaw = rotation.y();
-        var yaw = entity.yaw();
+        var yaw = yawSupplier.getAsFloat();
         var minStable = yaw - stable;
         var maxStable = yaw + stable;
         return wrapDegrees(Math.clamp(bodyYaw, Math.min(minStable, maxStable), Math.max(minStable, maxStable)));

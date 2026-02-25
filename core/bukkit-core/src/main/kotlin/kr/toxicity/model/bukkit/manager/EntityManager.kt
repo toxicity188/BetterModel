@@ -120,8 +120,12 @@ object EntityManager : GlobalManager {
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         fun EntityDeathEvent.death() { //Death
             entity.forEachTracker {
-                if (it.animate("death", AnimationModifier.DEFAULT_WITH_PLAY_ONCE) { it.close() }) {
-                    it.forRemoval(true)
+                it.forRemoval(true)
+                if (!it.animate("death", AnimationModifier.DEFAULT_WITH_PLAY_ONCE) { it.close() }) {
+                    // No death animation — schedule forced close after vanilla death sequence (20 ticks)
+                    it.sourceEntity().platform().taskLater(20) {
+                        if (!it.isClosed) it.close()
+                    }
                 }
             }
         }

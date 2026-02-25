@@ -189,6 +189,7 @@ object EntityManager : GlobalManager {
         // same as EntityDeathEvent, PlayerDeathEvent
         ServerLivingEntityEvents.AFTER_DEATH.register { entity, _ ->
             entity.eachTracker { tracker ->
+                tracker.forRemoval(true)
                 val animated = tracker.animate(
                     "death",
                     AnimationModifier.DEFAULT_WITH_PLAY_ONCE
@@ -196,8 +197,11 @@ object EntityManager : GlobalManager {
                     tracker.close()
                 }
 
-                if (animated) {
-                    tracker.forRemoval(true)
+                if (!animated) {
+                    // No death animation — schedule forced close after vanilla death sequence (20 ticks)
+                    tracker.sourceEntity().platform().taskLater(20) {
+                        if (!tracker.isClosed) tracker.close()
+                    }
                 }
             }
 
