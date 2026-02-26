@@ -85,7 +85,7 @@ public interface PlatformLocation extends PlatformRegionHolder {
      *
      * @param other the other location
      * @return the distance
-     * @since 2.0.2
+     * @since 2.1.0
      */
     default double distance(@NotNull PlatformLocation other) {
         return sqrt(distanceSquared(other));
@@ -96,7 +96,7 @@ public interface PlatformLocation extends PlatformRegionHolder {
      *
      * @param other the other location
      * @return the squared distance
-     * @since 2.0.2
+     * @since 2.1.0
      */
     default double distanceSquared(@NotNull PlatformLocation other) {
         var x = x() - other.x();

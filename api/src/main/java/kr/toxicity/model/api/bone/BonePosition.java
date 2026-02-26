@@ -18,7 +18,7 @@ import java.util.UUID;
  * @param globalOffset the global offset vector
  * @param localOffset  the local offset vector
  * @param state        the unique identifier of the current state, or null if none
- * @since 2.0.2
+ * @since 2.1.0
  */
 public record BonePosition(
     @NotNull Vector3f globalOffset,

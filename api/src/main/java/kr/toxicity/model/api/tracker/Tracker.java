@@ -684,7 +684,7 @@ public abstract class Tracker implements AutoCloseable {
      * }</pre>
      *
      * @param function the hitbox listener builder transformer
-     * @since 2.0.2
+     * @since 2.1.0
      */
     public void listenHitBox(@NotNull BiFunction<RenderedBone, HitBoxListener.Builder, HitBoxListener.Builder> function) {
         pipeline.eventDispatcher().handleCreateHitBox(function);

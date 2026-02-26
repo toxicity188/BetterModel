@@ -98,7 +98,7 @@ public interface HitBoxListener {
          *
          * @param damage the damage handler
          * @return this builder
-         * @since 2.0.2
+         * @since 2.1.0
          */
         public @NotNull Builder damage(@NotNull Consumer<HitBoxDamagedEvent> damage) {
             return listen(HitBoxDamagedEvent.class, damage);
@@ -109,7 +109,7 @@ public interface HitBoxListener {
          *
          * @param interact the interact handler
          * @return this builder
-         * @since 2.0.2
+         * @since 2.1.0
          */
         public @NotNull Builder interact(@NotNull Consumer<HitBoxInteractEvent> interact) {
             return listen(HitBoxInteractEvent.class, interact);
@@ -120,7 +120,7 @@ public interface HitBoxListener {
          *
          * @param interactAt the interact-at handler
          * @return this builder
-         * @since 2.0.2
+         * @since 2.1.0
          */
         public @NotNull Builder interactAt(@NotNull Consumer<HitBoxInteractAtEvent> interactAt) {
             return listen(HitBoxInteractAtEvent.class, interactAt);

@@ -49,7 +49,7 @@ public final class BoneTagRegistry {
      * Gets a bone tag by its name.
      * @param tag tag name
      * @return bone tag or null
-     * @since 2.0.2
+     * @since 2.1.0
      */
     public @Nullable BoneTag byTagNameOrNull(@NotNull String tag) {
         return byName.get(tag);

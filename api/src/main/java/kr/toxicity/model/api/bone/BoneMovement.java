@@ -66,7 +66,7 @@ public record BoneMovement(
      * @param alpha the interpolation factor (0.0 to 1.0)
      * @param dest the destination movement to store the result
      * @return the destination movement
-     * @since 2.0.2
+     * @since 2.1.0
      */
     public @NotNull BoneMovement lerp(@NotNull BoneMovement to, float alpha, @NotNull BoneMovement dest) {
         InterpolationUtil.lerp(position, to.position, alpha, dest.position);
