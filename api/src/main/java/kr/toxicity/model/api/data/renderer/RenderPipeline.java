@@ -51,8 +51,10 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     @Getter
     private final RenderSource<?> source;
 
-    private final SequencedMap<BoneName, RenderedBone> boneMap;
-    private final SequencedMap<BoneName, RenderedBone> flattenBoneMap;
+    private final RenderedBone[] bones;
+    private final RenderedBone[] flattenBones;
+    private final SequencedMap<BoneName, RenderedBone> byIdMap;
+
     private final int displayAmount;
     private final Map<UUID, SpawnedPlayer> playerMap = new ConcurrentHashMap<>();
     private final Set<UUID> hidePlayerSet = ConcurrentHashMap.newKeySet();
@@ -76,27 +78,24 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
      *
      * @param parent the parent model renderer
      * @param source the source of the rendering (entity or location)
-     * @param boneMap the map of root bones
+     * @param bones the array of root bones
      * @since 1.15.2
      */
     public RenderPipeline(
         @NotNull ModelRenderer parent,
         @NotNull RenderSource<?> source,
-        @NotNull SequencedMap<BoneName, RenderedBone> boneMap
+        @NotNull RenderedBone[] bones
     ) {
         this.parent = parent;
         this.source = source;
-        this.boneMap = boneMap;
-        //Bone
-        flattenBoneMap = associateSequenced(
-            boneMap.values()
-                .stream()
-                .flatMap(RenderedBone::flatten)
-                .peek(bone -> bone.extend(this)),
-            RenderedBone::name
-        );
-        ikSolver = new BoneIKSolver(associate(flattenBoneMap.values(), RenderedBone::uuid));
-        displayAmount = (int) flattenBoneMap.values().stream()
+        this.bones = bones;
+        // Bone
+        flattenBones = Arrays.stream(bones).flatMap(RenderedBone::flatten).toArray(RenderedBone[]::new);
+        byIdMap = associateSequenced(Arrays.stream(flattenBones), RenderedBone::name);
+        ikSolver = new BoneIKSolver(associate(Arrays.stream(flattenBones), RenderedBone::uuid));
+        // Setup
+        displayAmount = (int) Arrays.stream(flattenBones)
+            .peek(bone -> bone.extend(this))
             .peek(bone -> bone.locator(ikSolver))
             .filter(rb -> rb.getDisplay() != null)
             .count();
@@ -354,7 +353,7 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
      * @since 1.15.2
      */
     public @NotNull @Unmodifiable Collection<RenderedBone> bones() {
-        return flattenBoneMap.values();
+        return byIdMap.values();
     }
 
     /**
@@ -364,8 +363,7 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
      * @since 1.15.2
      */
     public @NotNull Stream<HitBox> hitboxes() {
-        return bones()
-            .stream()
+        return stream()
             .map(RenderedBone::getHitBox)
             .filter(Objects::nonNull);
     }
@@ -378,7 +376,7 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
      * @since 1.15.2
      */
     public @Nullable RenderedBone boneOf(@NotNull BoneName name) {
-        return flattenBoneMap.get(name);
+        return byIdMap.get(name);
     }
 
     /**
@@ -439,7 +437,7 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
         if (predicate == BonePredicate.FALSE) return false;
         if (predicate == BonePredicate.TRUE || predicate.applyAtChildren() == BonePredicate.State.NOT_SET) return matchTree(b -> mapper.test(b, predicate));
         var result = false;
-        for (RenderedBone value : boneMap.values()) {
+        for (RenderedBone value : bones) {
             if (value.matchTree(predicate, mapper)) result = true;
         }
         return result;
@@ -455,7 +453,7 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     public boolean matchAnimation(@NotNull BiPredicate<RenderedBone, AnimationOverrideState> mapper) {
         Objects.requireNonNull(mapper);
         var result = false;
-        for (RenderedBone value : boneMap.values()) {
+        for (RenderedBone value : bones) {
             if (value.matchAnimation(AnimationOverrideState.NOT_MATCHED, mapper)) result = true;
         }
         return result;
@@ -471,7 +469,7 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     public boolean matchTree(@NotNull Predicate<RenderedBone> predicate) {
         Objects.requireNonNull(predicate);
         var result = false;
-        for (RenderedBone value : this) {
+        for (RenderedBone value : flattenBones) {
             if (predicate.test(value)) result = true;
         }
         return result;
@@ -486,12 +484,12 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
      * @since 1.15.2
      */
     public <T> @Nullable T firstNotNull(@NotNull Function<RenderedBone, T> mapper) {
-        return bones()
-            .stream()
-            .map(mapper)
-            .filter(Objects::nonNull)
-            .findFirst()
-            .orElse(null);
+        Objects.requireNonNull(mapper);
+        for (RenderedBone value : flattenBones) {
+            var t = mapper.apply(value);
+            if (t != null) return t;
+        }
+        return null;
     }
 
     /**
@@ -590,15 +588,32 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     @Override
+    public void forEach(@NotNull Consumer<? super RenderedBone> action) {
+        for (RenderedBone bone : flattenBones) {
+            action.accept(bone);
+        }
+    }
+
+    @Override
     @NotNull
     public Iterator<RenderedBone> iterator() {
-        return flattenBoneMap.values().iterator();
+        return bones().iterator();
     }
 
     @Override
     @NotNull
     public Spliterator<RenderedBone> spliterator() {
-        return flattenBoneMap.values().spliterator();
+        return Arrays.spliterator(flattenBones);
+    }
+
+    /**
+     * Returns a sequential {@code Stream} with the flattened bones as its source.
+     *
+     * @return a stream of all bones in this pipeline
+     * @since 2.2.0
+     */
+    public @NotNull Stream<RenderedBone> stream() {
+        return Arrays.stream(flattenBones);
     }
 
     /**

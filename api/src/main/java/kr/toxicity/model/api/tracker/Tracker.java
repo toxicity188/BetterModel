@@ -93,7 +93,7 @@ public abstract class Tracker implements AutoCloseable {
 
         @Override
         public float getAsFloat() {
-            return (float) bones()
+            return (float) pipeline
                 .stream()
                 .filter(bone -> bone.name().tagged(BoneTags.HEAD, BoneTags.HEAD_WITH_CHILDREN))
                 .mapToDouble(bone -> bone.hitBoxPosition(heightCache).y)
@@ -781,7 +781,7 @@ public abstract class Tracker implements AutoCloseable {
      * @since 1.15.2
      */
     public @Nullable RenderedBone bone(@NotNull Predicate<RenderedBone> predicate) {
-        return bones().stream()
+        return pipeline.stream()
             .filter(predicate)
             .findFirst()
             .orElse(null);
@@ -804,7 +804,7 @@ public abstract class Tracker implements AutoCloseable {
      * @since 1.15.2
      */
     public @NotNull Stream<ModelDisplay> displays() {
-        return bones().stream()
+        return pipeline.stream()
             .map(RenderedBone::getDisplay)
             .filter(Objects::nonNull);
     }

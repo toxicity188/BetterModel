@@ -7,6 +7,7 @@
 package kr.toxicity.model.api.data.renderer;
 
 import kr.toxicity.model.api.bone.BoneName;
+import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.entity.BaseEntity;
 import kr.toxicity.model.api.platform.PlatformEntity;
@@ -27,8 +28,6 @@ import java.util.Optional;
 import java.util.SequencedMap;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-
-import static kr.toxicity.model.api.util.CollectionUtil.mapValueSequenced;
 
 /**
  * A blueprint renderer.
@@ -617,7 +616,11 @@ public record ModelRenderer(
     }
 
     private @NotNull RenderPipeline pipeline(@NotNull RenderSource<?> source) {
-        return new RenderPipeline(this, source, mapValueSequenced(rendererGroups, value -> value.create(source)));
+        return new RenderPipeline(
+            this,
+            source,
+            rendererGroups.values().stream().map(value -> value.create(source)).toArray(RenderedBone[]::new)
+        );
     }
 
     /**

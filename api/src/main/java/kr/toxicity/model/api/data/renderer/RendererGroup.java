@@ -26,8 +26,6 @@ import java.util.SequencedMap;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import static kr.toxicity.model.api.util.CollectionUtil.mapValueSequenced;
-
 /**
  * A group of models.
  */
@@ -133,7 +131,7 @@ public final class RendererGroup {
                 MathUtil.toQuaternion(rotation),
                 rotation
             ),
-            parent -> mapValueSequenced(children, value -> value.create(context, parent))
+            parent -> children.values().stream().map(value -> value.create(context, parent)).toArray(RenderedBone[]::new)
         );
     }
 

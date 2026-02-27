@@ -67,12 +67,9 @@ public final class RenderedBone implements BoneEventHandler {
     @Nullable
     @Getter
     final RenderedBone parent;
+    final RenderedBone[] children;
 
     private volatile SequencedSet<RenderedBone> flattenBones;
-
-    @Getter
-    @NotNull
-    final SequencedMap<BoneName, RenderedBone> children;
 
     private final Int2ObjectMap<PlatformItemStack> tintCacheMap = new Int2ObjectOpenHashMap<>();
     @Getter
@@ -124,7 +121,7 @@ public final class RenderedBone implements BoneEventHandler {
         @Nullable RenderedBone parent,
         @NotNull BoneRenderContext context,
         @NotNull BoneMovement movement,
-        @NotNull Function<RenderedBone, SequencedMap<BoneName, RenderedBone>> childrenMapper
+        @NotNull Function<RenderedBone, RenderedBone[]> childrenMapper
     ) {
         this.group = group;
         this.parent = parent;
@@ -479,9 +476,9 @@ public final class RenderedBone implements BoneEventHandler {
         if (flattenBones != null) return flattenBones;
         synchronized (this) {
             if (flattenBones != null) return flattenBones;
-            return flattenBones = children.isEmpty() ? SingletonSequencedSet.of(this) : Stream.concat(
+            return flattenBones = children.length == 0 ? SingletonSequencedSet.of(this) : Stream.concat(
                 Stream.of(this),
-                children.values().stream().flatMap(RenderedBone::flatten)
+                Arrays.stream(children).flatMap(RenderedBone::flatten)
             ).collect(Collectors.collectingAndThen(
                 Collectors.toCollection(LinkedHashSet::new),
                 Collections::unmodifiableSequencedSet
@@ -492,7 +489,7 @@ public final class RenderedBone implements BoneEventHandler {
     public boolean matchTree(@NotNull BonePredicate predicate, @NotNull BiPredicate<RenderedBone, BonePredicate> mapper) {
         var parentResult = mapper.test(this, predicate);
         var childPredicate = predicate.children(parentResult);
-        for (RenderedBone value : children.values()) {
+        for (RenderedBone value : children) {
             if (value.matchTree(childPredicate, mapper)) parentResult = true;
         }
         return parentResult;
@@ -501,7 +498,7 @@ public final class RenderedBone implements BoneEventHandler {
     public boolean matchAnimation(@NotNull AnimationOverrideState overrideState, @NotNull BiPredicate<RenderedBone, AnimationOverrideState> mapper) {
         var parentResult = mapper.test(this, overrideState);
         if (parentResult) overrideState = AnimationOverrideState.MATCHED;
-        for (RenderedBone value : children.values()) {
+        for (RenderedBone value : children) {
             if (value.matchAnimation(overrideState, mapper)) parentResult = true;
         }
         return parentResult;
