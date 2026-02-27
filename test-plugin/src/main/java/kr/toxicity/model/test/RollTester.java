@@ -125,7 +125,7 @@ public final class RollTester implements ModelTester, Listener {
                 t.rotation(() -> new ModelRotation(player.getPitch(), packDegree(input + t.registry().entity().yaw())));
             }))
             .ifPresent(t -> {
-                if (t.animate(b -> true, "roll", AnimationModifier.DEFAULT_WITH_PLAY_ONCE, () -> {
+                if (t.animate("roll", AnimationModifier.DEFAULT_WITH_PLAY_ONCE, () -> {
                     BetterModel.platform().scheduler().asyncTaskLater(3, () -> coolTimeSet.remove(player.getUniqueId()));
                     t.close();
                 })) {

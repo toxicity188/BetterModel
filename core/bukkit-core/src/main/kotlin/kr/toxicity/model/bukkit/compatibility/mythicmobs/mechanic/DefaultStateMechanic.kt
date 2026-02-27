@@ -11,7 +11,7 @@ import io.lumine.mythic.api.skills.INoTargetSkill
 import io.lumine.mythic.api.skills.SkillMetadata
 import io.lumine.mythic.api.skills.SkillResult
 import kr.toxicity.model.api.animation.AnimationModifier
-import kr.toxicity.model.api.util.function.FloatConstantSupplier
+import kr.toxicity.model.api.util.function.FloatSupplier
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.*
 
 class DefaultStateMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
@@ -32,7 +32,7 @@ class DefaultStateMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), 
             it.replace(t, s ?: t, AnimationModifier.builder()
                 .start(li(args) ?: -1)
                 .end(lo(args) ?: -1)
-                .speed(sp(args)?.let(FloatConstantSupplier::of))
+                .speed(sp(args)?.let(FloatSupplier::of))
                 .build())
             SkillResult.SUCCESS
         } ?: SkillResult.CONDITION_FAILED

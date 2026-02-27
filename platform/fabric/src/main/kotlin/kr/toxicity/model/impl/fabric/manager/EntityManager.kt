@@ -7,7 +7,6 @@
 package kr.toxicity.model.impl.fabric.manager
 
 import kr.toxicity.model.api.BetterModel
-import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.fabric.entity.BaseFabricEntity
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.ModelInteractionHand
@@ -15,6 +14,7 @@ import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.tracker.Tracker
+import kr.toxicity.model.api.tracker.TrackerExtraAnimation
 import kr.toxicity.model.impl.fabric.events.ServerEntityDismountCallback
 import kr.toxicity.model.impl.fabric.events.ServerLivingEntityJumpCallback
 import kr.toxicity.model.impl.fabric.events.ServerMobEffectLoadCallback
@@ -107,7 +107,7 @@ object EntityManager : GlobalManager {
         // same as EntityJumpEvent
         ServerLivingEntityJumpCallback.EVENT.register { entity ->
             entity.eachTracker { tracker ->
-                tracker.animate("jump")
+                tracker.animate(TrackerExtraAnimation.JUMP)
             }
         }
     }
@@ -181,7 +181,7 @@ object EntityManager : GlobalManager {
         //
         ServerLivingEntityEvents.AFTER_DAMAGE.register { entity, _, _, _, _ ->
             entity.eachTracker { tracker ->
-                tracker.animate("damage", AnimationModifier.DEFAULT_WITH_PLAY_ONCE)
+                tracker.animate(TrackerExtraAnimation.DAMAGE)
                 tracker.damageTint()
             }
         }
@@ -189,16 +189,7 @@ object EntityManager : GlobalManager {
         // same as EntityDeathEvent, PlayerDeathEvent
         ServerLivingEntityEvents.AFTER_DEATH.register { entity, _ ->
             entity.eachTracker { tracker ->
-                val animated = tracker.animate(
-                    "death",
-                    AnimationModifier.DEFAULT_WITH_PLAY_ONCE
-                ) {
-                    tracker.close()
-                }
-
-                if (animated) {
-                    tracker.forRemoval(true)
-                }
+                tracker.animate(TrackerExtraAnimation.DEATH)
             }
 
             if (entity is ServerPlayer) {

@@ -138,6 +138,17 @@ public interface HitBoxListener {
         }
 
         /**
+         * Adds a creation handler.
+         *
+         * @param create the creation consumer
+         * @return this builder
+         * @since 2.2.0
+         */
+        public @NotNull Builder create(@NotNull Consumer<HitBox> create) {
+            return listen(HitBoxCreateEvent.class, event -> create.accept(event.getHitBox()));
+        }
+
+        /**
          * Adds a mount handler.
          *
          * @param mount the mount consumer

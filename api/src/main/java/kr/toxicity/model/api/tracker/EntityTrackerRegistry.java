@@ -26,7 +26,9 @@ import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.platform.PlatformEntity;
 import kr.toxicity.model.api.platform.PlatformPlayer;
 import kr.toxicity.model.api.util.CollectionUtil;
+import kr.toxicity.model.api.util.FunctionUtil;
 import kr.toxicity.model.api.util.LogUtil;
+import kr.toxicity.model.api.util.function.FloatSupplier;
 import kr.toxicity.model.api.util.lock.DuplexLock;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -40,6 +42,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -71,6 +74,11 @@ public final class EntityTrackerRegistry {
     @ToString.Include
     private final Collection<EntityTracker> trackers = Collections.unmodifiableCollection(trackerMap.values());
     private final Map<UUID, PlayerChannelCache> viewedPlayerMap = new ConcurrentHashMap<>();
+
+    final AnimationProperty animationProperty;
+
+    final Map<UUID, HitBox> hitBoxCache = new ConcurrentHashMap<>();
+    private final Collection<HitBox> hitBox = Collections.unmodifiableCollection(hitBoxCache.values());
     final Map<UUID, MountedHitBox> mountedHitBoxCache = new ConcurrentHashMap<>();
     private final Map<UUID, MountedHitBox> mountedHitBox = Collections.unmodifiableMap(mountedHitBoxCache);
 
@@ -171,6 +179,7 @@ public final class EntityTrackerRegistry {
         this.entity = entity;
         this.uuid = entity.uuid();
         this.id = entity.id();
+        animationProperty = new AnimationProperty();
     }
 
     /**
@@ -589,6 +598,18 @@ public final class EntityTrackerRegistry {
     }
 
     /**
+     * Returns a collection of all active hitboxes for this registry.
+     *
+     * @return the hitboxes
+     * @since 2.2.0
+     */
+    @NotNull
+    @Unmodifiable
+    public Collection<HitBox> hitBoxes() {
+        return hitBox;
+    }
+
+    /**
      * Checks if any hitbox has a passenger.
      *
      * @return true if there is a passenger
@@ -612,16 +633,14 @@ public final class EntityTrackerRegistry {
             .anyMatch(HitBox::hasBeenControlled);
     }
 
-
     /**
      * Represents a hitbox that has an entity mounted on it.
      *
-     * @param bone the bone associated with the hitbox
      * @param entity the mounted entity
      * @param hitBox the hitbox itself
      * @since 1.15.2
      */
-    public record MountedHitBox(@NotNull RenderedBone bone, @NotNull PlatformEntity entity, @NotNull HitBox hitBox) {
+    public record MountedHitBox(@NotNull PlatformEntity entity, @NotNull HitBox hitBox) {
         /**
          * Dismounts the entity from the hitbox.
          * @since 1.15.2
@@ -636,6 +655,13 @@ public final class EntityTrackerRegistry {
         public void dismountAll() {
             hitBox.dismountAll();
         }
+    }
+
+    final class AnimationProperty {
+        final FloatSupplier damageTick = FunctionUtil.throttleTickFloat(entity::damageTick);
+        final FloatSupplier walkSpeed = FunctionUtil.throttleTickFloat(() -> entity.walkSpeed() + (float) Math.sqrt(damageTick.getAsFloat()));
+        final BooleanSupplier onWalk = FunctionUtil.throttleTickBoolean(() -> entity.onWalk() || damageTick.getAsFloat() > 0.25 || hitBoxes().stream().anyMatch(HitBox::onWalk));
+        final BooleanSupplier onFly = FunctionUtil.throttleTickBoolean(entity::fly);
     }
 
     @RequiredArgsConstructor

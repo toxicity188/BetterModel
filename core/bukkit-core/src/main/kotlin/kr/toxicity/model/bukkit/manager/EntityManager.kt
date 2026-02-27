@@ -11,7 +11,6 @@ import com.destroystokyo.paper.event.entity.EntityJumpEvent
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent
 import it.unimi.dsi.fastutil.objects.ReferenceSet
 import kr.toxicity.model.api.BetterModel
-import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.bukkit.BetterModelBukkit
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.ModelInteractionHand
@@ -19,24 +18,18 @@ import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.tracker.Tracker
+import kr.toxicity.model.api.tracker.TrackerExtraAnimation
+import kr.toxicity.model.bukkit.nms.v1_21_R4.wrap
 import kr.toxicity.model.bukkit.util.registerListener
 import kr.toxicity.model.manager.GlobalManager
 import kr.toxicity.model.manager.ReloadPipeline
-import kr.toxicity.model.bukkit.nms.v1_21_R4.wrap
 import kr.toxicity.model.util.PLATFORM
 import org.bukkit.entity.Entity
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
-import org.bukkit.event.entity.EntityDamageByEntityEvent
-import org.bukkit.event.entity.EntityDamageEvent
-import org.bukkit.event.entity.EntityDeathEvent
-import org.bukkit.event.entity.EntityDismountEvent
-import org.bukkit.event.entity.EntityPotionEffectEvent
-import org.bukkit.event.entity.EntityRemoveEvent
-import org.bukkit.event.entity.EntitySpawnEvent
-import org.bukkit.event.entity.PlayerDeathEvent
+import org.bukkit.event.entity.*
 import org.bukkit.event.player.PlayerChangedWorldEvent
 import org.bukkit.event.player.PlayerInteractAtEntityEvent
 import org.bukkit.event.player.PlayerInteractEntityEvent
@@ -64,7 +57,7 @@ object EntityManager : GlobalManager {
         }
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         fun EntityJumpEvent.jump() {
-            entity.forEachTracker { it.animate("jump") }
+            entity.forEachTracker { it.animate(TrackerExtraAnimation.JUMP) }
         }
     }
 
@@ -120,9 +113,7 @@ object EntityManager : GlobalManager {
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         fun EntityDeathEvent.death() { //Death
             entity.forEachTracker {
-                if (it.animate("death", AnimationModifier.DEFAULT_WITH_PLAY_ONCE) { it.close() }) {
-                    it.forRemoval(true)
-                }
+                it.animate(TrackerExtraAnimation.DEATH)
             }
         }
         @EventHandler(priority = EventPriority.MONITOR)
@@ -175,7 +166,7 @@ object EntityManager : GlobalManager {
 //                    }
             }
             entity.forEachTracker {
-                it.animate("damage", AnimationModifier.DEFAULT_WITH_PLAY_ONCE)
+                it.animate(TrackerExtraAnimation.DAMAGE)
                 it.damageTint()
             }
         }

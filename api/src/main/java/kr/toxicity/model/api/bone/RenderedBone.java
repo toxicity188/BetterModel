@@ -432,28 +432,22 @@ public final class RenderedBone implements BoneEventHandler {
         if (transformer != null) transformer.sendTransformation(bundler);
     }
 
-    public boolean addAnimation(@NotNull AnimationPredicate filter, @NotNull BlueprintAnimation animator, @NotNull AnimationModifier modifier, @NotNull AnimationEventHandler eventHandler) {
-        if (filter.test(this)) {
-            var get = animator.animator().get(name());
-            if (get == null && modifier.override(animator.override()) && !filter.isChildren()) return false;
-            var type = modifier.type(animator.loop());
-            var iterator = get != null ? get.iterator(type) : animator.emptyIterator(type);
-            getOrCreateState(modifier.player()).state.addAnimation(animator.name(), iterator, modifier, eventHandler);
-            return true;
-        }
-        return false;
+    public boolean addAnimation(@NotNull AnimationOverrideState overrideState, @NotNull BlueprintAnimation animator, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
+        var get = animator.animator().get(name());
+        if (get == null && modifier.override(animator.override()) && overrideState.shouldSkip()) return false;
+        var type = modifier.type(animator.loop());
+        var iterator = get != null ? get.iterator(type) : animator.emptyIterator(type);
+        getOrCreateState(modifier.player()).state.addAnimation(animator.name(), iterator, modifier, removeTask);
+        return true;
     }
 
-    public boolean replaceAnimation(@NotNull AnimationPredicate filter, @NotNull String target, @NotNull BlueprintAnimation animator, @NotNull AnimationModifier modifier) {
-        if (filter.test(this)) {
-            var get = animator.animator().get(name());
-            if (get == null && modifier.override(animator.override()) && !filter.isChildren()) return false;
-            var type = modifier.type(animator.loop());
-            var iterator = get != null ? get.iterator(type) : animator.emptyIterator(type);
-            state(modifier.player()).state.replaceAnimation(target, iterator, modifier);
-            return true;
-        }
-        return false;
+    public boolean replaceAnimation(@NotNull AnimationOverrideState overrideState, @NotNull String target, @NotNull BlueprintAnimation animator, @NotNull AnimationModifier modifier) {
+        var get = animator.animator().get(name());
+        if (get == null && modifier.override(animator.override()) && overrideState.shouldSkip()) return false;
+        var type = modifier.type(animator.loop());
+        var iterator = get != null ? get.iterator(type) : animator.emptyIterator(type);
+        state(modifier.player()).state.replaceAnimation(target, iterator, modifier);
+        return true;
     }
 
     /**
@@ -504,12 +498,11 @@ public final class RenderedBone implements BoneEventHandler {
         return parentResult;
     }
 
-    public boolean matchTree(@NotNull AnimationPredicate predicate, @NotNull BiPredicate<RenderedBone, AnimationPredicate> mapper) {
-        var parentResult = mapper.test(this, predicate);
-        var childPredicate = predicate;
-        if (parentResult) childPredicate = childPredicate.children();
+    public boolean matchAnimation(@NotNull AnimationOverrideState overrideState, @NotNull BiPredicate<RenderedBone, AnimationOverrideState> mapper) {
+        var parentResult = mapper.test(this, overrideState);
+        if (parentResult) overrideState = AnimationOverrideState.MATCHED;
         for (RenderedBone value : children.values()) {
-            if (value.matchTree(childPredicate, mapper)) parentResult = true;
+            if (value.matchAnimation(overrideState, mapper)) parentResult = true;
         }
         return parentResult;
     }

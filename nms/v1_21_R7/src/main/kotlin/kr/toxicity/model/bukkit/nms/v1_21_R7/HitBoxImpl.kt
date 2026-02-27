@@ -13,6 +13,7 @@ import kr.toxicity.model.api.bone.RenderedBone
 import kr.toxicity.model.api.bukkit.BetterModelBukkit
 import kr.toxicity.model.api.config.DebugConfig
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
+import kr.toxicity.model.api.event.hitbox.HitBoxCreateEvent
 import kr.toxicity.model.api.event.hitbox.HitBoxMountEvent
 import kr.toxicity.model.api.event.hitbox.HitBoxRemoveEvent
 import kr.toxicity.model.api.event.hitbox.HitBoxDismountEvent
@@ -101,6 +102,7 @@ internal class HitBoxImpl(
             moveTo(delegate.position())
         }, CreatureSpawnEvent.SpawnReason.CUSTOM)
         interaction.startRiding(this)
+        listener.handle(HitBoxCreateEvent(this))
     }
 
     private fun initialSetup() {

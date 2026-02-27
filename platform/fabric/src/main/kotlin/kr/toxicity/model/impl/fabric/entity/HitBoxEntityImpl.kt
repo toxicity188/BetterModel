@@ -10,6 +10,7 @@ import kr.toxicity.model.api.bone.BoneMovement
 import kr.toxicity.model.api.bone.RenderedBone
 import kr.toxicity.model.api.config.DebugConfig
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
+import kr.toxicity.model.api.event.hitbox.HitBoxCreateEvent
 import kr.toxicity.model.api.event.hitbox.HitBoxMountEvent
 import kr.toxicity.model.api.event.hitbox.HitBoxRemoveEvent
 import kr.toxicity.model.api.event.hitbox.HitBoxDismountEvent
@@ -97,6 +98,7 @@ class HitBoxEntityImpl(
         interaction.snapTo(delegate.position())
         interaction.startRiding(this)
         level().addFreshEntity(interaction)
+        listener.handle(HitBoxCreateEvent(this))
     }
 
     private fun initialSetup() {

@@ -9,6 +9,7 @@ package kr.toxicity.model.bukkit.compatibility.citizens.command
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.animation.AnimationIterator
 import kr.toxicity.model.api.animation.AnimationModifier
+import kr.toxicity.model.api.util.function.FloatSupplier
 import kr.toxicity.model.bukkit.util.wrap
 import net.citizensnpcs.api.CitizensAPI
 import net.citizensnpcs.api.command.Arg
@@ -40,12 +41,11 @@ class AnimateCommand {
         @Arg(5) player: String?
     ) {
         val targetNpc = CitizensAPI.getNPCRegistry().getById(id.toIntOrNull() ?: return) ?: return
-        val spd = speed?.toFloatOrNull() ?: 1F
         val modifier = AnimationModifier.builder()
             .player(player?.let(Bukkit::getPlayer)?.wrap())
             .start(0)
             .end(0)
-            .speed { spd }
+            .speed(speed?.toFloatOrNull()?.let(FloatSupplier::of))
             .type(loopType?.runCatching {
                 AnimationIterator.Type.valueOf(uppercase())
             }?.getOrNull() ?: AnimationIterator.Type.PLAY_ONCE)

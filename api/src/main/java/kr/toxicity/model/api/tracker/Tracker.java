@@ -83,6 +83,7 @@ public abstract class Tracker implements AutoCloseable {
     private final AtomicBoolean isClosed = new AtomicBoolean();
     private final AtomicBoolean readyForForceUpdate = new AtomicBoolean();
     private final AtomicBoolean forRemoval = new AtomicBoolean();
+    private final AtomicBoolean firstStart = new AtomicBoolean();
     protected final TrackerModifier modifier;
     private final Runnable updater;
     private final BundlerSet bundlerSet;
@@ -167,7 +168,6 @@ public abstract class Tracker implements AutoCloseable {
             if (get != null) get.remove();
         });
         LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " tracker created: " + name());
-        animate("idle", AnimationModifier.builder().start(6).type(AnimationIterator.Type.LOOP).build());
         pipeline.getSource().completeContext().thenAccept(context -> {
             if (pipeline.matchTree(bone -> bone.updateItem(context))) forceUpdate(true);
         });
@@ -188,6 +188,9 @@ public abstract class Tracker implements AutoCloseable {
         if (isScheduled()) return;
         synchronized (this) {
             if (isScheduled()) return;
+            if (firstStart.compareAndSet(false, true)) {
+                TrackerBuiltInAnimation.play(this);
+            }
             updater.run();
             task = EXECUTOR.scheduleAtFixedRate(() -> {
                 if (playerCount() == 0 && !forRemoval.get()) {
@@ -498,7 +501,9 @@ public abstract class Tracker implements AutoCloseable {
      * @since 1.15.2
      */
     public boolean animate(@NotNull String animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
-        return animate(b -> true, animation, modifier, removeTask);
+        return renderer().animation(animation)
+            .map(get -> animate(get, modifier, removeTask))
+            .orElse(false);
     }
 
     /**
@@ -513,8 +518,17 @@ public abstract class Tracker implements AutoCloseable {
         return animate(animation, modifier, () -> {});
     }
 
+    public boolean animate(@NotNull TrackerAnimation<?> animation) {
+        return animation.play(this);
+    }
+
+    public boolean animate(@NotNull TrackerAnimation<?> animation, @NotNull Runnable removeTask) {
+        return animation.play(this, removeTask);
+    }
+
+
     /**
-     * Plays a blueprint animation with a modifier and a completion task.
+     * Plays a blueprint animation on filtered bones.
      *
      * @param animation the blueprint animation
      * @param modifier the animation modifier
@@ -523,67 +537,9 @@ public abstract class Tracker implements AutoCloseable {
      * @since 1.15.2
      */
     public boolean animate(@NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
-        return animate(b -> true, animation, modifier, removeTask);
-    }
-
-    /**
-     * Plays an animation on filtered bones.
-     *
-     * @param filter the bone filter
-     * @param animation the animation name
-     * @param modifier the animation modifier
-     * @param removeTask the task to run when the animation ends
-     * @return true if the animation started
-     * @since 1.15.2
-     */
-    public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
-        return animate(filter, animation, modifier, AnimationEventHandler.start().onAnimationRemove(removeTask));
-    }
-
-    /**
-     * Plays an animation on filtered bones with an event handler.
-     *
-     * @param filter the bone filter
-     * @param animation the animation name
-     * @param modifier the animation modifier
-     * @param eventHandler the animation event handler
-     * @return true if the animation started
-     * @since 1.15.2
-     */
-    public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, @NotNull AnimationModifier modifier, @NotNull AnimationEventHandler eventHandler) {
-        return renderer().animation(animation)
-            .map(get -> animate(filter, get, modifier, eventHandler))
-            .orElse(false);
-    }
-
-    /**
-     * Plays a blueprint animation on filtered bones.
-     *
-     * @param filter the bone filter
-     * @param animation the blueprint animation
-     * @param modifier the animation modifier
-     * @param removeTask the task to run when the animation ends
-     * @return true if the animation started
-     * @since 1.15.2
-     */
-    public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
-        return animate(filter, animation, modifier, AnimationEventHandler.start().onAnimationRemove(removeTask));
-    }
-
-    /**
-     * Plays a blueprint animation on filtered bones with an event handler.
-     *
-     * @param filter the bone filter
-     * @param animation the blueprint animation
-     * @param modifier the animation modifier
-     * @param eventHandler the animation event handler
-     * @return true if the animation started
-     * @since 1.15.2
-     */
-    public boolean animate(@NotNull Predicate<RenderedBone> filter, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier, @NotNull AnimationEventHandler eventHandler) {
         var script = animation.script(modifier);
-        if (script != null) scriptProcessor.addAnimation(animation.name(), script.iterator(modifier), modifier, AnimationEventHandler.start());
-        return pipeline.matchTree(AnimationPredicate.of(filter), (b, a) -> b.addAnimation(a, animation, modifier, eventHandler));
+        if (script != null) scriptProcessor.addAnimation(animation.name(), script.iterator(modifier), modifier, () -> {});
+        return pipeline.matchAnimation((b, a) -> b.addAnimation(a, animation, modifier, removeTask));
     }
 
     /**
@@ -624,7 +580,7 @@ public abstract class Tracker implements AutoCloseable {
     }
 
     /**
-     * Replaces a running animation with a new one.
+     * Replaces a running animation on filtered bones.
      *
      * @param target the name of the animation to replace
      * @param animation the name of the new animation
@@ -633,39 +589,24 @@ public abstract class Tracker implements AutoCloseable {
      * @since 1.15.2
      */
     public boolean replace(@NotNull String target, @NotNull String animation, @NotNull AnimationModifier modifier) {
-        return replace(t -> true, target, animation, modifier);
-    }
-
-    /**
-     * Replaces a running animation on filtered bones.
-     *
-     * @param filter the bone filter
-     * @param target the name of the animation to replace
-     * @param animation the name of the new animation
-     * @param modifier the modifier for the new animation
-     * @return true if the replacement occurred
-     * @since 1.15.2
-     */
-    public boolean replace(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull String animation, @NotNull AnimationModifier modifier) {
         return renderer().animation(animation)
-            .map(get -> replace(filter, target, get, modifier))
+            .map(get -> replace(target, get, modifier))
             .orElse(false);
     }
 
     /**
      * Replaces a running animation on filtered bones with a blueprint animation.
      *
-     * @param filter the bone filter
      * @param target the name of the animation to replace
      * @param animation the new blueprint animation
      * @param modifier the modifier for the new animation
      * @return true if the replacement occurred
      * @since 1.15.2
      */
-    public boolean replace(@NotNull Predicate<RenderedBone> filter, @NotNull String target, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier) {
+    public boolean replace(@NotNull String target, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier) {
         var script = animation.script(modifier);
         if (script != null) scriptProcessor.replaceAnimation(target, script.iterator(modifier), modifier);
-        return pipeline.matchTree(AnimationPredicate.of(filter), (b, a) -> b.replaceAnimation(a, target, animation, modifier));
+        return pipeline.matchAnimation((b, a) -> b.replaceAnimation(a, target, animation, modifier));
     }
 
     //--- Listener ---

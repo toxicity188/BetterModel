@@ -7,8 +7,6 @@
 package kr.toxicity.model.api.tracker;
 
 import kr.toxicity.model.api.BetterModel;
-import kr.toxicity.model.api.animation.AnimationIterator;
-import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.bone.BoneMovement;
 import kr.toxicity.model.api.bone.BoneTags;
 import kr.toxicity.model.api.bone.RenderedBone;
@@ -120,16 +118,6 @@ public class EntityTracker extends Tracker {
         pipeline.addRotationModifier(HEAD_PREDICATE, headRotator);
         pipeline.addRotationModifier(HEAD_WITH_CHILDREN_PREDICATE, headRotator);
 
-        var damageTickProvider = FunctionUtil.throttleTickFloat(entity::damageTick);
-        var walkSupplier = FunctionUtil.throttleTickBoolean(() -> entity.onWalk() || damageTickProvider.getAsFloat() > 0.25 || pipeline.bones().stream().anyMatch(e -> {
-            var hitBox = e.getHitBox();
-            return hitBox != null && hitBox.onWalk();
-        }));
-        var walkSpeedSupplier = modifier.damageAnimation() ? FunctionUtil.throttleTickFloat(() -> entity.walkSpeed() + (float) Math.sqrt(damageTickProvider.getAsFloat())) : null;
-        animate("walk", new AnimationModifier(walkSupplier, 6, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
-        animate("idle_fly", new AnimationModifier(entity::fly, 6, 0, AnimationIterator.Type.LOOP, null));
-        animate("walk_fly", new AnimationModifier(() -> entity.fly() && walkSupplier.getAsBoolean(), 6, 0, AnimationIterator.Type.LOOP, walkSpeedSupplier));
-        animate("spawn", AnimationModifier.DEFAULT_WITH_PLAY_ONCE);
         createNametag(CREATE_NAMETAG_PREDICATE, (bone, tag) -> {
             if (bone.name().tagged(BoneTags.PLAYER_TAG)) {
                 tag.alwaysVisible(true);
@@ -138,8 +126,11 @@ public class EntityTracker extends Tracker {
             } else tag.alwaysVisible(entity instanceof BasePlayer);
             tag.component(entity.customName());
         });
-        listenHitBox((b, l) -> l.mount((h, e) -> {
-                registry.mountedHitBoxCache.put(e.uuid(), new EntityTrackerRegistry.MountedHitBox(b, e, h));
+        listenHitBox((b, l) -> l
+            .create(h -> registry.hitBoxCache.put(h.uuid(), h))
+            .remove(h -> registry.hitBoxCache.remove(h.uuid()))
+            .mount((h, e) -> {
+                registry.mountedHitBoxCache.put(e.uuid(), new EntityTrackerRegistry.MountedHitBox(e, h));
                 EventUtil.call(MountModelEvent.class, () -> new MountModelEvent(this, b, h, e));
             })
             .dismount((h, e) -> {

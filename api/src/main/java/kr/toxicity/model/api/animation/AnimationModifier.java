@@ -7,8 +7,8 @@
 package kr.toxicity.model.api.animation;
 
 import kr.toxicity.model.api.platform.PlatformPlayer;
+import kr.toxicity.model.api.util.FunctionUtil;
 import kr.toxicity.model.api.util.MathUtil;
-import kr.toxicity.model.api.util.function.FloatConstantSupplier;
 import kr.toxicity.model.api.util.function.FloatSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -93,7 +93,7 @@ public record AnimationModifier(
          * @return self
          */
         public @NotNull Builder predicate(@Nullable BooleanSupplier predicate) {
-            this.predicate = predicate;
+            this.predicate = predicate == null ? null : FunctionUtil.throttleTickBoolean(predicate);
             return this;
         }
 
@@ -143,7 +143,7 @@ public record AnimationModifier(
          * @return self
          */
         public @NotNull Builder speed(@Nullable FloatSupplier speed) {
-            this.speed = speed;
+            this.speed = speed == null ? null : FunctionUtil.throttleTickFloat(speed);
             return this;
         }
 
@@ -219,7 +219,7 @@ public record AnimationModifier(
      * @param speedValue  speed value
      */
     public AnimationModifier(int start, int end, float speedValue) {
-        this(start, end, null, FloatConstantSupplier.of(speedValue));
+        this(start, end, null, FloatSupplier.of(speedValue));
     }
 
     /**
@@ -303,7 +303,7 @@ public record AnimationModifier(
         return override != null ? override : original;
     }
 
-    private static @Nullable FloatConstantSupplier toSupplier(float speed) {
-        return MathUtil.isSimilar(speed, 1F) ? null : FloatConstantSupplier.of(speed);
+    private static @Nullable FloatSupplier toSupplier(float speed) {
+        return MathUtil.isSimilar(speed, 1F) ? null : FloatSupplier.of(speed);
     }
 }

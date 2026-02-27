@@ -6,6 +6,8 @@
  */
 package kr.toxicity.model.api.util.function;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Float supplier
  */
@@ -16,4 +18,13 @@ public interface FloatSupplier {
      * @return float value
      */
     float getAsFloat();
+
+    /**
+     * Creates supplier by given value
+     * @param value val ue
+     * @return supplier
+     */
+    static @NotNull FloatConstantSupplier of(float value) {
+        return new FloatConstantSupplier(value);
+    }
 }

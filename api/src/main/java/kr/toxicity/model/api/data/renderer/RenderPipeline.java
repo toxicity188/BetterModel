@@ -7,7 +7,7 @@
 package kr.toxicity.model.api.data.renderer;
 
 import kr.toxicity.model.api.BetterModel;
-import kr.toxicity.model.api.animation.AnimationPredicate;
+import kr.toxicity.model.api.animation.AnimationOverrideState;
 import kr.toxicity.model.api.animation.RunningAnimation;
 import kr.toxicity.model.api.bone.*;
 import kr.toxicity.model.api.nms.HitBox;
@@ -448,17 +448,15 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     /**
      * Applies a mapper to bones matching an animation predicate.
      *
-     * @param predicate the animation predicate
      * @param mapper the mapper function
      * @return true if any bones matched
      * @since 1.15.2
      */
-    public boolean matchTree(@NotNull AnimationPredicate predicate, BiPredicate<RenderedBone, AnimationPredicate> mapper) {
-        Objects.requireNonNull(predicate);
+    public boolean matchAnimation(@NotNull BiPredicate<RenderedBone, AnimationOverrideState> mapper) {
         Objects.requireNonNull(mapper);
         var result = false;
         for (RenderedBone value : boneMap.values()) {
-            if (value.matchTree(predicate, mapper)) result = true;
+            if (value.matchAnimation(AnimationOverrideState.NOT_MATCHED, mapper)) result = true;
         }
         return result;
     }

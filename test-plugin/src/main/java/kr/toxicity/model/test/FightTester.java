@@ -9,7 +9,6 @@ package kr.toxicity.model.test;
 import com.google.gson.JsonObject;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import kr.toxicity.model.api.BetterModel;
-import kr.toxicity.model.api.animation.AnimationEventHandler;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.bone.RenderedBone;
 import kr.toxicity.model.api.bukkit.BetterModelBukkit;
@@ -178,7 +177,7 @@ public final class FightTester implements ModelTester, Listener {
                     var animation = tracker.renderer().animation(target).orElse(null);
                     if (animation == null) cancel.run();
                     else {
-                        tracker.animate(b -> true, animation, AnimationModifier.DEFAULT, AnimationEventHandler.start().onAnimationRemove(cancel));
+                        tracker.animate(animation, AnimationModifier.DEFAULT, cancel);
                         nextCooldown = (long) ((animation.length() - 0.25) * 1000) + System.currentTimeMillis();
                         playSound();
                     }
