@@ -532,17 +532,16 @@ public final class RenderedBone implements BoneEventHandler {
 
         //States
         private final AnimationStateHandler<AnimationProgress> state;
-        private final BoneMovement beforeTransform = new BoneMovement(), afterTransform = new BoneMovement();
-        private BoneMovement currentTransform;
+        private final BoneMovement before = new BoneMovement(), after = new BoneMovement(), current = new BoneMovement();
         private final DisplayTransformer transformer = display != null ? display.createTransformer() : null;
 
         //Flags
         private boolean firstTick = true;
         private boolean skipInterpolation = false;
-        private final AtomicBoolean updateAfterTransform = new AtomicBoolean();
+        private final AtomicBoolean updateAfter = new AtomicBoolean();
+        private final AtomicBoolean updateCurrent = new AtomicBoolean();
 
         //Caches
-        private final BoneMovement movementCache = new BoneMovement();
         private final Vector3f positionCache = new Vector3f(), scaleCache = new Vector3f();
         private final Quaternionf rotationCache = new Quaternionf();
 
@@ -558,20 +557,11 @@ public final class RenderedBone implements BoneEventHandler {
             );
         }
 
-        private @NotNull BoneMovement before() {
-            return beforeTransform;
-        }
-
-        private @NotNull BoneMovement current() {
-            var current = currentTransform;
-            return current != null ? current : after();
-        }
-
         @NotNull BoneMovement after() {
-            if (!updateAfterTransform.compareAndSet(true, false)) return afterTransform;
+            if (!updateAfter.compareAndSet(true, false)) return after;
             var keyframe = state.afterKeyframe(AnimationProgress.EMPTY);
             var preventModifierUpdate = interpolationDuration() < 1;
-            var def = keyframe.animate(defaultFrame, movementCache);
+            var def = keyframe.animate(defaultFrame, after);
             if (parent != null) {
                 var p = parent.state(uuid).after();
                 MathUtil.fma(
@@ -588,7 +578,7 @@ public final class RenderedBone implements BoneEventHandler {
                 def.position().add(modifiedPosition(preventModifierUpdate));
                 def.rotation().mul(modifiedRotation(preventModifierUpdate));
             }
-            return lock.accessToWriteLock(() -> afterTransform.set(def));
+            return def;
         }
 
         private boolean tick() {
@@ -598,9 +588,9 @@ public final class RenderedBone implements BoneEventHandler {
                     consumer.accept(uuid);
                 }
             }) || firstTick;
-            if (result && updateAfterTransform.compareAndSet(false, true)) {
-                lock.accessToWriteLock(() -> beforeTransform.set(afterTransform));
-                currentTransform = null;
+            if (result && updateAfter.compareAndSet(false, true)) {
+                lock.accessToWriteLock(() -> before.set(current));
+                updateCurrent.set(true);
             }
             firstTick = false;
             return result;
@@ -617,33 +607,30 @@ public final class RenderedBone implements BoneEventHandler {
         }
 
         private void sendTransformation(@NotNull PacketBundler bundler) {
+            if (!updateCurrent.compareAndSet(true, false)) return;
+            var movement = lock.accessToWriteLock(() -> current.set(after()));
             if (transformer == null) return;
-            var boneMovement = after();
-            if (currentTransform == boneMovement) return;
-            currentTransform = boneMovement;
             var mul = scale.getAsFloat();
             transformer.transform(
                 interpolationDuration(),
                 MathUtil.fma(
-                    itemStack.offset().rotate(boneMovement.rotation(), positionCache)
-                        .add(boneMovement.position())
+                    itemStack.offset().rotate(movement.rotation(), positionCache)
+                        .add(movement.position())
                         .add(root.group.getPosition()),
                     mul,
                     itemStack.position()
                 ).add(defaultPosition.get()),
-                boneMovement.scale()
+                movement.scale()
                     .mul(itemStack.scale(), scaleCache)
                     .mul(mul)
                     .max(EMPTY_VECTOR),
-                boneMovement.rotation(),
+                movement.rotation(),
                 bundler
             );
         }
 
         private @NotNull Vector3f worldPosition(@NotNull BonePosition position, @NotNull BoneMovement cache) {
             var progress = progress();
-            var current = current();
-            var before = before();
             return lock.accessToReadLock(() -> {
                 var interpolated = before.lerp(current, progress, cache);
                 return MathUtil.fma(
@@ -663,8 +650,6 @@ public final class RenderedBone implements BoneEventHandler {
 
         private @NotNull Vector3f worldRotation() {
             var progress = progress();
-            var current = current();
-            var before = before();
             return lock.accessToReadLock(() -> InterpolationUtil.lerp(before.rawRotation(), current.rawRotation(), progress));
         }
     }
