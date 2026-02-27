@@ -113,14 +113,6 @@ public interface NMS {
     @NotNull PacketBundler createBundler(int initialCapacity);
 
     /**
-     * Creates a lazy packet bundler.
-     *
-     * @return the packet bundler
-     * @since 1.15.2
-     */
-    @NotNull PacketBundler createLazyBundler();
-
-    /**
      * Creates a parallel packet bundler with a size threshold.
      *
      * @param threshold the size threshold for parallel processing

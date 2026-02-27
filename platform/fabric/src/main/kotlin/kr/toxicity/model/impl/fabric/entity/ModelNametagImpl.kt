@@ -77,7 +77,7 @@ class ModelNametagImpl(
 
     override fun send(player: PlatformPlayer) {
         if (display.text == Component.empty()) return
-        val hb = bone.group.hitBox?.centerPoint() ?: emptyVector
+        val hb = bone.group.hitBoxPoint
         val pos = bone.worldPosition(BonePosition(emptyVector, hb, player.uuid()), posCache)
         display.snapTo(Vec3(
             location.x() + pos.x,

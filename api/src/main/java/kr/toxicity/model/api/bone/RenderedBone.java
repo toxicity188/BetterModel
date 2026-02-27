@@ -608,7 +608,8 @@ public final class RenderedBone implements BoneEventHandler {
 
         private void sendTransformation(@NotNull PacketBundler bundler) {
             if (!updateCurrent.compareAndSet(true, false)) return;
-            var movement = lock.accessToWriteLock(() -> current.set(after()));
+            var after = after();
+            var movement = lock.accessToWriteLock(() -> current.set(after));
             if (transformer == null) return;
             var mul = scale.getAsFloat();
             transformer.transform(
@@ -631,21 +632,19 @@ public final class RenderedBone implements BoneEventHandler {
 
         private @NotNull Vector3f worldPosition(@NotNull BonePosition position, @NotNull BoneMovement cache) {
             var progress = progress();
-            return lock.accessToReadLock(() -> {
-                var interpolated = before.lerp(current, progress, cache);
-                return MathUtil.fma(
-                        interpolated.position()
-                            .add(itemStack.offset())
-                            .add(position.localOffset())
-                            .rotate(interpolated.rotation()),
-                        interpolated.scale(),
-                        position.globalOffset()
-                    )
-                    .add(root.getGroup().getPosition())
-                    .mul(scale.getAsFloat())
-                    .rotateX(-rotation.radianX())
-                    .rotateY(-rotation.radianY());
-            });
+            var interpolated = lock.accessToReadLock(() -> before.lerp(current, progress, cache));
+            return MathUtil.fma(
+                    interpolated.position()
+                        .add(itemStack.offset())
+                        .add(position.localOffset())
+                        .rotate(interpolated.rotation()),
+                    interpolated.scale(),
+                    position.globalOffset()
+                )
+                .add(root.getGroup().getPosition())
+                .mul(scale.getAsFloat())
+                .rotateX(-rotation.radianX())
+                .rotateY(-rotation.radianY());
         }
 
         private @NotNull Vector3f worldRotation() {

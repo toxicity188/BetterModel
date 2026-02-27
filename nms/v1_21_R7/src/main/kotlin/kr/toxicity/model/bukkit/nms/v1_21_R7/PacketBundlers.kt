@@ -22,13 +22,11 @@ private val KEY = Key.key("bettermodel")
 internal fun bundlerOfNotNull(vararg packets: ClientPacket?) = SimpleBundler(if (packets.isEmpty()) arrayListOf() else packets.filterNotNull().toMutableList())
 internal fun bundlerOf(vararg packets: ClientPacket) = SimpleBundler(if (packets.isEmpty()) arrayListOf() else packets.toMutableList())
 internal fun bundlerOf(size: Int) = SimpleBundler(ArrayList(size))
-internal fun lazyBundlerOf() = LazyBundler()
 internal fun parallelBundlerOf(threshold: Int) = ParallelBundler(threshold)
-private fun uoe() = UnsupportedOperationException("cannot be added after PacketBundler#send is called.")
+
 internal operator fun PacketBundler.plusAssign(other: ClientPacket) {
     when (this) {
         is SimpleBundler -> add(other)
-        is LazyBundler -> add(other)
         is ParallelBundler -> add(other)
         else -> throw RuntimeException("unsupported bundler.")
     }
@@ -64,46 +62,12 @@ internal class SimpleBundler(
     }
 }
 
-internal class LazyBundler : PacketBundler, PluginBundlePacketImpl {
-    private var index = 0
-    private var listBuilder: (MutableList<ClientPacket>) -> Unit = {}
-    private val list by lazy {
-        sent = true
-        ArrayList<ClientPacket>(index).also(listBuilder)
-    }
-    private var sent = false
-
-    override val bundlePacket = ClientboundBundlePacket(this)
-    override fun send(player: PlatformPlayer, onSuccess: Runnable) {
-        if (isEmpty) return
-        val connection = (player.unwarp() as CraftPlayer).handle.connection
-        connection.send(bundlePacket, PacketSendListener.thenRun(onSuccess))
-    }
-    override fun isEmpty(): Boolean = size() == 0
-    override fun size(): Int = index
-    override fun key(): Key = KEY
-    override fun iterator(): MutableIterator<ClientPacket> = list.iterator()
-    override fun add(other: ClientPacket) {
-        if (sent) throw uoe()
-        if (index++ == 0) {
-            listBuilder = { it += other }
-            return
-        }
-        val previous = listBuilder
-        listBuilder = {
-            previous(it)
-            it += other
-        }
-    }
-}
-
 internal class ParallelBundler(
     private val threshold: Int
 ) : PacketBundler {
-    private val _creator: () -> PluginBundlePacketImpl = if (threshold < 32) { { lazyBundlerOf() } } else { { bundlerOf() } }
     private val subBundlers = mutableListOf<PluginBundlePacketImpl>()
     private var sizeAssume = 0
-    private val newBundler get() = _creator().apply {
+    private val newBundler get() = bundlerOf().apply {
         sizeAssume = 0
         subBundlers += this
     }

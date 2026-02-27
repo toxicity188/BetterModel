@@ -27,7 +27,6 @@ import java.util.UUID;
 public final class BoneIKSolver {
 
     private static final int MAX_IK_ITERATION = 20;
-    private static final float DISTANCE_THRESHOLD_SQ = MathUtil.FRAME_EPSILON * MathUtil.FRAME_EPSILON;
     private static final Vector3f FROM_VECTOR = new Vector3f(0, -1, 0).normalize();
 
     private final Map<UUID, RenderedBone> boneMap;
@@ -123,21 +122,21 @@ public final class BoneIKSolver {
             for (int i = bones.length - 2; i >= 0; i--) {
                 var current = bones[i].position();
                 var next = bones[i + 1].position();
-                var dist = current.distance(next);
-                if (dist < MathUtil.FLOAT_COMPARISON_EPSILON) continue;
-                InterpolationUtil.lerp(next, current, lengths[i] / dist, current);
+                var dist = current.distanceSquared(next);
+                if (dist < MathUtil.VECTOR_COMPARISON_EPSILON_SQ) continue;
+                InterpolationUtil.lerp(next, current, lengths[i] / (float) Math.sqrt(dist), current);
             }
             // Backward
             first.set(rootPos);
             for (int i = 0; i < bones.length - 1; i++) {
                 var current = bones[i].position();
                 var next = bones[i + 1].position();
-                var dist = current.distance(next);
-                if (dist < MathUtil.FLOAT_COMPARISON_EPSILON) continue;
-                InterpolationUtil.lerp(current, next, lengths[i] / dist, next);
+                var dist = current.distanceSquared(next);
+                if (dist < MathUtil.VECTOR_COMPARISON_EPSILON_SQ) continue;
+                InterpolationUtil.lerp(current, next, lengths[i] / (float) Math.sqrt(dist), next);
             }
             // Check
-            if (last.distanceSquared(target) < DISTANCE_THRESHOLD_SQ) break;
+            if (last.distanceSquared(target) < MathUtil.VECTOR_COMPARISON_EPSILON_SQ) break;
         }
         var rotCache = new Quaternionf();
         for (int i = 0; i < bones.length - 1; i++) {

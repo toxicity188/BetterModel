@@ -311,7 +311,6 @@ class NMSImpl : NMS {
     override fun inject(player: PlatformPlayer): PlayerChannelHandlerImpl = PlayerChannelHandlerImpl(player.unwarp() as CraftPlayer)
 
     override fun createBundler(initialCapacity: Int): PacketBundler = bundlerOf(initialCapacity)
-    override fun createLazyBundler(): PacketBundler = lazyBundlerOf()
     override fun createParallelBundler(threshold: Int): PacketBundler = parallelBundlerOf(threshold)
 
     override fun create(location: PlatformLocation, yOffset: Double, initialConsumer: Consumer<ModelDisplay>): ModelDisplay = ModelDisplayImpl(

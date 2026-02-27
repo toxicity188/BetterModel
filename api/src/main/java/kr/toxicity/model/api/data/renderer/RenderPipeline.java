@@ -124,16 +124,6 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Creates a lazy packet bundler.
-     *
-     * @return a new lazy packet bundler
-     * @since 1.15.2
-     */
-    public @NotNull PacketBundler createLazyBundler() {
-        return BetterModel.nms().createLazyBundler();
-    }
-
-    /**
      * Creates a parallel packet bundler based on configuration.
      *
      * @return a new parallel packet bundler
