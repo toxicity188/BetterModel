@@ -370,7 +370,6 @@ class HitBoxEntityImpl(
             true
         }
         applier.applyAndClear(delegate)
-        updateInWaterStateAndDoFluidPushing()
 
         if (isInLava) {
             delegate.lavaHurt()

@@ -300,7 +300,6 @@ internal class HitBoxImpl(
         BlockPos.betweenClosedStream(boundingBox).forEach {
             level().getBlockState(it).entityInside(level(), it, delegate)
         }
-        updateInWaterStateAndDoFluidPushing()
         if (isInLava) delegate.lavaHurt()
         firstTick = false
         listener.sync(craftEntity)

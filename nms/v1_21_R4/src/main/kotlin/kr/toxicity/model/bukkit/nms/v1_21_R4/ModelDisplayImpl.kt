@@ -48,7 +48,6 @@ internal class ModelDisplayImpl(
     override fun id(): Int = display.id
     override fun uuid(): UUID = display.uuid
     override fun rotate(rotation: ModelRotation, bundler: PacketBundler) {
-        if (!display.valid) return
         display.xRot = rotation.x
         display.yRot = rotation.y
         bundler += ClientboundMoveEntityPacket.Rot(
@@ -67,9 +66,7 @@ internal class ModelDisplayImpl(
         }
     }
 
-    override fun syncEntity(entity: BaseEntity) {
-        display.valid = !entity.dead()
-        display.onGround = entity.ground()
+    override fun syncPotionEffect(entity: BaseEntity) {
         val beforeInvisible = display.isInvisible
         val afterInvisible = entity.invisible()
         entityDataLock.accessToLock {

@@ -22,6 +22,7 @@ import kr.toxicity.model.api.platform.PlatformLocation;
 import kr.toxicity.model.api.platform.PlatformPlayer;
 import kr.toxicity.model.api.util.EventUtil;
 import kr.toxicity.model.api.util.FunctionUtil;
+import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.function.BonePredicate;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -69,6 +70,8 @@ public class EntityTracker extends Tracker {
     private final EntityBodyRotator bodyRotator;
     private EntityHideOption hideOption = EntityHideOption.DEFAULT;
 
+    private volatile PlatformLocation location;
+
     /**
      * Creates a new entity tracker.
      *
@@ -82,6 +85,7 @@ public class EntityTracker extends Tracker {
     public EntityTracker(@NotNull EntityTrackerRegistry registry, @NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
         super(pipeline, modifier);
         this.registry = registry;
+        this.location = registry.entity().location();
         bodyRotator = new EntityBodyRotator(registry);
 
         var entity = registry.entity();
@@ -99,7 +103,7 @@ public class EntityTracker extends Tracker {
                 tick(((t, s) -> {
                     var wPos = bone.hitBoxPosition(posCache);
                     shadow.shadowRadius(scale.getAsFloat() * baseScale);
-                    shadow.syncEntity(entity);
+                    shadow.syncPotionEffect(entity);
                     shadow.syncPosition(location().add(wPos.x, wPos.y, wPos.z));
                     shadow.sendDirtyEntityData(s.getDataBundler());
                     shadow.sendPosition(entity, s.getTickBundler());
@@ -141,7 +145,7 @@ public class EntityTracker extends Tracker {
             if (isClosed()) return;
             createHitBox(null, CREATE_HITBOX_PREDICATE);
         });
-        tick((t, s) -> updateBaseEntity0());
+        tick((t, s) -> updateLocation());
         tick((t, s) -> {
             if (damageTint.getAndDecrement() == 0) update(TrackerUpdateAction.previousTint());
         });
@@ -152,7 +156,7 @@ public class EntityTracker extends Tracker {
 
     @Override
     public @NotNull ModelRotation rotation() {
-        return registry.entity().dead() ? pipeline.getRotation() : super.rotation();
+        return sourceEntity().dead() ? pipeline.getRotation() : super.rotation();
     }
 
     /**
@@ -161,21 +165,22 @@ public class EntityTracker extends Tracker {
      * @since 1.15.2
      */
     public void updateBaseEntity() {
+        if (sourceEntity().dead() || isClosed()) return;
         BetterModel.platform().scheduler().asyncTaskLater(1, () -> {
-            updateBaseEntity0();
+            var entity = sourceEntity();
+            pipeline.forEach(bone -> bone.applyAtDisplay(BonePredicate.TRUE, display -> display.syncPotionEffect(entity)));
+            updateLocation();
             forceUpdate(true);
         });
     }
 
-    /**
-     * Updates base entity's data to parent entity
-     */
-    private void updateBaseEntity0() {
-        var loc = location();
-        displays().forEach(d -> {
-            d.syncEntity(registry.entity());
-            d.syncPosition(loc);
-        });
+    private void updateLocation() {
+        var loc = sourceEntity().location();
+        if (this.location.distanceSquared(loc) < MathUtil.VECTOR_COMPARISON_EPSILON_SQ) return;
+        synchronized (this) {
+            this.location = loc;
+        }
+        pipeline.forEach(bone -> bone.applyAtDisplay(BonePredicate.TRUE, display -> display.syncPosition(loc)));
     }
 
     /**
@@ -245,7 +250,7 @@ public class EntityTracker extends Tracker {
 
     @Override
     public void despawn() {
-        if (registry.entity().dead()) {
+        if (sourceEntity().dead()) {
             close(CloseReason.DESPAWN);
             return;
         }
@@ -254,7 +259,7 @@ public class EntityTracker extends Tracker {
 
     @Override
     public @NotNull PlatformLocation location() {
-        return sourceEntity().location();
+        return location;
     }
 
     /**
@@ -283,7 +288,7 @@ public class EntityTracker extends Tracker {
      */
     @ApiStatus.Internal
     public void refresh() {
-        updateBaseEntity0();
+        updateLocation();
         registry.entity().platform().task(() -> createHitBox(null, HITBOX_REFRESH_PREDICATE));
     }
 

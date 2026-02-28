@@ -51,12 +51,12 @@ public interface ModelDisplay extends Identifiable {
     void rotate(@NotNull ModelRotation rotation, @NotNull PacketBundler bundler);
 
     /**
-     * Synchronizes this display with a source entity's data.
+     * Synchronizes the potion effect (glowing, etc.) from the base entity to this display.
      *
      * @param entity the source entity
-     * @since 1.15.2
+     * @since 2.2.0
      */
-    void syncEntity(@NotNull BaseEntity entity);
+    void syncPotionEffect(@NotNull BaseEntity entity);
 
     /**
      * Synchronizes this display's position with a location.

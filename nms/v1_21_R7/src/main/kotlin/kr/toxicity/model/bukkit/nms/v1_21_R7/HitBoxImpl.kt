@@ -307,7 +307,6 @@ internal class HitBoxImpl(
             true
         }
         applier.applyAndClear(delegate)
-        updateInWaterStateAndDoFluidPushing()
         if (isInLava) delegate.lavaHurt()
         firstTick = false
         listener.sync(craftEntity)

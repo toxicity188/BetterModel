@@ -77,9 +77,7 @@ class ModelDisplayEntityImpl(
         }
     }
 
-    override fun syncEntity(entity: BaseEntity) {
-        display.setOnGround(entity.ground())
-
+    override fun syncPotionEffect(entity: BaseEntity) {
         val beforeInvisible = display.isInvisible
         val afterInvisible = entity.invisible()
 
