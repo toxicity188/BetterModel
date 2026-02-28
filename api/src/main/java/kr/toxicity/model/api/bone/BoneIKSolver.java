@@ -61,6 +61,7 @@ public final class BoneIKSolver {
      * @param uuid player uuid
      */
     public void solve(@Nullable UUID uuid) {
+        if (locators.isEmpty()) return;
         for (var entry : locators.entrySet()) {
             var locator = entry.getKey();
             var value = entry.getValue();

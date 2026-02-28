@@ -976,6 +976,7 @@ public abstract class Tracker implements AutoCloseable {
         }
 
         private void perPlayerSend() {
+            if (perPlayerViewBundler.isEmpty()) return;
             perPlayerViewBundler.values().forEach(PerPlayerCache::send);
         }
 
