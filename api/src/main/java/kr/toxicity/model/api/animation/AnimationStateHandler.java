@@ -40,7 +40,7 @@ public final class AnimationStateHandler<T extends Timed> {
     @Getter
     private int delay;
     private volatile TreeIterator currentIterator = null;
-    private volatile KeyframeData beforeKeyframe = null, afterKeyframe = null;
+    private volatile T beforeKeyframe = null, afterKeyframe = null;
 
     /**
      * Checks this keyframe has been finished
@@ -55,7 +55,7 @@ public final class AnimationStateHandler<T extends Timed> {
      * @return before keyframe
      */
     public T beforeKeyframe() {
-        return value(beforeKeyframe);
+        return beforeKeyframe;
     }
 
     /**
@@ -63,7 +63,7 @@ public final class AnimationStateHandler<T extends Timed> {
      * @return after keyframe
      */
     public T afterKeyframe() {
-        return value(afterKeyframe);
+        return afterKeyframe;
     }
 
     /**
@@ -73,7 +73,7 @@ public final class AnimationStateHandler<T extends Timed> {
      */
     @NotNull
     public T beforeKeyframe(@NotNull T defaultValue) {
-        var value = value(beforeKeyframe);
+        var value = beforeKeyframe;
         return value != null ? value : defaultValue;
     }
 
@@ -84,7 +84,7 @@ public final class AnimationStateHandler<T extends Timed> {
      */
     @NotNull
     public T afterKeyframe(@NotNull T defaultValue) {
-        var value = value(afterKeyframe);
+        var value = afterKeyframe;
         return value != null ? value : defaultValue;
     }
 
@@ -171,24 +171,14 @@ public final class AnimationStateHandler<T extends Timed> {
         }
     }
 
-    private boolean setAfterKeyframe(@Nullable KeyframeData next) {
-        if (equals(afterKeyframe, next)) return false;
+    private boolean setAfterKeyframe(@Nullable T next) {
+        if (afterKeyframe == next) return false;
         setConsumer.accept(
-            value(beforeKeyframe = afterKeyframe),
-            value(afterKeyframe = next)
+            beforeKeyframe = afterKeyframe,
+            afterKeyframe = next
         );
         delay = Math.round(frame());
         return true;
-    }
-
-    private boolean equals(@Nullable KeyframeData from, @Nullable KeyframeData to) {
-        if (from == null && to == null) return true;
-        if (from == null || to == null) return false;
-        return from.value == to.value && from.realTime == to.realTime;
-    }
-
-    private @Nullable T value(@Nullable KeyframeData data) {
-        return data == null ? null : data.value;
     }
 
     /**
@@ -240,7 +230,7 @@ public final class AnimationStateHandler<T extends Timed> {
      * @return ticking frame
      */
     public float frame() {
-        return afterKeyframe != null ? 20 * Tracker.MINECRAFT_TICK_MULTIPLIER * (afterKeyframe.realTime + MathUtil.FRAME_EPSILON) : 0F;
+        return afterKeyframe != null ? 20 * Tracker.MINECRAFT_TICK_MULTIPLIER * (currentIterator.time + MathUtil.FRAME_EPSILON) : 0F;
     }
 
     private class TreeIterator implements BooleanSupplier {
@@ -254,13 +244,15 @@ public final class AnimationStateHandler<T extends Timed> {
         private boolean started = false;
         private boolean ended = false;
 
+        private float time = 0;
+
         public TreeIterator(String name, AnimationIterator<T> iterator, AnimationModifier modifier, Runnable removeTask) {
             animation = new RunningAnimation(name, iterator.type());
             this.iterator = iterator;
             this.modifier = modifier;
             this.removeTask = removeTask;
 
-            previous = afterKeyframe != null ? afterKeyframe.value : initialValue;
+            previous = afterKeyframe != null ? afterKeyframe : initialValue;
         }
 
         @Override
@@ -272,28 +264,25 @@ public final class AnimationStateHandler<T extends Timed> {
             return iterator.hasNext() || (modifier.end() > 0 && !ended);
         }
 
-        public @NotNull KeyframeData next() {
+        public @NotNull T next() {
             if (!started) {
                 started = true;
-                return new KeyframeData(iterator.next(), (float) modifier.start() / 20);
+                time = (float) modifier.start() / 20;
+                return iterator.next();
             }
             if (!iterator.hasNext()) {
                 ended = true;
-                return new KeyframeData(previous, (float) modifier.end() / 20);
+                time = (float) modifier.end() / 20;
+                return previous;
             }
             var nxt = iterator.next();
-            return new KeyframeData(nxt, nxt.time() / modifier.speedValue());
+            time = nxt.time() / modifier.speedValue();
+            return nxt;
         }
 
         public void clear() {
             iterator.clear();
             started = ended = !iterator.hasNext();
         }
-    }
-
-    @RequiredArgsConstructor
-    private class KeyframeData {
-        private final T value;
-        private final float realTime;
     }
 }
