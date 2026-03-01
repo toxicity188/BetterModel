@@ -23,7 +23,6 @@ dependencyResolutionManagement {
         maven("https://repo.codemc.org/repository/maven-public/")
         maven("https://jitpack.io")
         maven("https://repo.alessiodp.com/releases/")
-        maven("https://maven.blamejared.com/")
         maven("https://repo.purpurmc.org/snapshots")
         maven("https://maven.citizensnpcs.co/repo/")
         maven("https://mvn.lumine.io/repository/maven-public/")

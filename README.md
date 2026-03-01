@@ -77,7 +77,7 @@ BetterModel aims to be a reliable engine that provides stable, high-quality anim
 - [caffeine](https://github.com/ben-manes/caffeine): concurrent map cache
 - [DynamicUV](https://github.com/toxicity188/DynamicUV): player model
 - [ArmorModel](https://github.com/toxicity188/ArmorModel): armor in player model
-- [molang-compiler](https://github.com/Ocelot5836/molang-compiler): compiling and evaluating molang expression
+- [mocha](https://github.com/unnamed/mocha): compiling and evaluating molang expression
 - [libby](https://github.com/AlessioDP/libby): runtime library downloader
 
 #### Tested Bukkit Server Platform
@@ -105,7 +105,6 @@ BetterModel aims to be a reliable engine that provides stable, high-quality anim
 ```kotlin
 repositories {
     mavenCentral()
-    maven("https://maven.blamejared.com/") // For transitive dependency in bettermodel-fabric
     maven("https://maven.nucleoid.xyz/") // For transitive dependency in bettermodel-fabric
 }
 
@@ -124,7 +123,6 @@ repositories {
             password = YOUR_GITHUB_TOKEN
         }
     }
-    maven("https://maven.blamejared.com/") // For transitive dependency in bettermodel-fabric
     maven("https://maven.nucleoid.xyz/") // For transitive dependency in bettermodel-fabric
 }
 
@@ -142,7 +140,6 @@ dependencies {
 ```groovy
 repositories {
     mavenCentral()
-    maven 'https://maven.blamejared.com/' // For transitive dependency in bettermodel-fabric
     maven 'https://maven.nucleoid.xyz/' // For transitive dependency in bettermodel-fabric
 }
 
@@ -162,7 +159,6 @@ repositories {
             password = YOUR_GITHUB_TOKEN
         }
     }
-    maven 'https://maven.blamejared.com/' // For transitive dependency in bettermodel-fabric
     maven 'https://maven.nucleoid.xyz/' // For transitive dependency in bettermodel-fabric
 }
 
