@@ -231,44 +231,9 @@ public final class MathUtil {
      * @return xyz euler
      */
     public static @NotNull Vector3f toXYZEuler(@NotNull Vector3f vec) {
-        return toXYZEuler(toQuaternion(vec));
-    }
-
-    /**
-     * Gets rotation matrix of quaternion
-     * @param quaternion rotation
-     * @return matrix
-     */
-    public static @NotNull Matrix3f toMatrix(@NotNull Quaternionf quaternion) {
-        return quaternion.get(new Matrix3f());
-    }
-
-    /**
-     * Converts quaternion to xyz euler
-     * @param quaternion rotation
-     * @return xyz euler
-     */
-    public static @NotNull Vector3f toXYZEuler(@NotNull Quaternionf quaternion) {
-        return toXYZEuler(toMatrix(quaternion));
-    }
-
-
-    /**
-     * Gets xyz euler of this matrix
-     * @param mat matrix
-     * @return xyz euler
-     */
-    public static @NotNull Vector3f toXYZEuler(@NotNull Matrix3f mat) {
-        var ret = new Vector3f();
-        if (abs(mat.m20) < 1F) {
-            ret.x = (float) atan2(-mat.m21, mat.m22);
-            ret.z = (float) atan2(-mat.m10, mat.m00);
-        } else {
-            ret.x = (float) atan2(mat.m12, mat.m11);
-            ret.z = 0F;
-        }
-        ret.y = (float) asin(clamp(mat.m20, -1F, 1F));
-        return ret.mul(RADIANS_TO_DEGREES);
+        return toQuaternion(vec)
+            .getEulerAnglesXYZ(vec)
+            .mul(RADIANS_TO_DEGREES);
     }
 
     /**
