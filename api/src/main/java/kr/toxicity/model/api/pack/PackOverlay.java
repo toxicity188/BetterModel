@@ -46,7 +46,7 @@ public record PackOverlay(
     public static final PackOverlay LEGACY = new PackOverlay(
         "legacy",
         Optional.of(new PackMeta.VersionRange(22, 45)),
-        BetterModel.config().pack()::generateLegacyModel
+        () -> BetterModel.config().pack().generateLegacyModel()
     );
 
     /**
@@ -56,7 +56,7 @@ public record PackOverlay(
     public static final PackOverlay MODERN = new PackOverlay(
         "modern",
         Optional.of(new PackMeta.VersionRange(46, 99)),
-        BetterModel.config().pack()::generateModernModel
+        () -> BetterModel.config().pack().generateModernModel()
     );
 
 

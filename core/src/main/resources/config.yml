@@ -35,7 +35,7 @@ pack:
   # Generates models compatible with legacy Minecraft versions (<=1.21.3).
   generate-legacy-model: true
   # Obfuscates model and texture names in the resource pack to prevent easy extraction.
-  use-obfuscation: false
+  use-obfuscation: true
 
 # Toggles metrics collection via bStats (https://bstats.org/plugin/bukkit/BetterModel/24237).
 # Disabling this helps us less to improve the plugin.
