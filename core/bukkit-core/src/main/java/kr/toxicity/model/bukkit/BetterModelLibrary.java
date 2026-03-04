@@ -109,6 +109,11 @@ public final class BetterModelLibrary {
             )
             .predicate(BooleanConstantSupplier.of(!BetterModelBukkit.IS_PAPER))
     );
+    public static final LibraryData ASM_TREE = register(
+        "org{}ow2{}asm",
+        "asm-tree",
+        builder -> builder.predicate(BooleanConstantSupplier.of(!BetterModelBukkit.IS_PAPER))
+    );
 
     public void load(@NotNull AbstractBetterModelPlugin plugin) {
         var manager = new BetterModelLibraryManager(plugin);

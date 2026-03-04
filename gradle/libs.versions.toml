@@ -28,6 +28,8 @@ adventure-option = "net.kyori:option:1.1.0"
 adventure-platform-bukkit = "net.kyori:adventure-platform-bukkit:4.4.1"
 adventure-platform-fabric = "net.kyori:adventure-platform-fabric:6.8.0"
 
+asm-tree = "org.ow2.asm:asm-tree:9.9.1"
+
 fabric-loader = "net.fabricmc:fabric-loader:0.18.4"
 fabric-language-kotlin = { module = "net.fabricmc:fabric-language-kotlin", version.ref = "fabric-language-kotlin" }
 
@@ -105,7 +107,8 @@ manifestLibrary = [
     "adventure-api",
     "adventure-examination",
     "adventure-option",
-    "adventure-platform-bukkit"
+    "adventure-platform-bukkit",
+    "asm-tree"
 ]
 
 shadedLibrary = [
