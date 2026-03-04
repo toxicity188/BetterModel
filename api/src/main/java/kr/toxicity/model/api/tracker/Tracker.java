@@ -68,7 +68,7 @@ public abstract class Tracker implements AutoCloseable {
      * The interval in milliseconds between tracker ticks.
      * @since 1.15.2
      */
-    public static final int TRACKER_TICK_INTERVAL = 10;
+    public static final int TRACKER_TICK_INTERVAL = 25;
     /**
      * The multiplier to convert tracker ticks to Minecraft ticks (50ms).
      * @since 1.15.2
