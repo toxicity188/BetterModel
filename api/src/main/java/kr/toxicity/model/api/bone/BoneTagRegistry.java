@@ -6,6 +6,7 @@
  */
 package kr.toxicity.model.api.bone;
 
+import it.unimi.dsi.fastutil.objects.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -16,7 +17,8 @@ import java.util.*;
  */
 public final class BoneTagRegistry {
 
-    private final Map<String, BoneTag> byName = new HashMap<>();
+    private static final String TAG_SPLITTER = "_";
+    private final Object2ObjectMap<String, BoneTag> byName = new Object2ObjectOpenHashMap<>();
 
     BoneTagRegistry() {
         for (BoneTags value : BoneTags.values()) {
@@ -62,17 +64,24 @@ public final class BoneTagRegistry {
      */
     public @NotNull BoneName parse(@NotNull String rawName) {
         rawName = rawName.toLowerCase(Locale.ROOT);
-        var tagArray = rawName.split("_");
-        if (tagArray.length < 2) return new BoneName(Collections.emptySet(), rawName, rawName);
+        var tagArray = rawName.split(TAG_SPLITTER);
+        if (tagArray.length < 2) return new BoneName(ObjectSets.emptySet(), rawName, rawName);
         var tagList = List.of(tagArray);
         var maxSize = tagList.size() - 1;
-        var set = new HashSet<BoneTag>(maxSize);
+        ObjectSet<BoneTag> set = maxSize <= 4 ? new ObjectArraySet<>(maxSize) : new ObjectOpenHashSet<>(maxSize);
         for (String s : tagList) {
             var tag = byTagNameOrNull(s);
-            if (tag != null && set.size() < maxSize) {
-                set.add(tag);
-            } else return new BoneName(Collections.unmodifiableSet(set), String.join("_", tagList.subList(set.size(), tagList.size())), rawName);
+            if (tag != null && set.size() < maxSize) set.add(tag);
+            else return new BoneName(
+                set.isEmpty() ? ObjectSets.emptySet() : ObjectSets.unmodifiable(set),
+                String.join(TAG_SPLITTER, set.isEmpty() ? tagList : tagList.subList(set.size(), tagList.size())),
+                rawName
+            );
         }
-        return new BoneName(Collections.unmodifiableSet(set), String.join("_", tagList.subList(set.size(), tagList.size())), rawName);
+        return new BoneName(
+            ObjectSets.unmodifiable(set),
+            String.join(TAG_SPLITTER, tagList.subList(set.size(), tagList.size())),
+            rawName
+        );
     }
 }

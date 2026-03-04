@@ -10,7 +10,6 @@ import kr.toxicity.model.api.data.raw.ModelResolution;
 import kr.toxicity.model.api.pack.PackObfuscator;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 import java.util.Map;
@@ -57,7 +56,6 @@ public record ModelBlueprint(
      * @since 1.15.2
      */
     @NotNull
-    @Unmodifiable
     public Stream<BlueprintImage> buildImage(@NotNull PackObfuscator obfuscator) {
         return textures.stream()
             .filter(BlueprintTexture::canBeRendered)

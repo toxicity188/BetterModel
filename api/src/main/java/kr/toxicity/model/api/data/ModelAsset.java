@@ -12,7 +12,6 @@ import kr.toxicity.model.api.data.raw.ModelLoadResult;
 import kr.toxicity.model.api.util.PackUtil;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -139,7 +138,7 @@ public record ModelAsset(
     }
 
     @Override
-    public int compareTo(@NonNull ModelAsset o) {
+    public int compareTo(@NotNull ModelAsset o) {
         return name.compareTo(o.name);
     }
 
@@ -155,7 +154,7 @@ public record ModelAsset(
     }
 
     @Override
-    public @NonNull String toString() {
+    public @NotNull String toString() {
         return rawName;
     }
 
