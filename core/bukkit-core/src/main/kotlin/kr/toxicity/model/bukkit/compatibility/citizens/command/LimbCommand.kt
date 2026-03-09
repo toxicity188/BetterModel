@@ -23,10 +23,10 @@ import org.bukkit.entity.Player
 class LimbCommand {
     @Command(
         aliases = ["npc"],
-        usage = "limb <id> <model> <animation> <player> [loop_type]",
+        usage = "limb <id> <model> <animation> [loop_type] [player]",
         desc = "",
         modifiers = ["limb"],
-        min = 5,
+        min = 4,
         max = 6,
         permission = "citizens.npc.animate"
     )
@@ -38,27 +38,30 @@ class LimbCommand {
         @Arg(1) id: String,
         @Arg(2) model: String,
         @Arg(3) animation: String,
-        @Arg(4) player: String,
-        @Arg(5) type: String?
+        @Arg(4) type: String?,
+        @Arg(5) player: String?
     ) {
         val targetNpc = CitizensAPI.getNPCRegistry().getById(id.toIntOrNull() ?: return) ?: return
         val npcEntity = (targetNpc.entity as? Player)?.wrap() ?: return
-        val targetPlayer = Bukkit.getPlayer(player)?.wrap() ?: return
+        val targetPlayer = player?.let(Bukkit::getPlayer)?.wrap()
 
         val animType = type
-            ?.let { t ->
+            ?.let { value ->
                 runCatching {
-                    AnimationIterator.Type.valueOf(t.uppercase())
+                    AnimationIterator.Type.valueOf(value.uppercase())
                 }.getOrNull()
             }
             ?: AnimationIterator.Type.PLAY_ONCE
 
         BetterModel.limb(model)
-            .map {
-                it.getOrCreate(npcEntity, TrackerModifier.DEFAULT) { tracker ->
-                    tracker.markPlayerForSpawn(targetPlayer)
+            .map { renderer ->
+                renderer.getOrCreate(npcEntity, TrackerModifier.DEFAULT) { tracker ->
+                    if (targetPlayer != null) {
+                        tracker.markPlayerForSpawn(targetPlayer)
+                    }
                 }
-            }.ifPresent { tracker ->
+            }
+            .ifPresent { tracker ->
                 val success = tracker.animate(
                     animation,
                     AnimationModifier.builder()
@@ -67,18 +70,23 @@ class LimbCommand {
                         .type(animType)
                         .build()
                 ) {
-                    tracker.unmarkPlayerForSpawn(targetPlayer)
-                    tracker.registry().remove(targetPlayer)
-                    if (tracker.playerCount() == 0) tracker.close()
+                    if (targetPlayer != null) {
+                        tracker.unmarkPlayerForSpawn(targetPlayer)
+                        tracker.registry().remove(targetPlayer)
+                        if (tracker.playerCount() == 0) tracker.close()
+                    } else {
+                        tracker.close()
+                    }
                 }
 
-                if (success) {
-                    if (!tracker.isSpawned(targetPlayer)) {
-                        tracker.markPlayerForSpawn(targetPlayer)
-                        tracker.registry().spawnIfNotSpawned(targetPlayer)
-                    }
-                } else {
+                if (!success) {
                     tracker.close()
+                    return@ifPresent
+                }
+
+                if (targetPlayer != null && !tracker.isSpawned(targetPlayer)) {
+                    tracker.markPlayerForSpawn(targetPlayer)
+                    tracker.registry().spawnIfNotSpawned(targetPlayer)
                 }
             }
     }
