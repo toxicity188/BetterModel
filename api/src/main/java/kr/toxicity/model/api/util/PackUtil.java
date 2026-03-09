@@ -40,6 +40,7 @@ public final class PackUtil {
      * @return converted path
      */
     public static @NotNull String toPackName(@NotNull String raw) {
-        return REPLACE_SOURCE.matcher(raw.toLowerCase()).replaceAll("_");
+        return REPLACE_SOURCE.matcher(raw.toLowerCase())
+            .replaceAll(result -> Integer.toString(result.group().hashCode(), 16).toLowerCase());
     }
 }

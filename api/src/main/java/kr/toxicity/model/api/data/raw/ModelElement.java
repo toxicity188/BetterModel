@@ -31,17 +31,38 @@ import java.util.UUID;
 public sealed interface ModelElement {
 
     /**
+     * The type identifier for a null object element.
+     * @since 2.2.1
+     */
+    String NULL_OBJECT = "null_object";
+    /**
+     * The type identifier for a locator element.
+     * @since 2.2.1
+     */
+    String LOCATOR = "locator";
+    /**
+     * The type identifier for a camera element.
+     * @since 2.2.1
+     */
+    String CAMERA = "camera";
+    /**
+     * The type identifier for a cube element.
+     * @since 2.2.1
+     */
+    String CUBE = "cube";
+
+    /**
      * A JSON deserializer that automatically dispatches to the correct {@link ModelElement} implementation based on the "type" field.
      * @since 1.15.2
      */
     JsonDeserializer<ModelElement> PARSER = (json, type, context) -> {
         var t = json.getAsJsonObject().getAsJsonPrimitive("type");
-        var select = t != null ? t.getAsString() : "cube";
+        var select = t != null ? t.getAsString() : CUBE;
         return switch (select) {
-            case "null_object" -> context.deserialize(json, NullObject.class);
-            case "locator" -> context.deserialize(json, Locator.class);
-            case "camera" -> context.deserialize(json, Camera.class);
-            case "cube" -> context.deserialize(json, Cube.class);
+            case NULL_OBJECT -> context.deserialize(json, NullObject.class);
+            case LOCATOR -> context.deserialize(json, Locator.class);
+            case CAMERA -> context.deserialize(json, Camera.class);
+            case CUBE -> context.deserialize(json, Cube.class);
             default -> new Unsupported(select);
         };
     };
@@ -95,7 +116,7 @@ public sealed interface ModelElement {
     ) implements ModelElement {
         @Override
         public @NotNull String type() {
-            return "locator";
+            return LOCATOR;
         }
         /**
          * Returns the position of the locator.
@@ -129,7 +150,7 @@ public sealed interface ModelElement {
     ) implements ModelElement {
         @Override
         public @NotNull String type() {
-            return "camera";
+            return CAMERA;
         }
 
         @Override
@@ -159,7 +180,7 @@ public sealed interface ModelElement {
     ) implements ModelElement {
         @Override
         public @NotNull String type() {
-            return "null_object";
+            return NULL_OBJECT;
         }
 
         /**
@@ -245,7 +266,7 @@ public sealed interface ModelElement {
 
         @Override
         public @NotNull String type() {
-            return "cube";
+            return CUBE;
         }
 
         /**

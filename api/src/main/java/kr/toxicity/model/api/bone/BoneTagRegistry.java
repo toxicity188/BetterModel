@@ -74,7 +74,7 @@ public final class BoneTagRegistry {
             if (tag != null && set.size() < maxSize) set.add(tag);
             else return new BoneName(
                 set.isEmpty() ? ObjectSets.emptySet() : ObjectSets.unmodifiable(set),
-                String.join(TAG_SPLITTER, set.isEmpty() ? tagList : tagList.subList(set.size(), tagList.size())),
+                set.isEmpty() ? rawName : String.join(TAG_SPLITTER, tagList.subList(set.size(), tagList.size())),
                 rawName
             );
         }
