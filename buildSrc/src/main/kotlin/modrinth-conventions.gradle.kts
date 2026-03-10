@@ -17,17 +17,9 @@ modrinth {
         versionType = "release"
         changelog = rootProject.file("changelog/$versionString.md").readText()
     }
-    additionalFiles = listOf(
-        rootProject.layout.buildDirectory.file("libs/${rootProject.name}-$versionString-javadoc.jar")
-    )
+    additionalFiles {
+        javadocJar(rootProject.layout.buildDirectory.file("libs/${rootProject.name}-$versionString-javadoc.jar"))
+    }
     versionNumber = versionString
     versionName = "BetterModel $versionString for ${classifier.replaceFirstChar { it.uppercase() }}"
-//    uploadFile.set(tasks.shadowJar)
-//    gameVersions = SUPPORTED_VERSIONS
-//    dependencies {
-//        optional.project(
-//            "mythicmobs",
-//            "skinsrestorer"
-//        )
-//    }
 }

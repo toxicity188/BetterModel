@@ -11,7 +11,6 @@ import it.unimi.dsi.fastutil.floats.FloatSet;
 import kr.toxicity.model.api.data.Float3;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Matrix3f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;

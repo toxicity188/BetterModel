@@ -47,7 +47,6 @@ tasks {
             relocate(pattern, "$groupString.shaded.$pattern")
         }
         prefix("kotlin")
-        prefix("kr.toxicity.library.sharedpackets")
         prefix("kr.toxicity.library.armormodel")
         prefix("org.incendo.cloud")
         prefix("org.bstats")
