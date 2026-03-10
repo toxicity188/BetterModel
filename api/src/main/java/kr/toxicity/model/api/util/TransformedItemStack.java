@@ -70,6 +70,15 @@ public record TransformedItemStack(@NotNull Vector3f position, @NotNull Vector3f
     }
 
     /**
+     * Sets a uniform scale
+     * @param scale uniform scale factor
+     * @return new item with the given scale
+     */
+    public @NotNull TransformedItemStack withScale(float scale) {
+        return of(position, offset, new Vector3f(scale), itemStack);
+    }
+
+    /**
      * Modify item
      * @param mapper mapper
      * @return modified item

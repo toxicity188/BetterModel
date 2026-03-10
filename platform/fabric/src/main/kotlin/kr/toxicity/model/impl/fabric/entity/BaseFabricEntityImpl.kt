@@ -16,6 +16,7 @@ import net.kyori.adventure.text.Component
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.effect.MobEffects
 import net.minecraft.world.entity.Entity
+import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.ai.attributes.Attributes
 import org.joml.Vector3f
@@ -123,6 +124,15 @@ class BaseFabricEntityImpl(private var entity: Entity) : BaseFabricEntity {
         val entity = entity
         return if (entity is LivingEntity) {
             TransformedItemStack.of(entity.offhandItem.wrap())
+        } else {
+            TransformedItemStack.empty()
+        }
+    }
+
+    override fun helmet(): TransformedItemStack {
+        val entity = entity
+        return if (entity is LivingEntity) {
+            TransformedItemStack.of(entity.getItemBySlot(EquipmentSlot.HEAD).wrap())
         } else {
             TransformedItemStack.empty()
         }
