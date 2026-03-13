@@ -9,6 +9,7 @@ package kr.toxicity.model.bukkit.manager
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent
 import com.destroystokyo.paper.event.entity.EntityJumpEvent
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent
+import com.destroystokyo.paper.event.player.PlayerJumpEvent
 import it.unimi.dsi.fastutil.objects.ReferenceSet
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.bukkit.BetterModelBukkit
@@ -58,6 +59,10 @@ object EntityManager : GlobalManager {
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         fun EntityJumpEvent.jump() {
             entity.forEachTracker { it.animate(TrackerExtraAnimation.JUMP) }
+        }
+        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+        fun PlayerJumpEvent.jump() {
+            player.forEachTracker { it.animate(TrackerExtraAnimation.JUMP) }
         }
     }
 
