@@ -23,16 +23,15 @@ import kr.toxicity.model.api.platform.PlatformNamespace
 import kr.toxicity.model.util.*
 import net.kyori.adventure.text.format.NamedTextColor.*
 import java.io.File
-import java.util.SequencedMap
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.extension
 
 object ModelManagerImpl : ModelManager, GlobalManager {
 
     private lateinit var itemModelNamespace: PlatformNamespace
-    private val generalModelMap = hashMapOf<String, ModelRenderer>()
+    private val generalModelMap = addressingMapOf<String, ModelRenderer>()
     private val generalModelView = generalModelMap.toImmutableView()
-    private val playerModelMap = hashMapOf<String, ModelRenderer>()
+    private val playerModelMap = addressingMapOf<String, ModelRenderer>()
     private val playerModelView = playerModelMap.toImmutableView()
     private val modelExtensions = setOf("bbmodel", "ajmodel")
 
@@ -276,6 +275,9 @@ object ModelManagerImpl : ModelManager, GlobalManager {
         )
 
         private fun ModelBlueprint.toRenderer(type: ModelRenderer.Type, builder: (BlueprintElement.Group) -> Int?): ModelRenderer {
+            fun <T> Collection<BlueprintElement>.toBoneMap(mapper: (BlueprintElement.Bone) -> T) = filterIsInstance<BlueprintElement.Bone>().let { bone ->
+                bone.associateTo(sequencedAddressingMapOf(bone.size)) { it.name() to mapper(it) }
+            }.toImmutableView()
             fun BlueprintElement.Bone.parse(): RendererGroup {
                 if (this !is BlueprintElement.Group) return RendererGroup(1.0F, null, this, emptySequencedMap(), null)
                 return RendererGroup(
@@ -284,18 +286,14 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                         CONFIG.item().get().modelData(i, itemModelNamespace)
                     },
                     this,
-                    (children.filterIsInstance<BlueprintElement.Bone>()
-                        .associate { it.name() to it.parse() } as SequencedMap)
-                        .toImmutableView(),
+                    children.toBoneMap { it.parse() },
                     hitBox(),
                 )
             }
             return ModelRenderer(
                 name,
                 type,
-                (elements.filterIsInstance<BlueprintElement.Bone>()
-                    .associate { it.name() to it.parse() } as SequencedMap)
-                    .toImmutableView(),
+                elements.toBoneMap { it.parse() },
                 animations
             )
         }

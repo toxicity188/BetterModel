@@ -7,6 +7,7 @@
 package kr.toxicity.model.api.tracker;
 
 import com.google.gson.*;
+import kr.toxicity.model.api.util.CollectionUtil;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -292,7 +293,7 @@ public sealed interface ModelScaler {
      */
     final class Deserializer {
 
-        private final Map<String, Builder> getterMap = new HashMap<>();
+        private final Map<String, Builder> getterMap = CollectionUtil.newAddressingMap();
 
         private final BuiltInDeserializer def = addScaler("default", d -> Getter.DEFAULT);
         private final BuiltInDeserializer entity = addScaler("entity", d -> Getter.ENTITY);

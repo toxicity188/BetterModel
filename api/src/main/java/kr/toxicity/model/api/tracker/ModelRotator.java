@@ -10,11 +10,11 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import kr.toxicity.model.api.util.CollectionUtil;
 import kr.toxicity.model.api.util.lazy.LazyFloatProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiFunction;
@@ -301,7 +301,7 @@ public sealed interface ModelRotator extends BiFunction<Tracker, ModelRotation, 
      * @since 1.15.2
      */
     final class Deserializer {
-        private final Map<String, Builder> builderMap = new HashMap<>();
+        private final Map<String, Builder> builderMap = CollectionUtil.newAddressingMap();
 
         private final BuiltInDeserializer _default = register("default", j -> Getter.of(r -> r));
         private final BuiltInDeserializer empty = register("empty", j -> Getter.of(ModelRotation.EMPTY));

@@ -9,6 +9,8 @@ package kr.toxicity.model.api.util;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import it.unimi.dsi.fastutil.floats.FloatCollection;
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import kr.toxicity.model.api.BetterModel;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.jetbrains.annotations.ApiStatus;
@@ -33,6 +35,106 @@ public final class CollectionUtil {
      */
     private CollectionUtil() {
         throw new RuntimeException();
+    }
+
+    /**
+     * Creates a new chaining hash map.
+     * @return new hash map
+     * @param <K> key type
+     * @param <V> value type
+     * @since 2.2.1
+     */
+    @NotNull
+    public static <K, V> Map<K, V> newChainingMap() {
+        return new HashMap<>();
+    }
+
+    /**
+     * Creates a new addressing hash map.
+     * @return new addressing map
+     * @param <K> key type
+     * @param <V> value type
+     * @since 2.2.1
+     */
+    @NotNull
+    public static <K, V> Object2ObjectOpenHashMap<K, V> newAddressingMap() {
+        return new Object2ObjectOpenHashMap<>();
+    }
+
+    /**
+     * Creates a new sequenced chaining hash map.
+     * @return new linked hash map
+     * @param <K> key type
+     * @param <V> value type
+     * @since 2.2.1
+     */
+    @NotNull
+    public static <K, V> SequencedMap<K, V> newSequencedChainingMap() {
+        return new LinkedHashMap<>();
+    }
+
+    /**
+     * Creates a new sequenced addressing hash map.
+     * @return new sequenced addressing map
+     * @param <K> key type
+     * @param <V> value type
+     * @since 2.2.1
+     */
+    @NotNull
+    public static <K, V> Object2ObjectLinkedOpenHashMap<K, V> newSequencedAddressingMap() {
+        return new Object2ObjectLinkedOpenHashMap<>();
+    }
+
+    /**
+     * Creates a new chaining hash map.
+     * @return new hash map
+     * @param <K> key type
+     * @param <V> value type
+     * @param capacity the initial capacity
+     * @since 2.2.1
+     */
+    @NotNull
+    public static <K, V> Map<K, V> newChainingMap(int capacity) {
+        return new HashMap<>(capacity);
+    }
+
+    /**
+     * Creates a new addressing hash map.
+     * @return new addressing map
+     * @param <K> key type
+     * @param <V> value type
+     * @param capacity the initial capacity
+     * @since 2.2.1
+     */
+    @NotNull
+    public static <K, V> Object2ObjectOpenHashMap<K, V> newAddressingMap(int capacity) {
+        return new Object2ObjectOpenHashMap<>(capacity);
+    }
+
+    /**
+     * Creates a new sequenced chaining hash map.
+     * @return new linked hash map
+     * @param <K> key type
+     * @param <V> value type
+     * @param capacity the initial capacity
+     * @since 2.2.1
+     */
+    @NotNull
+    public static <K, V> SequencedMap<K, V> newSequencedChainingMap(int capacity) {
+        return new LinkedHashMap<>(capacity);
+    }
+
+    /**
+     * Creates a new sequenced addressing hash map.
+     * @return new sequenced addressing map
+     * @param <K> key type
+     * @param <V> value type
+     * @param capacity the initial capacity
+     * @since 2.2.1
+     */
+    @NotNull
+    public static <K, V> Object2ObjectLinkedOpenHashMap<K, V> newSequencedAddressingMap(int capacity) {
+        return new Object2ObjectLinkedOpenHashMap<>(capacity);
     }
 
     /**
@@ -247,21 +349,6 @@ public final class CollectionUtil {
     }
 
     /**
-     * Map some map's value.
-     * @param original original map
-     * @param mapper value mapper
-     * @return unmodifiable sequenced map
-     * @param <K> key
-     * @param <V> value
-     * @param <R> new value
-     */
-    @NotNull
-    @Unmodifiable
-    public static <K, V, R> SequencedMap<K, R> mapValueSequenced(@NotNull Map<K, V> original, @NotNull Function<V, R> mapper) {
-        return associateSequenced(original.entrySet(), Map.Entry::getKey, e -> mapper.apply(e.getValue()));
-    }
-
-    /**
      * Gets filter with warning if not matched
      * @param predicate delegated predicate
      * @param lazyLogFunction log function
@@ -310,6 +397,20 @@ public final class CollectionUtil {
 
     /**
      * Associates stream to map
+     * @param array array
+     * @param keyMapper key mapper
+     * @return unmodifiable map
+     * @param <E> element
+     * @param <K> key
+     */
+    @NotNull
+    @Unmodifiable
+    public static <E, K> Map<K, E> associate(@NotNull E[] array, @NotNull Function<E, K> keyMapper) {
+        return array.length == 0 ? Collections.emptyMap() : associate(Arrays.stream(array), keyMapper);
+    }
+
+    /**
+     * Associates stream to map
      * @param stream stream
      * @param keyMapper key mapper
      * @return unmodifiable map
@@ -339,6 +440,20 @@ public final class CollectionUtil {
     }
 
     /**
+     * Associates stream to sequenced map
+     * @param collection collection
+     * @param keyMapper key mapper
+     * @return unmodifiable sequenced map
+     * @param <E> element
+     * @param <K> key
+     */
+    @NotNull
+    @Unmodifiable
+    public static <E, K> SequencedMap<K, E> associateSequenced(@NotNull Collection<E> collection, @NotNull Function<E, K> keyMapper) {
+        return associateSequenced(collection, keyMapper, v -> v);
+    }
+
+    /**
      * Associates collection to sequenced map
      * @param collection collection
      * @param keyMapper key mapper
@@ -351,12 +466,12 @@ public final class CollectionUtil {
     @NotNull
     @Unmodifiable
     public static <E, K, V> SequencedMap<K, V> associateSequenced(@NotNull Collection<E> collection, @NotNull Function<E, K> keyMapper, @NotNull Function<E, V> valueMapper) {
-        return collection.isEmpty() ? Collections.emptyNavigableMap() : associateSequenced(collection.stream(), keyMapper, valueMapper);
+        return collection.isEmpty() ? Collections.emptyNavigableMap() : associateSequenced(collection.size(), collection.stream(), keyMapper, valueMapper);
     }
 
     /**
      * Associates stream to sequenced map
-     * @param collection collection
+     * @param array array
      * @param keyMapper key mapper
      * @return unmodifiable sequenced map
      * @param <E> element
@@ -364,12 +479,30 @@ public final class CollectionUtil {
      */
     @NotNull
     @Unmodifiable
-    public static <E, K> SequencedMap<K, E> associateSequenced(@NotNull Collection<E> collection, @NotNull Function<E, K> keyMapper) {
-        return collection.isEmpty() ? Collections.emptyNavigableMap() : associateSequenced(collection.stream(), keyMapper);
+    public static <E, K> SequencedMap<K, E> associateSequenced(@NotNull E[] array, @NotNull Function<E, K> keyMapper) {
+        return associateSequenced(array, keyMapper, v -> v);
+    }
+
+    /**
+     * Associates collection to sequenced map
+     * @param array array
+     * @param keyMapper key mapper
+     * @param valueMapper value mapper
+     * @return unmodifiable sequenced map
+     * @param <E> element
+     * @param <K> key
+     * @param <V> value
+     */
+    @NotNull
+    @Unmodifiable
+    public static <E, K, V> SequencedMap<K, V> associateSequenced(@NotNull E[] array, @NotNull Function<E, K> keyMapper, @NotNull Function<E, V> valueMapper) {
+        var len = array.length;
+        return len == 0 ? Collections.emptyNavigableMap() : associateSequenced(len, Arrays.stream(array), keyMapper, valueMapper);
     }
 
     /**
      * Associates stream to sequenced map
+     * @param capacity the initial capacity
      * @param stream stream
      * @param keyMapper key mapper
      * @return unmodifiable sequenced map
@@ -378,12 +511,13 @@ public final class CollectionUtil {
      */
     @NotNull
     @Unmodifiable
-    public static <E, K> SequencedMap<K, E> associateSequenced(@NotNull Stream<E> stream, @NotNull Function<E, K> keyMapper) {
-        return associateSequenced(stream, keyMapper, e -> e);
+    public static <E, K> SequencedMap<K, E> associateSequenced(int capacity, @NotNull Stream<E> stream, @NotNull Function<E, K> keyMapper) {
+        return associateSequenced(capacity, stream, keyMapper, e -> e);
     }
 
     /**
      * Associates stream to sequenced map
+     * @param capacity the initial capacity
      * @param stream stream
      * @param keyMapper key mapper
      * @param valueMapper value mapper
@@ -394,13 +528,13 @@ public final class CollectionUtil {
      */
     @NotNull
     @Unmodifiable
-    public static <E, K, V> SequencedMap<K, V> associateSequenced(@NotNull Stream<E> stream, @NotNull Function<E, K> keyMapper, @NotNull Function<E, V> valueMapper) {
+    public static <E, K, V> SequencedMap<K, V> associateSequenced(int capacity, @NotNull Stream<E> stream, @NotNull Function<E, K> keyMapper, @NotNull Function<E, V> valueMapper) {
         return stream.collect(Collectors.collectingAndThen(
             Collectors.toMap(
                 keyMapper,
                 valueMapper,
                 (oldV, newV) -> { throw new IllegalStateException("Duplicate key: " + oldV + " and " + newV); },
-                LinkedHashMap::new
+                () -> newSequencedAddressingMap(capacity)
             ),
             Collections::unmodifiableSequencedMap
         ));

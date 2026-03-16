@@ -8,6 +8,7 @@ package kr.toxicity.model.api.bone;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.*;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
@@ -480,7 +481,7 @@ public final class RenderedBone implements BoneEventHandler {
                 Stream.of(this),
                 Arrays.stream(children).flatMap(RenderedBone::flatten)
             ).collect(Collectors.collectingAndThen(
-                Collectors.toCollection(LinkedHashSet::new),
+                Collectors.toCollection(ObjectLinkedOpenHashSet::new),
                 Collections::unmodifiableSequencedSet
             ));
         }

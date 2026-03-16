@@ -30,9 +30,9 @@ import java.util.stream.Stream;
 public final class PackResult {
     private final PackMeta meta;
     private final File directory;
-    private final Map<PackOverlay, Set<PackByte>> overlays = new TreeMap<>();
-    private final Set<PackByte> assets = new TreeSet<>();
-    private final Set<PackByte> assetsView = Collections.unmodifiableSet(assets);
+    private final SortedMap<PackOverlay, SortedSet<PackByte>> overlays = new TreeMap<>();
+    private final SortedSet<PackByte> assets = new TreeSet<>();
+    private final SortedSet<PackByte> assetsView = Collections.unmodifiableSortedSet(assets);
 
     private final long creationTime = System.currentTimeMillis();
     private boolean frozen = false;
@@ -163,9 +163,9 @@ public final class PackResult {
      */
     @NotNull
     @Unmodifiable
-    public Set<PackByte> overlays(@NotNull PackOverlay overlay) {
+    public SortedSet<PackByte> overlays(@NotNull PackOverlay overlay) {
         var get = overlays.get(overlay);
-        return get != null ? Collections.unmodifiableSet(get) : Collections.emptySet();
+        return get != null ? Collections.unmodifiableSortedSet(get) : Collections.emptySortedSet();
     }
 
     /**
@@ -189,7 +189,7 @@ public final class PackResult {
      */
     @NotNull
     @Unmodifiable
-    public Set<PackByte> assets() {
+    public SortedSet<PackByte> assets() {
         return assetsView;
     }
 }

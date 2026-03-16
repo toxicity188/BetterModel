@@ -6,12 +6,18 @@
  */
 package kr.toxicity.model.util
 
+import kr.toxicity.model.api.util.CollectionUtil
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.stream.Collectors
 import java.util.stream.Stream
+
+fun <K, V> addressingMapOf() = CollectionUtil.newAddressingMap<K, V>()
+fun <K, V> sequencedAddressingMapOf() = CollectionUtil.newSequencedAddressingMap<K, V>()
+fun <K, V> addressingMapOf(capacity: Int) = CollectionUtil.newAddressingMap<K, V>(capacity)
+fun <K, V> sequencedAddressingMapOf(capacity: Int) = CollectionUtil.newSequencedAddressingMap<K, V>(capacity)
 
 fun <K, V> emptySequencedMap(): SequencedMap<K, V> = Collections.emptyNavigableMap()
 

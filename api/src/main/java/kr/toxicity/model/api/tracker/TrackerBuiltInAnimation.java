@@ -13,6 +13,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.function.Function;
 
+import static kr.toxicity.model.api.util.CollectionUtil.*;
+
 /**
  * A utility class for managing built-in animations for trackers.
  *
@@ -20,8 +22,8 @@ import java.util.function.Function;
  */
 public final class TrackerBuiltInAnimation {
 
-    private static final Map<String, TrackerAnimation<?>> BY_NAME = new HashMap<>();
-    private static final Set<TrackerAnimation<?>> BY_PRIORITY = new TreeSet<>();
+    private static final Map<String, TrackerAnimation<?>> BY_NAME = newAddressingMap();
+    private static final SortedSet<TrackerAnimation<?>> BY_PRIORITY = new TreeSet<>();
 
     /**
      * Registers a new tracker animation.

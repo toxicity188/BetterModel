@@ -7,16 +7,18 @@
 package kr.toxicity.model.api.nms;
 
 import com.google.common.collect.ImmutableMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import kr.toxicity.model.api.event.hitbox.*;
 import kr.toxicity.model.api.platform.PlatformEntity;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+
+import static kr.toxicity.model.api.util.CollectionUtil.newAddressingMap;
 
 /**
  * Listens for events related to a {@link HitBox}, such as damage, interaction, and mounting.
@@ -41,7 +43,7 @@ public interface HitBoxListener {
      * @since 1.15.2
      */
     static @NotNull Builder builder() {
-        return new Builder(new HashMap<>(), null);
+        return new Builder(newAddressingMap(), null);
     }
 
     /**
@@ -198,7 +200,7 @@ public interface HitBoxListener {
 
                 @Override
                 public @NotNull Builder toBuilder() {
-                    return new Builder(new HashMap<>(copied), sync);
+                    return new Builder(new Object2ObjectOpenHashMap<>(copied), sync);
                 }
             };
         }

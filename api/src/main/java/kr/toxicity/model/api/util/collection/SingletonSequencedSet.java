@@ -9,7 +9,6 @@ package kr.toxicity.model.api.util.collection;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
-import org.jspecify.annotations.NonNull;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -69,12 +68,12 @@ public final class SingletonSequencedSet<E> extends AbstractSet<E> implements Se
     }
 
     @Override
-    public @NonNull Stream<E> stream() {
+    public @NotNull Stream<E> stream() {
         return Stream.of(element);
     }
 
     @Override
-    public @NonNull Stream<E> parallelStream() {
+    public @NotNull Stream<E> parallelStream() {
         return stream();
     }
 

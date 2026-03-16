@@ -14,13 +14,12 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.SequencedMap;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
+
+import static kr.toxicity.model.api.util.CollectionUtil.newSequencedChainingMap;
 
 /**
  * Animation state handler
@@ -33,8 +32,8 @@ public final class AnimationStateHandler<T extends Timed> {
     private final T initialValue;
     private final BiConsumer<T, T> setConsumer;
 
-    private final SequencedMap<String, TreeIterator> animators = new LinkedHashMap<>();
-    private final Collection<TreeIterator> reversedView = animators.sequencedValues().reversed();
+    private final SequencedMap<String, TreeIterator> animators = newSequencedChainingMap();
+    private final SequencedCollection<TreeIterator> reversedView = animators.sequencedValues().reversed();
     private final AtomicBoolean forceUpdateAnimation = new AtomicBoolean();
 
     @Getter

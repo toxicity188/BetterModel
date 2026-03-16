@@ -91,8 +91,8 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
         this.bones = bones;
         // Bone
         flattenBones = Arrays.stream(bones).flatMap(RenderedBone::flatten).toArray(RenderedBone[]::new);
-        byIdMap = associateSequenced(Arrays.stream(flattenBones), RenderedBone::name);
-        ikSolver = new BoneIKSolver(associate(Arrays.stream(flattenBones), RenderedBone::uuid));
+        byIdMap = associateSequenced(flattenBones, RenderedBone::name);
+        ikSolver = new BoneIKSolver(associate(flattenBones, RenderedBone::uuid));
         // Setup
         displayAmount = (int) Arrays.stream(flattenBones)
             .peek(bone -> bone.extend(this))

@@ -6,6 +6,7 @@
  */
 package kr.toxicity.model.api.bone;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import kr.toxicity.model.api.util.InterpolationUtil;
 import kr.toxicity.model.api.util.MathUtil;
 import lombok.RequiredArgsConstructor;
@@ -15,9 +16,10 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import static kr.toxicity.model.api.util.CollectionUtil.newSequencedAddressingMap;
 
 /**
  * Bone IK solver
@@ -30,7 +32,7 @@ public final class BoneIKSolver {
     private static final Vector3f FROM_VECTOR = new Vector3f(0, -1, 0).normalize();
 
     private final Map<UUID, RenderedBone> boneMap;
-    private final Map<RenderedBone, IKChain> locators = new LinkedHashMap<>();
+    private final Object2ObjectLinkedOpenHashMap<RenderedBone, IKChain> locators = newSequencedAddressingMap();
 
     /**
      * Adds some external locator to this solver
@@ -62,7 +64,7 @@ public final class BoneIKSolver {
      */
     public void solve(@Nullable UUID uuid) {
         if (locators.isEmpty()) return;
-        for (var entry : locators.entrySet()) {
+        locators.object2ObjectEntrySet().fastForEach(entry -> {
             var locator = entry.getKey();
             var value = entry.getValue();
             fabrik(
@@ -73,7 +75,7 @@ public final class BoneIKSolver {
                     .add(locator.root.group.getPosition())
                     .sub(value.first().root.group.getPosition())
             );
-        }
+        });
     }
 
     private record IKChain(@NotNull RenderedBone[] bones, @NotNull IKCache cache) {
