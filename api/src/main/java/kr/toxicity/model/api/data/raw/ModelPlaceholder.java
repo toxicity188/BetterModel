@@ -38,7 +38,7 @@ public record ModelPlaceholder(
      * A JSON deserializer for parsing placeholders from a multi-line string.
      * @since 1.15.2
      */
-    public static final JsonDeserializer<ModelPlaceholder> PARSER = (json, typeOfT, context) -> new ModelPlaceholder(associate(
+    public static final JsonDeserializer<ModelPlaceholder> PARSER = (json, _, _) -> new ModelPlaceholder(associate(
         Arrays.stream(json.getAsString().split("\n"))
             .map(line -> line.split("=", 2))
             .filter(array -> array.length == 2),

@@ -11,7 +11,7 @@ pluginManagement {
 
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
-    id("fabric-loom") version "1.15-SNAPSHOT"
+    id("net.fabricmc.fabric-loom-repositories") version "1.15-SNAPSHOT"
 }
 
 dependencyResolutionManagement {
@@ -28,6 +28,11 @@ dependencyResolutionManagement {
         maven("https://mvn.lumine.io/repository/maven-public/")
         maven("https://repo.nexomc.com/releases/")
         maven("https://maven.nucleoid.xyz/")
+        // for development builds
+        maven(url = "https://central.sonatype.com/repository/maven-snapshots/") {
+            name = "central-snapshots"
+            mavenContent { snapshotsOnly() }
+        }
     }
 }
 
@@ -36,26 +41,26 @@ rootProject.name = "BetterModel"
 include(
     //api
     "api",
-    "api:bukkit-api",
+//    "api:bukkit-api",
 
     //core
     "core",
-    "core:bukkit-core",
+//    "core:bukkit-core",
 
-    "purpur",
+//    "purpur",
 
-    "platform:spigot",
-    "platform:paper",
+//    "platform:spigot",
+//    "platform:paper",
     "platform:fabric",
 
-    //nms
-    "nms:v1_21_R1",
-    "nms:v1_21_R3",
-    "nms:v1_21_R4",
-    "nms:v1_21_R5",
-    "nms:v1_21_R6",
-    "nms:v1_21_R7",
-
-    //test
-    "test-plugin"
+//    //nms
+//    "nms:v1_21_R1",
+//    "nms:v1_21_R3",
+//    "nms:v1_21_R4",
+//    "nms:v1_21_R5",
+//    "nms:v1_21_R6",
+//    "nms:v1_21_R7",
+//
+//    //test
+//    "test-plugin"
 )

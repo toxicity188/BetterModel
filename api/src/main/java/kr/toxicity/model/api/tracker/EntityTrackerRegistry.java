@@ -277,9 +277,9 @@ public final class EntityTrackerRegistry {
 
     private boolean putTracker(@NotNull String key, @NotNull EntityTracker created) {
         if (isClosed() || created.isClosed()) return false;
-        created.handleCloseEvent((t, r) -> {
+        created.handleCloseEvent((_, r) -> {
             if (isClosed()) return;
-            if (trackerMap.compute(key, (k, v) -> v == created ? null : v) == null) {
+            if (trackerMap.compute(key, (_, v) -> v == created ? null : v) == null) {
                 LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> uuid + "'s tracker " + key + " has been removed. (" + trackerMap.size() + ")");
             }
             if (trackerMap.isEmpty()) close(r);
@@ -541,7 +541,7 @@ public final class EntityTrackerRegistry {
     }
 
     private @NotNull PlayerChannelCache registerPlayer(@NotNull PlayerChannelHandler handler) {
-        return viewedPlayerMap.computeIfAbsent(handler.uuid(), u -> new PlayerChannelCache(handler));
+        return viewedPlayerMap.computeIfAbsent(handler.uuid(), _ -> new PlayerChannelCache(handler));
     }
 
     /**

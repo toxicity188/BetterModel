@@ -9,7 +9,7 @@
         "org.incendo:cloud-fabric",
         "io.papermc.parchment.data:parchment",
         "net.fabricmc.fabric-api:fabric-api",
-        "fabric-loom",
+        "net.fabricmc.fabric-loom-repositories",
         "eu.pb4:polymer-resource-pack"
     ],
     "baseBranches": [

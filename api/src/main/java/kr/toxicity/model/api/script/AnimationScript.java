@@ -21,7 +21,7 @@ public interface AnimationScript extends Consumer<Tracker> {
     /**
      * Empty script
      */
-    AnimationScript EMPTY = of(s -> {});
+    AnimationScript EMPTY = of(_ -> {});
 
     @Override
     void accept(@NotNull Tracker tracker);
@@ -82,7 +82,7 @@ public interface AnimationScript extends Consumer<Tracker> {
             case 1 -> scriptList.getFirst();
             default -> {
                 var sync = false;
-                Consumer<Tracker> consumer = trigger -> {};
+                Consumer<Tracker> consumer = _ -> {};
                 for (AnimationScript entityScript : scriptList) {
                     sync = sync || entityScript.isSync();
                     consumer = consumer.andThen(entityScript);

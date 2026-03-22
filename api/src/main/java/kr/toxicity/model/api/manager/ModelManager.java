@@ -122,7 +122,7 @@ public interface ModelManager {
      * @since 1.15.2
      */
     default boolean animate(@NotNull PlatformPlayer player, @NotNull String model, @NotNull String animation, @NotNull AnimationModifier modifier) {
-        return animate(player, model, animation, modifier, t -> {});
+        return animate(player, model, animation, modifier, _ -> {});
     }
 
     /**

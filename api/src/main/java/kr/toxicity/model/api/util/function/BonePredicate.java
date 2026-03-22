@@ -22,12 +22,12 @@ public interface BonePredicate extends Predicate<RenderedBone> {
     /**
      * True
      */
-    BonePredicate TRUE = of(State.TRUE, b -> true);
+    BonePredicate TRUE = of(State.TRUE, _ -> true);
 
     /**
      * False
      */
-    BonePredicate FALSE = of(State.FALSE, b -> false);
+    BonePredicate FALSE = of(State.FALSE, _ -> false);
 
     /**
      * Gets builder by name

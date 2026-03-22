@@ -62,7 +62,7 @@ public enum PlayerLimb {
         scale(2.7891F,5.5938F,3.7188F, 0.25F),
         offset(-0.625F, 1.5F, 0, 0.25F),
         offset(-0.043F, 1.5F, 0, 0.25F),
-        (d, p) -> d.rightForeArm(),
+        (d, _) -> d.rightForeArm(),
         PlatformItemTransform.FIXED
     ),
     /**
@@ -86,7 +86,7 @@ public enum PlayerLimb {
         scale(2.7891F,5.5938F,3.7188F, 0.25F),
         offset(0.625F, 1.5F, 0, 0.25F),
         offset(0.043F, 1.5F, 0, 0.25F),
-        (d, p) -> d.leftForeArm(),
+        (d, _) -> d.leftForeArm(),
         PlatformItemTransform.FIXED
     ),
     /**

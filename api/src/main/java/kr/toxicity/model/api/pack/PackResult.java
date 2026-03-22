@@ -57,7 +57,7 @@ public final class PackResult {
             return;
         }
         synchronized (overlays) {
-            overlays.computeIfAbsent(overlay, o -> new TreeSet<>()).add(packByte);
+            overlays.computeIfAbsent(overlay, _ -> new TreeSet<>()).add(packByte);
         }
     }
 

@@ -23,7 +23,7 @@ import kr.toxicity.model.impl.fabric.wrap
 import kr.toxicity.model.manager.GlobalManager
 import kr.toxicity.model.manager.ReloadPipeline
 import kr.toxicity.model.util.PLATFORM
-import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents
+import net.fabricmc.fabric.api.entity.event.v1.ServerEntityLevelChangeEvents
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents
@@ -113,7 +113,7 @@ object EntityManager : GlobalManager {
     }
 
     private fun registerLifecycleEvents() {
-        ServerEntityWorldChangeEvents.AFTER_ENTITY_CHANGE_WORLD.register { oldEntity, newEntity, _, _ ->
+        ServerEntityLevelChangeEvents.AFTER_ENTITY_CHANGE_LEVEL.register { oldEntity, newEntity, _, _ ->
             BetterModel.registryOrNull(oldEntity.uuid)?.let { registry ->
                 (registry.entity() as BaseFabricEntity).entity(newEntity)
             }
@@ -130,7 +130,7 @@ object EntityManager : GlobalManager {
         }
 
         // same as PlayerChangedWorldEvent
-        ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register { player, _, _ ->
+        ServerEntityLevelChangeEvents.AFTER_PLAYER_CHANGE_LEVEL.register { player, _, _ ->
             BetterModel.registryOrNull(player.uuid)?.let { registry ->
                 registry.despawn()
                 registry.refresh()

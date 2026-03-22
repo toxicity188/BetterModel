@@ -78,7 +78,7 @@ public interface HitBoxListener {
          */
         @SuppressWarnings("unchecked")
         public <T extends HitBoxEvent> @NotNull Builder listen(@NotNull Class<T> eventClass, @NotNull Consumer<T> consumer) {
-            listeners.compute(eventClass, (k, old) -> old == null ? consumer : ((Consumer<T>) old).andThen(consumer));
+            listeners.compute(eventClass, (_, old) -> old == null ? consumer : ((Consumer<T>) old).andThen(consumer));
             return this;
         }
 

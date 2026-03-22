@@ -40,7 +40,7 @@ public sealed interface ModelOutliner {
      * </p>
      * @since 1.15.2
      */
-    JsonDeserializer<ModelOutliner> PARSER = (json, typeOfT, context) -> {
+    JsonDeserializer<ModelOutliner> PARSER = (json, _, context) -> {
         if (json.isJsonPrimitive()) return new Reference(json.getAsString());
         else if (json.isJsonObject()) {
             var children = json.getAsJsonObject().getAsJsonArray("children");

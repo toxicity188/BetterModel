@@ -53,6 +53,6 @@ public interface FloatFunction<T> {
      */
     default @NotNull FloatFunction<T> memoize() {
         var map = new Int2ReferenceOpenHashMap<T>();
-        return f -> map.computeIfAbsent(MathUtil.similarHashCode(f), i -> apply(f));
+        return f -> map.computeIfAbsent(MathUtil.similarHashCode(f), _ -> apply(f));
     }
 }

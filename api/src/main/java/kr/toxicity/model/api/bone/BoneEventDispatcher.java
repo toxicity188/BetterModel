@@ -93,9 +93,9 @@ public final class BoneEventDispatcher {
 
         EventFunction() {
             this(
-                (b, l) -> l,
-                (b, u) -> {},
-                (b, u) -> {}
+                (_, l) -> l,
+                (_, _) -> {},
+                (_, _) -> {}
             );
         }
 

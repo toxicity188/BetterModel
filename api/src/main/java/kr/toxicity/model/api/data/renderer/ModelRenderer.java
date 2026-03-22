@@ -103,7 +103,7 @@ public record ModelRenderer(
      * @return empty tracker
      */
     public @NotNull DummyTracker create(@NotNull PlatformLocation location, @NotNull TrackerModifier modifier) {
-        return create(location, modifier, t -> {
+        return create(location, modifier, _ -> {
         });
     }
 
@@ -180,7 +180,7 @@ public record ModelRenderer(
      * @return empty tracker
      */
     public @NotNull DummyTracker create(@NotNull PlatformLocation location, ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier) {
-        return create(location, profile, modifier, t -> {
+        return create(location, profile, modifier, _ -> {
         });
     }
 
@@ -395,7 +395,7 @@ public record ModelRenderer(
      * @return entity tracker
      */
     public @NotNull EntityTracker create(@NotNull BaseEntity entity, @NotNull TrackerModifier modifier) {
-        return create(entity, modifier, t -> {
+        return create(entity, modifier, _ -> {
         });
     }
 
@@ -472,7 +472,7 @@ public record ModelRenderer(
      * @return entity tracker
      */
     public @NotNull EntityTracker create(@NotNull BaseEntity entity, @NotNull ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier) {
-        return create(entity, profile, modifier, t -> {
+        return create(entity, profile, modifier, _ -> {
         });
     }
 
@@ -512,7 +512,7 @@ public record ModelRenderer(
      * @return entity tracker
      */
     public @NotNull EntityTracker getOrCreate(@NotNull BaseEntity entity, @NotNull TrackerModifier modifier) {
-        return getOrCreate(entity, modifier, t -> {
+        return getOrCreate(entity, modifier, _ -> {
         });
     }
 
@@ -592,7 +592,7 @@ public record ModelRenderer(
      * @return entity tracker
      */
     public @NotNull EntityTracker getOrCreate(@NotNull BaseEntity entity, ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier) {
-        return getOrCreate(entity, profile, modifier, t -> {
+        return getOrCreate(entity, profile, modifier, _ -> {
         });
     }
 

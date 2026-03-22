@@ -141,7 +141,7 @@ public final class RenderedBone implements BoneEventHandler {
                 applyItem(d);
             });
         } else display = null;
-        globalState = new BoneStateHandler(null, uuid -> {});
+        globalState = new BoneStateHandler(null, _ -> {});
     }
 
     public void locator(@NotNull BoneIKSolver solver) {
@@ -188,7 +188,7 @@ public final class RenderedBone implements BoneEventHandler {
         synchronized (this) {
             renderContext = context;
         }
-        return updateItem(bone -> true);
+        return updateItem(_ -> true);
     }
 
     /**
@@ -554,7 +554,7 @@ public final class RenderedBone implements BoneEventHandler {
             this.consumer = consumer;
             state = new AnimationStateHandler<>(
                 AnimationProgress.EMPTY,
-                (b, a) -> skipInterpolation = (a != null && a.skipInterpolation()) || (parent != null && parent.state(uuid).skipInterpolation)
+                (_, a) -> skipInterpolation = (a != null && a.skipInterpolation()) || (parent != null && parent.state(uuid).skipInterpolation)
             );
         }
 

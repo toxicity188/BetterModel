@@ -26,7 +26,7 @@ public record BoneName(@NotNull @Unmodifiable Set<BoneTag> tags, @NotNull String
      * A JSON deserializer for parsing BoneName from a string.
      * @since 2.0.1
      */
-    public static final JsonDeserializer<BoneName> PARSER = (json, typeOfT, context) -> BoneName.of(json.getAsString());
+    public static final JsonDeserializer<BoneName> PARSER = (json, _, _) -> BoneName.of(json.getAsString());
 
     /**
      * Internal constructor for BoneName.

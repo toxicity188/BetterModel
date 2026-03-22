@@ -31,7 +31,7 @@ public record Float4(
     /**
      * Parser
      */
-    public static final JsonDeserializer<Float4> PARSER = (json, typeOfT, context) -> {
+    public static final JsonDeserializer<Float4> PARSER = (json, _, _) -> {
         var array = json.getAsJsonArray();
         return new Float4(
             array.get(0).getAsFloat(),

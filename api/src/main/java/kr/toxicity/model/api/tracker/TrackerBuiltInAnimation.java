@@ -55,7 +55,7 @@ public final class TrackerBuiltInAnimation {
      *
      * @since 2.2.0
      */
-    public static final TrackerAnimation<Tracker> IDLE = register("idle", b -> b.modifier(tracker -> AnimationModifier.builder()
+    public static final TrackerAnimation<Tracker> IDLE = register("idle", b -> b.modifier(_ -> AnimationModifier.builder()
         .start(6)
         .type(AnimationIterator.Type.LOOP)
         .build()
@@ -113,7 +113,7 @@ public final class TrackerBuiltInAnimation {
      * @since 2.2.0
      */
     public static final TrackerAnimation<EntityTracker> SPAWN = register("spawn", b -> b.type(EntityTracker.class)
-        .modifier(tracker -> AnimationModifier.DEFAULT_WITH_PLAY_ONCE));
+        .modifier(_ -> AnimationModifier.DEFAULT_WITH_PLAY_ONCE));
 
     private TrackerBuiltInAnimation() {
         throw new IllegalStateException("Utility class");

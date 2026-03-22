@@ -67,7 +67,7 @@ class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterMod
 
     private val jarFile: JarFile
         get() = JarFile(
-            File(javaClass.getProtectionDomain().codeSource.location.toURI())
+            File(javaClass.protectionDomain.codeSource.location.toURI())
         )
 
     private lateinit var config: BetterModelConfigImpl

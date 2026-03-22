@@ -45,7 +45,7 @@ public interface NMS {
      * @since 1.15.2
      */
     default @NotNull ModelDisplay create(@NotNull PlatformLocation location) {
-        return create(location, 0, d -> {});
+        return create(location, 0, _ -> {});
     }
 
     /**

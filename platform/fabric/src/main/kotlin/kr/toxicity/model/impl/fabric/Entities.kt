@@ -4,6 +4,8 @@
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+@file:Suppress("UnstableApiUsage")
+
 package kr.toxicity.model.impl.fabric
 
 import kr.toxicity.model.api.BetterModel
@@ -46,7 +48,7 @@ val Entity.seenBy: Set<ServerPlayerConnection>
         val tracker = level.chunkSource.chunkMap.entityMap.get(id)
             ?: return emptySet()
 
-        return tracker.playersTracking
+        return tracker.seenBy
     }
 
 var Entity.modelData: String?

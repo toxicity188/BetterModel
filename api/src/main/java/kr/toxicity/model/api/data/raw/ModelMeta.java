@@ -31,7 +31,7 @@ public record ModelMeta(
      * A JSON deserializer for parsing {@link ModelMeta} from the "meta" object in a .bbmodel file.
      * @since 1.15.2
      */
-    public static final JsonDeserializer<ModelMeta> PARSER = (json, type, context) -> new ModelMeta(
+    public static final JsonDeserializer<ModelMeta> PARSER = (json, _, _) -> new ModelMeta(
         FormatVersion.find(new Semver(json.getAsJsonObject().getAsJsonPrimitive("format_version").getAsString(), Semver.SemverType.LOOSE).getMajor())
     );
 

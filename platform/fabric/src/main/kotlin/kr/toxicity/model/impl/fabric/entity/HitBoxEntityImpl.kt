@@ -10,13 +10,7 @@ import kr.toxicity.model.api.bone.BoneMovement
 import kr.toxicity.model.api.bone.RenderedBone
 import kr.toxicity.model.api.config.DebugConfig
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
-import kr.toxicity.model.api.event.hitbox.HitBoxCreateEvent
-import kr.toxicity.model.api.event.hitbox.HitBoxMountEvent
-import kr.toxicity.model.api.event.hitbox.HitBoxRemoveEvent
-import kr.toxicity.model.api.event.hitbox.HitBoxDismountEvent
-import kr.toxicity.model.api.event.hitbox.HitBoxDamagedEvent
-import kr.toxicity.model.api.event.hitbox.HitBoxInteractAtEvent
-import kr.toxicity.model.api.event.hitbox.HitBoxInteractEvent
+import kr.toxicity.model.api.event.hitbox.*
 import kr.toxicity.model.api.fabric.platform.FabricEntity
 import kr.toxicity.model.api.fabric.platform.FabricLivingEntity
 import kr.toxicity.model.api.mount.MountController
@@ -398,18 +392,19 @@ class HitBoxEntityImpl(
             when (hand) {
                 ModelInteractionHand.LEFT -> InteractionHand.OFF_HAND
                 ModelInteractionHand.RIGHT -> InteractionHand.MAIN_HAND
-            }
+            },
+            Vec3.ZERO
         )
     }
 
     override fun triggerInteractAt(player: PlatformPlayer, hand: ModelInteractionHand, position: Vector3f) {
-        interactAt(
+        interact(
             player.unwarp().player,
-            Vec3(position),
             when (hand) {
                 ModelInteractionHand.LEFT -> InteractionHand.OFF_HAND
                 ModelInteractionHand.RIGHT -> InteractionHand.MAIN_HAND
-            }
+            },
+            Vec3(position)
         )
     }
 
@@ -421,33 +416,8 @@ class HitBoxEntityImpl(
         TODO("with mixin")
     }
 
-    override fun interact(player: Player, hand: InteractionHand): InteractionResult {
-        if (player === delegate) {
-            return InteractionResult.FAIL
-        }
-        val serverPlayer = player as ServerPlayer
 
-        val interact = HitBoxInteractEvent(
-            serverPlayer.connection.wrap(),
-            this,
-            when (hand) {
-                InteractionHand.MAIN_HAND -> ModelInteractionHand.RIGHT
-                InteractionHand.OFF_HAND -> ModelInteractionHand.LEFT
-            }
-        )
-        if (!listener.handle(interact)) return InteractionResult.FAIL
-
-        serverPlayer.connection.handleInteract(
-            ServerboundInteractPacket.createInteractionPacket(
-                delegate,
-                player.isShiftKeyDown,
-                hand
-            )
-        )
-        return InteractionResult.SUCCESS
-    }
-
-    override fun interactAt(player: Player, vec: Vec3, hand: InteractionHand): InteractionResult {
+    override fun interact(player: Player, hand: InteractionHand, vec: Vec3): InteractionResult {
         if (player === delegate) {
             return InteractionResult.FAIL
         }
@@ -465,11 +435,11 @@ class HitBoxEntityImpl(
         if (!listener.handle(interact)) return InteractionResult.FAIL
 
         serverPlayer.connection.handleInteract(
-            ServerboundInteractPacket.createInteractionPacket(
-                delegate,
-                player.isShiftKeyDown,
+            ServerboundInteractPacket(
+                delegate.id,
                 hand,
-                vec
+                vec,
+                player.isShiftKeyDown
             )
         )
         return InteractionResult.SUCCESS

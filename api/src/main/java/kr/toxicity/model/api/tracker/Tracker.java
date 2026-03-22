@@ -103,7 +103,7 @@ public abstract class Tracker implements AutoCloseable {
     });
     private final AnimationStateHandler<TimeScript> scriptProcessor = new AnimationStateHandler<>(
         TimeScript.EMPTY,
-        (b, a) -> {
+        (b, _) -> {
             if (b == null) return;
             if (b.isSync()) {
                 location().task(() -> b.accept(this));
@@ -155,15 +155,15 @@ public abstract class Tracker implements AutoCloseable {
             t.rotation(),
             s.tickBundler
         ));
-        tick((t, s) -> {
+        tick((t, _) -> {
             var perPlayer = perPlayerHandler;
             if (perPlayer != null) pipeline.nonHidePlayer().forEach(p -> perPlayer.accept(t, p));
         });
-        pipeline.spawnPacketHandler(p -> start());
-        pipeline.eventDispatcher().handleStateCreate((bone, uuid) -> bundlerSet.perPlayerViewBundler
+        pipeline.spawnPacketHandler(_ -> start());
+        pipeline.eventDispatcher().handleStateCreate((_, uuid) -> bundlerSet.perPlayerViewBundler
             .computeIfAbsent(uuid, PerPlayerCache::new)
             .add());
-        pipeline.eventDispatcher().handleStateRemove((bone, uuid) -> {
+        pipeline.eventDispatcher().handleStateRemove((_, uuid) -> {
             var get = bundlerSet.perPlayerViewBundler.get(uuid);
             if (get != null) get.remove();
         });
@@ -550,7 +550,7 @@ public abstract class Tracker implements AutoCloseable {
      * @since 1.15.2
      */
     public boolean stopAnimation(@NotNull String animation) {
-        return stopAnimation(e -> true, animation);
+        return stopAnimation(_ -> true, animation);
     }
 
     /**
@@ -649,7 +649,7 @@ public abstract class Tracker implements AutoCloseable {
      * @since 2.1.0
      */
     public <T extends HitBoxEvent> void listenHitBox(@NotNull Class<T> eventClass, @NotNull Consumer<T> consumer) {
-        listenHitBox((bone, builder) -> builder.listen(eventClass, consumer));
+        listenHitBox((_, builder) -> builder.listen(eventClass, consumer));
     }
 
     /**

@@ -45,14 +45,14 @@ public record TrackerData(
      * @since 1.15.2
      */
     public static final Gson PARSER = new GsonBuilder()
-        .registerTypeAdapter(ModelScaler.class, (JsonDeserializer<ModelScaler>) (json, typeOfT, context) -> json.isJsonObject() ? ModelScaler.deserialize(json.getAsJsonObject()) : ModelScaler.defaultScaler())
-        .registerTypeAdapter(ModelScaler.class, (JsonSerializer<ModelScaler>) (src, typeOfSrc, context) -> src.serialize())
-        .registerTypeAdapter(ModelRotator.class, (JsonDeserializer<ModelRotator>) (json, typeOfT, context) -> json.isJsonObject() ? ModelRotator.deserialize(json.getAsJsonObject()) : ModelRotator.YAW)
-        .registerTypeAdapter(ModelRotator.class, (JsonSerializer<ModelRotator>) (src, typeOfSrc, context) -> src.serialize())
-        .registerTypeAdapter(EntityHideOption.class, (JsonDeserializer<EntityHideOption>) (json, typeOfT, context) -> json.isJsonArray() ? EntityHideOption.deserialize(json.getAsJsonArray()) : EntityHideOption.DEFAULT)
-        .registerTypeAdapter(EntityHideOption.class, (JsonSerializer<EntityHideOption>) (src, typeOfSrc, context) -> src.serialize())
-        .registerTypeAdapter(UUID.class, (JsonDeserializer<UUID>) (json, typeOfT, context) -> UUID.fromString(json.getAsString()))
-        .registerTypeAdapter(UUID.class, (JsonSerializer<UUID>) (src, typeOfSrc, context) -> new JsonPrimitive(src.toString()))
+        .registerTypeAdapter(ModelScaler.class, (JsonDeserializer<ModelScaler>) (json, _, _) -> json.isJsonObject() ? ModelScaler.deserialize(json.getAsJsonObject()) : ModelScaler.defaultScaler())
+        .registerTypeAdapter(ModelScaler.class, (JsonSerializer<ModelScaler>) (src, _, _) -> src.serialize())
+        .registerTypeAdapter(ModelRotator.class, (JsonDeserializer<ModelRotator>) (json, _, _) -> json.isJsonObject() ? ModelRotator.deserialize(json.getAsJsonObject()) : ModelRotator.YAW)
+        .registerTypeAdapter(ModelRotator.class, (JsonSerializer<ModelRotator>) (src, _, _) -> src.serialize())
+        .registerTypeAdapter(EntityHideOption.class, (JsonDeserializer<EntityHideOption>) (json, _, _) -> json.isJsonArray() ? EntityHideOption.deserialize(json.getAsJsonArray()) : EntityHideOption.DEFAULT)
+        .registerTypeAdapter(EntityHideOption.class, (JsonSerializer<EntityHideOption>) (src, _, _) -> src.serialize())
+        .registerTypeAdapter(UUID.class, (JsonDeserializer<UUID>) (json, _, _) -> UUID.fromString(json.getAsString()))
+        .registerTypeAdapter(UUID.class, (JsonSerializer<UUID>) (src, _, _) -> new JsonPrimitive(src.toString()))
         .create();
 
     /**

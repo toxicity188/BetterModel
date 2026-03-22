@@ -100,7 +100,7 @@ public class EntityTracker extends Tracker {
                 });
                 var baseScale = (float) (box.x() + box.z()) / 4F;
                 var posCache = new BoneMovement();
-                tick(((t, s) -> {
+                tick(((_, s) -> {
                     var wPos = bone.hitBoxPosition(posCache);
                     shadow.shadowRadius(scale.getAsFloat() * baseScale);
                     shadow.syncPotionEffect(entity);
@@ -145,8 +145,8 @@ public class EntityTracker extends Tracker {
             if (isClosed()) return;
             createHitBox(null, CREATE_HITBOX_PREDICATE);
         });
-        tick((t, s) -> updateLocation());
-        tick((t, s) -> {
+        tick((_, _) -> updateLocation());
+        tick((_, _) -> {
             if (damageTint.getAndDecrement() == 0) update(TrackerUpdateAction.previousTint());
         });
         rotation(bodyRotator::bodyRotation);

@@ -26,13 +26,11 @@ public abstract class EntityMixin implements EntityHook {
     @Shadow
     public abstract Level level();
 
-    @SuppressWarnings("UnstableApiUsage")
     @Override
     public @Nullable String bettermodel$getModelData() {
         return ((AttachmentTarget) this).getAttached(BetterModelAttachments.MODEL_DATA);
     }
 
-    @SuppressWarnings("UnstableApiUsage")
     @Override
     public void bettermodel$setModelData(@Nullable String modelData) {
         ((AttachmentTarget) this).setAttached(BetterModelAttachments.MODEL_DATA, modelData);

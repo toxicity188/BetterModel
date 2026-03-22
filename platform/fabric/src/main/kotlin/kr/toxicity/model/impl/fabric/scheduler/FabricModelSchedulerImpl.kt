@@ -124,7 +124,7 @@ object FabricModelSchedulerImpl : FabricModelScheduler, FabricRegionHolder {
     }
 
     fun init() {
-        ServerTickEvents.START_WORLD_TICK.register {
+        ServerTickEvents.START_LEVEL_TICK.register {
             tick()
         }
 

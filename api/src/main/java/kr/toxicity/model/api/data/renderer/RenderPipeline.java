@@ -62,13 +62,13 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     private final BoneEventDispatcher eventDispatcher = new BoneEventDispatcher();
     private final BoneIKSolver ikSolver;
 
-    private Predicate<PlatformPlayer> viewFilter = p -> true;
+    private Predicate<PlatformPlayer> viewFilter = _ -> true;
     private Predicate<PlatformPlayer> hideFilter = p -> hidePlayerSet.contains(p.uuid());
 
-    private Consumer<PacketBundler> spawnPacketHandler = b -> {};
-    private Consumer<PacketBundler> despawnPacketHandler = b -> {};
-    private Consumer<PacketBundler> hidePacketHandler = b -> {};
-    private Consumer<PacketBundler> showPacketHandler = b -> {};
+    private Consumer<PacketBundler> spawnPacketHandler = _ -> {};
+    private Consumer<PacketBundler> despawnPacketHandler = _ -> {};
+    private Consumer<PacketBundler> hidePacketHandler = _ -> {};
+    private Consumer<PacketBundler> showPacketHandler = _ -> {};
 
     @Getter
     private ModelRotation rotation = ModelRotation.INVALID;

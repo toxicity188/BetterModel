@@ -56,8 +56,8 @@ BetterModel aims to be a reliable engine that provides stable, high-quality anim
 
 ## 🛠️ Build info
 
-[![](https://img.shields.io/badge/minecraft-1.21%7E1.21.11-8FCA5C)](https://www.minecraft.net/en-us/download/server)
-[![](https://img.shields.io/badge/java-21%7E-ED8B00)](https://adoptium.net/)
+[![](https://img.shields.io/badge/minecraft-1.21%7E26.1-8FCA5C)](https://www.minecraft.net/en-us/download/server)
+[![](https://img.shields.io/badge/java-25%7E-ED8B00)](https://adoptium.net/)
 
 #### Build
 [![](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/built-with/gradle_vector.svg)](https://gradle.org/)

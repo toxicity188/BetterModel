@@ -23,7 +23,7 @@ public final class TrackerExtraAnimation {
      */
     public static final TrackerAnimation<EntityTracker> DEATH = TrackerAnimation.builder("death")
         .type(EntityTracker.class)
-        .modifier(tracker -> AnimationModifier.DEFAULT_WITH_PLAY_ONCE)
+        .modifier(_ -> AnimationModifier.DEFAULT_WITH_PLAY_ONCE)
         .onRemove(Tracker::close)
         .onSuccess(tracker -> tracker.forRemoval(true))
         .build();
@@ -35,7 +35,7 @@ public final class TrackerExtraAnimation {
      */
     public static final TrackerAnimation<EntityTracker> DAMAGE = TrackerAnimation.builder("damage")
         .type(EntityTracker.class)
-        .modifier(tracker -> AnimationModifier.DEFAULT_WITH_PLAY_ONCE)
+        .modifier(_ -> AnimationModifier.DEFAULT_WITH_PLAY_ONCE)
         .build();
 
     /**
@@ -45,7 +45,7 @@ public final class TrackerExtraAnimation {
      */
     public static final TrackerAnimation<EntityTracker> JUMP = TrackerAnimation.builder("jump")
         .type(EntityTracker.class)
-        .modifier(tracker -> AnimationModifier.DEFAULT_WITH_PLAY_ONCE)
+        .modifier(_ -> AnimationModifier.DEFAULT_WITH_PLAY_ONCE)
         .build();
 
     private TrackerExtraAnimation() {

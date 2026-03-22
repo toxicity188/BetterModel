@@ -197,7 +197,7 @@ public final class AnimationGenerator {
             return find(second, target).sub(find(first, target), new Vector3f());
         }
         private @NotNull Vector3f find(float time, @NotNull List<VectorPoint> target) {
-            return valueCache.computeIfAbsent(time, f -> {
+            return valueCache.computeIfAbsent(time, _ -> {
                 if (target.size() <= 1) return EMPTY;
                 var i = searchCache;
                 for (; i < target.size(); i++) {

@@ -37,11 +37,7 @@ class InteractionEntityImpl(val delegate: HitBoxEntityImpl) :
         return true
     }
 
-    override fun interact(player: Player, hand: InteractionHand): InteractionResult {
-        return InteractionResult.FAIL
-    }
-
-    override fun interactAt(player: Player, vec: Vec3, hand: InteractionHand): InteractionResult {
+    override fun interact(player: Player, hand: InteractionHand, vec: Vec3): InteractionResult {
         return InteractionResult.FAIL
     }
 

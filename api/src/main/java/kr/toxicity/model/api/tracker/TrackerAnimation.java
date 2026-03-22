@@ -102,11 +102,11 @@ public record TrackerAnimation<T extends Tracker>(
         private final Class<T> targetClass;
 
         private int priority = 0;
-        private @NotNull Predicate<? super T> applyCondition = tracker -> true;
-        private @NotNull Function<? super T, AnimationModifier> modifierBuilder = tracker -> AnimationModifier.DEFAULT;
-        private @NotNull Consumer<? super T> removeTask = tracker -> {};
-        private @NotNull Consumer<? super T> successTask = tracker -> {};
-        private @NotNull Consumer<? super T> fallbackTask = tracker -> {};
+        private @NotNull Predicate<? super T> applyCondition = _ -> true;
+        private @NotNull Function<? super T, AnimationModifier> modifierBuilder = _ -> AnimationModifier.DEFAULT;
+        private @NotNull Consumer<? super T> removeTask = _ -> {};
+        private @NotNull Consumer<? super T> successTask = _ -> {};
+        private @NotNull Consumer<? super T> fallbackTask = _ -> {};
 
         /**
          * Changes the target tracker type for this builder.

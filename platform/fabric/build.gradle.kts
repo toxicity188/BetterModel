@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.convention.publish)
     alias(libs.plugins.convention.modrinth)
     alias(libs.plugins.resourcefactory.fabric)
-    id("fabric-loom")
+    id("net.fabricmc.fabric-loom")
 }
 
 val versionString = "${rootProject.version}+${property("minecraft_version")}"
@@ -21,7 +21,7 @@ sourceSets {
 
 loom {
     // Access winder
-    accessWidenerPath = file("src/main/resources/bettermodel.accesswidener")
+    //accessWidenerPath = file("src/main/resources/bettermodel.accesswidener")
 
     // Run
     runs {
@@ -39,17 +39,17 @@ loom {
     }
 
     // Test mod
-    createRemapConfigurations(sourceSets["testmod"])
+    //createRemapConfigurations(sourceSets["testmod"])
 }
 
 
 dependencies {
     // Minecraft
     minecraft("com.mojang:minecraft:${property("minecraft_version")}")
-    mappings(loom.layered {
-        officialMojangMappings()
-        parchment("io.papermc.parchment.data:parchment:${property("parchment_version")}")
-    })
+//    mappings(loom.layered {
+//        officialMojangMappings()
+//        parchment("io.papermc.parchment.data:parchment:${property("parchment_version")}")
+//    })
 
     api(project(":api")); include(project(":api"))
     api(project(":core")); include(project(":core"))
@@ -64,13 +64,13 @@ dependencies {
         "fabric-networking-api-v1",
         "fabric-transitive-access-wideners-v1"
     ).forEach {
-        modImplementation(fabricApi.module(it, libs.versions.fabric.api.get()))
+        implementation(fabricApi.module(it, libs.versions.fabric.api.get()))
     }
 
-    modImplementation(libs.bundles.fabric)
+    implementation(libs.bundles.fabric)
 
     implementation(libs.bundles.fabric.library); include(libs.bundles.fabric.library)
-    modApi(libs.bundles.fabric.mod); include(libs.bundles.fabric.mod)
+    api(libs.bundles.fabric.mod); include(libs.bundles.fabric.mod)
 
     implementation(libs.bundles.core); include(libs.bundles.core)
     include(libs.bundles.library)
@@ -155,8 +155,6 @@ tasks {
         from(rootProject.layout.projectDirectory.file(".idea/icon.png")) {
             rename { "assets/icon.png" }
         }
-    }
-    remapJar {
         manifest {
             attributes(
                 mapOf(
@@ -186,7 +184,7 @@ tasks {
 modrinth {
     loaders = listOf("fabric", "quilt")
     uploadFile.set(jarDir.map { it.file(jarName) })
-    gameVersions = listOf("1.21.11")
+    gameVersions = listOf("26.1")
     dependencies {
         required.version("fabric-api", libs.versions.fabric.api.get())
         required.version("fabric-language-kotlin", libs.versions.fabric.language.kotlin.get())
