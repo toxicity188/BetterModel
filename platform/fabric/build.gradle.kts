@@ -83,9 +83,9 @@ fabricModJson {
     description = "Modern Bedrock model engine for Minecraft Java Edition"
 
     entrypoints = listOf(
-        mainEntrypoint(
-            "$group.impl.fabric.BetterModelFabricImpl"
-        )
+        mainEntrypoint("$group.impl.fabric.BetterModelFabricImpl") {
+            adapter = "kotlin"
+        }
     )
 
     environment = Environment.ANY
@@ -93,6 +93,7 @@ fabricModJson {
     depends = mapOf(
         "minecraft" to listOf("~${property("minecraft_version")}"),
         "fabricloader" to listOf("*"),
+        "fabric-language-kotlin" to listOf(">=${libs.versions.fabric.language.kotlin.get()}"),
 
         // fabric-api
         "fabric-api-base" to listOf("*"),
