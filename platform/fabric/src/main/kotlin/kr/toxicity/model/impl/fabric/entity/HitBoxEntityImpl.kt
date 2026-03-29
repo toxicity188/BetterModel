@@ -12,8 +12,6 @@ import kr.toxicity.model.api.bone.RenderedBone
 import kr.toxicity.model.api.config.DebugConfig
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import kr.toxicity.model.api.event.hitbox.*
-import kr.toxicity.model.api.fabric.platform.FabricEntity
-import kr.toxicity.model.api.fabric.platform.FabricLivingEntity
 import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.HitBoxListener
@@ -108,7 +106,7 @@ class HitBoxEntityImpl(
 
     override fun uuid(): UUID = uuid
 
-    override fun source(): PlatformEntity = FabricEntity.of(delegate)
+    override fun source(): PlatformEntity = delegate.wrap()
 
     override fun positionSource(): RenderedBone = bone
 
@@ -297,7 +295,7 @@ class HitBoxEntityImpl(
                 MountController.MoveType.DEFAULT
             },
             player.connection.wrap(),
-            FabricLivingEntity.of(delegate as LivingEntity),
+            (delegate as LivingEntity).wrap(),
             Vector3f(
                 player.xMovement(),
                 player.yMovement(),

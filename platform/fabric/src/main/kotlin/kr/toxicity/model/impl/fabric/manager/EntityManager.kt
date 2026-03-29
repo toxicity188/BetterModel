@@ -8,7 +8,7 @@
 package kr.toxicity.model.impl.fabric.manager
 
 import kr.toxicity.model.api.BetterModel
-import kr.toxicity.model.api.fabric.entity.BaseFabricEntity
+import kr.toxicity.model.api.mod.entity.BaseModEntity
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.ModelInteractionHand
 import kr.toxicity.model.api.pack.PackZipper
@@ -116,7 +116,7 @@ object EntityManager : GlobalManager {
     private fun registerLifecycleEvents() {
         ServerEntityLevelChangeEvents.AFTER_ENTITY_CHANGE_LEVEL.register { oldEntity, newEntity, _, _ ->
             BetterModel.registryOrNull(oldEntity.uuid)?.let { registry ->
-                (registry.entity() as BaseFabricEntity).entity(newEntity)
+                (registry.entity() as BaseModEntity).entity(newEntity)
             }
         }
 

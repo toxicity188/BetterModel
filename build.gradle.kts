@@ -2,8 +2,6 @@ import io.papermc.hangarpublishplugin.model.Platforms
 
 plugins {
     alias(libs.plugins.convention.standard)
-    alias(libs.plugins.minotaur) apply false
-    alias(libs.plugins.shadow)
     alias(libs.plugins.hangar)
     id("xyz.jpenilla.run-paper") version "3.0.2"
 }
@@ -25,13 +23,13 @@ runPaper {
 tasks {
     runServer {
         pluginJars(fileTree("plugins"))
-        pluginJars(project(":platform:paper").tasks.shadowJar.flatMap {
+        pluginJars(project(":platform:bettermodel-paper").tasks.named<Jar>("shadowJar").flatMap {
             it.archiveFile
         })
         pluginJars(project(":test-plugin").tasks.jar.flatMap {
             it.archiveFile
         })
-        version(minecraft)
+        minecraftVersion(minecraft)
         downloadPlugins {
             hangar("ViaVersion", "5.8.0")
             hangar("ViaBackwards", "5.8.0")
@@ -44,7 +42,7 @@ tasks {
             javadocJar
         )
     }
-    shadowJar {
+    jar {
         enabled = false
     }
 }
@@ -64,7 +62,7 @@ hangarPublish {
         }
         platforms {
             register(Platforms.PAPER) {
-                jar = project(":platform:paper").tasks.shadowJar.flatMap {
+                jar = project(":platform:paper").tasks.named<Jar>("shadowJar").flatMap {
                     it.archiveFile
                 }
                 platformVersions = SUPPORTED_VERSIONS

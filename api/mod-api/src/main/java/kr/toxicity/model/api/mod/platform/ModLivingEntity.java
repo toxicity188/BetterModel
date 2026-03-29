@@ -5,7 +5,7 @@
  * See LICENSE.md file for full license text.
  */
 
-package kr.toxicity.model.api.fabric.platform;
+package kr.toxicity.model.api.mod.platform;
 
 import kr.toxicity.model.api.platform.PlatformLivingEntity;
 import kr.toxicity.model.api.platform.PlatformLocation;
@@ -16,25 +16,25 @@ import org.jetbrains.annotations.NotNull;
 import java.util.UUID;
 
 /**
- * Represents a Fabric living entity wrapped as a {@link PlatformLivingEntity}.
+ * Represents a Mod living entity wrapped as a {@link PlatformLivingEntity}.
  *
  * @param source the source NMS living entity
  * @since 2.0.0
  */
-public record FabricLivingEntity(@NotNull LivingEntity source) implements PlatformLivingEntity {
+public record ModLivingEntity(@NotNull LivingEntity source) implements PlatformLivingEntity {
     @ApiStatus.Internal
-    public FabricLivingEntity {
+    public ModLivingEntity {
     }
 
     /**
-     * Creates a FabricLivingEntity from the source.
+     * Creates a ModLivingEntity from the source.
      *
      * @param source the source living entity
      * @return the instance
      * @since 2.0.0
      */
-    public static @NotNull FabricLivingEntity of(@NotNull LivingEntity source) {
-        return new FabricLivingEntity(source);
+    public static @NotNull ModLivingEntity of(@NotNull LivingEntity source) {
+        return new ModLivingEntity(source);
     }
 
     @Override
@@ -44,11 +44,11 @@ public record FabricLivingEntity(@NotNull LivingEntity source) implements Platfo
 
     @Override
     public @NotNull PlatformLocation location() {
-        return FabricLocation.of(source);
+        return ModLocation.of(source);
     }
 
     @Override
     public @NotNull PlatformLocation eyeLocation() {
-        return FabricLocation.ofEye(source);
+        return ModLocation.ofEye(source);
     }
 }

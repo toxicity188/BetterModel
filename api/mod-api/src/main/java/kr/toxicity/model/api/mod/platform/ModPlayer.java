@@ -5,7 +5,7 @@
  * See LICENSE.md file for full license text.
  */
 
-package kr.toxicity.model.api.fabric.platform;
+package kr.toxicity.model.api.mod.platform;
 
 import kr.toxicity.model.api.platform.PlatformLocation;
 import kr.toxicity.model.api.platform.PlatformPlayer;
@@ -16,25 +16,25 @@ import org.jetbrains.annotations.NotNull;
 import java.util.UUID;
 
 /**
- * Represents a Fabric player wrapped as a {@link PlatformPlayer}.
+ * Represents a Mod player wrapped as a {@link PlatformPlayer}.
  *
  * @param source the source NMS player connection
  * @since 2.0.0
  */
-public record FabricPlayer(@NotNull ServerPlayerConnection source) implements PlatformPlayer {
+public record ModPlayer(@NotNull ServerPlayerConnection source) implements PlatformPlayer {
     @ApiStatus.Internal
-    public FabricPlayer {
+    public ModPlayer {
     }
 
     /**
-     * Creates a FabricPlayer from the source.
+     * Creates a ModPlayer from the source.
      *
      * @param source the source player connection
      * @return the instance
      * @since 2.0.0
      */
-    public static @NotNull FabricPlayer of(@NotNull ServerPlayerConnection source) {
-        return new FabricPlayer(source);
+    public static @NotNull ModPlayer of(@NotNull ServerPlayerConnection source) {
+        return new ModPlayer(source);
     }
 
     @Override
@@ -44,12 +44,12 @@ public record FabricPlayer(@NotNull ServerPlayerConnection source) implements Pl
 
     @Override
     public @NotNull PlatformLocation location() {
-        return FabricLocation.of(source.getPlayer());
+        return ModLocation.of(source.getPlayer());
     }
 
     @Override
     public @NotNull PlatformLocation eyeLocation() {
-        return FabricLocation.ofEye(source.getPlayer());
+        return ModLocation.ofEye(source.getPlayer());
     }
 
     @Override

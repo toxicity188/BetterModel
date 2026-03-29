@@ -173,7 +173,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                         "type" to "range_dispatch",
                         "property" to "custom_model_data",
                         "fallback" to jsonObjectOf(
-                            "type" to "minecraft:empty"
+                            "type" to "empty"
                         ),
                         "entries" to entries
                     )).toByteArray()
@@ -264,18 +264,18 @@ object ModelManagerImpl : ModelManager, GlobalManager {
         }
 
         private fun List<BlueprintJson>.toModernJson(plus: JsonObject?) = if (size == 1) first().toModernJson() else jsonObjectOf(
-            "type" to "minecraft:composite",
+            "type" to "composite",
             "models" to fold(JsonArray(size + (if (plus != null) 1 else 0)).apply {
                 plus?.run(::add)
             }) { array, element -> array.apply { add(element.toModernJson()) } }
         )
 
         private fun BlueprintJson.toModernJson() = jsonObjectOf(
-            "type" to "minecraft:model",
+            "type" to "model",
             "model" to "${CONFIG.namespace()}:modern_item/${name}",
             "tints" to jsonArrayOf(
                 jsonObjectOf(
-                    "type" to "minecraft:custom_model_data",
+                    "type" to "custom_model_data",
                     "default" to 0xFFFFFF
                 )
             )

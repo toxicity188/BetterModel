@@ -5,7 +5,7 @@
  * See LICENSE.md file for full license text.
  */
 
-package kr.toxicity.model.api.fabric.platform;
+package kr.toxicity.model.api.mod.platform;
 
 import kr.toxicity.model.api.platform.PlatformWorld;
 import net.minecraft.world.level.Level;
@@ -18,9 +18,9 @@ import org.jetbrains.annotations.NotNull;
  * @param level the source NMS level
  * @since 2.0.0
  */
-public record FabricWorld(@NotNull Level level) implements PlatformWorld {
+public record ModWorld(@NotNull Level level) implements PlatformWorld {
     @ApiStatus.Internal
-    public FabricWorld {
+    public ModWorld {
     }
 
     /**
@@ -30,7 +30,7 @@ public record FabricWorld(@NotNull Level level) implements PlatformWorld {
      * @return the instance
      * @since 2.0.0
      */
-    public static @NotNull FabricWorld of(@NotNull Level level) {
-        return new FabricWorld(level);
+    public static @NotNull ModWorld of(@NotNull Level level) {
+        return new ModWorld(level);
     }
 }

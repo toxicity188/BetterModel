@@ -9,15 +9,9 @@ plugins {
     signing
 }
 
-val gitHubPackagesId = rootProject.name.lowercase()
-val artifactBaseId = "$gitHubPackagesId-$name"
+val artifactBaseId = name
 val artifactVersion = project.version.toString().run {
     BUILD_NUMBER?.let { substringBeforeLast("-$it") } ?: this
-}
-
-java {
-    withSourcesJar()
-    withJavadocJar()
 }
 
 signing {
@@ -48,7 +42,7 @@ mavenPublishing {
     signAllPublications()
     coordinates("io.github.toxicity188", artifactBaseId, artifactVersion)
     configure(JavaLibrary(
-        javadocJar = JavadocJar.None(),
+        javadocJar = JavadocJar.Javadoc(),
         sourcesJar = SourcesJar.Sources(),
     ))
     pom {
@@ -81,7 +75,7 @@ publishing {
     repositories {
         maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/toxicity188/$gitHubPackagesId")
+            url = uri("https://maven.pkg.github.com/toxicity188/${rootProject.name}")
             credentials {
                 username = "toxicity188"
                 password = System.getenv("PACKAGES_API_TOKEN")

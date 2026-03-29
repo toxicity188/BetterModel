@@ -4,6 +4,8 @@ plugins {
 
 val versionString = version.toString()
 val classifier = project.name
+    .substringAfterLast('-')
+    .replaceFirstChar { it.uppercase() }
 
 modrinth {
     token = System.getenv("MODRINTH_API_TOKEN")
@@ -21,5 +23,5 @@ modrinth {
         javadocJar(rootProject.layout.buildDirectory.file("libs/${rootProject.name}-$versionString-javadoc.jar"))
     }
     versionNumber = versionString
-    versionName = "BetterModel $versionString for ${classifier.replaceFirstChar { it.uppercase() }}"
+    versionName = "BetterModel $versionString for $classifier"
 }

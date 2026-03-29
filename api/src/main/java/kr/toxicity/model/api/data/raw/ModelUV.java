@@ -62,9 +62,12 @@ public record ModelUV(
      * @return the generated JSON object
      * @since 1.15.2
      */
-    public @NotNull JsonObject toJson(@NotNull BlueprintLoadContext context, int tint) {
+    public @Nullable JsonObject toJson(@NotNull BlueprintLoadContext context, int tint) {
+        if (!hasTexture()) return null;
+        var div = uv.div(context.texture(textureIndex()).resolution(context.resolution()));
+        if (!div.isValid()) return null;
         var object = new JsonObject();
-        object.add("uv", uv.div(context.texture(textureIndex()).resolution(context.resolution())).toJson());
+        object.add("uv", div.toJson());
         if (rotation != 0) object.addProperty("rotation", rotation);
         object.addProperty("tintindex", tint);
         object.addProperty("texture", "#" + texture);

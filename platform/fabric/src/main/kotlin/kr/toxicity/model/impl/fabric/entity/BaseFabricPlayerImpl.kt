@@ -7,8 +7,8 @@
 
 package kr.toxicity.model.impl.fabric.entity
 
-import kr.toxicity.model.api.fabric.entity.BaseFabricEntity
-import kr.toxicity.model.api.fabric.entity.BaseFabricPlayer
+import kr.toxicity.model.api.mod.entity.BaseModEntity
+import kr.toxicity.model.api.mod.entity.BaseModPlayer
 import kr.toxicity.model.api.nms.Profiled
 import kr.toxicity.model.api.platform.PlatformPlayer
 import kr.toxicity.model.api.player.PlayerSkinParts
@@ -26,7 +26,7 @@ class BaseFabricPlayerImpl(
     private val connection: ServerPlayerConnection,
     private val profile: () -> ModelProfile,
     private val skinParts: () -> PlayerSkinParts
-) : BaseFabricPlayer, BaseFabricEntity by BaseFabricEntityImpl(connection.player), Profiled by ProfiledImpl(PlayerArmorImpl(connection), profile, skinParts) {
+) : BaseModPlayer, BaseModEntity by BaseFabricEntityImpl(connection.player), Profiled by ProfiledImpl(PlayerArmorImpl(connection), profile, skinParts) {
 
     override fun updateInventory() {
         connection.player.containerMenu.sendAllDataToRemote()

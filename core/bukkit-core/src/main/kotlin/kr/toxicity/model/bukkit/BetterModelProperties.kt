@@ -38,7 +38,7 @@ internal class BetterModelProperties(
     private lateinit var _config: BetterModelConfig
     private var _metrics: Metrics? = null
 
-    val version = parse(Bukkit.getBukkitVersion().substringBefore('-'))
+    val version = parse(Bukkit.getMinecraftVersion())
     val nms = when (version) {
         V1_21_11 -> Latest()
         V1_21_9, V1_21_10 -> kr.toxicity.model.bukkit.nms.v1_21_R6.NMSImpl()

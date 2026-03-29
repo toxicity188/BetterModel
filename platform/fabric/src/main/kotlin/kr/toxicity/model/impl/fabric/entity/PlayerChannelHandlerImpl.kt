@@ -12,7 +12,7 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.entity.BasePlayer
-import kr.toxicity.model.api.fabric.BetterModelFabric
+import kr.toxicity.model.api.mod.BetterModelMod
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.PlayerChannelHandler
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
@@ -233,7 +233,7 @@ class PlayerChannelHandlerImpl(
         private val hitBoxData by lazy {
             Display.ItemDisplay(
                 EntityType.ITEM_DISPLAY,
-                (PLATFORM as BetterModelFabric).server().overworld()
+                (PLATFORM as BetterModelMod).server().overworld()
             ).run {
                 entityData.set(DisplayAccessor.`bettermodel$getDataPosRotInterpolationDurationId`(), 3)
                 entityData.nonDefaultValues!!

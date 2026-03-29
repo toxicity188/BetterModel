@@ -17,10 +17,10 @@ import kr.toxicity.model.api.*
 import kr.toxicity.model.api.BetterModelPlatform.ReloadResult.*
 import kr.toxicity.model.api.event.PluginEndReloadEvent
 import kr.toxicity.model.api.event.PluginStartReloadEvent
-import kr.toxicity.model.api.fabric.BetterModelFabric
-import kr.toxicity.model.api.fabric.platform.FabricAdapter
-import kr.toxicity.model.api.fabric.scheduler.FabricModelScheduler
 import kr.toxicity.model.api.manager.*
+import kr.toxicity.model.api.mod.BetterModelMod
+import kr.toxicity.model.api.mod.platform.ModAdapter
+import kr.toxicity.model.api.mod.scheduler.ModModelScheduler
 import kr.toxicity.model.api.nms.NMS
 import kr.toxicity.model.api.pack.PackResult
 import kr.toxicity.model.api.pack.PackZipper
@@ -57,7 +57,7 @@ import java.util.jar.JarFile
 import kotlin.io.path.exists
 import kotlin.system.measureTimeMillis
 
-class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterModelFabric {
+class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterModelMod {
     private lateinit var server: MinecraftServer
 
     private val configDir: Path = FabricLoader.getInstance()
@@ -92,7 +92,7 @@ class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterMod
     private val logger = BetterModelLoggerImpl()
     private val evaluator = BetterModelEvaluatorImpl()
     private val eventBus = BetterModelEventBusImpl()
-    private val adapter = FabricAdapter()
+    private val adapter = ModAdapter()
 
     private var reloadStartTask: (PackZipper) -> Unit = { zipper ->
         callEvent {
@@ -328,7 +328,7 @@ class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterMod
 
     override fun server(): MinecraftServer = server
 
-    override fun scheduler(): FabricModelScheduler = FabricModelSchedulerImpl
+    override fun scheduler(): ModModelScheduler = FabricModelSchedulerImpl
 
     override fun adapter(): PlatformAdapter = adapter
 

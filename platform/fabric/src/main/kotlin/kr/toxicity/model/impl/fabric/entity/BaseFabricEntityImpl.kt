@@ -7,7 +7,7 @@
 
 package kr.toxicity.model.impl.fabric.entity
 
-import kr.toxicity.model.api.fabric.entity.BaseFabricEntity
+import kr.toxicity.model.api.mod.entity.BaseModEntity
 import kr.toxicity.model.api.platform.PlatformEntity
 import kr.toxicity.model.api.platform.PlatformPlayer
 import kr.toxicity.model.api.util.TransformedItemStack
@@ -23,7 +23,7 @@ import org.joml.Vector3f
 import java.util.*
 import java.util.stream.Stream
 
-class BaseFabricEntityImpl(private var entity: Entity) : BaseFabricEntity {
+class BaseFabricEntityImpl(private var entity: Entity) : BaseModEntity {
     override fun entity(entity: Entity) {
         this.entity = entity
     }

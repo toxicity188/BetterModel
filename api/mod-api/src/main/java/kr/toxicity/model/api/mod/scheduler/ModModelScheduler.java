@@ -5,7 +5,7 @@
  * See LICENSE.md file for full license text.
  */
 
-package kr.toxicity.model.api.fabric.scheduler;
+package kr.toxicity.model.api.mod.scheduler;
 
 import kr.toxicity.model.api.scheduler.ModelScheduler;
 import kr.toxicity.model.api.scheduler.ModelTask;
@@ -13,15 +13,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Represents a Fabric-specific scheduler for model tasks.
+ * Represents a Mod-specific scheduler for model tasks.
  * <p>
  * This interface extends {@link ModelScheduler} to provide methods for scheduling tasks
- * within the Fabric environment.
+ * within the Mod environment.
  * </p>
  *
  * @since 2.0.0
  */
-public interface FabricModelScheduler extends ModelScheduler {
+public interface ModModelScheduler extends ModelScheduler {
 
     /**
      * Schedules a task to run on the next tick.

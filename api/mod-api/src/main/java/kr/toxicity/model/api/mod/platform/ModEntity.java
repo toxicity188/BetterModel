@@ -5,7 +5,7 @@
  * See LICENSE.md file for full license text.
  */
 
-package kr.toxicity.model.api.fabric.platform;
+package kr.toxicity.model.api.mod.platform;
 
 import kr.toxicity.model.api.platform.PlatformEntity;
 import kr.toxicity.model.api.platform.PlatformLocation;
@@ -16,25 +16,25 @@ import org.jetbrains.annotations.NotNull;
 import java.util.UUID;
 
 /**
- * Represents a Fabric entity wrapped as a {@link PlatformEntity}.
+ * Represents a Mod entity wrapped as a {@link PlatformEntity}.
  *
  * @param source the source NMS entity
  * @since 2.0.0
  */
-public record FabricEntity(@NotNull Entity source) implements PlatformEntity {
+public record ModEntity(@NotNull Entity source) implements PlatformEntity {
     @ApiStatus.Internal
-    public FabricEntity {
+    public ModEntity {
     }
 
     /**
-     * Creates a FabricEntity from the source.
+     * Creates a ModEntity from the source.
      *
      * @param source the source entity
      * @return the instance
      * @since 2.0.0
      */
-    public static @NotNull FabricEntity of(@NotNull Entity source) {
-        return new FabricEntity(source);
+    public static @NotNull ModEntity of(@NotNull Entity source) {
+        return new ModEntity(source);
     }
 
     @Override
@@ -44,6 +44,6 @@ public record FabricEntity(@NotNull Entity source) implements PlatformEntity {
 
     @Override
     public @NotNull PlatformLocation location() {
-        return FabricLocation.of(source);
+        return ModLocation.of(source);
     }
 }

@@ -12,6 +12,7 @@ pluginManagement {
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
     id("net.fabricmc.fabric-loom-repositories") version "1.15-SNAPSHOT"
+    id("net.neoforged.moddev.repositories") version "2.0.141"
 }
 
 dependencyResolutionManagement {
@@ -36,22 +37,24 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "BetterModel"
+rootProject.name = "bettermodel"
 
-include(
-    //api
+val published = setOf(
     "api",
     "api:bukkit-api",
+    "api:mod-api",
 
-    //core
     "core",
     "core:bukkit-core",
-
-    "purpur",
 
     //"platform:spigot", TODO reobf does not work in Java 25
     "platform:paper",
     "platform:fabric",
+)
+
+include(published)
+include(
+    "purpur",
 
     //nms
     "nms:v1_21_R1",
@@ -64,3 +67,9 @@ include(
     //test
     "test-plugin"
 )
+
+published.forEach { target ->
+    findProject(":$target")?.let {
+        it.name = "${rootProject.name}-${it.name}"
+    }
+}

@@ -5,7 +5,7 @@
  * See LICENSE.md file for full license text.
  */
 
-package kr.toxicity.model.api.fabric.platform;
+package kr.toxicity.model.api.mod.platform;
 
 import kr.toxicity.model.api.platform.PlatformItemStack;
 import kr.toxicity.model.api.platform.PlatformNamespace;
@@ -20,25 +20,25 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 /**
- * Represents a Fabric item stack wrapped as a {@link PlatformItemStack}.
+ * Represents a Mod item stack wrapped as a {@link PlatformItemStack}.
  *
  * @param source the source NMS item stack
  * @since 2.0.0
  */
-public record FabricItemStack(@NotNull ItemStack source) implements PlatformItemStack {
+public record ModItemStack(@NotNull ItemStack source) implements PlatformItemStack {
     @ApiStatus.Internal
-    public FabricItemStack {
+    public ModItemStack {
     }
 
     /**
-     * Creates a FabricItemStack from the source.
+     * Creates a ModItemStack from the source.
      *
      * @param source the source item stack
      * @return the instance
      * @since 2.0.0
      */
-    public static @NotNull FabricItemStack of(@NotNull ItemStack source) {
-        return new FabricItemStack(source);
+    public static @NotNull ModItemStack of(@NotNull ItemStack source) {
+        return new ModItemStack(source);
     }
 
     @Override
@@ -67,6 +67,6 @@ public record FabricItemStack(@NotNull ItemStack source) implements PlatformItem
 
     @Override
     public @NotNull PlatformItemStack clone() {
-        return FabricAdapter.adapt(source.copy());
+        return ModAdapter.adapt(source.copy());
     }
 }

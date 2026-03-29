@@ -5,22 +5,22 @@
  * See LICENSE.md file for full license text.
  */
 
-package kr.toxicity.model.api.fabric.entity;
+package kr.toxicity.model.api.mod.entity;
 
 import kr.toxicity.model.api.entity.BasePlayer;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents a Fabric-specific player adapter.
+ * Represents a Mod-specific player adapter.
  * <p>
- * This interface extends {@link BaseFabricEntity} and {@link BasePlayer} to provide
+ * This interface extends {@link BaseModEntity} and {@link BasePlayer} to provide
  * access to the underlying NMS server player.
  * </p>
  *
  * @since 2.0.0
  */
-public interface BaseFabricPlayer extends BaseFabricEntity, BasePlayer {
+public interface BaseModPlayer extends BaseModEntity, BasePlayer {
 
     /**
      * Returns the underlying NMS server player.

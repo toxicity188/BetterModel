@@ -5,11 +5,10 @@
  * See LICENSE.md file for full license text.
  */
 
-package kr.toxicity.model.api.fabric.platform;
+package kr.toxicity.model.api.mod.platform;
 
 import com.mojang.authlib.GameProfile;
-import kr.toxicity.model.api.BetterModel;
-import kr.toxicity.model.api.fabric.BetterModelFabric;
+import kr.toxicity.model.api.mod.BetterModelMod;
 import kr.toxicity.model.api.platform.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -24,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 
 /**
- * Provides an adapter for converting Fabric/NMS objects to BetterModel platform objects.
+ * Provides an adapter for converting Mod/NMS objects to BetterModel platform objects.
  * <p>
  * This class implements {@link PlatformAdapter} and offers static utility methods for adapting
  * entities, players, items, and worlds.
@@ -32,7 +31,7 @@ import java.util.UUID;
  *
  * @since 2.0.0
  */
-public final class FabricAdapter implements PlatformAdapter {
+public final class ModAdapter implements PlatformAdapter {
 
     /**
      * Adapts an NMS entity to a {@link PlatformEntity}.
@@ -42,7 +41,7 @@ public final class FabricAdapter implements PlatformAdapter {
      * @since 2.0.0
      */
     public static @NotNull PlatformEntity adapt(@NotNull Entity entity) {
-        return FabricEntity.of(entity);
+        return ModEntity.of(entity);
     }
 
     /**
@@ -53,7 +52,7 @@ public final class FabricAdapter implements PlatformAdapter {
      * @since 2.0.0
      */
     public static @NotNull PlatformLivingEntity adapt(@NotNull LivingEntity livingEntity) {
-        return FabricLivingEntity.of(livingEntity);
+        return ModLivingEntity.of(livingEntity);
     }
 
     /**
@@ -64,7 +63,7 @@ public final class FabricAdapter implements PlatformAdapter {
      * @since 2.0.0
      */
     public static @NotNull PlatformPlayer adapt(@NotNull ServerPlayerConnection connection) {
-        return FabricPlayer.of(connection);
+        return ModPlayer.of(connection);
     }
 
     /**
@@ -86,7 +85,7 @@ public final class FabricAdapter implements PlatformAdapter {
      * @since 2.0.0
      */
     public static @NotNull PlatformOfflinePlayer adapt(@NotNull UUID uuid) {
-        return FabricOfflinePlayer.of(uuid, null);
+        return ModOfflinePlayer.of(uuid, null);
     }
 
     /**
@@ -97,7 +96,7 @@ public final class FabricAdapter implements PlatformAdapter {
      * @since 2.0.0
      */
     public static @NotNull PlatformOfflinePlayer adapt(@NotNull GameProfile profile) {
-        return FabricOfflinePlayer.of(profile.id(), profile.name());
+        return ModOfflinePlayer.of(profile.id(), profile.name());
     }
 
     /**
@@ -108,7 +107,7 @@ public final class FabricAdapter implements PlatformAdapter {
      * @since 2.0.0
      */
     public static @NotNull PlatformItemStack adapt(@NotNull ItemStack itemStack) {
-        return FabricItemStack.of(itemStack);
+        return ModItemStack.of(itemStack);
     }
 
     /**
@@ -119,7 +118,7 @@ public final class FabricAdapter implements PlatformAdapter {
      * @since 2.0.0
      */
     public static @NotNull PlatformWorld adapt(@NotNull Level world) {
-        return FabricWorld.of(world);
+        return ModWorld.of(world);
     }
 
     @Override
@@ -156,10 +155,10 @@ public final class FabricAdapter implements PlatformAdapter {
 
     @Override
     public @NotNull PlatformLocation zero() {
-        return FabricLocation.of(null, 0, 0, 0);
+        return ModLocation.of(null, 0, 0, 0);
     }
 
     private @NotNull MinecraftServer server() {
-        return ((BetterModelFabric) BetterModel.platform()).server();
+        return BetterModelMod.platform().server();
     }
 }

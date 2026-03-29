@@ -9,7 +9,7 @@ plugins {
 
 val versionString = "${rootProject.version}+${property("minecraft_version")}"
 
-val jarName = "${rootProject.name}-$versionString-${project.name}.jar"
+val jarName = "${rootProject.name}-$versionString-${project.name.substringAfterLast('-')}.jar"
 val jarDir = rootProject.layout.buildDirectory.dir("libs")
 
 sourceSets {
@@ -46,8 +46,9 @@ dependencies {
     // Minecraft
     minecraft("com.mojang:minecraft:${property("minecraft_version")}")
 
-    api(project(":api")); include(project(":api"))
-    api(project(":core")); include(project(":core"))
+    api(project(":bettermodel-api")); include(project(":bettermodel-api"))
+    api(project(":bettermodel-api:bettermodel-mod-api")); include(project(":bettermodel-api:bettermodel-mod-api"))
+    api(project(":bettermodel-core")); include(project(":bettermodel-core"))
 
     setOf(
         "fabric-api-base",
@@ -73,7 +74,7 @@ dependencies {
 
 fabricModJson {
     id = "bettermodel"
-    name = rootProject.name
+    name = "BetterModel"
     description = "Modern Bedrock model engine for Minecraft Java Edition"
 
     entrypoints = listOf(
@@ -118,6 +119,7 @@ fabricModJson {
     contact {
         sources = "https://github.com/toxicity188/BetterModel/"
         issues = "https://github.com/toxicity188/BetterModel/issues"
+        homepage = "https://modrinth.com/plugin/bettermodel"
     }
     icon("assets/icon.png")
     mitLicense()

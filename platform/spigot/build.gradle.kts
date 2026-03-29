@@ -27,7 +27,7 @@ tasks.shadowJar {
 bukkitPluginYaml {
     main = "$group.spigot.BetterModelSpigot"
     version = project.version.toString()
-    name = rootProject.name
+    name = "BetterModel"
     foliaSupported = true
     apiVersion = "1.20"
     author = "toxicity188"

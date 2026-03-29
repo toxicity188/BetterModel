@@ -69,6 +69,17 @@ public record Float4(
     }
 
     /**
+     * Checks validity of this uv
+     * @return is valid
+     */
+    public boolean isValid() {
+        return dx >= 0 && dx <= 16
+            && dz >= 0 && dz <= 16
+            && tx >= 0 && tx <= 16
+            && tz >= 0 && tz <= 16;
+    }
+
+    /**
      * Converts floats to JSON array.
      * @return json array
      */

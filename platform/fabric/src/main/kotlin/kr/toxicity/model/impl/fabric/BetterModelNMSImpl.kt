@@ -15,7 +15,7 @@ import kr.toxicity.model.api.bone.RenderedBone
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import kr.toxicity.model.api.entity.BaseEntity
 import kr.toxicity.model.api.entity.BasePlayer
-import kr.toxicity.model.api.fabric.BetterModelFabric
+import kr.toxicity.model.api.mod.BetterModelMod
 import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.nms.*
 import kr.toxicity.model.api.platform.PlatformEntity
@@ -182,7 +182,7 @@ class BetterModelNMSImpl : NMS {
             set(DataComponents.PROFILE, ResolvableProfile.createResolved(gameProfile))
         }.wrap()
 
-    override fun isProxyOnlineMode(): Boolean = (PLATFORM as BetterModelFabric).server().usesAuthentication()
+    override fun isProxyOnlineMode(): Boolean = (PLATFORM as BetterModelMod).server().usesAuthentication()
 
     override fun createSkinItem(model: String, floats: List<Float>, flags: List<Boolean>, strings: List<String>, colors: List<Int>): TransformedItemStack {
         return ItemStack(Items.PLAYER_HEAD).run {

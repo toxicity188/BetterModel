@@ -12,7 +12,7 @@ import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.bone.BoneMovement
 import kr.toxicity.model.api.bone.BonePosition
 import kr.toxicity.model.api.bone.RenderedBone
-import kr.toxicity.model.api.fabric.BetterModelFabric
+import kr.toxicity.model.api.mod.BetterModelMod
 import kr.toxicity.model.api.nms.ModelNametag
 import kr.toxicity.model.api.nms.PacketBundler
 import kr.toxicity.model.api.platform.PlatformLocation
@@ -54,7 +54,7 @@ class ModelNametagImpl(
     private val viewedPlayer = ConcurrentHashMap.newKeySet<UUID>()
     private val display = Display.TextDisplay(
         EntityType.TEXT_DISPLAY,
-        (PLATFORM as BetterModelFabric).server().overworld()
+        (PLATFORM as BetterModelMod).server().overworld()
     ).apply {
         entityData[DisplayAccessor.`bettermodel$getDataPosRotInterpolationDurationId`()] = 3
         setTransformation(emptyTransformation)

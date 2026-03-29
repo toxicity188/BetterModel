@@ -11,7 +11,7 @@ import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.BetterModelPlatform.ReloadResult.*
 import kr.toxicity.model.api.animation.AnimationIterator
 import kr.toxicity.model.api.animation.AnimationModifier
-import kr.toxicity.model.api.fabric.platform.FabricLocation
+import kr.toxicity.model.api.mod.platform.ModLocation
 import kr.toxicity.model.api.tracker.EntityHideOption
 import kr.toxicity.model.api.tracker.ModelScaler
 import kr.toxicity.model.api.tracker.Tracker
@@ -290,7 +290,7 @@ private fun test(context: CommandContext<Audience>) {
     val location = context.nullable<Coordinates>("location")?.position() ?: player.position()
         .add(Vec3(0.0, 0.0, 10.0).yRot(-Math.toRadians(player.yRot.toDouble()).toFloat()))
 
-    model.create(FabricLocation.of(
+    model.create(ModLocation.of(
         player.level(),
         location.x,
         location.y,

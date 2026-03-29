@@ -3,9 +3,9 @@ plugins {
 }
 
 dependencies {
-    shade(project(":api")) { isTransitive = false }
-    shade(project(":api:bukkit-api")) { isTransitive = false }
-    shade(project(":core")) { isTransitive = false }
+    shade(project(":bettermodel-api")) { isTransitive = false }
+    shade(project(":bettermodel-api:bettermodel-bukkit-api")) { isTransitive = false }
+    shade(project(":bettermodel-core")) { isTransitive = false }
 
     shade(project(":purpur"))
     rootProject.project("nms").subprojects.forEach {

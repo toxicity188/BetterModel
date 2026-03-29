@@ -47,12 +47,13 @@ public record ModelFace(
      */
     public @NotNull JsonObject toJson(@NotNull BlueprintLoadContext parent, int tint) {
         var object = new JsonObject();
-        if (north.hasTexture()) object.add("north", north.toJson(parent, tint));
-        if (east.hasTexture()) object.add("east", east.toJson(parent, tint));
-        if (south.hasTexture()) object.add("south", south.toJson(parent, tint));
-        if (west.hasTexture()) object.add("west", west.toJson(parent, tint));
-        if (up.hasTexture()) object.add("up", up.toJson(parent, tint));
-        if (down.hasTexture()) object.add("down", down.toJson(parent, tint));
+        JsonObject add;
+        if ((add = north.toJson(parent, tint)) != null) object.add("north", add);
+        if ((add = east.toJson(parent, tint)) != null) object.add("east", add);
+        if ((add = south.toJson(parent, tint)) != null) object.add("south", add);
+        if ((add = west.toJson(parent, tint)) != null) object.add("west", add);
+        if ((add = up.toJson(parent, tint)) != null) object.add("up", add);
+        if ((add = down.toJson(parent, tint)) != null) object.add("down", add);
         return object;
     }
 

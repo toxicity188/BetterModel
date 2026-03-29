@@ -53,7 +53,7 @@ paperPluginYaml {
     main = "$group.paper.BetterModelPaper"
     loader = "$group.paper.BetterModelLoader"
     version = project.version.toString()
-    name = rootProject.name
+    name = "BetterModel"
     foliaSupported = true
     apiVersion = "1.20"
     author = "toxicity188"
