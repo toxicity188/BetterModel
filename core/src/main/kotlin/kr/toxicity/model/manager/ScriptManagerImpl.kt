@@ -21,7 +21,7 @@ import java.util.regex.Pattern
 object ScriptManagerImpl : ScriptManager, GlobalManager {
 
     private val scriptMap = hashMapOf<String, ScriptBuilder>()
-    private val scriptPattern = Pattern.compile("^(?<name>[a-zA-Z]+)(:(?<argument>(\\w|_|-)+))?(\\{(?<metadata>(\\w|\\W)+)})?$")
+    private val scriptPattern = Pattern.compile("^(?<name>[a-zA-Z]+)(:(?<argument>([\\w_\\-])+))?(\\{(?<metadata>([\\w\\W])+)})?$")
     private val validatePattern = Pattern.compile("^[a-z]+$")
 
     init {

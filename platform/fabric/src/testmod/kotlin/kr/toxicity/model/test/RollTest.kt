@@ -97,7 +97,6 @@ class RollTest : ModInitializer {
         }
 
         val isAnimated = tracker.animate(
-            { true },
             "roll",
             AnimationModifier.DEFAULT_WITH_PLAY_ONCE
         ) {

@@ -100,6 +100,8 @@ public final class SingletonSequencedSet<E> extends AbstractSet<E> implements Se
     }
 
     @Override
+    @NotNull
+    @Unmodifiable
     public SequencedSet<E> reversed() {
         return this;
     }
