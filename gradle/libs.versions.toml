@@ -7,11 +7,11 @@ shadow = "9.4.0"
 minotaur = "2.9.0"
 hangarPublish = "0.1.4"
 
-fabric-api = "0.144.0+26.1"
+fabric-api = "0.144.3+26.1"
 fabric-language-kotlin = "1.13.9+kotlin.2.3.10"
 
-cloud-bukkit = "2.0.0-beta.14"
-cloud-mod = "2.0.0-beta.15"
+cloud-bukkit = "2.0.0-SNAPSHOT" #TODO update this to 2.0.0-beta.15 when released
+cloud-mod = "2.0.0-SNAPSHOT" #TODO update this to 2.0.0-beta.16 when released
 cloud-core = "2.0.0"
 
 configurate = "4.2.0"
@@ -33,7 +33,7 @@ asm-tree = "org.ow2.asm:asm-tree:9.9.1"
 fabric-loader = "net.fabricmc:fabric-loader:0.18.4"
 fabric-language-kotlin = { module = "net.fabricmc:fabric-language-kotlin", version.ref = "fabric-language-kotlin" }
 
-polymer-resource-pack = "eu.pb4:polymer-resource-pack:0.16.0-pre.1+26.1-rc-2"
+polymer-resource-pack = "eu.pb4:polymer-resource-pack:0.16.0-pre.4+26.1"
 
 configurate-core = { module = "org.spongepowered:configurate-core", version.ref = "configurate" }
 configurate-yaml = { module = "org.spongepowered:configurate-yaml", version.ref = "configurate" }
@@ -52,6 +52,7 @@ lombok = "org.projectlombok:lombok:1.18.44"
 bStats = "org.bstats:bstats-bukkit:3.2.1"
 dynamicUV = "io.github.toxicity188:dynamicuv:1.2.2"
 armormodel = "io.github.toxicity188:armormodel:1.0.2"
+javamesh = "io.github.toxicity188:java-mesh:0.0.1"
 molangCompiler = "gg.moonflower:molang-compiler:3.1.1.19"
 libby = "net.byteflux:libby-bukkit:1.3.1"
 
@@ -89,6 +90,7 @@ fabric-mod = [
 library = [
     "semver4j",
     "dynamicUV",
+    "javamesh",
     "caffeine"
 ]
 

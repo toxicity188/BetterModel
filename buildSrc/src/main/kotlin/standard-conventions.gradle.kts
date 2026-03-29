@@ -2,7 +2,7 @@ plugins {
     java
     kotlin("jvm")
     id("org.jetbrains.dokka")
-    id("com.github.hierynomus.license")
+    id("dev.yumi.gradle.licenser")
 }
 
 group = "kr.toxicity.model"
@@ -33,12 +33,9 @@ tasks {
 }
 
 license {
-    header = rootProject.file("LICENSE_HEADER")
-    includes(setOf(
-        "**/*.java",
-        "**/*.kt"
-    ))
-    strictCheck = true
+    rule(rootProject.file("LICENSE_HEADER"))
+    include("**/*.java", "**/*.kt")
+    exclude("**/*.properties")
 }
 
 java {

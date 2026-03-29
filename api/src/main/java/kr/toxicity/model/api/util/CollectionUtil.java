@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.util;
 
 import com.google.gson.JsonArray;
@@ -35,18 +36,6 @@ public final class CollectionUtil {
      */
     private CollectionUtil() {
         throw new RuntimeException();
-    }
-
-    /**
-     * Creates a new chaining hash map.
-     * @return new hash map
-     * @param <K> key type
-     * @param <V> value type
-     * @since 2.2.1
-     */
-    @NotNull
-    public static <K, V> Map<K, V> newChainingMap() {
-        return new HashMap<>();
     }
 
     /**

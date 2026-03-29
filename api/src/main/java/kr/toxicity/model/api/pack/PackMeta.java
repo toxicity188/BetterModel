@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.pack;
 
 import com.google.gson.*;
@@ -41,7 +42,8 @@ public record PackMeta(
      * @since 1.15.2
      */
     public static final PackPath PATH = new PackPath("pack.mcmeta");
-    private static final Gson GSON = new GsonBuilder()
+
+    static final Gson GSON = new GsonBuilder()
         .registerTypeAdapter(PackVersion.class, (JsonDeserializer<PackVersion>) (json, _, _) -> {
             if (json.isJsonPrimitive()) return new PackVersion(json.getAsInt());
             else if (json.isJsonArray()) {

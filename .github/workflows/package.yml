@@ -2,7 +2,7 @@ name: Package plugin
 
 on:
   push:
-    branches: [ "master", "v2" ]
+    branches: [ "master", "v2", "v3" ]
 
 permissions:
   contents: read

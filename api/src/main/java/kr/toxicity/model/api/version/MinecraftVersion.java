@@ -1,11 +1,13 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.version;
 
+import com.vdurmont.semver4j.Semver;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
@@ -17,6 +19,10 @@ import java.util.Comparator;
  * @param patch minor update
  */
 public record MinecraftVersion(int major, int minor, int patch) implements Comparable<MinecraftVersion> {
+    /**
+     * 26.1
+     */
+    public static final MinecraftVersion V26_1 = of(26, 1, 0);
     /**
      * 1.21.11
      */
@@ -75,11 +81,12 @@ public record MinecraftVersion(int major, int minor, int patch) implements Compa
      * @return parsed version
      */
     public static @NotNull MinecraftVersion parse(@NotNull String version) {
-        var split = version.split("\\.");
+        var split = new Semver(version, Semver.SemverType.LOOSE);
+        Integer v1, v2, v3;
         return of(
-            split.length > 0 ? Integer.parseInt(split[0]) : 0,
-            split.length > 1 ? Integer.parseInt(split[1]) : 0,
-            split.length > 2 ? Integer.parseInt(split[2]) : 0
+            (v1 = split.getMajor()) == null ? 0 : v1,
+            (v2 = split.getMinor()) == null ? 0 : v2,
+            (v3 = split.getPatch()) == null ? 0 : v3
         );
     }
 

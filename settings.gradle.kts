@@ -41,26 +41,26 @@ rootProject.name = "BetterModel"
 include(
     //api
     "api",
-//    "api:bukkit-api",
+    "api:bukkit-api",
 
     //core
     "core",
-//    "core:bukkit-core",
+    "core:bukkit-core",
 
-//    "purpur",
+    "purpur",
 
-//    "platform:spigot",
-//    "platform:paper",
+    //"platform:spigot", TODO reobf does not work in Java 25
+    "platform:paper",
     "platform:fabric",
 
-//    //nms
-//    "nms:v1_21_R1",
-//    "nms:v1_21_R3",
-//    "nms:v1_21_R4",
-//    "nms:v1_21_R5",
-//    "nms:v1_21_R6",
-//    "nms:v1_21_R7",
-//
-//    //test
-//    "test-plugin"
+    //nms
+    "nms:v1_21_R1",
+    "nms:v1_21_R3",
+    "nms:v1_21_R4",
+    "nms:v1_21_R5",
+    "nms:v1_21_R6",
+    "nms:v1_21_R7",
+
+    //test
+    "test-plugin"
 )

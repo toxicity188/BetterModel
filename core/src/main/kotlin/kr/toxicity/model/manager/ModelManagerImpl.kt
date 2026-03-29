@@ -1,12 +1,14 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.manager
 
 import com.google.gson.JsonArray
+import com.google.gson.JsonObject
 import kr.toxicity.model.api.bone.BoneItemMapper
 import kr.toxicity.model.api.data.ModelAsset
 import kr.toxicity.model.api.data.blueprint.BlueprintElement
@@ -128,7 +130,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
         private val legacyModel = ModelBuilder(
             models = zipper.legacy().bettermodel().models().resolve("item"),
             available = CONFIG.pack().generateLegacyModel,
-            onBuild = { blueprints, size ->
+            onBuild = { blueprints, _, size ->
                 val json = blueprints.first()
                 entries += jsonObjectOf(
                     "predicate" to jsonObjectOf("custom_model_data" to indexer),
@@ -154,10 +156,10 @@ object ModelManagerImpl : ModelManager, GlobalManager {
         private val modernModel = ModelBuilder(
             models = zipper.modern().bettermodel().models().resolve("modern_item"),
             available = CONFIG.pack().generateModernModel,
-            onBuild = { blueprints, size ->
+            onBuild = { blueprints, json, size ->
                 entries += jsonObjectOf(
                     "threshold" to indexer,
-                    "model" to blueprints.toModernJson()
+                    "model" to blueprints.toModernJson(json)
                 )
                 blueprints.forEach { json ->
                     models.add(json.jsonName(), size / blueprints.size) {
@@ -195,19 +197,22 @@ object ModelManagerImpl : ModelManager, GlobalManager {
             targetMap: MutableMap<String, ModelRenderer>,
             importedModel: ImportedModel
         ) {
+            val (_, type, blueprint) = importedModel
+            val context = blueprint.context()
             val size = importedModel.jsonSize
-            val blueprint = importedModel.blueprint
-            val hasTexture = blueprint.hasTexture()
-            targetMap[blueprint.name] = blueprint.toRenderer(importedModel.type) render@ { group ->
-                if (!hasTexture) return@render null
+            targetMap[blueprint.name] = blueprint.toRenderer(type) render@ { group ->
+                if (!context.canBeRendered()) return@render null
                 listOfNotNull(
                     modernModel.ifAvailable {
-                        group.buildModernJson(obfuscator, blueprint)
-                            ?.let { build(it, size / it.size) }
+                        val json = group.buildModernJson(obfuscator, context)
+                        val itemModel = group.buildMeshItemModel(context)
+                        if (json != null || itemModel != null) {
+                            build(json ?: emptyList(), itemModel, if (json != null) size / json.size else 0)
+                        } else null
                     },
                     legacyModel.ifAvailable {
-                        group.buildLegacyJson(PLATFORM.version().useModernResource(), obfuscator, blueprint)
-                            ?.let { build(listOf(it), size) }
+                        group.buildLegacyJson(PLATFORM.version().useModernResource(), obfuscator, context)
+                            ?.let { build(listOf(it), null, size) }
                     }
                 ).run {
                     if (isNotEmpty()) indexer++ else null
@@ -221,7 +226,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                 }
                 callEvent { ModelImportedEvent(blueprint, this) }
             }
-            if (hasTexture) blueprint.buildImage(textures.obfuscator()).forEach { image ->
+            context.buildImage(textures.obfuscator()).forEach { image ->
                 textures.add(image.pngName(), image.estimatedSize()) {
                     image.toByteArray()
                 }
@@ -237,7 +242,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
         inner class ModelBuilder(
             val models: PackBuilder,
             private val available: Boolean,
-            private val onBuild: ModelBuilder.(List<BlueprintJson>, Long) -> Unit,
+            private val onBuild: ModelBuilder.(List<BlueprintJson>, JsonObject?, Long) -> Unit,
             private val onClose: ModelBuilder.() -> Unit
         ) : AutoCloseable {
             val entries = jsonArrayOf()
@@ -247,8 +252,8 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                 return if (available) block() else null
             }
 
-            fun build(list: List<BlueprintJson>, size: Long) {
-                onBuild(list, size)
+            fun build(list: List<BlueprintJson>, json: JsonObject?, size: Long) {
+                onBuild(list, json, size)
             }
 
             override fun close() {
@@ -258,9 +263,11 @@ object ModelManagerImpl : ModelManager, GlobalManager {
             }
         }
 
-        private fun List<BlueprintJson>.toModernJson() = if (size == 1) first().toModernJson() else jsonObjectOf(
+        private fun List<BlueprintJson>.toModernJson(plus: JsonObject?) = if (size == 1) first().toModernJson() else jsonObjectOf(
             "type" to "minecraft:composite",
-            "models" to fold(JsonArray(size)) { array, element -> array.apply { add(element.toModernJson()) } }
+            "models" to fold(JsonArray(size + (if (plus != null) 1 else 0)).apply {
+                plus?.run(::add)
+            }) { array, element -> array.apply { add(element.toModernJson()) } }
         )
 
         private fun BlueprintJson.toModernJson() = jsonObjectOf(

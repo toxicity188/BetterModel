@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.data;
 
 import com.google.gson.JsonArray;
@@ -40,6 +41,8 @@ public record Float4(
             array.get(3).getAsFloat()
         );
     };
+
+    public static final Float4 MAX_UV = new Float4(0, 0, 16, 16);
 
     /**
      * Divides floats by resolution.

@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.impl.fabric
 
 import com.google.common.collect.ImmutableMultimap
@@ -147,7 +148,7 @@ class BetterModelNMSImpl : NMS {
         )
     }
 
-    override fun version(): NMSVersion = NMSVersion.V1_21_R7
+    override fun version(): NMSVersion = NMSVersion.V26_R1
 
     override fun adapt(entity: PlatformEntity): BaseEntity = BaseFabricEntityImpl(entity.unwarp())
 

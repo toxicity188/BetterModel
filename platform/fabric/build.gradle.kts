@@ -10,7 +10,7 @@ plugins {
 val versionString = "${rootProject.version}+${property("minecraft_version")}"
 
 val jarName = "${rootProject.name}-$versionString-${project.name}.jar"
-val jarDir: Provider<Directory> = rootProject.layout.buildDirectory.dir("libs")
+val jarDir = rootProject.layout.buildDirectory.dir("libs")
 
 sourceSets {
     create("testmod") {
@@ -42,14 +42,9 @@ loom {
     //createRemapConfigurations(sourceSets["testmod"])
 }
 
-
 dependencies {
     // Minecraft
     minecraft("com.mojang:minecraft:${property("minecraft_version")}")
-//    mappings(loom.layered {
-//        officialMojangMappings()
-//        parchment("io.papermc.parchment.data:parchment:${property("parchment_version")}")
-//    })
 
     api(project(":api")); include(project(":api"))
     api(project(":core")); include(project(":core"))
@@ -74,7 +69,6 @@ dependencies {
 
     implementation(libs.bundles.core); include(libs.bundles.core)
     include(libs.bundles.library)
-
 }
 
 fabricModJson {
@@ -149,6 +143,23 @@ sourceSets["testmod"].resourceFactory {
     }
 }
 
+interface FsInjected {
+    @get:Inject val fs: FileSystemOperations
+}
+val copyModJar by tasks.registering {
+    val injected = objects.newInstance<FsInjected>()
+    val archiveFile = tasks.jar.flatMap { it.archiveFile }
+    val jarName = jarName
+    val jarDir = jarDir
+    doLast {
+        injected.fs.copy {
+            from(archiveFile)
+            rename { jarName }
+            into(jarDir)
+        }
+    }
+}
+
 tasks {
     jar {
         from(rootProject.layout.projectDirectory.file("LICENSE.md"))
@@ -168,13 +179,7 @@ tasks {
                 )
             )
         }
-        doLast {
-            copy {
-                from(archiveFile)
-                rename { jarName }
-                into(jarDir)
-            }
-        }
+        finalizedBy(copyModJar)
     }
     runServer {
         enabled = false

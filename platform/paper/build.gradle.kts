@@ -7,6 +7,9 @@ plugins {
 }
 
 val libraryDir: Provider<RegularFile> = layout.buildDirectory.file("generated/paper-library")
+val dependenciesContent: String = libs.bundles.library.map { bundle ->
+    bundle.joinToString("\n") { dep -> dep.toString() }
+}.get()
 
 dependencies {
     shade(project(":nms:v1_21_R1")) { isTransitive = false }
@@ -26,11 +29,15 @@ tasks.modrinth {
 }
 
 val generatePaperLibrary by tasks.registering {
-    outputs.file(libraryDir)
+    val outputProvider = libraryDir
+    val contentProvider = dependenciesContent
+
+    outputs.file(outputProvider)
+
     doLast {
-        val file = libraryDir.get().asFile
+        val file = outputProvider.get().asFile
         file.parentFile.mkdirs()
-        file.writeText(libs.bundles.library.get().joinToString("\n") { dep -> dep.toString() })
+        file.writeText(contentProvider)
     }
 }
 

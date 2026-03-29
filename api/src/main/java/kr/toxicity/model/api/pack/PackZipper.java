@@ -1,15 +1,14 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.pack;
 
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.util.LogUtil;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,8 +28,11 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @since 1.15.2
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PackZipper {
+
+    private PackZipper() {
+        PackBuiltInAssets.applyAs(this);
+    }
 
     private static final PackPath PACK_ICON = new PackPath("pack.png");
 

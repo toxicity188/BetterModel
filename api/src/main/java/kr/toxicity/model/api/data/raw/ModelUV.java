@@ -1,14 +1,16 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import kr.toxicity.model.api.data.Float4;
+import kr.toxicity.model.api.data.blueprint.BlueprintLoadContext;
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -56,14 +58,14 @@ public record ModelUV(
     /**
      * Converts this UV data to a JSON object for the Minecraft model file.
      *
-     * @param parent the parent model blueprint, used for texture resolution
+     * @param context the blueprint context, used for texture resolution
      * @param tint the tint index to apply
      * @return the generated JSON object
      * @since 1.15.2
      */
-    public @NotNull JsonObject toJson(@NotNull ModelBlueprint parent, int tint) {
+    public @NotNull JsonObject toJson(@NotNull BlueprintLoadContext context, int tint) {
         var object = new JsonObject();
-        object.add("uv", uv.div(parent.textures().get(textureIndex()).resolution(parent.resolution())).toJson());
+        object.add("uv", uv.div(context.texture(textureIndex()).resolution(context.resolution())).toJson());
         if (rotation != 0) object.addProperty("rotation", rotation);
         object.addProperty("tintindex", tint);
         object.addProperty("texture", "#" + texture);

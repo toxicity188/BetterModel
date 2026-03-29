@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.Gson;
@@ -11,6 +12,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.bone.BoneName;
+import kr.toxicity.model.api.data.Float2;
 import kr.toxicity.model.api.data.Float3;
 import kr.toxicity.model.api.data.Float4;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
@@ -57,6 +59,7 @@ public record ModelData(
      * @since 1.15.2
      */
     public static final Gson GSON = new GsonBuilder()
+        .registerTypeAdapter(Float2.class, Float2.PARSER)
         .registerTypeAdapter(Float3.class, Float3.PARSER)
         .registerTypeAdapter(Float4.class, Float4.PARSER)
         .registerTypeAdapter(BoneName.class, BoneName.PARSER)

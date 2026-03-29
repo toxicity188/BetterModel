@@ -1,15 +1,18 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonObject;
-import kr.toxicity.model.api.data.blueprint.ModelBlueprint;
+import kr.toxicity.model.api.data.blueprint.BlueprintLoadContext;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.stream.IntStream;
 
 /**
  * Represents the UV mappings for all six faces of a cube element.
@@ -42,7 +45,7 @@ public record ModelFace(
      * @return the generated JSON object
      * @since 1.15.2
      */
-    public @NotNull JsonObject toJson(@NotNull ModelBlueprint parent, int tint) {
+    public @NotNull JsonObject toJson(@NotNull BlueprintLoadContext parent, int tint) {
         var object = new JsonObject();
         if (north.hasTexture()) object.add("north", north.toJson(parent, tint));
         if (east.hasTexture()) object.add("east", east.toJson(parent, tint));
@@ -66,5 +69,16 @@ public record ModelFace(
             || west.hasTexture()
             || up.hasTexture()
             || down.hasTexture();
+    }
+
+    public @NotNull IntStream textureIndex() {
+        var builder = IntStream.builder();
+        if (north.hasTexture()) builder.add(north.textureIndex());
+        if (east.hasTexture()) builder.add(east.textureIndex());
+        if (south.hasTexture()) builder.add(south.textureIndex());
+        if (west.hasTexture()) builder.add(west.textureIndex());
+        if (up.hasTexture()) builder.add(up.textureIndex());
+        if (down.hasTexture()) builder.add(down.textureIndex());
+        return builder.build();
     }
 }

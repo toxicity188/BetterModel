@@ -1,14 +1,19 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.data.blueprint;
 
 import com.google.gson.JsonObject;
+import io.github.toxicity188.javamesh.MeshBuilder;
+import io.github.toxicity188.javamesh.MeshPoint;
+import io.github.toxicity188.javamesh.MeshShape;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.BoneTags;
+import kr.toxicity.model.api.data.Float2;
 import kr.toxicity.model.api.data.Float3;
 import kr.toxicity.model.api.data.raw.ModelFace;
 import kr.toxicity.model.api.pack.PackObfuscator;
@@ -35,6 +40,12 @@ import static kr.toxicity.model.api.util.CollectionUtil.*;
  * @since 1.15.2
  */
 public sealed interface BlueprintElement {
+
+    String MESH_TRIANGLE_SINGLE = "mesh_triangle_single";
+
+    String MESH_TRIANGLE_DUPLEX = "mesh_triangle_duplex";
+
+    String MESH_PIXEL = "mesh_pixel";
 
     /**
      * Represents an element that acts as a bone in the model's armature.
@@ -120,8 +131,8 @@ public sealed interface BlueprintElement {
             return origin.invertXZ();
         }
 
-        private @NotNull String jsonName(@NotNull ModelBlueprint parent) {
-            return PackUtil.toPackName(parent.name() + "_" + name.rawName());
+        private @NotNull String jsonName(@NotNull BlueprintLoadContext context) {
+            return PackUtil.toPackName(context.name() + "_" + name.rawName());
         }
 
         /**
@@ -129,28 +140,28 @@ public sealed interface BlueprintElement {
          *
          * @param skipLog whether to skip logging warnings for invalid rotations
          * @param obfuscator the obfuscator for model and texture names
-         * @param parent the parent model blueprint
+         * @param context the load context
          * @return the generated blueprint JSON, or null if not applicable
          * @since 1.15.2
          */
         public @Nullable BlueprintJson buildLegacyJson(
             boolean skipLog,
             @NotNull PackObfuscator.Pair obfuscator,
-            @NotNull ModelBlueprint parent
+            @NotNull BlueprintLoadContext context
         ) {
             Predicate<Cube> filter = element -> MathUtil.checkValidDegree(element.identifierDegree());
             if (!skipLog) filter = filterWithWarning(
                 filter,
-                element -> "The model " + parent.name() + "'s cube \"" + element.name() + "\" has an invalid rotation which does not supported in legacy client (<=1.21.3) " + element.rotation()
+                element -> "The model " + context.name() + "'s cube \"" + element.name() + "\" has an invalid rotation which does not supported in legacy client (<=1.21.3) " + element.rotation()
             );
-            return buildJson(-2, 1, scale(), obfuscator, parent, Float3.ZERO, filterIsInstance(children, Cube.class).filter(filter));
+            return buildJson(-2, 1, scale(), obfuscator, context, Float3.ZERO, filterIsInstance(children, Cube.class).filter(filter));
         }
 
         /**
          * Builds the JSON representation for modern clients.
          *
          * @param obfuscator the obfuscator for model and texture names
-         * @param parent the parent model blueprint
+         * @param context the load context
          * @return a list of generated blueprint JSONs, or null if not applicable
          * @since 1.15.2
          */
@@ -158,7 +169,7 @@ public sealed interface BlueprintElement {
         @Unmodifiable
         public List<BlueprintJson> buildModernJson(
             @NotNull PackObfuscator.Pair obfuscator,
-            @NotNull ModelBlueprint parent
+            @NotNull BlueprintLoadContext context
         ) {
             var scale = scale();
             var list = mapIndexed(
@@ -166,10 +177,23 @@ public sealed interface BlueprintElement {
                     filterIsInstance(children, Cube.class),
                     Cube::identifierDegree
                 ),
-                (i, entry) -> buildJson(0, i + 1, scale, obfuscator, parent, entry.getKey(), entry.getValue().stream())
+                (i, entry) -> buildJson(0, i + 1, scale, obfuscator, context, entry.getKey(), entry.getValue().stream())
             ).filter(Objects::nonNull)
                 .toList();
             return list.isEmpty() ? null : list;
+        }
+
+        public @Nullable JsonObject buildMeshItemModel(
+            @NotNull BlueprintLoadContext context
+        ) {
+            var scale = 1F / scale();
+            var meshes = filterIsInstance(children, Mesh.class).toList();
+            if (meshes.isEmpty()) return null;
+            var builder = MeshBuilder.of(context.triangleName())
+                .matrixModifier(mat -> mat.scale(scale))
+                .image(context.imageByIndex());
+            meshes.forEach(mesh -> builder.load(mesh.toShape(origin)));
+            return builder.toJson();
         }
 
         private @Nullable BlueprintJson buildJson(
@@ -177,24 +201,25 @@ public sealed interface BlueprintElement {
             int number,
             float scale,
             @NotNull PackObfuscator.Pair obfuscator,
-            @NotNull ModelBlueprint parent,
+            @NotNull BlueprintLoadContext context,
             @NotNull Float3 identifier,
             @NotNull Stream<Cube> cubes
         ) {
-            if (parent.textures().isEmpty()) return null;
             var cubeElement = cubes
                 .filter(Cube::hasTexture)
                 .toList();
-            if (cubeElement.isEmpty()) return null;
-            return new BlueprintJson(obfuscator.models().obfuscate(jsonName(parent) + "_" + number), () -> JsonObjectBuilder.builder()
-                .jsonObject("textures", textures -> {
-                    var index = 0;
-                    for (BlueprintTexture texture : parent.textures()) {
-                        textures.property(Integer.toString(index++), texture.packNamespace(obfuscator.textures()));
-                    }
-                    textures.property("particle", parent.textures().getFirst().packNamespace(obfuscator.textures()));
-                })
-                .jsonArray("elements", mapToJson(cubeElement, cube -> cube.buildJson(tint, scale, parent, this, identifier)))
+            var selectedTextures = cubeElement.stream()
+                .flatMapToInt(tex -> tex.faces().textureIndex())
+                .distinct()
+                .sorted()
+                .mapToObj(i -> Map.entry(Integer.toString(i), context.texture(i).packNamespace(obfuscator.textures())))
+                .toList();
+            if (selectedTextures.isEmpty()) return null;
+            return new BlueprintJson(obfuscator.models().obfuscate(jsonName(context) + "_" + number), () -> JsonObjectBuilder.builder()
+                .jsonObject("textures", textures -> textures
+                    .stringProperties(selectedTextures)
+                    .property("particle", selectedTextures.getFirst().getValue()))
+                .jsonArray("elements", mapToJson(cubeElement, cube -> cube.buildJson(tint, scale, context, this, identifier)))
                 .jsonObject("display", display -> display.jsonObject("fixed", fixed -> {
                     if (!identifier.equals(Float3.ZERO)) {
                         fixed.jsonArray("rotation", identifier.convertToMinecraftDegree().toJson());
@@ -353,11 +378,11 @@ public sealed interface BlueprintElement {
         private @NotNull JsonObject buildJson(
             int tint,
             float scale,
-            @NotNull ModelBlueprint parent,
+            @NotNull BlueprintLoadContext parent,
             @NotNull BlueprintElement.Group group,
             @NotNull Float3 identifier
         ) {
-            var qua = MathUtil.toQuaternion(identifier.toVector()).invert();
+            var qua = identifier.toQuaternionZYX().invert();
             var centerOrigin = centralize(origin(), group.origin, scale);
             var groupDelta = deltaPosition(centerOrigin, qua);
             var inflate = new Float3(inflate() / scale);
@@ -373,7 +398,7 @@ public sealed interface BlueprintElement {
                     .plus(Float3.CENTER)
                     .plus(inflate)
                     .toJson())
-                .jsonObject("faces", Objects.requireNonNull(faces()).toJson(parent, tint))
+                .jsonObject("faces", faces().toJson(parent, tint))
                 .jsonObject("rotation", Optional.of(rotation().minus(identifier))
                     .filter(r -> !Float3.ZERO.equals(r))
                     .map(rot -> {
@@ -408,6 +433,11 @@ public sealed interface BlueprintElement {
             return max;
         }
 
+        @Override
+        public @NotNull ModelFace faces() {
+            return Objects.requireNonNull(faces);
+        }
+
         /**
          * Checks if this cube has any textures defined.
          *
@@ -432,5 +462,40 @@ public sealed interface BlueprintElement {
             }
             return rotation;
         }
+    }
+
+    record Mesh(
+        @NotNull Float3 origin,
+        @NotNull Float3 rotation,
+        @NotNull List<Face> faces,
+        boolean visibility
+    ) implements BlueprintElement {
+
+        @NotNull
+        @Unmodifiable
+        public List<MeshShape> toShape(@NotNull Float3 parentOrigin) {
+            var deltaOrigin = origin().minus(parentOrigin).toVector();
+            var pointRotation = rotation().toQuaternionXYZ();
+            return faces.stream()
+                .map(face -> new MeshShape(
+                    face.points.stream()
+                        .map(p -> new MeshPoint(
+                            p.vertices.toVector()
+                                .rotate(pointRotation)
+                                .add(deltaOrigin)
+                                .mul(-1F, 1F, -1F)
+                                .div(MathUtil.MODEL_TO_BLOCK_MULTIPLIER),
+                            p.uv.toVector()
+                                .div(MathUtil.MODEL_TO_BLOCK_MULTIPLIER)
+                        ))
+                        .toList(),
+                    Integer.toString(face.texture)
+                ))
+                .toList();
+        }
+
+        public record Face(@NotNull @Unmodifiable List<Point> points, int texture) {}
+
+        public record Point(@NotNull Float3 vertices, @NotNull Float2 uv) {}
     }
 }

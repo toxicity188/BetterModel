@@ -1,22 +1,23 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonDeserializer;
 import com.google.gson.annotations.SerializedName;
 import kr.toxicity.model.api.bone.BoneName;
+import kr.toxicity.model.api.data.Float2;
 import kr.toxicity.model.api.data.Float3;
 import kr.toxicity.model.api.data.blueprint.BlueprintElement;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Represents a raw element within a model file.
@@ -50,12 +51,17 @@ public sealed interface ModelElement {
      * @since 2.2.1
      */
     String CUBE = "cube";
+    /**
+     * The type identifier for a mesh element.
+     * @since 3.0.0
+     */
+    String MESH = "mesh";
 
     /**
      * A JSON deserializer that automatically dispatches to the correct {@link ModelElement} implementation based on the "type" field.
      * @since 1.15.2
      */
-    JsonDeserializer<ModelElement> PARSER = (json, type, context) -> {
+    JsonDeserializer<ModelElement> PARSER = (json, _, context) -> {
         var t = json.getAsJsonObject().getAsJsonPrimitive("type");
         var select = t != null ? t.getAsString() : CUBE;
         return switch (select) {
@@ -63,6 +69,7 @@ public sealed interface ModelElement {
             case LOCATOR -> context.deserialize(json, Locator.class);
             case CAMERA -> context.deserialize(json, Camera.class);
             case CUBE -> context.deserialize(json, Cube.class);
+            case MESH -> context.deserialize(json, Mesh.class);
             default -> new Unsupported(select);
         };
     };
@@ -337,5 +344,62 @@ public sealed interface ModelElement {
                 visibility()
             );
         }
+    }
+
+    record Mesh(
+        @NotNull String uuid,
+        @Nullable Float3 origin,
+        @Nullable Float3 rotation,
+        @NotNull Map<String, Float3> vertices,
+        @NotNull Map<String, Face> faces,
+        @SerializedName("visibility") @Nullable Boolean _visibility
+    ) implements ModelElement {
+        @Override
+        public @NotNull Float3 origin() {
+            return origin != null ? origin : Float3.ZERO;
+        }
+
+        @Override
+        public @NotNull Float3 rotation() {
+            return rotation != null ? rotation : Float3.ZERO;
+        }
+
+        @Override
+        public @NotNull String type() {
+            return MESH;
+        }
+
+        /**
+         * Checks if the cube is visible.
+         *
+         * @return true if visible, false otherwise
+         * @since 3.0.0
+         */
+        public boolean visibility() {
+            return !Boolean.FALSE.equals(_visibility);
+        }
+
+        @Override
+        public @NotNull BlueprintElement toBlueprint() {
+            return new BlueprintElement.Mesh(
+                origin(),
+                rotation(),
+                faces.values()
+                    .stream()
+                    .map(face -> new BlueprintElement.Mesh.Face(
+                        face.vertices.stream()
+                            .map(n -> new BlueprintElement.Mesh.Point(
+                                Objects.requireNonNull(vertices.get(n)),
+                                Objects.requireNonNull(face.uv.get(n))
+                            ))
+                            .toList(),
+                        face.texture
+                    ))
+                    .toList(),
+                visibility()
+            );
+        }
+
+        public record Face(@NotNull Map<String, Float2> uv, @NotNull Set<String> vertices, int texture) {}
     }
 }

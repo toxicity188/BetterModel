@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.data;
 
 import com.google.gson.JsonArray;
@@ -42,6 +43,10 @@ public record Float3(
      * Zero
      */
     public static final Float3 ZERO = new Float3(0, 0, 0);
+
+    public static final Float3 MESH_TRIANGLE_FROM = new Float3(-8, 0, 0);
+
+    public static final Float3 MESH_TRIANGLE_TO = new Float3(0, 8, 0);
 
     /**
      * Parser
@@ -156,6 +161,24 @@ public record Float3(
         array.add(y);
         array.add(z);
         return array;
+    }
+
+    public @NotNull Quaternionf toQuaternionZYX() {
+        return new Quaternionf()
+            .rotateZYX(
+                z * MathUtil.DEGREES_TO_RADIANS,
+                y * MathUtil.DEGREES_TO_RADIANS,
+                x * MathUtil.DEGREES_TO_RADIANS
+            );
+    }
+
+    public @NotNull Quaternionf toQuaternionXYZ() {
+        return new Quaternionf()
+            .rotateXYZ(
+                x * MathUtil.DEGREES_TO_RADIANS,
+                y * MathUtil.DEGREES_TO_RADIANS,
+                z * MathUtil.DEGREES_TO_RADIANS
+            );
     }
 
     /**
