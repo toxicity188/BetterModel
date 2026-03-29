@@ -27,6 +27,7 @@ class StateMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTarg
     private val lo = mlc.toPlaceholderInteger(arrayOf("lo"))
     private val sp = mlc.toNullablePlaceholderFloat(arrayOf("speed", "sp"))
     private val remove = mlc.toPlaceholderBoolean(arrayOf("remove", "r"))
+    private val priority = mlc.toPlaceholderInteger(arrayOf("p", "pr", "priority"))
 
     override fun cast(p0: SkillMetadata): SkillResult {
         return cast(null, p0)
@@ -45,6 +46,7 @@ class StateMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTarg
                 .end(lo(args))
                 .speed(sp(args)?.let(FloatSupplier::of))
                 .player(player?.wrap())
+                .priority(priority(args))
                 .build())
             SkillResult.SUCCESS
         } ?: SkillResult.CONDITION_FAILED

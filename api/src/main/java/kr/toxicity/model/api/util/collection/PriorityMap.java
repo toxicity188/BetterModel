@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Function;
 
 public final class PriorityMap<K extends Comparable<K>, V> {
 
@@ -19,6 +20,10 @@ public final class PriorityMap<K extends Comparable<K>, V> {
     private long counter;
 
     public PriorityMap() {
+    }
+
+    public boolean isEmpty() {
+        return valueMap.isEmpty();
     }
 
     private record Identifier<K extends Comparable<K>>(
@@ -53,10 +58,10 @@ public final class PriorityMap<K extends Comparable<K>, V> {
         return (identifier = keyMap.remove(Objects.requireNonNull(key))) == null ? null : valueMap.remove(identifier);
     }
 
-    public @Nullable V replace(@NotNull K Key, @NotNull V newValue) {
+    public @Nullable V replace(@NotNull K Key, @NotNull Function<V, V> function) {
         Identifier<K> identifier;
         if ((identifier = keyMap.get(Objects.requireNonNull(Key))) == null) return null;
-        return valueMap.put(identifier, Objects.requireNonNull(newValue));
+        return valueMap.computeIfPresent(identifier, (_, v) -> function.apply(v));
     }
 
     public @NotNull Collection<V> values() {

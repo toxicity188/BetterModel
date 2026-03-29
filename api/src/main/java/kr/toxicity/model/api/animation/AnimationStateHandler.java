@@ -9,6 +9,7 @@ package kr.toxicity.model.api.animation;
 
 import kr.toxicity.model.api.tracker.Tracker;
 import kr.toxicity.model.api.util.MathUtil;
+import kr.toxicity.model.api.util.collection.PriorityMap;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.ApiStatus;
@@ -16,11 +17,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
-
-import static kr.toxicity.model.api.util.CollectionUtil.newSequencedChainingMap;
 
 /**
  * Animation state handler
@@ -33,9 +31,7 @@ public final class AnimationStateHandler<T extends Timed> {
     private final T initialValue;
     private final BiConsumer<T, T> setConsumer;
 
-    private final SequencedMap<String, TreeIterator> animators = newSequencedChainingMap();
-    private final SequencedCollection<TreeIterator> reversedView = animators.sequencedValues().reversed();
-    private final AtomicBoolean forceUpdateAnimation = new AtomicBoolean();
+    private final PriorityMap<String, TreeIterator> animators = new PriorityMap<>();
 
     @Getter
     private int delay;
@@ -129,12 +125,12 @@ public final class AnimationStateHandler<T extends Timed> {
     }
 
     private boolean shouldUpdateAnimation() {
-        return forceUpdateAnimation.compareAndSet(true, false) || (afterKeyframe != null && keyframeFinished()) || delay % Tracker.MINECRAFT_TICK_MULTIPLIER == 0;
+        return (afterKeyframe != null && keyframeFinished()) || delay % Tracker.MINECRAFT_TICK_MULTIPLIER == 0;
     }
 
     private boolean updateAnimation() {
         synchronized (animators) {
-            var iterator = reversedView.iterator();
+            var iterator = animators.values().iterator();
             while (iterator.hasNext()) {
                 var next = iterator.next();
                 if (!next.getAsBoolean()) continue;
@@ -190,9 +186,8 @@ public final class AnimationStateHandler<T extends Timed> {
      */
     public void addAnimation(@NotNull String name, @NotNull AnimationIterator<T> iterator, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
         synchronized (animators) {
-            animators.putLast(name, new TreeIterator(name, iterator, modifier, removeTask));
+            animators.put(name, new TreeIterator(name, iterator, modifier, removeTask), modifier.priority());
         }
-        forceUpdateAnimation.set(true);
     }
 
     /**
@@ -203,11 +198,10 @@ public final class AnimationStateHandler<T extends Timed> {
      */
     public void replaceAnimation(@NotNull String name, @NotNull AnimationIterator<T> iterator, @NotNull AnimationModifier modifier) {
         synchronized (animators) {
-            animators.computeIfPresent(name, (k, v) -> new TreeIterator(k, iterator, v.modifier.toBuilder()
+            animators.replace(name, v -> new TreeIterator(name, iterator, v.modifier.toBuilder()
                 .mergeNotDefault(modifier)
                 .build(), v.removeTask));
         }
-        forceUpdateAnimation.set(true);
     }
 
     /**
@@ -218,7 +212,6 @@ public final class AnimationStateHandler<T extends Timed> {
     public boolean stopAnimation(@NotNull String name) {
         synchronized (animators) {
             if (animators.remove(name) != null) {
-                forceUpdateAnimation.set(true);
                 return true;
             }
         }
