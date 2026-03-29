@@ -37,6 +37,12 @@ public record ModelBlueprint(
     @NotNull Map<String, BlueprintAnimation> animations
 ) {
 
+    /**
+     * Creates a new load context for this blueprint.
+     *
+     * @since 3.0.0
+     * @return a new blueprint load context
+     */
     public @NotNull BlueprintLoadContext context() {
         return new BlueprintLoadContext(
             name(),

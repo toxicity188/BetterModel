@@ -183,6 +183,13 @@ public sealed interface BlueprintElement {
             return list.isEmpty() ? null : list;
         }
 
+        /**
+         * Builds the JSON representation for a mesh-based item model.
+         *
+         * @param context the load context
+         * @return the generated mesh JSON, or null if no meshes are present
+         * @since 3.0.0
+         */
         public @Nullable JsonObject buildMeshItemModel(
             @NotNull BlueprintLoadContext context
         ) {
@@ -464,6 +471,15 @@ public sealed interface BlueprintElement {
         }
     }
 
+    /**
+     * Represents a mesh element, allowing for complex geometry beyond simple cubes.
+     *
+     * @param origin the pivot point of the mesh
+     * @param rotation the rotation of the mesh
+     * @param faces the list of faces forming the mesh
+     * @param visibility whether the mesh is visible
+     * @since 3.0.0
+     */
     record Mesh(
         @NotNull Float3 origin,
         @NotNull Float3 rotation,
@@ -471,6 +487,13 @@ public sealed interface BlueprintElement {
         boolean visibility
     ) implements BlueprintElement {
 
+        /**
+         * Converts this mesh into a list of {@link MeshShape} for rendering.
+         *
+         * @param parentOrigin the origin of the parent bone
+         * @return an unmodifiable list of mesh shapes
+         * @since 3.0.0
+         */
         @NotNull
         @Unmodifiable
         public List<MeshShape> toShape(@NotNull Float3 parentOrigin) {
@@ -494,8 +517,22 @@ public sealed interface BlueprintElement {
                 .toList();
         }
 
+        /**
+         * Represents a single face of a mesh.
+         *
+         * @param points the vertices and UV coordinates of the face
+         * @param texture the index of the texture used by this face
+         * @since 3.0.0
+         */
         public record Face(@NotNull @Unmodifiable List<Point> points, int texture) {}
 
+        /**
+         * Represents a single point (vertex) in a mesh face.
+         *
+         * @param vertices the 3D coordinates of the vertex
+         * @param uv the 2D UV coordinates for texture mapping
+         * @since 3.0.0
+         */
         public record Point(@NotNull Float3 vertices, @NotNull Float2 uv) {}
     }
 }

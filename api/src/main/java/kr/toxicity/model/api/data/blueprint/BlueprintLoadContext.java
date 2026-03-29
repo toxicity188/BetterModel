@@ -25,6 +25,11 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+/**
+ * A context class for loading blueprints.
+ *
+ * @since 3.0.0
+ */
 @ApiStatus.Internal
 public final class BlueprintLoadContext {
 
@@ -57,18 +62,43 @@ public final class BlueprintLoadContext {
         this.canBeRendered = canBeRendered;
     }
 
+    /**
+     * Gets the name of the blueprint.
+     *
+     * @return the name
+     * @since 3.0.0
+     */
     public @NotNull String name() {
         return name;
     }
 
+    /**
+     * Gets the mesh triangle name.
+     *
+     * @return the triangle name
+     * @since 3.0.0
+     */
     public @NotNull MeshTriangleName triangleName() {
         return triangleName;
     }
 
+    /**
+     * Gets the model resolution.
+     *
+     * @return the resolution
+     * @since 3.0.0
+     */
     public @NotNull ModelResolution resolution() {
         return resolution;
     }
 
+    /**
+     * Gets a texture by its index.
+     *
+     * @param index the index
+     * @return the texture
+     * @since 3.0.0
+     */
     public @NotNull BlueprintTexture texture(int index) {
         return Objects.requireNonNull(textureRefs[index]).texture();
     }
@@ -98,10 +128,23 @@ public final class BlueprintLoadContext {
         }
     }
 
+    /**
+     * Returns whether this context can be rendered.
+     *
+     * @return true if renderable
+     * @since 3.0.0
+     */
     public boolean canBeRendered() {
         return canBeRendered;
     }
 
+    /**
+     * Builds a stream of blueprint images using the provided obfuscator.
+     *
+     * @param obfuscator the obfuscator
+     * @return a stream of images
+     * @since 3.0.0
+     */
     @NotNull
     public Stream<BlueprintImage> buildImage(@NotNull PackObfuscator obfuscator) {
         if (!canBeRendered()) return Stream.empty();

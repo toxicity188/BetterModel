@@ -346,6 +346,17 @@ public sealed interface ModelElement {
         }
     }
 
+    /**
+     * Represents a mesh element, allowing for complex geometry beyond simple cubes.
+     *
+     * @param uuid the UUID of the mesh
+     * @param origin the pivot point (origin) of the mesh
+     * @param rotation the rotation of the mesh
+     * @param vertices a map of vertex identifiers to their 3D positions
+     * @param faces a map of face identifiers to their face data
+     * @param _visibility the visibility state (null means visible)
+     * @since 3.0.0
+     */
     record Mesh(
         @NotNull String uuid,
         @Nullable Float3 origin,
@@ -354,27 +365,39 @@ public sealed interface ModelElement {
         @NotNull Map<String, Face> faces,
         @SerializedName("visibility") @Nullable Boolean _visibility
     ) implements ModelElement {
+        /**
+         * Returns the pivot point (origin) of the mesh.
+         *
+         * @return the origin vector, or {@link Float3#ZERO} if not specified
+         * @since 3.0.0
+         */
         @Override
         public @NotNull Float3 origin() {
             return origin != null ? origin : Float3.ZERO;
         }
 
+        /**
+         * Returns the rotation of the mesh.
+         *
+         * @return the rotation vector, or {@link Float3#ZERO} if not specified
+         * @since 3.0.0
+         */
         @Override
         public @NotNull Float3 rotation() {
             return rotation != null ? rotation : Float3.ZERO;
         }
 
+        /**
+         * Returns the type identifier of this element.
+         *
+         * @return {@link #MESH}
+         * @since 3.0.0
+         */
         @Override
         public @NotNull String type() {
             return MESH;
         }
 
-        /**
-         * Checks if the cube is visible.
-         *
-         * @return true if visible, false otherwise
-         * @since 3.0.0
-         */
         public boolean visibility() {
             return !Boolean.FALSE.equals(_visibility);
         }
@@ -400,6 +423,14 @@ public sealed interface ModelElement {
             );
         }
 
+        /**
+         * Represents a single face of a mesh.
+         *
+         * @param uv a map of vertex identifiers to their UV coordinates
+         * @param vertices a set of vertex identifiers that form this face
+         * @param texture the index of the texture used by this face
+         * @since 3.0.0
+         */
         public record Face(@NotNull Map<String, Float2> uv, @NotNull Set<String> vertices, int texture) {}
     }
 }
