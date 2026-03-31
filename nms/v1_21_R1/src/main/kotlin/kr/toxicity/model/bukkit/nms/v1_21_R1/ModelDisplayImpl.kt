@@ -7,6 +7,7 @@
 package kr.toxicity.model.bukkit.nms.v1_21_R1
 
 import kr.toxicity.model.api.entity.BaseEntity
+import kr.toxicity.model.api.nms.AnimationBundler
 import kr.toxicity.model.api.nms.DisplayTransformer
 import kr.toxicity.model.api.nms.ModelDisplay
 import kr.toxicity.model.api.nms.PacketBundler
@@ -241,7 +242,7 @@ internal class ModelDisplayImpl(
             position: Vector3f,
             scale: Vector3f,
             rotation: Quaternionf,
-            bundler: PacketBundler
+            bundler: AnimationBundler
         ) {
             entityDataLock.accessToLock {
                 entityData.transform(
@@ -250,9 +251,7 @@ internal class ModelDisplayImpl(
                     scale,
                     rotation
                 )
-                entityData.packDirty()
-            }?.run {
-                bundler += ClientboundSetEntityDataPacket(id, this)
+                entityData.packDirty(id, bundler)
             }
         }
 

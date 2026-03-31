@@ -343,7 +343,7 @@ public final class RenderedBone implements BoneEventHandler {
         if (d != null) d.sendEntityData(!d.invisible(), bundler);
     }
 
-    public void sendTransformation(@Nullable UUID uuid, @NotNull PacketBundler bundler) {
+    public void sendTransformation(@Nullable UUID uuid, @NotNull AnimationBundler bundler) {
         state(uuid).sendTransformation(bundler);
     }
 
@@ -607,7 +607,7 @@ public final class RenderedBone implements BoneEventHandler {
             return Math.round(frame + MathUtil.FLOAT_COMPARISON_EPSILON);
         }
 
-        private void sendTransformation(@NotNull PacketBundler bundler) {
+        private void sendTransformation(@NotNull AnimationBundler bundler) {
             if (!updateCurrent.compareAndSet(true, false)) return;
             var after = after();
             var movement = lock.accessToWriteLock(() -> current.set(after));

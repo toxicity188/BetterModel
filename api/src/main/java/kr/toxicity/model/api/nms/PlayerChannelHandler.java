@@ -66,4 +66,10 @@ public interface PlayerChannelHandler extends Identifiable, AutoCloseable {
      */
     @Override
     void close();
+
+    /**
+     * Checks if the meg-mod is enabled.
+     * @return meg-mod is enabled.
+     */
+    boolean isModEnabled();
 }

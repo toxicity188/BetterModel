@@ -30,7 +30,7 @@ public interface DisplayTransformer {
      * @param bundler the packet bundler to use
      * @since 1.15.2
      */
-    void transform(int duration, @NotNull Vector3f position, @NotNull Vector3f scale, @NotNull Quaternionf rotation, @NotNull PacketBundler bundler);
+    void transform(int duration, @NotNull Vector3f position, @NotNull Vector3f scale, @NotNull Quaternionf rotation, @NotNull AnimationBundler bundler);
 
     /**
      * Sends the current transformation state to clients.

@@ -157,7 +157,7 @@ public abstract class Tracker implements AutoCloseable {
         ));
         tick((t, s) -> {
             var perPlayer = perPlayerHandler;
-            if (perPlayer != null) pipeline.nonHidePlayer().forEach(p -> perPlayer.accept(t, p));
+            if (perPlayer != null) pipeline.nonHidePlayer().forEach(p -> perPlayer.accept(t, p.player()));
         });
         pipeline.spawnPacketHandler(p -> start());
         pipeline.eventDispatcher().handleStateCreate((bone, uuid) -> bundlerSet.perPlayerViewBundler
@@ -960,7 +960,7 @@ public abstract class Tracker implements AutoCloseable {
         @Getter
         private PacketBundler dataBundler = pipeline.createBundler();
         @Getter
-        private PacketBundler viewBundler = pipeline.createParallelBundler();
+        private AnimationBundler viewBundler = pipeline.createAnimationBundler();
 
         private final Map<UUID, PerPlayerCache> perPlayerViewBundler = new ConcurrentHashMap<>();
 
@@ -982,16 +982,16 @@ public abstract class Tracker implements AutoCloseable {
 
         private void globalSend() {
             if (tickBundler.isNotEmpty()) {
-                pipeline.allPlayer().forEach(tickBundler::send);
+                pipeline.allPlayer().map(PlayerChannelHandler::player).forEach(tickBundler::send);
                 tickBundler = pipeline.createBundler();
             }
             if (dataBundler.isNotEmpty()) {
-                pipeline.nonHidePlayer().forEach(dataBundler::send);
+                pipeline.nonHidePlayer().map(PlayerChannelHandler::player).forEach(dataBundler::send);
                 dataBundler = pipeline.createBundler();
             }
             if (viewBundler.isNotEmpty()) {
                 pipeline.viewedPlayer().filter(p -> !perPlayerViewBundler.containsKey(p.uuid())).forEach(viewBundler::send);
-                viewBundler = pipeline.createParallelBundler();
+                viewBundler = pipeline.createAnimationBundler();
             }
         }
     }
@@ -1000,7 +1000,7 @@ public abstract class Tracker implements AutoCloseable {
     private final class PerPlayerCache {
         private final UUID uuid;
         private final AtomicInteger counter = new AtomicInteger();
-        private PacketBundler bundler = pipeline.createParallelBundler();
+        private AnimationBundler bundler = pipeline.createAnimationBundler();
 
         private @NotNull Optional<PlayerChannelHandler> channel() {
             return Optional.ofNullable(pipeline.channel(uuid));
@@ -1026,8 +1026,8 @@ public abstract class Tracker implements AutoCloseable {
 
         private void send() {
             if (pipeline.tick(uuid, bundler) && bundler.isNotEmpty()) {
-                channel().ifPresent(handler -> bundler.send(handler.player()));
-                bundler = pipeline.createParallelBundler();
+                channel().ifPresent(handler -> bundler.send(handler));
+                bundler = pipeline.createAnimationBundler();
             }
         }
     }

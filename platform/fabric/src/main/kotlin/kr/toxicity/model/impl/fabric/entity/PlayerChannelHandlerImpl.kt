@@ -55,6 +55,7 @@ class PlayerChannelHandlerImpl(
     }
 
     override fun base(): BasePlayer = basePlayer
+    override fun isModEnabled(): Boolean = false
 
     private val playerModel get() = connection.player.id.toRegistry()
 

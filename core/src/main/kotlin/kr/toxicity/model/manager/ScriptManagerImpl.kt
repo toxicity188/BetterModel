@@ -20,16 +20,16 @@ import java.util.regex.Pattern
 object ScriptManagerImpl : ScriptManager, GlobalManager {
 
     private val scriptMap = hashMapOf<String, ScriptBuilder>()
-    private val scriptPattern = Pattern.compile("^(?<name>[a-zA-Z]+)(:(?<argument>(\\w|_|-)+))?(\\{(?<metadata>(\\w|\\W)+)})?$")
+    private val scriptPattern = Pattern.compile("^(?<name>[a-zA-Z]+)(:(?<argument>([\\w_\\-])+))?(\\{(?<metadata>([\\w\\W])+)})?$")
     private val validatePattern = Pattern.compile("^[a-z]+$")
 
     init {
         addBuilder("signal") {
             val args = it.args() ?: return@addBuilder AnimationScript.EMPTY
             AnimationScript.of { tracker ->
-                tracker.pipeline.allPlayer().forEach { player ->
-                    AnimationSignalEvent(player, args).call()
-                }
+                tracker.pipeline.allPlayer()
+                    .map { channel -> channel.player() }
+                    .forEach { player -> AnimationSignalEvent(player, args).call() }
             }
         }
 

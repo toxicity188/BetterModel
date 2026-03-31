@@ -6,8 +6,11 @@
  */
 package kr.toxicity.model.impl.fabric.entity
 
+import kr.toxicity.model.api.nms.AnimationBundler
 import kr.toxicity.model.api.util.MathUtil
+import kr.toxicity.model.impl.fabric.network.plusAssign
 import kr.toxicity.model.mixin.DisplayAccessor
+import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.network.syncher.EntityDataAccessor
 import net.minecraft.network.syncher.SynchedEntityData
 import org.joml.Quaternionf
@@ -62,20 +65,16 @@ class TransformationData {
         }
     )
 
-    fun packDirty(): List<SynchedEntityData.DataValue<*>>? {
-        val index = translation.cleanIndex + scale.cleanIndex + rotation.cleanIndex
-        if (index == 0) {
-            return null
-        }
-
-        return buildList(index + 2) {
+    fun packDirty(entityId: Int, dest: AnimationBundler) {
+        val i = translation.cleanIndex + scale.cleanIndex + rotation.cleanIndex
+        if (i == 0) return
+        dest.standard += ClientboundSetEntityDataPacket(entityId, buildList(i + 2) {
             add(INTERPOLATION_DELAY_VALUE)
-            add(durationDataValue)
-
             translation.value?.let { add(it) }
-            scale.value?.let { add(it) }
             rotation.value?.let { add(it) }
-        }
+            scale.value?.let { add(it) }
+            add(durationDataValue)
+        })
     }
 
     fun transform(

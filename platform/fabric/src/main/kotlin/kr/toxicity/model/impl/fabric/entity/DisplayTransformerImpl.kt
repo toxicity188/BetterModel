@@ -6,6 +6,7 @@
  */
 package kr.toxicity.model.impl.fabric.entity
 
+import kr.toxicity.model.api.nms.AnimationBundler
 import kr.toxicity.model.api.nms.DisplayTransformer
 import kr.toxicity.model.api.nms.PacketBundler
 import kr.toxicity.model.api.util.lock.SingleLock
@@ -28,7 +29,7 @@ class DisplayTransformerImpl(source: Display.ItemDisplay) :
         position: Vector3f,
         scale: Vector3f,
         rotation: Quaternionf,
-        bundler: PacketBundler
+        bundler: AnimationBundler
     ) {
         entityDataLock.accessToLock {
             entityData.transform(
@@ -37,9 +38,7 @@ class DisplayTransformerImpl(source: Display.ItemDisplay) :
                 scale,
                 rotation
             )
-            entityData.packDirty()
-        }?.let {
-            bundler += ClientboundSetEntityDataPacket(id, it)
+            entityData.packDirty(id, bundler)
         }
     }
 
