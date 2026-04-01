@@ -18,6 +18,7 @@ import kr.toxicity.model.api.data.ModelAsset;
 import kr.toxicity.model.api.data.renderer.ModelRenderer;
 import kr.toxicity.model.api.event.ModelAssetsEvent;
 import kr.toxicity.model.api.event.PluginStartReloadEvent;
+import kr.toxicity.model.api.nms.AnimationBundler;
 import kr.toxicity.model.api.pack.PackNamespace;
 import kr.toxicity.model.api.platform.PlatformPlayer;
 import lombok.RequiredArgsConstructor;
@@ -289,7 +290,7 @@ public final class FightTester implements ModelTester, Listener {
                 new Vector3f(),
                 new Vector3f(1, 1, length),
                 quaternionf,
-                bundler
+                new AnimationBundler(bundler, BetterModel.nms().createModAnimationBuilder(2))
             );
             players.forEach(bundler::send);
             var displayCounter = new AtomicInteger();

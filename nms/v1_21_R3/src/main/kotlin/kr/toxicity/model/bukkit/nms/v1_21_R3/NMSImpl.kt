@@ -152,6 +152,7 @@ class NMSImpl : NMS {
         }
 
         override fun base(): BasePlayer = base
+        override fun isModEnabled(): Boolean = player.listeningPluginChannels.contains("modelengine:bulk_data")
 
         private val playerModel get() = connection.player.id.toRegistry()
 
@@ -311,6 +312,7 @@ class NMSImpl : NMS {
 
     override fun createBundler(initialCapacity: Int): PacketBundler = bundlerOf(initialCapacity)
     override fun createParallelBundler(threshold: Int): PacketBundler = parallelBundlerOf(threshold)
+    override fun createModAnimationBuilder(initialCapacity: Int): ModAnimationBundler = ModAnimationBundlerImpl(initialCapacity)
 
     override fun create(location: PlatformLocation, yOffset: Double, initialConsumer: Consumer<ModelDisplay>): ModelDisplay = ModelDisplayImpl(
         Vector3d(location.x(), location.y(), location.z()),

@@ -123,6 +123,15 @@ public interface NMS {
     @NotNull PacketBundler createParallelBundler(int threshold);
 
     /**
+     * Creates a mod animation bundler.
+     *
+     * @param initialCapacity the initial capacity
+     * @return mod animation bundler.
+     * @since 2.2.1
+     */
+    @NotNull ModAnimationBundler createModAnimationBuilder(int initialCapacity);
+
+    /**
      * Applies a tint color to an item stack.
      *
      * @param itemStack the item to tint

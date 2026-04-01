@@ -28,9 +28,9 @@ object ScriptManagerImpl : ScriptManager, GlobalManager {
         addBuilder("signal") {
             val args = it.args() ?: return@addBuilder AnimationScript.EMPTY
             AnimationScript.of { tracker ->
-                tracker.pipeline.allPlayer().forEach { player ->
-                    AnimationSignalEvent(player, args).call()
-                }
+                tracker.pipeline.allPlayer()
+                    .map { channel -> channel.player() }
+                    .forEach { player -> AnimationSignalEvent(player, args).call() }
             }
         }
 

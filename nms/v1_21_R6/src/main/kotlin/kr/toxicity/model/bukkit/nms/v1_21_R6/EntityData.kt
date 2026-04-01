@@ -7,7 +7,9 @@
 
 package kr.toxicity.model.bukkit.nms.v1_21_R6
 
+import kr.toxicity.model.api.nms.AnimationBundler
 import kr.toxicity.model.api.util.MathUtil
+import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.network.syncher.EntityDataAccessor
 import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.world.entity.Display
@@ -63,15 +65,17 @@ internal class TransformationData {
     private val scale = Item(Vector3f(), DISPLAY_SCALE, MathUtil::isSimilar, Vector3f::set)
     private val rotation = Item(Quaternionf(), DISPLAY_ROTATION, MathUtil::isSimilar, Quaternionf::set)
 
-    fun packDirty(): List<SynchedEntityData.DataValue<*>>? {
+    fun packDirty(entityId: Int, dest: AnimationBundler) {
         val i = translation.cleanIndex + scale.cleanIndex + rotation.cleanIndex
-        if (i == 0) return null
-        return buildList(i + 2) {
-            add(DISPLAY_INTERPOLATION_DELAY)
-            add(duration)
-            translation.value?.let { add(it) }
-            scale.value?.let { add(it) }
-            rotation.value?.let { add(it) }
+        if (i == 0) return
+        (dest.mod as ModAnimationBundlerImpl).append(entityId) {
+            dest.standard += ClientboundSetEntityDataPacket(entityId, buildList(i + 2) {
+                add(DISPLAY_INTERPOLATION_DELAY)
+                translation.value?.let { appendPosition(it.value); add(it) }
+                rotation.value?.let { appendRotation(it.value); add(it) }
+                scale.value?.let { appendScale(it.value); add(it) }
+                appendDuration(_duration); add(duration)
+            })
         }
     }
 

@@ -10,6 +10,7 @@ package kr.toxicity.model.api.tracker;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.data.renderer.RenderPipeline;
 import kr.toxicity.model.api.event.CreateDummyTrackerEvent;
+import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.platform.PlatformLocation;
 import kr.toxicity.model.api.platform.PlatformPlayer;
 import kr.toxicity.model.api.util.EventUtil;
@@ -63,7 +64,7 @@ public final class DummyTracker extends Tracker {
             this.location = location;
             var bundler = pipeline.createBundler();
             pipeline.forEach(b -> b.teleport(location, bundler));
-            if (bundler.isNotEmpty()) pipeline.allPlayer().forEach(bundler::send);
+            if (bundler.isNotEmpty()) pipeline.allPlayer().map(PlayerChannelHandler::player).forEach(bundler::send);
         }
     }
 

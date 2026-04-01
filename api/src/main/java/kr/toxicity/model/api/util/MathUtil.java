@@ -303,4 +303,48 @@ public final class MathUtil {
     public static boolean isZero(@NotNull Vector3f vector) {
         return isSimilar(vector, ZERO_VECTOR);
     }
+
+    /**
+     * Converts a 32-bit float to IEEE 754 half-precision bits.
+     *
+     * @param value source float
+     * @return half-float bit pattern stored in a short
+     */
+    public static short floatToHalf(float value) {
+        int bits = Float.floatToIntBits(value);
+
+        int sign = (bits >>> 16) & 0x8000;
+        int exp = ((bits >>> 23) & 0xFF) - 127 + 15;
+        int mant = bits & 0x7FFFFF;
+
+        if (((bits >>> 23) & 0xFF) == 0xFF) {
+            if (mant == 0) return (short) (sign | 0x7C00);
+            return (short) (sign | 0x7E00);
+        }
+        if (exp >= 0x1F) return (short) (sign | 0x7C00);
+        if (exp <= 0) {
+            if (exp < -10) return (short) sign;
+
+            mant |= 0x800000;
+            int shift = 14 - exp;
+            int halfMant = mant >> shift;
+
+            int roundBit = 1 << (shift - 1);
+            if ((mant & roundBit) != 0 && ((mant & (roundBit - 1)) != 0 || (halfMant & 1) != 0)) halfMant++;
+
+            return (short) (sign | halfMant);
+        }
+        int halfExp = exp << 10;
+        int halfMant = mant >> 13;
+
+        if ((mant & 0x00001000) != 0) {
+            halfMant++;
+            if ((halfMant & 0x0400) != 0) {
+                halfMant = 0;
+                halfExp += 0x0400;
+                if (halfExp >= 0x7C00) return (short) (sign | 0x7C00);
+            }
+        }
+        return (short) (sign | halfExp | halfMant);
+    }
 }
