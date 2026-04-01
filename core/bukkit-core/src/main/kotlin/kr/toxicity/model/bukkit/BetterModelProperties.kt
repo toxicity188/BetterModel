@@ -40,6 +40,7 @@ internal class BetterModelProperties(
 
     val version = parse(Bukkit.getMinecraftVersion())
     val nms = when (version) {
+        //V26_1, V26_1_1 -> Latest() TODO implement this when Paper 26.1.1 is out
         V1_21_11 -> Latest()
         V1_21_9, V1_21_10 -> kr.toxicity.model.bukkit.nms.v1_21_R6.NMSImpl()
         V1_21_6, V1_21_7, V1_21_8 -> kr.toxicity.model.bukkit.nms.v1_21_R5.NMSImpl()

@@ -20,6 +20,10 @@ import java.util.Comparator;
  */
 public record MinecraftVersion(int major, int minor, int patch) implements Comparable<MinecraftVersion> {
     /**
+     * 26.1.1
+     */
+    public static final MinecraftVersion V26_1_1 = of(26, 1, 1);
+    /**
      * 26.1
      */
     public static final MinecraftVersion V26_1 = of(26, 1, 0);
