@@ -61,7 +61,7 @@ hangarPublish {
         }
         platforms {
             register(Platforms.PAPER) {
-                jar = project(":platform:paper").tasks.named<Jar>("shadowJar").flatMap {
+                jar = project(":platform:bettermodel-paper").tasks.named<Jar>("shadowJar").flatMap {
                     it.archiveFile
                 }
                 platformVersions = SUPPORTED_VERSIONS
