@@ -6,7 +6,7 @@ plugins {
     id("xyz.jpenilla.run-paper") version "3.0.2"
 }
 
-val minecraft = "1.21.11" //TODO change this to property("minecraft_version").toString()
+val minecraft = property("minecraft_version").toString()
 val versionString = version.toString()
 val groupString = group.toString()
 
@@ -34,7 +34,6 @@ tasks {
             hangar("ViaVersion", "5.8.1")
             hangar("ViaBackwards", "5.8.1")
             hangar("Skript", "2.14.2")
-            hangar("TabTPS", "1.3.30")
         }
     }
     build {

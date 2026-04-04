@@ -21,8 +21,8 @@ import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.tracker.Tracker
 import kr.toxicity.model.api.tracker.TrackerExtraAnimation
-import kr.toxicity.model.bukkit.nms.v1_21_R4.wrap
 import kr.toxicity.model.bukkit.util.registerListener
+import kr.toxicity.model.bukkit.util.wrap
 import kr.toxicity.model.manager.GlobalManager
 import kr.toxicity.model.manager.ReloadPipeline
 import kr.toxicity.model.util.PLATFORM

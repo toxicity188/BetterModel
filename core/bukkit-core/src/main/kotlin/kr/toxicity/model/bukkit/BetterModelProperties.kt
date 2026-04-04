@@ -30,7 +30,7 @@ import kr.toxicity.model.util.warn
 import org.bstats.bukkit.Metrics
 import org.bukkit.Bukkit
 
-private typealias Latest = kr.toxicity.model.bukkit.nms.v1_21_R7.NMSImpl
+private typealias Latest = kr.toxicity.model.bukkit.nms.v26_R1.NMSImpl
 
 internal class BetterModelProperties(
     private val plugin: AbstractBetterModelPlugin
@@ -38,10 +38,10 @@ internal class BetterModelProperties(
     private lateinit var _config: BetterModelConfig
     private var _metrics: Metrics? = null
 
-    val version = parse(Bukkit.getMinecraftVersion())
+    val version = parse(Bukkit.getBukkitVersion().substringBefore('-'))
     val nms = when (version) {
-        //V26_1, V26_1_1 -> Latest() TODO implement this when Paper 26.1.1 is out
-        V1_21_11 -> Latest()
+        V26_1, V26_1_1 -> Latest()
+        V1_21_11 -> kr.toxicity.model.bukkit.nms.v1_21_R7.NMSImpl()
         V1_21_9, V1_21_10 -> kr.toxicity.model.bukkit.nms.v1_21_R6.NMSImpl()
         V1_21_6, V1_21_7, V1_21_8 -> kr.toxicity.model.bukkit.nms.v1_21_R5.NMSImpl()
         V1_21_5 -> kr.toxicity.model.bukkit.nms.v1_21_R4.NMSImpl()

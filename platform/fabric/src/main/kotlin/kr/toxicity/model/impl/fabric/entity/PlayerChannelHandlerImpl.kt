@@ -23,6 +23,7 @@ import kr.toxicity.model.mixin.DisplayAccessor
 import kr.toxicity.model.mixin.EntityAccessor
 import kr.toxicity.model.util.CONFIG
 import kr.toxicity.model.util.PLATFORM
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.minecraft.network.Connection
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.*
@@ -56,7 +57,7 @@ class PlayerChannelHandlerImpl(
     }
 
     override fun base(): BasePlayer = basePlayer
-    override fun isModEnabled(): Boolean = false
+    override fun isModEnabled(): Boolean = ServerPlayNetworking.getReceived(player).contains(ModAnimationBundlerImpl.IDENTIFIER)
 
     private val playerModel get() = connection.player.id.toRegistry()
 

@@ -56,7 +56,6 @@ tasks {
 
 modrinth {
     uploadFile.set(tasks.shadowJar)
-    gameVersions = SUPPORTED_VERSIONS
     dependencies {
         optional.project(
             "mythicmobs",

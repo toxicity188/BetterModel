@@ -153,7 +153,7 @@ class NMSImpl : NMS {
         }
 
         override fun base(): BasePlayer = base
-        override fun isModEnabled(): Boolean = player.channels().contains("modelengine:bulk_data")
+        override fun isModEnabled(): Boolean = (if (BetterModelBukkit.IS_PAPER) player.channels() else player.listeningPluginChannels).contains(ModAnimationBundlerImpl.KEY)
 
         private val playerModel get() = connection.player.id.toRegistry()
 

@@ -81,7 +81,7 @@ class BetterModelNMSImpl : NMS {
 
     override fun createParallelBundler(threshold: Int): PacketBundler = parallelBundlerOf(threshold)
 
-    override fun createModAnimationBuilder(initialCapacity: Int): ModAnimationBundler = {}
+    override fun createModAnimationBuilder(initialCapacity: Int): ModAnimationBundler = ModAnimationBundlerImpl(initialCapacity)
 
     override fun tint(itemStack: PlatformItemStack, rgb: Int): PlatformItemStack {
         return itemStack.clone().unwarp().apply {

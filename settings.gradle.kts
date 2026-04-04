@@ -27,8 +27,8 @@ dependencyResolutionManagement {
         maven("https://repo.purpurmc.org/snapshots")
         maven("https://maven.citizensnpcs.co/repo/")
         maven("https://mvn.lumine.io/repository/maven-public/")
-        maven("https://repo.nexomc.com/releases/")
         maven("https://maven.nucleoid.xyz/")
+        maven("https://repo.nexomc.com/releases/")
         // for development builds
         maven(url = "https://central.sonatype.com/repository/maven-snapshots/") {
             name = "central-snapshots"
@@ -47,7 +47,7 @@ val published = setOf(
     "core",
     "core:bukkit-core",
 
-    //"platform:spigot", TODO reobf does not work in Java 25
+    "platform:spigot",
     "platform:paper",
     "platform:fabric",
 )
@@ -63,6 +63,7 @@ include(
     "nms:v1_21_R5",
     "nms:v1_21_R6",
     "nms:v1_21_R7",
+    "nms:v26_R1",
 
     //test
     "test-plugin"

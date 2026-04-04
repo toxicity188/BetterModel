@@ -191,7 +191,7 @@ tasks {
 modrinth {
     loaders = listOf("fabric", "quilt")
     uploadFile.set(jarDir.map { it.file(jarName) })
-    gameVersions = listOf("26.1")
+    gameVersions = LATEST_VERSION
     dependencies {
         required.version("fabric-api", libs.versions.fabric.api.get())
         required.version("fabric-language-kotlin", libs.versions.fabric.language.kotlin.get())

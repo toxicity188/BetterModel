@@ -12,7 +12,6 @@ import kr.toxicity.model.api.platform.PlatformPlayer
 import kr.toxicity.model.api.util.MathUtil
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.network.RegistryFriendlyByteBuf
-import net.minecraft.network.codec.StreamCodec
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket
 import net.minecraft.server.MinecraftServer
 import org.bukkit.craftbukkit.entity.CraftPlayer
@@ -32,18 +31,12 @@ internal class ModAnimationBundlerImpl(initialCapacity: Int) : ModAnimationBundl
         const val FIELD_SCALE = 1 shl 2
         const val FIELD_TRANSFORM_DURATION = 1 shl 4
 
-        @Suppress("UNCHECKED_CAST")
-        private val createPayload = (ClientboundCustomPayloadPacket::class.java.fields[0].apply {
-            isAccessible = true
-        }.get(null) as StreamCodec<RegistryFriendlyByteBuf, ClientboundCustomPayloadPacket>).let {
-            { buf: RegistryFriendlyByteBuf -> it.decode(buf) }
-        }
         private val EMPTY_BUILD_TASK: (FriendlyByteBuf) -> Unit = {}
     }
 
     private val packet by lazy {
         useByteBuf { buffer ->
-            createPayload(
+            ClientboundCustomPayloadPacket.GAMEPLAY_STREAM_CODEC.decode(
                 RegistryFriendlyByteBuf(
                     buffer,
                     MinecraftServer.getServer().registryAccess()

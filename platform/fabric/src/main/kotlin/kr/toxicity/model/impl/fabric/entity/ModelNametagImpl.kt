@@ -24,7 +24,6 @@ import kr.toxicity.model.impl.fabric.network.bundlerOfNotNull
 import kr.toxicity.model.impl.fabric.network.pack
 import kr.toxicity.model.impl.fabric.network.plusAssign
 import kr.toxicity.model.mixin.DisplayAccessor
-import kr.toxicity.model.util.PLATFORM
 import net.minecraft.network.chat.Component
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
 import net.minecraft.network.protocol.game.ClientboundEntityPositionSyncPacket
@@ -54,7 +53,7 @@ class ModelNametagImpl(
     private val viewedPlayer = ConcurrentHashMap.newKeySet<UUID>()
     private val display = Display.TextDisplay(
         EntityType.TEXT_DISPLAY,
-        (PLATFORM as BetterModelMod).server().overworld()
+        BetterModelMod.platform().server().overworld()
     ).apply {
         entityData[DisplayAccessor.`bettermodel$getDataPosRotInterpolationDurationId`()] = 3
         setTransformation(emptyTransformation)
