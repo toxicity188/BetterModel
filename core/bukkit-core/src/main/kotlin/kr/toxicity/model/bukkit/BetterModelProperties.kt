@@ -7,7 +7,6 @@
 
 package kr.toxicity.model.bukkit
 
-import com.vdurmont.semver4j.Semver
 import kr.toxicity.model.BetterModelEvaluatorImpl
 import kr.toxicity.model.api.BetterModelConfig
 import kr.toxicity.model.api.BetterModelPlatform.ReloadResult
@@ -25,10 +24,12 @@ import kr.toxicity.model.bukkit.scheduler.PaperScheduler
 import kr.toxicity.model.manager.*
 import kr.toxicity.model.util.callEvent
 import kr.toxicity.model.util.handleException
+import kr.toxicity.model.util.ifNull
 import kr.toxicity.model.util.toComponent
 import kr.toxicity.model.util.warn
 import org.bstats.bukkit.Metrics
 import org.bukkit.Bukkit
+import org.semver4j.Semver
 
 private typealias Latest = kr.toxicity.model.bukkit.nms.v26_R1.NMSImpl
 
@@ -60,7 +61,7 @@ internal class BetterModelProperties(
     val evaluator = BetterModelEvaluatorImpl()
     val eventbus = BukkitModelEventBusImpl()
     @Suppress("DEPRECATION") //To support Spigot :(
-    val semver = Semver(plugin.description.version, Semver.SemverType.LOOSE)
+    val semver = Semver.coerce(plugin.description.version).ifNull { "Unable to load BetterModel's sermver." }
     val snapshot = runCatching {
         plugin.attributes().getValue("Dev-Build").toInt()
     }.getOrElse {

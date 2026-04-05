@@ -7,7 +7,6 @@
 
 package kr.toxicity.model.api;
 
-import com.vdurmont.semver4j.Semver;
 import kr.toxicity.model.api.event.ModelEventApplication;
 import kr.toxicity.model.api.manager.*;
 import kr.toxicity.model.api.nms.NMS;
@@ -20,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.audience.Audience;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.semver4j.Semver;
 
 import java.io.File;
 import java.io.InputStream;

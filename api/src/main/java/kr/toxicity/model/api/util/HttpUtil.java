@@ -13,7 +13,6 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonParser;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.stream.JsonReader;
-import com.vdurmont.semver4j.Semver;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.version.MinecraftVersion;
 import net.kyori.adventure.text.Component;
@@ -23,6 +22,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.semver4j.Semver;
 
 import java.io.InputStreamReader;
 import java.net.URI;
@@ -49,7 +49,7 @@ public final class HttpUtil {
         .build();
     private static final Gson GSON = new GsonBuilder()
         .registerTypeAdapter(MinecraftVersion.class, (JsonDeserializer<MinecraftVersion>) (json, _, _) -> MinecraftVersion.parse(json.getAsString()))
-        .registerTypeAdapter(Semver.class, (JsonDeserializer<Semver>) (json, _, _) -> new Semver(json.getAsString(), Semver.SemverType.LOOSE))
+        .registerTypeAdapter(Semver.class, (JsonDeserializer<Semver>) (json, _, _) -> Semver.coerce(json.getAsString()))
         .create();
 
     /**
@@ -142,7 +142,7 @@ public final class HttpUtil {
         public @NotNull Component toURLComponent() {
             var url = "https://modrinth.com/plugin/bettermodel/version/" + id;
             return Component.text()
-                .content(versionNumber.getOriginalValue())
+                .content(versionNumber.getVersion())
                 .color(NamedTextColor.AQUA)
                 .hoverEvent(
                     HoverEvent.showText(Component.text()

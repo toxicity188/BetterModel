@@ -7,7 +7,6 @@
 
 package kr.toxicity.model.bukkit
 
-import com.vdurmont.semver4j.Semver
 import kr.toxicity.model.api.BetterModelConfig
 import kr.toxicity.model.api.BetterModelEvaluator
 import kr.toxicity.model.api.BetterModelLogger
@@ -34,6 +33,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.server.ServerLoadEvent
+import org.semver4j.Semver
 import java.io.File
 import java.io.InputStream
 import java.util.function.BiConsumer

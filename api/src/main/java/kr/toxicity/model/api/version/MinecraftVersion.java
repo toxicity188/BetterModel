@@ -7,10 +7,11 @@
 
 package kr.toxicity.model.api.version;
 
-import com.vdurmont.semver4j.Semver;
 import org.jetbrains.annotations.NotNull;
+import org.semver4j.Semver;
 
 import java.util.Comparator;
+import java.util.Objects;
 
 /**
  * Minecraft version.
@@ -85,13 +86,8 @@ public record MinecraftVersion(int major, int minor, int patch) implements Compa
      * @return parsed version
      */
     public static @NotNull MinecraftVersion parse(@NotNull String version) {
-        var split = new Semver(version, Semver.SemverType.LOOSE);
-        Integer v1, v2, v3;
-        return of(
-            (v1 = split.getMajor()) == null ? 0 : v1,
-            (v2 = split.getMinor()) == null ? 0 : v2,
-            (v3 = split.getPatch()) == null ? 0 : v3
-        );
+        var split = Objects.requireNonNull(Semver.coerce(version));
+        return of(split.getMajor(), split.getMinor(), split.getPatch());
     }
 
     /**

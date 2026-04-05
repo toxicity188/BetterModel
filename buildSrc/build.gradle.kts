@@ -15,6 +15,7 @@ dependencies {
     implementation(libs.build.hangarPublish)
     implementation(libs.build.minotaur)
     implementation(libs.build.resourcefactory)
+    implementation(libs.build.paperweight)
 
     implementation("org.jetbrains.dokka:dokka-gradle-plugin:2.2.0")
     implementation("dev.yumi.gradle.licenser:dev.yumi.gradle.licenser.gradle.plugin:2.2.2")

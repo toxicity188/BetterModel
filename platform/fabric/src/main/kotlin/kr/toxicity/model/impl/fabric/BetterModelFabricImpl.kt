@@ -7,7 +7,6 @@
 
 package kr.toxicity.model.impl.fabric
 
-import com.vdurmont.semver4j.Semver
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils
 import eu.pb4.polymer.resourcepack.api.ResourcePackBuilder
 import kr.toxicity.model.BetterModelEvaluatorImpl
@@ -46,6 +45,7 @@ import net.minecraft.WorldVersion
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.packs.metadata.pack.PackFormat
 import net.minecraft.util.InclusiveRange
+import org.semver4j.Semver
 import java.io.File
 import java.io.InputStream
 import java.nio.file.Files
@@ -79,10 +79,8 @@ class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterMod
     private val semver: Semver = FabricLoader.getInstance()
         .getModContainer(modId())
         .map { modContainer ->
-            Semver(
-                modContainer.metadata.version.friendlyString,
-                Semver.SemverType.LOOSE
-            )
+            Semver.coerce(modContainer.metadata.version.friendlyString)
+                .ifNull { "Unable to load BetterModel's semver." }
         }
         .orElseThrow()
 

@@ -21,7 +21,7 @@ neoform = "26.1.1-1"
 [libraries]
 kotlin = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 
-semver4j = "com.vdurmont:semver4j:3.1.0"
+semver4j = "org.semver4j:semver4j:6.0.0"
 caffeine = "com.github.ben-manes.caffeine:caffeine:3.2.3"
 
 adventure-api = "net.kyori:adventure-api:4.26.1"
@@ -63,6 +63,7 @@ build-shadow = { module = "com.gradleup.shadow:com.gradleup.shadow.gradle.plugin
 build-minotaur = { module = "com.modrinth.minotaur:com.modrinth.minotaur.gradle.plugin", version.ref = "minotaur" }
 build-hangarPublish = { module = "io.papermc.hangar-publish-plugin:io.papermc.hangar-publish-plugin.gradle.plugin", version.ref = "hangarPublish" }
 build-resourcefactory = { module = "xyz.jpenilla:resource-factory", version.ref = "resourcefactory" }
+build-paperweight = { module = "io.papermc.paperweight.userdev:io.papermc.paperweight.userdev.gradle.plugin", version.ref = "paperweight" }
 
 [bundles]
 minecraft = [
@@ -125,7 +126,6 @@ shadedLibrary = [
 resourcefactory-bukkit = { id = "xyz.jpenilla.resource-factory-bukkit-convention" }
 resourcefactory-paper = { id = "xyz.jpenilla.resource-factory-paper-convention" }
 resourcefactory-fabric = { id = "xyz.jpenilla.resource-factory-fabric-convention" }
-paperweight = { id = "io.papermc.paperweight.userdev", version.ref = "paperweight" }
 
 hangar = { id = "io.papermc.hangar-publish-plugin" }
 

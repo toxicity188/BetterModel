@@ -8,13 +8,14 @@
 package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonDeserializer;
-import com.vdurmont.semver4j.Semver;
 import kr.toxicity.model.api.util.MathUtil;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
+import org.semver4j.Semver;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * Represents metadata about the model file, specifically the format version.
@@ -33,7 +34,7 @@ public record ModelMeta(
      * @since 1.15.2
      */
     public static final JsonDeserializer<ModelMeta> PARSER = (json, _, _) -> new ModelMeta(
-        FormatVersion.find(new Semver(json.getAsJsonObject().getAsJsonPrimitive("format_version").getAsString(), Semver.SemverType.LOOSE).getMajor())
+        FormatVersion.find(Objects.requireNonNull(Semver.coerce(json.getAsJsonObject().getAsJsonPrimitive("format_version").getAsString())).getMajor())
     );
 
     /**
