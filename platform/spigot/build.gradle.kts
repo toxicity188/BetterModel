@@ -10,7 +10,6 @@ val dependenciesContent: List<String> = libs.bundles.library.map {
 }.get()
 
 dependencies {
-    shade(project(":nms:v1_21_R1", configuration = "reobf")) { isTransitive = false }
     shade(project(":nms:v1_21_R3", configuration = "reobf")) { isTransitive = false }
     shade(project(":nms:v1_21_R4", configuration = "reobf")) { isTransitive = false }
     shade(project(":nms:v1_21_R5", configuration = "reobf")) { isTransitive = false }
@@ -35,7 +34,7 @@ bukkitPluginYaml {
     version = project.version.toString()
     name = "BetterModel"
     foliaSupported = true
-    apiVersion = "26.1"
+    apiVersion = "1.21.4"
     author = "toxicity188"
     description = "Modern Bedrock model engine for Minecraft Java Edition"
     website = "https://modrinth.com/plugin/bettermodel"

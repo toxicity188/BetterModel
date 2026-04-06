@@ -23,11 +23,6 @@ import org.jetbrains.annotations.NotNull;
 @Getter
 public enum NMSVersion {
     /**
-     * Minecraft 1.21 - 1.21.1
-     * @since 1.15.2
-     */
-    V1_21_R1(34),
-    /**
      * Minecraft 1.21.4
      * @since 1.15.2
      */

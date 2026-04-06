@@ -12,7 +12,6 @@ val dependenciesContent: String = libs.bundles.library.map { bundle ->
 }.get()
 
 dependencies {
-    shade(project(":nms:v1_21_R1")) { isTransitive = false }
     shade(project(":nms:v1_21_R3")) { isTransitive = false }
     shade(project(":nms:v1_21_R4")) { isTransitive = false }
     shade(project(":nms:v1_21_R5")) { isTransitive = false }
@@ -57,7 +56,7 @@ paperPluginYaml {
     version = project.version.toString()
     name = "BetterModel"
     foliaSupported = true
-    apiVersion = "1.20"
+    apiVersion = "1.21.4"
     author = "toxicity188"
     contributors = listOf("https://github.com/toxicity188/BetterModel/graphs/contributors")
     description = "Modern Bedrock model engine for Minecraft Java Edition"

@@ -128,7 +128,7 @@ public enum BoneTags implements BoneTag {
         @Override
         public @NotNull TransformedItemStack apply(@NotNull BoneRenderContext context, @NotNull TransformedItemStack transformedItemStack) {
             TransformedItemStack cape = null;
-            if (BetterModel.platform().skinManager().supported() && context.source() instanceof Profiled profiled && profiled.skinParts().isCapeEnabled()) {
+            if (context.source() instanceof Profiled profiled && profiled.skinParts().isCapeEnabled()) {
                 cape = context.skin().cape(profiled.armors());
             }
             return cape != null ? cape : TransformedItemStack.empty();

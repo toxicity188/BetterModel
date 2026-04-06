@@ -23,7 +23,6 @@ import kr.toxicity.model.api.profile.ModelProfile
 import kr.toxicity.model.api.profile.ModelProfileInfo
 import kr.toxicity.model.api.skin.SkinData
 import kr.toxicity.model.api.util.TransformedItemStack
-import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.util.*
 import org.joml.Vector3f
 import java.awt.image.BufferedImage
@@ -677,8 +676,6 @@ object SkinManagerImpl : SkinManager, GlobalManager {
         }
     }
 
-    override fun supported(): Boolean = PLATFORM.version() >= MinecraftVersion.V1_21_4
-
     private fun handleExpiration(key: UUID, skin: SkinDataImpl) {
         skin.profile().let {
             if (!callEvent { RemovePlayerSkinEvent(it) } || it.playerEquals()) profileCache.put(key, skin)
@@ -832,14 +829,9 @@ object SkinManagerImpl : SkinManager, GlobalManager {
             "player_limb"
         )
         if (!CONFIG.module().playerAnimation) return
-        if (supported()) write { resource ->
+        write { resource ->
             zipper.modern().add(resource.path(), resource.estimatedSize()) {
                 resource.build()
-            }
-        } else PLATFORM.loadAssets(pipeline, "pack") { s, i ->
-            val read = i.readAllBytes()
-            zipper.legacy().add(s) {
-                read
             }
         }
         profileCache.asMap().entries.forEach {

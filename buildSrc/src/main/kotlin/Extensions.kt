@@ -14,8 +14,6 @@ val LATEST_VERSION = listOf(
 
 val SUPPORTED_VERSIONS = buildList {
     addAll(listOf(
-        "1.21",
-        "1.21.1",
         "1.21.4",
         "1.21.5",
         "1.21.6",

@@ -56,7 +56,7 @@ BetterModel aims to be a reliable engine that provides stable, high-quality anim
 
 ## 🛠️ Build info
 
-[![](https://img.shields.io/badge/minecraft-1.21%7E26.1-8FCA5C)](https://www.minecraft.net/en-us/download/server)
+[![](https://img.shields.io/badge/minecraft-1.21.4%7E26.1-8FCA5C)](https://www.minecraft.net/en-us/download/server)
 [![](https://img.shields.io/badge/java-25%7E-ED8B00)](https://adoptium.net/)
 
 #### Build
@@ -64,7 +64,7 @@ BetterModel aims to be a reliable engine that provides stable, high-quality anim
 
 `./gradlew build`: Builds all jars  
 `./gradlew shadowJar`: Builds plugin jar  
-`./gradlew javadocJar`: Builds javadoc jar  
+`./gradlew javadocJar`: Builds Javadoc jar  
 `./gradlew runServer`: Runs Paper test server with test plugin
 
 #### Library

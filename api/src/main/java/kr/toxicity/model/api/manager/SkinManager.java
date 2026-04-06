@@ -25,14 +25,6 @@ import java.util.concurrent.CompletableFuture;
 public interface SkinManager {
 
     /**
-     * Checks if a skin provider (like SkinsRestorer) is supported and available.
-     *
-     * @return true if supported, false otherwise
-     * @since 1.15.2
-     */
-    boolean supported();
-
-    /**
      * Returns the fallback skin data used when a skin cannot be resolved.
      *
      * @return the fallback skin data

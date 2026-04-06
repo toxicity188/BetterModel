@@ -60,18 +60,6 @@ public record MinecraftVersion(int major, int minor, int patch) implements Compa
      * 1.21.4
      */
     public static final MinecraftVersion V1_21_4 = of(1, 21, 4);
-    /**
-     * 1.21.2
-     */
-    public static final MinecraftVersion V1_21_2 = of(1, 21, 2);
-    /**
-     * 1.21.1
-     */
-    public static final MinecraftVersion V1_21_1 = of(1, 21, 1);
-    /**
-     * 1.21
-     */
-    public static final MinecraftVersion V1_21 = of(1, 21, 0);
 
     /**
      * Comparator
@@ -116,14 +104,6 @@ public record MinecraftVersion(int major, int minor, int patch) implements Compa
      */
     public boolean useModernResource() {
         return isGreaterOrEquals(V1_21_4);
-    }
-
-    /**
-     * Checks this version should be use item model namespace.
-     * @return use item model namespace.
-     */
-    public boolean useItemModelName() {
-        return isGreaterOrEquals(V1_21_2);
     }
 
     @Override
