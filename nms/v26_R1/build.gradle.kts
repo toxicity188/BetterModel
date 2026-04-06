@@ -3,5 +3,5 @@ plugins {
 }
 
 dependencies {
-    paperweight.paperDevBundle("26.1.1.build.28-alpha")
+    paperweight.paperDevBundle("26.1.1.build.+")
 }
