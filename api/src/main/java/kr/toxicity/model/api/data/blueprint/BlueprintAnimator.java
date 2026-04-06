@@ -7,7 +7,10 @@
 
 package kr.toxicity.model.api.data.blueprint;
 
-import kr.toxicity.model.api.animation.*;
+import kr.toxicity.model.api.animation.AnimationIterator;
+import kr.toxicity.model.api.animation.AnimationKeyframe;
+import kr.toxicity.model.api.animation.AnimationProgress;
+import kr.toxicity.model.api.animation.VectorPoint;
 import kr.toxicity.model.api.bone.BoneName;
 import org.jetbrains.annotations.NotNull;
 

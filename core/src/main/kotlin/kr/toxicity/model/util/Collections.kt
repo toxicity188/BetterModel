@@ -7,22 +7,7 @@
 
 package kr.toxicity.model.util
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap
-import it.unimi.dsi.fastutil.objects.Object2ObjectMaps
-import it.unimi.dsi.fastutil.objects.Object2ObjectSortedMap
-import it.unimi.dsi.fastutil.objects.Object2ObjectSortedMaps
-import it.unimi.dsi.fastutil.objects.Object2ReferenceMap
-import it.unimi.dsi.fastutil.objects.Object2ReferenceMaps
-import it.unimi.dsi.fastutil.objects.Object2ReferenceSortedMap
-import it.unimi.dsi.fastutil.objects.Object2ReferenceSortedMaps
-import it.unimi.dsi.fastutil.objects.Reference2ObjectMap
-import it.unimi.dsi.fastutil.objects.Reference2ObjectMaps
-import it.unimi.dsi.fastutil.objects.Reference2ObjectSortedMap
-import it.unimi.dsi.fastutil.objects.Reference2ObjectSortedMaps
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceMaps
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceSortedMap
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceSortedMaps
+import it.unimi.dsi.fastutil.objects.*
 import kr.toxicity.model.api.util.CollectionUtil
 import java.util.*
 import java.util.concurrent.CompletableFuture

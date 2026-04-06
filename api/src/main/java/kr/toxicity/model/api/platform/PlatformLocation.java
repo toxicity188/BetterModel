@@ -9,7 +9,8 @@ package kr.toxicity.model.api.platform;
 
 import org.jetbrains.annotations.NotNull;
 
-import static java.lang.Math.*;
+import static java.lang.Math.fma;
+import static java.lang.Math.sqrt;
 
 /**
  * Represents a location in the underlying platform.

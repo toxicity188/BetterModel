@@ -7,10 +7,10 @@
 
 package kr.toxicity.model.bukkit.configuration
 
+import kr.toxicity.model.bukkit.util.toYaml
 import kr.toxicity.model.util.DATA_FOLDER
 import kr.toxicity.model.util.PLATFORM
 import kr.toxicity.model.util.ifNull
-import kr.toxicity.model.bukkit.util.toYaml
 import org.bukkit.configuration.file.YamlConfiguration
 import java.io.File
 

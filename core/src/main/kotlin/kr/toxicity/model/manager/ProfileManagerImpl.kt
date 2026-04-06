@@ -17,7 +17,7 @@ import kr.toxicity.model.profile.DefaultHttpModelProfileSupplier
 import kr.toxicity.model.profile.HttpModelProfileSupplier
 import kr.toxicity.model.util.PLATFORM
 import java.net.URI
-import java.util.Base64
+import java.util.*
 
 object ProfileManagerImpl : ProfileManager, GlobalManager {
 

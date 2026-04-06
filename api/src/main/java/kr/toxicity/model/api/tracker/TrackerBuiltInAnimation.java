@@ -11,10 +11,12 @@ import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.function.Function;
 
-import static kr.toxicity.model.api.util.CollectionUtil.*;
+import static kr.toxicity.model.api.util.CollectionUtil.newAddressingMap;
 
 /**
  * A utility class for managing built-in animations for trackers.

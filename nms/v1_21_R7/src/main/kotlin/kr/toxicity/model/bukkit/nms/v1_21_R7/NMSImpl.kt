@@ -18,8 +18,8 @@ import io.netty.channel.ChannelPromise
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.bone.RenderedBone
 import kr.toxicity.model.api.bukkit.BetterModelBukkit
-import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import kr.toxicity.model.api.bukkit.entity.BaseBukkitEntity
+import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import kr.toxicity.model.api.entity.BaseEntity
 import kr.toxicity.model.api.entity.BasePlayer
 import kr.toxicity.model.api.mount.MountController

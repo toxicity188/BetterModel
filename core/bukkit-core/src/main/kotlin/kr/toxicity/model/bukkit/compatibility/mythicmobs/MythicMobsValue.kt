@@ -11,10 +11,10 @@ import io.lumine.mythic.api.adapters.AbstractEntity
 import io.lumine.mythic.api.config.MythicLineConfig
 import io.lumine.mythic.api.skills.SkillMetadata
 import kr.toxicity.model.api.util.function.BonePredicate
-import kr.toxicity.model.util.boneName
-import kr.toxicity.model.util.toPackName
 import kr.toxicity.model.bukkit.util.toRegistry
 import kr.toxicity.model.bukkit.util.toTracker
+import kr.toxicity.model.util.boneName
+import kr.toxicity.model.util.toPackName
 
 val MM_MODEL_ID = arrayOf("mid", "m", "model")
 val MM_PART_ID = arrayOf("partid", "p", "pid", "part")

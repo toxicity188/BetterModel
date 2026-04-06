@@ -7,7 +7,6 @@
 
 package kr.toxicity.model.api.bone;
 
-import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.entity.BaseEntity;
 import kr.toxicity.model.api.nms.Profiled;
 import kr.toxicity.model.api.platform.PlatformItemTransform;

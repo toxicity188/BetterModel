@@ -7,8 +7,8 @@
 
 package kr.toxicity.model.bukkit.nms.v26_R1
 
-import kr.toxicity.model.api.bukkit.platform.BukkitAdapter.*
 import kr.toxicity.model.api.bukkit.platform.*
+import kr.toxicity.model.api.bukkit.platform.BukkitAdapter.adapt
 import kr.toxicity.model.api.bukkit.platform.BukkitItemStack
 import kr.toxicity.model.api.platform.*
 import org.bukkit.Location
