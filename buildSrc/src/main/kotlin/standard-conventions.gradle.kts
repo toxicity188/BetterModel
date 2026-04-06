@@ -39,6 +39,7 @@ license {
 }
 
 java {
+    disableAutoTargetJvm()
     toolchain.languageVersion = JavaLanguageVersion.of(JAVA_VERSION)
 }
 

@@ -10,17 +10,17 @@ val dependenciesContent: List<String> = libs.bundles.library.map {
 }.get()
 
 dependencies {
-//    shade(project(":nms:v1_21_R1", configuration = "reobf")) { isTransitive = false }
-//    shade(project(":nms:v1_21_R3", configuration = "reobf")) { isTransitive = false }
-//    shade(project(":nms:v1_21_R4", configuration = "reobf")) { isTransitive = false }
-//    shade(project(":nms:v1_21_R5", configuration = "reobf")) { isTransitive = false }
-//    shade(project(":nms:v1_21_R6", configuration = "reobf")) { isTransitive = false }
-//    shade(project(":nms:v1_21_R7", configuration = "reobf")) { isTransitive = false }
+    shade(project(":nms:v1_21_R1", configuration = "reobf")) { isTransitive = false }
+    shade(project(":nms:v1_21_R3", configuration = "reobf")) { isTransitive = false }
+    shade(project(":nms:v1_21_R4", configuration = "reobf")) { isTransitive = false }
+    shade(project(":nms:v1_21_R5", configuration = "reobf")) { isTransitive = false }
+    shade(project(":nms:v1_21_R6", configuration = "reobf")) { isTransitive = false }
+    shade(project(":nms:v1_21_R7", configuration = "reobf")) { isTransitive = false }
     shade(project(":nms:v26_R1")) { isTransitive = false }
 }
 
 modrinth {
-    gameVersions = LATEST_VERSION
+    gameVersions = SUPPORTED_VERSIONS
     loaders = BUKKIT_LOADERS
 }
 
