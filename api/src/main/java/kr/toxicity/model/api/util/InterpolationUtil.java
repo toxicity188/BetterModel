@@ -191,31 +191,31 @@ public final class InterpolationUtil {
     }
 
     private static float cubicBezier(float p0, float p1, float p2, float p3, float t) {
-        float u = 1.0F - t;
-        float uu = u * u;
-        float tt = t * t;
-        float uuu = uu * u;
-        float utt = u * tt;
-        float uut = uu * t;
-        float ttt = tt * t;
+        var u = 1.0F - t;
+        var uu = u * u;
+        var tt = t * t;
+        var uuu = uu * u;
+        var utt = u * tt;
+        var uut = uu * t;
+        var ttt = tt * t;
         return fma(uuu, p0, fma(3.0F * uut, p1, fma(3.0F * utt, p2, ttt * p3)));
     }
 
     private static float derivativeBezier(float p1, float p2, float t) {
-        float u = 1.0F - t;
-        float uu = u * u;
-        float ut = u * t;
-        float tt = t * t;
+        var u = 1.0F - t;
+        var uu = u * u;
+        var ut = u * t;
+        var tt = t * t;
         return fma(3.0F * uu, p1, fma(6.0F * ut, p2 - p1, 3.0F * tt * (1 - p2)));
     }
 
     private static float solveBezierTForTime(float time, float h1, float h2) {
-        float t = 0.5F;
-        int maxIterations = 20;
+        var t = 0.5F;
+        var maxIterations = 20;
         for (int i = 0; i < maxIterations; i++) {
-            float bezTime = cubicBezier(0, h1, h2, 1, t);
-            float derivative = derivativeBezier(h1, h2, t);
-            float error = bezTime - time;
+            var bezTime = cubicBezier(0, h1, h2, 1, t);
+            var derivative = derivativeBezier(h1, h2, t);
+            var error = bezTime - time;
             if (Math.abs(error) < FLOAT_COMPARISON_EPSILON) {
                 return t;
             }
@@ -248,20 +248,18 @@ public final class InterpolationUtil {
         @NotNull Vector3f bezierLeftTime,
         @NotNull Vector3f bezierLeftValue
     ) {
-        var p1 = start.add(bezierRightValue, new Vector3f());
-        var p2 = end.add(bezierLeftValue, new Vector3f());
         return new Vector3f(
-            cubicBezier(start.x, p1.x, p2.x, end.x, solveBezierTForTime(
+            cubicBezier(start.x, start.x + bezierRightValue.x, end.x + bezierLeftValue.x, end.x, solveBezierTForTime(
                 alpha,
                 bezierRightTime.x,
                 1 + bezierLeftTime.x
             )),
-            cubicBezier(start.y, p1.y, p2.y, end.y, solveBezierTForTime(
+            cubicBezier(start.y, start.y + bezierRightValue.y, end.y + bezierLeftValue.y, end.y, solveBezierTForTime(
                 alpha,
                 bezierRightTime.y,
                 1 + bezierLeftTime.y
             )),
-            cubicBezier(start.z, p1.z, p2.z, end.z, solveBezierTForTime(
+            cubicBezier(start.z, start.z + bezierRightValue.z, end.z + bezierLeftValue.z, end.z, solveBezierTForTime(
                 alpha,
                 bezierRightTime.z,
                 1 + bezierLeftTime.z
