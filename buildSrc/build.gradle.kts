@@ -18,6 +18,6 @@ dependencies {
     implementation(libs.build.paperweight)
 
     implementation("org.jetbrains.dokka:dokka-gradle-plugin:2.2.0")
-    implementation("dev.yumi.gradle.licenser:dev.yumi.gradle.licenser.gradle.plugin:3.0.0")
+    implementation("dev.yumi.gradle.licenser:dev.yumi.gradle.licenser.gradle.plugin:3.0.1")
     implementation("com.vanniktech.maven.publish:com.vanniktech.maven.publish.gradle.plugin:0.36.0")
 }
