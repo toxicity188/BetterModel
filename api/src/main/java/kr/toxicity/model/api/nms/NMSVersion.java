@@ -48,7 +48,7 @@ public enum NMSVersion {
      */
     V1_21_R7(75),
     /**
-     * Minecraft 26.1
+     * Minecraft 26.1.x
      * @since 3.0.0
      */
     V26_R1(84)
