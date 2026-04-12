@@ -10,8 +10,8 @@ hangarPublish = "0.1.4"
 fabric-api = "0.145.4+26.1.2"
 fabric-language-kotlin = "1.13.10+kotlin.2.3.20"
 
-cloud-bukkit = "2.0.0-SNAPSHOT" #TODO update this to 2.0.0-beta.15 when released
-cloud-mod = "2.0.0-SNAPSHOT" #TODO update this to 2.0.0-beta.16 when released
+cloud-bukkit = "2.0.0-beta.15"
+cloud-mod = "2.0.0-beta.16"
 cloud-core = "2.0.0"
 
 configurate = "4.2.0"
@@ -106,7 +106,7 @@ manifestLibrary = [
     "kotlin",
     "bStats",
     "molangCompiler",
-    #"cloud-paper",
+    "cloud-paper",
     "cloud-core",
     "geantyref",
     "adventure-api",
@@ -118,8 +118,7 @@ manifestLibrary = [
 
 shadedLibrary = [
     "armormodel",
-    "libby",
-    "cloud-paper"
+    "libby"
 ]
 
 [plugins]

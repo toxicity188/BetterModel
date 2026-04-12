@@ -9,7 +9,8 @@ val Project.libs
 
 val LATEST_VERSION = listOf(
     "26.1",
-    "26.1.1"
+    "26.1.1",
+    "26.1.2"
 )
 
 val SUPPORTED_VERSIONS = buildList {
