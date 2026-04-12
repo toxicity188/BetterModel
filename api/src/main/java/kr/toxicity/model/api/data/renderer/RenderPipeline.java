@@ -322,15 +322,27 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Adds a rotation modifier to matching bones.
+     * Adds a local rotation modifier to matching bones.
      *
      * @param predicate the predicate to select bones
      * @param mapper the rotation mapping function
      * @return true if any bones were modified
-     * @since 1.15.2
+     * @since 3.0.0
      */
-    public boolean addRotationModifier(@NotNull BonePredicate predicate, @NotNull Function<Quaternionf, Quaternionf> mapper) {
-        return matchTree(predicate, (b, p) -> b.addRotationModifier(p, mapper));
+    public boolean addLocalRotModifier(@NotNull BonePredicate predicate, @NotNull Function<Quaternionf, Quaternionf> mapper) {
+        return matchTree(predicate, (b, p) -> b.addLocalRotModifier(p, mapper));
+    }
+
+    /**
+     * Adds a global rotation modifier to matching bones.
+     *
+     * @param predicate the predicate to select bones
+     * @param mapper the rotation mapping function
+     * @return true if any bones were modified
+     * @since 3.0.0
+     */
+    public boolean addGlobalRotModifier(@NotNull BonePredicate predicate, @NotNull Function<Quaternionf, Quaternionf> mapper) {
+        return matchTree(predicate, (b, p) -> b.addGlobalRotModifier(p, mapper));
     }
 
     /**

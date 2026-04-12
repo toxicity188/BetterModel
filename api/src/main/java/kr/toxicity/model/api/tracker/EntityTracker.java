@@ -120,8 +120,8 @@ public class EntityTracker extends Tracker {
         pipeline.scale(scale);
         Function<Quaternionf, Quaternionf> headRotator = r -> r.mul(bodyRotator.headRotation());
 
-        pipeline.addRotationModifier(HEAD_PREDICATE, headRotator);
-        pipeline.addRotationModifier(HEAD_WITH_CHILDREN_PREDICATE, headRotator);
+        pipeline.addGlobalRotModifier(HEAD_PREDICATE, headRotator);
+        pipeline.addGlobalRotModifier(HEAD_WITH_CHILDREN_PREDICATE, headRotator);
 
         createNametag(CREATE_NAMETAG_PREDICATE, (bone, tag) -> {
             if (bone.name().tagged(BoneTags.PLAYER_TAG)) {
