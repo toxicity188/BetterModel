@@ -85,7 +85,7 @@ public interface AnimationScript extends Consumer<Tracker> {
                 var sync = false;
                 Consumer<Tracker> consumer = _ -> {};
                 for (AnimationScript entityScript : scriptList) {
-                    sync = sync || entityScript.isSync();
+                    sync |= entityScript.isSync();
                     consumer = consumer.andThen(entityScript);
                 }
                 yield of(sync, consumer);

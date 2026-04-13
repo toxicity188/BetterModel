@@ -138,10 +138,10 @@ public record EntityHideOption(
          * @since 1.15.2
          */
         public @NotNull Builder or(@NotNull EntityHideOption option) {
-            equipment = equipment || option.equipment;
-            fire = fire || option.fire;
-            visibility = visibility || option.visibility;
-            glowing = glowing || option.glowing;
+            equipment |= option.equipment;
+            fire |= option.fire;
+            visibility |= option.visibility;
+            glowing |= option.glowing;
             return this;
         }
 

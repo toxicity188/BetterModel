@@ -383,9 +383,8 @@ public final class EntityTrackerRegistry {
         closed.set(true);
         var data = new ArrayList<TrackerData>(trackerMap.size());
         for (EntityTracker value : trackers()) {
-            if (!value.canBeSaved()) continue;
-            data.add(value.asTrackerData());
             value.close();
+            if (value.canBeSaved()) data.add(value.asTrackerData());
         }
         trackerMap.clear();
         closed.set(false);

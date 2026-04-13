@@ -7,6 +7,7 @@
 
 package kr.toxicity.model.api.animation;
 
+import kr.toxicity.model.api.util.MathUtil;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -15,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 public interface Timed extends Comparable<Timed> {
 
     default int compareTo(@NotNull Timed o) {
-        return Float.compare(time(), o.time());
+        return MathUtil.FRAME_COMPARATOR.compare(time(), o.time());
     }
 
     /**
