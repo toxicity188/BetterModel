@@ -43,7 +43,7 @@ configurate-yaml = { module = "org.spongepowered:configurate-yaml", version.ref 
 joml = "org.joml:joml:1.10.8"
 gson = "com.google.code.gson:gson:2.13.2"
 fastutil = "it.unimi.dsi:fastutil:8.5.18"
-guava = "com.google.guava:guava:33.5.0-jre"
+guava = "com.google.guava:guava:33.6.0-jre"
 
 cloud-paper = { module = "org.incendo:cloud-paper", version.ref = "cloud-bukkit" }
 cloud-fabric = { module = "org.incendo:cloud-fabric", version.ref = "cloud-mod" }
