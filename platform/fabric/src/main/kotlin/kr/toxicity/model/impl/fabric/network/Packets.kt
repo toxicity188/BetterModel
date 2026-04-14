@@ -9,6 +9,7 @@ package kr.toxicity.model.impl.fabric.network
 
 import com.mojang.datafixers.util.Pair.of
 import io.netty.buffer.Unpooled
+import it.unimi.dsi.fastutil.ints.IntSet
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.mixin.ConnectionAccessor
 import kr.toxicity.model.mixin.EntityAccessor
@@ -31,6 +32,7 @@ import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import java.util.*
+import java.util.function.IntConsumer
 import java.util.stream.IntStream
 
 val Connection.channel get() = (this as ConnectionAccessor).`bettermodel$getChannel`()
@@ -118,7 +120,7 @@ fun EntityTrackerRegistry.entityFlag(uuid: UUID, byte: Byte): Byte {
     return b.toByte()
 }
 
-inline fun LivingEntity.toEquipmentPacket(mapper: (EquipmentSlot) -> ItemStack? = { if (hasItemInSlot(it)) getItemBySlot(it) else null }): ClientboundSetEquipmentPacket? {
+inline fun LivingEntity.toEquipmentPacket(mapper: (EquipmentSlot) -> ItemStack? = { getItemBySlot(it).takeUnless { item -> item.isEmpty } }): ClientboundSetEquipmentPacket? {
     val equip = EquipmentSlot.entries.mapNotNull {
         mapper(it)?.let { item -> of(it, item) }
     }
@@ -132,9 +134,9 @@ fun ClientboundContainerSetSlotPacket.isEquipment(player: Player): Boolean {
 }
 
 fun eachEquipmentSlots(block: (Int) -> Unit) {
-    PLAYER_EQUIPMENT_SLOT.forEach { slot ->
+    PLAYER_EQUIPMENT_SLOT.forEach(IntConsumer { slot ->
         block(slot)
-    }
+    })
 }
 
-private val PLAYER_EQUIPMENT_SLOT = setOf(45, 5, 6, 7, 8)
+private val PLAYER_EQUIPMENT_SLOT = IntSet.of(45, 5, 6, 7, 8)

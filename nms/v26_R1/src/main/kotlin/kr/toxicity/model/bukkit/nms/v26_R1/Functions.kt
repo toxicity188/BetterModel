@@ -176,7 +176,7 @@ internal fun EntityTrackerRegistry.entityFlag(uuid: UUID, byte: Byte): Byte {
 internal fun Vector3f.toVanilla() = Vec3(x.toDouble(), y.toDouble(), z.toDouble())
 internal fun Vec3.toBukkit() = Vector3f(x.toFloat(), y.toFloat(), z.toFloat())
 
-internal inline fun LivingEntity.toEquipmentPacket(mapper: (EquipmentSlot) -> ItemStack? = { if (hasItemInSlot(it)) getItemBySlot(it) else null }): ClientboundSetEquipmentPacket? {
+internal inline fun LivingEntity.toEquipmentPacket(mapper: (EquipmentSlot) -> ItemStack? = { getItemBySlot(it).takeUnless { item -> item.isEmpty } }): ClientboundSetEquipmentPacket? {
     val equip = EquipmentSlot.entries.mapNotNull {
         mapper(it)?.let { item -> com.mojang.datafixers.util.Pair.of(it, item) }
     }
@@ -185,7 +185,7 @@ internal inline fun LivingEntity.toEquipmentPacket(mapper: (EquipmentSlot) -> It
 internal fun LivingEntity.toEmptyEquipmentPacket() = toEquipmentPacket { ItemStack.EMPTY }
 
 internal val Player.hotbarSlot get() = inventory.selectedSlot + 36
-internal val PLAYER_EQUIPMENT_SLOT = IntSet.of(*intArrayOf(45, 5, 6, 7, 8))
+internal val PLAYER_EQUIPMENT_SLOT = IntSet.of(45, 5, 6, 7, 8)
 internal fun ClientboundContainerSetSlotPacket.isEquipment(player: Player) = containerId == 0 && (PLAYER_EQUIPMENT_SLOT.contains(slot) || slot == player.hotbarSlot)
 
 internal fun Entity.toFakeAddPacket() = ClientboundAddEntityPacket(

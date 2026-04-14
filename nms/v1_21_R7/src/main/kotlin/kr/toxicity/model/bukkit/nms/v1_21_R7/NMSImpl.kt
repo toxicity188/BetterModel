@@ -60,6 +60,7 @@ import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.joml.Vector3d
 import java.util.*
 import java.util.function.Consumer
+import java.util.function.IntConsumer
 
 class NMSImpl : NMS {
 
@@ -235,7 +236,7 @@ class NMSImpl : NMS {
                         containerId,
                         stateId,
                         items.apply {
-                            PLAYER_EQUIPMENT_SLOT.forEach { set(it, EMPTY_ITEM) }
+                            PLAYER_EQUIPMENT_SLOT.forEach(IntConsumer { set(it, EMPTY_ITEM) })
                             set(connection.player.hotbarSlot, EMPTY_ITEM)
                         },
                         carriedItem

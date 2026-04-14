@@ -13,24 +13,12 @@ import net.kyori.adventure.text.logger.slf4j.ComponentLogger
 import java.util.logging.Logger
 
 class BetterModelLoggerImpl : BetterModelLogger {
-    private var logger: ComponentLogger? = null
 
-    private fun logger(): ComponentLogger {
-        logger?.let { logger ->
-            return logger
-        }
-
-        synchronized(this) {
-            logger?.let { logger ->
-                return logger
-            }
-
-            return ComponentLogger.logger(LOGGER.name).also { logger = it }
-        }
+    private val logger by lazy {
+        ComponentLogger.logger(LOGGER.name)
     }
 
     override fun info(vararg messages: Component) {
-        val logger = logger()
         synchronized(this) {
             for (message in messages) {
                 logger.info(message)
@@ -39,7 +27,6 @@ class BetterModelLoggerImpl : BetterModelLogger {
     }
 
     override fun warn(vararg messages: Component) {
-        val logger = logger()
         synchronized(this) {
             for (message in messages) {
                 logger.warn(message)

@@ -10,6 +10,7 @@ package kr.toxicity.model.api.bone;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ObjectSortedSets;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.*;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
@@ -492,15 +493,16 @@ public final class RenderedBone implements BoneEventHandler {
     @Unmodifiable
     @NotNull
     public SequencedSet<RenderedBone> flattenBones() {
-        if (flattenBones != null) return flattenBones;
+        SequencedSet<RenderedBone> set;
+        if ((set = flattenBones) != null) return set;
         synchronized (this) {
-            if (flattenBones != null) return flattenBones;
+            if ((set = flattenBones) != null) return set;
             return flattenBones = children.length == 0 ? SingletonSequencedSet.of(this) : Stream.concat(
                 Stream.of(this),
                 Arrays.stream(children).flatMap(RenderedBone::flatten)
             ).collect(Collectors.collectingAndThen(
                 Collectors.toCollection(ObjectLinkedOpenHashSet::new),
-                Collections::unmodifiableSequencedSet
+                ObjectSortedSets::unmodifiable
             ));
         }
     }
