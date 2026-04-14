@@ -7,10 +7,6 @@
 
 package kr.toxicity.model.impl.fabric
 
-import com.google.common.collect.ImmutableMultimap
-import com.mojang.authlib.GameProfile
-import com.mojang.authlib.properties.Property
-import com.mojang.authlib.properties.PropertyMap
 import kr.toxicity.model.api.bone.RenderedBone
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import kr.toxicity.model.api.entity.BaseEntity
@@ -45,7 +41,6 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import net.minecraft.world.item.component.CustomModelData
 import net.minecraft.world.item.component.DyedItemColor
-import net.minecraft.world.item.component.ResolvableProfile
 import org.joml.Vector3d
 import java.util.function.Consumer
 
@@ -169,20 +164,6 @@ class BetterModelNMSImpl : NMS {
     }
 
     override fun profile(player: PlatformPlayer): ModelProfile = ModelProfileImpl(player.unwarp().player.gameProfile)
-
-    override fun createPlayerHead(profile: ModelProfile): PlatformItemStack = Items.PLAYER_HEAD.defaultInstance
-        .apply {
-            val gameProfileProperty = ImmutableMultimap.of(
-                "textures",
-                Property("textures", profile.skin().raw)
-            )
-            val gameProfile = GameProfile(
-                profile.info().id,
-                profile.info().name ?: "",
-                PropertyMap(gameProfileProperty)
-            )
-            set(DataComponents.PROFILE, ResolvableProfile.createResolved(gameProfile))
-        }.wrap()
 
     override fun isProxyOnlineMode(): Boolean = (PLATFORM as BetterModelMod).server().usesAuthentication()
 

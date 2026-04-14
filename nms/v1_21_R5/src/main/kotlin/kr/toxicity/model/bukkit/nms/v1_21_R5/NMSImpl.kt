@@ -9,7 +9,6 @@ package kr.toxicity.model.bukkit.nms.v1_21_R5
 
 import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.EntityLookup
 import com.mojang.authlib.GameProfile
-import com.mojang.authlib.properties.Property
 import io.netty.channel.ChannelDuplexHandler
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
@@ -53,7 +52,6 @@ import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.Items
 import net.minecraft.world.item.component.CustomModelData
 import net.minecraft.world.item.component.DyedItemColor
-import net.minecraft.world.item.component.ResolvableProfile
 import net.minecraft.world.level.entity.LevelEntityGetter
 import net.minecraft.world.level.entity.LevelEntityGetterAdapter
 import net.minecraft.world.level.entity.PersistentEntitySectionManager
@@ -378,15 +376,6 @@ class NMSImpl : NMS {
     }
 
     override fun profile(player: PlatformPlayer): ModelProfile = ModelGameProfile(getGameProfile((player.unwarp() as CraftPlayer).handle))
-
-    override fun createPlayerHead(profile: ModelProfile): PlatformItemStack = VanillaItemStack(Items.PLAYER_HEAD).apply {
-        set(DataComponents.PROFILE, ResolvableProfile(GameProfile(
-            profile.info().id,
-            profile.info().name ?: "",
-        ).apply {
-            properties.put("textures", Property("textures", profile.skin().raw))
-        }))
-    }.asBukkit().wrap()
 
     override fun createSkinItem(model: String, floats: List<Float>, flags: List<Boolean>, strings: List<String>, colors: List<Int>): TransformedItemStack {
         return VanillaItemStack(Items.PLAYER_HEAD).run {

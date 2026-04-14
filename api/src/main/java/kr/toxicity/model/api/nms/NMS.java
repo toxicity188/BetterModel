@@ -228,15 +228,6 @@ public interface NMS {
     @NotNull ModelProfile profile(@NotNull PlatformPlayer player);
 
     /**
-     * Creates a player head item stack from a model profile.
-     *
-     * @param profile the model profile
-     * @return the player head item
-     * @since 1.15.2
-     */
-    @NotNull PlatformItemStack createPlayerHead(@NotNull ModelProfile profile);
-
-    /**
      * Creates a custom skin item stack.
      *
      * @param model the model name
