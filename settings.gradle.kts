@@ -50,11 +50,6 @@ val published = setOf(
     "platform:spigot",
     "platform:paper",
     "platform:fabric",
-)
-
-include(published)
-include(
-    "purpur",
 
     //nms
     "nms:v1_21_R3",
@@ -62,14 +57,25 @@ include(
     "nms:v1_21_R5",
     "nms:v1_21_R6",
     "nms:v1_21_R7",
-    "nms:v26_R1",
+    "nms:v26_R1"
+)
+
+include(published)
+include(
+    "purpur",
 
     //test
     "test-plugin"
 )
 
 published.forEach { target ->
-    findProject(":$target")?.let {
-        it.name = "${rootProject.name}-${it.name}"
+    if (target.startsWith("nms")) {
+        findProject(":$target")?.let {
+            it.name = "${rootProject.name}-nms-${it.name}"
+        }
+    } else {
+        findProject(":$target")?.let {
+            it.name = "${rootProject.name}-${it.name}"
+        }
     }
 }

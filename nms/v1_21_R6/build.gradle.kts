@@ -1,6 +1,7 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
+    alias(libs.plugins.convention.publish)
     alias(libs.plugins.convention.paperweight)
 }
 
