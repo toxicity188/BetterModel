@@ -130,7 +130,7 @@ public final class AnimationStateHandler<T extends Timed> {
 
     private boolean updateAnimation() {
         synchronized (animators) {
-            var iterator = animators.values().iterator();
+            var iterator = animators.valueIterator();
             while (iterator.hasNext()) {
                 var next = iterator.next();
                 if (!next.getAsBoolean()) continue;

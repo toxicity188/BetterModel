@@ -86,7 +86,7 @@ fabricModJson {
     environment = Environment.ANY
 
     depends = mapOf(
-        "minecraft" to listOf("~${property("minecraft_version")}"),
+        "minecraft" to listOf(">=${LATEST_VERSION.first()}"),
         "fabricloader" to listOf("*"),
         "fabric-language-kotlin" to listOf(">=${libs.versions.fabric.language.kotlin.get()}"),
 

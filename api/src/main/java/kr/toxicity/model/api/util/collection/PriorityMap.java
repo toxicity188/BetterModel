@@ -112,11 +112,36 @@ public final class PriorityMap<K extends Comparable<K>, V> {
     }
 
     /**
-     * Returns a Collection view of the values contained in this map, sorted by priority.
+     * Returns an iterator over the values in this map in priority order.
      *
-     * @return a collection view of the values contained in this map
+     * @return a value iterator
+     * @since 3.0.1
      */
-    public @NotNull Collection<V> values() {
-        return valueMap.values();
+    public @NotNull Iterator<V> valueIterator() {
+        return new ValueIterator();
+    }
+
+    private class ValueIterator implements Iterator<V> {
+
+        private final Iterator<Map.Entry<Identifier<K>, V>> delegate = valueMap.entrySet().iterator();
+        private Identifier<K> identifier;
+
+        @Override
+        public boolean hasNext() {
+            return delegate.hasNext();
+        }
+
+        @Override
+        public V next() {
+            var next = delegate.next();
+            identifier = next.getKey();
+            return next.getValue();
+        }
+
+        @Override
+        public void remove() {
+            delegate.remove();
+            keyMap.remove(Objects.requireNonNull(identifier).key);
+        }
     }
 }

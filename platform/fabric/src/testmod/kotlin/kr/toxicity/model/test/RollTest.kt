@@ -10,7 +10,7 @@ package kr.toxicity.model.test
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.animation.AnimationModifier
-import kr.toxicity.model.api.fabric.platform.FabricPlayer
+import kr.toxicity.model.api.mod.platform.ModPlayer
 import kr.toxicity.model.api.tracker.ModelRotation
 import kr.toxicity.model.api.tracker.TrackerModifier
 import net.fabricmc.api.ModInitializer
@@ -85,7 +85,7 @@ class RollTest : ModInitializer {
 
         val yaw = player.lastClientInput.toYaw()
         val tracker = renderer.getOrCreate(
-            FabricPlayer.of(player.connection),
+            ModPlayer.of(player.connection),
             TrackerModifier.DEFAULT
         ) { tracker ->
             tracker.rotation {
