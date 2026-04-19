@@ -70,10 +70,11 @@ public final class PriorityMap<K extends Comparable<K>, V> {
      * @return the previous value associated with key, or null if there was no mapping for key.
      */
     public @Nullable V put(@NotNull K key, @NotNull V value, int priority) {
-        return valueMap.put(
-            keyMap.computeIfAbsent(Objects.requireNonNull(key), _ -> new Identifier<>(priority, counter++, key)),
-            Objects.requireNonNull(value)
-        );
+        Objects.requireNonNull(key);
+        Objects.requireNonNull(value);
+        Identifier<K> newIdentifier, oldIdentifier;
+        if ((oldIdentifier = keyMap.put(key, newIdentifier = new Identifier<>(priority, counter++, key))) != null) valueMap.remove(oldIdentifier);
+        return valueMap.put(newIdentifier, value);
     }
 
     /**
