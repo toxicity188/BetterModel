@@ -26,7 +26,6 @@ import org.jetbrains.annotations.Unmodifiable;
 import org.joml.Quaternionf;
 
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static kr.toxicity.model.api.util.CollectionUtil.*;
@@ -138,23 +137,16 @@ public sealed interface BlueprintElement {
         /**
          * Builds the JSON representation for legacy clients (1.21.3 or under).
          *
-         * @param skipLog whether to skip logging warnings for invalid rotations
          * @param obfuscator the obfuscator for model and texture names
          * @param context the load context
          * @return the generated blueprint JSON, or null if not applicable
          * @since 1.15.2
          */
         public @Nullable BlueprintJson buildLegacyJson(
-            boolean skipLog,
             @NotNull PackObfuscator.Pair obfuscator,
             @NotNull BlueprintLoadContext context
         ) {
-            Predicate<Cube> filter = element -> MathUtil.checkValidDegree(element.identifierDegree());
-            if (!skipLog) filter = filterWithWarning(
-                filter,
-                element -> "The model " + context.name() + "'s cube \"" + element.name() + "\" has an invalid rotation which does not supported in legacy client (<=1.21.3) " + element.rotation()
-            );
-            return buildJson(-2, 1, scale(), obfuscator, context, Float3.ZERO, filterIsInstance(children, Cube.class).filter(filter));
+            return buildJson(-2, 1, scale(), obfuscator, context, Float3.ZERO, filterIsInstance(children, Cube.class).filter(element -> MathUtil.checkValidDegree(element.identifierDegree())));
         }
 
         /**

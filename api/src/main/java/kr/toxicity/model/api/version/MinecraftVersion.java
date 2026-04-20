@@ -93,23 +93,6 @@ public record MinecraftVersion(int major, int minor, int patch) implements Compa
         return new MinecraftVersion(major, minor, patch);
     }
 
-    /**
-     * Checks this version is greater or equals than another.
-     * @param other other
-     * @return greater or not
-     */
-    public boolean isGreaterOrEquals(@NotNull MinecraftVersion other) {
-        return compareTo(other) >= 0;
-    }
-
-    /**
-     * Checks this version should be use modern resource.
-     * @return use modern resource
-     */
-    public boolean useModernResource() {
-        return isGreaterOrEquals(V1_21_4);
-    }
-
     @Override
     public int compareTo(@NotNull MinecraftVersion o) {
         return COMPARATOR.compare(this, o);

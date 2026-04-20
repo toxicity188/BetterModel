@@ -81,7 +81,13 @@ object ModelManagerImpl : ModelManager, GlobalManager {
         return modelFileMap.values
             .asSequence()
             .sortedBy { it.first }
-            .map { ImportedModel(it.first.sizeAssume, type,it.second) }
+            .map {
+                ImportedModel(
+                    it.first.sizeAssume - it.second.textures.sumOf { tex -> tex.image.size },
+                    type,
+                    it.second
+                )
+            }
     }
 
     private fun loadModels(pipeline: ReloadPipeline, zipper: PackZipper) {
@@ -95,7 +101,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                             copyRecursively(folder, overwrite = true)
                             info("ModelEngine's models are successfully migrated.".toComponent(GREEN))
                         } ?: run {
-                        if (PLATFORM.version().useModernResource()) folder.addResource("demon_knight.bbmodel")
+                        folder.addResource("demon_knight.bbmodel")
                         folder.addResource("blue_wizard.bbmodel")
                     }
                 })
@@ -110,14 +116,10 @@ object ModelManagerImpl : ModelManager, GlobalManager {
     }
 
     private data class ImportedModel(
-        val size: Long,
+        val jsonSize: Long,
         val type: ModelRenderer.Type,
         val blueprint: ModelBlueprint
-    ) {
-        val jsonSize = size - blueprint.textures.sumOf {
-            it.image.size
-        }
-    }
+    )
 
     private class ModelPipeline(
         zipper: PackZipper
@@ -197,9 +199,8 @@ object ModelManagerImpl : ModelManager, GlobalManager {
             targetMap: MutableMap<String, ModelRenderer>,
             importedModel: ImportedModel
         ) {
-            val (_, type, blueprint) = importedModel
+            val (size, type, blueprint) = importedModel
             val context = blueprint.context()
-            val size = importedModel.jsonSize
             targetMap[blueprint.name] = blueprint.toRenderer(type) render@ { group ->
                 if (!context.canBeRendered()) return@render null
                 listOfNotNull(
@@ -211,7 +212,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                         } else null
                     },
                     legacyModel.ifAvailable {
-                        group.buildLegacyJson(PLATFORM.version().useModernResource(), obfuscator, context)
+                        group.buildLegacyJson(obfuscator, context)
                             ?.let { build(listOf(it), null, size) }
                     }
                 ).run {
@@ -272,7 +273,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
 
         private fun BlueprintJson.toModernJson() = jsonObjectOf(
             "type" to "model",
-            "model" to "${CONFIG.namespace()}:modern_item/${name}",
+            "model" to "${CONFIG.namespace()}:modern_item/$name",
             "tints" to jsonArrayOf(
                 jsonObjectOf(
                     "type" to "custom_model_data",

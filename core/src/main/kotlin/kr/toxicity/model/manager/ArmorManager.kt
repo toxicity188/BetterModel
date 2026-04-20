@@ -182,7 +182,7 @@ object ArmorManager : GlobalManager {
         pipeline: ReloadPipeline,
         zipper: PackZipper
     ) {
-        if (!PLATFORM.version().useModernResource() || !CONFIG.module().playerAnimation) {
+        if (!CONFIG.module().playerAnimation) {
             armor = ArmorModel.EMPTY
             return
         }
