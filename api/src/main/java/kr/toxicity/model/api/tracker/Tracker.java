@@ -630,6 +630,10 @@ public abstract class Tracker implements AutoCloseable {
      * @since 2.1.0
      */
     public void listenHitBox(@NotNull BiFunction<RenderedBone, HitBoxListener.Builder, HitBoxListener.Builder> function) {
+        pipeline.hitboxes().forEach(hb -> {
+            var bone = hb.positionSource();
+            hb.listener(b -> function.apply(bone, b));
+        });
         pipeline.eventDispatcher().handleCreateHitBox(function);
     }
 

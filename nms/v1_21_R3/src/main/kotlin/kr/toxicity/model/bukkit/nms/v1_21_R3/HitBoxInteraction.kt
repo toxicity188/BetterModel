@@ -53,10 +53,12 @@ internal class HitBoxInteraction(
     }
 
     override fun interact(player: Player, hand: InteractionHand): InteractionResult {
+        delegate.interact(player, hand)
         return InteractionResult.FAIL
     }
 
     override fun interactAt(player: Player, vec: Vec3, hand: InteractionHand): InteractionResult {
+        delegate.interactAt(player, vec, hand)
         return InteractionResult.FAIL
     }
 }

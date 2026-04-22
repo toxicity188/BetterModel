@@ -45,7 +45,7 @@ import java.util.*
 class HitBoxEntityImpl(
     private val source: ModelBoundingBox,
     private val bone: RenderedBone,
-    private val listener: HitBoxListener,
+    private var listener: HitBoxListener,
     private val delegate: Entity,
     private var mountController: MountController
 ) :
@@ -129,6 +129,10 @@ class HitBoxEntityImpl(
     }
 
     override fun listener(): HitBoxListener = listener
+
+    override fun listener(listener: HitBoxListener) {
+        this.listener = listener
+    }
 
     override fun getItemBySlot(slot: EquipmentSlot): ItemStack = ItemStack.EMPTY
 
@@ -384,28 +388,6 @@ class HitBoxEntityImpl(
     override fun hasExactlyOnePlayerPassenger(): Boolean = false
 
     override fun isDeadOrDying(): Boolean = delegate is LivingEntity && delegate.isDeadOrDying
-
-    override fun triggerInteract(player: PlatformPlayer, hand: ModelInteractionHand) {
-        interact(
-            player.unwarp().player,
-            when (hand) {
-                ModelInteractionHand.LEFT -> InteractionHand.OFF_HAND
-                ModelInteractionHand.RIGHT -> InteractionHand.MAIN_HAND
-            },
-            Vec3.ZERO
-        )
-    }
-
-    override fun triggerInteractAt(player: PlatformPlayer, hand: ModelInteractionHand, position: Vector3f) {
-        interact(
-            player.unwarp().player,
-            when (hand) {
-                ModelInteractionHand.LEFT -> InteractionHand.OFF_HAND
-                ModelInteractionHand.RIGHT -> InteractionHand.MAIN_HAND
-            },
-            Vec3(position)
-        )
-    }
 
     override fun hide(player: PlatformPlayer) {
         TODO("with mixin")

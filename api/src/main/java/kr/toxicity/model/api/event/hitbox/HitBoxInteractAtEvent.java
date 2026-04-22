@@ -26,7 +26,7 @@ import org.joml.Vector3f;
  * @since 2.0.0
  */
 @Getter
-public class HitBoxInteractAtEvent implements CancellableEvent, HitBoxEvent {
+public final class HitBoxInteractAtEvent implements CancellableEvent, HitBoxEvent {
 
     @Setter
     private boolean cancelled;

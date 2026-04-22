@@ -45,7 +45,6 @@ import org.bukkit.Particle
 import org.bukkit.craftbukkit.CraftServer
 import org.bukkit.craftbukkit.entity.CraftArmorStand
 import org.bukkit.craftbukkit.entity.CraftLivingEntity
-import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.event.entity.CreatureSpawnEvent
 import org.bukkit.event.entity.EntityPotionEffectEvent
 import org.bukkit.event.entity.EntityRemoveEvent
@@ -56,7 +55,7 @@ import java.util.*
 internal class HitBoxImpl(
     private val source: ModelBoundingBox,
     private val bone: RenderedBone,
-    private val listener: HitBoxListener,
+    private var listener: HitBoxListener,
     private val delegate: Entity,
     private var mountController: MountController
 ) : AbstractHitBox(delegate.level()) {
@@ -123,6 +122,9 @@ internal class HitBoxImpl(
         bone.hitBoxPosition(posCache).add(x.toFloat(), y.toFloat(), z.toFloat())
     }
     override fun listener(): HitBoxListener = listener
+    override fun listener(listener: HitBoxListener) {
+        this.listener = listener
+    }
     override fun getItemBySlot(slot: EquipmentSlot): ItemStack = ItemStack.EMPTY
     override fun setItemSlot(slot: EquipmentSlot, stack: ItemStack) {
     }
@@ -321,28 +323,6 @@ internal class HitBoxImpl(
 
     override fun isDeadOrDying(): Boolean {
         return ifLivingEntity { isDeadOrDying } == true
-    }
-
-    override fun triggerInteract(player: PlatformPlayer, hand: ModelInteractionHand) {
-        interact(
-            (player.unwarp() as CraftPlayer).handle,
-            when (hand) {
-                ModelInteractionHand.LEFT -> OFF_HAND
-                ModelInteractionHand.RIGHT -> MAIN_HAND
-            },
-            Vec3.ZERO
-        )
-    }
-
-    override fun triggerInteractAt(player: PlatformPlayer, hand: ModelInteractionHand, position: Vector3f) {
-        interact(
-            (player.unwarp() as CraftPlayer).handle,
-            when (hand) {
-                ModelInteractionHand.LEFT -> OFF_HAND
-                ModelInteractionHand.RIGHT -> MAIN_HAND
-            },
-            position.toVanilla()
-        )
     }
 
     override fun hide(player: PlatformPlayer) {

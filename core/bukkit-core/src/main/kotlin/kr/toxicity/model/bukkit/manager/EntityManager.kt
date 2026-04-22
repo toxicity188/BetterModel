@@ -15,7 +15,6 @@ import it.unimi.dsi.fastutil.objects.ReferenceSet
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.bukkit.BetterModelBukkit
 import kr.toxicity.model.api.nms.HitBox
-import kr.toxicity.model.api.nms.ModelInteractionHand
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
@@ -33,13 +32,11 @@ import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.*
 import org.bukkit.event.player.PlayerChangedWorldEvent
-import org.bukkit.event.player.PlayerInteractAtEntityEvent
 import org.bukkit.event.player.PlayerInteractEntityEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.world.EntitiesUnloadEvent
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.potion.PotionEffectType
-import org.joml.Vector3f
 
 object EntityManager : GlobalManager {
 
@@ -122,38 +119,11 @@ object EntityManager : GlobalManager {
                 it.animate(TrackerExtraAnimation.DEATH)
             }
         }
-        @EventHandler(priority = EventPriority.MONITOR)
-        fun PlayerInteractAtEntityEvent.interact() {
-            val pos = clickedPosition
-            (rightClicked as? HitBox)?.triggerInteractAt(
-                player.wrap(),
-                when (this.hand) {
-                    EquipmentSlot.HAND -> ModelInteractionHand.RIGHT
-                    EquipmentSlot.OFF_HAND -> ModelInteractionHand.LEFT
-                    else -> return
-                },
-                Vector3f(
-                    pos.x.toFloat(),
-                    pos.y.toFloat(),
-                    pos.z.toFloat()
-                )
-            )
-        }
 
-        @EventHandler(priority = EventPriority.MONITOR)
+        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         fun PlayerInteractEntityEvent.interact() { //Interact base entity based on interaction entity
-            val isRight = hand == EquipmentSlot.HAND
-            val dismount = isRight && player.triggerDismount(rightClicked)
             (rightClicked as? HitBox)?.let {
-                it.triggerInteract(
-                    player.wrap(),
-                    when (this.hand) {
-                        EquipmentSlot.HAND -> ModelInteractionHand.RIGHT
-                        EquipmentSlot.OFF_HAND -> ModelInteractionHand.LEFT
-                        else -> return
-                    }
-                )
-                if (isRight && !dismount) player.triggerMount(it)
+                if (hand == EquipmentSlot.HAND && !player.triggerDismount(rightClicked)) player.triggerMount(it)
             }
         }
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

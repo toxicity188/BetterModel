@@ -32,12 +32,13 @@ public abstract class AbstractBetterModelPlugin extends JavaPlugin implements Be
     protected final BukkitAdapter adapter = new BukkitAdapter();
     protected final BetterModelLogger logger = new BetterModelLogger() {
 
-        private ComponentLogger internalLogger;
+        private volatile ComponentLogger internalLogger;
 
         private @NotNull ComponentLogger logger() {
-            if (internalLogger != null) return internalLogger;
+            ComponentLogger logger;
+            if ((logger = internalLogger) != null) return logger;
             synchronized (this) {
-                if (internalLogger != null) return internalLogger;
+                if ((logger = internalLogger) != null) return logger;
                 return internalLogger = ComponentLogger.logger(getLogger().getName());
             }
         }

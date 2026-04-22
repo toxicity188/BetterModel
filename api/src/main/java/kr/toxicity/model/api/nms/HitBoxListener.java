@@ -108,17 +108,6 @@ public interface HitBoxListener {
         }
 
         /**
-         * Adds an interact handler.
-         *
-         * @param interact the interact handler
-         * @return this builder
-         * @since 2.1.0
-         */
-        public @NotNull Builder interact(@NotNull Consumer<HitBoxInteractEvent> interact) {
-            return listen(HitBoxInteractEvent.class, interact);
-        }
-
-        /**
          * Adds an interact-at handler.
          *
          * @param interactAt the interact-at handler

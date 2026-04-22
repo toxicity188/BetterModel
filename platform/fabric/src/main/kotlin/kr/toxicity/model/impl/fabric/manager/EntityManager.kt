@@ -10,7 +10,6 @@ package kr.toxicity.model.impl.fabric.manager
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.mod.entity.BaseModEntity
 import kr.toxicity.model.api.nms.HitBox
-import kr.toxicity.model.api.nms.ModelInteractionHand
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
@@ -34,7 +33,6 @@ import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.effect.MobEffects
 import net.minecraft.world.entity.Entity
-import org.joml.Vector3f
 
 object EntityManager : GlobalManager {
     override fun reload(pipeline: ReloadPipeline, zipper: PackZipper) {
@@ -201,41 +199,14 @@ object EntityManager : GlobalManager {
 
     private fun registerInteractionEvents() {
         // same as PlayerInteractAtEntityEvent, PlayerInteractEntityEvent
-        UseEntityCallback.EVENT.register { clicker, _, hand, clicked, hitResult ->
+        UseEntityCallback.EVENT.register { clicker, _, hand, clicked, _ ->
             if (clicker !is ServerPlayer) {
                 return@register InteractionResult.PASS
             }
-            val connection = clicker.connection
 
             // for PlayerInteractAtEntityEvent
-            hitResult?.let { hitResult ->
-                (clicked as? HitBox)?.triggerInteractAt(
-                    connection.wrap(),
-                    when (hand) {
-                        InteractionHand.MAIN_HAND -> ModelInteractionHand.RIGHT
-                        InteractionHand.OFF_HAND -> ModelInteractionHand.LEFT
-                    },
-                    Vector3f(
-                        hitResult.location.x.toFloat(),
-                        hitResult.location.y.toFloat(),
-                        hitResult.location.z.toFloat(),
-                    )
-                )
-            }
-
-            // for PlayerInteractEntityEvent
-            val isMainHand = hand == InteractionHand.MAIN_HAND
-            val isDismounted = isMainHand && clicker.triggerDismount(clicked)
-
             (clicked as? HitBox)?.let { hitBox ->
-                hitBox.triggerInteract(
-                    connection.wrap(),
-                    when (hand) {
-                        InteractionHand.MAIN_HAND -> ModelInteractionHand.RIGHT
-                        InteractionHand.OFF_HAND -> ModelInteractionHand.LEFT
-                    }
-                )
-                if (isMainHand && !isDismounted) {
+                if (hand == InteractionHand.MAIN_HAND && !clicker.triggerDismount(clicked)) {
                     clicker.triggerMount(hitBox)
                 }
             }
