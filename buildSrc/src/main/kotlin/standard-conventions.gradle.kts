@@ -14,8 +14,6 @@ configurations.implementation {
     extendsFrom(shade)
 }
 
-rootProject.dependencies.dokka(project)
-
 dependencies {
     testImplementation(kotlin("test"))
 

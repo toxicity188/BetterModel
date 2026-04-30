@@ -9,6 +9,8 @@ plugins {
     signing
 }
 
+rootProject.dependencies.dokka(project)
+
 val artifactBaseId = name
 val artifactVersion = project.version.toString().run {
     BUILD_NUMBER?.let { substringBeforeLast("-$it") } ?: this
