@@ -120,10 +120,11 @@ object EntityManager : GlobalManager {
             }
         }
 
-        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+        @EventHandler(priority = EventPriority.MONITOR)
         fun PlayerInteractEntityEvent.interact() { //Interact base entity based on interaction entity
             (rightClicked as? HitBox)?.let {
-                if (hand == EquipmentSlot.HAND && !player.triggerDismount(rightClicked)) player.triggerMount(it)
+                if (!isCancelled && hand == EquipmentSlot.HAND && !player.triggerDismount(rightClicked)) player.triggerMount(it)
+                isCancelled = false
             }
         }
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
