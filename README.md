@@ -72,7 +72,6 @@ BetterModel aims to be a reliable engine that provides stable, high-quality anim
 - [semver4j](https://github.com/semver4j/semver4j): semver parser
 - [cloud](https://github.com/Incendo/cloud-minecraft): command
 - [adventure](https://github.com/KyoriPowered/adventure): component
-- [stable player display](https://github.com/bradleyq/stable_player_display): player animation
 - [caffeine](https://github.com/ben-manes/caffeine): concurrent map cache
 - [DynamicUV](https://github.com/toxicity188/DynamicUV): player model
 - [ArmorModel](https://github.com/toxicity188/ArmorModel): armor in player model
