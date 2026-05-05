@@ -16,10 +16,10 @@ import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextColor
 import net.kyori.adventure.text.format.TextDecoration
 
-val INFO = " [!] ".toComponent {
+private val INFO = " [!] ".toComponent {
     decorate(TextDecoration.BOLD).color(NamedTextColor.GREEN)
 }
-val WARN = " [!] ".toComponent {
+private val WARN = " [!] ".toComponent {
     decorate(TextDecoration.BOLD).color(NamedTextColor.RED)
 }
 
