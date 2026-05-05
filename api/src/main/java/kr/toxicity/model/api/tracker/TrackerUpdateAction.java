@@ -174,6 +174,7 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
      * @since 1.15.2
      */
     static @NotNull TrackerUpdateAction composite(@NotNull TrackerUpdateAction... actions) {
+        Objects.requireNonNull(actions, "actions must not be null");
         return switch (actions.length) {
             case 0 -> none();
             case 1 -> actions[0];
@@ -189,6 +190,7 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
      * @since 1.15.2
      */
     static @NotNull PerBone perBone(@NotNull Function<RenderedBone, TrackerUpdateAction> builder) {
+        Objects.requireNonNull(builder, "builder must not be null");
         return new PerBone(builder);
     }
 

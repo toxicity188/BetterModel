@@ -118,6 +118,7 @@ public record TrackerAnimation<T extends Tracker>(
          * @return a new builder for the specified type
          * @since 2.2.0
          */
+        @NotNull
         public <R extends T> Builder<R> type(@NotNull Class<R> newTargetClass) {
             return new Builder<>(name, newTargetClass)
                 .priority(priority)
