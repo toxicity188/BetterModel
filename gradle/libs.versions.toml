@@ -7,7 +7,7 @@ shadow = "9.4.1"
 minotaur = "2.9.0"
 hangarPublish = "0.1.4"
 
-fabric-api = "0.147.0+26.1.2"
+fabric-api = "0.148.0+26.1.2"
 fabric-language-kotlin = "1.13.11+kotlin.2.3.21"
 
 cloud-bukkit = "2.0.0-beta.15"
