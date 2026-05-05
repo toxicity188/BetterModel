@@ -62,6 +62,7 @@ abstract class BetterModelPlugin : AbstractBetterModelPlugin() {
 
     override fun onEnable() {
         props.managers.forEach(GlobalManager::start)
+        ADVENTURE_PLATFORM
         if (isSnapshot) warn(
             "This build is dev version: be careful to use it!".toComponent(),
             "Build number: ${props.snapshot}".toComponent(LIGHT_PURPLE)

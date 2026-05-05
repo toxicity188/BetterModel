@@ -71,7 +71,7 @@ BetterModel aims to be a reliable engine that provides stable, high-quality anim
 - [Kotlin stdlib](https://github.com/JetBrains/kotlin): modern functional programming
 - [semver4j](https://github.com/semver4j/semver4j): semver parser
 - [cloud](https://github.com/Incendo/cloud-minecraft): command
-- [adventure](https://github.com/KyoriPowered/adventure): component
+- [adventure](https://github.com/PaperMC/adventure): component
 - [caffeine](https://github.com/ben-manes/caffeine): concurrent map cache
 - [DynamicUV](https://github.com/toxicity188/DynamicUV): player model
 - [ArmorModel](https://github.com/toxicity188/ArmorModel): armor in player model
