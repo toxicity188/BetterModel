@@ -78,6 +78,7 @@ public final class BetterModelLibrary {
                 "adventure-text-serializer-legacy",
                 "adventure-nbt",
                 "adventure-text-serializer-gson",
+                "adventure-text-serializer-gson-legacy-impl",
                 "adventure-text-serializer-json",
                 "adventure-text-serializer-json-legacy-impl"
             )
@@ -98,7 +99,7 @@ public final class BetterModelLibrary {
         builder -> builder.predicate(BooleanConstantSupplier.of(!BetterModelBukkit.IS_PAPER))
     );
     public static final LibraryData ADVENTURE_PLATFORM = register(
-        "io{}github{}toxicity188",
+        "net{}kyori",
         "adventure-platform-bukkit",
         builder -> builder
             .subModules(
