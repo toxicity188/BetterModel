@@ -30,7 +30,19 @@ internal fun Class<*>.accessors() = declaredFields.filter { f ->
     it.toEntityDataAccessor()
 }
 
+internal fun Class<*>.accessor(name: String) = declaredFields.first { f ->
+    f.name == name
+}.toEntityDataAccessor()
+
 internal val DISPLAY_SET = Display::class.java.accessors()
+internal val DISPLAY_BILLBOARD = Display::class.java.accessor("DATA_BILLBOARD_RENDER_CONSTRAINTS_ID")
+internal val DISPLAY_BRIGHTNESS = Display::class.java.accessor("DATA_BRIGHTNESS_OVERRIDE_ID")
+internal val DISPLAY_VIEW_RANGE = Display::class.java.accessor("DATA_VIEW_RANGE_ID")
+internal val DISPLAY_SHADOW_RADIUS = Display::class.java.accessor("DATA_SHADOW_RADIUS_ID")
+internal val DISPLAY_SHADOW_STRENGTH = Display::class.java.accessor("DATA_SHADOW_STRENGTH_ID")
+internal val DISPLAY_WIDTH = Display::class.java.accessor("DATA_WIDTH_ID")
+internal val DISPLAY_HEIGHT = Display::class.java.accessor("DATA_HEIGHT_ID")
+internal val DISPLAY_GLOW_COLOR = Display::class.java.accessor("DATA_GLOW_COLOR_OVERRIDE_ID")
 internal val SHARED_FLAG = Entity::class.java.accessors().first().id
 internal val ITEM_DISPLAY_ID = ItemDisplay::class.java.accessors().map {
     it.id
@@ -40,21 +52,28 @@ internal val ITEM_ENTITY_DATA = buildList {
     add(SHARED_FLAG)
     addAll(ITEM_DISPLAY_ID)
     add(Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID.id)
-    DISPLAY_SET.subList(7, DISPLAY_SET.size).mapTo(this) { it.id }
+    add(DISPLAY_BILLBOARD.id)
+    add(DISPLAY_BRIGHTNESS.id)
+    add(DISPLAY_VIEW_RANGE.id)
+    add(DISPLAY_SHADOW_RADIUS.id)
+    add(DISPLAY_SHADOW_STRENGTH.id)
+    add(DISPLAY_WIDTH.id)
+    add(DISPLAY_HEIGHT.id)
+    add(DISPLAY_GLOW_COLOR.id)
 }.toIntSet()
 
 @Suppress("UNCHECKED_CAST")
-private val DISPLAY_INTERPOLATION_DELAY = (DISPLAY_SET.first() as EntityDataAccessor<Int>).run {
+private val DISPLAY_INTERPOLATION_DELAY = (Display::class.java.accessor("DATA_TRANSFORMATION_INTERPOLATION_START_DELTA_TICKS_ID") as EntityDataAccessor<Int>).run {
     SynchedEntityData.DataValue(id, serializer, 0)
 }
 @Suppress("UNCHECKED_CAST")
-internal val DISPLAY_INTERPOLATION_DURATION = DISPLAY_SET[1] as EntityDataAccessor<Int>
+internal val DISPLAY_INTERPOLATION_DURATION = Display::class.java.accessor("DATA_TRANSFORMATION_INTERPOLATION_DURATION_ID") as EntityDataAccessor<Int>
 @Suppress("UNCHECKED_CAST")
-internal val DISPLAY_TRANSLATION = DISPLAY_SET[3] as EntityDataAccessor<Vector3f>
+internal val DISPLAY_TRANSLATION = Display::class.java.accessor("DATA_TRANSLATION_ID") as EntityDataAccessor<Vector3f>
 @Suppress("UNCHECKED_CAST")
-internal val DISPLAY_SCALE = DISPLAY_SET[4] as EntityDataAccessor<Vector3f>
+internal val DISPLAY_SCALE = Display::class.java.accessor("DATA_SCALE_ID") as EntityDataAccessor<Vector3f>
 @Suppress("UNCHECKED_CAST")
-internal val DISPLAY_ROTATION = DISPLAY_SET[5] as EntityDataAccessor<Quaternionf>
+internal val DISPLAY_ROTATION = Display::class.java.accessor("DATA_LEFT_ROTATION_ID") as EntityDataAccessor<Quaternionf>
 
 
 internal class TransformationData {
@@ -123,4 +142,3 @@ internal class TransformationData {
         }
     }
 }
-

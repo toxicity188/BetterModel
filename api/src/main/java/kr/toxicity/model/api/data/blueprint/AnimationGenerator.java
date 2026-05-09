@@ -121,8 +121,9 @@ public final class AnimationGenerator {
                 time
             );
             for (float f = 1; f < length; f++) {
-                if (secondTime - addTime < time + MathUtil.FRAME_EPSILON) continue;
-                floats.add(firstTime + f * addTime);
+                var add = firstTime + f * addTime;
+                if (secondTime - add < time + MathUtil.FRAME_EPSILON) break;
+                floats.add(add);
             }
         }
     }
@@ -186,13 +187,13 @@ public final class AnimationGenerator {
         }
 
         private float tree(float first, float second, @NotNull Function<BlueprintAnimator.AnimatorData, List<VectorPoint>> mapper) {
-            var value = data != null ? mapper.apply(data) : Collections.<VectorPoint>emptyList();
-            return findTree(first, second, value).length();
+            return findTree(first, second, mapper).length();
         }
 
-        private @NotNull Vector3f findTree(float first, float second, @NotNull List<VectorPoint> target) {
-            var get = find(first, second, target);
-            return parent != null ? parent.findTree(first, second, target).add(get) : get;
+        private @NotNull Vector3f findTree(float first, float second, @NotNull Function<BlueprintAnimator.AnimatorData, List<VectorPoint>> mapper) {
+            var value = data != null ? mapper.apply(data) : Collections.<VectorPoint>emptyList();
+            var get = find(first, second, value);
+            return parent != null ? parent.findTree(first, second, mapper).add(get) : get;
         }
         private @NotNull Vector3f find(float first, float second, @NotNull List<VectorPoint> target) {
             return find(second, target).sub(find(first, target), new Vector3f());

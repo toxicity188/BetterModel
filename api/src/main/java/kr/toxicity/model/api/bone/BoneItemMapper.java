@@ -51,8 +51,6 @@ public interface BoneItemMapper extends BiFunction<BoneRenderContext, Transforme
     static @NotNull BoneItemMapper player(@NotNull PlatformItemTransform transform, @NotNull Function<PlatformPlayer, TransformedItemStack> mapper) {
         return new BoneItemMapper() {
 
-            private static final TransformedItemStack AIR = TransformedItemStack.empty();
-
             @NotNull
             @Override
             public PlatformItemTransform transform() {
@@ -63,7 +61,7 @@ public interface BoneItemMapper extends BiFunction<BoneRenderContext, Transforme
             public @NotNull TransformedItemStack apply(@NotNull BoneRenderContext context, @NotNull TransformedItemStack transformedItemStack) {
                 if (context.source() instanceof RenderSource.BasePlayer(PlatformPlayer player)) {
                     var get = mapper.apply(player);
-                    return get == null ? AIR : get;
+                    return get == null ? TransformedItemStack.empty() : get;
                 }
                 return transformedItemStack;
             }
@@ -79,8 +77,6 @@ public interface BoneItemMapper extends BiFunction<BoneRenderContext, Transforme
     static @NotNull BoneItemMapper entity(@NotNull PlatformItemTransform transform, @NotNull Function<BaseEntity, TransformedItemStack> mapper) {
         return new BoneItemMapper() {
 
-            private static final TransformedItemStack AIR = TransformedItemStack.empty();
-
             @NotNull
             @Override
             public PlatformItemTransform transform() {
@@ -91,7 +87,7 @@ public interface BoneItemMapper extends BiFunction<BoneRenderContext, Transforme
             public @NotNull TransformedItemStack apply(@NotNull BoneRenderContext context, @NotNull TransformedItemStack transformedItemStack) {
                 if (context.source() instanceof RenderSource.Entity entity) {
                     var get = mapper.apply(entity.entity());
-                    return get == null ? AIR : get;
+                    return get == null ? TransformedItemStack.empty() : get;
                 }
                 return transformedItemStack;
             }
