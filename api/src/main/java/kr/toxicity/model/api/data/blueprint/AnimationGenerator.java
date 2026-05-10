@@ -130,10 +130,10 @@ public final class AnimationGenerator {
             .mapToObj(i -> {
                 var cache = new IdentityHashMap<AnimationTree, Vector3f>(trees.size());
                 for (AnimationTree t : trees) {
-                    Vector3f current, parent;
+                    Vector3f delta, parent;
                     var getVec = map.get(t);
-                    current = getVec != null ? getVec.get(i) : VectorPoint.EMPTY.vector();
-                    cache.put(t, t.parent != null && (parent = cache.get(t.parent)) != null ? parent.add(current, new Vector3f()) : current);
+                    delta = getVec != null ? getVec.get(i).sub(getVec.get(i - 1), new Vector3f()) : new Vector3f();
+                    cache.put(t, t.parent != null && (parent = cache.get(t.parent)) != null ? delta.add(parent) : delta);
                 }
                 return new MaxRotation(list.getFloat(i), (float) cache.values().stream().mapToDouble(Vector3f::length).max().orElse(0.0));
             })
@@ -143,9 +143,9 @@ public final class AnimationGenerator {
             var previous = next;
             next = maxRotation.time;
             var length = (float) Math.ceil(maxRotation.maxRotation / 90F);
-            if (length < 2) continue;
+            if (length < 2F) continue;
             var interpolateTime = Math.max(
-                InterpolationUtil.lerp(0, next - previous, 1F / length),
+                (next - previous) / length,
                 0.05F
             );
             for (float f = 1; f < length; f++) {
