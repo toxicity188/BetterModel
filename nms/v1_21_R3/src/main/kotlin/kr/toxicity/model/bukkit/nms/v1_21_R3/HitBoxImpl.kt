@@ -11,6 +11,7 @@ import io.papermc.paper.event.entity.EntityKnockbackEvent
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.bone.BoneMovement
 import kr.toxicity.model.api.bone.RenderedBone
+import kr.toxicity.model.api.bukkit.BetterModelBukkit
 import kr.toxicity.model.api.config.DebugConfig
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import kr.toxicity.model.api.event.hitbox.*
@@ -89,12 +90,23 @@ internal class HitBoxImpl(
         persist = false
         isSilent = true
         initialized = true
-        level().addFreshEntity(this, CreatureSpawnEvent.SpawnReason.CUSTOM)
-        level().addFreshEntity(interaction.apply {
-            moveTo(delegate.position())
-        }, CreatureSpawnEvent.SpawnReason.CUSTOM)
-        interaction.startRiding(this)
-        listener.handle(HitBoxCreateEvent(this))
+        if (BetterModelBukkit.IS_FOLIA) {
+            source().task {
+                level().addFreshEntity(this@HitBoxImpl, CreatureSpawnEvent.SpawnReason.CUSTOM)
+                level().addFreshEntity(interaction.apply {
+                    moveTo(delegate.position())
+                }, CreatureSpawnEvent.SpawnReason.CUSTOM)
+                interaction.startRiding(this@HitBoxImpl)
+                listener.handle(HitBoxCreateEvent(this@HitBoxImpl))
+            }
+        } else {
+            level().addFreshEntity(this, CreatureSpawnEvent.SpawnReason.CUSTOM)
+            level().addFreshEntity(interaction.apply {
+                moveTo(delegate.position())
+            }, CreatureSpawnEvent.SpawnReason.CUSTOM)
+            interaction.startRiding(this)
+            listener.handle(HitBoxCreateEvent(this))
+        }
     }
 
     private fun initialSetup() {
@@ -130,32 +142,68 @@ internal class HitBoxImpl(
 
     override fun mount(entity: PlatformEntity) {
         if (controllingPassenger != null) return
-        if (interaction.bukkitEntity.addPassenger(entity.unwarp())) {
-            if (mountController.canControl()) {
-                mounted = true
-                noGravity = delegate.isNoGravity
-                ifLivingEntity {
-                    collision = collides
-                    collides = false
+        if (BetterModelBukkit.IS_FOLIA) {
+            source().task {
+                if (controllingPassenger != null) return@task
+                if (interaction.bukkitEntity.addPassenger(entity.unwarp())) {
+                    if (mountController.canControl()) {
+                        mounted = true
+                        noGravity = delegate.isNoGravity
+                        ifLivingEntity {
+                            collision = collides
+                            collides = false
+                        }
+                    }
+                    listener.handle(HitBoxMountEvent(this, entity))
                 }
             }
-            listener.handle(HitBoxMountEvent(this, entity))
+        } else {
+            if (interaction.bukkitEntity.addPassenger(entity.unwarp())) {
+                if (mountController.canControl()) {
+                    mounted = true
+                    noGravity = delegate.isNoGravity
+                    ifLivingEntity {
+                        collision = collides
+                        collides = false
+                    }
+                }
+                listener.handle(HitBoxMountEvent(this, entity))
+            }
         }
     }
 
     override fun dismount(entity: PlatformEntity) {
-        forceDismount = true
-        if (interaction.bukkitEntity.removePassenger(entity.unwarp())) listener.handle(HitBoxDismountEvent(this, entity))
-        forceDismount = false
+        if (BetterModelBukkit.IS_FOLIA) {
+            source().task {
+                forceDismount = true
+                if (interaction.bukkitEntity.removePassenger(entity.unwarp())) listener.handle(HitBoxDismountEvent(this, entity))
+                forceDismount = false
+            }
+        } else {
+            forceDismount = true
+            if (interaction.bukkitEntity.removePassenger(entity.unwarp())) listener.handle(HitBoxDismountEvent(this, entity))
+            forceDismount = false
+        }
     }
 
     override fun dismountAll() {
-        forceDismount = true
-        interaction.passengers.forEach {
-            it.stopRiding(true)
-            listener.handle(HitBoxDismountEvent(this, it.bukkitEntity.wrap()))
+        if (BetterModelBukkit.IS_FOLIA) {
+            source().task {
+                forceDismount = true
+                interaction.passengers.forEach {
+                    it.stopRiding(true)
+                    listener.handle(HitBoxDismountEvent(this, it.bukkitEntity.wrap()))
+                }
+                forceDismount = false
+            }
+        } else {
+            forceDismount = true
+            interaction.passengers.forEach {
+                it.stopRiding(true)
+                listener.handle(HitBoxDismountEvent(this, it.bukkitEntity.wrap()))
+            }
+            forceDismount = false
         }
-        forceDismount = false
     }
 
     override fun setRemainingFireTicks(remainingFireTicks: Int) {
