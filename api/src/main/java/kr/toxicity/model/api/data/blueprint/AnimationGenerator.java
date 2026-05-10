@@ -125,7 +125,7 @@ public final class AnimationGenerator {
         );
         if (map.isEmpty()) return;
         var next = 0F;
-        for (MaxRotation maxRotation : IntStream.range(0, list.size())
+        for (MaxRotation maxRotation : IntStream.range(1, list.size())
             .parallel()
             .mapToObj(i -> {
                 var cache = new IdentityHashMap<AnimationTree, Vector3f>(trees.size());
@@ -138,7 +138,7 @@ public final class AnimationGenerator {
                 return new MaxRotation(list.getFloat(i), (float) cache.values().stream().mapToDouble(Vector3f::length).max().orElse(0.0));
             })
             .sorted()
-            .toList()
+            .toArray(MaxRotation[]::new)
         ) {
             var previous = next;
             next = maxRotation.time;
@@ -150,7 +150,7 @@ public final class AnimationGenerator {
             );
             for (float f = 1; f < length; f++) {
                 var addTime = MathUtil.fma(f, interpolateTime, previous);
-                if (next - addTime < 0.05F + MathUtil.FRAME_EPSILON) continue;
+                if (next - addTime < 0.05F + MathUtil.FRAME_EPSILON) break;
                 floats.add(addTime);
             }
         }
