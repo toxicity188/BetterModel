@@ -74,7 +74,7 @@ class FolderGenerator : PackGenerator {
             val bytes = it.get()
             pack[it.overlay()] = PackByte(it.path(), bytes)
             val file = it.path().toFile()
-            val index = pipeline.progress()
+            val index = pipeline.progress(it.path().name())
             if (file.length() != bytes.size.toLong()) {
                 file.writeBytes(bytes)
                 changed.set(true)
@@ -137,7 +137,7 @@ fun PackZipper.writeToResult(pipeline: ReloadPipeline, dir: File? = null): PackR
     return PackResult(build.meta(), dir).apply {
         pipeline.forEachParallel(build.resources(), PackResource::estimatedSize) {
             set(it.overlay(), PackByte(it.path(), it.get()))
-            val index = pipeline.progress()
+            val index = pipeline.progress(it.path().name())
             debugPack {
                 componentOf(
                     "This file was successfully zipped: ".toComponent(),

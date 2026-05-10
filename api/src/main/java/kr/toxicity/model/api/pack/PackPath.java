@@ -47,6 +47,17 @@ public record PackPath(@NotNull String path) implements Comparable<PackPath> {
         return new PackPath(path.isEmpty() ? join(DELIMITER, subPaths) : path + DELIMITER + join(DELIMITER, subPaths));
     }
 
+    /**
+     * Returns the name of the file or directory represented by this path.
+     *
+     * @return the name
+     * @since 3.1.0
+     */
+    public @NotNull String name() {
+        var name = path();
+        return name.substring(name.lastIndexOf(DELIMITER) + 1);
+    }
+
     @Override
     public @NotNull String toString() {
         return path;

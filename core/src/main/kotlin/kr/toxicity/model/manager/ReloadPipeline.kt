@@ -18,6 +18,7 @@ class ReloadPipeline(
 ) : AutoCloseable {
 
     var status = "Starting..."
+    private var target = "Unknown"
     private val pool = parallelIOThreadPool()
 
     private val current = AtomicInteger()
@@ -27,7 +28,10 @@ class ReloadPipeline(
             current.set(0)
         }
 
-    fun progress() = current.incrementAndGet()
+    fun progress(target: String): Int {
+        this.target = target
+        return current.incrementAndGet()
+    }
 
     fun <T> forEachParallel(list: List<T>, sizeAssume: (T) -> Long, block: (T) -> Unit) {
         pool.forEachParallel(list, sizeAssume, block)
@@ -47,7 +51,8 @@ class ReloadPipeline(
                 if (goal > 0) toFloat() / goal.toFloat() else 0F,
                 this,
                 goal,
-                status
+                status,
+                target
             )
         }.run {
             indicators.forEach {
@@ -60,7 +65,8 @@ class ReloadPipeline(
         val progress: Float,
         val current: Int,
         val goal: Int,
-        val status: String
+        val status: String,
+        val target: String
     )
 
     override fun close() {

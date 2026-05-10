@@ -64,7 +64,7 @@ public record ModelAnimation(
         @NotNull ModelLoadContext context,
         @NotNull List<BlueprintElement> children
     ) {
-        var animators = AnimationGenerator.createMovements(length(), children, associate(
+        var animators = AnimationGenerator.generate(length(), children, associate(
             animators().entrySet().stream()
                 .filter(e -> context.availableUUIDs.contains(e.getKey()))
                 .map(Map.Entry::getValue)

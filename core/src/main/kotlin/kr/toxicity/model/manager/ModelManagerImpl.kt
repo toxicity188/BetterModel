@@ -56,7 +56,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
             status = "Importing $typeName models..."
             goal = targetAssets.size
         }.forEachParallel(targetAssets, ModelAsset::sizeAssume) {
-            val index = pipeline.progress()
+            val index = pipeline.progress(it.name)
             val load = it.toTexturedModel() ?: return@forEachParallel
             modelFileMap.compute(load.name) { _, v ->
                 if (v != null) {

@@ -17,11 +17,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static kr.toxicity.model.api.util.CollectionUtil.*;
@@ -38,8 +37,6 @@ import static kr.toxicity.model.api.util.CollectionUtil.*;
 @ApiStatus.Internal
 public final class AnimationGenerator {
 
-    private static final Vector3f EMPTY = new Vector3f();
-    private final Map<BoneName, BlueprintAnimator.AnimatorData> pointMap;
     private final List<AnimationTree> trees;
 
     /**
@@ -54,7 +51,7 @@ public final class AnimationGenerator {
      * @return a map of generated blueprint animators keyed by bone name
      * @since 1.15.2
      */
-    public static @NotNull Map<BoneName, BlueprintAnimator> createMovements(
+    public static @NotNull Map<BoneName, BlueprintAnimator> generate(
         float length,
         @NotNull List<BlueprintElement> children,
         @NotNull Map<BoneName, BlueprintAnimator.AnimatorData> pointMap
@@ -65,34 +62,36 @@ public final class AnimationGenerator {
         floatSet.add(0F);
         floatSet.add(length);
         InterpolationUtil.insertLerpFrame(floatSet);
-        var generator = new AnimationGenerator(pointMap, children);
+        var generator = new AnimationGenerator(g -> pointMap.get(g.name()), children);
         generator.interpolateRotation(floatSet);
         generator.interpolateStep(floatSet);
-        return mapValue(pointMap, v -> new BlueprintAnimator(
-            v.name(),
-            InterpolationUtil.buildAnimation(
-                v.position(),
-                v.rotation(),
-                v.scale(),
-                v.rotationGlobal(),
-                floatSet
-            )
-        ));
+        return associate(
+            pointMap.values()
+                .stream()
+                .parallel()
+                .map(v -> new BlueprintAnimator(
+                    v.name(),
+                    InterpolationUtil.buildAnimation(
+                        v.position(),
+                        v.rotation(),
+                        v.scale(),
+                        v.rotationGlobal(),
+                        floatSet
+                    ))
+                ),
+            BlueprintAnimator::name
+        );
     }
 
     private AnimationGenerator(
-        @NotNull Map<BoneName, BlueprintAnimator.AnimatorData> pointMap,
+        @NotNull Function<BlueprintElement.Group, BlueprintAnimator.AnimatorData> function,
         @NotNull List<BlueprintElement> children
     ) {
-        this.pointMap = pointMap;
         trees = filterIsInstance(children, BlueprintElement.Group.class)
-            .map(g -> new AnimationTree(g, pointMap.get(g.name())))
+            .map(g -> new AnimationTree(null, g, function))
             .flatMap(AnimationTree::flatten)
             .toList();
     }
-
-    private float firstTime = 0F;
-    private float secondTime = 0F;
 
     /**
      * Inserts additional keyframes to smooth out large rotations.
@@ -104,26 +103,63 @@ public final class AnimationGenerator {
      * @since 1.15.2
      */
     public void interpolateRotation(@NotNull FloatSortedSet floats) {
-        var iterator = new FloatArrayList(floats).iterator();
-        var time = 0.05F;
-        while (iterator.hasNext()) {
-            firstTime = secondTime;
-            secondTime = iterator.nextFloat();
-            if (secondTime - firstTime <= 0) continue;
-            var minus = trees.stream()
-                .mapToDouble(t -> t.tree(firstTime, secondTime, BlueprintAnimator.AnimatorData::rotation))
-                .max()
-                .orElse(0);
-            var length = (float) Math.ceil(minus / 90);
+        var list = new FloatArrayList(floats);
+        var map = trees.stream()
+            .parallel()
+            .map(t -> {
+                var d = t.data;
+                if (d == null) return null;
+                var rot = d.rotation();
+                if (rot.size() < 2) return null;
+                var interpolator = InterpolationUtil.interpolatorFor(rot);
+                return new RotationVector(
+                    t,
+                    list.doubleStream()
+                        .mapToObj(value -> interpolator.build((float) value).vector())
+                        .toList()
+                );
+            })
+            .filter(Objects::nonNull)
+            .collect(Collectors.toUnmodifiableMap(v -> v.tree, v -> v.vectors));
+        if (map.isEmpty()) return;
+        var next = 0F;
+        for (MaxRotation maxRotation : IntStream.range(0, list.size())
+            .parallel()
+            .mapToObj(i -> {
+                var cache = new IdentityHashMap<AnimationTree, Vector3f>(trees.size());
+                for (AnimationTree t : trees) {
+                    Vector3f current, parent;
+                    var getVec = map.get(t);
+                    current = getVec != null ? getVec.get(i) : VectorPoint.EMPTY.vector();
+                    cache.put(t, t.parent != null && (parent = cache.get(t.parent)) != null ? parent.add(current, new Vector3f()) : current);
+                }
+                return new MaxRotation(list.getFloat(i), (float) cache.values().stream().mapToDouble(Vector3f::length).max().orElse(0.0));
+            })
+            .sorted()
+            .toList()
+        ) {
+            var previous = next;
+            next = maxRotation.time;
+            var length = (float) Math.ceil(maxRotation.maxRotation / 90F);
             if (length < 2) continue;
-            var addTime = Math.max(
-                InterpolationUtil.lerp(0, secondTime - firstTime, 1F / length),
-                time
+            var interpolateTime = Math.max(
+                InterpolationUtil.lerp(0, next - previous, 1F / length),
+                0.05F
             );
             for (float f = 1; f < length; f++) {
-                if (secondTime - addTime < time + MathUtil.FRAME_EPSILON) continue;
-                floats.add(firstTime + f * addTime);
+                var addTime = MathUtil.fma(f, interpolateTime, previous);
+                if (next - addTime < 0.05F + MathUtil.FRAME_EPSILON) continue;
+                floats.add(addTime);
             }
+        }
+    }
+
+    private record RotationVector(@NotNull AnimationTree tree, @NotNull List<Vector3f> vectors) {}
+
+    private record MaxRotation(float time, float maxRotation) implements Comparable<MaxRotation> {
+        @Override
+        public int compareTo(@NotNull AnimationGenerator.MaxRotation o) {
+            return Float.compare(time, o.time);
         }
     }
 
@@ -155,25 +191,20 @@ public final class AnimationGenerator {
         }
     }
 
-    private class AnimationTree {
+    private static final class AnimationTree {
         private final AnimationTree parent;
         private final List<AnimationTree> children;
         private final BlueprintAnimator.AnimatorData data;
-        private int searchCache = 0;
-        private final Float2ObjectMap<Vector3f> valueCache = new Float2ObjectOpenHashMap<>();
 
-        AnimationTree(@NotNull BlueprintElement.Group group, @Nullable BlueprintAnimator.AnimatorData data) {
-            this(null, group, data);
-        }
         AnimationTree(
             @Nullable AnimationTree parent,
             @NotNull BlueprintElement.Group group,
-            @Nullable BlueprintAnimator.AnimatorData data
+            @NotNull Function<BlueprintElement.Group, BlueprintAnimator.AnimatorData> function
         ) {
             this.parent = parent;
-            this.data = data;
+            this.data = function.apply(group);
             children = filterIsInstance(group.children(), BlueprintElement.Group.class)
-                .map(g -> new AnimationTree(this, g, pointMap.get(g.name())))
+                .map(g -> new AnimationTree(this, g, function))
                 .toList();
         }
 
@@ -183,41 +214,6 @@ public final class AnimationGenerator {
                 Stream.of(this),
                 children.stream().flatMap(AnimationTree::flatten)
             );
-        }
-
-        private float tree(float first, float second, @NotNull Function<BlueprintAnimator.AnimatorData, List<VectorPoint>> mapper) {
-            var value = data != null ? mapper.apply(data) : Collections.<VectorPoint>emptyList();
-            return findTree(first, second, value).length();
-        }
-
-        private @NotNull Vector3f findTree(float first, float second, @NotNull List<VectorPoint> target) {
-            var get = find(first, second, target);
-            return parent != null ? parent.findTree(first, second, target).add(get) : get;
-        }
-        private @NotNull Vector3f find(float first, float second, @NotNull List<VectorPoint> target) {
-            return find(second, target).sub(find(first, target), new Vector3f());
-        }
-        private @NotNull Vector3f find(float time, @NotNull List<VectorPoint> target) {
-            return valueCache.computeIfAbsent(time, _ -> {
-                if (target.size() <= 1) return EMPTY;
-                var i = searchCache;
-                for (; i < target.size(); i++) {
-                    if (target.get(i).time() >= time) break;
-                }
-                searchCache = i;
-                if (i == 0) return EMPTY;
-                if (i == target.size()) return EMPTY;
-                var first = target.get(i - 1);
-                var second = target.get(i);
-                var t1 = first.time();
-                var t2 = second.time();
-                var a = InterpolationUtil.alpha(t1, t2, time);
-                return second.time() == time ? second.vector() : InterpolationUtil.lerp(
-                    first.vector(InterpolationUtil.lerp(t1, t2, a)),
-                    second.vector(),
-                    a
-                );
-            });
         }
     }
 }

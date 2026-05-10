@@ -97,7 +97,7 @@ public record ModelDatapoint(
         if (string.isEmpty()) return Float2FloatFunction.ZERO;
         try {
             return Float2FloatFunction.of(Float.parseFloat(string));
-        } catch (NumberFormatException ignored) {
+        } catch (NumberFormatException _) {
             return context.trySupply(
                 () -> BetterModel.platform().evaluator().compile(context.placeholder.parseVariable(string)),
                 error -> new ModelLoadContext.Fallback<>(

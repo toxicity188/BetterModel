@@ -105,7 +105,12 @@ public record ModelData(
                 resolution(),
                 mapToList(textures(), texture -> texture.toBlueprint(context)),
                 group,
-                associate(animations().stream().map(raw -> raw.toBlueprint(context, group)), BlueprintAnimation::name)
+                associate(
+                    animations().stream()
+                        .parallel()
+                        .map(raw -> raw.toBlueprint(context, group)),
+                    BlueprintAnimation::name
+                )
             ),
             context.errors
         );

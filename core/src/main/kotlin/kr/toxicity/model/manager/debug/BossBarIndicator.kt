@@ -36,6 +36,7 @@ class BossBarIndicator(
     override fun status(status: ReloadPipeline.Status) {
         bossBar.run {
             name(componentOf(status.status) {
+                append(" [${status.target}]".toComponent(NamedTextColor.AQUA))
                 append(" (${status.current.withComma()} / ${status.goal.withComma()})".toComponent(NamedTextColor.YELLOW))
             })
             progress(status.progress)
