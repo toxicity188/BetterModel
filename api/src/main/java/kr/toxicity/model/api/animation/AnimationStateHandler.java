@@ -34,7 +34,7 @@ public final class AnimationStateHandler<T extends Timed> {
     private final PriorityMap<String, TreeIterator> animators = new PriorityMap<>();
 
     @Getter
-    private int delay;
+    private int delay = 1;
     private volatile TreeIterator currentIterator = null;
     private volatile T beforeKeyframe = null, afterKeyframe = null;
 

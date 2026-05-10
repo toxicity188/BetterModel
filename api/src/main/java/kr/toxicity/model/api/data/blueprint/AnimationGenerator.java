@@ -19,7 +19,6 @@ import org.joml.Vector3f;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -61,10 +60,10 @@ public final class AnimationGenerator {
             .flatMap(BlueprintAnimator.AnimatorData::allPoints), VectorPoint::time, () -> new FloatAVLTreeSet(MathUtil.FRAME_COMPARATOR));
         floatSet.add(0F);
         floatSet.add(length);
-        InterpolationUtil.insertLerpFrame(floatSet);
         var generator = new AnimationGenerator(g -> pointMap.get(g.name()), children);
         generator.interpolateRotation(floatSet);
         generator.interpolateStep(floatSet);
+        InterpolationUtil.insertLerpFrame(floatSet);
         return associate(
             pointMap.values()
                 .stream()
@@ -104,23 +103,26 @@ public final class AnimationGenerator {
      */
     public void interpolateRotation(@NotNull FloatSortedSet floats) {
         var list = new FloatArrayList(floats);
-        var map = trees.stream()
-            .parallel()
-            .map(t -> {
-                var d = t.data;
-                if (d == null) return null;
-                var rot = d.rotation();
-                if (rot.size() < 2) return null;
-                var interpolator = InterpolationUtil.interpolatorFor(rot);
-                return new RotationVector(
-                    t,
-                    list.doubleStream()
-                        .mapToObj(value -> interpolator.build((float) value).vector())
-                        .toList()
-                );
-            })
-            .filter(Objects::nonNull)
-            .collect(Collectors.toUnmodifiableMap(v -> v.tree, v -> v.vectors));
+        var map = associate(
+            trees.stream()
+                .parallel()
+                .map(t -> {
+                    var d = t.data;
+                    if (d == null) return null;
+                    var rot = d.rotation();
+                    if (rot.size() < 2) return null;
+                    var interpolator = InterpolationUtil.interpolatorFor(rot);
+                    return new RotationVector(
+                        t,
+                        list.doubleStream()
+                            .mapToObj(value -> interpolator.build((float) value).vector())
+                            .toList()
+                    );
+                })
+                .filter(Objects::nonNull),
+            v -> v.tree,
+            v -> v.vectors
+        );
         if (map.isEmpty()) return;
         var next = 0F;
         for (MaxRotation maxRotation : IntStream.range(0, list.size())
