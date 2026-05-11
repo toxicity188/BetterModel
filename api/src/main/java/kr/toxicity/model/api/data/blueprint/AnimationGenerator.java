@@ -124,10 +124,9 @@ public final class AnimationGenerator {
             v -> v.vectors
         );
         if (map.isEmpty()) return;
-        var next = 0F;
-        for (MaxRotation maxRotation : IntStream.range(1, list.size())
+        IntStream.range(1, list.size())
             .parallel()
-            .mapToObj(i -> {
+            .forEach(i -> {
                 var cache = new IdentityHashMap<AnimationTree, Vector3f>(trees.size());
                 for (AnimationTree t : trees) {
                     Vector3f delta, parent;
@@ -135,35 +134,25 @@ public final class AnimationGenerator {
                     delta = getVec != null ? getVec.get(i).sub(getVec.get(i - 1), new Vector3f()) : new Vector3f();
                     cache.put(t, t.parent != null && (parent = cache.get(t.parent)) != null ? delta.add(parent) : delta);
                 }
-                return new MaxRotation(list.getFloat(i), (float) cache.values().stream().mapToDouble(Vector3f::length).max().orElse(0.0));
-            })
-            .sorted()
-            .toArray(MaxRotation[]::new)
-        ) {
-            var previous = next;
-            next = maxRotation.time;
-            var length = (float) Math.ceil(maxRotation.maxRotation / 90F);
-            if (length < 2F) continue;
-            var interpolateTime = Math.max(
-                (next - previous) / length,
-                0.05F
-            );
-            for (float f = 1; f < length; f++) {
-                var addTime = MathUtil.fma(f, interpolateTime, previous);
-                if (next - addTime < 0.05F + MathUtil.FRAME_EPSILON) break;
-                floats.add(addTime);
-            }
-        }
+                var length = (float) Math.ceil((float) cache.values().stream().mapToDouble(Vector3f::length).max().orElse(0.0) / 90F);
+                if (length < 2F) return;
+                var previous = list.getFloat(i - 1);
+                var next = list.getFloat(i);
+                var interpolateTime = Math.max(
+                    (next - previous) / length,
+                    0.05F
+                );
+                synchronized (floats) {
+                    for (float f = 1; f < length; f++) {
+                        var addTime = MathUtil.fma(f, interpolateTime, previous);
+                        if (next - addTime < 0.05F + MathUtil.FRAME_EPSILON) break;
+                        floats.add(addTime);
+                    }
+                }
+            });
     }
 
     private record RotationVector(@NotNull AnimationTree tree, @NotNull List<Vector3f> vectors) {}
-
-    private record MaxRotation(float time, float maxRotation) implements Comparable<MaxRotation> {
-        @Override
-        public int compareTo(@NotNull AnimationGenerator.MaxRotation o) {
-            return Float.compare(time, o.time);
-        }
-    }
 
     /**
      * Inserts keyframes for step interpolation (non-continuous transitions).
