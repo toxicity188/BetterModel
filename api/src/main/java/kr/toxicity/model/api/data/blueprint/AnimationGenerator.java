@@ -134,7 +134,7 @@ public final class AnimationGenerator {
                     delta = getVec != null ? getVec.get(i).sub(getVec.get(i - 1), new Vector3f()) : new Vector3f();
                     cache.put(t, t.parent != null && (parent = cache.get(t.parent)) != null ? delta.add(parent) : delta);
                 }
-                var length = (float) Math.ceil((float) cache.values().stream().mapToDouble(Vector3f::length).max().orElse(0.0) / 90F);
+                var length = (float) Math.ceil(cache.values().stream().mapToDouble(Vector3f::length).max().orElse(0.0) / 90.0);
                 if (length < 2F) return;
                 var previous = list.getFloat(i - 1);
                 var next = list.getFloat(i);
