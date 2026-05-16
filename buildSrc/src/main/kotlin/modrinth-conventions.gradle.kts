@@ -11,7 +11,7 @@ modrinth {
     token = System.getenv("MODRINTH_API_TOKEN")
     projectId = "bettermodel"
     syncBodyFrom = rootProject.file("BANNER.md").readText()
-    val log = System.getenv("COMMIT_MESSAGE")
+    val log = commitMessage()
     if (log != null) {
         versionType = "beta"
         changelog = log

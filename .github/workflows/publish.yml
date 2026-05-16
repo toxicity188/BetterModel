@@ -16,6 +16,7 @@ jobs:
       MODRINTH_API_TOKEN: ${{ secrets.MODRINTH_API_TOKEN }}
       BUILD_NUMBER: ${{ github.run_number }}
       COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+      COMMIT_HASH: ${{ github.sha }}
     steps:
       - uses: actions/checkout@v6
       - name: Set up JDK 25

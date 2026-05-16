@@ -27,5 +27,19 @@ val SUPPORTED_VERSIONS = buildList {
     addAll(LATEST_VERSION)
 }
 
+fun commitMessage() = System.getenv("COMMIT_MESSAGE")?.let {
+    """
+    **Commit hash**: ${System.getenv("COMMIT_HASH")?.let { hash -> "[$hash](https://github.com/toxicity188/BetterModel/commit/$hash) "} ?: "Unknown"}
+
+    ---
+
+    $it
+
+    ---
+
+    **Notice**: This is a snapshot build provided strictly for **testing purposes**. As a development version, unexpected issues or bugs may occur during use.
+    """.trimIndent()
+}
+
 val BUKKIT_LOADERS = listOf("spigot")
 val PAPER_LOADERS = listOf("paper", "purpur", "folia")

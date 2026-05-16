@@ -51,7 +51,7 @@ hangarPublish {
         version = project.version as String
         id = "BetterModel"
         apiKey = System.getenv("HANGAR_API_TOKEN")
-        val log = System.getenv("COMMIT_MESSAGE")
+        val log = commitMessage()
         if (log != null) {
             changelog = log
             channel = "Snapshot"
