@@ -33,9 +33,19 @@ public final class MathUtil {
     }
 
     /**
+     * Minecraft ticks per seconds
+     */
+    public static final int MINECRAFT_TICKS_PER_SECOND = 20;
+
+    /**
      * Minecraft tick mills
      */
-    public static final int MINECRAFT_TICK_MILLS = 50;
+    public static final int MINECRAFT_TICK_MILLS = 1000 / MINECRAFT_TICKS_PER_SECOND;
+
+    /**
+     * Minecraft tick seconds
+     */
+    public static final float MINECRAFT_TICK_SECONDS = (float) MINECRAFT_TICK_MILLS / 1000;
 
     /**
      * Valid rotation degree

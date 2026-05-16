@@ -116,7 +116,7 @@ public final class InterpolationUtil {
      * @param frames target set
      */
     public static void insertLerpFrame(@NotNull FloatSortedSet frames) {
-        insertLerpFrame(frames, (float) BetterModel.config().lerpFrameTime() / 20F);
+        insertLerpFrame(frames, (float) BetterModel.config().lerpFrameTime() / MINECRAFT_TICKS_PER_SECOND);
     }
 
     /**

@@ -140,12 +140,12 @@ public final class AnimationGenerator {
                 var next = list.getFloat(i);
                 var interpolateTime = Math.max(
                     (next - previous) / length,
-                    0.05F
+                    MathUtil.MINECRAFT_TICK_SECONDS
                 );
                 synchronized (floats) {
                     for (float f = 1; f < length; f++) {
                         var addTime = MathUtil.fma(f, interpolateTime, previous);
-                        if (next - addTime < 0.05F + MathUtil.FRAME_EPSILON) break;
+                        if (next - addTime < MathUtil.MINECRAFT_TICK_SECONDS + MathUtil.FRAME_EPSILON) break;
                         floats.add(addTime);
                     }
                 }
@@ -176,7 +176,7 @@ public final class AnimationGenerator {
         for (int i = 1; i < points.size(); i++) {
             var before = points.get(i - 1);
             if (before.isContinuous()) continue;
-            var time = points.get(i).time() - 0.05F;
+            var time = points.get(i).time() - MathUtil.MINECRAFT_TICK_SECONDS;
             if (time < 0 || time - before.time() < 0) continue;
             floats.add(time);
         }
