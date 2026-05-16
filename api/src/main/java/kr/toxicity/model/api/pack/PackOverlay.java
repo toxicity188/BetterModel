@@ -65,11 +65,12 @@ public record PackOverlay(
      * Generates the root path for this overlay.
      *
      * @param namespace the namespace prefix
+     * @param obfuscator the obfuscator
      * @return the pack path
      * @since 1.15.2
      */
-    public @NotNull PackPath path(@NotNull String namespace) {
-        return packName.isEmpty() ? PackPath.EMPTY : new PackPath(namespace + "_" + packName);
+    public @NotNull PackPath path(@NotNull String namespace, @NotNull PackObfuscator obfuscator) {
+        return packName.isEmpty() ? PackPath.EMPTY : new PackPath(namespace + "_" + obfuscator.obfuscate(packName));
     }
 
     /**

@@ -46,6 +46,7 @@ public final class PackZipper {
         return new PackZipper();
     }
 
+    private final PackObfuscator obfuscator = PackObfuscator.order();
     private final PackMeta.Builder metaBuilder = PackMeta.builder();
     private final Map<PackOverlay, PackAssets> overlayMap = new ConcurrentHashMap<>();
 
@@ -87,7 +88,7 @@ public final class PackZipper {
      * @since 1.15.2
      */
     public @NotNull PackAssets overlay(@NotNull PackOverlay overlay) {
-        return overlayMap.computeIfAbsent(overlay, PackAssets::new);
+        return overlayMap.computeIfAbsent(overlay, o -> new PackAssets(o, obfuscator));
     }
 
     /**

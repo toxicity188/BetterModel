@@ -130,13 +130,14 @@ object ModelManagerImpl : ModelManager, GlobalManager {
         private val textures = zipper.assets().bettermodel().textures()
 
         private val legacyModel = ModelBuilder(
-            models = zipper.legacy().bettermodel().models().resolve("item"),
+            namespace = zipper.legacy().obfuscate("item"),
+            builder = { zipper.legacy().bettermodel().models().resolve(namespace) },
             available = CONFIG.pack().generateLegacyModel,
             onBuild = { blueprints, _, size ->
                 val json = blueprints.first()
                 entries += jsonObjectOf(
                     "predicate" to jsonObjectOf("custom_model_data" to indexer),
-                    "model" to "${CONFIG.namespace()}:item/${json.name}"
+                    "model" to "${CONFIG.namespace()}:$namespace/${json.name}"
                 )
                 models.add(json.jsonName(), size) {
                     json.buildJson().toByteArray()
@@ -156,12 +157,13 @@ object ModelManagerImpl : ModelManager, GlobalManager {
         )
 
         private val modernModel = ModelBuilder(
-            models = zipper.modern().bettermodel().models().resolve("modern_item"),
+            namespace = zipper.modern().obfuscate("modern_item"),
+            builder = { zipper.modern().bettermodel().models().resolve(namespace) },
             available = CONFIG.pack().generateModernModel,
             onBuild = { blueprints, json, size ->
                 entries += jsonObjectOf(
                     "threshold" to indexer,
-                    "model" to blueprints.toModernJson(json)
+                    "model" to blueprints.toModernJson(namespace, json)
                 )
                 blueprints.forEach { json ->
                     models.add(json.jsonName(), size / blueprints.size) {
@@ -241,12 +243,14 @@ object ModelManagerImpl : ModelManager, GlobalManager {
         }
 
         inner class ModelBuilder(
-            val models: PackBuilder,
+            val namespace: String,
+            val builder: ModelBuilder.() -> PackBuilder,
             private val available: Boolean,
             private val onBuild: ModelBuilder.(List<BlueprintJson>, JsonObject?, Long) -> Unit,
             private val onClose: ModelBuilder.() -> Unit
         ) : AutoCloseable {
             val entries = jsonArrayOf()
+            val models = builder()
             val obfuscator = textures.obfuscator().withModels(models.obfuscator())
 
             inline fun <T> ifAvailable(block: ModelBuilder.() -> T): T? {
@@ -264,16 +268,16 @@ object ModelManagerImpl : ModelManager, GlobalManager {
             }
         }
 
-        private fun List<BlueprintJson>.toModernJson(plus: JsonObject?) = if (size == 1) first().toModernJson() else jsonObjectOf(
+        private fun List<BlueprintJson>.toModernJson(namespace: String, plus: JsonObject?) = if (size == 1) first().toModernJson(namespace) else jsonObjectOf(
             "type" to "composite",
             "models" to fold(JsonArray(size + (if (plus != null) 1 else 0)).apply {
                 plus?.run(::add)
-            }) { array, element -> array.apply { add(element.toModernJson()) } }
+            }) { array, element -> array.apply { add(element.toModernJson(namespace)) } }
         )
 
-        private fun BlueprintJson.toModernJson() = jsonObjectOf(
+        private fun BlueprintJson.toModernJson(namespace: String) = jsonObjectOf(
             "type" to "model",
-            "model" to "${CONFIG.namespace()}:modern_item/$name",
+            "model" to "${CONFIG.namespace()}:$namespace/$name",
             "tints" to jsonArrayOf(
                 jsonObjectOf(
                     "type" to "custom_model_data",

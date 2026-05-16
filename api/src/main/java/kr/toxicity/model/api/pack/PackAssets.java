@@ -28,10 +28,11 @@ public final class PackAssets {
     final Map<PackPath, PackResource> resourceMap = new ConcurrentHashMap<>();
 
     private final PackNamespace bettermodel, minecraft;
+    private final PackObfuscator obfuscator = PackObfuscator.order();
 
-    PackAssets(@NotNull PackOverlay overlay) {
+    PackAssets(@NotNull PackOverlay overlay, @NotNull PackObfuscator obfuscator) {
         this.overlay = overlay;
-        this.path = overlay.path(BetterModel.config().namespace());
+        this.path = overlay.path(BetterModel.config().namespace(), obfuscator);
         bettermodel = new PackNamespace(this, BetterModel.config().namespace());
         minecraft = new PackNamespace(this, "minecraft");
     }
@@ -54,6 +55,17 @@ public final class PackAssets {
      */
     public @NotNull PackNamespace minecraft() {
         return minecraft;
+    }
+
+    /**
+     * Obfuscates the given namespace using the internal obfuscator.
+     *
+     * @param namespace the namespace to obfuscate
+     * @return the obfuscated namespace
+     * @since 3.1.0
+     */
+    public @NotNull String obfuscate(@NotNull String namespace) {
+        return obfuscator.obfuscate(namespace);
     }
 
     int size() {
