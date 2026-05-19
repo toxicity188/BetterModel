@@ -1,9 +1,8 @@
 <div align="center">  
 
-![](https://github.com/user-attachments/assets/89e191ba-ed4f-44ab-bb98-634cfe568dca)
+![](https://github.com/user-attachments/assets/ecd13a35-e897-44c2-b12f-8d465f33dab5)
 
-# BetterModel
-*- Modern Bedrock model engine for Minecraft Java Edition -*
+---
 
 [![](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/available/modrinth_vector.svg)](https://modrinth.com/plugin/bettermodel)
 [![](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/available/hangar_vector.svg)](https://hangar.papermc.io/toxicity188/BetterModel)
