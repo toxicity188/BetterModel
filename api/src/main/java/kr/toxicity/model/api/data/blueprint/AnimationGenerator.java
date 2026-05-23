@@ -36,7 +36,7 @@ import static kr.toxicity.model.api.util.CollectionUtil.*;
 @ApiStatus.Internal
 public final class AnimationGenerator {
 
-    private final List<AnimationTree> trees;
+    private final AnimationTree[] trees;
 
     /**
      * Creates a map of blueprint animators from the provided animation data.
@@ -89,7 +89,7 @@ public final class AnimationGenerator {
         trees = filterIsInstance(children, BlueprintElement.Group.class)
             .map(g -> new AnimationTree(null, g, function))
             .flatMap(AnimationTree::flatten)
-            .toList();
+            .toArray(AnimationTree[]::new);
     }
 
     /**
@@ -104,7 +104,7 @@ public final class AnimationGenerator {
     public void interpolateRotation(@NotNull FloatSortedSet floats) {
         var list = new FloatArrayList(floats);
         var map = associate(
-            trees.stream()
+            Arrays.stream(trees)
                 .parallel()
                 .map(t -> {
                     var d = t.data;
@@ -127,7 +127,7 @@ public final class AnimationGenerator {
         IntStream.range(1, list.size())
             .parallel()
             .forEach(i -> {
-                var cache = new IdentityHashMap<AnimationTree, Vector3f>(trees.size());
+                var cache = new IdentityHashMap<AnimationTree, Vector3f>(trees.length);
                 for (AnimationTree t : trees) {
                     Vector3f delta, parent;
                     var getVec = map.get(t);
@@ -161,7 +161,7 @@ public final class AnimationGenerator {
      * @since 1.15.2
      */
     public void interpolateStep(@NotNull FloatSortedSet floats) {
-        trees.stream()
+        Arrays.stream(trees)
             .map(tree -> tree.data)
             .filter(Objects::nonNull)
             .forEach(data -> {
@@ -184,7 +184,7 @@ public final class AnimationGenerator {
 
     private static final class AnimationTree {
         private final AnimationTree parent;
-        private final List<AnimationTree> children;
+        private final AnimationTree[] children;
         private final BlueprintAnimator.AnimatorData data;
 
         AnimationTree(
@@ -196,14 +196,14 @@ public final class AnimationGenerator {
             this.data = function.apply(group);
             children = filterIsInstance(group.children(), BlueprintElement.Group.class)
                 .map(g -> new AnimationTree(this, g, function))
-                .toList();
+                .toArray(AnimationTree[]::new);
         }
 
         @NotNull
         Stream<AnimationTree> flatten() {
-            return children.isEmpty() ? Stream.of(this) : Stream.concat(
+            return children.length == 0 ? Stream.of(this) : Stream.concat(
                 Stream.of(this),
-                children.stream().flatMap(AnimationTree::flatten)
+                Arrays.stream(children).flatMap(AnimationTree::flatten)
             );
         }
     }
