@@ -61,8 +61,8 @@ public interface BoneItemMapper extends BiFunction<BoneRenderContext, Transforme
 
             @Override
             public @NotNull TransformedItemStack apply(@NotNull BoneRenderContext context, @NotNull TransformedItemStack transformedItemStack) {
-                if (context.source() instanceof RenderSource.BasePlayer(PlatformPlayer player)) {
-                    var get = mapper.apply(player);
+                if (context.source() instanceof RenderSource.Player player) {
+                    var get = mapper.apply(player.entity().platform());
                     return get == null ? AIR : get;
                 }
                 return transformedItemStack;
