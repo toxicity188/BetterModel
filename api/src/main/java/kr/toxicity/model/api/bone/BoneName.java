@@ -11,6 +11,7 @@ import com.google.gson.JsonDeserializer;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Objects;
 import java.util.Set;
@@ -21,7 +22,11 @@ import java.util.Set;
  * @param name name
  * @param rawName original name
  */
-public record BoneName(@NotNull @Unmodifiable Set<BoneTag> tags, @NotNull String name, @NotNull String rawName) {
+public record BoneName(
+    @NotNull @Unmodifiable Set<BoneTag> tags,
+    @NotNull String name,
+    @NotNull String rawName
+) implements Comparable<BoneName> {
 
     /**
      * A JSON deserializer for parsing BoneName from a string.
@@ -71,6 +76,11 @@ public record BoneName(@NotNull @Unmodifiable Set<BoneTag> tags, @NotNull String
         if (this == o) return true;
         if (!(o instanceof BoneName boneName)) return false;
         return rawName.equals(boneName.rawName);
+    }
+
+    @Override
+    public int compareTo(@NonNull BoneName o) {
+        return rawName.compareTo(o.rawName);
     }
 
     @Override
