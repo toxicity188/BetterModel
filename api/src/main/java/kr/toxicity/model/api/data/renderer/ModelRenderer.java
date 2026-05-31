@@ -617,10 +617,11 @@ public record ModelRenderer(
     }
 
     private @NotNull RenderPipeline pipeline(@NotNull RenderSource<?> source) {
+        var fallback = source.fallbackContext();
         return new RenderPipeline(
             this,
             source,
-            rendererGroups.values().stream().map(value -> value.create(source)).toArray(RenderedBone[]::new)
+            rendererGroups.values().stream().map(value -> value.create(fallback)).toArray(RenderedBone[]::new)
         );
     }
 

@@ -114,11 +114,11 @@ public final class RendererGroup {
 
     /**
      * Creates entity.
-     * @param source source
+     * @param context context
      * @return entity
      */
-    public @NotNull RenderedBone create(@NotNull RenderSource<?> source) {
-        return create(source.fallbackContext(), null);
+    public @NotNull RenderedBone create(@NotNull BoneRenderContext context) {
+        return create(context, null);
     }
 
     private @NotNull RenderedBone create(@NotNull BoneRenderContext context, @Nullable RenderedBone parentBone) {
