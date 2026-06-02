@@ -526,10 +526,9 @@ public record ModelRenderer(
      * @return entity tracker
      */
     public @NotNull EntityTracker getOrCreate(@NotNull BaseEntity entity, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
-        var source = RenderSource.of(entity);
-        return source.getOrCreate(
+        return RenderSource.of(entity).getOrCreate(
             name(),
-            () -> pipeline(source),
+            this::pipeline,
             modifier,
             preUpdateConsumer
         );
@@ -607,10 +606,9 @@ public record ModelRenderer(
      * @return entity tracker
      */
     public @NotNull EntityTracker getOrCreate(@NotNull BaseEntity entity, @NotNull ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
-        var source = RenderSource.of(entity, profile);
-        return source.getOrCreate(
+        return RenderSource.of(entity, profile).getOrCreate(
             name(),
-            () -> pipeline(source),
+            this::pipeline,
             modifier,
             preUpdateConsumer
         );

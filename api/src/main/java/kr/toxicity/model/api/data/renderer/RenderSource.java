@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -158,14 +159,14 @@ public sealed interface RenderSource<T extends Tracker> {
          * Gets or creates an entity tracker for this source.
          *
          * @param name the name of the tracker
-         * @param supplier a supplier for the render pipeline
+         * @param function a function for the render pipeline
          * @param modifier the tracker modifier
          * @param preUpdateConsumer a consumer to run before updates
          * @return the entity tracker
          * @since 1.15.2
          */
-        default @NotNull EntityTracker getOrCreate(@NotNull String name, @NotNull Supplier<RenderPipeline> supplier, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
-            return EntityTrackerRegistry.getOrCreate(entity()).getOrCreate(name, r -> new EntityTracker(r, supplier.get(), modifier, preUpdateConsumer));
+        default @NotNull EntityTracker getOrCreate(@NotNull String name, @NotNull Function<RenderSource.Entity, RenderPipeline> function, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
+            return EntityTrackerRegistry.getOrCreate(entity()).getOrCreate(name, r -> new EntityTracker(r, function.apply(this), modifier, preUpdateConsumer));
         }
     }
 
@@ -184,8 +185,10 @@ public sealed interface RenderSource<T extends Tracker> {
             return EntityTrackerRegistry.getOrCreate(entity()).create(pipeline.name(), r -> new PlayerTracker(r, pipeline, modifier, preUpdateConsumer));
         }
 
-        default @NotNull EntityTracker getOrCreate(@NotNull String name, @NotNull Supplier<RenderPipeline> supplier, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
-            return EntityTrackerRegistry.getOrCreate(entity()).getOrCreate(name, r -> new PlayerTracker(r, supplier.get(), modifier, preUpdateConsumer));
+        @Override
+        @NotNull
+        default EntityTracker getOrCreate(@NotNull String name, @NotNull Function<Entity, RenderPipeline> function, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
+            return EntityTrackerRegistry.getOrCreate(entity()).getOrCreate(name, r -> new PlayerTracker(r, function.apply(this), modifier, preUpdateConsumer));
         }
 
         @Override
