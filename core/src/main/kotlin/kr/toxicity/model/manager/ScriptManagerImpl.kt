@@ -92,7 +92,7 @@ object ScriptManagerImpl : ScriptManager, GlobalManager {
                 ScriptMetaDataImpl(it.group("metadata")
                     ?.split(';')
                     ?.associate { pair ->
-                        pair.split('=', limit = 2).let { arr -> arr[0] to arr[1] }
+                        pair.split('=', limit = 2).let { arr -> arr[0] to if (arr.size == 2) arr[1] else "" }
                     }
                     ?: emptyMap()
                 )
