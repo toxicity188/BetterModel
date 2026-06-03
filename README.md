@@ -21,16 +21,15 @@
 
 # ✨ Introduction
 
-**BetterModel** is a server-based engine that provides runtime BlockBench model rendering & animating for Minecraft Java Edition.
+**BetterModel** is a server-based engine that provides runtime [BlockBench](https://www.blockbench.net/) model rendering & animating for Minecraft Java Edition.
 
-It implements **fully server-side 3D models** by using an item display entity packet.
-
-- Importing Generic BlockBench model `.bbmodel`
-- Auto-generating resource pack
-- Playing animation
-- Syncing with base entity
-- Custom hit box
-- 12-limb player animation
+- Built on the `item-display` packet.
+- Implements **essential BlockBench elements**, including `cubes`, `meshes`, `null objects`, and `locators`.
+- Support for **model animations**, `Molang` expressions, and **IK** (Inverse Kinematics) rigging.
+- Supports **player skin models** and **custom armor**.
+- **Automated resource pack generation** with **zero reliance on core shaders**.
+- Provides support for **entity syncing**.
+- **Extensible API** available for integration.
 
 <details>
 <summary>In-Game Screenshots</summary>
