@@ -14,7 +14,7 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class AbstractHitBox extends ArmorStand implements HitBox {
+abstract class AbstractHitBox extends ArmorStand implements HitBox {
 
     AbstractHitBox(@NotNull Level level) {
         super(EntityType.ARMOR_STAND, level);
