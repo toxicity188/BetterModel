@@ -11,6 +11,7 @@ val versionString = version.toString()
 val groupString = group.toString()
 
 val javadocJar by tasks.registering(Jar::class) {
+    description = "Makes javadoc."
     dependsOn(tasks.dokkaGenerate)
     archiveClassifier = "javadoc"
     from(layout.buildDirectory.dir("dokka/html").orNull?.asFile)
@@ -20,15 +21,22 @@ runPaper {
     disablePluginJarDetection()
 }
 
+val bettermodel get() = project(":platform:bettermodel-paper").tasks.named<Jar>("shadowJar").flatMap {
+    it.archiveFile
+}
+val bettermodelTest get() = project(":test-plugin").tasks.jar.flatMap {
+    it.archiveFile
+}
+
+runPaper.folia.registerTask {
+    pluginJars(bettermodel, bettermodelTest)
+    minecraftVersion(minecraft)
+}
+
 tasks {
     runServer {
         pluginJars(fileTree("plugins"))
-        pluginJars(project(":platform:bettermodel-paper").tasks.named<Jar>("shadowJar").flatMap {
-            it.archiveFile
-        })
-        pluginJars(project(":test-plugin").tasks.jar.flatMap {
-            it.archiveFile
-        })
+        pluginJars(bettermodel, bettermodelTest)
         minecraftVersion(minecraft)
         downloadPlugins {
             hangar("ViaVersion", "5.9.1")
@@ -61,9 +69,7 @@ hangarPublish {
         }
         platforms {
             register(Platforms.PAPER) {
-                jar = project(":platform:bettermodel-paper").tasks.named<Jar>("shadowJar").flatMap {
-                    it.archiveFile
-                }
+                jar = bettermodel
                 platformVersions = SUPPORTED_VERSIONS
                 dependencies {
                     hangar("SkinsRestorer") { required = false }
