@@ -34,7 +34,7 @@ val DATA_FOLDER
 
 private val LATEST_VERSION_CACHE = Caffeine.newBuilder()
     .expireAfterWrite(5, TimeUnit.MINUTES)
-    .build<Any, HttpUtil.LatestVersion> { HttpUtil.versionList() }
+    .build<Any, HttpUtil.LatestVersion> { HttpUtil.latest() }
 
 private val GSON = GsonBuilder().disableHtmlEscaping().create()
 

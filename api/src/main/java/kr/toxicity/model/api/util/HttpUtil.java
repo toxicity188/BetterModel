@@ -14,6 +14,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.stream.JsonReader;
 import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.BetterModelPlatform;
 import kr.toxicity.model.api.version.MinecraftVersion;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -63,8 +64,8 @@ public final class HttpUtil {
      * Searches BetterModel's latest version
      * @return latest version
      */
-    public static @NotNull LatestVersion versionList() {
-        return versionList(BetterModel.platform().version());
+    public static @NotNull LatestVersion latest() {
+        return latest(BetterModel.platform().version());
     }
 
     /**
@@ -72,7 +73,7 @@ public final class HttpUtil {
      * @param version server version
      * @return latest version
      */
-    public static @NotNull LatestVersion versionList(@NotNull MinecraftVersion version) {
+    public static @NotNull LatestVersion latest(@NotNull MinecraftVersion version) {
         return client(client -> {
             try (var stream = client.send(HttpRequest.newBuilder()
                 .GET()
@@ -108,6 +109,7 @@ public final class HttpUtil {
             if (version.versionType.equals("release")) {
                 if (release == null) release = version;
             } else if (snapshot == null) snapshot = version;
+            if (release != null && snapshot != null) break;
         }
         return new LatestVersion(release, snapshot);
     }
@@ -133,7 +135,7 @@ public final class HttpUtil {
         @NotNull @SerializedName("version_number") Semver versionNumber,
         @NotNull @SerializedName("version_type") String versionType,
         @NotNull @SerializedName("game_versions") Set<MinecraftVersion> versions,
-        @NotNull Set<String> loaders
+        @NotNull Set<BetterModelPlatform.JarType> loaders
     ) {
         /**
          * Creates a text component with URL
@@ -159,7 +161,7 @@ public final class HttpUtil {
          * @return is same platform
          */
         public boolean isSamePlatform() {
-            return loaders.contains(BetterModel.platform().jarType().raw());
+            return loaders.contains(BetterModel.platform().jarType());
         }
     }
 
