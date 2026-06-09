@@ -71,13 +71,13 @@ class ParallelIOThreadPool : AutoCloseable {
         val lastIndex = list.lastIndex
         val tasks = if (available >= size) {
             list.map {
-                {
+                Runnable {
                     block(it)
                 }
             }
         } else {
             val sorted = list.sortedBy(sizeAssume)
-            val queue = arrayListOf<() -> Unit>()
+            val queue = arrayListOf<Runnable>()
             var i = 0
             val add = (size.toDouble() / available).toInt()
             while (i <= size) {
@@ -86,7 +86,7 @@ class ParallelIOThreadPool : AutoCloseable {
                     val ht = t / 2
                     list += sorted[if (t % 2 == 0) ht else lastIndex - ht]
                 }
-                queue += {
+                queue += Runnable {
                     list.forEach(block)
                 }
                 i += add
@@ -95,9 +95,7 @@ class ParallelIOThreadPool : AutoCloseable {
         }
         CompletableFuture.allOf(
             *tasks.map {
-                CompletableFuture.runAsync({
-                    it()
-                }, pool)
+                CompletableFuture.runAsync(it, pool)
             }.toTypedArray()
         ).join()
     }
