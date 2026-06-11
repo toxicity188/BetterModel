@@ -119,6 +119,18 @@ internal class HitBoxImpl(
     override fun relativePosition(): Vector3f = delegate.position().run {
         bone.hitBoxPosition(posCache).add(x.toFloat(), y.toFloat(), z.toFloat())
     }
+    override fun syncPosition() {
+        yRot = bone.rotation().y
+        yHeadRot = yRot
+        yBodyRot = yRot
+        val pos = relativePosition()
+        val minusHeight = source.minY * bone.hitBoxScale()
+        val targetX = pos.x.toDouble()
+        val targetY = pos.y.toDouble() + minusHeight
+        val targetZ = pos.z.toDouble()
+        level().getChunkAt(BlockPos.containing(targetX, targetY, targetZ))
+        setPos(targetX, targetY, targetZ)
+    }
     override fun listener(): HitBoxListener = listener
     override fun listener(listener: HitBoxListener) {
         this.listener = listener
@@ -287,11 +299,11 @@ internal class HitBoxImpl(
         yBodyRot = yRot
         val pos = relativePosition()
         val minusHeight = source.minY * bone.hitBoxScale()
-        setPos(
-            pos.x.toDouble(),
-            pos.y.toDouble() + minusHeight,
-            pos.z.toDouble()
-        )
+        val targetX = pos.x.toDouble()
+        val targetY = pos.y.toDouble() + minusHeight
+        val targetZ = pos.z.toDouble()
+        level().getChunkAt(BlockPos.containing(targetX, targetY, targetZ))
+        setPos(targetX, targetY, targetZ)
         BlockPos.betweenClosedStream(boundingBox).forEach {
             level().getBlockState(it).entityInside(level(), it, delegate)
         }

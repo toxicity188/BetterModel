@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -149,6 +150,16 @@ public class EntityTracker extends Tracker {
         tick((_, _) -> updateLocation());
         tick((_, _) -> {
             if (damageTint.getAndDecrement() == 0) update(TrackerUpdateAction.previousTint());
+        });
+        tick((_, _) -> {
+            var hbs = new ArrayList<>(registry.hitBoxCache.values());
+            if (!hbs.isEmpty()) {
+                registry.entity().platform().task(() -> {
+                    for (var hb : hbs) {
+                        hb.syncPosition();
+                    }
+                });
+            }
         });
         rotation(bodyRotator::bodyRotation);
         preUpdateConsumer.accept(this);

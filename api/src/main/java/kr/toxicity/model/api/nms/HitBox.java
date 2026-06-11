@@ -196,6 +196,19 @@ public interface HitBox extends Identifiable {
     @NotNull RenderedBone positionSource();
 
     /**
+     * Synchronizes the position of this hitbox with its source entity.
+     * <p>
+     * This method ensures that the hitbox position follows its model even when
+     * it is outside the server's simulation distance. It should be called
+     * periodically from the entity tracker's tick system.
+     * </p>
+     *
+     * @since 3.3.2
+     */
+    @ApiStatus.Internal
+    void syncPosition();
+
+    /**
      * Returns the entity tracker registry for this hitbox's source entity.
      *
      * @return an optional containing the registry, or empty if not found
