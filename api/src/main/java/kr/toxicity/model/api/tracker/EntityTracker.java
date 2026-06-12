@@ -30,11 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 
-import java.util.ArrayList;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -147,10 +143,6 @@ public class EntityTracker extends Tracker {
             if (isClosed()) return;
             createHitBox(null, CREATE_HITBOX_PREDICATE);
         });
-        tick((_, _) -> updateLocation());
-        tick((_, _) -> {
-            if (damageTint.getAndDecrement() == 0) update(TrackerUpdateAction.previousTint());
-        });
         tick((_, _) -> {
             var hbs = new ArrayList<>(registry.hitBoxCache.values());
             if (!hbs.isEmpty()) {
@@ -160,6 +152,10 @@ public class EntityTracker extends Tracker {
                     }
                 });
             }
+        });
+        tick((_, _) -> updateLocation());
+        tick((_, _) -> {
+            if (damageTint.getAndDecrement() == 0) update(TrackerUpdateAction.previousTint());
         });
         rotation(bodyRotator::bodyRotation);
         preUpdateConsumer.accept(this);

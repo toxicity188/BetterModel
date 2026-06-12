@@ -36,7 +36,6 @@ import net.minecraft.world.entity.projectile.Projectile
 import net.minecraft.world.entity.projectile.ProjectileDeflection
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.BlockGetter
-import net.minecraft.core.BlockPos
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import org.joml.Vector3f
@@ -138,16 +137,8 @@ class HitBoxEntityImpl(
         val targetX = pos.x.toDouble()
         val targetY = pos.y.toDouble() + minusHeight
         val targetZ = pos.z.toDouble()
-        level().getChunkAt(BlockPos.containing(targetX, targetY, targetZ))
         setPos(targetX, targetY, targetZ)
-        calculateDimensions().let { dimensions ->
-            interaction.width = dimensions.width
-            interaction.height = dimensions.height
-        }
-        interaction.yRot = yRot
-        interaction.xRot = xRot
-        interaction.setSharedFlagOnFire(remainingFireTicks > 0)
-        interaction.isInvisible = delegate.isInvisible
+        interaction.setPos(targetX, targetY, targetZ)
     }
 
     override fun listener(): HitBoxListener = listener
@@ -368,11 +359,11 @@ class HitBoxEntityImpl(
 
         val pos = relativePosition()
         val minusHeight = source.minY * bone.hitBoxScale()
-        val targetX = pos.x.toDouble()
-        val targetY = pos.y.toDouble() + minusHeight
-        val targetZ = pos.z.toDouble()
-        level().getChunkAt(BlockPos.containing(targetX, targetY, targetZ))
-        setPos(targetX, targetY, targetZ)
+        setPos(
+            pos.x.toDouble(),
+            pos.y.toDouble() + minusHeight,
+            pos.z.toDouble()
+        )
 
         BlockGetter.forEachBlockIntersectedBetween(
             oldPosition(),
