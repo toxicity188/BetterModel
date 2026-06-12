@@ -133,6 +133,13 @@ internal class HitBoxImpl(
         val targetZ = pos.z.toDouble()
         level().getChunkAt(BlockPos.containing(targetX, targetY, targetZ))
         setPos(targetX, targetY, targetZ)
+        val dimension = dimensions
+        interaction.width = dimension.width
+        interaction.height = dimension.height
+        interaction.yRot = yRot
+        interaction.xRot = xRot
+        interaction.setSharedFlagOnFire(remainingFireTicks > 0)
+        interaction.isInvisible = delegate.isInvisible
     }
     override fun listener(): HitBoxListener = listener
     override fun listener(listener: HitBoxListener) {
