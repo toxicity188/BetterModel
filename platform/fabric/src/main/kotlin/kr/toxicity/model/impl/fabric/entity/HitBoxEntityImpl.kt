@@ -49,7 +49,7 @@ class HitBoxEntityImpl(
     private val delegate: Entity,
     private var mountController: MountController
 ) :
-    AbstractArmorStand(EntityType.ARMOR_STAND, delegate.level()),
+    AbstractArmorStand(EntityTypes.ARMOR_STAND, delegate.level()),
     HitBox
 {
     private val posCache = BoneMovement()
@@ -182,8 +182,9 @@ class HitBoxEntityImpl(
         return delegate.remainingFireTicks
     }
 
-    override fun knockback(d: Double, e: Double, f: Double) {
-        (delegate as? LivingEntity)?.knockback(d, e, f)
+    override fun knockback(power: Double, xd: Double, zd: Double, source: DamageSource, damage: Float, comesFromEffect: Boolean) {
+        if (source.entity == delegate) return
+        (delegate as? LivingEntity)?.knockback(power, xd, zd, source, damage, comesFromEffect)
     }
 
     override fun push(pushingEntity: Entity) {

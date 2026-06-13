@@ -34,7 +34,7 @@ import net.minecraft.resources.Identifier
 import net.minecraft.util.ARGB
 import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
@@ -50,7 +50,7 @@ class BetterModelNMSImpl : NMS {
         yOffset: Double,
         initialConsumer: Consumer<ModelDisplay>
     ): ModelDisplay {
-        val type = EntityType.ITEM_DISPLAY
+        val type = EntityTypes.ITEM_DISPLAY
         val level = location.asFabric.level()!!
 
         val itemDisplay = Display.ItemDisplay(type, level).apply {

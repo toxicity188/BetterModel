@@ -31,7 +31,7 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.network.ServerPlayerConnection
 import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.item.ItemStack
 import java.util.stream.IntStream
@@ -99,7 +99,7 @@ class PlayerChannelHandlerImpl(
         uuid,
         x, y, z,
         xRot, yRot,
-        EntityType.ITEM_DISPLAY,
+        EntityTypes.ITEM_DISPLAY,
         0,
         deltaMovement,
         yHeadRot.toDouble()
@@ -234,7 +234,7 @@ class PlayerChannelHandlerImpl(
 
         private val hitBoxData by lazy {
             Display.ItemDisplay(
-                EntityType.ITEM_DISPLAY,
+                EntityTypes.ITEM_DISPLAY,
                 (PLATFORM as BetterModelMod).server().overworld()
             ).run {
                 entityData.set(DisplayAccessor.`bettermodel$getDataPosRotInterpolationDurationId`(), 3)
