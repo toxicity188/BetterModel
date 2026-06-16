@@ -7,8 +7,7 @@ plugins {
     id("net.fabricmc.fabric-loom")
 }
 
-//TODO val versionString = "${rootProject.version}+${property("minecraft_version")}"
-val versionString = "${rootProject.version}+26.2"
+val versionString = "${rootProject.version}+${property("minecraft_version")}"
 
 val jarName = "${rootProject.name}-$versionString-${project.name.substringAfterLast('-')}.jar"
 val jarDir = rootProject.layout.buildDirectory.dir("libs")
@@ -45,8 +44,7 @@ loom {
 
 dependencies {
     // Minecraft
-    //TODO minecraft("com.mojang:minecraft:${property("minecraft_version")}")
-    minecraft("com.mojang:minecraft:26.2-rc-2")
+    minecraft("com.mojang:minecraft:${property("minecraft_version")}")
 
     api(project(":bettermodel-api")); include(project(":bettermodel-api"))
     api(project(":bettermodel-api:bettermodel-mod-api")); include(project(":bettermodel-api:bettermodel-mod-api"))
