@@ -18,20 +18,14 @@ class BetterModelLoggerImpl : BetterModelLogger {
         ComponentLogger.logger(LOGGER.name)
     }
 
+    @Synchronized
     override fun info(vararg messages: Component) {
-        synchronized(this) {
-            for (message in messages) {
-                logger.info(message)
-            }
-        }
+        messages.forEach(logger::info)
     }
 
+    @Synchronized
     override fun warn(vararg messages: Component) {
-        synchronized(this) {
-            for (message in messages) {
-                logger.warn(message)
-            }
-        }
+        messages.forEach(logger::warn)
     }
 
     companion object {
