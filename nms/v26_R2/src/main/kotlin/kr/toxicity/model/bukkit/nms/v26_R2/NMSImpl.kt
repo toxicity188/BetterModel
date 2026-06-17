@@ -355,7 +355,7 @@ class NMSImpl : NMS {
             mountController
         ).craftEntity
     }
-    override fun version(): NMSVersion = NMSVersion.V26_R1
+    override fun version(): NMSVersion = NMSVersion.V26_R2
 
     override fun adapt(entity: PlatformEntity): BaseBukkitEntity {
         val craft = entity.unwarp() as CraftEntity

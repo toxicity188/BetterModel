@@ -51,7 +51,12 @@ public enum NMSVersion {
      * Minecraft 26.1.x
      * @since 3.0.0
      */
-    V26_R1(84)
+    V26_R1(84),
+    /**
+     * Minecraft 26.2.x
+     * @since 3.2.0
+     */
+    V26_R2(88)
     ;
     /**
      * The resource pack format version (pack.mcmeta).
