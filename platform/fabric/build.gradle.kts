@@ -27,14 +27,14 @@ loom {
     runs {
         create("testClient") {
             client()
-            configName = "Test Minecraft Client"
-            source("testmod")
+            displayName = "Test Minecraft Client"
+            sourceSet = "testmod"
         }
 
         create("testServer") {
             server()
-            configName = "Test Minecraft Server"
-            source("testmod")
+            displayName = "Test Minecraft Server"
+            sourceSet = "testmod"
         }
     }
 
