@@ -39,25 +39,25 @@ public final class BetterModelLibrary {
                 "bstats-base"
             )
     );
-    public static final LibraryData CLOUD = register(
-        "org{}incendo",
-        "cloud-paper",
-        builder -> builder
-            .subModules(
-                "cloud-brigadier",
-                "cloud-bukkit"
-            )
-            .relocation("org{}incendo{}cloud")
-    );
-    public static final LibraryData CLOUD_CORE = register(
-        "org{}incendo",
-        "cloud-core",
-        builder -> builder
-            .subModules(
-                "cloud-services"
-            )
-            .relocation("org{}incendo{}cloud")
-    );
+//    public static final LibraryData CLOUD = register(
+//        "org{}incendo",
+//        "cloud-paper",
+//        builder -> builder
+//            .subModules(
+//                "cloud-brigadier",
+//                "cloud-bukkit"
+//            )
+//            .relocation("org{}incendo{}cloud")
+//    );
+//    public static final LibraryData CLOUD_CORE = register(
+//        "org{}incendo",
+//        "cloud-core",
+//        builder -> builder
+//            .subModules(
+//                "cloud-services"
+//            )
+//            .relocation("org{}incendo{}cloud")
+//    );
     public static final LibraryData GEANTYREF = register(
         "io{}leangen{}geantyref",
         "geantyref",
@@ -78,7 +78,6 @@ public final class BetterModelLibrary {
                 "adventure-text-serializer-legacy",
                 "adventure-nbt",
                 "adventure-text-serializer-gson",
-                "adventure-text-serializer-gson-legacy-impl",
                 "adventure-text-serializer-json",
                 "adventure-text-serializer-json-legacy-impl"
             )
@@ -99,7 +98,7 @@ public final class BetterModelLibrary {
         builder -> builder.predicate(BooleanConstantSupplier.of(!BetterModelBukkit.IS_PAPER))
     );
     public static final LibraryData ADVENTURE_PLATFORM = register(
-        "net{}kyori",
+        "io{}github{}toxicity188",
         "adventure-platform-bukkit",
         builder -> builder
             .subModules(

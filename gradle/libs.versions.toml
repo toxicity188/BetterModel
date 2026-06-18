@@ -7,11 +7,11 @@ shadow = "9.4.2"
 minotaur = "2.9.0"
 hangarPublish = "0.1.4"
 
-fabric-api = "0.151.0+26.1.2"
+fabric-api = "0.152.1+26.2"
 fabric-language-kotlin = "1.13.12+kotlin.2.4.0"
 
-cloud-bukkit = "2.0.0-beta.15"
-cloud-mod = "2.0.0-beta.16"
+cloud-bukkit = "2.0.0-SNAPSHOT" #TODO cloud-bukkit = "2.0.0-beta.16"
+cloud-mod = "2.0.0-SNAPSHOT" #TODO cloud-mod = "2.0.0-beta.17"
 cloud-core = "2.0.0"
 
 configurate = "4.2.0"
@@ -24,18 +24,18 @@ kotlin = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin"
 semver4j = "org.semver4j:semver4j:6.0.0"
 caffeine = "com.github.ben-manes.caffeine:caffeine:3.2.4"
 
-adventure-api = "net.kyori:adventure-api:4.26.1"
+adventure-api = "net.kyori:adventure-api:5.1.1"
 adventure-examination = "net.kyori:examination-api:1.3.0"
 adventure-option = "net.kyori:option:1.1.0"
-adventure-platform-bukkit = "net.kyori:adventure-platform-bukkit:4.4.1"
-adventure-platform-fabric = "net.kyori:adventure-platform-fabric:6.9.0"
+adventure-platform-bukkit = "io.github.toxicity188:adventure-platform-bukkit:5.1.1"
+adventure-platform-fabric = "net.kyori:adventure-platform-fabric:7.0.0"
 
 asm-tree = "org.ow2.asm:asm-tree:9.10.1"
 
 fabric-loader = "net.fabricmc:fabric-loader:0.19.3"
 fabric-language-kotlin = { module = "net.fabricmc:fabric-language-kotlin", version.ref = "fabric-language-kotlin" }
 
-polymer-resource-pack = "eu.pb4:polymer-resource-pack:0.16.5+26.1.2"
+polymer-resource-pack = "eu.pb4:polymer-resource-pack:0.17.0+26.2-rc-2"
 
 configurate-core = { module = "org.spongepowered:configurate-core", version.ref = "configurate" }
 configurate-yaml = { module = "org.spongepowered:configurate-yaml", version.ref = "configurate" }
@@ -106,7 +106,7 @@ manifestLibrary = [
     "kotlin",
     "bStats",
     "molangCompiler",
-    "cloud-paper",
+    #TODO "cloud-paper",
     "cloud-core",
     "geantyref",
     "adventure-api",
@@ -117,6 +117,7 @@ manifestLibrary = [
 ]
 
 shadedLibrary = [
+    "cloud-paper",
     "armormodel",
     "libby"
 ]

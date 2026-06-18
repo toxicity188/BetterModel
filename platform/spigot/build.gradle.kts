@@ -16,6 +16,7 @@ dependencies {
     shade(project(":nms:v1_21_R6", configuration = "reobf")) { isTransitive = false }
     shade(project(":nms:v1_21_R7", configuration = "reobf")) { isTransitive = false }
     shade(project(":nms:v26_R1")) { isTransitive = false }
+    shade(project(":nms:v26_R2")) { isTransitive = false }
 }
 
 modrinth {

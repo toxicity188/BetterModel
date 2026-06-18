@@ -65,7 +65,7 @@ public final class LogUtil {
      * @return component
      */
     public static @NotNull Component toLog(@NotNull String message, @NotNull TextColor color) {
-        return Component.text().content(message).color(color).build();
+        return Component.text(builder -> builder.content(message).color(color));
     }
 
     /**
@@ -74,11 +74,9 @@ public final class LogUtil {
      * @param log log
      */
     public static void debug(@NotNull DebugConfig.DebugOption option, @NotNull Supplier<String> log) {
-        debug(option, () -> BetterModel.platform().logger().info(Component.text()
+        debug(option, () -> BetterModel.platform().logger().info(Component.text(builder -> builder
             .append(toLog("[DEBUG-" + option + "] ", NamedTextColor.YELLOW))
-            .append(Component.text(log.get()))
-            .build())
-        );
+            .append(Component.text(log.get())))));
     }
 
     /**

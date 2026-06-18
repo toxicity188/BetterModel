@@ -143,17 +143,18 @@ public final class HttpUtil {
          */
         public @NotNull Component toURLComponent() {
             var url = "https://modrinth.com/plugin/bettermodel/version/" + id;
-            return Component.text()
+            return Component.text(builder -> builder
                 .content(versionNumber.getVersion())
                 .color(NamedTextColor.AQUA)
                 .hoverEvent(
-                    HoverEvent.showText(Component.text()
+                    HoverEvent.showText(Component.text(hover -> hover
                         .append(Component.text(url).color(NamedTextColor.DARK_AQUA))
                         .appendNewline()
                         .append(Component.text("Click to open link.")))
+                    )
                 )
                 .clickEvent(ClickEvent.openUrl(url))
-                .build();
+            );
         }
 
         /**
