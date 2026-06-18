@@ -109,10 +109,10 @@ public final class RollTester implements ModelTester, Listener {
         return BetterModel.limb("steve")
             .flatMap(r -> r.animation("roll"))
             .map(animation -> {
-                audience.sendMessage(Component.text()
+                audience.sendMessage(Component.text(builder -> builder
                     .append(Component.text("Loop mode: " + animation.loop()))
                     .appendNewline()
-                    .append(Component.text("Length: " + animation.length() + " second")));
+                    .append(Component.text("Length: " + animation.length() + " second"))));
                 return audience;
             })
             .isPresent();
