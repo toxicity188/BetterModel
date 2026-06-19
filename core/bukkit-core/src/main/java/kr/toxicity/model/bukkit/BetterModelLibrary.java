@@ -39,25 +39,25 @@ public final class BetterModelLibrary {
                 "bstats-base"
             )
     );
-//    public static final LibraryData CLOUD = register(
-//        "org{}incendo",
-//        "cloud-paper",
-//        builder -> builder
-//            .subModules(
-//                "cloud-brigadier",
-//                "cloud-bukkit"
-//            )
-//            .relocation("org{}incendo{}cloud")
-//    );
-//    public static final LibraryData CLOUD_CORE = register(
-//        "org{}incendo",
-//        "cloud-core",
-//        builder -> builder
-//            .subModules(
-//                "cloud-services"
-//            )
-//            .relocation("org{}incendo{}cloud")
-//    );
+    public static final LibraryData CLOUD = register(
+        "org{}incendo",
+        "cloud-paper",
+        builder -> builder
+            .subModules(
+                "cloud-brigadier",
+                "cloud-bukkit"
+            )
+            .relocation("org{}incendo{}cloud")
+    );
+    public static final LibraryData CLOUD_CORE = register(
+        "org{}incendo",
+        "cloud-core",
+        builder -> builder
+            .subModules(
+                "cloud-services"
+            )
+            .relocation("org{}incendo{}cloud")
+    );
     public static final LibraryData GEANTYREF = register(
         "io{}leangen{}geantyref",
         "geantyref",
