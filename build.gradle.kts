@@ -10,7 +10,7 @@ val minecraft = property("minecraft_version").toString()
 val versionString = version.toString()
 val groupString = group.toString()
 
-val javadocJar by tasks.registering(Jar::class) {
+val javadocJar = tasks.register<Jar>("javadocJar") {
     description = "Makes javadoc."
     dependsOn(tasks.dokkaGenerate)
     archiveClassifier = "javadoc"
@@ -39,8 +39,8 @@ tasks {
         pluginJars(bettermodel, bettermodelTest)
         minecraftVersion(minecraft)
         downloadPlugins {
-            hangar("ViaVersion", "5.9.1")
-            hangar("ViaBackwards", "5.9.1")
+            hangar("ViaVersion", "5.10.0")
+            hangar("ViaBackwards", "5.10.0")
             hangar("Skript", "2.15.3")
         }
     }

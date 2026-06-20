@@ -148,7 +148,8 @@ sourceSets["testmod"].resourceFactory {
 interface FsInjected {
     @get:Inject val fs: FileSystemOperations
 }
-val copyModJar by tasks.registering {
+val copyModJar = tasks.register("copyModJar") {
+    description = "Copies mod jar to build/libs."
     val injected = objects.newInstance<FsInjected>()
     val archiveFile = tasks.jar.flatMap { it.archiveFile }
     val jarName = jarName

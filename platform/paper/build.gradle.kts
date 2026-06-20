@@ -30,7 +30,8 @@ tasks.modrinth {
     dependsOn(tasks.modrinthSyncBody)
 }
 
-val generatePaperLibrary by tasks.registering {
+val generatePaperLibrary = tasks.register("generatePaperLibrary") {
+    description = "Generates paper library info."
     val outputProvider = libraryDir
     val contentProvider = dependenciesContent
 
