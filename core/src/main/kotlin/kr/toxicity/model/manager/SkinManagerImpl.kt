@@ -635,9 +635,7 @@ object SkinManagerImpl : SkinManager, GlobalManager {
                         indexer.shiftColor(9)
                     }
                 }
-            )).forEach {
-                block(it)
-            }
+            )).forEach(block)
         }
         HEAD.write(ArmorResource.HELMET)
         CHEST.write(ArmorResource.CHEST)

@@ -7,6 +7,7 @@
 
 package kr.toxicity.model.api;
 
+import com.google.gson.annotations.SerializedName;
 import kr.toxicity.model.api.event.ModelEventApplication;
 import kr.toxicity.model.api.manager.*;
 import kr.toxicity.model.api.nms.NMS;
@@ -15,7 +16,6 @@ import kr.toxicity.model.api.pack.PackZipper;
 import kr.toxicity.model.api.platform.PlatformAdapter;
 import kr.toxicity.model.api.scheduler.ModelScheduler;
 import kr.toxicity.model.api.version.MinecraftVersion;
-import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.audience.Audience;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -300,34 +300,24 @@ public interface BetterModelPlatform extends ModelEventApplication {
      *
      * @since 2.0.0
      */
-    @RequiredArgsConstructor
     enum JarType {
         /**
          * Indicates a Spigot-based server.
          * @since 2.0.0
          */
-        SPIGOT("spigot"),
+        @SerializedName("spigot")
+        SPIGOT,
         /**
          * Indicates a Paper-based server.
          * @since 2.0.0
          */
-        PAPER("paper"),
+        @SerializedName("paper")
+        PAPER,
         /**
          * Indicates a Fabric-based server.
          * @since 2.0.0
          */
-        FABRIC("fabric");
-
-        private final String raw;
-
-        /**
-         * Returns the raw string representation of the JAR type.
-         *
-         * @return the raw string (e.g., "spigot", "paper", "fabric")
-         * @since 2.0.0
-         */
-        public String raw() {
-            return raw;
-        }
+        @SerializedName("fabric")
+        FABRIC
     }
 }

@@ -30,6 +30,7 @@ import net.minecraft.commands.CommandSourceStack
 import net.minecraft.core.registries.Registries
 import net.minecraft.world.entity.EntitySpawnReason
 import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.phys.Vec3
 import org.incendo.cloud.SenderMapper
 import org.incendo.cloud.context.CommandContext
@@ -205,7 +206,7 @@ private fun spawn(context: CommandContext<AudiencePlayer>) {
     val audience = context.sender()
     val player = audience.player
     val model = context.model("model") { return audience.warn("Unable to find this model: $it") }
-    val type = context.nullable<EntityType<*>>("type", EntityType.HUSK)
+    val type = context.nullable<EntityType<*>>("type", EntityTypes.HUSK)
     val scale = context.nullable("scale", 1.0)
     val loc = context.nullable<Coordinates>("location")
     type.spawn(

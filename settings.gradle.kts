@@ -11,7 +11,7 @@ pluginManagement {
 
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
-    id("net.fabricmc.fabric-loom-repositories") version "1.16-SNAPSHOT"
+    id("net.fabricmc.fabric-loom-repositories") version "1.17-SNAPSHOT"
     id("net.neoforged.moddev.repositories") version "2.0.141"
 }
 
@@ -63,6 +63,7 @@ include(
     "nms:v1_21_R6",
     "nms:v1_21_R7",
     "nms:v26_R1",
+    "nms:v26_R2",
 
     //test
     "test-plugin"

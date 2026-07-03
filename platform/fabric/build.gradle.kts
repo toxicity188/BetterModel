@@ -27,14 +27,14 @@ loom {
     runs {
         create("testClient") {
             client()
-            configName = "Test Minecraft Client"
-            source("testmod")
+            displayName = "Test Minecraft Client"
+            sourceSet = "testmod"
         }
 
         create("testServer") {
             server()
-            configName = "Test Minecraft Server"
-            source("testmod")
+            displayName = "Test Minecraft Server"
+            sourceSet = "testmod"
         }
     }
 
@@ -149,7 +149,8 @@ sourceSets["testmod"].resourceFactory {
 interface FsInjected {
     @get:Inject val fs: FileSystemOperations
 }
-val copyModJar by tasks.registering {
+val copyModJar = tasks.register("copyModJar") {
+    description = "Copies mod jar to build/libs."
     val injected = objects.newInstance<FsInjected>()
     val archiveFile = tasks.jar.flatMap { it.archiveFile }
     val jarName = jarName

@@ -30,7 +30,7 @@ import net.minecraft.network.protocol.game.ClientboundEntityPositionSyncPacket
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.world.entity.Display
-import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.entity.PositionMoveRotation
 import net.minecraft.world.phys.Vec3
 import org.joml.Vector3f
@@ -52,7 +52,7 @@ class ModelNametagImpl(
 
     private val viewedPlayer = ConcurrentHashMap.newKeySet<UUID>()
     private val display = Display.TextDisplay(
-        EntityType.TEXT_DISPLAY,
+        EntityTypes.TEXT_DISPLAY,
         BetterModelMod.platform().server().overworld()
     ).apply {
         entityData[DisplayAccessor.`bettermodel$getDataPosRotInterpolationDurationId`()] = 3

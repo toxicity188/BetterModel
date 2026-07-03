@@ -55,7 +55,7 @@ BetterModel aims to be a reliable engine that provides stable, high-quality anim
 
 ## 🛠️ Build info
 
-[![](https://img.shields.io/badge/minecraft-1.21.4%7E26.1.x-8FCA5C)](https://www.minecraft.net/en-us/download/server)
+[![](https://img.shields.io/badge/minecraft-1.21.4%7E26.2.x-8FCA5C)](https://www.minecraft.net/en-us/download/server)
 [![](https://img.shields.io/badge/java-25%7E-ED8B00)](https://adoptium.net/)
 
 #### Build

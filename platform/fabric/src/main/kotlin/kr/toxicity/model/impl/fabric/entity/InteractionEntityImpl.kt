@@ -10,13 +10,13 @@ package kr.toxicity.model.impl.fabric.entity
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.entity.Interaction
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.Vec3
 
 class InteractionEntityImpl(val delegate: HitBoxEntityImpl) :
-    Interaction(EntityType.INTERACTION, delegate.level())
+    Interaction(EntityTypes.INTERACTION, delegate.level())
 {
     override fun tick() {
         delegate.calculateDimensions().let { dimensions ->

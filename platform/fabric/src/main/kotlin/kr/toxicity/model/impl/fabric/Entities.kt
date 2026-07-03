@@ -21,7 +21,6 @@ import net.minecraft.world.entity.ai.goal.Goal
 import net.minecraft.world.entity.ai.goal.RangedAttackGoal
 import net.minecraft.world.entity.ai.goal.RangedBowAttackGoal
 import net.minecraft.world.entity.ai.goal.RangedCrossbowAttackGoal
-import net.minecraft.world.entity.animal.FlyingAnimal
 import net.minecraft.world.entity.player.Player
 import org.joml.Vector3f
 
@@ -36,8 +35,7 @@ val Entity.isWalking: Boolean
 
 val Entity.isFlying: Boolean
     get() {
-        return this is FlyingAnimal && isFlying ||
-            this is Mob && isNoAi ||
+        return this is Mob && isNoAi ||
             this is Player && abilities.flying ||
             this is LivingEntity && isFallFlying
     }
