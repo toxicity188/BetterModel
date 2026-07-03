@@ -13,6 +13,9 @@ dependencies {
     compileOnly(project(":bettermodel-api"))
     compileOnly(project(":bettermodel-api:bettermodel-bukkit-api"))
     compileOnly(project(":bettermodel-core"))
+    shade(libs.concurrentutil) {
+        isTransitive = false
+    }
     shade(project(":bettermodel-core:bettermodel-bukkit-core")) {
         exclude("org.jetbrains.kotlin")
     }

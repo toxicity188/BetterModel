@@ -7,14 +7,11 @@
 
 package kr.toxicity.model.api.tracker;
 
-import com.google.common.collect.ImmutableList;
+import ca.spottedleaf.concurrentutil.map.concurrent.ints.ConcurrentChainedInt2ReferenceHashTable;
+import ca.spottedleaf.concurrentutil.map.concurrent.objects.ConcurrentChainedObject2ReferenceHashTable;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
-import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ReferenceMap;
-import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.config.DebugConfig;
 import kr.toxicity.model.api.entity.BaseEntity;
@@ -29,7 +26,6 @@ import kr.toxicity.model.api.util.CollectionUtil;
 import kr.toxicity.model.api.util.FunctionUtil;
 import kr.toxicity.model.api.util.LogUtil;
 import kr.toxicity.model.api.util.function.FloatSupplier;
-import kr.toxicity.model.api.util.lock.DuplexLock;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import org.jetbrains.annotations.ApiStatus;
@@ -59,9 +55,9 @@ import java.util.stream.Stream;
 @ToString(onlyExplicitlyIncluded = true)
 public final class EntityTrackerRegistry {
 
-    private static final Object2ReferenceMap<UUID, EntityTrackerRegistry> UUID_REGISTRY_MAP = new Object2ReferenceOpenHashMap<>();
-    private static final Int2ReferenceMap<EntityTrackerRegistry> ID_REGISTRY_MAP = new Int2ReferenceOpenHashMap<>();
-    private static final DuplexLock REGISTRY_LOCK = new DuplexLock();
+    private static final ConcurrentChainedObject2ReferenceHashTable<UUID, EntityTrackerRegistry> UUID_REGISTRY_MAP = new ConcurrentChainedObject2ReferenceHashTable<>();
+    private static final ConcurrentChainedInt2ReferenceHashTable<EntityTrackerRegistry> ID_REGISTRY_MAP = new ConcurrentChainedInt2ReferenceHashTable<>();
+    private static final Collection<EntityTrackerRegistry> REGISTRIES = Collections.unmodifiableCollection(UUID_REGISTRY_MAP.values());
 
     @ToString.Include
     private final AtomicBoolean closed = new AtomicBoolean();
@@ -90,7 +86,7 @@ public final class EntityTrackerRegistry {
      * @since 1.15.2
      */
     public static @Nullable EntityTrackerRegistry registry(@NotNull UUID uuid) {
-        return REGISTRY_LOCK.accessToReadLock(() -> UUID_REGISTRY_MAP.get(uuid));
+        return UUID_REGISTRY_MAP.get(uuid);
     }
 
     /**
@@ -101,7 +97,7 @@ public final class EntityTrackerRegistry {
      * @since 1.15.2
      */
     public static @Nullable EntityTrackerRegistry registry(int id) {
-        return REGISTRY_LOCK.accessToReadLock(() -> ID_REGISTRY_MAP.get(id));
+        return ID_REGISTRY_MAP.get(id);
     }
 
     /**
@@ -130,13 +126,18 @@ public final class EntityTrackerRegistry {
     }
 
     /**
-     * Returns a list of all active registries.
+     * Returns a live view of all active registries.
+     * <pre>{@code
+     * for (EntityTrackerRegistry registry : EntityTrackerRegistry.registries()) {
+     *     registry.refresh();
+     * }
+     * }</pre>
      *
-     * @return the list of registries
+     * @return the registry collection
      * @since 1.15.2
      */
-    public static @NotNull @Unmodifiable List<EntityTrackerRegistry> registries() {
-        return REGISTRY_LOCK.accessToReadLock(() -> ImmutableList.copyOf(UUID_REGISTRY_MAP.values()));
+    public static @NotNull @Unmodifiable Collection<EntityTrackerRegistry> registries() {
+        return REGISTRIES;
     }
 
     /**
@@ -153,18 +154,12 @@ public final class EntityTrackerRegistry {
     }
 
     private static @NotNull EntityTrackerRegistry create(@NotNull BaseEntity entity) {
-        var uuid = entity.uuid();
-        EntityTrackerRegistry registry;
-        synchronized (uuid) {
-            var get2 = registry(uuid);
-            if (get2 != null) return get2;
-            registry = new EntityTrackerRegistry(entity);
-            REGISTRY_LOCK.accessToWriteLock(() -> {
-                UUID_REGISTRY_MAP.put(registry.uuid, registry);
-                ID_REGISTRY_MAP.put(registry.id, registry);
-                return null;
-            });
-        }
+        var registry = UUID_REGISTRY_MAP.computeIfAbsent(entity.uuid(), _ -> {
+            var created = new EntityTrackerRegistry(entity);
+            ID_REGISTRY_MAP.put(created.id, created);
+            return created;
+        });
+        ID_REGISTRY_MAP.putIfAbsent(registry.id, registry);
         registry.initialLoad();
         return registry;
     }
@@ -365,12 +360,9 @@ public final class EntityTrackerRegistry {
             value.close(reason);
         }
         if (!reason.shouldBeSave()) runSync(() -> entity.modelData(null));
-        REGISTRY_LOCK.accessToWriteLock(() -> {
-            UUID_REGISTRY_MAP.remove(uuid);
-            ID_REGISTRY_MAP.remove(id);
-            if (entity instanceof BasePlayer player) player.updateInventory();
-            return null;
-        });
+        UUID_REGISTRY_MAP.remove(uuid, this);
+        ID_REGISTRY_MAP.remove(id, this);
+        if (entity instanceof BasePlayer player) player.updateInventory();
         LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> uuid + "'s tracker registry has been removed. (" + UUID_REGISTRY_MAP.size() + ")");
         return true;
     }

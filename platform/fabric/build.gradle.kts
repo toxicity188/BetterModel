@@ -69,6 +69,7 @@ dependencies {
     api(libs.bundles.fabric.mod); include(libs.bundles.fabric.mod)
 
     implementation(libs.bundles.core); include(libs.bundles.core)
+    implementation(libs.concurrentutil); include(libs.concurrentutil)
     include(libs.bundles.library)
 }
 
