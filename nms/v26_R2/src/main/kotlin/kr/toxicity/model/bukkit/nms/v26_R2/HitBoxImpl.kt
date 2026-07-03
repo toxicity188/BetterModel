@@ -121,6 +121,25 @@ internal class HitBoxImpl(
     override fun relativePosition(): Vector3f = delegate.position().run {
         bone.hitBoxPosition(posCache).add(x.toFloat(), y.toFloat(), z.toFloat())
     }
+
+    override fun syncPosition() {
+        yRot = bone.rotation().y
+        yHeadRot = yRot
+        yBodyRot = yRot
+        val pos = relativePosition()
+        val minusHeight = source.minY * bone.hitBoxScale()
+        setPos(
+            pos.x.toDouble(),
+            pos.y.toDouble() + minusHeight,
+            pos.z.toDouble()
+        )
+        interaction.setPos(
+            pos.x.toDouble(),
+            pos.y.toDouble() + minusHeight,
+            pos.z.toDouble()
+        )
+    }
+
     override fun listener(): HitBoxListener = listener
     override fun listener(listener: HitBoxListener) {
         this.listener = listener
