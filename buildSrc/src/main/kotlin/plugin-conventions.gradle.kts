@@ -23,6 +23,7 @@ tasks {
         finalizedBy(shadowJar)
     }
     shadowJar {
+        duplicatesStrategy = DuplicatesStrategy.WARN
         configurations.set(listOf(shade))
         manifest {
             attributes(mapOf(
