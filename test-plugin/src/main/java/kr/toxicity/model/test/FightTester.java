@@ -63,7 +63,7 @@ public final class FightTester implements ModelTester, Listener {
         this.lineItem = createLine();
         Bukkit.getPluginManager().registerEvents(this, test);
         var command = test.getCommand("knightsword");
-        if (command != null) command.setExecutor((sender, command1, label, args) -> {
+        if (command != null) command.setExecutor((sender, _, _, _) -> {
             if (sender instanceof Player player) giveKnightSword(player);
             return true;
         });
@@ -109,7 +109,7 @@ public final class FightTester implements ModelTester, Listener {
             }
         }
         if (!player.getInventory().getItemInMainHand().getPersistentDataContainer().has(KNIGHT_SWORD_KEY)) return;
-        playerCounterMap.computeIfAbsent(uuid, u -> new PlayerSkillCounter(player)
+        playerCounterMap.computeIfAbsent(uuid, _ -> new PlayerSkillCounter(player)
             .skill("left_attack_1")
             .skill("left_attack_2")
             .skill("left_attack_3")).execute();
@@ -229,7 +229,7 @@ public final class FightTester implements ModelTester, Listener {
                 Stream.of(BukkitAdapter.adapt(player)),
                 player.getTrackedBy().stream().map(BukkitAdapter::adapt)
             ).toList();
-            task = Bukkit.getAsyncScheduler().runAtFixedRate((Plugin) BetterModel.platform(), task -> {
+            task = Bukkit.getAsyncScheduler().runAtFixedRate((Plugin) BetterModel.platform(), _ -> {
                 queuedTask.removeIf(BooleanSupplier::getAsBoolean);
                 var c = counter.incrementAndGet();
                 if (c >= count) return;
