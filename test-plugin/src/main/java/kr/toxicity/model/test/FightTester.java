@@ -69,7 +69,7 @@ public final class FightTester implements ModelTester, Listener {
         });
         BetterModelBukkit.platform().eventBus().subscribe(test, PluginStartReloadEvent.class, event -> {
             var path = event.zipper()
-                .modern()
+                .assets()
                 .bettermodel();
             loadItem(path, "knight_sword");
             loadItem(path, "knight_line");

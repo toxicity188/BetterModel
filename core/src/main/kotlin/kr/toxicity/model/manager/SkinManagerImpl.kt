@@ -824,11 +824,11 @@ object SkinManagerImpl : SkinManager, GlobalManager {
     override fun reload(pipeline: ReloadPipeline, zipper: PackZipper) {
         uvNamespace = UVNamespace(
             CONFIG.namespace(),
-            zipper.modern().obfuscate("player_limb")
+            zipper.assets().obfuscate("player_limb")
         )
         if (!CONFIG.module().playerAnimation) return
         write { resource ->
-            zipper.modern().add(resource.path(), resource.estimatedSize()) {
+            zipper.assets().add(resource.path(), resource.estimatedSize()) {
                 resource.build()
             }
         }

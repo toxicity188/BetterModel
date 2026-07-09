@@ -40,7 +40,6 @@ import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import net.minecraft.world.item.component.CustomModelData
-import net.minecraft.world.item.component.DyedItemColor
 import org.joml.Vector3d
 import java.util.function.Consumer
 
@@ -80,7 +79,6 @@ class BetterModelNMSImpl : NMS {
 
     override fun tint(itemStack: PlatformItemStack, rgb: Int): PlatformItemStack {
         return itemStack.clone().unwarp().apply {
-            set(DataComponents.DYED_COLOR, DyedItemColor(rgb))
             set(DataComponents.CUSTOM_MODEL_DATA, get(DataComponents.CUSTOM_MODEL_DATA)?.withMappedColors(rgb))
         }.wrap()
     }

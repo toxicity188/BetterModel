@@ -30,10 +30,6 @@ module:
 
 # Resource pack generation settings.
 pack:
-  # Generates models compatible with modern Minecraft versions (>=1.21.4).
-  generate-modern-model: true
-  # Generates models compatible with legacy Minecraft versions (<=1.21.3).
-  generate-legacy-model: true
   # Obfuscates model and texture names in the resource pack to prevent easy extraction.
   use-obfuscation: true
 

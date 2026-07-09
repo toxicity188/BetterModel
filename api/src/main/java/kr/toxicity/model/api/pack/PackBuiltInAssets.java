@@ -48,7 +48,7 @@ record PackBuiltInAssets(
     private static final Set<PackBuiltInAssets> ASSETS = Set.of(
         new PackBuiltInAssets(
             BlueprintElement.MESH_TRIANGLE_SINGLE + ".json",
-            zipper -> zipper.modern().bettermodel().models(),
+            zipper -> zipper.assets().bettermodel().models(),
             () -> PackMeta.GSON.toJson(meshTriangle(faces -> faces
                 .jsonObject("north", north -> north
                     .jsonArray("uv", Float4.MAX_UV.toJson())
@@ -58,7 +58,7 @@ record PackBuiltInAssets(
         ),
         new PackBuiltInAssets(
             BlueprintElement.MESH_TRIANGLE_DUPLEX + ".json",
-            zipper -> zipper.modern().bettermodel().models(),
+            zipper -> zipper.assets().bettermodel().models(),
             () -> PackMeta.GSON.toJson(meshTriangle(faces -> faces
                 .jsonObject("north", north -> north
                     .jsonArray("uv", Float4.MAX_UV.toJson())
@@ -72,7 +72,7 @@ record PackBuiltInAssets(
         ),
         new PackBuiltInAssets(
             BlueprintElement.MESH_PIXEL + ".png",
-            zipper -> zipper.modern().bettermodel().textures(),
+            zipper -> zipper.assets().bettermodel().textures(),
             () -> MESH_PIXEL_IMAGE
         )
     );

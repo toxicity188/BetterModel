@@ -129,37 +129,10 @@ object ModelManagerImpl : ModelManager, GlobalManager {
         private var estimatedSize = 0L
         private val textures = zipper.assets().bettermodel().textures()
 
-        private val legacyModel = ModelBuilder(
-            namespace = zipper.legacy().obfuscate("item"),
-            builder = { zipper.legacy().bettermodel().models().resolve(namespace) },
-            available = CONFIG.pack().generateLegacyModel,
-            onBuild = { blueprints, _, size ->
-                val json = blueprints.first()
-                entries += jsonObjectOf(
-                    "predicate" to jsonObjectOf("custom_model_data" to indexer),
-                    "model" to "${CONFIG.namespace()}:$namespace/${json.name}"
-                )
-                models.add(json.jsonName(), size) {
-                    json.buildJson().toByteArray()
-                }
-            },
-            onClose = {
-                val itemName = CONFIG.itemModel().lowercase()
-                jsonObjectOf(
-                    "parent" to "minecraft:item/generated",
-                    "textures" to jsonObjectOf("layer0" to "minecraft:item/$itemName"),
-                    "overrides" to entries
-                ).run {
-                    models.add("${CONFIG.itemNamespace()}.json", estimatedSize) { toByteArray() }
-                    zipper.legacy().minecraft().models().resolve("item").add("$itemName.json", estimatedSize) { toByteArray() }
-                }
-            }
-        )
-
         private val modernModel = ModelBuilder(
-            namespace = zipper.modern().obfuscate("modern_item"),
-            builder = { zipper.modern().bettermodel().models().resolve(namespace) },
-            available = CONFIG.pack().generateModernModel,
+            namespace = zipper.assets().obfuscate("modern_item"),
+            builder = { zipper.assets().bettermodel().models().resolve(namespace) },
+            available = true,
             onBuild = { blueprints, json, size ->
                 entries += jsonObjectOf(
                     "threshold" to indexer,
@@ -172,7 +145,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                 }
             },
             onClose = {
-                zipper.modern().bettermodel().items().add("${CONFIG.itemNamespace()}.json", estimatedSize) {
+                zipper.assets().bettermodel().items().add("${CONFIG.itemNamespace()}.json", estimatedSize) {
                     jsonObjectOf("model" to jsonObjectOf(
                         "type" to "range_dispatch",
                         "property" to "custom_model_data",
@@ -187,7 +160,6 @@ object ModelManagerImpl : ModelManager, GlobalManager {
 
         override fun close() {
             modernModel.close()
-            legacyModel.close()
         }
 
         fun addModelTo(
@@ -205,20 +177,13 @@ object ModelManagerImpl : ModelManager, GlobalManager {
             val context = blueprint.context()
             targetMap[blueprint.name] = blueprint.toRenderer(type) render@ { group ->
                 if (!context.canBeRendered()) return@render null
-                listOfNotNull(
-                    modernModel.ifAvailable {
-                        val json = group.buildModernJson(obfuscator, context)
-                        val itemModel = group.buildMeshItemModel(context)
-                        if (json != null || itemModel != null) {
-                            build(json ?: emptyList(), itemModel, if (json != null) size / json.size else 0)
-                        } else null
-                    },
-                    legacyModel.ifAvailable {
-                        group.buildLegacyJson(obfuscator, context)
-                            ?.let { build(listOf(it), null, size) }
-                    }
-                ).run {
-                    if (isNotEmpty()) indexer++ else null
+                modernModel.ifAvailable {
+                    val json = group.buildModernJson(obfuscator, context)
+                    val itemModel = group.buildMeshItemModel(context)
+                    if (json != null || itemModel != null) {
+                        build(json ?: emptyList(), itemModel, if (json != null) size / json.size else 0)
+                        indexer++
+                    } else null
                 }
             }.apply {
                 debugPack {

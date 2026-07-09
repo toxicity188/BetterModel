@@ -7,7 +7,6 @@
 
 package kr.toxicity.model.api.pack;
 
-import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.util.function.BooleanConstantSupplier;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,27 +38,6 @@ public record PackOverlay(
         Optional.empty(),
         BooleanConstantSupplier.TRUE
     );
-
-    /**
-     * The legacy overlay (for older versions).
-     * @since 1.15.2
-     */
-    public static final PackOverlay LEGACY = new PackOverlay(
-        "legacy",
-        Optional.of(new PackMeta.VersionRange(22, 45)),
-        () -> BetterModel.config().pack().generateLegacyModel()
-    );
-
-    /**
-     * The modern overlay (for newer versions).
-     * @since 1.15.2
-     */
-    public static final PackOverlay MODERN = new PackOverlay(
-        "modern",
-        Optional.of(new PackMeta.VersionRange(46, 99)),
-        () -> BetterModel.config().pack().generateModernModel()
-    );
-
 
     /**
      * Generates the root path for this overlay.

@@ -61,26 +61,6 @@ public final class PackZipper {
     }
 
     /**
-     * Retrieves the legacy assets collection.
-     *
-     * @return the legacy assets
-     * @since 1.15.2
-     */
-    public @NotNull PackAssets legacy() {
-        return overlay(PackOverlay.LEGACY);
-    }
-
-    /**
-     * Retrieves the modern assets' collection.
-     *
-     * @return the modern assets
-     * @since 1.15.2
-     */
-    public @NotNull PackAssets modern() {
-        return overlay(PackOverlay.MODERN);
-    }
-
-    /**
      * Retrieves the assets collection for a specific overlay.
      *
      * @param overlay the overlay

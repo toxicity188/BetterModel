@@ -217,7 +217,7 @@ object ArmorManager : GlobalManager {
         val models = PackObfuscator.order()
         armor = ArmorModel.builder()
             .namespace(CONFIG.namespace())
-            .itemPath(zipper.modern().obfuscate("armor"))
+            .itemPath(zipper.assets().obfuscate("armor"))
             .streamLoader { path -> PLATFORM.getResource(path)!! }
             .armors(pipeline
                 .mapParallel(File(folder, "armors").subFiles(), File::length) { it.toArmorImage() }
@@ -238,7 +238,7 @@ object ArmorManager : GlobalManager {
             .flush(false)
             .build()
         armor.builders().forEach {
-            zipper.modern().add(
+            zipper.assets().add(
                 it.path(),
                 256
             ) {
