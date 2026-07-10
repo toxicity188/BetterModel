@@ -58,18 +58,17 @@ public record ModelUV(
      * Converts this UV data to a JSON object for the Minecraft model file.
      *
      * @param context the blueprint context, used for texture resolution
-     * @param tint the tint index to apply
      * @return the generated JSON object
      * @since 1.15.2
      */
-    public @Nullable JsonObject toJson(@NotNull BlueprintLoadContext context, int tint) {
+    public @Nullable JsonObject toJson(@NotNull BlueprintLoadContext context) {
         if (!hasTexture()) return null;
         var div = uv.div(context.texture(textureIndex()).resolution(context.resolution()));
         if (!div.isValid()) return null;
         var object = new JsonObject();
         object.add("uv", div.toJson());
         if (rotation != 0) object.addProperty("rotation", rotation);
-        object.addProperty("tintindex", tint);
+        object.addProperty("tintindex", 0);
         object.addProperty("texture", "#" + texture);
         return object;
     }

@@ -41,19 +41,18 @@ public record ModelFace(
      * </p>
      *
      * @param parent the parent model blueprint, used for texture resolution
-     * @param tint the tint index to apply
      * @return the generated JSON object
      * @since 1.15.2
      */
-    public @NotNull JsonObject toJson(@NotNull BlueprintLoadContext parent, int tint) {
+    public @NotNull JsonObject toJson(@NotNull BlueprintLoadContext parent) {
         var object = new JsonObject();
         JsonObject add;
-        if ((add = north.toJson(parent, tint)) != null) object.add("north", add);
-        if ((add = east.toJson(parent, tint)) != null) object.add("east", add);
-        if ((add = south.toJson(parent, tint)) != null) object.add("south", add);
-        if ((add = west.toJson(parent, tint)) != null) object.add("west", add);
-        if ((add = up.toJson(parent, tint)) != null) object.add("up", add);
-        if ((add = down.toJson(parent, tint)) != null) object.add("down", add);
+        if ((add = north.toJson(parent)) != null) object.add("north", add);
+        if ((add = east.toJson(parent)) != null) object.add("east", add);
+        if ((add = south.toJson(parent)) != null) object.add("south", add);
+        if ((add = west.toJson(parent)) != null) object.add("west", add);
+        if ((add = up.toJson(parent)) != null) object.add("up", add);
+        if ((add = down.toJson(parent)) != null) object.add("down", add);
         return object;
     }
 
