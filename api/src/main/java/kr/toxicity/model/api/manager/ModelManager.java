@@ -29,7 +29,7 @@ import java.util.function.Consumer;
  *
  * @since 1.15.2
  */
-public interface ModelManager {
+public interface ModelManager extends Manager {
 
     /**
      * Retrieves a model renderer by its name.

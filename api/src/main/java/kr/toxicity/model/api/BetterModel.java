@@ -9,6 +9,8 @@ package kr.toxicity.model.api;
 
 import kr.toxicity.model.api.data.renderer.ModelRenderer;
 import kr.toxicity.model.api.entity.BaseEntity;
+import kr.toxicity.model.api.manager.ModelManager;
+import kr.toxicity.model.api.manager.PlayerManager;
 import kr.toxicity.model.api.nms.NMS;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.platform.PlatformEntity;
@@ -72,7 +74,7 @@ public final class BetterModel {
      * @since 1.15.2
      */
     public static @Nullable ModelRenderer modelOrNull(@NotNull String name) {
-        return platform().modelManager().model(name);
+        return platform().manager(ModelManager.class).model(name);
     }
 
     /**
@@ -94,7 +96,7 @@ public final class BetterModel {
      * @since 1.15.2
      */
     public static @Nullable ModelRenderer limbOrNull(@NotNull String name) {
-        return platform().modelManager().limb(name);
+        return platform().manager(ModelManager.class).limb(name);
     }
 
     /**
@@ -105,7 +107,7 @@ public final class BetterModel {
      * @since 1.15.2
      */
     public static @NotNull Optional<PlayerChannelHandler> player(@NotNull UUID uuid) {
-        return Optional.ofNullable(platform().playerManager().player(uuid));
+        return Optional.ofNullable(platform().manager(PlayerManager.class).player(uuid));
     }
 
     /**
@@ -181,7 +183,7 @@ public final class BetterModel {
      * @since 1.15.2
      */
     public static @NotNull @Unmodifiable Collection<ModelRenderer> models() {
-        return platform().modelManager().models();
+        return platform().manager(ModelManager.class).models();
     }
 
     /**
@@ -191,7 +193,7 @@ public final class BetterModel {
      * @since 1.15.2
      */
     public static @NotNull @Unmodifiable Collection<ModelRenderer> limbs() {
-        return platform().modelManager().limbs();
+        return platform().manager(ModelManager.class).limbs();
     }
 
     /**
@@ -201,7 +203,7 @@ public final class BetterModel {
      * @since 1.15.2
      */
     public static @NotNull @Unmodifiable Set<String> modelKeys() {
-        return platform().modelManager().modelKeys();
+        return platform().manager(ModelManager.class).modelKeys();
     }
 
     /**
@@ -211,7 +213,7 @@ public final class BetterModel {
      * @since 1.15.2
      */
     public static @NotNull @Unmodifiable Set<String> limbKeys() {
-        return platform().modelManager().limbKeys();
+        return platform().manager(ModelManager.class).limbKeys();
     }
 
     /**

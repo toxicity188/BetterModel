@@ -8,6 +8,7 @@
 package kr.toxicity.model.impl.fabric.profile
 
 import com.mojang.authlib.GameProfile
+import kr.toxicity.model.api.manager.ProfileManager
 import kr.toxicity.model.api.profile.ModelProfile
 import kr.toxicity.model.api.profile.ModelProfileInfo
 import kr.toxicity.model.api.profile.ModelProfileSkin
@@ -26,7 +27,7 @@ class ModelProfileImpl(private val profile: GameProfile) : ModelProfile {
         if (property == null) {
             ModelProfileSkin.EMPTY
         } else {
-            PLATFORM.profileManager().skin(property.value)
+            PLATFORM.manager(ProfileManager::class.java).skin(property.value)
         }
     }
 

@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @since 1.15.2
  */
-public interface ProfileManager {
+public interface ProfileManager extends Manager {
 
     /**
      * Returns the current profile supplier strategy.

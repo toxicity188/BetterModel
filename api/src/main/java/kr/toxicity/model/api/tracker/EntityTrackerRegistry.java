@@ -19,6 +19,7 @@ import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.config.DebugConfig;
 import kr.toxicity.model.api.entity.BaseEntity;
 import kr.toxicity.model.api.entity.BasePlayer;
+import kr.toxicity.model.api.manager.PlayerManager;
 import kr.toxicity.model.api.nms.HitBox;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
@@ -524,7 +525,7 @@ public final class EntityTrackerRegistry {
     }
     private boolean spawn(@NotNull PlatformPlayer player, boolean shouldNotSpawned) {
         var handler = BetterModel.platform()
-            .playerManager()
+            .manager(PlayerManager.class)
             .player(player.uuid());
         if (handler == null) return false;
         var cache = registerPlayer(handler);

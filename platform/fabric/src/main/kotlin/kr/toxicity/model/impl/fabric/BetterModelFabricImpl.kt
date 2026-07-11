@@ -108,14 +108,14 @@ class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterMod
     private val isFirstLoadProvider: AtomicBoolean = AtomicBoolean()
 
     private val allManagers by lazy {
-        listOf(
-            ArmorManager,
-            ProfileManagerImpl,
-            SkinManagerImpl,
-            ModelManagerImpl,
-            PlayerManagerImpl,
-            EntityManager,
-            ScriptManagerImpl
+        mapOf(
+            ArmorManager::class.java to ArmorManager,
+            ProfileManager::class.java to ProfileManagerImpl,
+            SkinManager::class.java to SkinManagerImpl,
+            ModelManager::class.java to ModelManagerImpl,
+            PlayerManager::class.java to PlayerManagerImpl,
+            EntityManager::class.java to EntityManager,
+            ScriptManager::class.java to ScriptManagerImpl
         )
     }
 
@@ -142,7 +142,7 @@ class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterMod
         }
 
         ServerLifecycleEvents.SERVER_STARTED.register {
-            allManagers.forEach {
+            allManagers.values.forEach {
                 it.start()
             }
             if (initialLoad.compareAndSet(false, true)) reload { loadLog(it) }
@@ -152,7 +152,7 @@ class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterMod
         FabricModelSchedulerImpl.init()
 
         ServerLifecycleEvents.SERVER_STOPPED.register {
-            allManagers.forEach { manager ->
+            allManagers.values.forEach { manager ->
                 manager.end()
             }
         }
@@ -245,7 +245,7 @@ class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterMod
             val indicators = config().indicator().options.toIndicator(info)
             ReloadPipeline(indicators).use { pipeline ->
                 val assetsTime = measureTimeMillis {
-                    allManagers.forEach { manager ->
+                    allManagers.values.forEach { manager ->
                         manager.reload(pipeline, zipper)
                     }
                 }
@@ -292,15 +292,7 @@ class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterMod
 
     override fun nms(): NMS = nms
 
-    override fun modelManager(): ModelManager = ModelManagerImpl
-
-    override fun playerManager(): PlayerManager = PlayerManagerImpl
-
-    override fun scriptManager(): ScriptManager = ScriptManagerImpl
-
-    override fun skinManager(): SkinManager = SkinManagerImpl
-
-    override fun profileManager(): ProfileManager = ProfileManagerImpl
+    override fun <T : Manager> manager(managerClass: Class<T>): T = managerClass.cast(allManagers[managerClass])
 
     override fun addReloadStartHandler(consumer: Consumer<PackZipper>) {
         val oldHandler = reloadStartTask

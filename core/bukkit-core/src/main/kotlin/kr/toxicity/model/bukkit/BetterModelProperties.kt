@@ -13,6 +13,11 @@ import kr.toxicity.model.api.BetterModelPlatform.ReloadResult
 import kr.toxicity.model.api.bukkit.BetterModelBukkit
 import kr.toxicity.model.api.event.PluginEndReloadEvent
 import kr.toxicity.model.api.event.PluginStartReloadEvent
+import kr.toxicity.model.api.manager.ModelManager
+import kr.toxicity.model.api.manager.PlayerManager
+import kr.toxicity.model.api.manager.ProfileManager
+import kr.toxicity.model.api.manager.ScriptManager
+import kr.toxicity.model.api.manager.SkinManager
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.version.MinecraftVersion.*
 import kr.toxicity.model.bukkit.configuration.PluginConfiguration
@@ -76,15 +81,15 @@ internal class BetterModelProperties(
             }
         }
     val managers by lazy {
-        listOf(
-            CompatibilityManager,
-            ArmorManager,
-            ProfileManagerImpl,
-            SkinManagerImpl,
-            ModelManagerImpl,
-            PlayerManagerImpl,
-            EntityManager,
-            ScriptManagerImpl
+        mapOf(
+            CompatibilityManager::class.java to CompatibilityManager,
+            ArmorManager::class.java to ArmorManager,
+            ProfileManager::class.java to ProfileManagerImpl,
+            SkinManager::class.java to SkinManagerImpl,
+            ModelManager::class.java to ModelManagerImpl,
+            PlayerManager::class.java to PlayerManagerImpl,
+            EntityManager::class.java to EntityManager,
+            ScriptManager::class.java to ScriptManagerImpl
         )
     }
 

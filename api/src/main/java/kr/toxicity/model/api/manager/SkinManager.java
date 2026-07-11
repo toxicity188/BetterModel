@@ -22,7 +22,7 @@ import java.util.concurrent.CompletableFuture;
  *
  * @since 1.15.2
  */
-public interface SkinManager {
+public interface SkinManager extends Manager {
 
     /**
      * Returns the fallback skin data used when a skin cannot be resolved.

@@ -12,6 +12,7 @@ import kr.toxicity.model.api.armor.PlayerArmor;
 import kr.toxicity.model.api.bone.BoneRenderContext;
 import kr.toxicity.model.api.entity.BaseEntity;
 import kr.toxicity.model.api.entity.BasePlayer;
+import kr.toxicity.model.api.manager.SkinManager;
 import kr.toxicity.model.api.nms.Profiled;
 import kr.toxicity.model.api.platform.PlatformLocation;
 import kr.toxicity.model.api.player.PlayerSkinParts;
@@ -23,7 +24,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * Represents a source for rendering models, providing necessary context such as location and entity data.
@@ -244,7 +244,7 @@ public sealed interface RenderSource<T extends Tracker> {
     record ProfiledDummy(@NotNull PlatformLocation location, @NotNull ModelProfile.Uncompleted profile) implements Dummy {
         @Override
         public @NotNull CompletableFuture<BoneRenderContext> completeContext() {
-            return BetterModel.platform().skinManager().complete(profile).thenApply(skin -> new BoneRenderContext(this, skin));
+            return BetterModel.platform().manager(SkinManager.class).complete(profile).thenApply(skin -> new BoneRenderContext(this, skin));
         }
     }
 
@@ -273,7 +273,7 @@ public sealed interface RenderSource<T extends Tracker> {
 
         @Override
         public @NotNull CompletableFuture<BoneRenderContext> completeContext() {
-            return BetterModel.platform().skinManager().complete(profile).thenApply(skin -> new BoneRenderContext(this, skin));
+            return BetterModel.platform().manager(SkinManager.class).complete(profile).thenApply(skin -> new BoneRenderContext(this, skin));
         }
     }
 
@@ -287,7 +287,7 @@ public sealed interface RenderSource<T extends Tracker> {
 
         @Override
         public @NotNull CompletableFuture<BoneRenderContext> completeContext() {
-            return BetterModel.platform().skinManager().complete(profile().asUncompleted()).thenApply(skin -> new BoneRenderContext(this, skin));
+            return BetterModel.platform().manager(SkinManager.class).complete(profile().asUncompleted()).thenApply(skin -> new BoneRenderContext(this, skin));
         }
     }
 
@@ -302,7 +302,7 @@ public sealed interface RenderSource<T extends Tracker> {
 
         @Override
         public @NotNull CompletableFuture<BoneRenderContext> completeContext() {
-            return BetterModel.platform().skinManager().complete(externalProfile).thenApply(skin -> new BoneRenderContext(this, skin));
+            return BetterModel.platform().manager(SkinManager.class).complete(externalProfile).thenApply(skin -> new BoneRenderContext(this, skin));
         }
     }
 }

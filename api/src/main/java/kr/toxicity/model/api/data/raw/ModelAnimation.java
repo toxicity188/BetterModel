@@ -16,6 +16,7 @@ import kr.toxicity.model.api.data.blueprint.AnimationGenerator;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimator;
 import kr.toxicity.model.api.data.blueprint.BlueprintElement;
+import kr.toxicity.model.api.manager.ScriptManager;
 import kr.toxicity.model.api.script.AnimationScript;
 import kr.toxicity.model.api.script.BlueprintScript;
 import kr.toxicity.model.api.script.TimeScript;
@@ -97,7 +98,7 @@ public record ModelAnimation(
         animator.stream()
             .filter(f -> f.point().hasScript())
             .map(d -> AnimationScript.of(Arrays.stream(placeholder.parseVariable(d.point().script()).split("\n"))
-                .map(BetterModel.platform().scriptManager()::build)
+                .map(BetterModel.platform().manager(ScriptManager.class)::build)
                 .filter(Objects::nonNull)
                 .toList())
                 .time(d.time()))

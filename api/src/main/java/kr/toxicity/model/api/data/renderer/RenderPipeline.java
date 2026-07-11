@@ -11,6 +11,7 @@ import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationOverrideState;
 import kr.toxicity.model.api.animation.RunningAnimation;
 import kr.toxicity.model.api.bone.*;
+import kr.toxicity.model.api.manager.PlayerManager;
 import kr.toxicity.model.api.nms.AnimationBundler;
 import kr.toxicity.model.api.nms.HitBox;
 import kr.toxicity.model.api.nms.PacketBundler;
@@ -401,7 +402,7 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
      */
     @ApiStatus.Internal
     public boolean spawn(@NotNull PlatformPlayer player, @NotNull PacketBundler bundler, @NotNull Consumer<SpawnedPlayer> consumer) {
-        var get = BetterModel.platform().playerManager().player(player.uuid());
+        var get = BetterModel.platform().manager(PlayerManager.class).player(player.uuid());
         if (get == null) return false;
         var spawnedPlayer = new SpawnedPlayer(get);
         playerMap.put(player.uuid(), spawnedPlayer);

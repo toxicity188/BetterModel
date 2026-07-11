@@ -20,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @since 1.15.2
  */
-public interface ScriptManager {
+public interface ScriptManager extends Manager {
     /**
      * Parses a raw script string into an {@link AnimationScript}.
      *

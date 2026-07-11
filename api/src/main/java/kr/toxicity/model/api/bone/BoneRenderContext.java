@@ -9,6 +9,7 @@ package kr.toxicity.model.api.bone;
 
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.renderer.RenderSource;
+import kr.toxicity.model.api.manager.SkinManager;
 import kr.toxicity.model.api.skin.SkinData;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,6 +25,6 @@ public record BoneRenderContext(@NotNull RenderSource<?> source, @NotNull SkinDa
      * @param source source
      */
     public BoneRenderContext(@NotNull RenderSource<?> source) {
-        this(source, BetterModel.platform().skinManager().fallback());
+        this(source, BetterModel.platform().manager(SkinManager.class).fallback());
     }
 }

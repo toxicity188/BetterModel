@@ -23,7 +23,7 @@ import java.util.UUID;
  *
  * @since 1.15.2
  */
-public interface PlayerManager {
+public interface PlayerManager extends Manager {
     /**
      * Retrieves the channel handler for a player by their UUID.
      *
