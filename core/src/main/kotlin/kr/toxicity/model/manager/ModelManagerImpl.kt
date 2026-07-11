@@ -235,7 +235,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
 
         private fun List<BlueprintJson>.toModernJson(namespace: String, plus: JsonObject?) = if (size == 1) first().toModernJson(namespace) else jsonObjectOf(
             "type" to "composite",
-            "models" to fold(JsonArray(size + (if (plus != null) 1 else 0)).apply {
+            "models" to fold(JsonArray(size + if (plus != null) 1 else 0).apply {
                 plus?.run(::add)
             }) { array, element -> array.apply { add(element.toModernJson(namespace)) } }
         )

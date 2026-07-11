@@ -111,8 +111,8 @@ class RollTest : ModInitializer {
     }
 
     private fun Input.toYaw(): Float {
-        val forward = (if (forward) 1 else 0) - (if (backward) 1 else 0)
-        val right = (if (right) 1 else 0) - (if (left) 1 else 0)
+        val forward = (if (forward) 1 else 0) - if (backward) 1 else 0
+        val right = (if (right) 1 else 0) - if (left) 1 else 0
 
         return if (forward == 0 && right == 0) {
             0f

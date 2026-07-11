@@ -40,11 +40,6 @@ public final class SingletonSequencedSet<E> extends AbstractSet<E> implements Se
         return element.equals(o);
     }
 
-    @Override
-    public int hashCode() {
-        return element.hashCode();
-    }
-
     @NotNull
     public Iterator<E> iterator() {
         return delegate.iterator();

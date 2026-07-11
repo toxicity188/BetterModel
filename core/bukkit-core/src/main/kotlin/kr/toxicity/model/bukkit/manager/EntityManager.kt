@@ -89,7 +89,7 @@ object EntityManager : GlobalManager {
             if (action == EntityPotionEffectEvent.Action.CHANGED) return
             if (oldEffect?.let { it.type in effectSet } == true || newEffect?.let { it.type in effectSet } == true) {
                 // For NoSuchMethodError: EntityPotionEffectEvent#getEntity() in some server implementation
-                ((this as EntityEvent).entity).forEachTracker { it.updateBaseEntity() }
+                (this as EntityEvent).entity.forEachTracker { it.updateBaseEntity() }
             }
         }
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

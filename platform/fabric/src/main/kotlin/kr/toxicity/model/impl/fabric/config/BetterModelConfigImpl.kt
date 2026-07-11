@@ -68,7 +68,7 @@ class BetterModelConfigImpl(yaml: ConfigurationNode) : BetterModelConfig {
             BetterModelConfig.PackType.valueOf(it.uppercase())
         }.getOrNull()
     } ?: BetterModelConfig.PackType.ZIP
-    private val buildFolderLocation = (yaml.node("build-folder-location").getString("BetterModel/build")).replace('/', File.separatorChar)
+    private val buildFolderLocation = yaml.node("build-folder-location").getString("BetterModel/build").replace('/', File.separatorChar)
     private val followMobInvisibility = yaml.node("follow-mob-invisibility").getBoolean(true)
     private val versionCheck = yaml.node("version-check").getBoolean(true)
     private val defaultMountController = when (yaml.node("default-mount-controller").getString("walk")?.lowercase()) {

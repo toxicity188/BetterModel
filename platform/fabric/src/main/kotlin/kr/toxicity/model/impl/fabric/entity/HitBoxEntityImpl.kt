@@ -250,7 +250,7 @@ class HitBoxEntityImpl(
         if (!onFly &&
             mountController.canJump() &&
             (delegate.horizontalCollision || player.lastClientInput.jump()) &&
-            (delegate.deltaMovement.y + delegate.gravity) in 0.0..0.01 && jumpDelay == 0
+            delegate.deltaMovement.y + delegate.gravity in 0.0..0.01 && jumpDelay == 0
         ) {
             jumpDelay = 10
             delegate.jumpFromGround()
