@@ -12,7 +12,7 @@ pluginManagement {
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
     id("net.fabricmc.fabric-loom-repositories") version "1.17-SNAPSHOT"
-    id("net.neoforged.moddev.repositories") version "2.0.141"
+    id("net.neoforged.moddev.repositories") version "2.0.142"
 }
 
 dependencyResolutionManagement {
