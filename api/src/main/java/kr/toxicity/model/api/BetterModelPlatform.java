@@ -27,6 +27,17 @@ import java.util.function.Consumer;
 
 /**
  * Represents the main platform interface for BetterModel.
+ * <p>
+ * This interface provides access to core engine managers, schedulers, adapters, configuration,
+ * NMS interfaces, and event bus systems across supported server platforms.
+ * </p>
+ *
+ * <p>Example usage:</p>
+ * <pre>{@code
+ * BetterModelPlatform platform = BetterModel.platform();
+ * ModelScheduler scheduler = platform.scheduler();
+ * BetterModelConfig config = platform.config();
+ * }</pre>
  *
  * @see BetterModel
  * @since 1.15.2
@@ -207,8 +218,9 @@ public interface BetterModelPlatform extends ModelEventApplication {
     @NotNull ModelScheduler scheduler();
 
     /**
-     * Return the platform's adapter
-     * @return the adapter
+     * Returns the platform-specific entity and component adapter.
+     *
+     * @return the platform adapter
      */
     @NotNull PlatformAdapter adapter();
 

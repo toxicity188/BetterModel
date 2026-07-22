@@ -29,6 +29,18 @@ import java.util.*;
  * NMS handlers, and entity registries. It serves as a service provider for interacting with the BetterModel engine.
  * </p>
  *
+ * <p>Example usage:</p>
+ * <pre>{@code
+ * // Retrieve a model renderer by name
+ * Optional<ModelRenderer> renderer = BetterModel.model("zombie_custom");
+ * renderer.ifPresent(r -> {
+ *     // Interact with model renderer
+ * });
+ *
+ * // Access entity tracker registry by UUID
+ * Optional<EntityTrackerRegistry> registry = BetterModel.registry(entityUuid);
+ * }</pre>
+ *
  * @since 1.15.2
  */
 public final class BetterModel {

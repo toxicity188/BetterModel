@@ -23,6 +23,14 @@ import java.util.function.Supplier;
  * It serves as a decoupling mechanism between different parts of the engine.
  * </p>
  *
+ * <p>Example usage:</p>
+ * <pre>{@code
+ * BetterModelEventBus eventBus = BetterModel.eventBus();
+ * ModelEventListener listener = eventBus.subscribe(application, ModelEvent.class, event -> {
+ *     // Handle event
+ * });
+ * }</pre>
+ *
  * @since 2.0.0
  */
 public interface BetterModelEventBus {

@@ -20,6 +20,13 @@ import org.jetbrains.annotations.NotNull;
  * Minecraft server instance and region holder for thread-safe operations.
  * </p>
  *
+ * <p>Example usage:</p>
+ * <pre>{@code
+ * BetterModelMod platform = BetterModelMod.platform();
+ * MinecraftServer server = platform.server();
+ * ModModelScheduler scheduler = platform.scheduler();
+ * }</pre>
+ *
  * @since 2.0.0
  */
 public interface BetterModelMod extends BetterModelPlatform {

@@ -22,6 +22,14 @@ import java.util.function.Consumer;
  * This interface provides convenience methods for subscribing to events using a Bukkit {@link Plugin} instance.
  * </p>
  *
+ * <p>Example usage:</p>
+ * <pre>{@code
+ * BukkitModelEventBus eventBus = BetterModelBukkit.platform().eventBus();
+ * eventBus.subscribe(plugin, ModelEvent.class, event -> {
+ *     // Handle Bukkit event
+ * });
+ * }</pre>
+ *
  * @since 2.0.0
  */
 public interface BukkitModelEventBus extends BetterModelEventBus {

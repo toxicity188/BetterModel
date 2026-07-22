@@ -22,6 +22,15 @@ import static kr.toxicity.model.api.util.ReflectionUtil.classExists;
  * for scheduling and entity adaptation.
  * </p>
  *
+ * <p>Example usage:</p>
+ * <pre>{@code
+ * BetterModelBukkit platform = BetterModelBukkit.platform();
+ * BukkitModelScheduler scheduler = platform.scheduler();
+ * if (BetterModelBukkit.IS_FOLIA) {
+ *     // Folia region-aware scheduling
+ * }
+ * }</pre>
+ *
  * @since 2.0.0
  */
 public interface BetterModelBukkit extends BetterModelPlatform {

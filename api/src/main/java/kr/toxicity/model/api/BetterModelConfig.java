@@ -24,6 +24,14 @@ import java.util.function.Supplier;
  * pack generation settings, module toggles, and runtime behaviors.
  * </p>
  *
+ * <p>Example usage:</p>
+ * <pre>{@code
+ * BetterModelConfig config = BetterModel.config();
+ * String namespace = config.namespace();
+ * boolean strict = config.enableStrictLoading();
+ * double maxSight = config.maxSight();
+ * }</pre>
+ *
  * @since 1.15.2
  */
 public interface BetterModelConfig {
