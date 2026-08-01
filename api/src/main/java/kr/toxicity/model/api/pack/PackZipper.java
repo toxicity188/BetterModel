@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -49,6 +50,7 @@ public final class PackZipper {
     private final PackObfuscator obfuscator = PackObfuscator.order();
     private final PackMeta.Builder metaBuilder = PackMeta.builder();
     private final Map<PackOverlay, PackAssets> overlayMap = new ConcurrentHashMap<>();
+    private volatile PackModelDataAllocator modelDataAllocator = PackModelDataAllocator.order();
 
     /**
      * Retrieves the default assets collection.
@@ -79,6 +81,26 @@ public final class PackZipper {
      */
     public @NotNull PackMeta.Builder metaBuilder() {
         return metaBuilder;
+    }
+
+    /**
+     * Returns the model data allocator.
+     *
+     * @return the allocator
+     * @since 3.4.0
+     */
+    public @NotNull PackModelDataAllocator modelDataAllocator() {
+        return modelDataAllocator;
+    }
+
+    /**
+     * Sets the model data allocator, which has to be done before the models are loaded.
+     *
+     * @param modelDataAllocator the allocator
+     * @since 3.4.0
+     */
+    public void modelDataAllocator(@NotNull PackModelDataAllocator modelDataAllocator) {
+        this.modelDataAllocator = Objects.requireNonNull(modelDataAllocator);
     }
 
     /**

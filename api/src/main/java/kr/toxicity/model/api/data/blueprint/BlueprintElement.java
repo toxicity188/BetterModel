@@ -130,7 +130,14 @@ public sealed interface BlueprintElement {
             return origin.invertXZ();
         }
 
-        private @NotNull String jsonName(@NotNull BlueprintLoadContext context) {
+        /**
+         * Returns the pack name of this group, which the generated JSON is named after.
+         *
+         * @param context the load context
+         * @return the pack name
+         * @since 3.4.0
+         */
+        public @NotNull String jsonName(@NotNull BlueprintLoadContext context) {
             return PackUtil.toPackName(context.name() + "_" + name.rawName());
         }
 

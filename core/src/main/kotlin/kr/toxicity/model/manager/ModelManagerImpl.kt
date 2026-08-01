@@ -125,7 +125,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
         zipper: PackZipper
     ) : AutoCloseable {
 
-        private var indexer = 1
+        private val modelDataAllocator = zipper.modelDataAllocator()
         private var estimatedSize = 0L
         private val textures = zipper.assets().bettermodel().textures()
 
@@ -133,9 +133,9 @@ object ModelManagerImpl : ModelManager, GlobalManager {
             namespace = zipper.assets().obfuscate("modern_item"),
             builder = { zipper.assets().bettermodel().models().resolve(namespace) },
             available = true,
-            onBuild = { blueprints, json, size ->
+            onBuild = { blueprints, json, size, modelData ->
                 entries += jsonObjectOf(
-                    "threshold" to indexer,
+                    "threshold" to modelData,
                     "model" to blueprints.toModernJson(namespace, json)
                 )
                 blueprints.forEach { json ->
@@ -181,8 +181,9 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                     val json = group.buildModernJson(obfuscator, context)
                     val itemModel = group.buildMeshItemModel(context)
                     if (json != null || itemModel != null) {
-                        build(json ?: emptyList(), itemModel, if (json != null) size / json.size else 0)
-                        indexer++
+                        modelDataAllocator.allocate(group.jsonName(context)).also { modelData ->
+                            build(json ?: emptyList(), itemModel, if (json != null) size / json.size else 0, modelData)
+                        }
                     } else null
                 }
             }.apply {
@@ -211,7 +212,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
             val namespace: String,
             val builder: ModelBuilder.() -> PackBuilder,
             private val available: Boolean,
-            private val onBuild: ModelBuilder.(List<BlueprintJson>, JsonObject?, Long) -> Unit,
+            private val onBuild: ModelBuilder.(List<BlueprintJson>, JsonObject?, Long, Int) -> Unit,
             private val onClose: ModelBuilder.() -> Unit
         ) : AutoCloseable {
             val entries = jsonArrayOf()
@@ -222,8 +223,8 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                 return if (available) block() else null
             }
 
-            fun build(list: List<BlueprintJson>, json: JsonObject?, size: Long) {
-                onBuild(list, json, size)
+            fun build(list: List<BlueprintJson>, json: JsonObject?, size: Long, modelData: Int) {
+                onBuild(list, json, size, modelData)
             }
 
             override fun close() {
