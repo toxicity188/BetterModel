@@ -18,7 +18,6 @@ import kr.toxicity.model.api.mount.MountControllers
 import kr.toxicity.model.api.platform.PlatformItemStack
 import kr.toxicity.model.api.util.EntityUtil
 import kr.toxicity.model.util.ifNull
-import kr.toxicity.model.util.toPackName
 import org.bukkit.Material
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.inventory.ItemStack
@@ -48,7 +47,6 @@ class BetterModelConfigImpl(yaml: ConfigurationSection) : BetterModelConfig {
         }.getOrDefault(Material.LEATHER_HORSE_ARMOR)
     } ?: Material.LEATHER_HORSE_ARMOR
     private val item = Supplier { BukkitAdapter.adapt(ItemStack(itemModel)) }
-    private val itemNamespace = yaml.getString("item-namespace")?.toPackName() ?: "bm_models"
     private val maxSight = yaml.getDouble("max-sight", -1.0).run {
         if (this <= 0.0) EntityUtil.renderDistance() else this
     }
@@ -80,8 +78,6 @@ class BetterModelConfigImpl(yaml: ConfigurationSection) : BetterModelConfig {
     override fun module(): ModuleConfig = module
     override fun pack(): PackConfig = pack
     override fun item(): Supplier<PlatformItemStack> = item
-    override fun itemModel(): String = itemModel.name
-    override fun itemNamespace(): String = itemNamespace
     override fun metrics(): Boolean = metrics
     override fun sightTrace(): Boolean = sightTrace
     override fun mergeWithExternalResources(): Boolean = mergeWithExternalResources

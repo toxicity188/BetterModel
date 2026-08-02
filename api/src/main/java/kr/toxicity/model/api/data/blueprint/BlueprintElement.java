@@ -130,7 +130,12 @@ public sealed interface BlueprintElement {
             return origin.invertXZ();
         }
 
-        private @NotNull String jsonName(@NotNull BlueprintLoadContext context) {
+        /**
+         * Gets JSON name of this element
+         * @param context context
+         * @return the JSON name
+         */
+        public @NotNull String jsonName(@NotNull BlueprintLoadContext context) {
             return PackUtil.toPackName(context.name() + "_" + name.rawName());
         }
 

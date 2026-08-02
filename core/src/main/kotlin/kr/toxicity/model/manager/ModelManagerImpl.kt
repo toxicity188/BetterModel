@@ -30,7 +30,6 @@ import kotlin.io.path.extension
 
 object ModelManagerImpl : ModelManager, GlobalManager {
 
-    private lateinit var itemModelNamespace: PlatformNamespace
     private val generalModelMap = addressingMapOf<String, ModelRenderer>()
     private val generalModelView = generalModelMap.toImmutableView()
     private val playerModelMap = addressingMapOf<String, ModelRenderer>()
@@ -122,44 +121,28 @@ object ModelManagerImpl : ModelManager, GlobalManager {
     )
 
     private class ModelPipeline(
-        zipper: PackZipper
+        private val zipper: PackZipper
     ) : AutoCloseable {
 
-        private var indexer = 1
-        private var estimatedSize = 0L
         private val textures = zipper.assets().bettermodel().textures()
 
         private val modernModel = ModelBuilder(
-            namespace = zipper.assets().obfuscate("modern_item"),
+            namespace = zipper.assets().obfuscate("model"),
             builder = { zipper.assets().bettermodel().models().resolve(namespace) },
             available = true,
-            onBuild = { blueprints, json, size ->
-                entries += jsonObjectOf(
-                    "threshold" to indexer,
-                    "model" to blueprints.toModernJson(namespace, json)
-                )
+            onBuild = { name, blueprints, json, size ->
+                items.add(name, size) {
+                    jsonObjectOf("model" to blueprints.toModernJson(namespace, json)).toByteArray()
+                }
                 blueprints.forEach { json ->
                     models.add(json.jsonName(), size / blueprints.size) {
                         json.buildJson().toByteArray()
                     }
                 }
-            },
-            onClose = {
-                zipper.assets().bettermodel().items().add("${CONFIG.itemNamespace()}.json", estimatedSize) {
-                    jsonObjectOf("model" to jsonObjectOf(
-                        "type" to "range_dispatch",
-                        "property" to "custom_model_data",
-                        "fallback" to jsonObjectOf(
-                            "type" to "empty"
-                        ),
-                        "entries" to entries
-                    )).toByteArray()
-                }
             }
         )
 
         override fun close() {
-            modernModel.close()
         }
 
         fun addModelTo(
@@ -181,8 +164,9 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                     val json = group.buildModernJson(obfuscator, context)
                     val itemModel = group.buildMeshItemModel(context)
                     if (json != null || itemModel != null) {
-                        build(json ?: emptyList(), itemModel, if (json != null) size / json.size else 0)
-                        indexer++
+                        group.jsonName(context)
+                            .also { name -> build("$name.json", json ?: emptyList(), itemModel, if (json != null) size / json.size else 0) }
+                            .let { "$namespace/$it" }
                     } else null
                 }
             }.apply {
@@ -204,17 +188,15 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                     }
                 }
             }
-            estimatedSize += size
         }
 
         inner class ModelBuilder(
             val namespace: String,
             val builder: ModelBuilder.() -> PackBuilder,
             private val available: Boolean,
-            private val onBuild: ModelBuilder.(List<BlueprintJson>, JsonObject?, Long) -> Unit,
-            private val onClose: ModelBuilder.() -> Unit
-        ) : AutoCloseable {
-            val entries = jsonArrayOf()
+            private val onBuild: ModelBuilder.(String, List<BlueprintJson>, JsonObject?, Long) -> Unit,
+        ) {
+            val items = zipper.assets().bettermodel().items().resolve(namespace)
             val models = builder()
             val obfuscator = textures.obfuscator().withModels(models.obfuscator())
 
@@ -222,14 +204,8 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                 return if (available) block() else null
             }
 
-            fun build(list: List<BlueprintJson>, json: JsonObject?, size: Long) {
-                onBuild(list, json, size)
-            }
-
-            override fun close() {
-                ifAvailable {
-                    if (!entries.isEmpty) onClose()
-                }
+            fun build(name: String, list: List<BlueprintJson>, json: JsonObject?, size: Long) {
+                onBuild(name, list, json, size)
             }
         }
 
@@ -251,7 +227,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
             )
         )
 
-        private fun ModelBlueprint.toRenderer(type: ModelRenderer.Type, builder: (BlueprintElement.Group) -> Int?): ModelRenderer {
+        private fun ModelBlueprint.toRenderer(type: ModelRenderer.Type, builder: (BlueprintElement.Group) -> String?): ModelRenderer {
             fun <T> Collection<BlueprintElement>.toBoneMap(mapper: (BlueprintElement.Bone) -> T) = filterIsInstance<BlueprintElement.Bone>().let { bone ->
                 bone.associateTo(sequencedAddressingMapOf(bone.size)) { it.name() to mapper(it) }
             }.toImmutableView()
@@ -259,8 +235,8 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                 if (this !is BlueprintElement.Group) return RendererGroup(1.0F, null, this, emptySequencedMap(), null)
                 return RendererGroup(
                     scale(),
-                    if (name.toItemMapper() !== BoneItemMapper.EMPTY) null else builder(this)?.let { i ->
-                        CONFIG.item().get().modelData(i, itemModelNamespace)
+                    if (name.toItemMapper() !== BoneItemMapper.EMPTY) null else builder(this)?.let { itemNamespace ->
+                        CONFIG.item().get().namespace(PlatformNamespace(CONFIG.namespace(), itemNamespace))
                     },
                     this,
                     children.toBoneMap { it.parse() },
@@ -280,7 +256,6 @@ object ModelManagerImpl : ModelManager, GlobalManager {
     }
 
     override fun reload(pipeline: ReloadPipeline, zipper: PackZipper) {
-        itemModelNamespace = PlatformNamespace(CONFIG.namespace(), CONFIG.itemNamespace())
         generalModelMap.clear()
         playerModelMap.clear()
         loadModels(pipeline, zipper)

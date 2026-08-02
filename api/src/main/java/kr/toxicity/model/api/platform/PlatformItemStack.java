@@ -39,14 +39,13 @@ public interface PlatformItemStack {
     @NotNull PlatformItemStack enchant(boolean enchant);
 
     /**
-     * Sets the custom model data and item model namespace for the item.
+     * Sets the item model namespace for the item.
      *
-     * @param customModelData the custom model data integer
      * @param namespace the item model namespace (optional)
      * @return this item stack
-     * @since 2.0.0
+     * @since 3.3.1
      */
-    @NotNull PlatformItemStack modelData(int customModelData, @Nullable PlatformNamespace namespace);
+    @NotNull PlatformItemStack namespace(@Nullable PlatformNamespace namespace);
 
     /**
      * Creates a copy of this item stack.

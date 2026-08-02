@@ -47,9 +47,6 @@ merge-with-external-resources: true
 # It's recommended to use an item that is not commonly used for other purposes.
 item: leather_horse_armor
 
-# The namespace used for custom model items.
-item-namespace: bm_models
-
 # Maximum distance (in blocks) for sending animation packets. -1 for default server view distance.
 max-sight: -1
 # Minimum distance (in blocks) before animation packets are sent.

@@ -35,12 +35,10 @@ public record BukkitItemStack(@NotNull ItemStack source) implements PlatformItem
         return this;
     }
 
-    @SuppressWarnings("deprecation")
     @Override
-    public @NotNull PlatformItemStack modelData(int customModelData, @Nullable PlatformNamespace namespace) {
+    public @NotNull PlatformItemStack namespace(@Nullable PlatformNamespace namespace) {
         var meta = source.getItemMeta();
         if (meta == null) return this;
-        meta.setCustomModelData(customModelData);
         meta.setItemModel(namespace == null ? null : new NamespacedKey(namespace.namespace(), namespace.path()));
         source.setItemMeta(meta);
         return this;

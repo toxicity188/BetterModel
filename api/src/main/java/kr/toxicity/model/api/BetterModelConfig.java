@@ -101,22 +101,6 @@ public interface BetterModelConfig {
     @NotNull Supplier<PlatformItemStack> item();
 
     /**
-     * Returns the item model string identifier used for the resource pack target item.
-     *
-     * @return the item model string
-     * @since 2.0.0
-     */
-    @NotNull String itemModel();
-
-    /**
-     * Returns the namespace used for the target item.
-     *
-     * @return the item namespace
-     * @since 1.15.2
-     */
-    @NotNull String itemNamespace();
-
-    /**
      * Returns the maximum range for sight tracing.
      *
      * @return the max range
