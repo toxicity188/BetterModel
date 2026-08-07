@@ -61,9 +61,9 @@ public final class AnimationGenerator {
         floatSet.add(0F);
         floatSet.add(length);
         var generator = new AnimationGenerator(g -> pointMap.get(g.name()), children);
+        InterpolationUtil.insertLerpFrame(floatSet);
         generator.interpolateRotation(floatSet);
         generator.interpolateStep(floatSet);
-        InterpolationUtil.insertLerpFrame(floatSet);
         return associate(
             pointMap.values()
                 .stream()

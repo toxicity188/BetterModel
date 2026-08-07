@@ -36,7 +36,7 @@ public final class AnimationStateHandler<T extends Timed> {
     private volatile boolean forceUpdate;
 
     @Getter
-    private int delay = 1;
+    private int delay;
     private volatile TreeIterator currentIterator = null;
     private volatile T beforeKeyframe = null, afterKeyframe = null;
 
