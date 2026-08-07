@@ -33,6 +33,8 @@ public final class AnimationStateHandler<T extends Timed> {
 
     private final PriorityMap<String, TreeIterator> animators = new PriorityMap<>();
 
+    private volatile boolean forceUpdate;
+
     @Getter
     private int delay = 1;
     private volatile TreeIterator currentIterator = null;
@@ -125,7 +127,7 @@ public final class AnimationStateHandler<T extends Timed> {
     }
 
     private boolean shouldUpdateAnimation() {
-        return (afterKeyframe != null && keyframeFinished()) || delay % Tracker.MINECRAFT_TICK_MULTIPLIER == 0;
+        return (afterKeyframe != null && keyframeFinished()) || delay % Tracker.MINECRAFT_TICK_MULTIPLIER == 0 || forceUpdate;
     }
 
     private boolean updateAnimation() {
@@ -187,6 +189,7 @@ public final class AnimationStateHandler<T extends Timed> {
     public void addAnimation(@NotNull String name, @NotNull AnimationIterator<T> iterator, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
         synchronized (animators) {
             animators.put(name, new TreeIterator(name, iterator, modifier, removeTask), modifier.priority());
+            forceUpdate = true;
         }
     }
 
@@ -201,6 +204,7 @@ public final class AnimationStateHandler<T extends Timed> {
             animators.replace(name, v -> new TreeIterator(name, iterator, v.modifier.toBuilder()
                 .mergeNotDefault(modifier)
                 .build(), v.removeTask));
+            forceUpdate = true;
         }
     }
 
@@ -212,6 +216,7 @@ public final class AnimationStateHandler<T extends Timed> {
     public boolean stopAnimation(@NotNull String name) {
         synchronized (animators) {
             if (animators.remove(name) != null) {
+                forceUpdate = true;
                 return true;
             }
         }

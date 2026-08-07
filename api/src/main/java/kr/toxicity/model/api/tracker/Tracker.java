@@ -87,7 +87,6 @@ public abstract class Tracker implements AutoCloseable {
     private final AtomicBoolean forRemoval = new AtomicBoolean();
     private final AtomicBoolean firstStart = new AtomicBoolean();
     protected final TrackerModifier modifier;
-    private final Runnable updater;
     private final BundlerSet bundlerSet;
     private final FloatSupplier heightSupplier = FunctionUtil.throttleTickFloat(TRACKER_TICK_INTERVAL, new FloatSupplier() {
 
@@ -118,12 +117,7 @@ public abstract class Tracker implements AutoCloseable {
     private Supplier<ModelRotation> rotationSupplier = () -> ModelRotation.EMPTY;
     private BiConsumer<Tracker, CloseReason> closeEventHandler = (t, r) -> EventUtil.call(CloseTrackerEvent.class, () -> new CloseTrackerEvent(t, r));
 
-    private ScheduledPacketHandler handler = (t, s) -> {
-        if (!tickPause.get()) {
-            scriptProcessor.tick();
-            t.pipeline.tick(s.getViewBundler());
-        }
-    };
+    private ScheduledPacketHandler handler = (_, _) -> baseTick();
     private BiConsumer<Tracker, PlatformPlayer> perPlayerHandler = null;
 
     /**
@@ -137,18 +131,6 @@ public abstract class Tracker implements AutoCloseable {
         this.pipeline = pipeline;
         this.modifier = modifier;
         bundlerSet = new BundlerSet();
-        updater = () -> {
-            try {
-                if (frame % MINECRAFT_TICK_MULTIPLIER == 0) {
-                    Runnable task;
-                    while ((task = queuedTask.poll()) != null) task.run();
-                }
-                handler.handle(this, bundlerSet);
-                bundlerSet.send();
-            } catch (Throwable throwable) {
-                LogUtil.handleException("Ticking this tracker has been failed: " + name(), throwable);
-            }
-        };
         if (modifier.sightTrace()) pipeline.viewFilter(p -> EntityUtil.canSee(p.eyeLocation(), location()));
         frame((t, s) -> {
             if (readyForForceUpdate.compareAndSet(true, false)) t.pipeline.forEach(b -> b.dirtyUpdate(s.dataBundler));
@@ -193,14 +175,13 @@ public abstract class Tracker implements AutoCloseable {
             if (firstStart.compareAndSet(false, true)) {
                 TrackerBuiltInAnimation.play(this);
             }
-            updater.run();
             task = EXECUTOR.scheduleAtFixedRate(() -> {
                 if (playerCount() == 0 && !forRemoval.get()) {
                     shutdown();
                     return;
                 }
                 frame++;
-                updater.run();
+                tick();
             }, TRACKER_TICK_INTERVAL, TRACKER_TICK_INTERVAL, TimeUnit.MILLISECONDS);
             LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " scheduler started: " + name());
         }
@@ -214,6 +195,26 @@ public abstract class Tracker implements AutoCloseable {
             task = null;
             frame = 0;
             LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " scheduler shutdown: " + name());
+        }
+    }
+
+    private void tick() {
+        try {
+            if (frame % MINECRAFT_TICK_MULTIPLIER == 0) {
+                Runnable task;
+                while ((task = queuedTask.poll()) != null) task.run();
+            }
+            handler.handle(this, bundlerSet);
+            bundlerSet.send();
+        } catch (Throwable throwable) {
+            LogUtil.handleException("Ticking this tracker has been failed: " + name(), throwable);
+        }
+    }
+
+    private void baseTick() {
+        if (!tickPause.get()) {
+            scriptProcessor.tick();
+            pipeline.tick(bundlerSet.viewBundler);
         }
     }
 
@@ -541,7 +542,9 @@ public abstract class Tracker implements AutoCloseable {
     public boolean animate(@NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
         var script = animation.script(modifier);
         if (script != null) scriptProcessor.addAnimation(animation.name(), script.iterator(modifier), modifier, () -> {});
-        return pipeline.matchAnimation((b, a) -> b.addAnimation(a, animation, modifier, removeTask));
+        var match = pipeline.matchAnimation((b, a) -> b.addAnimation(a, animation, modifier, removeTask));
+        if (match) baseTick();
+        return match;
     }
 
     /**
