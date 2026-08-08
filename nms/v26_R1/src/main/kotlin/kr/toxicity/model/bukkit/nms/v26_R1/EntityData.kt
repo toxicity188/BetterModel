@@ -28,7 +28,7 @@ internal fun Class<*>.accessors() = declaredFields.filter { f ->
     EntityDataAccessor::class.java.isAssignableFrom(f.type)
 }.map {
     it.toEntityDataAccessor()
-}
+}.sortedBy { it.id }
 
 internal val DISPLAY_SET = Display::class.java.accessors()
 internal val SHARED_FLAG = Entity::class.java.accessors().first().id
@@ -123,4 +123,3 @@ internal class TransformationData {
         }
     }
 }
-
