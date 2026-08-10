@@ -116,7 +116,9 @@ public record AnimationKeyframe(
             set.rotation[z] = rotation.z;
             set.skipInterpolation[i] = skipInterpolation;
 
-            this.progresses[i] = isNotZero(position) || isNotZero(scale) || isNotZero(rotation) ? new ArrayProgress(set, i) : AnimationProgress.empty(time);
+            this.progresses[i] = isNotZero(position) || isNotZero(scale) || isNotZero(rotation)
+                ? new ArrayProgress(set, i)
+                : AnimationProgress.empty(time, skipInterpolation, set.rotateGlobal);
         }
 
         /**

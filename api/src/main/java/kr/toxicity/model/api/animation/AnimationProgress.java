@@ -51,7 +51,20 @@ public interface AnimationProgress extends Timed {
      * @since 2.0.0
      */
     static @NotNull AnimationProgress empty(float time) {
-        return new EmptyProgress(time);
+        return new EmptyProgress(time, false, false);
+    }
+
+    /**
+     * Creates an empty animation progress at a specific time.
+     *
+     * @param time the time of the keyframe
+     * @param skipInterpolation whether to skip interpolation
+     * @param globalRotation the rotation mode
+     * @return an empty progress
+     * @since 3.4.0
+     */
+    static @NotNull AnimationProgress empty(float time, boolean skipInterpolation, boolean globalRotation) {
+        return new EmptyProgress(time, skipInterpolation, globalRotation);
     }
 
     /**
@@ -93,9 +106,11 @@ public interface AnimationProgress extends Timed {
      * An implementation of {@link AnimationProgress} that represents an empty keyframe.
      *
      * @param time the time of the keyframe
+     * @param skipInterpolation whether to skip interpolation
+     * @param globalRotation the rotation mode
      * @since 2.0.0
      */
-    record EmptyProgress(float time) implements AnimationProgress {
+    record EmptyProgress(float time, boolean skipInterpolation, boolean globalRotation) implements AnimationProgress {
 
         @Override
         public @NotNull BoneMovement animate(@NotNull BoneMovement movement, @NotNull BoneMovement dest) {
@@ -105,16 +120,6 @@ public interface AnimationProgress extends Timed {
         @Override
         public @NotNull AnimationProgress toEmpty() {
             return this;
-        }
-
-        @Override
-        public boolean skipInterpolation() {
-            return false;
-        }
-
-        @Override
-        public boolean globalRotation() {
-            return false;
         }
     }
 }
