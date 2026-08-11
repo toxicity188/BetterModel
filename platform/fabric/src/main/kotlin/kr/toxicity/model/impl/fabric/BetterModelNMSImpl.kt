@@ -79,7 +79,7 @@ class BetterModelNMSImpl : NMS {
 
     override fun tint(itemStack: PlatformItemStack, rgb: Int): PlatformItemStack {
         return itemStack.clone().unwarp().apply {
-            set(DataComponents.CUSTOM_MODEL_DATA, get(DataComponents.CUSTOM_MODEL_DATA)?.withMappedColors(rgb))
+            set(DataComponents.CUSTOM_MODEL_DATA, get(DataComponents.CUSTOM_MODEL_DATA)?.withMappedColors(rgb) ?: CustomModelData(emptyList(), emptyList(), emptyList(), listOf(rgb)))
         }.wrap()
     }
 

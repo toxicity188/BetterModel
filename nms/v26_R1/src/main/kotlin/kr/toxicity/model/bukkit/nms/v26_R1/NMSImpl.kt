@@ -339,7 +339,7 @@ class NMSImpl : NMS {
                         }
                     }
                     .ifEmpty { listOf(rgb) })
-            })
+            } ?: CustomModelData(emptyList(), emptyList(), emptyList(), listOf(rgb)))
         }.asBukkit().wrap()
     }
 
