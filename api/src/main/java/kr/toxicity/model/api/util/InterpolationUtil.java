@@ -96,7 +96,7 @@ public final class InterpolationUtil {
                     p1 = p2;
                     t = (p2 = vectors.get(++i)).time();
                 }
-                if (nextFloat > last.time()) return new VectorResult(last.vector(nextFloat));
+                if (nextFloat > last.time()) return new VectorResult(last.vector(nextFloat), !last.isContinuous());
                 else return nextFloat == t ? new VectorResult(p2.vector(), !p1.isContinuous()) : new VectorResult(p1.interpolator().interpolate(vectors, i, nextFloat));
             }
         };

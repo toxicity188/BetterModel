@@ -75,7 +75,7 @@ public interface AnimationProgress extends Timed {
      */
     default @NotNull AnimationProgress toEmpty() {
         var time = time();
-        return time <= 0 ? EMPTY : empty(time);
+        return time <= 0 ? EMPTY : empty(time, skipInterpolation(), globalRotation());
     }
 
     /**
