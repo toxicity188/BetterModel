@@ -50,7 +50,7 @@ public record ModItemStack(@NotNull ItemStack source) implements PlatformItemSta
     }
 
     @Override
-    public @NotNull PlatformItemStack namespace(@Nullable PlatformNamespace namespace) {
+    public @NotNull PlatformItemStack itemModel(@Nullable PlatformNamespace namespace) {
         source.set(
             DataComponents.ITEM_MODEL,
             namespace == null ? null : Identifier.fromNamespaceAndPath(namespace.namespace(), namespace.path())

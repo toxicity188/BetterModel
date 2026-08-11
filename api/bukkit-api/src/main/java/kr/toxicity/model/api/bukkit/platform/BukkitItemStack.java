@@ -36,7 +36,7 @@ public record BukkitItemStack(@NotNull ItemStack source) implements PlatformItem
     }
 
     @Override
-    public @NotNull PlatformItemStack namespace(@Nullable PlatformNamespace namespace) {
+    public @NotNull PlatformItemStack itemModel(@Nullable PlatformNamespace namespace) {
         var meta = source.getItemMeta();
         if (meta == null) return this;
         meta.setItemModel(namespace == null ? null : new NamespacedKey(namespace.namespace(), namespace.path()));

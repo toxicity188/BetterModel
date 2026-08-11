@@ -43,9 +43,9 @@ public interface PlatformItemStack {
      *
      * @param namespace the item model namespace (optional)
      * @return this item stack
-     * @since 3.3.1
+     * @since 3.4.0
      */
-    @NotNull PlatformItemStack namespace(@Nullable PlatformNamespace namespace);
+    @NotNull PlatformItemStack itemModel(@Nullable PlatformNamespace namespace);
 
     /**
      * Creates a copy of this item stack.

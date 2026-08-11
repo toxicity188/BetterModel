@@ -236,7 +236,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                 return RendererGroup(
                     scale(),
                     if (name.toItemMapper() !== BoneItemMapper.EMPTY) null else builder(this)?.let { itemNamespace ->
-                        CONFIG.item().get().namespace(PlatformNamespace(CONFIG.namespace(), itemNamespace))
+                        CONFIG.item().get().itemModel(PlatformNamespace(CONFIG.namespace(), itemNamespace))
                     },
                     this,
                     children.toBoneMap { it.parse() },
