@@ -9,6 +9,8 @@ package kr.toxicity.model.impl.fabric.armor
 
 import kr.toxicity.model.api.armor.ArmorItem
 import kr.toxicity.model.api.armor.PlayerArmor
+import kr.toxicity.model.api.util.TransformedItemStack
+import kr.toxicity.model.impl.fabric.wrap
 import net.minecraft.core.component.DataComponents
 import net.minecraft.server.network.ServerPlayerConnection
 import net.minecraft.world.entity.EquipmentSlot
@@ -23,6 +25,8 @@ class PlayerArmorImpl(private val connection: ServerPlayerConnection) : PlayerAr
     private val player get() = connection.player
 
     override fun helmet(): ArmorItem? = player.getItemBySlot(EquipmentSlot.HEAD).toArmorItem()
+
+    override fun helmetItem(): TransformedItemStack? = player.getItemBySlot(EquipmentSlot.HEAD).toCustomItem()
 
     override fun leggings(): ArmorItem? = player.getItemBySlot(EquipmentSlot.LEGS).toArmorItem()
 
@@ -43,6 +47,14 @@ class PlayerArmorImpl(private val connection: ServerPlayerConnection) : PlayerAr
             trim?.getPath(),
             trim?.getPalette()
         )
+    }
+
+    private fun ItemStack.toCustomItem(): TransformedItemStack? {
+        val defaultComponents = item.components()
+        if (get(DataComponents.ITEM_MODEL) == defaultComponents.get(DataComponents.ITEM_MODEL) &&
+            get(DataComponents.CUSTOM_MODEL_DATA) == defaultComponents.get(DataComponents.CUSTOM_MODEL_DATA)
+        ) return null
+        return TransformedItemStack.of(copy().wrap())
     }
 
     private fun ArmorTrim.getPath() = pattern.value().assetId.path
