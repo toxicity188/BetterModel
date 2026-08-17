@@ -5,9 +5,6 @@
     ],
     "ignoreDeps": [
         "org.jetbrains:annotations",
-        "org.incendo:cloud-paper",
-        "org.incendo:cloud-fabric",
-        "io.papermc.parchment.data:parchment",
         "net.fabricmc.fabric-api:fabric-api",
         "net.fabricmc.fabric-loom-repositories",
         "eu.pb4:polymer-resource-pack"
