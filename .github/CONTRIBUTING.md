@@ -2,23 +2,22 @@
 
 Thanks for considering contributing!
 
-* **Step 1.** Forks BetterModel to your repository.
-* **Step 2.** Commits your change.
-* **Step 3.** Opens pull request at 'dev' branch.
-* **Step 4.** Waits for merging or reviewing
+* **Step 1.** Fork BetterModel to your repository.
+* **Step 2.** Commit your changes.
+* **Step 3.** Open a pull request against the `v3-dev` branch.
+* **Step 4.** Wait for review and merging.
 
-## Rule
-* I can't handle a huge change about API module.  
-* You should note that type of your PR. (e.g., `Bug fix` / `API update`)   
-* You should inform your features that what you want to merge by this way.
-```
-Document
-Image
-Video
-```
+## Rules
+* **No AI-generated code:** Pull requests containing fully or primarily AI-generated code will not be accepted. Contributions must be written by human contributors.
+* I can't handle huge changes to the API module.
+* Specify the type of your PR in the description (e.g., `Bug fix`, `API update`).
+* Clearly demonstrate your changes using one of the following:
+    * Documentation
+    * Images / Screenshots
+    * Video demonstrations
 
 ## 📄 Commit Message Format
-Use present tense: `fix:`, `feat:`, `docs:`, etc.
+Use present tense conventional commits: `fix:`, `feat:`, `docs:`, etc.
 
 ## 📜 License
-Contributions are under the MIT License.
+Contributions are licensed under the MIT License.
