@@ -16,7 +16,7 @@ cloud-core = "2.1.0"
 
 configurate = "4.2.0"
 
-neoform = "26.2-1"
+neoform = "26.2-2"
 
 [libraries]
 kotlin = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
