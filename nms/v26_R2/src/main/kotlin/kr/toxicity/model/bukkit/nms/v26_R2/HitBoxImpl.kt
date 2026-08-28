@@ -330,17 +330,29 @@ internal class HitBoxImpl(
 
     override fun hide(player: PlatformPlayer) {
         val plugin = BetterModel.platform() as Plugin
-        player.unwarp().run {
-            hideEntity(plugin, bukkitEntity)
-            hideEntity(plugin, interaction.bukkitEntity)
+        runVisibilityTask(plugin) {
+            player.unwarp().run {
+                hideEntity(plugin, bukkitEntity)
+                hideEntity(plugin, interaction.bukkitEntity)
+            }
         }
     }
 
     override fun show(player: PlatformPlayer) {
         val plugin = BetterModel.platform() as Plugin
-        player.unwarp().run {
-            showEntity(plugin, bukkitEntity)
-            showEntity(plugin, interaction.bukkitEntity)
+        runVisibilityTask(plugin) {
+            player.unwarp().run {
+                showEntity(plugin, bukkitEntity)
+                showEntity(plugin, interaction.bukkitEntity)
+            }
+        }
+    }
+
+    private fun runVisibilityTask(plugin: Plugin, task: () -> Unit) {
+        if (!BetterModelBukkit.IS_FOLIA || Bukkit.isOwnedByCurrentRegion(bukkitEntity)) {
+            task()
+        } else {
+            bukkitEntity.scheduler.run(plugin, { task() }, null)
         }
     }
 

@@ -11,6 +11,7 @@ import io.papermc.paper.event.entity.EntityKnockbackEvent
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.bone.BoneMovement
 import kr.toxicity.model.api.bone.RenderedBone
+import kr.toxicity.model.api.bukkit.BetterModelBukkit
 import kr.toxicity.model.api.config.DebugConfig
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import kr.toxicity.model.api.event.hitbox.*
@@ -318,17 +319,29 @@ internal class HitBoxImpl(
 
     override fun hide(player: PlatformPlayer) {
         val plugin = BetterModel.platform() as Plugin
-        player.unwarp().run {
-            hideEntity(plugin, bukkitEntity)
-            hideEntity(plugin, interaction.bukkitEntity)
+        runVisibilityTask(plugin) {
+            player.unwarp().run {
+                hideEntity(plugin, bukkitEntity)
+                hideEntity(plugin, interaction.bukkitEntity)
+            }
         }
     }
 
     override fun show(player: PlatformPlayer) {
         val plugin = BetterModel.platform() as Plugin
-        player.unwarp().run {
-            showEntity(plugin, bukkitEntity)
-            showEntity(plugin, interaction.bukkitEntity)
+        runVisibilityTask(plugin) {
+            player.unwarp().run {
+                showEntity(plugin, bukkitEntity)
+                showEntity(plugin, interaction.bukkitEntity)
+            }
+        }
+    }
+
+    private fun runVisibilityTask(plugin: Plugin, task: () -> Unit) {
+        if (!BetterModelBukkit.IS_FOLIA || Bukkit.isOwnedByCurrentRegion(bukkitEntity)) {
+            task()
+        } else {
+            bukkitEntity.scheduler.run(plugin, { task() }, null)
         }
     }
 
