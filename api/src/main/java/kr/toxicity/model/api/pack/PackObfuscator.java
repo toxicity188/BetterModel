@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.pack;
 
 import kr.toxicity.model.api.BetterModel;
@@ -96,7 +97,7 @@ public interface PackObfuscator {
         }
 
         public @NotNull String obfuscate(@NotNull String rawName) {
-            return nameMap.computeIfAbsent(rawName, n -> {
+            return nameMap.computeIfAbsent(rawName, _ -> {
                 var size = nameMap.size();
                 builder.setLength(0);
                 while (size >= NAME_LENGTH) {

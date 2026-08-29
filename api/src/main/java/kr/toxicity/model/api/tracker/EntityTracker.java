@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.tracker;
 
 import kr.toxicity.model.api.BetterModel;
@@ -100,7 +101,7 @@ public class EntityTracker extends Tracker {
                 });
                 var baseScale = (float) (box.x() + box.z()) / 4F;
                 var posCache = new BoneMovement();
-                tick(((t, s) -> {
+                tick(((_, s) -> {
                     var wPos = bone.hitBoxPosition(posCache);
                     shadow.shadowRadius(scale.getAsFloat() * baseScale);
                     shadow.syncPotionEffect(entity);
@@ -119,8 +120,8 @@ public class EntityTracker extends Tracker {
         pipeline.scale(scale);
         Function<Quaternionf, Quaternionf> headRotator = r -> r.mul(bodyRotator.headRotation());
 
-        pipeline.addRotationModifier(HEAD_PREDICATE, headRotator);
-        pipeline.addRotationModifier(HEAD_WITH_CHILDREN_PREDICATE, headRotator);
+        pipeline.addGlobalRotModifier(HEAD_PREDICATE, headRotator);
+        pipeline.addGlobalRotModifier(HEAD_WITH_CHILDREN_PREDICATE, headRotator);
 
         createNametag(CREATE_NAMETAG_PREDICATE, (bone, tag) -> {
             if (bone.name().tagged(BoneTags.PLAYER_TAG)) {
@@ -145,8 +146,8 @@ public class EntityTracker extends Tracker {
             if (isClosed()) return;
             createHitBox(null, CREATE_HITBOX_PREDICATE);
         });
-        tick((t, s) -> updateLocation());
-        tick((t, s) -> {
+        tick((_, _) -> updateLocation());
+        tick((_, _) -> {
             if (damageTint.getAndDecrement() == 0) update(TrackerUpdateAction.previousTint());
         });
         rotation(bodyRotator::bodyRotation);

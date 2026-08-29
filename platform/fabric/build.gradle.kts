@@ -4,13 +4,13 @@ plugins {
     alias(libs.plugins.convention.publish)
     alias(libs.plugins.convention.modrinth)
     alias(libs.plugins.resourcefactory.fabric)
-    id("fabric-loom")
+    id("net.fabricmc.fabric-loom")
 }
 
 val versionString = "${rootProject.version}+${property("minecraft_version")}"
 
-val jarName = "${rootProject.name}-$versionString-${project.name}.jar"
-val jarDir: Provider<Directory> = rootProject.layout.buildDirectory.dir("libs")
+val jarName = "${rootProject.name}-$versionString-${project.name.substringAfterLast('-')}.jar"
+val jarDir = rootProject.layout.buildDirectory.dir("libs")
 
 sourceSets {
     create("testmod") {
@@ -21,38 +21,34 @@ sourceSets {
 
 loom {
     // Access winder
-    accessWidenerPath = file("src/main/resources/bettermodel.accesswidener")
+    //accessWidenerPath = file("src/main/resources/bettermodel.accesswidener")
 
     // Run
     runs {
         create("testClient") {
             client()
-            configName = "Test Minecraft Client"
-            source("testmod")
+            displayName = "Test Minecraft Client"
+            sourceSet = "testmod"
         }
 
         create("testServer") {
             server()
-            configName = "Test Minecraft Server"
-            source("testmod")
+            displayName = "Test Minecraft Server"
+            sourceSet = "testmod"
         }
     }
 
     // Test mod
-    createRemapConfigurations(sourceSets["testmod"])
+    //createRemapConfigurations(sourceSets["testmod"])
 }
-
 
 dependencies {
     // Minecraft
     minecraft("com.mojang:minecraft:${property("minecraft_version")}")
-    mappings(loom.layered {
-        officialMojangMappings()
-        parchment("io.papermc.parchment.data:parchment:${property("parchment_version")}")
-    })
 
-    api(project(":api")); include(project(":api"))
-    api(project(":core")); include(project(":core"))
+    api(project(":bettermodel-api")); include(project(":bettermodel-api"))
+    api(project(":bettermodel-api:bettermodel-mod-api")); include(project(":bettermodel-api:bettermodel-mod-api"))
+    api(project(":bettermodel-core")); include(project(":bettermodel-core"))
 
     setOf(
         "fabric-api-base",
@@ -64,22 +60,21 @@ dependencies {
         "fabric-networking-api-v1",
         "fabric-transitive-access-wideners-v1"
     ).forEach {
-        modImplementation(fabricApi.module(it, libs.versions.fabric.api.get()))
+        implementation(fabricApi.module(it, libs.versions.fabric.api.get()))
     }
 
-    modImplementation(libs.bundles.fabric)
+    implementation(libs.bundles.fabric)
 
     implementation(libs.bundles.fabric.library); include(libs.bundles.fabric.library)
-    modApi(libs.bundles.fabric.mod); include(libs.bundles.fabric.mod)
+    api(libs.bundles.fabric.mod); include(libs.bundles.fabric.mod)
 
     implementation(libs.bundles.core); include(libs.bundles.core)
     include(libs.bundles.library)
-
 }
 
 fabricModJson {
     id = "bettermodel"
-    name = rootProject.name
+    name = "BetterModel"
     description = "Modern Bedrock model engine for Minecraft Java Edition"
 
     entrypoints = listOf(
@@ -91,7 +86,7 @@ fabricModJson {
     environment = Environment.ANY
 
     depends = mapOf(
-        "minecraft" to listOf("~${property("minecraft_version")}"),
+        "minecraft" to listOf(">=${LATEST_VERSION.first()}"),
         "fabricloader" to listOf("*"),
         "fabric-language-kotlin" to listOf(">=${libs.versions.fabric.language.kotlin.get()}"),
 
@@ -124,6 +119,7 @@ fabricModJson {
     contact {
         sources = "https://github.com/toxicity188/BetterModel/"
         issues = "https://github.com/toxicity188/BetterModel/issues"
+        homepage = "https://modrinth.com/plugin/bettermodel"
     }
     icon("assets/icon.png")
     mitLicense()
@@ -149,14 +145,30 @@ sourceSets["testmod"].resourceFactory {
     }
 }
 
+interface FsInjected {
+    @get:Inject val fs: FileSystemOperations
+}
+val copyModJar = tasks.register("copyModJar") {
+    description = "Copies mod jar to build/libs."
+    val injected = objects.newInstance<FsInjected>()
+    val archiveFile = tasks.jar.flatMap { it.archiveFile }
+    val jarName = jarName
+    val jarDir = jarDir
+    doLast {
+        injected.fs.copy {
+            from(archiveFile)
+            rename { jarName }
+            into(jarDir)
+        }
+    }
+}
+
 tasks {
     jar {
         from(rootProject.layout.projectDirectory.file("LICENSE.md"))
         from(rootProject.layout.projectDirectory.file(".idea/icon.png")) {
             rename { "assets/icon.png" }
         }
-    }
-    remapJar {
         manifest {
             attributes(
                 mapOf(
@@ -170,13 +182,7 @@ tasks {
                 )
             )
         }
-        doLast {
-            copy {
-                from(archiveFile)
-                rename { jarName }
-                into(jarDir)
-            }
-        }
+        finalizedBy(copyModJar)
     }
     runServer {
         enabled = false
@@ -186,7 +192,7 @@ tasks {
 modrinth {
     loaders = listOf("fabric", "quilt")
     uploadFile.set(jarDir.map { it.file(jarName) })
-    gameVersions = listOf("1.21.11")
+    gameVersions = LATEST_VERSION
     dependencies {
         required.version("fabric-api", libs.versions.fabric.api.get())
         required.version("fabric-language-kotlin", libs.versions.fabric.language.kotlin.get())

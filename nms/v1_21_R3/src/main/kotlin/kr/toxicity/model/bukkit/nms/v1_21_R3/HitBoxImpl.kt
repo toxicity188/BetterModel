@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.bukkit.nms.v1_21_R3
 
 import io.papermc.paper.event.entity.EntityKnockbackEvent
@@ -12,13 +13,7 @@ import kr.toxicity.model.api.bone.BoneMovement
 import kr.toxicity.model.api.bone.RenderedBone
 import kr.toxicity.model.api.config.DebugConfig
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
-import kr.toxicity.model.api.event.hitbox.HitBoxCreateEvent
-import kr.toxicity.model.api.event.hitbox.HitBoxMountEvent
-import kr.toxicity.model.api.event.hitbox.HitBoxRemoveEvent
-import kr.toxicity.model.api.event.hitbox.HitBoxDismountEvent
-import kr.toxicity.model.api.event.hitbox.HitBoxDamagedEvent
-import kr.toxicity.model.api.event.hitbox.HitBoxInteractAtEvent
-import kr.toxicity.model.api.event.hitbox.HitBoxInteractEvent
+import kr.toxicity.model.api.event.hitbox.*
 import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.HitBoxListener
@@ -49,7 +44,6 @@ import org.bukkit.Particle
 import org.bukkit.craftbukkit.CraftServer
 import org.bukkit.craftbukkit.entity.CraftArmorStand
 import org.bukkit.craftbukkit.entity.CraftLivingEntity
-import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.event.entity.CreatureSpawnEvent
 import org.bukkit.event.entity.EntityPotionEffectEvent
 import org.bukkit.event.entity.EntityRemoveEvent
@@ -60,7 +54,7 @@ import java.util.*
 internal class HitBoxImpl(
     private val source: ModelBoundingBox,
     private val bone: RenderedBone,
-    private val listener: HitBoxListener,
+    private var listener: HitBoxListener,
     private val delegate: Entity,
     private var mountController: MountController
 ) : AbstractHitBox(delegate.level()) {
@@ -118,6 +112,7 @@ internal class HitBoxImpl(
     override fun positionSource(): RenderedBone = bone
     override fun forceDismount(): Boolean = forceDismount
     override fun mountController(): MountController = mountController
+    override fun hasMountDriver(): Boolean = controllingPassenger != null
     override fun mountController(controller: MountController) {
         this.mountController = controller
     }
@@ -125,9 +120,9 @@ internal class HitBoxImpl(
         bone.hitBoxPosition(posCache).add(x.toFloat(), y.toFloat(), z.toFloat())
     }
     override fun listener(): HitBoxListener = listener
-
-    override fun getArmorSlots(): MutableIterable<ItemStack> = mutableSetOf()
-    override fun hasMountDriver(): Boolean = controllingPassenger != null
+    override fun listener(listener: HitBoxListener) {
+        this.listener = listener
+    }
     override fun getItemBySlot(slot: EquipmentSlot): ItemStack = ItemStack.EMPTY
     override fun setItemSlot(slot: EquipmentSlot, stack: ItemStack) {
     }
@@ -321,27 +316,6 @@ internal class HitBoxImpl(
         return ifLivingEntity { isDeadOrDying } == true
     }
 
-    override fun triggerInteract(player: PlatformPlayer, hand: ModelInteractionHand) {
-        interact(
-            (player.unwarp() as CraftPlayer).handle,
-            when (hand) {
-                ModelInteractionHand.LEFT -> OFF_HAND
-                ModelInteractionHand.RIGHT -> MAIN_HAND
-            }
-        )
-    }
-
-    override fun triggerInteractAt(player: PlatformPlayer, hand: ModelInteractionHand, position: Vector3f) {
-        interactAt(
-            (player.unwarp() as CraftPlayer).handle,
-            position.toVanilla(),
-            when (hand) {
-                ModelInteractionHand.LEFT -> OFF_HAND
-                ModelInteractionHand.RIGHT -> MAIN_HAND
-            }
-        )
-    }
-
     override fun hide(player: PlatformPlayer) {
         val plugin = BetterModel.platform() as Plugin
         player.unwarp().run {
@@ -360,13 +334,6 @@ internal class HitBoxImpl(
 
     override fun interact(player: Player, hand: InteractionHand): InteractionResult {
         if (player === delegate) return InteractionResult.FAIL
-        val interact = HitBoxInteractEvent(
-            (player.bukkitEntity as org.bukkit.entity.Player).wrap(), craftEntity, when (hand) {
-                MAIN_HAND -> ModelInteractionHand.RIGHT
-                OFF_HAND -> ModelInteractionHand.LEFT
-            }
-        )
-        if (!listener.handle(interact)) return InteractionResult.FAIL
         (player as ServerPlayer).connection.handleInteract(ServerboundInteractPacket.createInteractionPacket(delegate, player.isShiftKeyDown, hand))
         return InteractionResult.SUCCESS
     }

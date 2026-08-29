@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.nms;
 
 import kr.toxicity.model.api.BetterModel;
@@ -18,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * Represents a hitbox for a model part, allowing for interaction and collision detection.
@@ -29,27 +31,6 @@ import java.util.Optional;
  * @since 1.15.2
  */
 public interface HitBox extends Identifiable {
-
-    /**
-     * Triggers an interaction with this hitbox.
-     *
-     * @param player the player interacting
-     * @param hand the hand used
-     * @since 1.15.2
-     */
-    @ApiStatus.Internal
-    void triggerInteract(@NotNull PlatformPlayer player, @NotNull ModelInteractionHand hand);
-
-    /**
-     * Triggers an interaction with this hitbox at a specific position.
-     *
-     * @param player the player interacting
-     * @param hand the hand used
-     * @param position the interaction position
-     * @since 1.15.2
-     */
-    @ApiStatus.Internal
-    void triggerInteractAt(@NotNull PlatformPlayer player, @NotNull ModelInteractionHand hand, @NotNull Vector3f position);
 
     /**
      * Hides this hitbox from a specific player.
@@ -182,6 +163,29 @@ public interface HitBox extends Identifiable {
      * @since 1.15.2
      */
     @NotNull HitBoxListener listener();
+
+    /**
+     * Sets the listener for this hitbox.
+     *
+     * @param listener the new listener
+     * @since 3.0.2
+     */
+    @ApiStatus.Internal
+    void listener(@NotNull HitBoxListener listener);
+
+    /**
+     * Updates the listener for this hitbox using a builder function.
+     * <p>
+     * This method retrieves the current listener, converts it to a builder,
+     * applies the provided function, and sets the resulting listener.
+     * </p>
+     *
+     * @param function the function to apply to the builder
+     * @since 3.0.2
+     */
+    default void listener(@NotNull Function<HitBoxListener.Builder, HitBoxListener.Builder> function) {
+        listener(function.apply(listener().toBuilder()).build());
+    }
 
     /**
      * Returns the rendered bone that acts as the position source for this hitbox.

@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.manager;
 
 import kr.toxicity.model.api.profile.ModelProfile;
@@ -21,15 +22,7 @@ import java.util.concurrent.CompletableFuture;
  *
  * @since 1.15.2
  */
-public interface SkinManager {
-
-    /**
-     * Checks if a skin provider (like SkinsRestorer) is supported and available.
-     *
-     * @return true if supported, false otherwise
-     * @since 1.15.2
-     */
-    boolean supported();
+public interface SkinManager extends Manager {
 
     /**
      * Returns the fallback skin data used when a skin cannot be resolved.

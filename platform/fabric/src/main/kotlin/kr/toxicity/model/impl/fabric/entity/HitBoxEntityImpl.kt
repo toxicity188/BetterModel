@@ -1,24 +1,17 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.impl.fabric.entity
 
 import kr.toxicity.model.api.bone.BoneMovement
 import kr.toxicity.model.api.bone.RenderedBone
 import kr.toxicity.model.api.config.DebugConfig
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
-import kr.toxicity.model.api.event.hitbox.HitBoxCreateEvent
-import kr.toxicity.model.api.event.hitbox.HitBoxMountEvent
-import kr.toxicity.model.api.event.hitbox.HitBoxRemoveEvent
-import kr.toxicity.model.api.event.hitbox.HitBoxDismountEvent
-import kr.toxicity.model.api.event.hitbox.HitBoxDamagedEvent
-import kr.toxicity.model.api.event.hitbox.HitBoxInteractAtEvent
-import kr.toxicity.model.api.event.hitbox.HitBoxInteractEvent
-import kr.toxicity.model.api.fabric.platform.FabricEntity
-import kr.toxicity.model.api.fabric.platform.FabricLivingEntity
+import kr.toxicity.model.api.event.hitbox.*
 import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.HitBoxListener
@@ -52,11 +45,11 @@ import java.util.*
 class HitBoxEntityImpl(
     private val source: ModelBoundingBox,
     private val bone: RenderedBone,
-    private val listener: HitBoxListener,
+    private var listener: HitBoxListener,
     private val delegate: Entity,
     private var mountController: MountController
 ) :
-    AbstractArmorStand(EntityType.ARMOR_STAND, delegate.level()),
+    AbstractArmorStand(EntityTypes.ARMOR_STAND, delegate.level()),
     HitBox
 {
     private val posCache = BoneMovement()
@@ -113,7 +106,7 @@ class HitBoxEntityImpl(
 
     override fun uuid(): UUID = uuid
 
-    override fun source(): PlatformEntity = FabricEntity.of(delegate)
+    override fun source(): PlatformEntity = delegate.wrap()
 
     override fun positionSource(): RenderedBone = bone
 
@@ -136,6 +129,10 @@ class HitBoxEntityImpl(
     }
 
     override fun listener(): HitBoxListener = listener
+
+    override fun listener(listener: HitBoxListener) {
+        this.listener = listener
+    }
 
     override fun getItemBySlot(slot: EquipmentSlot): ItemStack = ItemStack.EMPTY
 
@@ -185,8 +182,9 @@ class HitBoxEntityImpl(
         return delegate.remainingFireTicks
     }
 
-    override fun knockback(d: Double, e: Double, f: Double) {
-        (delegate as? LivingEntity)?.knockback(d, e, f)
+    override fun knockback(power: Double, xd: Double, zd: Double, source: DamageSource, damage: Float, comesFromEffect: Boolean) {
+        if (source.entity == delegate) return
+        (delegate as? LivingEntity)?.knockback(power, xd, zd, source, damage, comesFromEffect)
     }
 
     override fun push(pushingEntity: Entity) {
@@ -252,7 +250,7 @@ class HitBoxEntityImpl(
         if (!onFly &&
             mountController.canJump() &&
             (delegate.horizontalCollision || player.lastClientInput.jump()) &&
-            (delegate.deltaMovement.y + delegate.gravity) in 0.0..0.01 && jumpDelay == 0
+            delegate.deltaMovement.y + delegate.gravity in 0.0..0.01 && jumpDelay == 0
         ) {
             jumpDelay = 10
             delegate.jumpFromGround()
@@ -302,7 +300,7 @@ class HitBoxEntityImpl(
                 MountController.MoveType.DEFAULT
             },
             player.connection.wrap(),
-            FabricLivingEntity.of(delegate as LivingEntity),
+            (delegate as LivingEntity).wrap(),
             Vector3f(
                 player.xMovement(),
                 player.yMovement(),
@@ -392,27 +390,6 @@ class HitBoxEntityImpl(
 
     override fun isDeadOrDying(): Boolean = delegate is LivingEntity && delegate.isDeadOrDying
 
-    override fun triggerInteract(player: PlatformPlayer, hand: ModelInteractionHand) {
-        interact(
-            player.unwarp().player,
-            when (hand) {
-                ModelInteractionHand.LEFT -> InteractionHand.OFF_HAND
-                ModelInteractionHand.RIGHT -> InteractionHand.MAIN_HAND
-            }
-        )
-    }
-
-    override fun triggerInteractAt(player: PlatformPlayer, hand: ModelInteractionHand, position: Vector3f) {
-        interactAt(
-            player.unwarp().player,
-            Vec3(position),
-            when (hand) {
-                ModelInteractionHand.LEFT -> InteractionHand.OFF_HAND
-                ModelInteractionHand.RIGHT -> InteractionHand.MAIN_HAND
-            }
-        )
-    }
-
     override fun hide(player: PlatformPlayer) {
         TODO("with mixin")
     }
@@ -421,33 +398,8 @@ class HitBoxEntityImpl(
         TODO("with mixin")
     }
 
-    override fun interact(player: Player, hand: InteractionHand): InteractionResult {
-        if (player === delegate) {
-            return InteractionResult.FAIL
-        }
-        val serverPlayer = player as ServerPlayer
 
-        val interact = HitBoxInteractEvent(
-            serverPlayer.connection.wrap(),
-            this,
-            when (hand) {
-                InteractionHand.MAIN_HAND -> ModelInteractionHand.RIGHT
-                InteractionHand.OFF_HAND -> ModelInteractionHand.LEFT
-            }
-        )
-        if (!listener.handle(interact)) return InteractionResult.FAIL
-
-        serverPlayer.connection.handleInteract(
-            ServerboundInteractPacket.createInteractionPacket(
-                delegate,
-                player.isShiftKeyDown,
-                hand
-            )
-        )
-        return InteractionResult.SUCCESS
-    }
-
-    override fun interactAt(player: Player, vec: Vec3, hand: InteractionHand): InteractionResult {
+    override fun interact(player: Player, hand: InteractionHand, vec: Vec3): InteractionResult {
         if (player === delegate) {
             return InteractionResult.FAIL
         }
@@ -465,11 +417,11 @@ class HitBoxEntityImpl(
         if (!listener.handle(interact)) return InteractionResult.FAIL
 
         serverPlayer.connection.handleInteract(
-            ServerboundInteractPacket.createInteractionPacket(
-                delegate,
-                player.isShiftKeyDown,
+            ServerboundInteractPacket(
+                delegate.id,
                 hand,
-                vec
+                vec,
+                player.isShiftKeyDown
             )
         )
         return InteractionResult.SUCCESS

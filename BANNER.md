@@ -1,9 +1,8 @@
 <div align="center">  
 
-![](https://github.com/user-attachments/assets/89e191ba-ed4f-44ab-bb98-634cfe568dca)
+![](https://github.com/user-attachments/assets/ecd13a35-e897-44c2-b12f-8d465f33dab5)
 
-# BetterModel
-*- Modern Bedrock model engine for Minecraft Java Edition -*
+---
 
 [![](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/available/modrinth_vector.svg)](https://modrinth.com/plugin/bettermodel)
 [![](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/available/hangar_vector.svg)](https://hangar.papermc.io/toxicity188/BetterModel)
@@ -20,16 +19,15 @@
 
 # ✨ What is BetterModel?
 
-**BetterModel** is a server-based engine that provides runtime BlockBench model rendering & animating for Minecraft Java Edition.  
+**BetterModel** is a server-based engine that provides runtime [BlockBench](https://www.blockbench.net/) model rendering & animating for Minecraft Java Edition.  
 
-It implements **fully server-side 3D models** by using an item display entity packet.
-
-- Importing Generic BlockBench model `.bbmodel`
-- Auto-generating resource pack
-- Playing animation
-- Syncing with base entity
-- Custom hit box
-- 12-limb player animation
+- Built on the `item-display` packet.
+- Implements **essential BlockBench elements**, including `cubes`, `meshes`, `null objects`, and `locators`.
+- Support for **model animations**, `Molang` expressions, and **IK** (Inverse Kinematics) rigging.
+- Supports **player skin models** and **custom armor**.
+- **Automated resource pack generation** with **zero reliance on core shaders**.
+- Provides support for **entity syncing**.
+- **Extensible API** available for integration.
 
 ## 🚀 Comparison with ModelEngine
 The main reason I created it is:
@@ -69,11 +67,11 @@ BetterModel supports **player model with using user's custom skin without textur
 
 ## 🏗️ Supported environment
 
-[![](https://img.shields.io/badge/minecraft-1.21%7E1.21.11-8FCA5C?style=for-the-badge)](https://www.minecraft.net/en-us/download/server)
-[![](https://img.shields.io/badge/java-21%7E-ED8B00?style=for-the-badge)](https://adoptium.net/)
+[![](https://img.shields.io/badge/minecraft-1.21.4%7E26.2.x-8FCA5C?style=for-the-badge)](https://www.minecraft.net/en-us/download/server)
+[![](https://img.shields.io/badge/java-25%7E-ED8B00?style=for-the-badge)](https://adoptium.net/)
 
 ### Bukkit
-[![](https://img.shields.io/badge/folia-supported-blue?style=for-the-badge)](https://papermc.io/downloads/folia)
+[![](https://img.shields.io/badge/folia-✔-blue?style=for-the-badge)](https://papermc.io/downloads/folia)
 
 [![](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/supported/paper_vector.svg)](https://papermc.io/downloads/paper)
 [![](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/supported/purpur_vector.svg)](https://purpurmc.org/download/purpur)

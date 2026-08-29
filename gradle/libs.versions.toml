@@ -1,65 +1,69 @@
 [versions]
-kotlin = "2.3.20"
-paperweight = "2.0.0-beta.19"
+kotlin = "2.4.10"
+paperweight = "2.0.0-beta.21"
 resourcefactory = "1.3.1"
 
-shadow = "9.4.1"
+shadow = "9.6.1"
 minotaur = "2.9.0"
 hangarPublish = "0.1.4"
 
-fabric-api = "0.141.3+1.21.11"
-fabric-language-kotlin = "1.13.10+kotlin.2.3.20"
+fabric-api = "0.158.0+26.2"
+fabric-language-kotlin = "1.13.13+kotlin.2.4.10"
 
-cloud-bukkit = "2.0.0-beta.14"
-cloud-mod = "2.0.0-beta.15"
-cloud-core = "2.0.0"
+cloud-bukkit = "2.0.0"
+cloud-mod = "2.0.0"
+cloud-core = "2.1.0"
 
 configurate = "4.2.0"
+
+neoform = "26.2-2"
 
 [libraries]
 kotlin = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 
-semver4j = "com.vdurmont:semver4j:3.1.0"
-caffeine = "com.github.ben-manes.caffeine:caffeine:3.2.3"
+semver4j = "org.semver4j:semver4j:6.0.0"
+caffeine = "com.github.ben-manes.caffeine:caffeine:3.2.4"
 
-adventure-api = "net.kyori:adventure-api:4.26.1"
+adventure-api = "net.kyori:adventure-api:5.2.0"
 adventure-examination = "net.kyori:examination-api:1.3.0"
 adventure-option = "net.kyori:option:1.1.0"
-adventure-platform-bukkit = "net.kyori:adventure-platform-bukkit:4.4.1"
-adventure-platform-fabric = "net.kyori:adventure-platform-fabric:6.8.0"
+adventure-platform-bukkit = "io.github.toxicity188:adventure-platform-bukkit:5.2.0"
+adventure-platform-fabric = "net.kyori:adventure-platform-fabric:7.1.1"
 
-asm-tree = "org.ow2.asm:asm-tree:9.9.1"
+asm-tree = "org.ow2.asm:asm-tree:9.10.1"
 
-fabric-loader = "net.fabricmc:fabric-loader:0.18.5"
+fabric-loader = "net.fabricmc:fabric-loader:0.19.5"
 fabric-language-kotlin = { module = "net.fabricmc:fabric-language-kotlin", version.ref = "fabric-language-kotlin" }
 
-polymer-resource-pack = "eu.pb4:polymer-resource-pack:0.15.2+1.21.11"
+polymer-resource-pack = "eu.pb4:polymer-resource-pack:0.17.4+26.2"
 
 configurate-core = { module = "org.spongepowered:configurate-core", version.ref = "configurate" }
 configurate-yaml = { module = "org.spongepowered:configurate-yaml", version.ref = "configurate" }
 
-joml = "org.joml:joml:1.10.8"
-gson = "com.google.code.gson:gson:2.13.2"
-fastutil = "it.unimi.dsi:fastutil:8.5.18"
-guava = "com.google.guava:guava:33.5.0-jre"
+joml = "org.joml:joml:1.10.9"
+gson = "com.google.code.gson:gson:2.14.0"
+fastutil = "it.unimi.dsi:fastutil:8.5.19"
+guava = "com.google.guava:guava:33.7.1-jre"
 
 cloud-paper = { module = "org.incendo:cloud-paper", version.ref = "cloud-bukkit" }
 cloud-fabric = { module = "org.incendo:cloud-fabric", version.ref = "cloud-mod" }
 cloud-core = { module = "org.incendo:cloud-core", version.ref = "cloud-core" }
 geantyref = "io.leangen.geantyref:geantyref:2.0.1"
 
-lombok = "org.projectlombok:lombok:1.18.44"
+lombok = "org.projectlombok:lombok:1.18.46"
 bStats = "org.bstats:bstats-bukkit:3.2.1"
 dynamicUV = "io.github.toxicity188:dynamicuv:1.2.2"
-armormodel = "io.github.toxicity188:armormodel:1.0.2"
+armormodel = "io.github.toxicity188:armormodel:1.1.0"
+javamesh = "io.github.toxicity188:java-mesh:0.0.1"
 molangCompiler = "gg.moonflower:molang-compiler:3.1.1.19"
-libby = "net.byteflux:libby-bukkit:1.3.1"
+libby = "net.byteflux:libby-bukkit:1.3.2"
 
 build-kotlin-jvm = { module = "org.jetbrains.kotlin.jvm:org.jetbrains.kotlin.jvm.gradle.plugin", version.ref = "kotlin" }
 build-shadow = { module = "com.gradleup.shadow:com.gradleup.shadow.gradle.plugin", version.ref = "shadow" }
 build-minotaur = { module = "com.modrinth.minotaur:com.modrinth.minotaur.gradle.plugin", version.ref = "minotaur" }
 build-hangarPublish = { module = "io.papermc.hangar-publish-plugin:io.papermc.hangar-publish-plugin.gradle.plugin", version.ref = "hangarPublish" }
 build-resourcefactory = { module = "xyz.jpenilla:resource-factory", version.ref = "resourcefactory" }
+build-paperweight = { module = "io.papermc.paperweight.userdev:io.papermc.paperweight.userdev.gradle.plugin", version.ref = "paperweight" }
 
 [bundles]
 minecraft = [
@@ -89,6 +93,7 @@ fabric-mod = [
 library = [
     "semver4j",
     "dynamicUV",
+    "javamesh",
     "caffeine"
 ]
 
@@ -120,10 +125,7 @@ shadedLibrary = [
 resourcefactory-bukkit = { id = "xyz.jpenilla.resource-factory-bukkit-convention" }
 resourcefactory-paper = { id = "xyz.jpenilla.resource-factory-paper-convention" }
 resourcefactory-fabric = { id = "xyz.jpenilla.resource-factory-fabric-convention" }
-paperweight = { id = "io.papermc.paperweight.userdev", version.ref = "paperweight" }
 
-shadow = { id = "com.gradleup.shadow" }
-minotaur = { id = "com.modrinth.minotaur" }
 hangar = { id = "io.papermc.hangar-publish-plugin" }
 
 convention-publish = { id = "publish-conventions" }

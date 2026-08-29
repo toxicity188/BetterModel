@@ -1,20 +1,17 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.impl.fabric
 
-import com.google.common.collect.ImmutableMultimap
-import com.mojang.authlib.GameProfile
-import com.mojang.authlib.properties.Property
-import com.mojang.authlib.properties.PropertyMap
 import kr.toxicity.model.api.bone.RenderedBone
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import kr.toxicity.model.api.entity.BaseEntity
 import kr.toxicity.model.api.entity.BasePlayer
-import kr.toxicity.model.api.fabric.BetterModelFabric
+import kr.toxicity.model.api.mod.BetterModelMod
 import kr.toxicity.model.api.mount.MountController
 import kr.toxicity.model.api.nms.*
 import kr.toxicity.model.api.platform.PlatformEntity
@@ -37,14 +34,12 @@ import net.minecraft.resources.Identifier
 import net.minecraft.util.ARGB
 import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import net.minecraft.world.item.component.CustomModelData
-import net.minecraft.world.item.component.DyedItemColor
-import net.minecraft.world.item.component.ResolvableProfile
 import org.joml.Vector3d
 import java.util.function.Consumer
 
@@ -54,7 +49,7 @@ class BetterModelNMSImpl : NMS {
         yOffset: Double,
         initialConsumer: Consumer<ModelDisplay>
     ): ModelDisplay {
-        val type = EntityType.ITEM_DISPLAY
+        val type = EntityTypes.ITEM_DISPLAY
         val level = location.asFabric.level()!!
 
         val itemDisplay = Display.ItemDisplay(type, level).apply {
@@ -80,12 +75,11 @@ class BetterModelNMSImpl : NMS {
 
     override fun createParallelBundler(threshold: Int): PacketBundler = parallelBundlerOf(threshold)
 
-    override fun createModAnimationBuilder(initialCapacity: Int): ModAnimationBundler = {}
+    override fun createModAnimationBuilder(initialCapacity: Int): ModAnimationBundler = ModAnimationBundlerImpl(initialCapacity)
 
     override fun tint(itemStack: PlatformItemStack, rgb: Int): PlatformItemStack {
         return itemStack.clone().unwarp().apply {
-            set(DataComponents.DYED_COLOR, DyedItemColor(rgb))
-            set(DataComponents.CUSTOM_MODEL_DATA, get(DataComponents.CUSTOM_MODEL_DATA)?.withMappedColors(rgb))
+            set(DataComponents.CUSTOM_MODEL_DATA, get(DataComponents.CUSTOM_MODEL_DATA)?.withMappedColors(rgb) ?: CustomModelData(emptyList(), emptyList(), emptyList(), listOf(rgb)))
         }.wrap()
     }
 
@@ -149,7 +143,7 @@ class BetterModelNMSImpl : NMS {
         )
     }
 
-    override fun version(): NMSVersion = NMSVersion.V1_21_R7
+    override fun version(): NMSVersion = NMSVersion.V26_R2
 
     override fun adapt(entity: PlatformEntity): BaseEntity = BaseFabricEntityImpl(entity.unwarp())
 
@@ -169,21 +163,7 @@ class BetterModelNMSImpl : NMS {
 
     override fun profile(player: PlatformPlayer): ModelProfile = ModelProfileImpl(player.unwarp().player.gameProfile)
 
-    override fun createPlayerHead(profile: ModelProfile): PlatformItemStack = Items.PLAYER_HEAD.defaultInstance
-        .apply {
-            val gameProfileProperty = ImmutableMultimap.of(
-                "textures",
-                Property("textures", profile.skin().raw)
-            )
-            val gameProfile = GameProfile(
-                profile.info().id,
-                profile.info().name ?: "",
-                PropertyMap(gameProfileProperty)
-            )
-            set(DataComponents.PROFILE, ResolvableProfile.createResolved(gameProfile))
-        }.wrap()
-
-    override fun isProxyOnlineMode(): Boolean = (PLATFORM as BetterModelFabric).server().usesAuthentication()
+    override fun isProxyOnlineMode(): Boolean = (PLATFORM as BetterModelMod).server().usesAuthentication()
 
     override fun createSkinItem(model: String, floats: List<Float>, flags: List<Boolean>, strings: List<String>, colors: List<Int>): TransformedItemStack {
         return ItemStack(Items.PLAYER_HEAD).run {

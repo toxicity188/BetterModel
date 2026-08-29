@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.data.renderer;
 
 import kr.toxicity.model.api.BetterModel;
@@ -113,11 +114,11 @@ public final class RendererGroup {
 
     /**
      * Creates entity.
-     * @param source source
+     * @param context context
      * @return entity
      */
-    public @NotNull RenderedBone create(@NotNull RenderSource<?> source) {
-        return create(source.fallbackContext(), null);
+    public @NotNull RenderedBone create(@NotNull BoneRenderContext context) {
+        return create(context, null);
     }
 
     private @NotNull RenderedBone create(@NotNull BoneRenderContext context, @Nullable RenderedBone parentBone) {

@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.manager.debug
 
 import kr.toxicity.model.manager.ReloadPipeline
@@ -35,6 +36,7 @@ class BossBarIndicator(
     override fun status(status: ReloadPipeline.Status) {
         bossBar.run {
             name(componentOf(status.status) {
+                append(" [${status.target}]".toComponent(NamedTextColor.AQUA))
                 append(" (${status.current.withComma()} / ${status.goal.withComma()})".toComponent(NamedTextColor.YELLOW))
             })
             progress(status.progress)

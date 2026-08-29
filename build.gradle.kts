@@ -2,17 +2,16 @@ import io.papermc.hangarpublishplugin.model.Platforms
 
 plugins {
     alias(libs.plugins.convention.standard)
-    alias(libs.plugins.minotaur) apply false
-    alias(libs.plugins.shadow)
     alias(libs.plugins.hangar)
-    id("xyz.jpenilla.run-paper") version "3.0.2"
+    id("xyz.jpenilla.run-paper") version "3.1.0"
 }
 
 val minecraft = property("minecraft_version").toString()
 val versionString = version.toString()
 val groupString = group.toString()
 
-val javadocJar by tasks.registering(Jar::class) {
+val javadocJar = tasks.register<Jar>("javadocJar") {
+    description = "Makes javadoc."
     dependsOn(tasks.dokkaGenerate)
     archiveClassifier = "javadoc"
     from(layout.buildDirectory.dir("dokka/html").orNull?.asFile)
@@ -22,21 +21,27 @@ runPaper {
     disablePluginJarDetection()
 }
 
+val bettermodel get() = project(":platform:bettermodel-paper").tasks.named<Jar>("shadowJar").flatMap {
+    it.archiveFile
+}
+val bettermodelTest get() = project(":test-plugin").tasks.jar.flatMap {
+    it.archiveFile
+}
+
+runPaper.folia.registerTask {
+    pluginJars(bettermodel, bettermodelTest)
+    minecraftVersion(minecraft)
+}
+
 tasks {
     runServer {
         pluginJars(fileTree("plugins"))
-        pluginJars(project(":platform:paper").tasks.shadowJar.flatMap {
-            it.archiveFile
-        })
-        pluginJars(project(":test-plugin").tasks.jar.flatMap {
-            it.archiveFile
-        })
-        version(minecraft)
+        pluginJars(bettermodel, bettermodelTest)
+        minecraftVersion(minecraft)
         downloadPlugins {
-            hangar("ViaVersion", "5.8.1")
-            hangar("ViaBackwards", "5.8.1")
-            hangar("Skript", "2.14.2")
-            hangar("TabTPS", "1.3.30")
+            hangar("ViaVersion", "5.11.0")
+            hangar("ViaBackwards", "5.11.0")
+            hangar("Skript", "2.16.1")
         }
     }
     build {
@@ -44,7 +49,7 @@ tasks {
             javadocJar
         )
     }
-    shadowJar {
+    jar {
         enabled = false
     }
 }
@@ -54,7 +59,7 @@ hangarPublish {
         version = project.version as String
         id = "BetterModel"
         apiKey = System.getenv("HANGAR_API_TOKEN")
-        val log = System.getenv("COMMIT_MESSAGE")
+        val log = commitMessage()
         if (log != null) {
             changelog = log
             channel = "Snapshot"
@@ -64,9 +69,7 @@ hangarPublish {
         }
         platforms {
             register(Platforms.PAPER) {
-                jar = project(":platform:paper").tasks.shadowJar.flatMap {
-                    it.archiveFile
-                }
+                jar = bettermodel
                 platformVersions = SUPPORTED_VERSIONS
                 dependencies {
                     hangar("SkinsRestorer") { required = false }

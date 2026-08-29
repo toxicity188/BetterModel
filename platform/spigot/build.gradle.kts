@@ -5,16 +5,22 @@ plugins {
     alias(libs.plugins.resourcefactory.bukkit)
 }
 
+val dependenciesContent: List<String> = libs.bundles.library.map {
+    it.map(Any::toString)
+}.get()
+
 dependencies {
-    shade(project(":nms:v1_21_R1", configuration = "reobf")) { isTransitive = false }
     shade(project(":nms:v1_21_R3", configuration = "reobf")) { isTransitive = false }
     shade(project(":nms:v1_21_R4", configuration = "reobf")) { isTransitive = false }
     shade(project(":nms:v1_21_R5", configuration = "reobf")) { isTransitive = false }
     shade(project(":nms:v1_21_R6", configuration = "reobf")) { isTransitive = false }
     shade(project(":nms:v1_21_R7", configuration = "reobf")) { isTransitive = false }
+    shade(project(":nms:v26_R1")) { isTransitive = false }
+    shade(project(":nms:v26_R2")) { isTransitive = false }
 }
 
 modrinth {
+    gameVersions = SUPPORTED_VERSIONS
     loaders = BUKKIT_LOADERS
 }
 
@@ -27,9 +33,9 @@ tasks.shadowJar {
 bukkitPluginYaml {
     main = "$group.spigot.BetterModelSpigot"
     version = project.version.toString()
-    name = rootProject.name
+    name = "BetterModel"
     foliaSupported = true
-    apiVersion = "1.20"
+    apiVersion = "1.21.4"
     author = "toxicity188"
     description = "Modern Bedrock model engine for Minecraft Java Edition"
     website = "https://modrinth.com/plugin/bettermodel"
@@ -38,9 +44,7 @@ bukkitPluginYaml {
         "Citizens",
         "SkinsRestorer"
     )
-    libraries = libs.bundles.library.map {
-        it.map(Any::toString)
-    }
+    libraries = dependenciesContent
     permissions.create("bettermodel") {
         default = Permission.Default.OP
         description = "Accesses to command."

@@ -7,13 +7,13 @@ plugins {
 val shade: Configuration = configurations.getByName("shade")
 val versionString = version.toString()
 val groupString = group.toString()
-val classifier: String = project.name
+val classifier: String = project.name.substringAfterLast('-')
 
 dependencies {
-    compileOnly(project(":api"))
-    compileOnly(project(":api:bukkit-api"))
-    compileOnly(project(":core"))
-    shade(project(":core:bukkit-core")) {
+    compileOnly(project(":bettermodel-api"))
+    compileOnly(project(":bettermodel-api:bettermodel-bukkit-api"))
+    compileOnly(project(":bettermodel-core"))
+    shade(project(":bettermodel-core:bettermodel-bukkit-core")) {
         exclude("org.jetbrains.kotlin")
     }
 }
@@ -23,6 +23,7 @@ tasks {
         finalizedBy(shadowJar)
     }
     shadowJar {
+        duplicatesStrategy = DuplicatesStrategy.WARN
         configurations.set(listOf(shade))
         manifest {
             attributes(mapOf(
@@ -56,7 +57,6 @@ tasks {
 
 modrinth {
     uploadFile.set(tasks.shadowJar)
-    gameVersions = SUPPORTED_VERSIONS
     dependencies {
         optional.project(
             "mythicmobs",

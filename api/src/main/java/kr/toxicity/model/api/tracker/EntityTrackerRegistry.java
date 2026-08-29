@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.tracker;
 
 import com.google.common.collect.ImmutableList;
@@ -18,6 +19,7 @@ import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.config.DebugConfig;
 import kr.toxicity.model.api.entity.BaseEntity;
 import kr.toxicity.model.api.entity.BasePlayer;
+import kr.toxicity.model.api.manager.PlayerManager;
 import kr.toxicity.model.api.nms.HitBox;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
@@ -277,9 +279,9 @@ public final class EntityTrackerRegistry {
 
     private boolean putTracker(@NotNull String key, @NotNull EntityTracker created) {
         if (isClosed() || created.isClosed()) return false;
-        created.handleCloseEvent((t, r) -> {
+        created.handleCloseEvent((_, r) -> {
             if (isClosed()) return;
-            if (trackerMap.compute(key, (k, v) -> v == created ? null : v) == null) {
+            if (trackerMap.compute(key, (_, v) -> v == created ? null : v) == null) {
                 LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> uuid + "'s tracker " + key + " has been removed. (" + trackerMap.size() + ")");
             }
             if (trackerMap.isEmpty()) close(r);
@@ -382,9 +384,8 @@ public final class EntityTrackerRegistry {
         closed.set(true);
         var data = new ArrayList<TrackerData>(trackerMap.size());
         for (EntityTracker value : trackers()) {
-            if (!value.canBeSaved()) continue;
-            data.add(value.asTrackerData());
             value.close();
+            if (value.canBeSaved()) data.add(value.asTrackerData());
         }
         trackerMap.clear();
         closed.set(false);
@@ -524,7 +525,7 @@ public final class EntityTrackerRegistry {
     }
     private boolean spawn(@NotNull PlatformPlayer player, boolean shouldNotSpawned) {
         var handler = BetterModel.platform()
-            .playerManager()
+            .manager(PlayerManager.class)
             .player(player.uuid());
         if (handler == null) return false;
         var cache = registerPlayer(handler);
@@ -541,7 +542,7 @@ public final class EntityTrackerRegistry {
     }
 
     private @NotNull PlayerChannelCache registerPlayer(@NotNull PlayerChannelHandler handler) {
-        return viewedPlayerMap.computeIfAbsent(handler.uuid(), u -> new PlayerChannelCache(handler));
+        return viewedPlayerMap.computeIfAbsent(handler.uuid(), _ -> new PlayerChannelCache(handler));
     }
 
     /**

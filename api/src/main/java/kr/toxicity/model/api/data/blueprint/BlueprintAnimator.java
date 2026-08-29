@@ -1,12 +1,16 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.data.blueprint;
 
-import kr.toxicity.model.api.animation.*;
+import kr.toxicity.model.api.animation.AnimationIterator;
+import kr.toxicity.model.api.animation.AnimationKeyframe;
+import kr.toxicity.model.api.animation.AnimationProgress;
+import kr.toxicity.model.api.animation.VectorPoint;
 import kr.toxicity.model.api.bone.BoneName;
 import org.jetbrains.annotations.NotNull;
 

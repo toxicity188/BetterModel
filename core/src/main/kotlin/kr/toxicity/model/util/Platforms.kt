@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.util
 
 import com.github.benmanes.caffeine.cache.Caffeine
@@ -33,7 +34,7 @@ val DATA_FOLDER
 
 private val LATEST_VERSION_CACHE = Caffeine.newBuilder()
     .expireAfterWrite(5, TimeUnit.MINUTES)
-    .build<Any, HttpUtil.LatestVersion> { HttpUtil.versionList() }
+    .build<Any, HttpUtil.LatestVersion> { HttpUtil.latest() }
 
 private val GSON = GsonBuilder().disableHtmlEscaping().create()
 

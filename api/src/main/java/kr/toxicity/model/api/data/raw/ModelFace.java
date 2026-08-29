@@ -1,15 +1,18 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonObject;
-import kr.toxicity.model.api.data.blueprint.ModelBlueprint;
+import kr.toxicity.model.api.data.blueprint.BlueprintLoadContext;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.stream.IntStream;
 
 /**
  * Represents the UV mappings for all six faces of a cube element.
@@ -38,18 +41,18 @@ public record ModelFace(
      * </p>
      *
      * @param parent the parent model blueprint, used for texture resolution
-     * @param tint the tint index to apply
      * @return the generated JSON object
      * @since 1.15.2
      */
-    public @NotNull JsonObject toJson(@NotNull ModelBlueprint parent, int tint) {
+    public @NotNull JsonObject toJson(@NotNull BlueprintLoadContext parent) {
         var object = new JsonObject();
-        if (north.hasTexture()) object.add("north", north.toJson(parent, tint));
-        if (east.hasTexture()) object.add("east", east.toJson(parent, tint));
-        if (south.hasTexture()) object.add("south", south.toJson(parent, tint));
-        if (west.hasTexture()) object.add("west", west.toJson(parent, tint));
-        if (up.hasTexture()) object.add("up", up.toJson(parent, tint));
-        if (down.hasTexture()) object.add("down", down.toJson(parent, tint));
+        JsonObject add;
+        if ((add = north.toJson(parent)) != null) object.add("north", add);
+        if ((add = east.toJson(parent)) != null) object.add("east", add);
+        if ((add = south.toJson(parent)) != null) object.add("south", add);
+        if ((add = west.toJson(parent)) != null) object.add("west", add);
+        if ((add = up.toJson(parent)) != null) object.add("up", add);
+        if ((add = down.toJson(parent)) != null) object.add("down", add);
         return object;
     }
 
@@ -66,5 +69,16 @@ public record ModelFace(
             || west.hasTexture()
             || up.hasTexture()
             || down.hasTexture();
+    }
+
+    public @NotNull IntStream textureIndex() {
+        var builder = IntStream.builder();
+        if (north.hasTexture()) builder.add(north.textureIndex());
+        if (east.hasTexture()) builder.add(east.textureIndex());
+        if (south.hasTexture()) builder.add(south.textureIndex());
+        if (west.hasTexture()) builder.add(west.textureIndex());
+        if (up.hasTexture()) builder.add(up.textureIndex());
+        if (down.hasTexture()) builder.add(down.textureIndex());
+        return builder.build();
     }
 }

@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.manager
 
 import kr.toxicity.model.api.event.AnimationSignalEvent
@@ -91,7 +92,7 @@ object ScriptManagerImpl : ScriptManager, GlobalManager {
                 ScriptMetaDataImpl(it.group("metadata")
                     ?.split(';')
                     ?.associate { pair ->
-                        pair.split('=', limit = 2).let { arr -> arr[0] to arr[1] }
+                        pair.split('=', limit = 2).let { arr -> arr[0] to if (arr.size == 2) arr[1] else "" }
                     }
                     ?: emptyMap()
                 )

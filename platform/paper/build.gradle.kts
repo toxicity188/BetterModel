@@ -7,17 +7,22 @@ plugins {
 }
 
 val libraryDir: Provider<RegularFile> = layout.buildDirectory.file("generated/paper-library")
+val dependenciesContent: String = libs.bundles.library.map { bundle ->
+    bundle.joinToString("\n") { dep -> dep.toString() }
+}.get()
 
 dependencies {
-    shade(project(":nms:v1_21_R1")) { isTransitive = false }
     shade(project(":nms:v1_21_R3")) { isTransitive = false }
     shade(project(":nms:v1_21_R4")) { isTransitive = false }
     shade(project(":nms:v1_21_R5")) { isTransitive = false }
     shade(project(":nms:v1_21_R6")) { isTransitive = false }
     shade(project(":nms:v1_21_R7")) { isTransitive = false }
+    shade(project(":nms:v26_R1")) { isTransitive = false }
+    shade(project(":nms:v26_R2")) { isTransitive = false }
 }
 
 modrinth {
+    gameVersions = SUPPORTED_VERSIONS
     loaders = PAPER_LOADERS
 }
 
@@ -25,12 +30,17 @@ tasks.modrinth {
     dependsOn(tasks.modrinthSyncBody)
 }
 
-val generatePaperLibrary by tasks.registering {
-    outputs.file(libraryDir)
+val generatePaperLibrary = tasks.register("generatePaperLibrary") {
+    description = "Generates paper library info."
+    val outputProvider = libraryDir
+    val contentProvider = dependenciesContent
+
+    outputs.file(outputProvider)
+
     doLast {
-        val file = libraryDir.get().asFile
+        val file = outputProvider.get().asFile
         file.parentFile.mkdirs()
-        file.writeText(libs.bundles.library.get().joinToString("\n") { dep -> dep.toString() })
+        file.writeText(contentProvider)
     }
 }
 
@@ -46,9 +56,9 @@ paperPluginYaml {
     main = "$group.paper.BetterModelPaper"
     loader = "$group.paper.BetterModelLoader"
     version = project.version.toString()
-    name = rootProject.name
+    name = "BetterModel"
     foliaSupported = true
-    apiVersion = "1.20"
+    apiVersion = "1.21.4"
     author = "toxicity188"
     contributors = listOf("https://github.com/toxicity188/BetterModel/graphs/contributors")
     description = "Modern Bedrock model engine for Minecraft Java Edition"

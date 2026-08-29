@@ -3,9 +3,9 @@ plugins {
 }
 
 dependencies {
-    shade(project(":api")) { isTransitive = false }
-    shade(project(":api:bukkit-api")) { isTransitive = false }
-    shade(project(":core")) { isTransitive = false }
+    shade(project(":bettermodel-api")) { isTransitive = false }
+    shade(project(":bettermodel-api:bettermodel-bukkit-api")) { isTransitive = false }
+    shade(project(":bettermodel-core")) { isTransitive = false }
 
     shade(project(":purpur"))
     rootProject.project("nms").subprojects.forEach {
@@ -20,10 +20,10 @@ dependencies {
 
     compileOnly(libs.bundles.manifestLibrary)
 
-    compileOnly("net.citizensnpcs:citizens-main:2.0.41-SNAPSHOT") {
+    compileOnly("net.citizensnpcs:citizens-main:2.0.43-SNAPSHOT") {
         exclude("net.byteflux")
     }
-    compileOnly("net.skinsrestorer:skinsrestorer-api:15.11.0")
-    compileOnly("io.lumine:Mythic-Dist:5.11.2")
-    compileOnly("com.nexomc:nexo:1.21.0")
+    compileOnly("net.skinsrestorer:skinsrestorer-api:15.12.5")
+    compileOnly("io.lumine:Mythic-Dist:5.13.0")
+    compileOnly("com.nexomc:nexo:1.27.0")
 }

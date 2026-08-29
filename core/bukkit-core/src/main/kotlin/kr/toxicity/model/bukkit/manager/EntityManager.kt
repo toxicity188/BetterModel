@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.bukkit.manager
 
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent
@@ -14,14 +15,13 @@ import it.unimi.dsi.fastutil.objects.ReferenceSet
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.bukkit.BetterModelBukkit
 import kr.toxicity.model.api.nms.HitBox
-import kr.toxicity.model.api.nms.ModelInteractionHand
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.tracker.Tracker
 import kr.toxicity.model.api.tracker.TrackerExtraAnimation
-import kr.toxicity.model.bukkit.nms.v1_21_R4.wrap
 import kr.toxicity.model.bukkit.util.registerListener
+import kr.toxicity.model.bukkit.util.wrap
 import kr.toxicity.model.manager.GlobalManager
 import kr.toxicity.model.manager.ReloadPipeline
 import kr.toxicity.model.util.PLATFORM
@@ -32,13 +32,11 @@ import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.*
 import org.bukkit.event.player.PlayerChangedWorldEvent
-import org.bukkit.event.player.PlayerInteractAtEntityEvent
 import org.bukkit.event.player.PlayerInteractEntityEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.world.EntitiesUnloadEvent
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.potion.PotionEffectType
-import org.joml.Vector3f
 
 object EntityManager : GlobalManager {
 
@@ -89,7 +87,10 @@ object EntityManager : GlobalManager {
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         fun EntityPotionEffectEvent.potion() { //Apply potion effect
             if (action == EntityPotionEffectEvent.Action.CHANGED) return
-            if (oldEffect?.let { it.type in effectSet } == true || newEffect?.let { it.type in effectSet } == true) entity.forEachTracker { it.updateBaseEntity() }
+            if (oldEffect?.let { it.type in effectSet } == true || newEffect?.let { it.type in effectSet } == true) {
+                // For NoSuchMethodError: EntityPotionEffectEvent#getEntity() in some server implementation
+                (this as EntityEvent).entity.forEachTracker { it.updateBaseEntity() }
+            }
         }
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         fun EntityDismountEvent.dismount() { //Dismount
@@ -121,38 +122,12 @@ object EntityManager : GlobalManager {
                 it.animate(TrackerExtraAnimation.DEATH)
             }
         }
-        @EventHandler(priority = EventPriority.MONITOR)
-        fun PlayerInteractAtEntityEvent.interact() {
-            val pos = clickedPosition
-            (rightClicked as? HitBox)?.triggerInteractAt(
-                player.wrap(),
-                when (this.hand) {
-                    EquipmentSlot.HAND -> ModelInteractionHand.RIGHT
-                    EquipmentSlot.OFF_HAND -> ModelInteractionHand.LEFT
-                    else -> return
-                },
-                Vector3f(
-                    pos.x.toFloat(),
-                    pos.y.toFloat(),
-                    pos.z.toFloat()
-                )
-            )
-        }
 
         @EventHandler(priority = EventPriority.MONITOR)
         fun PlayerInteractEntityEvent.interact() { //Interact base entity based on interaction entity
-            val isRight = hand == EquipmentSlot.HAND
-            val dismount = isRight && player.triggerDismount(rightClicked)
             (rightClicked as? HitBox)?.let {
-                it.triggerInteract(
-                    player.wrap(),
-                    when (this.hand) {
-                        EquipmentSlot.HAND -> ModelInteractionHand.RIGHT
-                        EquipmentSlot.OFF_HAND -> ModelInteractionHand.LEFT
-                        else -> return
-                    }
-                )
-                if (isRight && !dismount) player.triggerMount(it)
+                if (!isCancelled && hand == EquipmentSlot.HAND && !player.triggerDismount(rightClicked)) player.triggerMount(it)
+                isCancelled = false
             }
         }
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

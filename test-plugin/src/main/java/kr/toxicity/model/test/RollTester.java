@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.test;
 
 import io.papermc.paper.event.entity.EntityPushedByEntityAttackEvent;
@@ -108,10 +109,10 @@ public final class RollTester implements ModelTester, Listener {
         return BetterModel.limb("steve")
             .flatMap(r -> r.animation("roll"))
             .map(animation -> {
-                audience.sendMessage(Component.text()
+                audience.sendMessage(Component.text(builder -> builder
                     .append(Component.text("Loop mode: " + animation.loop()))
                     .appendNewline()
-                    .append(Component.text("Length: " + animation.length() + " second")));
+                    .append(Component.text("Length: " + animation.length() + " second"))));
                 return audience;
             })
             .isPresent();

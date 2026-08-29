@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.impl.fabric.entity
 
 import io.netty.channel.ChannelDuplexHandler
@@ -11,7 +12,7 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.entity.BasePlayer
-import kr.toxicity.model.api.fabric.BetterModelFabric
+import kr.toxicity.model.api.mod.BetterModelMod
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.PlayerChannelHandler
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
@@ -22,6 +23,7 @@ import kr.toxicity.model.mixin.DisplayAccessor
 import kr.toxicity.model.mixin.EntityAccessor
 import kr.toxicity.model.util.CONFIG
 import kr.toxicity.model.util.PLATFORM
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.minecraft.network.Connection
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.*
@@ -29,7 +31,7 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.network.ServerPlayerConnection
 import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.item.ItemStack
 import java.util.stream.IntStream
@@ -55,7 +57,7 @@ class PlayerChannelHandlerImpl(
     }
 
     override fun base(): BasePlayer = basePlayer
-    override fun isModEnabled(): Boolean = false
+    override fun isModEnabled(): Boolean = ServerPlayNetworking.getReceived(player).contains(ModAnimationBundlerImpl.IDENTIFIER)
 
     private val playerModel get() = connection.player.id.toRegistry()
 
@@ -97,7 +99,7 @@ class PlayerChannelHandlerImpl(
         uuid,
         x, y, z,
         xRot, yRot,
-        EntityType.ITEM_DISPLAY,
+        EntityTypes.ITEM_DISPLAY,
         0,
         deltaMovement,
         yHeadRot.toDouble()
@@ -232,8 +234,8 @@ class PlayerChannelHandlerImpl(
 
         private val hitBoxData by lazy {
             Display.ItemDisplay(
-                EntityType.ITEM_DISPLAY,
-                (PLATFORM as BetterModelFabric).server().overworld()
+                EntityTypes.ITEM_DISPLAY,
+                (PLATFORM as BetterModelMod).server().overworld()
             ).run {
                 entityData.set(DisplayAccessor.`bettermodel$getDataPosRotInterpolationDurationId`(), 3)
                 entityData.nonDefaultValues!!
