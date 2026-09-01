@@ -80,6 +80,24 @@ public interface BaseBukkitEntity extends BaseEntity, PersistentDataHolder {
     }
 
     /**
+     * Returns the item in the entity's helmet slot.
+     *
+     * @return the helmet item
+     * @since 2.0.1
+     */
+    @Override
+    default @NotNull TransformedItemStack helmet() {
+        if (entity() instanceof LivingEntity livingEntity) {
+            var equipment = livingEntity.getEquipment();
+            if (equipment != null) {
+                var helmet = equipment.getHelmet();
+                if (helmet != null) return TransformedItemStack.of(BukkitAdapter.adapt(helmet));
+            }
+        }
+        return TransformedItemStack.empty();
+    }
+
+    /**
      * Retrieves the model data stored in the entity's persistent data container.
      *
      * @return the model data string, or null if not present
