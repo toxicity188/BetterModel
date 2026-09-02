@@ -50,7 +50,7 @@ import java.util.function.Predicate;
  *
  * @since 1.15.2
  */
-public class EntityTracker extends Tracker {
+public sealed class EntityTracker extends Tracker permits PlayerTracker {
 
     private static final BonePredicate CREATE_HITBOX_PREDICATE = BonePredicate.name("hitbox")
         .or(BonePredicate.tag(BoneTags.HITBOX))
