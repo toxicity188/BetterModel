@@ -51,7 +51,7 @@ import java.util.stream.Stream;
  *
  * @since 1.15.2
  */
-public abstract class Tracker implements AutoCloseable {
+public sealed abstract class Tracker implements AutoCloseable permits EntityTracker, DummyTracker {
 
     private static final ScheduledExecutorService EXECUTOR = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() * 2, new ThreadFactory() {
 
