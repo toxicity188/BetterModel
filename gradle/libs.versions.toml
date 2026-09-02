@@ -50,7 +50,7 @@ cloud-fabric = { module = "org.incendo:cloud-fabric", version.ref = "cloud-mod" 
 cloud-core = { module = "org.incendo:cloud-core", version.ref = "cloud-core" }
 geantyref = "io.leangen.geantyref:geantyref:2.0.1"
 
-lombok = "org.projectlombok:lombok:1.18.46"
+lombok = "org.projectlombok:lombok:1.18.48"
 bStats = "org.bstats:bstats-bukkit:3.2.1"
 dynamicUV = "io.github.toxicity188:dynamicuv:1.2.2"
 armormodel = "io.github.toxicity188:armormodel:1.1.0"
