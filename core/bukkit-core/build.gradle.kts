@@ -25,5 +25,5 @@ dependencies {
     }
     compileOnly("net.skinsrestorer:skinsrestorer-api:15.12.5")
     compileOnly("io.lumine:Mythic-Dist:5.13.0")
-    compileOnly("com.nexomc:nexo:1.27.0")
+    compileOnly("com.nexomc:nexo:1.28.0")
 }
