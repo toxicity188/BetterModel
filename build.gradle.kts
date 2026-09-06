@@ -41,7 +41,7 @@ tasks {
         downloadPlugins {
             hangar("ViaVersion", "5.11.0")
             hangar("ViaBackwards", "5.11.0")
-            hangar("Skript", "2.16.1")
+            hangar("Skript", "2.16.2")
         }
     }
     build {
