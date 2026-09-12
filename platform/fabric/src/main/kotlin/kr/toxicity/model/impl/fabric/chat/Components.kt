@@ -7,8 +7,9 @@
 
 package kr.toxicity.model.impl.fabric.chat
 
-import net.kyori.adventure.platform.modcommon.impl.NonWrappingComponentSerializer
+import kr.toxicity.model.api.mod.BetterModelMod
+import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences
 import net.minecraft.network.chat.Component
 
-fun net.kyori.adventure.text.Component.asVanilla(): Component = NonWrappingComponentSerializer.INSTANCE.serialize(this)
-fun Component.asAdventure(): net.kyori.adventure.text.Component = NonWrappingComponentSerializer.INSTANCE.deserialize(this)
+fun net.kyori.adventure.text.Component.asVanilla(): Component = MinecraftServerAudiences.of(BetterModelMod.platform().server()).asNative(this)
+fun Component.asAdventure(): net.kyori.adventure.text.Component = MinecraftServerAudiences.of(BetterModelMod.platform().server()).asAdventure(this)
