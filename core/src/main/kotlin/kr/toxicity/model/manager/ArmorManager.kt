@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.manager
 
 import kr.toxicity.library.armormodel.ArmorImage
@@ -181,7 +182,7 @@ object ArmorManager : GlobalManager {
         pipeline: ReloadPipeline,
         zipper: PackZipper
     ) {
-        if (!PLATFORM.version().useModernResource() || !CONFIG.module().playerAnimation) {
+        if (!CONFIG.module().playerAnimation) {
             armor = ArmorModel.EMPTY
             return
         }
@@ -216,6 +217,7 @@ object ArmorManager : GlobalManager {
         val models = PackObfuscator.order()
         armor = ArmorModel.builder()
             .namespace(CONFIG.namespace())
+            .itemPath(zipper.assets().obfuscate("armor"))
             .streamLoader { path -> PLATFORM.getResource(path)!! }
             .armors(pipeline
                 .mapParallel(File(folder, "armors").subFiles(), File::length) { it.toArmorImage() }
@@ -236,7 +238,7 @@ object ArmorManager : GlobalManager {
             .flush(false)
             .build()
         armor.builders().forEach {
-            zipper.modern().add(
+            zipper.assets().add(
                 it.path(),
                 256
             ) {

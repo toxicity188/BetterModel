@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.nms;
 
 import lombok.Getter;
@@ -22,44 +23,41 @@ import org.jetbrains.annotations.NotNull;
 @Getter
 public enum NMSVersion {
     /**
-     * Minecraft 1.21 - 1.21.1
-     * @since 1.15.2
-     */
-    V1_21_R1(21,1, 34),
-    /**
      * Minecraft 1.21.4
      * @since 1.15.2
      */
-    V1_21_R3(21,3, 46),
+    V1_21_R3(46),
     /**
      * Minecraft 1.21.5
      * @since 1.15.2
      */
-    V1_21_R4(21,4, 55),
+    V1_21_R4(55),
     /**
      * Minecraft 1.21.6 - 1.21.8
      * @since 1.15.2
      */
-    V1_21_R5(21,5, 64),
+    V1_21_R5(64),
     /**
      * Minecraft 1.21.9 - 1.21.10
      * @since 1.15.2
      */
-    V1_21_R6(21,6, 69),
+    V1_21_R6(69),
     /**
      * Minecraft 1.21.11
      * @since 1.15.2
      */
-    V1_21_R7(21,7, 75)
+    V1_21_R7(75),
+    /**
+     * Minecraft 26.1.x
+     * @since 3.0.0
+     */
+    V26_R1(84),
+    /**
+     * Minecraft 26.2.x
+     * @since 3.2.0
+     */
+    V26_R2(88)
     ;
-    /**
-     * The major version number (e.g., 21 for 1.21).
-     */
-    private final int version;
-    /**
-     * The sub-version number.
-     */
-    private final int subVersion;
     /**
      * The resource pack format version (pack.mcmeta).
      */

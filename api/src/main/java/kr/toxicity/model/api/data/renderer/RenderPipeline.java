@@ -1,15 +1,17 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.data.renderer;
 
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationOverrideState;
 import kr.toxicity.model.api.animation.RunningAnimation;
 import kr.toxicity.model.api.bone.*;
+import kr.toxicity.model.api.manager.PlayerManager;
 import kr.toxicity.model.api.nms.AnimationBundler;
 import kr.toxicity.model.api.nms.HitBox;
 import kr.toxicity.model.api.nms.PacketBundler;
@@ -30,7 +32,10 @@ import org.joml.Vector3f;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.*;
+import java.util.function.BiPredicate;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static kr.toxicity.model.api.util.CollectionUtil.associate;
@@ -63,13 +68,13 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     private final BoneEventDispatcher eventDispatcher = new BoneEventDispatcher();
     private final BoneIKSolver ikSolver;
 
-    private Predicate<PlatformPlayer> viewFilter = p -> true;
+    private Predicate<PlatformPlayer> viewFilter = _ -> true;
     private Predicate<PlatformPlayer> hideFilter = p -> hidePlayerSet.contains(p.uuid());
 
-    private Consumer<PacketBundler> spawnPacketHandler = b -> {};
-    private Consumer<PacketBundler> despawnPacketHandler = b -> {};
-    private Consumer<PacketBundler> hidePacketHandler = b -> {};
-    private Consumer<PacketBundler> showPacketHandler = b -> {};
+    private Consumer<PacketBundler> spawnPacketHandler = _ -> {};
+    private Consumer<PacketBundler> despawnPacketHandler = _ -> {};
+    private Consumer<PacketBundler> hidePacketHandler = _ -> {};
+    private Consumer<PacketBundler> showPacketHandler = _ -> {};
 
     @Getter
     private ModelRotation rotation = ModelRotation.INVALID;
@@ -318,15 +323,27 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Adds a rotation modifier to matching bones.
+     * Adds a local rotation modifier to matching bones.
      *
      * @param predicate the predicate to select bones
      * @param mapper the rotation mapping function
      * @return true if any bones were modified
-     * @since 1.15.2
+     * @since 3.0.0
      */
-    public boolean addRotationModifier(@NotNull BonePredicate predicate, @NotNull Function<Quaternionf, Quaternionf> mapper) {
-        return matchTree(predicate, (b, p) -> b.addRotationModifier(p, mapper));
+    public boolean addLocalRotModifier(@NotNull BonePredicate predicate, @NotNull Function<Quaternionf, Quaternionf> mapper) {
+        return matchTree(predicate, (b, p) -> b.addLocalRotModifier(p, mapper));
+    }
+
+    /**
+     * Adds a global rotation modifier to matching bones.
+     *
+     * @param predicate the predicate to select bones
+     * @param mapper the rotation mapping function
+     * @return true if any bones were modified
+     * @since 3.0.0
+     */
+    public boolean addGlobalRotModifier(@NotNull BonePredicate predicate, @NotNull Function<Quaternionf, Quaternionf> mapper) {
+        return matchTree(predicate, (b, p) -> b.addGlobalRotModifier(p, mapper));
     }
 
     /**
@@ -385,7 +402,7 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
      */
     @ApiStatus.Internal
     public boolean spawn(@NotNull PlatformPlayer player, @NotNull PacketBundler bundler, @NotNull Consumer<SpawnedPlayer> consumer) {
-        var get = BetterModel.platform().playerManager().player(player.uuid());
+        var get = BetterModel.platform().manager(PlayerManager.class).player(player.uuid());
         if (get == null) return false;
         var spawnedPlayer = new SpawnedPlayer(get);
         playerMap.put(player.uuid(), spawnedPlayer);

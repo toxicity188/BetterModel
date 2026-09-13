@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.bukkit.nms.v1_21_R6;
 
 import kr.toxicity.model.api.nms.HitBox;
@@ -13,7 +14,7 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class AbstractHitBox extends ArmorStand implements HitBox {
+abstract class AbstractHitBox extends ArmorStand implements HitBox {
 
     AbstractHitBox(@NotNull Level level) {
         super(EntityType.ARMOR_STAND, level);

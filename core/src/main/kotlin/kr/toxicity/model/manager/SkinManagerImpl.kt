@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.manager
 
 import com.github.benmanes.caffeine.cache.Caffeine
@@ -22,7 +23,6 @@ import kr.toxicity.model.api.profile.ModelProfile
 import kr.toxicity.model.api.profile.ModelProfileInfo
 import kr.toxicity.model.api.skin.SkinData
 import kr.toxicity.model.api.util.TransformedItemStack
-import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.util.*
 import org.joml.Vector3f
 import java.awt.image.BufferedImage
@@ -635,9 +635,7 @@ object SkinManagerImpl : SkinManager, GlobalManager {
                         indexer.shiftColor(9)
                     }
                 }
-            )).forEach {
-                block(it)
-            }
+            )).forEach(block)
         }
         HEAD.write(ArmorResource.HELMET)
         CHEST.write(ArmorResource.CHEST)
@@ -675,8 +673,6 @@ object SkinManagerImpl : SkinManager, GlobalManager {
             SkinDataImpl(ModelProfile.UNKNOWN, ImageIO.read(it), null)
         }
     }
-
-    override fun supported(): Boolean = PLATFORM.version() >= MinecraftVersion.V1_21_4
 
     private fun handleExpiration(key: UUID, skin: SkinDataImpl) {
         skin.profile().let {
@@ -828,17 +824,12 @@ object SkinManagerImpl : SkinManager, GlobalManager {
     override fun reload(pipeline: ReloadPipeline, zipper: PackZipper) {
         uvNamespace = UVNamespace(
             CONFIG.namespace(),
-            "player_limb"
+            zipper.assets().obfuscate("player_limb")
         )
         if (!CONFIG.module().playerAnimation) return
-        if (supported()) write { resource ->
-            zipper.modern().add(resource.path(), resource.estimatedSize()) {
+        write { resource ->
+            zipper.assets().add(resource.path(), resource.estimatedSize()) {
                 resource.build()
-            }
-        } else PLATFORM.loadAssets(pipeline, "pack") { s, i ->
-            val read = i.readAllBytes()
-            zipper.legacy().add(s) {
-                read
             }
         }
         profileCache.asMap().entries.forEach {

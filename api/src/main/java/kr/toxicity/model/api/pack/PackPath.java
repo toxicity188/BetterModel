@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.pack;
 
 import org.jetbrains.annotations.NotNull;
@@ -44,6 +45,17 @@ public record PackPath(@NotNull String path) implements Comparable<PackPath> {
     public @NotNull PackPath resolve(@NotNull String... subPaths) {
         if (subPaths.length == 0) return this;
         return new PackPath(path.isEmpty() ? join(DELIMITER, subPaths) : path + DELIMITER + join(DELIMITER, subPaths));
+    }
+
+    /**
+     * Returns the name of the file or directory represented by this path.
+     *
+     * @return the name
+     * @since 3.1.0
+     */
+    public @NotNull String name() {
+        var name = path();
+        return name.substring(name.lastIndexOf(DELIMITER) + 1);
     }
 
     @Override

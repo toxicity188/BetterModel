@@ -1,14 +1,17 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.version;
 
 import org.jetbrains.annotations.NotNull;
+import org.semver4j.Semver;
 
 import java.util.Comparator;
+import java.util.Objects;
 
 /**
  * Minecraft version.
@@ -17,6 +20,22 @@ import java.util.Comparator;
  * @param patch minor update
  */
 public record MinecraftVersion(int major, int minor, int patch) implements Comparable<MinecraftVersion> {
+    /**
+     * 26.2
+     */
+    public static final MinecraftVersion V26_2 = of(26, 2, 0);
+    /**
+     * 26.1.2
+     */
+    public static final MinecraftVersion V26_1_2 = of(26, 1, 2);
+    /**
+     * 26.1.1
+     */
+    public static final MinecraftVersion V26_1_1 = of(26, 1, 1);
+    /**
+     * 26.1
+     */
+    public static final MinecraftVersion V26_1 = of(26, 1, 0);
     /**
      * 1.21.11
      */
@@ -49,18 +68,6 @@ public record MinecraftVersion(int major, int minor, int patch) implements Compa
      * 1.21.4
      */
     public static final MinecraftVersion V1_21_4 = of(1, 21, 4);
-    /**
-     * 1.21.2
-     */
-    public static final MinecraftVersion V1_21_2 = of(1, 21, 2);
-    /**
-     * 1.21.1
-     */
-    public static final MinecraftVersion V1_21_1 = of(1, 21, 1);
-    /**
-     * 1.21
-     */
-    public static final MinecraftVersion V1_21 = of(1, 21, 0);
 
     /**
      * Comparator
@@ -75,12 +82,8 @@ public record MinecraftVersion(int major, int minor, int patch) implements Compa
      * @return parsed version
      */
     public static @NotNull MinecraftVersion parse(@NotNull String version) {
-        var split = version.split("\\.");
-        return of(
-            split.length > 0 ? Integer.parseInt(split[0]) : 0,
-            split.length > 1 ? Integer.parseInt(split[1]) : 0,
-            split.length > 2 ? Integer.parseInt(split[2]) : 0
-        );
+        var split = Objects.requireNonNull(Semver.coerce(version));
+        return of(split.getMajor(), split.getMinor(), split.getPatch());
     }
 
     /**
@@ -92,31 +95,6 @@ public record MinecraftVersion(int major, int minor, int patch) implements Compa
      */
     public static @NotNull MinecraftVersion of(int major, int minor, int patch) {
         return new MinecraftVersion(major, minor, patch);
-    }
-
-    /**
-     * Checks this version is greater or equals than another.
-     * @param other other
-     * @return greater or not
-     */
-    public boolean isGreaterOrEquals(@NotNull MinecraftVersion other) {
-        return compareTo(other) >= 0;
-    }
-
-    /**
-     * Checks this version should be use modern resource.
-     * @return use modern resource
-     */
-    public boolean useModernResource() {
-        return isGreaterOrEquals(V1_21_4);
-    }
-
-    /**
-     * Checks this version should be use item model namespace.
-     * @return use item model namespace.
-     */
-    public boolean useItemModelName() {
-        return isGreaterOrEquals(V1_21_2);
     }
 
     @Override

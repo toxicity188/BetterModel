@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.pack;
 
 import com.google.gson.*;
@@ -41,16 +42,17 @@ public record PackMeta(
      * @since 1.15.2
      */
     public static final PackPath PATH = new PackPath("pack.mcmeta");
-    private static final Gson GSON = new GsonBuilder()
-        .registerTypeAdapter(PackVersion.class, (JsonDeserializer<PackVersion>) (json, typeOfT, context) -> {
+
+    static final Gson GSON = new GsonBuilder()
+        .registerTypeAdapter(PackVersion.class, (JsonDeserializer<PackVersion>) (json, _, _) -> {
             if (json.isJsonPrimitive()) return new PackVersion(json.getAsInt());
             else if (json.isJsonArray()) {
                 var array = json.getAsJsonArray();
                 return new PackVersion(array.get(0).getAsInt(), array.size() < 2 ? 0 : array.get(1).getAsInt());
             } else return null;
         })
-        .registerTypeAdapter(PackVersion.class, (JsonSerializer<PackVersion>) (src, typeOfSrc, context) -> src.toJson())
-        .registerTypeAdapter(VersionRange.class, (JsonDeserializer<VersionRange>) (json, typeOfT, context) -> {
+        .registerTypeAdapter(PackVersion.class, (JsonSerializer<PackVersion>) (src, _, _) -> src.toJson())
+        .registerTypeAdapter(VersionRange.class, (JsonDeserializer<VersionRange>) (json, _, context) -> {
             if (json.isJsonPrimitive()) return new VersionRange(json.getAsInt());
             else if (json.isJsonArray()) {
                 var array = json.getAsJsonArray();
@@ -62,7 +64,7 @@ public record PackMeta(
                 return context.deserialize(json, VersionRange.class);
             } else return null;
         })
-        .registerTypeAdapter(VersionRange.class, (JsonSerializer<VersionRange>) (src, typeOfSrc, context) -> src.toJson())
+        .registerTypeAdapter(VersionRange.class, (JsonSerializer<VersionRange>) (src, _, _) -> src.toJson())
         .create();
 
     /**

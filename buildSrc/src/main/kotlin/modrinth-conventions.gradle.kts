@@ -4,12 +4,14 @@ plugins {
 
 val versionString = version.toString()
 val classifier = project.name
+    .substringAfterLast('-')
+    .replaceFirstChar { it.uppercase() }
 
 modrinth {
     token = System.getenv("MODRINTH_API_TOKEN")
     projectId = "bettermodel"
     syncBodyFrom = rootProject.file("BANNER.md").readText()
-    val log = System.getenv("COMMIT_MESSAGE")
+    val log = commitMessage()
     if (log != null) {
         versionType = "beta"
         changelog = log
@@ -21,5 +23,5 @@ modrinth {
         javadocJar(rootProject.layout.buildDirectory.file("libs/${rootProject.name}-$versionString-javadoc.jar"))
     }
     versionNumber = versionString
-    versionName = "BetterModel $versionString for ${classifier.replaceFirstChar { it.uppercase() }}"
+    versionName = "BetterModel $versionString for $classifier"
 }

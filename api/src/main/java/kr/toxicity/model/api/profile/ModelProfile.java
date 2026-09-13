@@ -1,12 +1,15 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.profile;
 
 import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.manager.PlayerManager;
+import kr.toxicity.model.api.manager.ProfileManager;
 import kr.toxicity.model.api.platform.PlatformOfflinePlayer;
 import kr.toxicity.model.api.platform.PlatformPlayer;
 import org.jetbrains.annotations.NotNull;
@@ -50,7 +53,7 @@ public interface ModelProfile {
      * @return model profile
      */
     static @NotNull ModelProfile of(@NotNull PlatformPlayer player) {
-        var channel = BetterModel.platform().playerManager().player(player.uuid());
+        var channel = BetterModel.platform().manager(PlayerManager.class).player(player.uuid());
         return channel != null ? channel.base().profile() : BetterModel.nms().profile(player);
     }
 
@@ -60,7 +63,7 @@ public interface ModelProfile {
      * @return uncompleted profile
      */
     static @NotNull Uncompleted of(@NotNull PlatformOfflinePlayer offlinePlayer) {
-        return BetterModel.platform().profileManager().supplier().supply(offlinePlayer);
+        return BetterModel.platform().manager(ProfileManager.class).supplier().supply(offlinePlayer);
     }
 
     /**

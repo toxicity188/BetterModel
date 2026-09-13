@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.util;
 
 import com.google.gson.Gson;
@@ -12,8 +13,8 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonParser;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.stream.JsonReader;
-import com.vdurmont.semver4j.Semver;
 import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.BetterModelPlatform;
 import kr.toxicity.model.api.version.MinecraftVersion;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -22,6 +23,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.semver4j.Semver;
 
 import java.io.InputStreamReader;
 import java.net.URI;
@@ -47,8 +49,8 @@ public final class HttpUtil {
         .executor(Executors.newVirtualThreadPerTaskExecutor())
         .build();
     private static final Gson GSON = new GsonBuilder()
-        .registerTypeAdapter(MinecraftVersion.class, (JsonDeserializer<MinecraftVersion>) (json, typeOfT, context) -> MinecraftVersion.parse(json.getAsString()))
-        .registerTypeAdapter(Semver.class, (JsonDeserializer<Semver>) (json, typeOfT, context) -> new Semver(json.getAsString(), Semver.SemverType.LOOSE))
+        .registerTypeAdapter(MinecraftVersion.class, (JsonDeserializer<MinecraftVersion>) (json, _, _) -> MinecraftVersion.parse(json.getAsString()))
+        .registerTypeAdapter(Semver.class, (JsonDeserializer<Semver>) (json, _, _) -> Semver.coerce(json.getAsString()))
         .create();
 
     /**
@@ -62,8 +64,8 @@ public final class HttpUtil {
      * Searches BetterModel's latest version
      * @return latest version
      */
-    public static @NotNull LatestVersion versionList() {
-        return versionList(BetterModel.platform().version());
+    public static @NotNull LatestVersion latest() {
+        return latest(BetterModel.platform().version());
     }
 
     /**
@@ -71,7 +73,7 @@ public final class HttpUtil {
      * @param version server version
      * @return latest version
      */
-    public static @NotNull LatestVersion versionList(@NotNull MinecraftVersion version) {
+    public static @NotNull LatestVersion latest(@NotNull MinecraftVersion version) {
         return client(client -> {
             try (var stream = client.send(HttpRequest.newBuilder()
                 .GET()
@@ -107,6 +109,7 @@ public final class HttpUtil {
             if (version.versionType.equals("release")) {
                 if (release == null) release = version;
             } else if (snapshot == null) snapshot = version;
+            if (release != null && snapshot != null) break;
         }
         return new LatestVersion(release, snapshot);
     }
@@ -132,7 +135,7 @@ public final class HttpUtil {
         @NotNull @SerializedName("version_number") Semver versionNumber,
         @NotNull @SerializedName("version_type") String versionType,
         @NotNull @SerializedName("game_versions") Set<MinecraftVersion> versions,
-        @NotNull Set<String> loaders
+        @NotNull Set<BetterModelPlatform.JarType> loaders
     ) {
         /**
          * Creates a text component with URL
@@ -140,17 +143,18 @@ public final class HttpUtil {
          */
         public @NotNull Component toURLComponent() {
             var url = "https://modrinth.com/plugin/bettermodel/version/" + id;
-            return Component.text()
-                .content(versionNumber.getOriginalValue())
+            return Component.text(builder -> builder
+                .content(versionNumber.getVersion())
                 .color(NamedTextColor.AQUA)
                 .hoverEvent(
-                    HoverEvent.showText(Component.text()
+                    HoverEvent.showText(Component.text(hover -> hover
                         .append(Component.text(url).color(NamedTextColor.DARK_AQUA))
                         .appendNewline()
                         .append(Component.text("Click to open link.")))
+                    )
                 )
                 .clickEvent(ClickEvent.openUrl(url))
-                .build();
+            );
         }
 
         /**
@@ -158,7 +162,7 @@ public final class HttpUtil {
          * @return is same platform
          */
         public boolean isSamePlatform() {
-            return loaders.contains(BetterModel.platform().jarType().raw());
+            return loaders.contains(BetterModel.platform().jarType());
         }
     }
 

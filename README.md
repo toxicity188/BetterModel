@@ -9,6 +9,7 @@
 [![](https://img.shields.io/github/actions/workflow/status/toxicity188/BetterModel/publish.yml?style=flat-square)](https://modrinth.com/plugin/bettermodel/versions)
 [![](https://img.shields.io/github/issues/toxicity188/BetterModel?style=flat-square&logo=github)](https://github.com/toxicity188/BetterModel/issues)
 [![](https://img.shields.io/bstats/servers/24237?style=flat-square)](https://bstats.org/plugin/bukkit/BetterModel/24237)
+[![](https://www.codefactor.io/repository/github/toxicity188/bettermodel/badge?style=flat-square)](https://www.codefactor.io/repository/github/toxicity188/bettermodel)
 
 </div>
 
@@ -21,16 +22,15 @@
 
 # ✨ Introduction
 
-**BetterModel** is a server-based engine that provides runtime BlockBench model rendering & animating for Minecraft Java Edition.
+**BetterModel** is a server-based engine that provides runtime [BlockBench](https://www.blockbench.net/) model rendering & animating for Minecraft Java Edition.
 
-It implements **fully server-side 3D models** by using an item display entity packet.
-
-- Importing Generic BlockBench model `.bbmodel`
-- Auto-generating resource pack
-- Playing animation
-- Syncing with base entity
-- Custom hit box
-- 12-limb player animation
+- Built on the `item-display` packet.
+- Implements **essential BlockBench elements**, including `cubes`, `meshes`, `null objects`, and `locators`.
+- Support for **model animations**, `Molang` expressions, and **IK** (Inverse Kinematics) rigging.
+- Supports **player skin models** and **custom armor**.
+- **Automated resource pack generation** with **zero reliance on core shaders**.
+- Provides support for **entity syncing**.
+- **Extensible API** available for integration.
 
 <details>
 <summary>In-Game Screenshots</summary>
@@ -56,26 +56,26 @@ BetterModel aims to be a reliable engine that provides stable, high-quality anim
 
 ## 🛠️ Build info
 
-[![](https://img.shields.io/badge/minecraft-1.21%7E1.21.11-8FCA5C)](https://www.minecraft.net/en-us/download/server)
-[![](https://img.shields.io/badge/java-21%7E-ED8B00)](https://adoptium.net/)
+[![](https://img.shields.io/badge/minecraft-1.21.4%7E26.2.x-8FCA5C)](https://www.minecraft.net/en-us/download/server)
+[![](https://img.shields.io/badge/java-25%7E-ED8B00)](https://adoptium.net/)
 
 #### Build
 [![](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/built-with/gradle_vector.svg)](https://gradle.org/)
 
 `./gradlew build`: Builds all jars  
 `./gradlew shadowJar`: Builds plugin jar  
-`./gradlew javadocJar`: Builds javadoc jar  
+`./gradlew javadocJar`: Builds Javadoc jar  
 `./gradlew runServer`: Runs Paper test server with test plugin
 
 #### Library
 - [Kotlin stdlib](https://github.com/JetBrains/kotlin): modern functional programming
-- [semver4j](https://github.com/vdurmont/semver4j): semver parser
+- [semver4j](https://github.com/semver4j/semver4j): semver parser
 - [cloud](https://github.com/Incendo/cloud-minecraft): command
-- [adventure](https://github.com/KyoriPowered/adventure): component
-- [stable player display](https://github.com/bradleyq/stable_player_display): player animation
+- [adventure](https://github.com/PaperMC/adventure): component
 - [caffeine](https://github.com/ben-manes/caffeine): concurrent map cache
 - [DynamicUV](https://github.com/toxicity188/DynamicUV): player model
 - [ArmorModel](https://github.com/toxicity188/ArmorModel): armor in player model
+- [java-mesh](https://github.com/toxicity188/java-mesh): mesh rendering
 - [molang-compiler](https://github.com/Ocelot5836/molang-compiler): compiling and evaluating molang expression
 - [libby](https://github.com/AlessioDP/libby): runtime library downloader
 
@@ -110,7 +110,7 @@ repositories {
 
 dependencies {
     compileOnly("io.github.toxicity188:bettermodel-bukkit-api:VERSION") // bukkit(spigot, paper, etc) api
-    //modApi("io.github.toxicity188:bettermodel-fabric:VERSION") // mod(fabric)
+    //api("io.github.toxicity188:bettermodel-fabric:VERSION") // mod(fabric)
 }
 ```
 
@@ -129,7 +129,7 @@ repositories {
 
 dependencies {
     compileOnly("io.github.toxicity188:bettermodel-bukkit-api:VERSION-SNAPSHOT") // bukkit(spigot, paper, etc) api
-    //modApi("io.github.toxicity188:bettermodel-fabric:VERSION-SNAPSHOT") // mod(fabric)
+    //api("io.github.toxicity188:bettermodel-fabric:VERSION-SNAPSHOT") // mod(fabric)
 }
 ```
 </details>
@@ -147,7 +147,7 @@ repositories {
 
 dependencies {
     compileOnly 'io.github.toxicity188:bettermodel-bukkit-api:VERSION' // bukkit(spigot, paper, etc) api
-    //modApi 'io.github.toxicity188:bettermodel-fabric:VERSION' // mod(fabric)
+    //api 'io.github.toxicity188:bettermodel-fabric:VERSION' // mod(fabric)
 }
 ```
 
@@ -167,7 +167,7 @@ repositories {
 
 dependencies {
     compileOnly 'io.github.toxicity188:bettermodel-bukkit-api:VERSION-SNAPSHOT' // bukkit(spigot, paper, etc) api
-    //modApi 'io.github.toxicity188:bettermodel-fabric:VERSION-SNAPSHOT' // mod(fabric)
+    //api 'io.github.toxicity188:bettermodel-fabric:VERSION-SNAPSHOT' // mod(fabric)
 }
 ```
 </details>

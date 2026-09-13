@@ -1,11 +1,13 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.data.raw;
 
+import it.unimi.dsi.fastutil.objects.ObjectAVLTreeSet;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationProgress;
@@ -14,6 +16,7 @@ import kr.toxicity.model.api.data.blueprint.AnimationGenerator;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimator;
 import kr.toxicity.model.api.data.blueprint.BlueprintElement;
+import kr.toxicity.model.api.manager.ScriptManager;
 import kr.toxicity.model.api.script.AnimationScript;
 import kr.toxicity.model.api.script.BlueprintScript;
 import kr.toxicity.model.api.script.TimeScript;
@@ -62,7 +65,7 @@ public record ModelAnimation(
         @NotNull ModelLoadContext context,
         @NotNull List<BlueprintElement> children
     ) {
-        var animators = AnimationGenerator.createMovements(length(), children, associate(
+        var animators = AnimationGenerator.generate(length(), children, associate(
             animators().entrySet().stream()
                 .filter(e -> context.availableUUIDs.contains(e.getKey()))
                 .map(Map.Entry::getValue)
@@ -88,31 +91,31 @@ public record ModelAnimation(
         );
     }
 
-    private @Nullable BlueprintScript toScript(@NotNull ModelAnimator animator, @NotNull ModelPlaceholder placeholder) {
-        var get = animator.stream()
+    private @NotNull BlueprintScript toScript(@NotNull ModelAnimator animator, @NotNull ModelPlaceholder placeholder) {
+        var set = new ObjectAVLTreeSet<TimeScript>();
+        set.add(TimeScript.EMPTY);
+        set.add(TimeScript.EMPTY.time(length()));
+        animator.stream()
             .filter(f -> f.point().hasScript())
             .map(d -> AnimationScript.of(Arrays.stream(placeholder.parseVariable(d.point().script()).split("\n"))
-                .map(BetterModel.platform().scriptManager()::build)
+                .map(BetterModel.platform().manager(ScriptManager.class)::build)
                 .filter(Objects::nonNull)
-                .toList()
-            ).time(d.time()))
-            .toList();
-        if (get.isEmpty()) return null;
-        var list = new ArrayList<TimeScript>(get.size() + 2);
-        if (get.getFirst().time() > 0) list.add(TimeScript.EMPTY);
+                .toList())
+                .time(d.time()))
+            .forEach(set::add);
+        var array = new TimeScript[set.size()];
         var before = 0F;
-        for (TimeScript timeScript : get) {
+        var i = 0;
+        for (TimeScript timeScript : set) {
             var t = timeScript.time();
-            list.add(timeScript.time(InterpolationUtil.roundTime(t - before)));
+            array[i++] = timeScript.time(InterpolationUtil.roundTime(t - before));
             before = t;
         }
-        var len = InterpolationUtil.roundTime(length() - before);
-        if (len > 0) list.add(AnimationScript.EMPTY.time(len));
         return new BlueprintScript(
             name(),
             loop(),
             length(),
-            list
+            List.of(array)
         );
     }
 

@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.util;
 
 import it.unimi.dsi.fastutil.floats.FloatComparator;
@@ -15,7 +16,8 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
-import static java.lang.Math.*;
+import static java.lang.Math.PI;
+import static java.lang.Math.abs;
 
 /**
  * Math
@@ -31,9 +33,19 @@ public final class MathUtil {
     }
 
     /**
+     * Minecraft ticks per seconds
+     */
+    public static final int MINECRAFT_TICKS_PER_SECOND = 20;
+
+    /**
      * Minecraft tick mills
      */
-    public static final int MINECRAFT_TICK_MILLS = 50;
+    public static final int MINECRAFT_TICK_MILLS = 1000 / MINECRAFT_TICKS_PER_SECOND;
+
+    /**
+     * Minecraft tick seconds
+     */
+    public static final float MINECRAFT_TICK_SECONDS = (float) MINECRAFT_TICK_MILLS / 1000;
 
     /**
      * Valid rotation degree

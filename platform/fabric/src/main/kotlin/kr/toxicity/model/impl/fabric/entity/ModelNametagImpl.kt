@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.impl.fabric.entity
 
 import com.mojang.math.Transformation
@@ -11,7 +12,7 @@ import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.bone.BoneMovement
 import kr.toxicity.model.api.bone.BonePosition
 import kr.toxicity.model.api.bone.RenderedBone
-import kr.toxicity.model.api.fabric.BetterModelFabric
+import kr.toxicity.model.api.mod.BetterModelMod
 import kr.toxicity.model.api.nms.ModelNametag
 import kr.toxicity.model.api.nms.PacketBundler
 import kr.toxicity.model.api.platform.PlatformLocation
@@ -23,14 +24,13 @@ import kr.toxicity.model.impl.fabric.network.bundlerOfNotNull
 import kr.toxicity.model.impl.fabric.network.pack
 import kr.toxicity.model.impl.fabric.network.plusAssign
 import kr.toxicity.model.mixin.DisplayAccessor
-import kr.toxicity.model.util.PLATFORM
 import net.minecraft.network.chat.Component
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
 import net.minecraft.network.protocol.game.ClientboundEntityPositionSyncPacket
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.world.entity.Display
-import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.entity.PositionMoveRotation
 import net.minecraft.world.phys.Vec3
 import org.joml.Vector3f
@@ -52,8 +52,8 @@ class ModelNametagImpl(
 
     private val viewedPlayer = ConcurrentHashMap.newKeySet<UUID>()
     private val display = Display.TextDisplay(
-        EntityType.TEXT_DISPLAY,
-        (PLATFORM as BetterModelFabric).server().overworld()
+        EntityTypes.TEXT_DISPLAY,
+        BetterModelMod.platform().server().overworld()
     ).apply {
         entityData[DisplayAccessor.`bettermodel$getDataPosRotInterpolationDurationId`()] = 3
         setTransformation(emptyTransformation)
