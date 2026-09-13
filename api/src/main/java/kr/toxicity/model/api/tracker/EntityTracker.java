@@ -62,11 +62,16 @@ public sealed class EntityTracker extends Tracker permits PlayerTracker {
     private static final BonePredicate HEAD_PREDICATE = BonePredicate.tag(BoneTags.HEAD).notSet();
     private static final BonePredicate HEAD_WITH_CHILDREN_PREDICATE = BonePredicate.tag(BoneTags.HEAD_WITH_CHILDREN).withChildren();
 
+    // Registry
     private final EntityTrackerRegistry registry;
 
+    // Tint
     private final AtomicInteger damageTintValue = new AtomicInteger(0xFF8080);
     private final AtomicLong damageTint = new AtomicLong(-1);
+
+    // Spawn Condition
     private final Set<UUID> markForSpawn = ConcurrentHashMap.newKeySet();
+    private volatile Predicate<PlatformPlayer> spawnCondition = p -> markForSpawn.isEmpty() || markForSpawn.contains(p.uuid());
 
     private final EntityBodyRotator bodyRotator;
     private EntityHideOption hideOption = EntityHideOption.DEFAULT;
@@ -362,7 +367,7 @@ public sealed class EntityTracker extends Tracker permits PlayerTracker {
      * @since 1.15.2
      */
     public boolean canBeSpawnedAt(@NotNull PlatformPlayer player) {
-        return markForSpawn.isEmpty() || markForSpawn.contains(player.uuid());
+        return spawnCondition.test(player);
     }
 
     /**
@@ -392,6 +397,25 @@ public sealed class EntityTracker extends Tracker permits PlayerTracker {
      * @since 1.15.2
      */
     public boolean canBeSaved() {
-        return pipeline.getParent().type().isCanBeSaved();
+        return renderer().type().isCanBeSaved();
+    }
+
+    /**
+     * Appends an additional spawn condition for this tracker.
+     * <p>
+     * The specified predicate is combined with the existing spawn condition using a logical AND.
+     * Only players who satisfy all chained conditions will be eligible to receive spawn packets for this model.
+     * </p>
+     *
+     * <pre>{@code
+     * tracker.spawnCondition(player -> player.hasPermission("custom.model.view"));
+     * }</pre>
+     *
+     * @param condition the spawn condition predicate to combine
+     * @throws NullPointerException if condition is null
+     * @since 3.5.0
+     */
+    public synchronized void spawnCondition(@NotNull Predicate<PlatformPlayer> condition) {
+       this.spawnCondition = this.spawnCondition.and(Objects.requireNonNull(condition));
     }
 }
