@@ -73,6 +73,18 @@ public enum BoneTags implements BoneTag {
         BaseEntity::mainHand
     ), "pri", "ri"),
     /**
+     * Entity's helmet item
+     * <p>
+     * A built-in scale correction of {@code 0.5} is applied because
+     * {@link PlatformItemTransform#HEAD} renders items at 2× the scale
+     * relative to the animation bone coordinate system.
+     * </p>
+     */
+    HEAD_ITEM(BoneItemMapper.entity(
+        PlatformItemTransform.HEAD,
+        entity -> entity.helmet().withScale(0.5f)
+    ), "phi"),
+    /**
      * Player head
      */
     PLAYER_HEAD(PlayerLimb.HEAD.getItemMapper(), "ph"),
