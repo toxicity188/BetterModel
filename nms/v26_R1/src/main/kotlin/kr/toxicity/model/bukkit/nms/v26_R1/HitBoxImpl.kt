@@ -364,8 +364,7 @@ internal class HitBoxImpl(
     }
 
     override fun addEffect(effectInstance: MobEffectInstance, entity: Entity?): Boolean {
-        if (entity === delegate) return false
-        return ifLivingEntity { addEffect(effectInstance, entity) } == true
+        return entity !== delegate && ifLivingEntity { addEffect(effectInstance, entity) } == true
     }
 
     override fun addEffect(
@@ -373,8 +372,7 @@ internal class HitBoxImpl(
         entity: Entity?,
         cause: EntityPotionEffectEvent.Cause
     ): Boolean {
-        if (entity === delegate) return false
-        return ifLivingEntity { addEffect(effectInstance, entity, cause) } == true
+        return entity !== delegate && ifLivingEntity { addEffect(effectInstance, entity, cause) } == true
     }
 
     override fun addEffect(
@@ -383,8 +381,7 @@ internal class HitBoxImpl(
         cause: EntityPotionEffectEvent.Cause,
         fireEvent: Boolean
     ): Boolean {
-        if (entity === delegate) return false
-        return ifLivingEntity { addEffect(effectInstance, entity, cause, fireEvent) } == true
+        return entity !== delegate && ifLivingEntity { addEffect(effectInstance, entity, cause, fireEvent) } == true
     }
 
     override fun hurtServer(world: ServerLevel, source: DamageSource, amount: Float): Boolean {
@@ -392,8 +389,7 @@ internal class HitBoxImpl(
         if (source.entity === controllingPassenger && !mountController.canBeDamagedByRider()) return false
         val ds = ModelDamageSourceImpl(source)
         val event = HitBoxDamagedEvent(craftEntity, ds, amount)
-        if (!listener.handle(event)) return false
-        return ifLivingEntity { hurtServer(world, source, event.damage) } == true
+        return listener.handle(event) && ifLivingEntity { hurtServer(world, source, event.damage) } == true
     }
 
     override fun deflection(projectile: Projectile): ProjectileDeflection {

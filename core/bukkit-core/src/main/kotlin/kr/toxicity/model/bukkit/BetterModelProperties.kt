@@ -32,7 +32,7 @@ import org.bstats.bukkit.Metrics
 import org.bukkit.Bukkit
 import org.semver4j.Semver
 
-private typealias Latest = kr.toxicity.model.bukkit.nms.v26_R2.NMSImpl
+private typealias Latest = kr.toxicity.model.bukkit.nms.v26_R2.NMSImpl //TODO v26_R3
 
 internal class BetterModelProperties(
     private val plugin: AbstractBetterModelPlugin
@@ -42,7 +42,8 @@ internal class BetterModelProperties(
 
     val version = parse(Bukkit.getBukkitVersion().substringBefore('-'))
     val nms = when (version) {
-        V26_2 -> Latest()
+        V26_3 -> Latest()
+        V26_2 -> kr.toxicity.model.bukkit.nms.v26_R2.NMSImpl()
         V26_1, V26_1_1, V26_1_2 -> kr.toxicity.model.bukkit.nms.v26_R1.NMSImpl()
         V1_21_11 -> kr.toxicity.model.bukkit.nms.v1_21_R7.NMSImpl()
         V1_21_9, V1_21_10 -> kr.toxicity.model.bukkit.nms.v1_21_R6.NMSImpl()
