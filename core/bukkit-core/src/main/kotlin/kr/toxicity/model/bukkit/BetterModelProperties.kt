@@ -32,7 +32,7 @@ import org.bstats.bukkit.Metrics
 import org.bukkit.Bukkit
 import org.semver4j.Semver
 
-private typealias Latest = kr.toxicity.model.bukkit.nms.v26_R2.NMSImpl //TODO v26_R3
+private typealias Latest = kr.toxicity.model.bukkit.nms.v26_R3.NMSImpl
 
 internal class BetterModelProperties(
     private val plugin: AbstractBetterModelPlugin

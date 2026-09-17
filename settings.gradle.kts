@@ -70,7 +70,7 @@ include(
     "nms:v1_21_R7", //1.21.11
     "nms:v26_R1", //26.1
     "nms:v26_R2", //26.2
-    //"nms:v26_R3", //26.3
+    "nms:v26_R3", //26.3
 
     //test
     "test-plugin"

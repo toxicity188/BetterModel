@@ -8,7 +8,7 @@ val Project.libs
     get() = rootProject.extensions.getByName("libs") as LibrariesForLibs
 
 val LATEST_VERSION = listOf(
-    "26.2"
+    "26.3"
 )
 
 val SUPPORTED_VERSIONS = buildList {
@@ -23,7 +23,8 @@ val SUPPORTED_VERSIONS = buildList {
         "1.21.11",
         "26.1",
         "26.1.1",
-        "26.1.2"
+        "26.1.2",
+        "26.2"
     ))
     addAll(LATEST_VERSION)
 }
