@@ -72,8 +72,17 @@ internal fun <H, T> dirtyChecked(hash: () -> H, function: (H) -> T): () -> T {
 
 internal val CONFIG get() = BetterModel.config()
 internal val EMPTY_ITEM = VanillaItemStack.EMPTY
+
+private val AS_CRAFT_MIRROR: (VanillaItemStack) -> BukkitItemStack = if (BetterModelBukkit.IS_PAPER) {
+    { CraftItemStack.asBukkitMirror(it) }
+} else { // Spigot
+    CraftItemStack::class.java.getMethod("asCraftMirror", VanillaItemStack::class.java).let { method ->
+        { item -> method.invoke(null, item) as BukkitItemStack }
+    }
+}
+
 internal fun BukkitItemStack.asVanilla() = CraftItemStack.asNMSCopy(this)
-internal fun VanillaItemStack.asBukkit() = CraftItemStack.asBukkitMirror(this)
+internal fun VanillaItemStack.asBukkit() = AS_CRAFT_MIRROR(this)
 
 internal val ONLINE_MODE by lazy(LazyThreadSafetyMode.NONE) {
     if (BetterModelBukkit.IS_PAPER) GlobalConfiguration.get().proxies.isProxyOnlineMode else Bukkit.getOnlineMode()
