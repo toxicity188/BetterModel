@@ -5,10 +5,10 @@
  * See LICENSE.md file for full license text.
  */
 
-package kr.toxicity.model.impl.fabric.entity
+package kr.toxicity.model.bukkit.nms.v26_R3
 
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet
 import kr.toxicity.model.api.entity.BaseEntity
+import kr.toxicity.model.api.nms.AnimationBundler
 import kr.toxicity.model.api.nms.DisplayTransformer
 import kr.toxicity.model.api.nms.ModelDisplay
 import kr.toxicity.model.api.nms.PacketBundler
@@ -18,47 +18,38 @@ import kr.toxicity.model.api.platform.PlatformItemTransform
 import kr.toxicity.model.api.platform.PlatformLocation
 import kr.toxicity.model.api.tracker.ModelRotation
 import kr.toxicity.model.api.util.lock.SingleLock
-import kr.toxicity.model.impl.fabric.manager.markDirty
-import kr.toxicity.model.impl.fabric.network.pack
-import kr.toxicity.model.impl.fabric.network.plusAssign
-import kr.toxicity.model.impl.fabric.unwarp
-import kr.toxicity.model.mixin.DisplayAccessor
-import kr.toxicity.model.mixin.EntityAccessor
-import kr.toxicity.model.mixin.ItemDisplayAccessor
-import kr.toxicity.model.util.CONFIG
 import net.minecraft.network.protocol.game.*
 import net.minecraft.network.syncher.EntityDataSerializers
 import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.util.Brightness
 import net.minecraft.world.entity.Display
+import net.minecraft.world.entity.Display.ItemDisplay
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.PositionMoveRotation
 import net.minecraft.world.entity.PositionPath
 import net.minecraft.world.item.ItemDisplayContext
-import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
+import org.joml.Quaternionf
 import org.joml.Vector3d
+import org.joml.Vector3f
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
-class ModelDisplayEntityImpl(
+internal class ModelDisplayImpl(
     private val pos: Vector3d,
-    val display: Display.ItemDisplay,
+    val display: ItemDisplay,
     val yOffset: Double
-) :
-    ModelDisplay {
-    private val entityData: SynchedEntityData = display.entityData
-    private val entityDataLock: SingleLock = SingleLock()
+) : ModelDisplay {
 
+    private val entityData = display.entityData
+    private val entityDataLock = SingleLock()
     private val forceGlow = AtomicBoolean()
     private val forceInvisibility = AtomicBoolean()
 
     private val oldPos = Vector3d(pos)
 
     override fun id(): Int = display.id
-
     override fun uuid(): UUID = display.uuid
-
     override fun rotate(rotation: ModelRotation, bundler: PacketBundler) {
         display.xRot = rotation.x
         display.yRot = rotation.y
@@ -66,15 +57,14 @@ class ModelDisplayEntityImpl(
             display.id,
             rotation.packedY(),
             rotation.packedX(),
-            display.onGround()
+            display.onGround
         )
     }
 
     override fun invisible(invisible: Boolean) {
         if (forceInvisibility.compareAndSet(!invisible, invisible)) {
-            entityData.packDirty()
             entityDataLock.accessToLock {
-                entityData.markDirty(ItemDisplayAccessor.`bettermodel$getDataItemStackId`())
+                entityData.markDirty(ITEM_SERIALIZER)
             }
         }
     }
@@ -82,12 +72,11 @@ class ModelDisplayEntityImpl(
     override fun syncPotionEffect(entity: BaseEntity) {
         val beforeInvisible = display.isInvisible
         val afterInvisible = entity.invisible()
-
         entityDataLock.accessToLock {
             display.setGlowingTag(entity.glow() || forceGlow.get())
             if (CONFIG.followMobInvisibility() && beforeInvisible != afterInvisible) {
                 display.isInvisible = afterInvisible
-                entityData.markDirty(ItemDisplayAccessor.`bettermodel$getDataItemStackId`())
+                entityData.markDirty(ITEM_SERIALIZER)
             }
         }
     }
@@ -98,7 +87,7 @@ class ModelDisplayEntityImpl(
     }
 
     override fun spawn(showItem: Boolean, bundler: PacketBundler) {
-        bundler += createAddPacket()
+        bundler += addPacket
     }
 
     override fun remove(bundler: PacketBundler) {
@@ -106,20 +95,14 @@ class ModelDisplayEntityImpl(
     }
 
     override fun teleport(location: PlatformLocation, bundler: PacketBundler) {
-        display.snapTo(
+        display.moveTo(
             location.x(),
             location.y(),
             location.z(),
             location.yaw(),
             0F
         )
-
-        bundler += ClientboundTeleportEntityPacket.teleport(
-            display.id,
-            PositionMoveRotation.of(display),
-            emptySet(),
-            display.onGround()
-        )
+        bundler += ClientboundTeleportEntityPacket.teleport(display.id, PositionMoveRotation.of(display), emptySet(), display.onGround)
     }
 
     override fun sendPosition(adapter: BaseEntity, bundler: PacketBundler) {
@@ -142,13 +125,13 @@ class ModelDisplayEntityImpl(
 
     override fun moveDuration(duration: Int) {
         entityDataLock.accessToLock {
-            entityData[DisplayAccessor.`bettermodel$getDataPosRotInterpolationDurationId`()] = duration
+            entityData[Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID] = duration
         }
     }
 
     override fun item(itemStack: PlatformItemStack) {
         entityDataLock.accessToLock {
-            display.itemStack = itemStack.clone().unwarp()
+            display.itemStack = itemStack.unwarp().asVanilla()
         }
     }
 
@@ -194,12 +177,8 @@ class ModelDisplayEntityImpl(
 
     override fun createTransformer(): DisplayTransformer = DisplayTransformerImpl(display)
 
-    override fun invisible(): Boolean {
-        return entityDataLock.accessToLock {
-            display.isInvisible ||
-                forceInvisibility.get() ||
-                display.itemStack.`is`(Items.AIR)
-        }
+    override fun invisible(): Boolean = entityDataLock.accessToLock {
+        display.isInvisible || forceInvisibility.get() || display.itemStack.`is`(Items.AIR)
     }
 
     override fun sendDirtyEntityData(bundler: PacketBundler) {
@@ -207,7 +186,7 @@ class ModelDisplayEntityImpl(
             entityData.pack(
                 clean = true,
                 itemFilter = { it.isDirty },
-                valueFilter = { ACCESSOR_IDS.contains(it.id) }
+                valueFilter = { ITEM_ENTITY_DATA.contains(it.id) }
             )
         }?.markVisible(!invisible())?.run {
             bundler += ClientboundSetEntityDataPacket(display.id, this)
@@ -217,7 +196,7 @@ class ModelDisplayEntityImpl(
     override fun sendEntityData(showItem: Boolean, bundler: PacketBundler) {
         entityDataLock.accessToLock {
             entityData.pack(
-                valueFilter = { ACCESSOR_IDS.contains(it.id) }
+                valueFilter = { ITEM_ENTITY_DATA.contains(it.id) }
             )
         }?.markVisible(showItem && !invisible())?.run {
             bundler += ClientboundSetEntityDataPacket(display.id, this)
@@ -225,53 +204,60 @@ class ModelDisplayEntityImpl(
     }
 
     private fun List<SynchedEntityData.DataValue<*>>.markVisible(showItem: Boolean) = map {
-        if (it.id == ItemDisplayAccessor.`bettermodel$getDataItemStackId`().id) SynchedEntityData.DataValue(
+        if (it.id == ITEM_SERIALIZER.id) SynchedEntityData.DataValue(
             it.id,
             EntityDataSerializers.ITEM_STACK,
-            if (showItem) display.itemStack else ItemStack.EMPTY
+            if (showItem) display.itemStack else EMPTY_ITEM
         ) else it
     }
 
-    private fun createAddPacket() = ClientboundAddEntityPacket(
-        display.id,
-        display.uuid,
-        pos.x,
-        pos.y + yOffset,
-        pos.z,
-        display.xRot,
-        display.yRot,
-        display.type,
-        0,
-        display.deltaMovement,
-        display.yHeadRot.toDouble()
-    )
+    private val addPacket
+        get() = ClientboundAddEntityPacket(
+            display.id,
+            display.uuid,
+            pos.x,
+            pos.y + yOffset,
+            pos.z,
+            display.xRot,
+            display.yRot,
+            display.type,
+            0,
+            display.deltaMovement,
+            display.yHeadRot.toDouble()
+        )
 
     private val removePacket = ClientboundRemoveEntitiesPacket(display.id)
 
-    companion object {
-        private val ACCESSOR_IDS by lazy {
-            IntOpenHashSet().apply {
-                setOf(
-                    EntityAccessor.`bettermodel$getDataSharedFlagsId`(),
+    private class DisplayTransformerImpl(
+        source: ItemDisplay
+    ) : DisplayTransformer {
+        private val id = source.id
+        private val entityData = TransformationData()
+        private val entityDataLock = SingleLock()
 
-                    DisplayAccessor.`bettermodel$getDataPosRotInterpolationDurationId`(),
+        override fun transform(
+            duration: Int,
+            position: Vector3f,
+            scale: Vector3f,
+            rotation: Quaternionf,
+            bundler: AnimationBundler
+        ) {
+            entityDataLock.accessToLock {
+                entityData.transform(
+                    duration,
+                    position,
+                    scale,
+                    rotation
+                )
+                entityData.packDirty(id, bundler)
+            }
+        }
 
-                    // index: 7 ~ last
-                    DisplayAccessor.`bettermodel$getDataBillboardRenderConstraintsId`(),
-                    DisplayAccessor.`bettermodel$getDataBrightnessOverrideId`(),
-                    DisplayAccessor.`bettermodel$getDataViewRangeId`(),
-                    DisplayAccessor.`bettermodel$getDataShadowRadiusId`(),
-                    DisplayAccessor.`bettermodel$getDataShadowStrengthId`(),
-                    DisplayAccessor.`bettermodel$getDataWidthId`(),
-                    DisplayAccessor.`bettermodel$getDataHeightId`(),
-                    DisplayAccessor.`bettermodel$getDataGlowColorOverrideId`(),
-
-                    // all
-                    ItemDisplayAccessor.`bettermodel$getDataItemStackId`(),
-                    ItemDisplayAccessor.`bettermodel$getDataItemDisplayId`()
-                ).mapTo(this) {
-                    it.id
-                }
+        override fun sendTransformation(bundler: PacketBundler) {
+            entityDataLock.accessToLock {
+                entityData.pack()
+            }?.run {
+                bundler += ClientboundSetEntityDataPacket(id, this)
             }
         }
     }

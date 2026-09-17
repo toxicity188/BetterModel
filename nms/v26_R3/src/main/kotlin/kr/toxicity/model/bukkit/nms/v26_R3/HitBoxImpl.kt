@@ -5,7 +5,7 @@
  * See LICENSE.md file for full license text.
  */
 
-package kr.toxicity.model.bukkit.nms.v1_21_R4
+package kr.toxicity.model.bukkit.nms.v26_R3
 
 import io.papermc.paper.event.entity.EntityKnockbackEvent
 import kr.toxicity.model.api.BetterModel
@@ -169,14 +169,17 @@ internal class HitBoxImpl(
     }
 
     override fun knockback(
-        d0: Double,
-        d1: Double,
-        d2: Double,
+        power: Double,
+        xd: Double,
+        yd: Double,
+        source: DamageSource,
+        damage: Float,
+        comesFromEffect: Boolean,
         attacker: Entity?,
         cause: EntityKnockbackEvent.Cause
     ) {
         if (attacker === delegate) return
-        ifLivingEntity { knockback(d0, d1, d2, attacker, cause) }
+        ifLivingEntity { knockback(power, xd, yd, source, damage, comesFromEffect, attacker, cause) }
     }
 
     override fun push(pushingEntity: Entity) {
@@ -209,7 +212,7 @@ internal class HitBoxImpl(
     }
 
     override fun getActiveEffects(): Collection<MobEffectInstance> {
-        return ifLivingEntity { getActiveEffects() } ?: emptyList()
+        return ifLivingEntity { activeEffects } ?: emptyList()
     }
 
     override fun getControllingPassenger(): LivingEntity? {
@@ -256,6 +259,22 @@ internal class HitBoxImpl(
         if (onFly) delegate.resetFallDistance()
     }
 
+    private fun rideInput(player: ServerPlayer, travelVector: Vec3) = mountController.move(
+        if (onFly) MountController.MoveType.FLY else MountController.MoveType.DEFAULT,
+        player.bukkitEntity.wrap(),
+        (delegate.bukkitEntity as org.bukkit.entity.LivingEntity).wrap(),
+        Vector3f(
+            player.xMovement(),
+            player.yMovement(),
+            player.zMovement()
+        ),
+        Vector3f(
+            travelVector.x.toFloat(),
+            travelVector.y.toFloat(),
+            travelVector.z.toFloat()
+        )
+    ).mul(movementSpeed()).rotateY(-Math.toRadians(player.yRot.toDouble()).toFloat())
+
     override fun tick() {
         delegate.removalReason?.let {
             if (!isRemoved) remove(it)
@@ -284,29 +303,14 @@ internal class HitBoxImpl(
             boundingBox
         ) { pos, step ->
             if (BetterModelBukkit.IS_PAPER) applier.advanceStep(step, pos)
-            level().getBlockState(pos).entityInside(level(), pos, delegate, applier)
+            level().getBlockState(pos).entityInside(level(), pos, delegate, applier, true)
+            true
         }
         applier.applyAndClear(delegate)
         if (isInLava) delegate.lavaHurt()
         firstTick = false
         listener.sync(craftEntity)
     }
-
-    private fun rideInput(player: ServerPlayer, travelVector: Vec3) = mountController.move(
-        if (onFly) MountController.MoveType.FLY else MountController.MoveType.DEFAULT,
-        player.bukkitEntity.wrap(),
-        (delegate.bukkitEntity as org.bukkit.entity.LivingEntity).wrap(),
-        Vector3f(
-            player.xMovement(),
-            player.yMovement(),
-            player.zMovement()
-        ),
-        Vector3f(
-            travelVector.x.toFloat(),
-            travelVector.y.toFloat(),
-            travelVector.z.toFloat()
-        )
-    ).mul(movementSpeed()).rotateY(-Math.toRadians(player.yRot.toDouble()).toFloat())
 
     override fun remove(reason: RemovalReason, cause: EntityRemoveEvent.Cause?) {
         initialSetup()
@@ -315,7 +319,6 @@ internal class HitBoxImpl(
         super.remove(reason, cause)
     }
 
-    override fun getBukkitLivingEntity(): CraftLivingEntity = bukkitEntity
     override fun getBukkitEntity(): CraftLivingEntity = craftEntity as CraftLivingEntity
     override fun getBukkitEntityRaw(): CraftLivingEntity = bukkitEntity
     override fun hasExactlyOnePlayerPassenger(): Boolean = false
@@ -340,13 +343,7 @@ internal class HitBoxImpl(
         }
     }
 
-    override fun interact(player: Player, hand: InteractionHand): InteractionResult {
-        if (player === delegate) return InteractionResult.FAIL
-        (player as ServerPlayer).connection.handleInteract(ServerboundInteractPacket.createInteractionPacket(delegate, player.isShiftKeyDown, hand))
-        return InteractionResult.SUCCESS
-    }
-
-    override fun interactAt(player: Player, vec: Vec3, hand: InteractionHand): InteractionResult {
+    override fun interact(player: Player, hand: InteractionHand, vec: Vec3): InteractionResult {
         if (player === delegate) return InteractionResult.FAIL
         val interact = HitBoxInteractAtEvent(
             (player.bukkitEntity as org.bukkit.entity.Player).wrap(), craftEntity, when (hand) {
@@ -355,7 +352,12 @@ internal class HitBoxImpl(
             }, vec.toBukkit()
         )
         if (!listener.handle(interact)) return InteractionResult.FAIL
-        (player as ServerPlayer).connection.handleInteract(ServerboundInteractPacket.createInteractionPacket(delegate, player.isShiftKeyDown, hand, vec))
+        (player as ServerPlayer).connection.handleInteract(ServerboundInteractPacket(
+            delegate.id,
+            hand,
+            vec,
+            player.isShiftKeyDown
+        ))
         return InteractionResult.SUCCESS
     }
 
@@ -393,7 +395,7 @@ internal class HitBoxImpl(
     }
 
     override fun deflection(projectile: Projectile): ProjectileDeflection {
-        if (projectile.owner === delegate) return ProjectileDeflection.NONE
+        if (projectile.owner?.uuid == delegate.uuid) return ProjectileDeflection.NONE
         return ifLivingEntity { deflection(projectile) } ?: ProjectileDeflection.NONE
     }
 

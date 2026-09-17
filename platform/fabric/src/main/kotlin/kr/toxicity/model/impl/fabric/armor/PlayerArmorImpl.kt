@@ -47,5 +47,5 @@ class PlayerArmorImpl(private val connection: ServerPlayerConnection) : PlayerAr
 
     private fun ArmorTrim.getPath() = pattern.value().assetId.path
 
-    private fun ArmorTrim.getPalette() = material.value().assets.base.suffix
+    private fun ArmorTrim.getPalette() = material.value().paletteId.path
 }
