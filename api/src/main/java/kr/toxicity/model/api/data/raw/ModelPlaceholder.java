@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonDeserializer;
@@ -38,7 +39,7 @@ public record ModelPlaceholder(
      * A JSON deserializer for parsing placeholders from a multi-line string.
      * @since 1.15.2
      */
-    public static final JsonDeserializer<ModelPlaceholder> PARSER = (json, typeOfT, context) -> new ModelPlaceholder(associate(
+    public static final JsonDeserializer<ModelPlaceholder> PARSER = (json, _, _) -> new ModelPlaceholder(associate(
         Arrays.stream(json.getAsString().split("\n"))
             .map(line -> line.split("=", 2))
             .filter(array -> array.length == 2),

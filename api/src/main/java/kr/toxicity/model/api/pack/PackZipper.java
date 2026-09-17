@@ -1,15 +1,14 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.pack;
 
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.util.LogUtil;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,8 +28,11 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @since 1.15.2
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PackZipper {
+
+    private PackZipper() {
+        PackBuiltInAssets.applyAs(this);
+    }
 
     private static final PackPath PACK_ICON = new PackPath("pack.png");
 
@@ -44,6 +46,7 @@ public final class PackZipper {
         return new PackZipper();
     }
 
+    private final PackObfuscator obfuscator = PackObfuscator.order();
     private final PackMeta.Builder metaBuilder = PackMeta.builder();
     private final Map<PackOverlay, PackAssets> overlayMap = new ConcurrentHashMap<>();
 
@@ -58,26 +61,6 @@ public final class PackZipper {
     }
 
     /**
-     * Retrieves the legacy assets collection.
-     *
-     * @return the legacy assets
-     * @since 1.15.2
-     */
-    public @NotNull PackAssets legacy() {
-        return overlay(PackOverlay.LEGACY);
-    }
-
-    /**
-     * Retrieves the modern assets' collection.
-     *
-     * @return the modern assets
-     * @since 1.15.2
-     */
-    public @NotNull PackAssets modern() {
-        return overlay(PackOverlay.MODERN);
-    }
-
-    /**
      * Retrieves the assets collection for a specific overlay.
      *
      * @param overlay the overlay
@@ -85,7 +68,7 @@ public final class PackZipper {
      * @since 1.15.2
      */
     public @NotNull PackAssets overlay(@NotNull PackOverlay overlay) {
-        return overlayMap.computeIfAbsent(overlay, PackAssets::new);
+        return overlayMap.computeIfAbsent(overlay, o -> new PackAssets(o, obfuscator));
     }
 
     /**

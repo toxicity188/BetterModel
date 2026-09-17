@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.tracker;
 
 import kr.toxicity.model.api.animation.AnimationModifier;
@@ -13,7 +14,8 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -102,11 +104,11 @@ public record TrackerAnimation<T extends Tracker>(
         private final Class<T> targetClass;
 
         private int priority = 0;
-        private @NotNull Predicate<? super T> applyCondition = tracker -> true;
-        private @NotNull Function<? super T, AnimationModifier> modifierBuilder = tracker -> AnimationModifier.DEFAULT;
-        private @NotNull Consumer<? super T> removeTask = tracker -> {};
-        private @NotNull Consumer<? super T> successTask = tracker -> {};
-        private @NotNull Consumer<? super T> fallbackTask = tracker -> {};
+        private @NotNull Predicate<? super T> applyCondition = _ -> true;
+        private @NotNull Function<? super T, AnimationModifier> modifierBuilder = _ -> AnimationModifier.DEFAULT;
+        private @NotNull Consumer<? super T> removeTask = _ -> {};
+        private @NotNull Consumer<? super T> successTask = _ -> {};
+        private @NotNull Consumer<? super T> fallbackTask = _ -> {};
 
         /**
          * Changes the target tracker type for this builder.
@@ -116,6 +118,7 @@ public record TrackerAnimation<T extends Tracker>(
          * @return a new builder for the specified type
          * @since 2.2.0
          */
+        @NotNull
         public <R extends T> Builder<R> type(@NotNull Class<R> newTargetClass) {
             return new Builder<>(name, newTargetClass)
                 .priority(priority)

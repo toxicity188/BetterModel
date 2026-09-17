@@ -1,12 +1,12 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.pack;
 
-import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.util.function.BooleanConstantSupplier;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,35 +40,15 @@ public record PackOverlay(
     );
 
     /**
-     * The legacy overlay (for older versions).
-     * @since 1.15.2
-     */
-    public static final PackOverlay LEGACY = new PackOverlay(
-        "legacy",
-        Optional.of(new PackMeta.VersionRange(22, 45)),
-        () -> BetterModel.config().pack().generateLegacyModel()
-    );
-
-    /**
-     * The modern overlay (for newer versions).
-     * @since 1.15.2
-     */
-    public static final PackOverlay MODERN = new PackOverlay(
-        "modern",
-        Optional.of(new PackMeta.VersionRange(46, 99)),
-        () -> BetterModel.config().pack().generateModernModel()
-    );
-
-
-    /**
      * Generates the root path for this overlay.
      *
      * @param namespace the namespace prefix
+     * @param obfuscator the obfuscator
      * @return the pack path
      * @since 1.15.2
      */
-    public @NotNull PackPath path(@NotNull String namespace) {
-        return packName.isEmpty() ? PackPath.EMPTY : new PackPath(namespace + "_" + packName);
+    public @NotNull PackPath path(@NotNull String namespace, @NotNull PackObfuscator obfuscator) {
+        return packName.isEmpty() ? PackPath.EMPTY : new PackPath(namespace + "_" + obfuscator.obfuscate(packName));
     }
 
     /**

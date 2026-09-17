@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.util.json;
 
 import com.google.gson.JsonArray;
@@ -12,6 +13,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -81,6 +83,20 @@ public final class JsonObjectBuilder {
     }
 
     /**
+     * Adds JSON array
+     * @param name name
+     * @param consumer consumer
+     * @return self
+     */
+    public @NotNull JsonObjectBuilder jsonArray(@NotNull String name, @NotNull Consumer<JsonArrayBuilder> consumer) {
+        var builder = JsonArrayBuilder.builder();
+        Objects.requireNonNull(consumer).accept(builder);
+        var json = builder.build();
+        if (!json.isEmpty()) object.add(name, json);
+        return this;
+    }
+
+    /**
      * Adds JSON property
      * @param name name
      * @param property property
@@ -110,6 +126,42 @@ public final class JsonObjectBuilder {
      */
     public @NotNull JsonObjectBuilder property(@NotNull String name, @Nullable Number property) {
         if (property != null) object.addProperty(name, property);
+        return this;
+    }
+
+    /**
+     * Adds JSON property
+     * @param entries entries
+     * @return self
+     */
+    public @NotNull JsonObjectBuilder stringProperties(@NotNull Iterable<Map.Entry<String, String>> entries) {
+        for (var entry : entries) {
+            property(entry.getKey(), entry.getValue());
+        }
+        return this;
+    }
+
+    /**
+     * Adds JSON property
+     * @param entries entries
+     * @return self
+     */
+    public @NotNull JsonObjectBuilder booleanProperties(@NotNull Iterable<Map.Entry<String, Boolean>> entries) {
+        for (var entry : entries) {
+            property(entry.getKey(), entry.getValue());
+        }
+        return this;
+    }
+
+    /**
+     * Adds JSON property
+     * @param entries entries
+     * @return self
+     */
+    public @NotNull JsonObjectBuilder numberProperties(@NotNull Iterable<Map.Entry<String, Number>> entries) {
+        for (var entry : entries) {
+            property(entry.getKey(), entry.getValue());
+        }
         return this;
     }
 }

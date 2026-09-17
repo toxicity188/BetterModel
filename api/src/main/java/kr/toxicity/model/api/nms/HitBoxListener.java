@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.nms;
 
 import com.google.common.collect.ImmutableMap;
@@ -78,7 +79,7 @@ public interface HitBoxListener {
          */
         @SuppressWarnings("unchecked")
         public <T extends HitBoxEvent> @NotNull Builder listen(@NotNull Class<T> eventClass, @NotNull Consumer<T> consumer) {
-            listeners.compute(eventClass, (k, old) -> old == null ? consumer : ((Consumer<T>) old).andThen(consumer));
+            listeners.compute(eventClass, (_, old) -> old == null ? consumer : ((Consumer<T>) old).andThen(consumer));
             return this;
         }
 
@@ -104,17 +105,6 @@ public interface HitBoxListener {
          */
         public @NotNull Builder damage(@NotNull Consumer<HitBoxDamagedEvent> damage) {
             return listen(HitBoxDamagedEvent.class, damage);
-        }
-
-        /**
-         * Adds an interact handler.
-         *
-         * @param interact the interact handler
-         * @return this builder
-         * @since 2.1.0
-         */
-        public @NotNull Builder interact(@NotNull Consumer<HitBoxInteractEvent> interact) {
-            return listen(HitBoxInteractEvent.class, interact);
         }
 
         /**

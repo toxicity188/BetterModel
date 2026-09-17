@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.impl.fabric.armor
 
 import kr.toxicity.model.api.armor.ArmorItem
@@ -46,5 +47,5 @@ class PlayerArmorImpl(private val connection: ServerPlayerConnection) : PlayerAr
 
     private fun ArmorTrim.getPath() = pattern.value().assetId.path
 
-    private fun ArmorTrim.getPalette() = material.value().assets.base.suffix
+    private fun ArmorTrim.getPalette() = material.value().paletteId.path
 }

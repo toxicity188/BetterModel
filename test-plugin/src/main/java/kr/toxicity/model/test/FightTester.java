@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.test;
 
 import com.google.gson.JsonObject;
@@ -62,13 +63,13 @@ public final class FightTester implements ModelTester, Listener {
         this.lineItem = createLine();
         Bukkit.getPluginManager().registerEvents(this, test);
         var command = test.getCommand("knightsword");
-        if (command != null) command.setExecutor((sender, command1, label, args) -> {
+        if (command != null) command.setExecutor((sender, _, _, _) -> {
             if (sender instanceof Player player) giveKnightSword(player);
             return true;
         });
         BetterModelBukkit.platform().eventBus().subscribe(test, PluginStartReloadEvent.class, event -> {
             var path = event.zipper()
-                .modern()
+                .assets()
                 .bettermodel();
             loadItem(path, "knight_sword");
             loadItem(path, "knight_line");
@@ -108,7 +109,7 @@ public final class FightTester implements ModelTester, Listener {
             }
         }
         if (!player.getInventory().getItemInMainHand().getPersistentDataContainer().has(KNIGHT_SWORD_KEY)) return;
-        playerCounterMap.computeIfAbsent(uuid, u -> new PlayerSkillCounter(player)
+        playerCounterMap.computeIfAbsent(uuid, _ -> new PlayerSkillCounter(player)
             .skill("left_attack_1")
             .skill("left_attack_2")
             .skill("left_attack_3")).execute();
@@ -228,7 +229,7 @@ public final class FightTester implements ModelTester, Listener {
                 Stream.of(BukkitAdapter.adapt(player)),
                 player.getTrackedBy().stream().map(BukkitAdapter::adapt)
             ).toList();
-            task = Bukkit.getAsyncScheduler().runAtFixedRate((Plugin) BetterModel.platform(), task -> {
+            task = Bukkit.getAsyncScheduler().runAtFixedRate((Plugin) BetterModel.platform(), _ -> {
                 queuedTask.removeIf(BooleanSupplier::getAsBoolean);
                 var c = counter.incrementAndGet();
                 if (c >= count) return;
