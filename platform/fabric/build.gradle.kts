@@ -200,4 +200,5 @@ modrinth {
 //            "skinsrestorer"
 //        )
     }
+    environment = "server_only"
 }
