@@ -17,6 +17,7 @@ import kr.toxicity.model.api.mount.MountControllers
 import kr.toxicity.model.api.platform.PlatformItemStack
 import kr.toxicity.model.api.util.EntityUtil
 import kr.toxicity.model.impl.fabric.wrap
+import net.minecraft.core.Holder
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.Identifier
 import net.minecraft.world.item.ItemStack
@@ -51,7 +52,7 @@ class BetterModelConfigImpl(yaml: ConfigurationNode) : BetterModelConfig {
             Identifier.withDefaultNamespace(itemModel)
         )
     }.getOrDefault(Items.LEATHER_HORSE_ARMOR).let {
-        Supplier { ItemStack(it).wrap() }
+        Supplier { ItemStack(Holder.direct(it)).wrap() }
     }
     private val maxSight by lazy {
         yaml.node("max-sight").getDouble(-1.0).run {
