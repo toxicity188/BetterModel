@@ -17,7 +17,9 @@ configurations.implementation {
 dependencies {
     testImplementation(kotlin("test"))
 
-    compileOnly(libs.bundles.library)
+    compileOnly(libs.bundles.library) {
+        exclude(module = "jspecify")
+    }
     testImplementation(libs.bundles.library)
 }
 

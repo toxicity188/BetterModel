@@ -30,7 +30,9 @@ signing {
 }
 
 dependencies {
-    api(libs.bundles.library)
+    api(libs.bundles.library) {
+        exclude(module = "jspecify")
+    }
 
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
