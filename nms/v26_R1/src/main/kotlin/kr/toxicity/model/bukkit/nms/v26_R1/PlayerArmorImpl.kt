@@ -9,6 +9,7 @@ package kr.toxicity.model.bukkit.nms.v26_R1
 
 import kr.toxicity.model.api.armor.ArmorItem
 import kr.toxicity.model.api.armor.PlayerArmor
+import kr.toxicity.model.api.util.TransformedItemStack
 import net.minecraft.core.component.DataComponents
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.item.component.DyedItemColor
@@ -21,6 +22,10 @@ internal data class PlayerArmorImpl(
 
     override fun helmet(): ArmorItem? {
         return player.handle.getItemBySlot(EquipmentSlot.HEAD).toArmorItem()
+    }
+
+    override fun helmetItem(): TransformedItemStack? {
+        return player.handle.getItemBySlot(EquipmentSlot.HEAD).toCustomItem()
     }
 
     override fun leggings(): ArmorItem? {
@@ -44,4 +49,12 @@ internal data class PlayerArmorImpl(
             trim?.material?.value()?.assets?.base?.suffix
         )
     }?.orElse(null)
+
+    private fun VanillaItemStack.toCustomItem(): TransformedItemStack? {
+        val defaultComponents = item.components()
+        if (get(DataComponents.ITEM_MODEL) == defaultComponents.get(DataComponents.ITEM_MODEL) &&
+            get(DataComponents.CUSTOM_MODEL_DATA) == defaultComponents.get(DataComponents.CUSTOM_MODEL_DATA)
+        ) return null
+        return TransformedItemStack.of(copy().asBukkit().wrap())
+    }
 }

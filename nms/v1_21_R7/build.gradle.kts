@@ -6,6 +6,8 @@ plugins {
 
 dependencies {
     paperweight.paperDevBundle("1.21.11-R0.1-SNAPSHOT")
+    testImplementation(project(":bettermodel-api"))
+    testImplementation(project(":bettermodel-api:bettermodel-bukkit-api"))
 }
 
 tasks {

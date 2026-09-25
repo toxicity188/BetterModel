@@ -10,4 +10,6 @@ dependencies {
 
     compileOnly(libs.bundles.core)
     compileOnly(libs.cloud.core)
+
+    testImplementation(libs.bundles.minecraft)
 }

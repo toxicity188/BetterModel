@@ -793,7 +793,10 @@ object SkinManagerImpl : SkinManager, GlobalManager {
             capeImage?.let { CAPE.asModelData(it).asItem() }
         )
         override fun profile(): ModelProfile = profile
-        override fun head(armor: PlayerArmor): TransformedItemStack = head.asItem(ArmorResource.HELMET, armor.helmet())
+        override fun head(armor: PlayerArmor): TransformedItemStack = head.asItem(
+            ArmorResource.HELMET,
+            armor.helmet().takeIf { armor.helmetItem() == null }
+        )
         override fun hip(armor: PlayerArmor): TransformedItemStack = hip.asItem(ArmorResource.HIP, armor.leggings())
         override fun waist(armor: PlayerArmor): TransformedItemStack = waist.asItem(ArmorResource.WAIST, armor.chestplate())
         override fun chest(armor: PlayerArmor): TransformedItemStack = chest.asItem(ArmorResource.CHEST, armor.chestplate())
