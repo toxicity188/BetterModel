@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.util.function;
 
 import kr.toxicity.model.api.bone.BoneTag;
@@ -22,12 +23,12 @@ public interface BonePredicate extends Predicate<RenderedBone> {
     /**
      * True
      */
-    BonePredicate TRUE = of(State.TRUE, b -> true);
+    BonePredicate TRUE = of(State.TRUE, _ -> true);
 
     /**
      * False
      */
-    BonePredicate FALSE = of(State.FALSE, b -> false);
+    BonePredicate FALSE = of(State.FALSE, _ -> false);
 
     /**
      * Gets builder by name

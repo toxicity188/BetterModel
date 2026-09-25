@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.util;
 
 import com.google.gson.JsonArray;
@@ -11,8 +12,6 @@ import com.google.gson.JsonElement;
 import it.unimi.dsi.fastutil.floats.FloatCollection;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import kr.toxicity.model.api.BetterModel;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
@@ -20,7 +19,6 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -35,18 +33,6 @@ public final class CollectionUtil {
      */
     private CollectionUtil() {
         throw new RuntimeException();
-    }
-
-    /**
-     * Creates a new chaining hash map.
-     * @return new hash map
-     * @param <K> key type
-     * @param <V> value type
-     * @since 2.2.1
-     */
-    @NotNull
-    public static <K, V> Map<K, V> newChainingMap() {
-        return new HashMap<>();
     }
 
     /**
@@ -331,38 +317,6 @@ public final class CollectionUtil {
         var collect = creator.get();
         stream.forEach(e -> collect.add(mapper.apply(e)));
         return collect;
-    }
-
-    /**
-     * Map some map's value.
-     * @param original original map
-     * @param mapper value mapper
-     * @return unmodifiable map
-     * @param <K> key
-     * @param <V> value
-     * @param <R> new value
-     */
-    @NotNull
-    @Unmodifiable
-    public static <K, V, R> Map<K, R> mapValue(@NotNull Map<K, V> original, @NotNull Function<V, R> mapper) {
-        return associate(original.entrySet(), Map.Entry::getKey, e -> mapper.apply(e.getValue()));
-    }
-
-    /**
-     * Gets filter with warning if not matched
-     * @param predicate delegated predicate
-     * @param lazyLogFunction log function
-     * @return predicate
-     * @param <T> type
-     */
-    @NotNull
-    public static <T> Predicate<T> filterWithWarning(@NotNull Predicate<T> predicate, @NotNull Function<T, String> lazyLogFunction) {
-        var logger = BetterModel.platform().logger();
-        return t -> {
-            var testedValue = predicate.test(t);
-            if (!testedValue) logger.warn(LogUtil.toLog(lazyLogFunction.apply(t), NamedTextColor.YELLOW));
-            return testedValue;
-        };
     }
 
     /**

@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.data.renderer;
 
 import kr.toxicity.model.api.bone.BoneName;
@@ -103,7 +104,7 @@ public record ModelRenderer(
      * @return empty tracker
      */
     public @NotNull DummyTracker create(@NotNull PlatformLocation location, @NotNull TrackerModifier modifier) {
-        return create(location, modifier, t -> {
+        return create(location, modifier, _ -> {
         });
     }
 
@@ -180,7 +181,7 @@ public record ModelRenderer(
      * @return empty tracker
      */
     public @NotNull DummyTracker create(@NotNull PlatformLocation location, ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier) {
-        return create(location, profile, modifier, t -> {
+        return create(location, profile, modifier, _ -> {
         });
     }
 
@@ -395,7 +396,7 @@ public record ModelRenderer(
      * @return entity tracker
      */
     public @NotNull EntityTracker create(@NotNull BaseEntity entity, @NotNull TrackerModifier modifier) {
-        return create(entity, modifier, t -> {
+        return create(entity, modifier, _ -> {
         });
     }
 
@@ -472,7 +473,7 @@ public record ModelRenderer(
      * @return entity tracker
      */
     public @NotNull EntityTracker create(@NotNull BaseEntity entity, @NotNull ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier) {
-        return create(entity, profile, modifier, t -> {
+        return create(entity, profile, modifier, _ -> {
         });
     }
 
@@ -512,7 +513,7 @@ public record ModelRenderer(
      * @return entity tracker
      */
     public @NotNull EntityTracker getOrCreate(@NotNull BaseEntity entity, @NotNull TrackerModifier modifier) {
-        return getOrCreate(entity, modifier, t -> {
+        return getOrCreate(entity, modifier, _ -> {
         });
     }
 
@@ -525,10 +526,9 @@ public record ModelRenderer(
      * @return entity tracker
      */
     public @NotNull EntityTracker getOrCreate(@NotNull BaseEntity entity, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
-        var source = RenderSource.of(entity);
-        return source.getOrCreate(
+        return RenderSource.of(entity).getOrCreate(
             name(),
-            () -> pipeline(source),
+            this::pipeline,
             modifier,
             preUpdateConsumer
         );
@@ -592,7 +592,7 @@ public record ModelRenderer(
      * @return entity tracker
      */
     public @NotNull EntityTracker getOrCreate(@NotNull BaseEntity entity, ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier) {
-        return getOrCreate(entity, profile, modifier, t -> {
+        return getOrCreate(entity, profile, modifier, _ -> {
         });
     }
 
@@ -606,20 +606,20 @@ public record ModelRenderer(
      * @return entity tracker
      */
     public @NotNull EntityTracker getOrCreate(@NotNull BaseEntity entity, @NotNull ModelProfile.Uncompleted profile, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
-        var source = RenderSource.of(entity, profile);
-        return source.getOrCreate(
+        return RenderSource.of(entity, profile).getOrCreate(
             name(),
-            () -> pipeline(source),
+            this::pipeline,
             modifier,
             preUpdateConsumer
         );
     }
 
     private @NotNull RenderPipeline pipeline(@NotNull RenderSource<?> source) {
+        var fallback = source.fallbackContext();
         return new RenderPipeline(
             this,
             source,
-            rendererGroups.values().stream().map(value -> value.create(source)).toArray(RenderedBone[]::new)
+            rendererGroups.values().stream().map(value -> value.create(fallback)).toArray(RenderedBone[]::new)
         );
     }
 

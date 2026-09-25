@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.impl.fabric.entity
 
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet
@@ -32,6 +33,7 @@ import net.minecraft.util.Brightness
 import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.PositionMoveRotation
+import net.minecraft.world.entity.PositionPath
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
@@ -125,7 +127,9 @@ class ModelDisplayEntityImpl(
         if (oldPos.distanceSquared(pos) < 1e-8) return
         bundler += ClientboundEntityPositionSyncPacket(
             display.id,
-            PositionMoveRotation.of(handle),
+            PositionPath.of(handle.position()),
+            handle.yRot,
+            handle.xRot,
             handle.onGround()
         )
     }

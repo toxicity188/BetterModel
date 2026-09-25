@@ -1,19 +1,22 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.tracker;
 
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.function.Function;
 
-import static kr.toxicity.model.api.util.CollectionUtil.*;
+import static kr.toxicity.model.api.util.CollectionUtil.newAddressingMap;
 
 /**
  * A utility class for managing built-in animations for trackers.
@@ -55,7 +58,7 @@ public final class TrackerBuiltInAnimation {
      *
      * @since 2.2.0
      */
-    public static final TrackerAnimation<Tracker> IDLE = register("idle", b -> b.modifier(tracker -> AnimationModifier.builder()
+    public static final TrackerAnimation<Tracker> IDLE = register("idle", b -> b.modifier(_ -> AnimationModifier.builder()
         .start(6)
         .type(AnimationIterator.Type.LOOP)
         .build()
@@ -113,7 +116,7 @@ public final class TrackerBuiltInAnimation {
      * @since 2.2.0
      */
     public static final TrackerAnimation<EntityTracker> SPAWN = register("spawn", b -> b.type(EntityTracker.class)
-        .modifier(tracker -> AnimationModifier.DEFAULT_WITH_PLAY_ONCE));
+        .modifier(_ -> AnimationModifier.DEFAULT_WITH_PLAY_ONCE));
 
     private TrackerBuiltInAnimation() {
         throw new IllegalStateException("Utility class");

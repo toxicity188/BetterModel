@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api;
 
 import kr.toxicity.model.api.event.ModelEvent;
@@ -21,6 +22,14 @@ import java.util.function.Supplier;
  * This interface allows subscribing to and publishing {@link ModelEvent}s.
  * It serves as a decoupling mechanism between different parts of the engine.
  * </p>
+ *
+ * <p>Example usage:</p>
+ * <pre>{@code
+ * BetterModelEventBus eventBus = BetterModel.eventBus();
+ * ModelEventListener listener = eventBus.subscribe(application, ModelEvent.class, event -> {
+ *     // Handle event
+ * });
+ * }</pre>
  *
  * @since 2.0.0
  */
