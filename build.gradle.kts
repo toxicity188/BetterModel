@@ -39,8 +39,8 @@ tasks {
         pluginJars(bettermodel, bettermodelTest)
         minecraftVersion(minecraft)
         downloadPlugins {
-            hangar("ViaVersion", "5.12.0")
-            hangar("ViaBackwards", "5.12.0")
+            hangar("ViaVersion", "5.12.1")
+            hangar("ViaBackwards", "5.12.1")
             hangar("Skript", "2.16.2")
         }
     }
