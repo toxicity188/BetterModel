@@ -35,7 +35,7 @@ Upload the model, resource pack, or test code that can reproduce the issue if po
 
 ### 🌍 Environment
 - OS: (Windows, Linux, etc.)
-- Server software & version: (Paper 1.21.1, etc.)
+- Server software & version: (Paper 26.2, etc.)
 
 ---
 

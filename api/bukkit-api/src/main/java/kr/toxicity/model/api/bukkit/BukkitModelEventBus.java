@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.bukkit;
 
 import kr.toxicity.model.api.BetterModelEventBus;
@@ -20,6 +21,14 @@ import java.util.function.Consumer;
  * <p>
  * This interface provides convenience methods for subscribing to events using a Bukkit {@link Plugin} instance.
  * </p>
+ *
+ * <p>Example usage:</p>
+ * <pre>{@code
+ * BukkitModelEventBus eventBus = BetterModelBukkit.platform().eventBus();
+ * eventBus.subscribe(plugin, ModelEvent.class, event -> {
+ *     // Handle Bukkit event
+ * });
+ * }</pre>
  *
  * @since 2.0.0
  */

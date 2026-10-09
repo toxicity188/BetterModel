@@ -30,10 +30,6 @@ module:
 
 # Resource pack generation settings.
 pack:
-  # Generates models compatible with modern Minecraft versions (>=1.21.4).
-  generate-modern-model: true
-  # Generates models compatible with legacy Minecraft versions (<=1.21.3).
-  generate-legacy-model: true
   # Obfuscates model and texture names in the resource pack to prevent easy extraction.
   use-obfuscation: true
 
@@ -50,9 +46,6 @@ merge-with-external-resources: true
 # The base item used for custom model data.
 # It's recommended to use an item that is not commonly used for other purposes.
 item: leather_horse_armor
-
-# The namespace used for custom model items.
-item-namespace: bm_models
 
 # Maximum distance (in blocks) for sending animation packets. -1 for default server view distance.
 max-sight: -1

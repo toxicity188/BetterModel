@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonPrimitive;
@@ -96,7 +97,7 @@ public record ModelDatapoint(
         if (string.isEmpty()) return Float2FloatFunction.ZERO;
         try {
             return Float2FloatFunction.of(Float.parseFloat(string));
-        } catch (NumberFormatException ignored) {
+        } catch (NumberFormatException _) {
             return context.trySupply(
                 () -> BetterModel.platform().evaluator().compile(context.placeholder.parseVariable(string)),
                 error -> new ModelLoadContext.Fallback<>(

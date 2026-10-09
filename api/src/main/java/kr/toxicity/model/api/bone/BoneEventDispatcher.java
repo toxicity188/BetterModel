@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.bone;
 
 import kr.toxicity.model.api.nms.HitBoxListener;
@@ -93,9 +94,9 @@ public final class BoneEventDispatcher {
 
         EventFunction() {
             this(
-                (b, l) -> l,
-                (b, u) -> {},
-                (b, u) -> {}
+                (_, l) -> l,
+                (_, _) -> {},
+                (_, _) -> {}
             );
         }
 

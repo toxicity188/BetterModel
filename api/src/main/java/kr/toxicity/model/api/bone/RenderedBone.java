@@ -1,14 +1,16 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.bone;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ObjectSortedSets;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.*;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
@@ -52,7 +54,6 @@ public final class RenderedBone implements BoneEventHandler {
 
     private static final int INITIAL_TINT_VALUE = 0xFFFFFF;
     private static final Vector3f EMPTY_VECTOR = new Vector3f();
-    private static final Quaternionf EMPTY_QUATERNION = new Quaternionf();
     private static final BonePosition EMPTY_POSITION = new BonePosition(EMPTY_VECTOR, EMPTY_VECTOR, null);
 
     @Getter
@@ -105,8 +106,8 @@ public final class RenderedBone implements BoneEventHandler {
 
     private Function<Vector3f, Vector3f> positionModifier = p -> p;
     private Vector3f lastModifiedPosition = new Vector3f();
-    private Function<Quaternionf, Quaternionf> rotationModifier = r -> r;
-    private Quaternionf lastModifiedRotation = new Quaternionf();
+    private Function<Quaternionf, Quaternionf> localRotModifier = r -> r, globalRotModifier = r -> r;
+    private Quaternionf lastModifiedLocalRot = new Quaternionf(), lastModifiedGlobalRot = new Quaternionf();
 
     /**
      * Creates entity.
@@ -141,7 +142,7 @@ public final class RenderedBone implements BoneEventHandler {
                 applyItem(d);
             });
         } else display = null;
-        globalState = new BoneStateHandler(null, uuid -> {});
+        globalState = new BoneStateHandler(null, _ -> {});
     }
 
     public void locator(@NotNull BoneIKSolver solver) {
@@ -188,7 +189,7 @@ public final class RenderedBone implements BoneEventHandler {
         synchronized (this) {
             renderContext = context;
         }
-        return updateItem(bone -> true);
+        return updateItem(_ -> true);
     }
 
     /**
@@ -283,14 +284,28 @@ public final class RenderedBone implements BoneEventHandler {
     }
 
     /**
-     * Adds rotation modifier.
+     * Adds local rot modifier.
      * @param predicate predicate
      * @param function animation consumer
      * @return whether to success
      */
-    public synchronized boolean addRotationModifier(@NotNull Predicate<RenderedBone> predicate, @NotNull Function<Quaternionf, Quaternionf> function) {
+    public synchronized boolean addLocalRotModifier(@NotNull Predicate<RenderedBone> predicate, @NotNull Function<Quaternionf, Quaternionf> function) {
         if (predicate.test(this)) {
-            rotationModifier = rotationModifier.andThen(function);
+            localRotModifier = localRotModifier.andThen(function);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Adds global rot modifier.
+     * @param predicate predicate
+     * @param function animation consumer
+     * @return whether to success
+     */
+    public synchronized boolean addGlobalRotModifier(@NotNull Predicate<RenderedBone> predicate, @NotNull Function<Quaternionf, Quaternionf> function) {
+        if (predicate.test(this)) {
+            globalRotModifier = globalRotModifier.andThen(function);
             return true;
         }
         return false;
@@ -388,8 +403,12 @@ public final class RenderedBone implements BoneEventHandler {
         return preventModifierUpdate ? lastModifiedPosition : (lastModifiedPosition = positionModifier.apply(lastModifiedPosition.set(EMPTY_VECTOR)));
     }
 
-    private @NotNull Quaternionf modifiedRotation(boolean preventModifierUpdate) {
-        return preventModifierUpdate ? lastModifiedRotation : (lastModifiedRotation = rotationModifier.apply(lastModifiedRotation.set(EMPTY_QUATERNION)));
+    private @NotNull Quaternionf modifiedLocalRot(boolean preventModifierUpdate) {
+        return preventModifierUpdate ? lastModifiedLocalRot : (lastModifiedLocalRot = localRotModifier.apply(lastModifiedLocalRot.identity()));
+    }
+
+    private @NotNull Quaternionf modifiedGlobalRot(boolean preventModifierUpdate) {
+        return preventModifierUpdate ? lastModifiedGlobalRot : (lastModifiedGlobalRot = globalRotModifier.apply(lastModifiedGlobalRot.identity()));
     }
 
     public boolean tint(@NotNull Predicate<RenderedBone> predicate) {
@@ -474,15 +493,16 @@ public final class RenderedBone implements BoneEventHandler {
     @Unmodifiable
     @NotNull
     public SequencedSet<RenderedBone> flattenBones() {
-        if (flattenBones != null) return flattenBones;
+        SequencedSet<RenderedBone> set;
+        if ((set = flattenBones) != null) return set;
         synchronized (this) {
-            if (flattenBones != null) return flattenBones;
+            if ((set = flattenBones) != null) return set;
             return flattenBones = children.length == 0 ? SingletonSequencedSet.of(this) : Stream.concat(
                 Stream.of(this),
                 Arrays.stream(children).flatMap(RenderedBone::flatten)
             ).collect(Collectors.collectingAndThen(
                 Collectors.toCollection(ObjectLinkedOpenHashSet::new),
-                Collections::unmodifiableSequencedSet
+                ObjectSortedSets::unmodifiable
             ));
         }
     }
@@ -544,7 +564,7 @@ public final class RenderedBone implements BoneEventHandler {
 
         //Caches
         private final Vector3f positionCache = new Vector3f(), scaleCache = new Vector3f();
-        private final Quaternionf rotationCache = new Quaternionf();
+        private final Quaternionf localRotCache = new Quaternionf(), globalRotCache = new Quaternionf();
 
         //Lock
         private final DuplexLock lock = new DuplexLock();
@@ -554,7 +574,7 @@ public final class RenderedBone implements BoneEventHandler {
             this.consumer = consumer;
             state = new AnimationStateHandler<>(
                 AnimationProgress.EMPTY,
-                (b, a) -> skipInterpolation = (a != null && a.skipInterpolation()) || (parent != null && parent.state(uuid).skipInterpolation)
+                (_, a) -> skipInterpolation = (a != null && a.skipInterpolation()) || (parent != null && parent.state(uuid).skipInterpolation)
             );
         }
 
@@ -572,12 +592,16 @@ public final class RenderedBone implements BoneEventHandler {
                     ).sub(parent.lastModifiedPosition)
                     .add(modifiedPosition(preventModifierUpdate));
                 def.scale().mul(p.scale());
-                def.rotation().set((keyframe.globalRotation() ? rotationCache.identity() : p.rotation().div(parent.lastModifiedRotation, rotationCache))
-                    .mul(def.rotation())
-                    .mul(modifiedRotation(preventModifierUpdate)));
+                def.rotation().set(parent.lastModifiedGlobalRot.invert(globalRotCache)
+                    .mul(modifiedGlobalRot(preventModifierUpdate))
+                    .mul((keyframe.globalRotation() ? localRotCache.identity() : p.rotation().div(parent.lastModifiedLocalRot, localRotCache)).mul(def.rotation()))
+                    .mul(modifiedLocalRot(preventModifierUpdate))
+                );
             } else {
                 def.position().add(modifiedPosition(preventModifierUpdate));
-                def.rotation().mul(modifiedRotation(preventModifierUpdate));
+                def.rotation().set(modifiedGlobalRot(preventModifierUpdate).get(globalRotCache)
+                    .mul(def.rotation())
+                    .mul(modifiedLocalRot(preventModifierUpdate)));
             }
             return def;
         }

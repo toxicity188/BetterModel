@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.animation;
 
 import kr.toxicity.model.api.platform.PlatformPlayer;
@@ -20,6 +21,7 @@ import java.util.function.BooleanSupplier;
  * @param predicate predicate
  * @param start start lerp
  * @param end end lerp
+ * @param priority priority
  * @param type animation type
  * @param speed speed modifier
  * @param override override
@@ -29,6 +31,7 @@ public record AnimationModifier(
     @Nullable BooleanSupplier predicate,
     int start,
     int end,
+    int priority,
     @Nullable AnimationIterator.Type type,
     @Nullable FloatSupplier speed,
     @Nullable Boolean override,
@@ -76,6 +79,7 @@ public record AnimationModifier(
         private BooleanSupplier predicate = null;
         private int start = 1;
         private int end = 0;
+        private int priority = 0;
         private AnimationIterator.Type type = null;
         private FloatSupplier speed = null;
         private Boolean override = null;
@@ -114,6 +118,16 @@ public record AnimationModifier(
          */
         public @NotNull Builder end(int end) {
             this.end = end;
+            return this;
+        }
+
+        /**
+         * Sets the priority of this modifier
+         * @param priority priority
+         * @return self
+         */
+        public @NotNull Builder priority(int priority) {
+            this.priority = priority;
             return this;
         }
 
@@ -192,6 +206,7 @@ public record AnimationModifier(
                 predicate,
                 start,
                 end,
+                priority,
                 type,
                 speed,
                 override,
@@ -266,7 +281,7 @@ public record AnimationModifier(
      * @param speed     speed
      */
     public AnimationModifier(@Nullable BooleanSupplier predicate, int start, int end, @Nullable AnimationIterator.Type type, @Nullable FloatSupplier speed) {
-        this(predicate, start, end, type, speed, null, null);
+        this(predicate, start, end, 0, type, speed, null, null);
     }
 
     /**

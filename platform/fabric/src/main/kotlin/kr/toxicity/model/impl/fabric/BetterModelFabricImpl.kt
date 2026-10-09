@@ -1,12 +1,12 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.impl.fabric
 
-import com.vdurmont.semver4j.Semver
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils
 import eu.pb4.polymer.resourcepack.api.ResourcePackBuilder
 import kr.toxicity.model.BetterModelEvaluatorImpl
@@ -16,10 +16,10 @@ import kr.toxicity.model.api.*
 import kr.toxicity.model.api.BetterModelPlatform.ReloadResult.*
 import kr.toxicity.model.api.event.PluginEndReloadEvent
 import kr.toxicity.model.api.event.PluginStartReloadEvent
-import kr.toxicity.model.api.fabric.BetterModelFabric
-import kr.toxicity.model.api.fabric.platform.FabricAdapter
-import kr.toxicity.model.api.fabric.scheduler.FabricModelScheduler
 import kr.toxicity.model.api.manager.*
+import kr.toxicity.model.api.mod.BetterModelMod
+import kr.toxicity.model.api.mod.platform.ModAdapter
+import kr.toxicity.model.api.mod.scheduler.ModModelScheduler
 import kr.toxicity.model.api.nms.NMS
 import kr.toxicity.model.api.pack.PackResult
 import kr.toxicity.model.api.pack.PackZipper
@@ -45,6 +45,7 @@ import net.minecraft.WorldVersion
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.packs.metadata.pack.PackFormat
 import net.minecraft.util.InclusiveRange
+import org.semver4j.Semver
 import java.io.File
 import java.io.InputStream
 import java.nio.file.Files
@@ -56,7 +57,7 @@ import java.util.jar.JarFile
 import kotlin.io.path.exists
 import kotlin.system.measureTimeMillis
 
-class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterModelFabric {
+class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterModelMod {
     private lateinit var server: MinecraftServer
 
     private val configDir: Path = FabricLoader.getInstance()
@@ -67,7 +68,7 @@ class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterMod
 
     private val jarFile: JarFile
         get() = JarFile(
-            File(javaClass.getProtectionDomain().codeSource.location.toURI())
+            File(javaClass.protectionDomain.codeSource.location.toURI())
         )
 
     private lateinit var config: BetterModelConfigImpl
@@ -78,10 +79,8 @@ class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterMod
     private val semver: Semver = FabricLoader.getInstance()
         .getModContainer(modId())
         .map { modContainer ->
-            Semver(
-                modContainer.metadata.version.friendlyString,
-                Semver.SemverType.LOOSE
-            )
+            Semver.coerce(modContainer.metadata.version.friendlyString)
+                .ifNull { "Unable to load BetterModel's semver." }
         }
         .orElseThrow()
 
@@ -91,7 +90,7 @@ class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterMod
     private val logger = BetterModelLoggerImpl()
     private val evaluator = BetterModelEvaluatorImpl()
     private val eventBus = BetterModelEventBusImpl()
-    private val adapter = FabricAdapter()
+    private val adapter = ModAdapter()
 
     private var reloadStartTask: (PackZipper) -> Unit = { zipper ->
         callEvent {
@@ -109,14 +108,14 @@ class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterMod
     private val isFirstLoadProvider: AtomicBoolean = AtomicBoolean()
 
     private val allManagers by lazy {
-        listOf(
-            ArmorManager,
-            ProfileManagerImpl,
-            SkinManagerImpl,
-            ModelManagerImpl,
-            PlayerManagerImpl,
-            EntityManager,
-            ScriptManagerImpl
+        mapOf(
+            ArmorManager::class.java to ArmorManager,
+            ProfileManager::class.java to ProfileManagerImpl,
+            SkinManager::class.java to SkinManagerImpl,
+            ModelManager::class.java to ModelManagerImpl,
+            PlayerManager::class.java to PlayerManagerImpl,
+            EntityManager::class.java to EntityManager,
+            ScriptManager::class.java to ScriptManagerImpl
         )
     }
 
@@ -143,7 +142,7 @@ class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterMod
         }
 
         ServerLifecycleEvents.SERVER_STARTED.register {
-            allManagers.forEach {
+            allManagers.values.forEach {
                 it.start()
             }
             if (initialLoad.compareAndSet(false, true)) reload { loadLog(it) }
@@ -153,7 +152,7 @@ class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterMod
         FabricModelSchedulerImpl.init()
 
         ServerLifecycleEvents.SERVER_STOPPED.register {
-            allManagers.forEach { manager ->
+            allManagers.values.forEach { manager ->
                 manager.end()
             }
         }
@@ -246,7 +245,7 @@ class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterMod
             val indicators = config().indicator().options.toIndicator(info)
             ReloadPipeline(indicators).use { pipeline ->
                 val assetsTime = measureTimeMillis {
-                    allManagers.forEach { manager ->
+                    allManagers.values.forEach { manager ->
                         manager.reload(pipeline, zipper)
                     }
                 }
@@ -293,15 +292,7 @@ class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterMod
 
     override fun nms(): NMS = nms
 
-    override fun modelManager(): ModelManager = ModelManagerImpl
-
-    override fun playerManager(): PlayerManager = PlayerManagerImpl
-
-    override fun scriptManager(): ScriptManager = ScriptManagerImpl
-
-    override fun skinManager(): SkinManager = SkinManagerImpl
-
-    override fun profileManager(): ProfileManager = ProfileManagerImpl
+    override fun <T : Manager> manager(managerClass: Class<T>): T = managerClass.cast(allManagers[managerClass])
 
     override fun addReloadStartHandler(consumer: Consumer<PackZipper>) {
         val oldHandler = reloadStartTask
@@ -327,7 +318,7 @@ class BetterModelFabricImpl : ModInitializer, BetterModelPlatformImpl, BetterMod
 
     override fun server(): MinecraftServer = server
 
-    override fun scheduler(): FabricModelScheduler = FabricModelSchedulerImpl
+    override fun scheduler(): ModModelScheduler = FabricModelSchedulerImpl
 
     override fun adapter(): PlatformAdapter = adapter
 

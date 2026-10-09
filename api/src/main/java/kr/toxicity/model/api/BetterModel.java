@@ -1,13 +1,16 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api;
 
 import kr.toxicity.model.api.data.renderer.ModelRenderer;
 import kr.toxicity.model.api.entity.BaseEntity;
+import kr.toxicity.model.api.manager.ModelManager;
+import kr.toxicity.model.api.manager.PlayerManager;
 import kr.toxicity.model.api.nms.NMS;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
 import kr.toxicity.model.api.platform.PlatformEntity;
@@ -25,6 +28,18 @@ import java.util.*;
  * This class provides static access to the platform instance, configuration, model managers,
  * NMS handlers, and entity registries. It serves as a service provider for interacting with the BetterModel engine.
  * </p>
+ *
+ * <p>Example usage:</p>
+ * <pre>{@code
+ * // Retrieve a model renderer by name
+ * Optional<ModelRenderer> renderer = BetterModel.model("zombie_custom");
+ * renderer.ifPresent(r -> {
+ *     // Interact with model renderer
+ * });
+ *
+ * // Access entity tracker registry by UUID
+ * Optional<EntityTrackerRegistry> registry = BetterModel.registry(entityUuid);
+ * }</pre>
  *
  * @since 1.15.2
  */
@@ -71,7 +86,7 @@ public final class BetterModel {
      * @since 1.15.2
      */
     public static @Nullable ModelRenderer modelOrNull(@NotNull String name) {
-        return platform().modelManager().model(name);
+        return platform().manager(ModelManager.class).model(name);
     }
 
     /**
@@ -93,7 +108,7 @@ public final class BetterModel {
      * @since 1.15.2
      */
     public static @Nullable ModelRenderer limbOrNull(@NotNull String name) {
-        return platform().modelManager().limb(name);
+        return platform().manager(ModelManager.class).limb(name);
     }
 
     /**
@@ -104,7 +119,7 @@ public final class BetterModel {
      * @since 1.15.2
      */
     public static @NotNull Optional<PlayerChannelHandler> player(@NotNull UUID uuid) {
-        return Optional.ofNullable(platform().playerManager().player(uuid));
+        return Optional.ofNullable(platform().manager(PlayerManager.class).player(uuid));
     }
 
     /**
@@ -180,7 +195,7 @@ public final class BetterModel {
      * @since 1.15.2
      */
     public static @NotNull @Unmodifiable Collection<ModelRenderer> models() {
-        return platform().modelManager().models();
+        return platform().manager(ModelManager.class).models();
     }
 
     /**
@@ -190,7 +205,7 @@ public final class BetterModel {
      * @since 1.15.2
      */
     public static @NotNull @Unmodifiable Collection<ModelRenderer> limbs() {
-        return platform().modelManager().limbs();
+        return platform().manager(ModelManager.class).limbs();
     }
 
     /**
@@ -200,7 +215,7 @@ public final class BetterModel {
      * @since 1.15.2
      */
     public static @NotNull @Unmodifiable Set<String> modelKeys() {
-        return platform().modelManager().modelKeys();
+        return platform().manager(ModelManager.class).modelKeys();
     }
 
     /**
@@ -210,7 +225,7 @@ public final class BetterModel {
      * @since 1.15.2
      */
     public static @NotNull @Unmodifiable Set<String> limbKeys() {
-        return platform().modelManager().limbKeys();
+        return platform().manager(ModelManager.class).limbKeys();
     }
 
     /**
