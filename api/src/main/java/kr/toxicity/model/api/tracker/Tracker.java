@@ -28,6 +28,7 @@ import kr.toxicity.model.api.script.TimeScript;
 import kr.toxicity.model.api.util.*;
 import kr.toxicity.model.api.util.function.BonePredicate;
 import kr.toxicity.model.api.util.function.FloatSupplier;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.ApiStatus;
@@ -83,6 +84,10 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
     private final Queue<Runnable> queuedTask = new ConcurrentLinkedQueue<>();
     private final AtomicBoolean tickPause = new AtomicBoolean();
     private final AtomicBoolean isClosed = new AtomicBoolean();
+    private final AtomicBoolean quiesce = new AtomicBoolean();
+    private final CompletableFuture<Void> drainFuture = new CompletableFuture<>();
+    private volatile boolean ticking;
+    private boolean drainingTasks;
     private final AtomicBoolean readyForForceUpdate = new AtomicBoolean();
     private final AtomicBoolean forRemoval = new AtomicBoolean();
     private final AtomicBoolean firstStart = new AtomicBoolean();
@@ -153,6 +158,9 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
         });
         LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " tracker created: " + name());
         pipeline.getSource().completeContext().thenAccept(context -> {
+            // The skin context can resolve long after construction; once the tracker is closed or
+            // draining, the source may already be gone, so this callback is invalidated.
+            if (isClosed() || quiesce.get()) return;
             if (pipeline.matchTree(bone -> bone.updateItem(context))) forceUpdate(true);
         });
     }
@@ -169,9 +177,9 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
     }
 
     private void start() {
-        if (isScheduled()) return;
+        if (isClosed() || isScheduled()) return;
         synchronized (this) {
-            if (isScheduled()) return;
+            if (isClosed() || isScheduled()) return;
             if (firstStart.compareAndSet(false, true)) {
                 TrackerBuiltInAnimation.play(this);
             }
@@ -189,10 +197,14 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
     }
 
     private void shutdown() {
+        shutdown(true);
+    }
+
+    private void shutdown(boolean interrupt) {
         if (!isScheduled()) return;
         synchronized (this) {
             if (!isScheduled()) return;
-            task.cancel(true);
+            task.cancel(interrupt);
             task = null;
             frame = 0;
             LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " scheduler shutdown: " + name());
@@ -201,14 +213,58 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
 
     private void tick() {
         try {
-            if (frame % MINECRAFT_TICK_MULTIPLIER == 0) {
-                Runnable task;
-                while ((task = queuedTask.poll()) != null) task.run();
+            ticking = true;
+            try {
+                if (quiesce.get()) return;
+                if (frame % MINECRAFT_TICK_MULTIPLIER == 0) {
+                    Runnable task;
+                    while ((task = queuedTask.poll()) != null) task.run();
+                }
+                handler.handle(this, bundlerSet);
+                bundlerSet.send();
+            } finally {
+                ticking = false;
+                if (quiesce.get()) quiesceAndComplete();
             }
-            handler.handle(this, bundlerSet);
-            bundlerSet.send();
         } catch (Throwable throwable) {
             LogUtil.handleException("Ticking this tracker has been failed: " + name(), throwable);
+        }
+    }
+
+    /**
+     * Attempts to finish tracker quiescence by running any queued tasks and completing the drain receipt.
+     * <p>
+     * Attempts have no effect until {@link #quiesce} is set, so a reentrant close attempt from a close handler
+     * cannot complete the receipt before the original close requested quiescence. Attempts are ordered by this
+     * tracker's monitor, so an attempt either observes an updater still running ({@code ticking} is set by the
+     * updater before it checks the quiescence flag) and defers to the updater's own end-of-tick attempt, or
+     * observes no running updater and completes the receipt exactly once. Queued tasks run outside this
+     * tracker's monitor, so user tasks may call back into tracker methods without deadlock.
+     * </p>
+     *
+     * @since 3.4.2
+     */
+    private void quiesceAndComplete() {
+        if (drainFuture.isDone() || !quiesce.get()) return;
+        synchronized (this) {
+            if (ticking || drainingTasks) return;
+            drainingTasks = true;
+        }
+        Runnable task;
+        try {
+            while ((task = queuedTask.poll()) != null) task.run();
+        } catch (Throwable throwable) {
+            drainFuture.completeExceptionally(throwable);
+            LogUtil.handleException("Draining queued tracker tasks has been failed: " + name(), throwable);
+            return;
+        } finally {
+            synchronized (this) {
+                drainingTasks = false;
+            }
+        }
+        synchronized (this) {
+            if (ticking) return;
+            drainFuture.complete(null);
         }
     }
 
@@ -271,11 +327,15 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
 
     /**
      * Schedules a task to run on the next tracker tick.
+     * <p>
+     * Tasks queued after the tracker begins draining are invalidated and never run.
+     * </p>
      *
      * @param runnable the task to run
      * @since 1.15.2
      */
     public void task(@NotNull Runnable runnable) {
+        if (quiesce.get() || drainFuture.isDone()) return;
         queuedTask.add(Objects.requireNonNull(runnable));
     }
 
@@ -371,11 +431,60 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
 
     protected void close(@NotNull CloseReason reason) {
         if (isClosed.compareAndSet(false, true)) {
-            closeEventHandler.accept(this, reason);
-            shutdown();
-            pipeline.despawn();
-            LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " closed: " + name());
+            try {
+                closeEventHandler.accept(this, reason);
+            } catch (Throwable throwable) {
+                drainFuture.completeExceptionally(throwable);
+                LogUtil.handleException("Closing tracker has been failed: " + name(), throwable);
+            } finally {
+                // Draining must let a running updater finish on its own; interrupting it could
+                // abort pipeline work mid-flight before the receipt completes.
+                shutdown(reason != CloseReason.DRAIN);
+                quiesce.set(true);
+                pipeline.despawn();
+                quiesceAndComplete();
+                LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " closed: " + name());
+            }
+        } else {
+            quiesceAndComplete();
         }
+    }
+
+    /**
+     * Closes this tracker and returns a completion receipt that proves all tracker-originated work has ended.
+     * <p>
+     * The returned stage completes when the following postconditions hold:
+     * </p>
+     * <ol>
+     *   <li>no new tracker-originated source or pipeline work can begin;</li>
+     *   <li>scheduled recurrence has been cancelled;</li>
+     *   <li>any updater invocation already running has returned;</li>
+     *   <li>queued or deferred tracker work has either completed or been invalidated;</li>
+     *   <li>tracker-originated callbacks and tasks that could access the source have completed or been invalidated;</li>
+     *   <li>pipeline despawn and final close work has completed; and</li>
+     *   <li>after completion, no future tracker-originated access to the {@link RenderSource} occurs.</li>
+     * </ol>
+     * <p>
+     * After the stage completes, no future tracker-originated access to the {@link RenderSource} can occur.
+     * This call never blocks and is safe to invoke from the main server thread; a plugin that owns the source
+     * entity can join the returned stage (on an async scheduler) before removing the entity.
+     * </p>
+     *
+     * <pre>{@code
+     * tracker.closeAndDrain()
+     *     .thenRunAsync(() -> {
+     *         // safe: the tracker can no longer access the source
+     *         entity.remove();
+     *     });
+     * }</pre>
+     *
+     * @return a completion stage whose normal completion proves the drain postconditions above; it completes
+     *   exceptionally only if a queued task or close handler threw, and repeated calls return the same stage
+     * @since 3.4.2
+     */
+    public @NotNull CompletionStage<Void> closeAndDrain() {
+        close(CloseReason.DRAIN);
+        return drainFuture;
     }
 
     /**
@@ -1081,7 +1190,13 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
          * The entity or tracker was despawned.
          * @since 1.15.2
          */
-        DESPAWN(true)
+        DESPAWN(true),
+        /**
+         * The tracker was closed through {@link Tracker#closeAndDrain()}, waiting for all
+         * tracker-originated work to end before its completion receipt finishes.
+         * @since 3.4.2
+         */
+        DRAIN(false)
         ;
         private final boolean save;
 
