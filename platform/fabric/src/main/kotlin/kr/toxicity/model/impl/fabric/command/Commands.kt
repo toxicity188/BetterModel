@@ -47,9 +47,12 @@ import org.incendo.cloud.parser.standard.DoubleParser.doubleParser
 import org.incendo.cloud.parser.standard.EnumParser.enumParser
 import org.incendo.cloud.parser.standard.StringParser.stringParser
 import org.incendo.cloud.suggestion.SuggestionProvider.blockingStrings
+import java.util.Collections
+import java.util.IdentityHashMap
 
 private val MODEL_SUGGESTION = blockingStrings<Audience> { _, _ -> BetterModel.modelKeys() }
 private val LIMB_SUGGESTION = blockingStrings<Audience> { _, _ -> BetterModel.limbKeys() }
+private val playCreatedTrackers: MutableSet<Tracker> = Collections.synchronizedSet(Collections.newSetFromMap(IdentityHashMap()))
 
 fun startFabricCommand() {
     FabricServerCommandManager(
@@ -276,10 +279,20 @@ private fun play(context: CommandContext<AudiencePlayer>) {
     val animation = context.string("animation") { limb.animation(it).orElse(null) ?: return audience.warn("Unable to find this animation: $it") }
     val loopType = context.nullable("loop_type", AnimationIterator.Type.PLAY_ONCE)
     val hide = context.nullable<Boolean>("hide") != false
+    val existingTracker = player.toRegistry()?.tracker(limb.name())
+    val isDisguiseTracker = existingTracker != null && existingTracker !in playCreatedTrackers
     limb.getOrCreate(player.connection.wrap(), TrackerModifier.DEFAULT) {
         it.hideOption(if (hide) EntityHideOption.DEFAULT else EntityHideOption.FALSE)
     }.run {
-        if (!animate(animation, AnimationModifier(0, 0, loopType), ::close)) close()
+        if (existingTracker == null) {
+            playCreatedTrackers.add(this)
+            handleCloseEvent { t, _ -> playCreatedTrackers.remove(t) }
+        }
+        if (!isDisguiseTracker) {
+            if (!animate(animation, AnimationModifier(0, 0, loopType), ::close)) close()
+        } else {
+            animate(animation, AnimationModifier(0, 0, loopType))
+        }
     }
 }
 
