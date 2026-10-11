@@ -179,6 +179,15 @@ public interface BaseEntity extends Identifiable {
     @NotNull TransformedItemStack offHand();
 
     /**
+     * Gets helmet item
+     * @return helmet
+     * @since 2.0.1
+     */
+    default @NotNull TransformedItemStack helmet() {
+        return TransformedItemStack.empty();
+    }
+
+    /**
      * Gets tracker registry of this adapter
      * @return optional tracker registry
      */
