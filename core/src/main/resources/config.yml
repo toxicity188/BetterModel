@@ -27,6 +27,8 @@ module:
   model: true
   # Enables player-specific animations and models (e.g., custom limbs).
   player-animation: true
+  # Enables player armor in player model.
+  player-armor: true
 
 # Resource pack generation settings.
 pack:

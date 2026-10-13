@@ -601,10 +601,11 @@ object SkinManagerImpl : SkinManager, GlobalManager {
         data.floats,
         data.flags,
         emptyList(),
-        colors + data.colors
+        colors.takeIf { it.isNotEmpty() }?.let { it + data.colors } ?: data.colors
     )
 
     private fun SkinModelData.asItem(resource: ArmorResource, item: ArmorItem? = null): TransformedItemStack {
+        if (!CONFIG.module().playerArmor) return asItem()
         if (item == null) return asItem(whiteList)
         val armorData = ArmorManager.armor.resource(resource).run {
             item.trim()?.let {
@@ -630,10 +631,13 @@ object SkinManagerImpl : SkinManager, GlobalManager {
                 UVTextureName.DEFAULT,
                 { modelObf.obfuscate("${model}_$it") },
                 { indexer, _, array ->
-                    armorResource?.let { ArmorManager.armor.resource(it) }?.let {
-                        array += it.toJson()
-                        indexer.shiftColor(9)
-                    }
+                    armorResource
+                        ?.takeIf { CONFIG.module().playerArmor }
+                        ?.let { ArmorManager.armor.resource(it) }
+                        ?.let {
+                            array += it.toJson()
+                            indexer.shiftColor(9)
+                        }
                 }
             )).forEach(block)
         }
