@@ -41,7 +41,7 @@ internal data class PlayerArmorImpl(
             get(DataComponents.DYED_COLOR)?.rgb ?: if (it === EquipmentAssets.LEATHER) DyedItemColor.LEATHER_COLOR else 0xFFFFFF,
             it.identifier().path,
             trim?.pattern?.value()?.assetId?.path,
-            trim?.material?.value()?.paletteId?.path
+            trim?.material?.value()?.paletteId?.path?.substringAfterLast('/')
         )
     }?.orElse(null)
 }
