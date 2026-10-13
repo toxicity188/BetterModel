@@ -10,6 +10,11 @@ package kr.toxicity.model.manager
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import kr.toxicity.model.api.bone.BoneItemMapper
+import kr.toxicity.model.api.bone.BoneName
+import kr.toxicity.model.api.bone.BoneRenderContext
+import kr.toxicity.model.api.bone.BoneTag
+import kr.toxicity.model.api.bone.BoneTags
+import kr.toxicity.model.api.data.Float3
 import kr.toxicity.model.api.data.ModelAsset
 import kr.toxicity.model.api.data.blueprint.BlueprintElement
 import kr.toxicity.model.api.data.blueprint.BlueprintJson
@@ -19,12 +24,17 @@ import kr.toxicity.model.api.data.renderer.RendererGroup
 import kr.toxicity.model.api.event.ModelAssetsEvent
 import kr.toxicity.model.api.event.ModelImportedEvent
 import kr.toxicity.model.api.manager.ModelManager
+import kr.toxicity.model.api.nms.Profiled
 import kr.toxicity.model.api.pack.PackBuilder
 import kr.toxicity.model.api.pack.PackZipper
+import kr.toxicity.model.api.platform.PlatformItemTransform
 import kr.toxicity.model.api.platform.PlatformNamespace
+import kr.toxicity.model.api.util.TransformedItemStack
 import kr.toxicity.model.util.*
 import net.kyori.adventure.text.format.NamedTextColor.*
 import java.io.File
+import java.nio.charset.StandardCharsets
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.extension
 
@@ -35,6 +45,24 @@ object ModelManagerImpl : ModelManager, GlobalManager {
     private val playerModelMap = addressingMapOf<String, ModelRenderer>()
     private val playerModelView = playerModelMap.toImmutableView()
     private val modelExtensions = setOf("bbmodel", "ajmodel")
+
+    private val customHeadItemMapper = object : BoneItemMapper {
+        override fun apply(
+            context: BoneRenderContext,
+            transformedItemStack: TransformedItemStack
+        ): TransformedItemStack = (context.source() as? Profiled)
+            ?.armors()
+            ?.helmetItem()
+            ?: TransformedItemStack.empty()
+
+        override fun transform(): PlatformItemTransform = PlatformItemTransform.HEAD
+    }
+
+    private val customHeadItemTag = object : BoneTag {
+        override fun name(): String = INTERNAL_HEAD_ITEM_NAME
+        override fun itemMapper(): BoneItemMapper = customHeadItemMapper
+        override fun tags(): List<String> = emptyList()
+    }
 
     private fun importModels(
         type: ModelRenderer.Type,
@@ -231,15 +259,45 @@ object ModelManagerImpl : ModelManager, GlobalManager {
             fun <T> Collection<BlueprintElement>.toBoneMap(mapper: (BlueprintElement.Bone) -> T) = filterIsInstance<BlueprintElement.Bone>().let { bone ->
                 bone.associateTo(sequencedAddressingMapOf(bone.size)) { it.name() to mapper(it) }
             }.toImmutableView()
+
+            fun BlueprintElement.Bone.customHeadItemRenderer(
+                existingChildren: Map<BoneName, RendererGroup>
+            ): RendererGroup {
+                val baseName = "$INTERNAL_HEAD_ITEM_NAME:${uuid()}"
+                var rawName = baseName
+                var collision = 0
+                while (existingChildren.keys.any { it.rawName() == rawName }) {
+                    rawName = "$baseName:${++collision}"
+                }
+                val internalBone = BlueprintElement.Group(
+                    UUID.nameUUIDFromBytes(rawName.toByteArray(StandardCharsets.UTF_8)),
+                    BoneName(setOf(customHeadItemTag), rawName, rawName),
+                    origin().invertXZ(),
+                    Float3.ZERO,
+                    emptyList(),
+                    true
+                )
+                return RendererGroup(1.0F, null, internalBone, emptySequencedMap(), null)
+            }
+
             fun BlueprintElement.Bone.parse(): RendererGroup {
-                if (this !is BlueprintElement.Group) return RendererGroup(1.0F, null, this, emptySequencedMap(), null)
+                val childRenderers = if (this is BlueprintElement.Group) {
+                    children.toBoneMap { it.parse() }
+                } else emptySequencedMap()
+                val renderedChildren = if (type == ModelRenderer.Type.PLAYER && name().tagged(BoneTags.PLAYER_HEAD)) {
+                    sequencedAddressingMapOf<BoneName, RendererGroup>(childRenderers.size + 1).apply {
+                        putAll(childRenderers)
+                        customHeadItemRenderer(childRenderers).let { put(it.name(), it) }
+                    }.toImmutableView()
+                } else childRenderers
+                if (this !is BlueprintElement.Group) return RendererGroup(1.0F, null, this, renderedChildren, null)
                 return RendererGroup(
                     scale(),
                     if (name.toItemMapper() !== BoneItemMapper.EMPTY) null else builder(this)?.let { itemNamespace ->
                         CONFIG.item().get().itemModel(PlatformNamespace(CONFIG.namespace(), itemNamespace))
                     },
                     this,
-                    children.toBoneMap { it.parse() },
+                    renderedChildren,
                     hitBox(),
                 )
             }
@@ -267,4 +325,6 @@ object ModelManagerImpl : ModelManager, GlobalManager {
     override fun limb(name: String): ModelRenderer? = playerModelView[name]
     override fun limbs(): Collection<ModelRenderer> = playerModelView.values
     override fun limbKeys(): Set<String> = playerModelView.keys
+
+    private const val INTERNAL_HEAD_ITEM_NAME = "bettermodel:internal_player_head_item"
 }
