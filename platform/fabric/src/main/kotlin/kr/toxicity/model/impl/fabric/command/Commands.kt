@@ -1,16 +1,17 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.impl.fabric.command
 
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.BetterModelPlatform.ReloadResult.*
 import kr.toxicity.model.api.animation.AnimationIterator
 import kr.toxicity.model.api.animation.AnimationModifier
-import kr.toxicity.model.api.fabric.platform.FabricLocation
+import kr.toxicity.model.api.mod.platform.ModLocation
 import kr.toxicity.model.api.tracker.EntityHideOption
 import kr.toxicity.model.api.tracker.ModelScaler
 import kr.toxicity.model.api.tracker.Tracker
@@ -29,6 +30,7 @@ import net.minecraft.commands.CommandSourceStack
 import net.minecraft.core.registries.Registries
 import net.minecraft.world.entity.EntitySpawnReason
 import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.phys.Vec3
 import org.incendo.cloud.SenderMapper
 import org.incendo.cloud.context.CommandContext
@@ -204,7 +206,7 @@ private fun spawn(context: CommandContext<AudiencePlayer>) {
     val audience = context.sender()
     val player = audience.player
     val model = context.model("model") { return audience.warn("Unable to find this model: $it") }
-    val type = context.nullable<EntityType<*>>("type", EntityType.HUSK)
+    val type = context.nullable<EntityType<*>>("type", EntityTypes.HUSK)
     val scale = context.nullable("scale", 1.0)
     val loc = context.nullable<Coordinates>("location")
     type.spawn(
@@ -289,7 +291,7 @@ private fun test(context: CommandContext<Audience>) {
     val location = context.nullable<Coordinates>("location")?.position() ?: player.position()
         .add(Vec3(0.0, 0.0, 10.0).yRot(-Math.toRadians(player.yRot.toDouble()).toFloat()))
 
-    model.create(FabricLocation.of(
+    model.create(ModLocation.of(
         player.level(),
         location.x,
         location.y,

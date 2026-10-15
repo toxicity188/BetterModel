@@ -1,15 +1,15 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.impl.fabric.manager
 
 import kr.toxicity.model.api.BetterModel
-import kr.toxicity.model.api.fabric.entity.BaseFabricEntity
+import kr.toxicity.model.api.mod.entity.BaseModEntity
 import kr.toxicity.model.api.nms.HitBox
-import kr.toxicity.model.api.nms.ModelInteractionHand
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
@@ -23,7 +23,7 @@ import kr.toxicity.model.impl.fabric.wrap
 import kr.toxicity.model.manager.GlobalManager
 import kr.toxicity.model.manager.ReloadPipeline
 import kr.toxicity.model.util.PLATFORM
-import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents
+import net.fabricmc.fabric.api.entity.event.v1.ServerEntityLevelChangeEvents
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents
@@ -33,7 +33,6 @@ import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.effect.MobEffects
 import net.minecraft.world.entity.Entity
-import org.joml.Vector3f
 
 object EntityManager : GlobalManager {
     override fun reload(pipeline: ReloadPipeline, zipper: PackZipper) {
@@ -113,9 +112,9 @@ object EntityManager : GlobalManager {
     }
 
     private fun registerLifecycleEvents() {
-        ServerEntityWorldChangeEvents.AFTER_ENTITY_CHANGE_WORLD.register { oldEntity, newEntity, _, _ ->
+        ServerEntityLevelChangeEvents.AFTER_ENTITY_CHANGE_LEVEL.register { oldEntity, newEntity, _, _ ->
             BetterModel.registryOrNull(oldEntity.uuid)?.let { registry ->
-                (registry.entity() as BaseFabricEntity).entity(newEntity)
+                (registry.entity() as BaseModEntity).entity(newEntity)
             }
         }
 
@@ -130,7 +129,7 @@ object EntityManager : GlobalManager {
         }
 
         // same as PlayerChangedWorldEvent
-        ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register { player, _, _ ->
+        ServerEntityLevelChangeEvents.AFTER_PLAYER_CHANGE_LEVEL.register { player, _, _ ->
             BetterModel.registryOrNull(player.uuid)?.let { registry ->
                 registry.despawn()
                 registry.refresh()
@@ -200,41 +199,14 @@ object EntityManager : GlobalManager {
 
     private fun registerInteractionEvents() {
         // same as PlayerInteractAtEntityEvent, PlayerInteractEntityEvent
-        UseEntityCallback.EVENT.register { clicker, _, hand, clicked, hitResult ->
+        UseEntityCallback.EVENT.register { clicker, _, hand, clicked, _ ->
             if (clicker !is ServerPlayer) {
                 return@register InteractionResult.PASS
             }
-            val connection = clicker.connection
 
             // for PlayerInteractAtEntityEvent
-            hitResult?.let { hitResult ->
-                (clicked as? HitBox)?.triggerInteractAt(
-                    connection.wrap(),
-                    when (hand) {
-                        InteractionHand.MAIN_HAND -> ModelInteractionHand.RIGHT
-                        InteractionHand.OFF_HAND -> ModelInteractionHand.LEFT
-                    },
-                    Vector3f(
-                        hitResult.location.x.toFloat(),
-                        hitResult.location.y.toFloat(),
-                        hitResult.location.z.toFloat(),
-                    )
-                )
-            }
-
-            // for PlayerInteractEntityEvent
-            val isMainHand = hand == InteractionHand.MAIN_HAND
-            val isDismounted = isMainHand && clicker.triggerDismount(clicked)
-
             (clicked as? HitBox)?.let { hitBox ->
-                hitBox.triggerInteract(
-                    connection.wrap(),
-                    when (hand) {
-                        InteractionHand.MAIN_HAND -> ModelInteractionHand.RIGHT
-                        InteractionHand.OFF_HAND -> ModelInteractionHand.LEFT
-                    }
-                )
-                if (isMainHand && !isDismounted) {
+                if (hand == InteractionHand.MAIN_HAND && !clicker.triggerDismount(clicked)) {
                     clicker.triggerMount(hitBox)
                 }
             }

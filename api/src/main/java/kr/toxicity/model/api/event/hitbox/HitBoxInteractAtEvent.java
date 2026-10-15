@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.event.hitbox;
 
 import kr.toxicity.model.api.event.CancellableEvent;
@@ -25,7 +26,7 @@ import org.joml.Vector3f;
  * @since 2.0.0
  */
 @Getter
-public class HitBoxInteractAtEvent implements CancellableEvent, HitBoxEvent {
+public final class HitBoxInteractAtEvent implements CancellableEvent, HitBoxEvent {
 
     @Setter
     private boolean cancelled;

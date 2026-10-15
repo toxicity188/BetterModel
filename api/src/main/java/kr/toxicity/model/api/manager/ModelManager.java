@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.manager;
 
 import kr.toxicity.model.api.animation.AnimationModifier;
@@ -28,7 +29,7 @@ import java.util.function.Consumer;
  *
  * @since 1.15.2
  */
-public interface ModelManager {
+public interface ModelManager extends Manager {
 
     /**
      * Retrieves a model renderer by its name.
@@ -122,7 +123,7 @@ public interface ModelManager {
      * @since 1.15.2
      */
     default boolean animate(@NotNull PlatformPlayer player, @NotNull String model, @NotNull String animation, @NotNull AnimationModifier modifier) {
-        return animate(player, model, animation, modifier, t -> {});
+        return animate(player, model, animation, modifier, _ -> {});
     }
 
     /**

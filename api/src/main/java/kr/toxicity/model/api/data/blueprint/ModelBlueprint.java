@@ -1,19 +1,18 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.data.blueprint;
 
 import kr.toxicity.model.api.data.raw.ModelResolution;
-import kr.toxicity.model.api.pack.PackObfuscator;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 /**
  * Represents a fully processed model blueprint, ready for generation and rendering.
@@ -39,30 +38,16 @@ public record ModelBlueprint(
 ) {
 
     /**
-     * Checks if this blueprint contains any renderable textures.
+     * Creates a new load context for this blueprint.
      *
-     * @return true if at least one texture is renderable, false otherwise
-     * @since 1.15.2
+     * @since 3.0.0
+     * @return a new blueprint load context
      */
-    public boolean hasTexture() {
-        return textures.stream().anyMatch(BlueprintTexture::canBeRendered);
-    }
-
-    /**
-     * Generates a stream of {@link BlueprintImage} objects for resource pack generation.
-     *
-     * @param obfuscator the obfuscator to use for texture names
-     * @return a stream of blueprint images
-     * @since 1.15.2
-     */
-    @NotNull
-    public Stream<BlueprintImage> buildImage(@NotNull PackObfuscator obfuscator) {
-        return textures.stream()
-            .filter(BlueprintTexture::canBeRendered)
-            .map(texture -> new BlueprintImage(
-                texture.packName(obfuscator),
-                texture.image(),
-                texture.isAnimatedTexture() ? texture.toMcmeta() : null)
-            );
+    public @NotNull BlueprintLoadContext context() {
+        return new BlueprintLoadContext(
+            name(),
+            resolution(),
+            textures()
+        );
     }
 }
