@@ -13,21 +13,22 @@ import org.bukkit.entity.Entity
 import org.bukkit.entity.Player
 import org.bukkit.plugin.Plugin
 
-val PLUGIN get() = BetterModelBukkit.platform() as Plugin
+internal val PLUGIN get() = BetterModelBukkit.platform() as Plugin
 
 context(plugin: Plugin)
-fun Entity.runInRegion(task: () -> Unit) {
+internal fun Entity.runInRegion(task: () -> Unit) {
     if (BetterModelBukkit.IS_FOLIA && !Bukkit.isOwnedByCurrentRegion(this)) {
         scheduler.run(plugin, { task() }) {}
     } else task()
 }
 
 context(plugin: Plugin)
-fun Entity.hide(to: Player) {
+internal fun Entity.hide(to: Player) {
     to.hideEntity(plugin, this)
 }
 
 context(plugin: Plugin)
-fun Entity.show(to: Player) {
+internal fun Entity.show(to: Player) {
     to.showEntity(plugin, this)
 }
+
