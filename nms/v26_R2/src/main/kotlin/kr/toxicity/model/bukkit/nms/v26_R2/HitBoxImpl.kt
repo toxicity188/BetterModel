@@ -8,7 +8,6 @@
 package kr.toxicity.model.bukkit.nms.v26_R2
 
 import io.papermc.paper.event.entity.EntityKnockbackEvent
-import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.bone.BoneMovement
 import kr.toxicity.model.api.bone.RenderedBone
 import kr.toxicity.model.api.bukkit.BetterModelBukkit
@@ -48,7 +47,6 @@ import org.bukkit.craftbukkit.entity.CraftLivingEntity
 import org.bukkit.event.entity.CreatureSpawnEvent
 import org.bukkit.event.entity.EntityPotionEffectEvent
 import org.bukkit.event.entity.EntityRemoveEvent
-import org.bukkit.plugin.Plugin
 import org.joml.Vector3f
 import java.util.*
 
@@ -329,18 +327,22 @@ internal class HitBoxImpl(
     }
 
     override fun hide(player: PlatformPlayer) {
-        val plugin = BetterModel.platform() as Plugin
-        player.unwarp().run {
-            hideEntity(plugin, bukkitEntity)
-            hideEntity(plugin, interaction.bukkitEntity)
+        context(PLUGIN) {
+            val unwrap = player.unwarp()
+            bukkitEntity.runInRegion {
+                bukkitEntity.hide(unwrap)
+                interaction.bukkitEntity.hide(unwrap)
+            }
         }
     }
 
     override fun show(player: PlatformPlayer) {
-        val plugin = BetterModel.platform() as Plugin
-        player.unwarp().run {
-            showEntity(plugin, bukkitEntity)
-            showEntity(plugin, interaction.bukkitEntity)
+        context(PLUGIN) {
+            val unwrap = player.unwarp()
+            bukkitEntity.runInRegion {
+                bukkitEntity.show(unwrap)
+                interaction.bukkitEntity.show(unwrap)
+            }
         }
     }
 
