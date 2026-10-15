@@ -92,7 +92,7 @@ BetterModel aims to be a reliable engine that provides stable, high-quality anim
 
 ## 💻 API
 
-[![](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/available/maven-central_vector.svg)](https://central.sonatype.com/artifact/io.github.toxicity188/bettermodel)
+[![](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/available/maven-central_vector.svg)](https://central.sonatype.com/artifact/io.github.toxicity188/bettermodel-api)
 
 > [!NOTE]\
 > For more detailed API specifications, please refer to our [GitHub Wiki](https://github.com/toxicity188/BetterModel/wiki/API-example).
