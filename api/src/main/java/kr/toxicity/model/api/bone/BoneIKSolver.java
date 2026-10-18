@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static kr.toxicity.model.api.util.CollectionUtil.newSequencedAddressingMap;
+import static kr.toxicity.model.api.util.MathUtil.fma;
 
 /**
  * Bone IK solver
@@ -76,19 +77,22 @@ public final class BoneIKSolver {
                 value.cache.lengths,
                 locator.state(uuid).after().position().get(value.cache.destination)
                     .add(locator.root.group.getPosition())
-                    .sub(value.first().root.group.getPosition())
+                    .sub(value.first().root.group.getPosition()),
+                value.runtimeCache
             );
         });
     }
 
-    private record IKChain(@Nullable RenderedBone pole, @NotNull RenderedBone[] bones, @NotNull IKCache cache) {
+    private record IKChain(@Nullable RenderedBone pole, @NotNull RenderedBone[] bones, @NotNull IKCache cache, @NotNull FabrikCache runtimeCache) {
 
         private IKChain(@Nullable RenderedBone pole, @NotNull RenderedBone[] bones) {
-            this(pole, bones, new IKCache(bones.length));
+            this(pole, bones, new IKCache(bones.length), new FabrikCache());
         }
 
-        private @Nullable BoneMovement pole(@Nullable UUID uuid) {
-            return pole != null ? pole.state(uuid).after() : null;
+        private @Nullable Vector3f pole(@Nullable UUID uuid) {
+            return pole != null ? pole.state(uuid).after().position().get(cache.pole)
+                .add(pole.root.group.getPosition())
+                .sub(first().root.group.getPosition()): null;
         }
 
         private @NotNull RenderedBone first() {
@@ -108,24 +112,57 @@ public final class BoneIKSolver {
         }
     }
 
-    private record IKCache(@NotNull BoneMovement[] movements, float[] lengths, @NotNull Vector3f destination, @NotNull Quaternionf rotation) {
+    private record IKCache(
+        @NotNull BoneMovement[] movements,
+        float[] lengths,
+        @NotNull Vector3f destination,
+        @NotNull Vector3f pole,
+        @NotNull Quaternionf rotation
+    ) {
         private IKCache(int length) {
-            this(new BoneMovement[length], new float[length - 1], new Vector3f(), new Quaternionf());
+            this(new BoneMovement[length], new float[length - 1], new Vector3f(), new Vector3f(), new Quaternionf());
         }
     }
 
-    private static void fabrik(@Nullable BoneMovement pole, @NotNull BoneMovement[] bones, @NotNull Quaternionf firstRot, float[] lengths, @NotNull Vector3f target) {
+    private record FabrikCache(
+        @NotNull Vector3f position,
+        @NotNull Quaternionf rotation,
+        @NotNull Vector3f chain,
+        @NotNull Vector3f blend,
+        @NotNull Vector3f destination,
+        @NotNull Vector3f temp
+    ) {
+        private FabrikCache() {
+            this(
+                new Vector3f(),
+                new Quaternionf(),
+                new Vector3f(),
+                new Vector3f(),
+                new Vector3f(),
+                new Vector3f()
+            );
+        }
+    }
+
+    private static void fabrik(
+        @Nullable Vector3f pole,
+        @NotNull BoneMovement[] bones,
+        @NotNull Quaternionf firstRot,
+        float[] lengths,
+        @NotNull Vector3f target,
+        @NotNull FabrikCache cache
+    ) {
         var first = bones[0].position();
         var last = bones[bones.length - 1].position();
 
-        var vecCache = new Vector3f();
-        var rootPos = first.get(vecCache);
+        var rootPos = first.get(cache.position);
 
         for (int i = 0; i < bones.length - 1; i++) {
             var before = bones[i];
             var after = bones[i + 1];
             lengths[i] = before.position().distance(after.position());
         }
+
         for (int iter = 0; iter < MAX_IK_ITERATION; iter++) {
             // Forward
             last.set(target);
@@ -145,16 +182,59 @@ public final class BoneIKSolver {
                 if (dist < MathUtil.VECTOR_COMPARISON_EPSILON_SQ) continue;
                 InterpolationUtil.lerp(current, next, lengths[i] / (float) Math.sqrt(dist), next);
             }
+            // Pole
+            if (pole != null) pole(pole, bones, cache);
             // Check
             if (last.distanceSquared(target) < MathUtil.VECTOR_COMPARISON_EPSILON_SQ) break;
         }
-        var rotCache = new Quaternionf();
         for (int i = 0; i < bones.length - 1; i++) {
             var current = bones[i];
             var next = bones[i + 1];
 
-            var dir = next.position().sub(current.position(), vecCache);
-            current.rotation().set(rotCache.identity().rotateTo(FROM_VECTOR, dir.normalize()).mul(firstRot).mul(current.rotation()));
+            var dir = next.position().sub(current.position(), cache.position);
+            current.rotation().set(cache.rotation.identity().rotateTo(FROM_VECTOR, dir.normalize()).mul(firstRot).mul(current.rotation()));
         }
+    }
+
+    private static void pole(@NotNull Vector3f polePosition, @NotNull BoneMovement[] bones, @NotNull FabrikCache cache) {
+        var rootPos = bones[0].position();
+        var endPos = bones[bones.length - 1].position();
+
+        // Calculate chain axis
+        endPos.sub(rootPos, cache.chain);
+        var axisLenSq = cache.chain.lengthSquared();
+        if (axisLenSq < MathUtil.VECTOR_COMPARISON_EPSILON_SQ) return;
+        cache.chain.normalize();
+
+        // 1. Current bend direction from the middle joint
+        var currentBendDir = projectOntoPlane(rootPos, bones[bones.length / 2].position(), cache.chain, cache.blend);
+        if (currentBendDir.lengthSquared() < MathUtil.VECTOR_COMPARISON_EPSILON_SQ) return;
+        currentBendDir.normalize();
+
+        // 2. Target bend direction towards the pole
+        var targetPoleDir = projectOntoPlane(rootPos, polePosition, cache.chain, cache.destination);
+        if (targetPoleDir.lengthSquared() < MathUtil.VECTOR_COMPARISON_EPSILON_SQ) return;
+        targetPoleDir.normalize();
+
+        // 3. Rotation to align current bend to target
+        var poleRotation = cache.rotation.identity().rotateTo(currentBendDir, targetPoleDir);
+
+        // 4. Apply rotation to middle joints
+        for (int i = 1; i < bones.length - 1; i++) {
+            var pos = bones[i].position();
+            rootPos.add(pos.sub(rootPos, cache.temp).rotate(poleRotation), pos);
+        }
+    }
+
+    private static @NotNull Vector3f projectOntoPlane(@NotNull Vector3f root, @NotNull Vector3f target, @NotNull Vector3f chain, @NotNull Vector3f dest) {
+        var dx = target.x - root.x;
+        var dy = target.y - root.y;
+        var dz = target.z - root.z;
+        var dot = fma(dx, chain.x, fma(dy, chain.y, dz * chain.z));
+        return dest.set(
+            fma(-chain.x, dot, dx),
+            fma(-chain.y, dot, dy),
+            fma(-chain.z, dot, dz)
+        );
     }
 }
