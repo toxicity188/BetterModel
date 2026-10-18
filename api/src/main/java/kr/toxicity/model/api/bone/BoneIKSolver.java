@@ -35,6 +35,7 @@ public final class BoneIKSolver {
 
     private final Map<UUID, RenderedBone> boneMap;
     private final Object2ObjectLinkedOpenHashMap<RenderedBone, IKChain> locators = newSequencedAddressingMap();
+    private final FabrikCache runtimeCache = new FabrikCache();
 
     /**
      * Adds some external locator to this solver
@@ -51,7 +52,7 @@ public final class BoneIKSolver {
             .filter(bone -> !bone.flattenBones().contains(locator) && bone.flattenBones().contains(target))
             .toArray(RenderedBone[]::new);
         if (chainArray.length < 2) return;
-        locators.put(locator, new IKChain(boneMap.get(ikPole), chainArray));
+        locators.put(locator, new IKChain(ikPole != null ? boneMap.get(ikPole) : null, chainArray));
     }
 
     /**
@@ -78,15 +79,15 @@ public final class BoneIKSolver {
                 locator.state(uuid).after().position().get(value.cache.destination)
                     .add(locator.root.group.getPosition())
                     .sub(value.first().root.group.getPosition()),
-                value.runtimeCache
+                runtimeCache
             );
         });
     }
 
-    private record IKChain(@Nullable RenderedBone pole, @NotNull RenderedBone[] bones, @NotNull IKCache cache, @NotNull FabrikCache runtimeCache) {
+    private record IKChain(@Nullable RenderedBone pole, @NotNull RenderedBone[] bones, @NotNull IKCache cache) {
 
         private IKChain(@Nullable RenderedBone pole, @NotNull RenderedBone[] bones) {
-            this(pole, bones, new IKCache(bones.length), new FabrikCache());
+            this(pole, bones, new IKCache(bones.length));
         }
 
         private @Nullable Vector3f pole(@Nullable UUID uuid) {
@@ -202,22 +203,19 @@ public final class BoneIKSolver {
 
         // Calculate chain axis
         endPos.sub(rootPos, cache.chain);
-        var axisLenSq = cache.chain.lengthSquared();
-        if (axisLenSq < MathUtil.VECTOR_COMPARISON_EPSILON_SQ) return;
+        if (cache.chain.lengthSquared() < MathUtil.VECTOR_COMPARISON_EPSILON_SQ) return;
         cache.chain.normalize();
 
         // 1. Current bend direction from the middle joint
         var currentBendDir = projectOntoPlane(rootPos, bones[bones.length / 2].position(), cache.chain, cache.blend);
         if (currentBendDir.lengthSquared() < MathUtil.VECTOR_COMPARISON_EPSILON_SQ) return;
-        currentBendDir.normalize();
 
         // 2. Target bend direction towards the pole
         var targetPoleDir = projectOntoPlane(rootPos, polePosition, cache.chain, cache.destination);
         if (targetPoleDir.lengthSquared() < MathUtil.VECTOR_COMPARISON_EPSILON_SQ) return;
-        targetPoleDir.normalize();
 
         // 3. Rotation to align current bend to target
-        var poleRotation = cache.rotation.identity().rotateTo(currentBendDir, targetPoleDir);
+        var poleRotation = cache.rotation.identity().rotateTo(currentBendDir.normalize(), targetPoleDir.normalize());
 
         // 4. Apply rotation to middle joints
         for (int i = 1; i < bones.length - 1; i++) {
