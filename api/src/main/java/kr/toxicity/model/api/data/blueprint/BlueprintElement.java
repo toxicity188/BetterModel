@@ -302,6 +302,7 @@ public sealed interface BlueprintElement {
      * @param name the name of the null object
      * @param ikTarget the UUID of the IK target bone
      * @param ikSource the UUID of the IK source bone
+     * @param ikPole the UUID of the IK pole bone
      * @param origin the position of the null object
      * @since 1.15.2
      */
@@ -310,6 +311,7 @@ public sealed interface BlueprintElement {
         @NotNull BoneName name,
         @Nullable UUID ikTarget,
         @Nullable UUID ikSource,
+        @Nullable UUID ikPole,
         @NotNull Float3 origin
     ) implements Bone {
         /**

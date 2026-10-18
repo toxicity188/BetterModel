@@ -175,6 +175,7 @@ public sealed interface ModelElement {
      * @param uuid the UUID of the null object
      * @param ikTarget the UUID of the IK target, if any
      * @param ikSource the UUID of the IK source, if any
+     * @param ikPole the UUID of the IK pole, if any
      * @param position the position of the null object
      * @since 1.15.2
      */
@@ -183,6 +184,7 @@ public sealed interface ModelElement {
         @NotNull String uuid,
         @Nullable @SerializedName("ik_target") String ikTarget,
         @Nullable @SerializedName("ik_source") String ikSource,
+        @Nullable @SerializedName("ik_pole") String ikPole,
         @Nullable Float3 position
     ) implements ModelElement {
         @Override
@@ -211,6 +213,10 @@ public sealed interface ModelElement {
                     .map(UUID::fromString)
                     .orElse(null),
                 Optional.ofNullable(ikSource())
+                    .filter(str -> !str.isEmpty())
+                    .map(UUID::fromString)
+                    .orElse(null),
+                Optional.ofNullable(ikPole())
                     .filter(str -> !str.isEmpty())
                     .map(UUID::fromString)
                     .orElse(null),

@@ -38,10 +38,11 @@ public final class BoneIKSolver {
     /**
      * Adds some external locator to this solver
      * @param ikSource nullable source
+     * @param ikPole nullable pole
      * @param ikTarget target bone
      * @param locator locator bone
      */
-    public void addLocator(@Nullable UUID ikSource, @NotNull UUID ikTarget, @NotNull RenderedBone locator) {
+    public void addLocator(@Nullable UUID ikSource, @Nullable UUID ikPole, @NotNull UUID ikTarget, @NotNull RenderedBone locator) {
         var target = boneMap.get(ikTarget);
         if (target == null) return;
         var source = ikSource == null ? target.root : boneMap.getOrDefault(ikSource, target.root);
@@ -49,7 +50,7 @@ public final class BoneIKSolver {
             .filter(bone -> !bone.flattenBones().contains(locator) && bone.flattenBones().contains(target))
             .toArray(RenderedBone[]::new);
         if (chainArray.length < 2) return;
-        locators.put(locator, new IKChain(chainArray));
+        locators.put(locator, new IKChain(boneMap.get(ikPole), chainArray));
     }
 
     /**
@@ -69,6 +70,7 @@ public final class BoneIKSolver {
             var locator = entry.getKey();
             var value = entry.getValue();
             fabrik(
+                value.pole(uuid),
                 value.movements(uuid),
                 value.invertedFirstRotation(uuid),
                 value.cache.lengths,
@@ -79,10 +81,14 @@ public final class BoneIKSolver {
         });
     }
 
-    private record IKChain(@NotNull RenderedBone[] bones, @NotNull IKCache cache) {
+    private record IKChain(@Nullable RenderedBone pole, @NotNull RenderedBone[] bones, @NotNull IKCache cache) {
 
-        private IKChain(@NotNull RenderedBone[] bones) {
-            this(bones, new IKCache(bones.length));
+        private IKChain(@Nullable RenderedBone pole, @NotNull RenderedBone[] bones) {
+            this(pole, bones, new IKCache(bones.length));
+        }
+
+        private @Nullable BoneMovement pole(@Nullable UUID uuid) {
+            return pole != null ? pole.state(uuid).after() : null;
         }
 
         private @NotNull RenderedBone first() {
@@ -108,7 +114,7 @@ public final class BoneIKSolver {
         }
     }
 
-    private static void fabrik(@NotNull BoneMovement[] bones, @NotNull Quaternionf firstRot, float[] lengths, @NotNull Vector3f target) {
+    private static void fabrik(@Nullable BoneMovement pole, @NotNull BoneMovement[] bones, @NotNull Quaternionf firstRot, float[] lengths, @NotNull Vector3f target) {
         var first = bones[0].position();
         var last = bones[bones.length - 1].position();
 
