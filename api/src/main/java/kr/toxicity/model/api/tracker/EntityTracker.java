@@ -11,6 +11,7 @@ import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.bone.BoneMovement;
 import kr.toxicity.model.api.bone.BoneTags;
 import kr.toxicity.model.api.bone.RenderedBone;
+import kr.toxicity.model.api.data.blueprint.BlueprintElement;
 import kr.toxicity.model.api.data.renderer.RenderPipeline;
 import kr.toxicity.model.api.entity.BaseEntity;
 import kr.toxicity.model.api.entity.BasePlayer;
@@ -54,6 +55,7 @@ public sealed class EntityTracker extends Tracker permits PlayerTracker {
 
     private static final BonePredicate CREATE_HITBOX_PREDICATE = BonePredicate.name("hitbox")
         .or(BonePredicate.tag(BoneTags.HITBOX))
+        .or(BonePredicate.derivedFrom(BlueprintElement.BoundingBox.class))
         .or(b -> b.getGroup().getMountController().canMount())
         .notSet();
 

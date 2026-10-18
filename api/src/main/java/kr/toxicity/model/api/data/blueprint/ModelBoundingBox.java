@@ -7,8 +7,8 @@
 
 package kr.toxicity.model.api.data.blueprint;
 
+import kr.toxicity.model.api.data.Float3;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Quaterniond;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 
@@ -46,16 +46,16 @@ public record ModelBoundingBox(
      * @param min the minimum corner vector
      * @param max the maximum corner vector
      * @return the bounding box
-     * @since 1.15.2
+     * @since 3.6.0
      */
-    public static @NotNull ModelBoundingBox of(@NotNull Vector3d min, @NotNull Vector3d max) {
+    public static @NotNull ModelBoundingBox of(@NotNull Float3 min, @NotNull Float3 max) {
         return of(
-            min.x,
-            min.y,
-            min.z,
-            max.x,
-            max.y,
-            max.z
+            min.x(),
+            min.y(),
+            min.z(),
+            max.x(),
+            max.y(),
+            max.z()
         );
     }
 
@@ -216,21 +216,6 @@ public record ModelBoundingBox(
             -maxX,
             maxY,
             -maxZ
-        );
-    }
-
-    /**
-     * Rotates the bounding box around its center.
-     *
-     * @param quaterniond the rotation quaternion
-     * @return the rotated bounding box
-     * @since 1.15.2
-     */
-    public @NotNull ModelBoundingBox rotate(@NotNull Quaterniond quaterniond) {
-        var centerVec = centerPoint();
-        return of(
-            min().sub(centerVec).rotate(quaterniond).add(centerVec),
-            max().sub(centerVec).rotate(quaterniond).add(centerVec)
         );
     }
 

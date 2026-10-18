@@ -13,6 +13,7 @@ import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.data.Float2;
 import kr.toxicity.model.api.data.Float3;
 import kr.toxicity.model.api.data.blueprint.BlueprintElement;
+import kr.toxicity.model.api.data.blueprint.ModelBoundingBox;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -56,6 +57,11 @@ public sealed interface ModelElement {
      * @since 3.0.0
      */
     String MESH = "mesh";
+    /**
+     * The type identifier for a bounding box.
+     * @since 3.6.0
+     */
+    String BOUNDING_BOX = "bounding_box";
 
     /**
      * A JSON deserializer that automatically dispatches to the correct {@link ModelElement} implementation based on the "type" field.
@@ -70,6 +76,7 @@ public sealed interface ModelElement {
             case CAMERA -> context.deserialize(json, Camera.class);
             case CUBE -> context.deserialize(json, Cube.class);
             case MESH -> context.deserialize(json, Mesh.class);
+            case BOUNDING_BOX -> context.deserialize(json, BoundingBox.class);
             default -> new Unsupported(select);
         };
     };
@@ -438,5 +445,59 @@ public sealed interface ModelElement {
          * @since 3.0.0
          */
         public record Face(@NotNull Map<String, Float2> uv, @NotNull Set<String> vertices, int texture) {}
+    }
+
+    /**
+     * Represents a standard bounding box.
+     *
+     * @param name the name of the bounding box
+     * @param uuid the UUID of the bounding box
+     * @param from the starting coordinate (min corner)
+     * @param to the ending coordinate (max corner)
+     * @since 3.6.0
+     */
+    record BoundingBox(
+        @NotNull String name,
+        @NotNull String uuid,
+        @Nullable Float3 from,
+        @Nullable Float3 to
+    ) implements ModelElement {
+
+        @Override
+        public @NotNull String type() {
+            return BOUNDING_BOX;
+        }
+
+        @Override
+        public @NotNull BlueprintElement toBlueprint() {
+            return new BlueprintElement.BoundingBox(
+                UUID.fromString(uuid()),
+                BoneName.of(name()),
+                ModelBoundingBox.of(from().toBlockScale(), to().toBlockScale()).invert()
+            );
+        }
+
+        /**
+         * Returns the starting coordinate (min corner).
+         *
+         * @return the from vector, or {@link Float3#ZERO} if not specified
+         * @since 3.6.0
+         */
+        @Override
+        public @NotNull Float3 from() {
+            return from != null ? from : Float3.ZERO;
+        }
+
+        /**
+         * Returns the ending coordinate (max corner).
+         *
+         * @return the to vector, or {@link Float3#ZERO} if not specified
+         * @since 3.6.0
+         */
+        @Override
+        public @NotNull Float3 to() {
+            return to != null ? to : Float3.ZERO;
+        }
+
     }
 }

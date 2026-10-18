@@ -232,7 +232,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                 bone.associateTo(sequencedAddressingMapOf(bone.size)) { it.name() to mapper(it) }
             }.toImmutableView()
             fun BlueprintElement.Bone.parse(): RendererGroup {
-                if (this !is BlueprintElement.Group) return RendererGroup(1.0F, null, this, emptySequencedMap(), null)
+                if (this !is BlueprintElement.Group) return RendererGroup(1.0F, null, this, emptySequencedMap(), hitbox())
                 return RendererGroup(
                     scale(),
                     if (name.toItemMapper() !== BoneItemMapper.EMPTY) null else builder(this)?.let { itemNamespace ->
@@ -240,7 +240,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                     },
                     this,
                     children.toBoneMap { it.parse() },
-                    hitBox(),
+                    hitbox(),
                 )
             }
             return ModelRenderer(

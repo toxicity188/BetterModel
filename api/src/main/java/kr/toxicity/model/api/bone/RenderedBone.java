@@ -486,6 +486,25 @@ public final class RenderedBone implements BoneEventHandler {
         if (nametag != null) nametag.remove(bundler);
     }
 
+    /**
+     * Tests whether the parent element is derived from (an instance of) the specified class type.
+     *
+     * <pre>{@code
+     * // Instead of:
+     * boolean isDerived = getGroup().getParent() instanceof BlueprintElement.class;
+     *
+     * // You can write:
+     * boolean isDerived = isDerivedFrom(BlueprintElement.class);
+     * }</pre>
+     *
+     * @param elementClass the expected class type
+     * @return {@code true} if the parent is an instance of {@code elementClass}; {@code false} otherwise
+     * @since 3.6.0
+     */
+    public boolean isDerivedFrom(@NotNull Class<? extends BlueprintElement> elementClass) {
+        return elementClass.isInstance(getGroup().getParent());
+    }
+
     public @NotNull Stream<RenderedBone> flatten() {
         return flattenBones().stream();
     }

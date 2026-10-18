@@ -75,7 +75,19 @@ public sealed interface BlueprintElement {
          * @return the origin
          * @since 1.15.2
          */
-        @NotNull Float3 origin();
+        default @NotNull Float3 origin() {
+            return Float3.ZERO;
+        }
+
+        /**
+         * Calculates the bounding box for this bone to be used as a hitbox.
+         *
+         * @return the named bounding box, or null if no cubes are present
+         * @since 3.6.0
+         */
+        default @Nullable ModelBoundingBox hitbox() {
+            return null;
+        }
     }
 
     /**
@@ -235,24 +247,12 @@ public sealed interface BlueprintElement {
          * @return the named bounding box, or null if no cubes are present
          * @since 1.15.2
          */
-        public @Nullable ModelBoundingBox hitBox() {
+        public @Nullable ModelBoundingBox hitbox() {
             return filterIsInstance(children, Cube.class)
-                .map(element -> {
-                    var from = element.from()
-                        .minus(origin)
-                        .toBlockScale();
-                    var to = element.to()
-                        .minus(origin)
-                        .toBlockScale();
-                    return ModelBoundingBox.of(
-                        from.x(),
-                        from.y(),
-                        from.z(),
-                        to.x(),
-                        to.y(),
-                        to.z()
-                    ).invert();
-                })
+                .map(element -> ModelBoundingBox.of(
+                    element.from().minus(origin).toBlockScale(),
+                    element.to().minus(origin).toBlockScale()
+                ).invert())
                 .max(Comparator.comparingDouble(ModelBoundingBox::length))
                 .orElse(null);
         }
@@ -516,5 +516,20 @@ public sealed interface BlueprintElement {
          * @since 3.0.0
          */
         public record Point(@NotNull Float3 vertices, @NotNull Float2 uv) {}
+    }
+
+    /**
+     * Represents a bounding box.
+     *
+     * @param uuid the UUID of the bounding box
+     * @param name the name of the bounding box
+     * @param hitbox the hitbox of the bounding box
+     * @since 3.6.0
+     */
+    record BoundingBox(
+        @NotNull UUID uuid,
+        @NotNull BoneName name,
+        @NotNull ModelBoundingBox hitbox
+    ) implements Bone {
     }
 }

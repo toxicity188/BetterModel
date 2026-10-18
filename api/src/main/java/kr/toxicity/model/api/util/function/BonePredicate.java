@@ -9,6 +9,7 @@ package kr.toxicity.model.api.util.function;
 
 import kr.toxicity.model.api.bone.BoneTag;
 import kr.toxicity.model.api.bone.RenderedBone;
+import kr.toxicity.model.api.data.blueprint.BlueprintElement;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,6 +38,21 @@ public interface BonePredicate extends Predicate<RenderedBone> {
      */
     static @NotNull Builder name(@NotNull String name) {
         return b -> b.name().name().equalsIgnoreCase(name);
+    }
+
+    /**
+     * Creates a predicate that matches bones originating from a specific {@link BlueprintElement} class type.
+     *
+     * <pre>{@code
+     * BonePredicate predicate = BonePredicate.derivedFrom(BlueprintElement.BoundingBox.class);
+     * }</pre>
+     *
+     * @param elementClass the target element class to match against
+     * @return a predicate builder checking if {@code b.isDerivedFrom(elementClass)} is true
+     * @since 3.6.0
+     */
+    static @NotNull Builder derivedFrom(@NotNull Class<? extends BlueprintElement> elementClass) {
+        return b -> b.isDerivedFrom(elementClass);
     }
 
     /**
