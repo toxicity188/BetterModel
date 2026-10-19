@@ -9,6 +9,7 @@ package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonDeserializer;
 import com.google.gson.annotations.SerializedName;
+import kr.toxicity.model.api.bone.BoneIKChainConfig;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.data.Float2;
 import kr.toxicity.model.api.data.Float3;
@@ -183,6 +184,7 @@ public sealed interface ModelElement {
      * @param ikTarget the UUID of the IK target, if any
      * @param ikSource the UUID of the IK source, if any
      * @param ikPole the UUID of the IK pole, if any
+     * @param lockIkTargetRotation whether to lock ik target's location
      * @param position the position of the null object
      * @since 1.15.2
      */
@@ -192,6 +194,7 @@ public sealed interface ModelElement {
         @Nullable @SerializedName("ik_target") String ikTarget,
         @Nullable @SerializedName("ik_source") String ikSource,
         @Nullable @SerializedName("ik_pole") String ikPole,
+        @Nullable @SerializedName("lock_ik_target_rotation") Boolean lockIkTargetRotation,
         @Nullable Float3 position
     ) implements ModelElement {
         @Override
@@ -218,14 +221,18 @@ public sealed interface ModelElement {
                 Optional.ofNullable(ikTarget())
                     .filter(str -> !str.isEmpty())
                     .map(UUID::fromString)
-                    .orElse(null),
-                Optional.ofNullable(ikSource())
-                    .filter(str -> !str.isEmpty())
-                    .map(UUID::fromString)
-                    .orElse(null),
-                Optional.ofNullable(ikPole())
-                    .filter(str -> !str.isEmpty())
-                    .map(UUID::fromString)
+                    .map(ikTarget -> new BoneIKChainConfig(
+                        ikTarget,
+                        Optional.ofNullable(ikSource())
+                            .filter(str -> !str.isEmpty())
+                            .map(UUID::fromString)
+                            .orElse(null),
+                        Optional.ofNullable(ikPole())
+                            .filter(str -> !str.isEmpty())
+                            .map(UUID::fromString)
+                            .orElse(null),
+                        !Boolean.FALSE.equals(lockIkTargetRotation)
+                    ))
                     .orElse(null),
                 position()
             );

@@ -11,6 +11,7 @@ import com.google.gson.JsonObject;
 import io.github.toxicity188.javamesh.MeshBuilder;
 import io.github.toxicity188.javamesh.MeshPoint;
 import io.github.toxicity188.javamesh.MeshShape;
+import kr.toxicity.model.api.bone.BoneIKChainConfig;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.BoneTags;
 import kr.toxicity.model.api.data.Float2;
@@ -300,18 +301,14 @@ public sealed interface BlueprintElement {
      *
      * @param uuid the UUID of the null object
      * @param name the name of the null object
-     * @param ikTarget the UUID of the IK target bone
-     * @param ikSource the UUID of the IK source bone
-     * @param ikPole the UUID of the IK pole bone
+     * @param config the ik chain config of the null object
      * @param origin the position of the null object
      * @since 1.15.2
      */
     record NullObject(
         @NotNull UUID uuid,
         @NotNull BoneName name,
-        @Nullable UUID ikTarget,
-        @Nullable UUID ikSource,
-        @Nullable UUID ikPole,
+        @Nullable BoneIKChainConfig config,
         @NotNull Float3 origin
     ) implements Bone {
         /**

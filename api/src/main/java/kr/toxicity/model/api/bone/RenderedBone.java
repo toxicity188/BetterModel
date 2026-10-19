@@ -147,9 +147,9 @@ public final class RenderedBone implements BoneEventHandler {
 
     public void locator(@NotNull BoneIKSolver solver) {
         if (getGroup().getParent() instanceof BlueprintElement.NullObject nullObject) {
-            var ikTarget = nullObject.ikTarget();
-            if (ikTarget == null) return;
-            solver.addLocator(nullObject.ikSource(), nullObject.ikPole(), ikTarget, this);
+            var ikChainConfig = nullObject.config();
+            if (ikChainConfig == null) return;
+            solver.addLocator(ikChainConfig, this);
         }
     }
 
@@ -503,6 +503,10 @@ public final class RenderedBone implements BoneEventHandler {
      */
     public boolean isDerivedFrom(@NotNull Class<? extends BlueprintElement> elementClass) {
         return elementClass.isInstance(getGroup().getParent());
+    }
+
+    public @NotNull Vector3f rootPosition() {
+        return root.group.getPosition();
     }
 
     public @NotNull Stream<RenderedBone> flatten() {

@@ -39,20 +39,20 @@ public final class BoneIKSolver {
 
     /**
      * Adds some external locator to this solver
-     * @param ikSource nullable source
-     * @param ikPole nullable pole
-     * @param ikTarget target bone
+     * @param config ik chain config
      * @param locator locator bone
      */
-    public void addLocator(@Nullable UUID ikSource, @Nullable UUID ikPole, @NotNull UUID ikTarget, @NotNull RenderedBone locator) {
-        var target = boneMap.get(ikTarget);
+    public void addLocator(@NotNull BoneIKChainConfig config, @NotNull RenderedBone locator) {
+        var target = boneMap.get(config.ikTarget());
         if (target == null) return;
+        var ikSource = config.ikSource();
         var source = ikSource == null ? target.root : boneMap.getOrDefault(ikSource, target.root);
         var chainArray = source.flatten()
             .filter(bone -> !bone.flattenBones().contains(locator) && bone.flattenBones().contains(target))
             .toArray(RenderedBone[]::new);
         if (chainArray.length < 2) return;
-        locators.put(locator, new IKChain(ikPole != null ? boneMap.get(ikPole) : null, chainArray));
+        var ikPole = config.ikPole();
+        locators.put(locator, new IKChain(ikPole != null ? boneMap.get(ikPole) : null, chainArray, config.lockIkTargetRotation()));
     }
 
     /**
@@ -77,27 +77,32 @@ public final class BoneIKSolver {
                 value.invertedFirstRotation(uuid),
                 value.cache.lengths,
                 locator.state(uuid).after().position().get(value.cache.destination)
-                    .add(locator.root.group.getPosition())
-                    .sub(value.first().root.group.getPosition()),
+                    .add(locator.rootPosition())
+                    .sub(value.rootPosition()),
+                value.lockIkTargetRotation,
                 runtimeCache
             );
         });
     }
 
-    private record IKChain(@Nullable RenderedBone pole, @NotNull RenderedBone[] bones, @NotNull IKCache cache) {
+    private record IKChain(@Nullable RenderedBone pole, @NotNull RenderedBone[] bones, boolean lockIkTargetRotation, @NotNull IKCache cache) {
 
-        private IKChain(@Nullable RenderedBone pole, @NotNull RenderedBone[] bones) {
-            this(pole, bones, new IKCache(bones.length));
+        private IKChain(@Nullable RenderedBone pole, @NotNull RenderedBone[] bones, boolean lockIkTargetRotation) {
+            this(pole, bones, lockIkTargetRotation, new IKCache(bones.length));
         }
 
         private @Nullable Vector3f pole(@Nullable UUID uuid) {
             return pole != null ? pole.state(uuid).after().position().get(cache.pole)
-                .add(pole.root.group.getPosition())
-                .sub(first().root.group.getPosition()): null;
+                .add(pole.rootPosition())
+                .sub(rootPosition()): null;
         }
 
         private @NotNull RenderedBone first() {
             return bones[0];
+        }
+
+        private @NotNull Vector3f rootPosition() {
+            return first().rootPosition();
         }
 
         private @NotNull Quaternionf invertedFirstRotation(@Nullable UUID uuid) {
@@ -151,6 +156,7 @@ public final class BoneIKSolver {
         @NotNull Quaternionf firstRot,
         float[] lengths,
         @NotNull Vector3f target,
+        boolean lockIkTargetRotation,
         @NotNull FabrikCache cache
     ) {
         var first = bones[0].position();
@@ -188,13 +194,22 @@ public final class BoneIKSolver {
             // Check
             if (last.distanceSquared(target) < MathUtil.VECTOR_COMPARISON_EPSILON_SQ) break;
         }
+
         for (int i = 0; i < bones.length - 1; i++) {
             var current = bones[i];
             var next = bones[i + 1];
 
-            var dir = next.position().sub(current.position(), cache.position);
-            current.rotation().set(cache.rotation.identity().rotateTo(FROM_VECTOR, dir.normalize()).mul(firstRot).mul(current.rotation()));
+            var destRot = cache.rotation.identity()
+                .rotateTo(FROM_VECTOR, next.position().sub(current.position(), cache.position).normalize())
+                .mul(firstRot);
+
+            var currentRot = current.rotation();
+            destRot.mul(currentRot, currentRot);
         }
+
+        if (lockIkTargetRotation) return;
+        var lastRot = bones[bones.length - 1].rotation();
+        cache.rotation.mul(lastRot, lastRot);
     }
 
     private static void pole(@NotNull Vector3f polePosition, @NotNull BoneMovement[] bones, @NotNull FabrikCache cache) {
