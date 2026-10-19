@@ -228,11 +228,11 @@ public final class BoneIKSolver {
         var dx = target.x - root.x;
         var dy = target.y - root.y;
         var dz = target.z - root.z;
-        var dot = fma(dx, chain.x, fma(dy, chain.y, dz * chain.z));
+        var dot = -fma(dx, chain.x, fma(dy, chain.y, dz * chain.z));
         return dest.set(
-            fma(-chain.x, dot, dx),
-            fma(-chain.y, dot, dy),
-            fma(-chain.z, dot, dz)
+            fma(chain.x, dot, dx),
+            fma(chain.y, dot, dy),
+            fma(chain.z, dot, dz)
         );
     }
 }
