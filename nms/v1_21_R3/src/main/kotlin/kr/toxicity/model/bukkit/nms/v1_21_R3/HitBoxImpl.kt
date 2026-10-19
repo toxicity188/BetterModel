@@ -31,6 +31,7 @@ import net.minecraft.world.damagesource.DamageSource
 import net.minecraft.world.effect.MobEffectInstance
 import net.minecraft.world.entity.*
 import net.minecraft.world.entity.ai.attributes.Attributes
+import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.entity.projectile.Projectile
 import net.minecraft.world.entity.projectile.ProjectileDeflection
@@ -55,7 +56,7 @@ internal class HitBoxImpl(
     private var listener: HitBoxListener,
     private val delegate: Entity,
     private var mountController: MountController
-) : AbstractHitBox(delegate.level()) {
+) : ArmorStand(EntityType.ARMOR_STAND, delegate.level()), HitBox {
     private val posCache = BoneMovement()
     private var initialized = false
     private var jumpDelay = 0
@@ -298,6 +299,7 @@ internal class HitBoxImpl(
         listener.sync(craftEntity)
     }
 
+    @Suppress("WRONG_TYPE_FOR_JAVA_OVERRIDE", "TYPE_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
     override fun remove(reason: RemovalReason, cause: EntityRemoveEvent.Cause?) {
         initialSetup()
         listener.handle(HitBoxRemoveEvent(craftEntity))
