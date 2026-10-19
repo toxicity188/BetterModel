@@ -189,11 +189,12 @@ public final class BoneIKSolver {
                 if (dist < MathUtil.VECTOR_COMPARISON_EPSILON_SQ) continue;
                 InterpolationUtil.lerp(current, next, lengths[i] / (float) Math.sqrt(dist), next);
             }
-            // Pole
-            if (pole != null) pole(pole, bones, cache);
             // Check
             if (last.distanceSquared(target) < MathUtil.VECTOR_COMPARISON_EPSILON_SQ) break;
         }
+
+        // Pole
+        if (pole != null) pole(pole, bones, cache);
 
         for (int i = 0; i < bones.length - 1; i++) {
             var current = bones[i];
