@@ -33,7 +33,7 @@ adventure-platform-fabric = "net.kyori:adventure-platform-fabric:7.2.0"
 
 asm-tree = "org.ow2.asm:asm-tree:9.11.1"
 
-fabric-loader = "net.fabricmc:fabric-loader:0.20.0"
+fabric-loader = "net.fabricmc:fabric-loader:0.20.1"
 fabric-language-kotlin = { module = "net.fabricmc:fabric-language-kotlin", version.ref = "fabric-language-kotlin" }
 
 polymer-resource-pack = { module = "eu.pb4:polymer-resource-pack", version.ref = "polymer" }
