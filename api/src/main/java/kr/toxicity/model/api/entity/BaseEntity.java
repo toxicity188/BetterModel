@@ -1,12 +1,14 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.entity;
 
 import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.manager.PlayerManager;
 import kr.toxicity.model.api.nms.Identifiable;
 import kr.toxicity.model.api.platform.PlatformEntity;
 import kr.toxicity.model.api.platform.PlatformLocation;
@@ -33,7 +35,7 @@ public interface BaseEntity extends Identifiable {
      */
     static @NotNull BaseEntity of(@NotNull PlatformEntity entity) {
         if (entity instanceof PlatformPlayer player) {
-            var channel = BetterModel.platform().playerManager().player(player.uuid());
+            var channel = BetterModel.platform().manager(PlayerManager.class).player(player.uuid());
             return channel != null ? channel.base() : BetterModel.nms().adapt(player);
         }
         return BetterModel.nms().adapt(entity);

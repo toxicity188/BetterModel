@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.animation;
 
 import kr.toxicity.model.api.bone.BoneMovement;
@@ -115,7 +116,9 @@ public record AnimationKeyframe(
             set.rotation[z] = rotation.z;
             set.skipInterpolation[i] = skipInterpolation;
 
-            this.progresses[i] = isNotZero(position) || isNotZero(scale) || isNotZero(rotation) ? new ArrayProgress(set, i) : AnimationProgress.empty(time);
+            this.progresses[i] = isNotZero(position) || isNotZero(scale) || isNotZero(rotation)
+                ? new ArrayProgress(set, i)
+                : AnimationProgress.empty(time, skipInterpolation, set.rotateGlobal);
         }
 
         /**

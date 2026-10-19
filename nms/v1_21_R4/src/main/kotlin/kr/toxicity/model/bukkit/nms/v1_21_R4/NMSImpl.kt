@@ -1,14 +1,14 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.bukkit.nms.v1_21_R4
 
 import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.EntityLookup
 import com.mojang.authlib.GameProfile
-import com.mojang.authlib.properties.Property
 import io.netty.channel.ChannelDuplexHandler
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
@@ -51,8 +51,6 @@ import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.Items
 import net.minecraft.world.item.component.CustomModelData
-import net.minecraft.world.item.component.DyedItemColor
-import net.minecraft.world.item.component.ResolvableProfile
 import net.minecraft.world.level.entity.LevelEntityGetter
 import net.minecraft.world.level.entity.LevelEntityGetterAdapter
 import net.minecraft.world.level.entity.PersistentEntitySectionManager
@@ -62,6 +60,7 @@ import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.joml.Vector3d
 import java.util.*
 import java.util.function.Consumer
+import java.util.function.IntConsumer
 
 class NMSImpl : NMS {
 
@@ -237,7 +236,7 @@ class NMSImpl : NMS {
                         containerId,
                         stateId,
                         items.apply {
-                            PLAYER_EQUIPMENT_SLOT.forEach { set(it, EMPTY_ITEM) }
+                            PLAYER_EQUIPMENT_SLOT.forEach(IntConsumer { set(it, EMPTY_ITEM) })
                             set(connection.player.hotbarSlot, EMPTY_ITEM)
                         },
                         carriedItem
@@ -333,7 +332,6 @@ class NMSImpl : NMS {
 
     override fun tint(itemStack: PlatformItemStack, rgb: Int): PlatformItemStack {
         return itemStack.unwarp().asVanilla().apply {
-            set(DataComponents.DYED_COLOR, DyedItemColor(rgb))
             set(DataComponents.CUSTOM_MODEL_DATA, get(DataComponents.CUSTOM_MODEL_DATA)?.let {
                 CustomModelData(it.floats, it.flags, it.strings, it.colors
                     .run {
@@ -342,7 +340,7 @@ class NMSImpl : NMS {
                         }
                     }
                     .ifEmpty { listOf(rgb) })
-            })
+            } ?: CustomModelData(emptyList(), emptyList(), emptyList(), listOf(rgb)))
         }.asBukkit().wrap()
     }
 
@@ -377,15 +375,6 @@ class NMSImpl : NMS {
     }
 
     override fun profile(player: PlatformPlayer): ModelProfile = ModelGameProfile(getGameProfile((player.unwarp() as CraftPlayer).handle))
-
-    override fun createPlayerHead(profile: ModelProfile): PlatformItemStack = VanillaItemStack(Items.PLAYER_HEAD).apply {
-        set(DataComponents.PROFILE, ResolvableProfile(GameProfile(
-            profile.info().id,
-            profile.info().name ?: "",
-        ).apply {
-            properties.put("textures", Property("textures", profile.skin().raw))
-        }))
-    }.asBukkit().wrap()
 
     override fun createSkinItem(model: String, floats: List<Float>, flags: List<Boolean>, strings: List<String>, colors: List<Int>): TransformedItemStack {
         return VanillaItemStack(Items.PLAYER_HEAD).run {

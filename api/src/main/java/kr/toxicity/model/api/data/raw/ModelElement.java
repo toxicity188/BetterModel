@@ -1,22 +1,25 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonDeserializer;
 import com.google.gson.annotations.SerializedName;
+import kr.toxicity.model.api.bone.BoneIKChainConfig;
 import kr.toxicity.model.api.bone.BoneName;
+import kr.toxicity.model.api.data.Float2;
 import kr.toxicity.model.api.data.Float3;
 import kr.toxicity.model.api.data.blueprint.BlueprintElement;
+import kr.toxicity.model.api.data.blueprint.ModelBoundingBox;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Represents a raw element within a model file.
@@ -50,12 +53,22 @@ public sealed interface ModelElement {
      * @since 2.2.1
      */
     String CUBE = "cube";
+    /**
+     * The type identifier for a mesh element.
+     * @since 3.0.0
+     */
+    String MESH = "mesh";
+    /**
+     * The type identifier for a bounding box.
+     * @since 3.6.0
+     */
+    String BOUNDING_BOX = "bounding_box";
 
     /**
      * A JSON deserializer that automatically dispatches to the correct {@link ModelElement} implementation based on the "type" field.
      * @since 1.15.2
      */
-    JsonDeserializer<ModelElement> PARSER = (json, type, context) -> {
+    JsonDeserializer<ModelElement> PARSER = (json, _, context) -> {
         var t = json.getAsJsonObject().getAsJsonPrimitive("type");
         var select = t != null ? t.getAsString() : CUBE;
         return switch (select) {
@@ -63,6 +76,8 @@ public sealed interface ModelElement {
             case LOCATOR -> context.deserialize(json, Locator.class);
             case CAMERA -> context.deserialize(json, Camera.class);
             case CUBE -> context.deserialize(json, Cube.class);
+            case MESH -> context.deserialize(json, Mesh.class);
+            case BOUNDING_BOX -> context.deserialize(json, BoundingBox.class);
             default -> new Unsupported(select);
         };
     };
@@ -168,6 +183,8 @@ public sealed interface ModelElement {
      * @param uuid the UUID of the null object
      * @param ikTarget the UUID of the IK target, if any
      * @param ikSource the UUID of the IK source, if any
+     * @param ikPole the UUID of the IK pole, if any
+     * @param lockIkTargetRotation whether to lock ik target's location
      * @param position the position of the null object
      * @since 1.15.2
      */
@@ -176,6 +193,8 @@ public sealed interface ModelElement {
         @NotNull String uuid,
         @Nullable @SerializedName("ik_target") String ikTarget,
         @Nullable @SerializedName("ik_source") String ikSource,
+        @Nullable @SerializedName("ik_pole") String ikPole,
+        @Nullable @SerializedName("lock_ik_target_rotation") Boolean lockIkTargetRotation,
         @Nullable Float3 position
     ) implements ModelElement {
         @Override
@@ -202,10 +221,18 @@ public sealed interface ModelElement {
                 Optional.ofNullable(ikTarget())
                     .filter(str -> !str.isEmpty())
                     .map(UUID::fromString)
-                    .orElse(null),
-                Optional.ofNullable(ikSource())
-                    .filter(str -> !str.isEmpty())
-                    .map(UUID::fromString)
+                    .map(ikTarget -> new BoneIKChainConfig(
+                        ikTarget,
+                        Optional.ofNullable(ikSource())
+                            .filter(str -> !str.isEmpty())
+                            .map(UUID::fromString)
+                            .orElse(null),
+                        Optional.ofNullable(ikPole())
+                            .filter(str -> !str.isEmpty())
+                            .map(UUID::fromString)
+                            .orElse(null),
+                        !Boolean.FALSE.equals(lockIkTargetRotation)
+                    ))
                     .orElse(null),
                 position()
             );
@@ -337,5 +364,147 @@ public sealed interface ModelElement {
                 visibility()
             );
         }
+    }
+
+    /**
+     * Represents a mesh element, allowing for complex geometry beyond simple cubes.
+     *
+     * @param uuid the UUID of the mesh
+     * @param origin the pivot point (origin) of the mesh
+     * @param rotation the rotation of the mesh
+     * @param vertices a map of vertex identifiers to their 3D positions
+     * @param faces a map of face identifiers to their face data
+     * @param _visibility the visibility state (null means visible)
+     * @since 3.0.0
+     */
+    record Mesh(
+        @NotNull String uuid,
+        @Nullable Float3 origin,
+        @Nullable Float3 rotation,
+        @NotNull Map<String, Float3> vertices,
+        @NotNull Map<String, Face> faces,
+        @SerializedName("visibility") @Nullable Boolean _visibility
+    ) implements ModelElement {
+        /**
+         * Returns the pivot point (origin) of the mesh.
+         *
+         * @return the origin vector, or {@link Float3#ZERO} if not specified
+         * @since 3.0.0
+         */
+        @Override
+        public @NotNull Float3 origin() {
+            return origin != null ? origin : Float3.ZERO;
+        }
+
+        /**
+         * Returns the rotation of the mesh.
+         *
+         * @return the rotation vector, or {@link Float3#ZERO} if not specified
+         * @since 3.0.0
+         */
+        @Override
+        public @NotNull Float3 rotation() {
+            return rotation != null ? rotation : Float3.ZERO;
+        }
+
+        /**
+         * Returns the type identifier of this element.
+         *
+         * @return {@link #MESH}
+         * @since 3.0.0
+         */
+        @Override
+        public @NotNull String type() {
+            return MESH;
+        }
+
+        public boolean visibility() {
+            return !Boolean.FALSE.equals(_visibility);
+        }
+
+        @Override
+        public @NotNull BlueprintElement toBlueprint() {
+            return new BlueprintElement.Mesh(
+                origin(),
+                rotation(),
+                faces.values()
+                    .stream()
+                    .map(face -> new BlueprintElement.Mesh.Face(
+                        face.vertices.stream()
+                            .map(n -> new BlueprintElement.Mesh.Point(
+                                Objects.requireNonNull(vertices.get(n)),
+                                Objects.requireNonNull(face.uv.get(n))
+                            ))
+                            .toList(),
+                        face.texture
+                    ))
+                    .toList(),
+                visibility()
+            );
+        }
+
+        /**
+         * Represents a single face of a mesh.
+         *
+         * @param uv a map of vertex identifiers to their UV coordinates
+         * @param vertices a set of vertex identifiers that form this face
+         * @param texture the index of the texture used by this face
+         * @since 3.0.0
+         */
+        public record Face(@NotNull Map<String, Float2> uv, @NotNull Set<String> vertices, int texture) {}
+    }
+
+    /**
+     * Represents a standard bounding box.
+     *
+     * @param name the name of the bounding box
+     * @param uuid the UUID of the bounding box
+     * @param from the starting coordinate (min corner)
+     * @param to the ending coordinate (max corner)
+     * @since 3.6.0
+     */
+    record BoundingBox(
+        @NotNull String name,
+        @NotNull String uuid,
+        @Nullable Float3 from,
+        @Nullable Float3 to
+    ) implements ModelElement {
+
+        @Override
+        public @NotNull String type() {
+            return BOUNDING_BOX;
+        }
+
+        @Override
+        public @NotNull BlueprintElement toBlueprint() {
+            return new BlueprintElement.BoundingBox(
+                UUID.fromString(uuid()),
+                BoneName.of(name()),
+                ModelBoundingBox.of(from().toBlockScale(), to().toBlockScale()).invert()
+            );
+        }
+
+        /**
+         * Returns the starting coordinate (min corner).
+         *
+         * @return the from vector, or {@link Float3#ZERO} if not specified
+         * @since 3.6.0
+         */
+        @Override
+        public @NotNull Float3 from() {
+            return from != null ? from : Float3.ZERO;
+        }
+
+        /**
+         * Returns the ending coordinate (max corner).
+         *
+         * @return the to vector, or {@link Float3#ZERO} if not specified
+         * @since 3.6.0
+         */
+        @Override
+        public @NotNull Float3 to() {
+            return to != null ? to : Float3.ZERO;
+        }
+
     }
 }

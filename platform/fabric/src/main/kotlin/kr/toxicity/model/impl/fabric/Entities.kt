@@ -1,9 +1,11 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+@file:Suppress("UnstableApiUsage")
+
 package kr.toxicity.model.impl.fabric
 
 import kr.toxicity.model.api.BetterModel
@@ -19,7 +21,6 @@ import net.minecraft.world.entity.ai.goal.Goal
 import net.minecraft.world.entity.ai.goal.RangedAttackGoal
 import net.minecraft.world.entity.ai.goal.RangedBowAttackGoal
 import net.minecraft.world.entity.ai.goal.RangedCrossbowAttackGoal
-import net.minecraft.world.entity.animal.FlyingAnimal
 import net.minecraft.world.entity.player.Player
 import org.joml.Vector3f
 
@@ -34,8 +35,7 @@ val Entity.isWalking: Boolean
 
 val Entity.isFlying: Boolean
     get() {
-        return this is FlyingAnimal && isFlying ||
-            this is Mob && isNoAi ||
+        return this is Mob && isNoAi ||
             this is Player && abilities.flying ||
             this is LivingEntity && isFallFlying
     }
@@ -46,7 +46,7 @@ val Entity.seenBy: Set<ServerPlayerConnection>
         val tracker = level.chunkSource.chunkMap.entityMap.get(id)
             ?: return emptySet()
 
-        return tracker.playersTracking
+        return tracker.seenBy
     }
 
 var Entity.modelData: String?
