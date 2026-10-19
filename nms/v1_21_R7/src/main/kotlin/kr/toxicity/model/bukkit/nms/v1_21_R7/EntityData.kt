@@ -100,12 +100,11 @@ internal class TransformationData {
     )
 
     private class Item<T : Any>(
-        initialValue: T,
+        private val initialValue: T,
         private val accessor: EntityDataAccessor<T>,
         private val dirtyChecker: (T, T) -> Boolean,
         private val setter: (T, T) -> Unit
     ) {
-        private val _t: T = initialValue
         private var _dirty = false
 
         val dirty get() = _dirty
@@ -114,12 +113,12 @@ internal class TransformationData {
             _dirty = false
             forceValue
         } else null
-        val forceValue get() = SynchedEntityData.DataValue(accessor.id, accessor.serializer, _t)
+        val forceValue get() = SynchedEntityData.DataValue(accessor.id, accessor.serializer, initialValue)
 
         fun set(other: T) {
-            if (dirtyChecker(_t, other)) return
+            if (dirtyChecker(initialValue, other)) return
             _dirty = true
-            setter(_t, other)
+            setter(initialValue, other)
         }
     }
 }

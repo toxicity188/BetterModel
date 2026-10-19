@@ -101,12 +101,11 @@ class TransformationData {
     }
 
     private class Item<T : Any>(
-        initialValue: T,
+        private val initialValue: T,
         private val accessor: EntityDataAccessor<T>,
         private val dirtyChecker: (T, T) -> Boolean,
         private val setter: (T, T) -> Unit
     ) {
-        private val _value: T = initialValue
         private var _dirty = false
 
         val dirty
@@ -127,16 +126,16 @@ class TransformationData {
             get() = SynchedEntityData.DataValue(
                 accessor.id,
                 accessor.serializer,
-                _value
+                initialValue
             )
 
         fun set(other: T) {
-            if (dirtyChecker(_value, other)) {
+            if (dirtyChecker(initialValue, other)) {
                 return
             }
 
             _dirty = true
-            setter(_value, other)
+            setter(initialValue, other)
         }
     }
 
