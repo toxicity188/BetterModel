@@ -11,7 +11,7 @@ pluginManagement {
 
 buildscript {
     dependencies {
-        classpath("org.jetbrains.kotlinx:kotlinx-serialization-core:1.11.0")
+        classpath("org.jetbrains.kotlinx:kotlinx-serialization-core:1.12.0")
     }
 }
 
