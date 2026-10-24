@@ -42,7 +42,7 @@ configurate-core = { module = "org.spongepowered:configurate-core", version.ref 
 configurate-yaml = { module = "org.spongepowered:configurate-yaml", version.ref = "configurate" }
 
 joml = "org.joml:joml:1.10.9"
-gson = "com.google.code.gson:gson:2.14.0"
+gson = "com.google.code.gson:gson:2.15.0"
 fastutil = "it.unimi.dsi:fastutil:8.5.19"
 guava = "com.google.guava:guava:33.7.2-jre"
 
