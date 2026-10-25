@@ -22,7 +22,6 @@ import kr.toxicity.model.api.util.FunctionUtil;
 import kr.toxicity.model.api.util.function.BonePredicate;
 import kr.toxicity.model.api.util.function.FloatSupplier;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -80,11 +79,16 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     private ModelRotation rotation = ModelRotation.INVALID;
 
     /**
-     * Creates a new render pipeline.
+     * Creates a new render pipeline for a model renderer and root bones.
+     *
+     * <pre>{@code
+     * RenderPipeline pipeline = new RenderPipeline(modelRenderer, renderSource, rootBones);
+     * }</pre>
      *
      * @param parent the parent model renderer
      * @param source the source of the rendering (entity or location)
      * @param bones the array of root bones
+     * @throws NullPointerException if {@code parent}, {@code source}, or {@code bones} is null
      * @since 1.15.2
      */
     public RenderPipeline(
@@ -108,7 +112,11 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Creates a packet bundler for this pipeline.
+     * Creates a packet bundler for this pipeline sized to hold all display entities.
+     *
+     * <pre>{@code
+     * PacketBundler bundler = pipeline.createBundler();
+     * }</pre>
      *
      * @return a new packet bundler
      * @since 1.15.2
@@ -118,10 +126,18 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Retrieves the channel handler for a specific player.
+     * Retrieves the network channel handler for a specific player.
+     *
+     * <pre>{@code
+     * PlayerChannelHandler handler = pipeline.channel(player.uuid());
+     * if (handler != null) {
+     *     bundler.send(handler);
+     * }
+     * }</pre>
      *
      * @param uuid the UUID of the player
-     * @return the channel handler, or null if not found
+     * @return the channel handler, or {@code null} if the player is not spawned
+     * @throws NullPointerException if {@code uuid} is null
      * @since 1.15.2
      */
     public @Nullable PlayerChannelHandler channel(@NotNull UUID uuid) {
@@ -131,6 +147,10 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
 
     /**
      * Creates an animation packet bundler based on configuration.
+     *
+     * <pre>{@code
+     * AnimationBundler bundler = pipeline.createAnimationBundler();
+     * }</pre>
      *
      * @return a new animation packet bundler
      * @since 2.2.1
@@ -144,6 +164,18 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
         );
     }
 
+    /**
+     * Returns the bone event dispatcher used to register and trigger bone lifecycle events.
+     *
+     * <pre>{@code
+     * pipeline.eventDispatcher().handleCreateHitBox((bone, builder) -> {
+     *     return builder;
+     * });
+     * }</pre>
+     *
+     * @return the bone event dispatcher
+     * @since 3.6.0
+     */
     @Override
     public @NotNull BoneEventDispatcher eventDispatcher() {
         return eventDispatcher;
@@ -151,8 +183,16 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
 
     /**
      * Adds a filter to restrict which players can view the model.
+     * <p>
+     * The given predicate is combined with the existing view filter using logical AND.
+     * </p>
+     *
+     * <pre>{@code
+     * pipeline.viewFilter(player -> player.hasPermission("model.view"));
+     * }</pre>
      *
      * @param filter the predicate to filter players
+     * @throws NullPointerException if {@code filter} is null
      * @since 1.15.2
      */
     public void viewFilter(@NotNull Predicate<PlatformPlayer> filter) {
@@ -161,8 +201,16 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
 
     /**
      * Adds a filter to determine if a player should be hidden from the model.
+     * <p>
+     * The given predicate is combined with the existing hide filter using logical OR.
+     * </p>
+     *
+     * <pre>{@code
+     * pipeline.hideFilter(player -> player.isVanished());
+     * }</pre>
      *
      * @param filter the predicate to hide players
+     * @throws NullPointerException if {@code filter} is null
      * @since 1.15.2
      */
     public void hideFilter(@NotNull Predicate<PlatformPlayer> filter) {
@@ -170,9 +218,19 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Adds a handler for spawn packets.
+     * Adds a handler invoked when spawn packets are bundled.
+     * <p>
+     * Additional handlers are executed sequentially via {@link Consumer#andThen(Consumer)}.
+     * </p>
+     *
+     * <pre>{@code
+     * pipeline.spawnPacketHandler(bundler -> {
+     *     // append custom packets to spawn bundler
+     * });
+     * }</pre>
      *
      * @param spawnPacketHandler the consumer to handle spawn packets
+     * @throws NullPointerException if {@code spawnPacketHandler} is null
      * @since 1.15.2
      */
     public void spawnPacketHandler(@NotNull Consumer<PacketBundler> spawnPacketHandler) {
@@ -180,9 +238,19 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Adds a handler for despawn packets.
+     * Adds a handler invoked when despawn packets are bundled.
+     * <p>
+     * Additional handlers are executed sequentially via {@link Consumer#andThen(Consumer)}.
+     * </p>
+     *
+     * <pre>{@code
+     * pipeline.despawnPacketHandler(bundler -> {
+     *     // append custom packets to despawn bundler
+     * });
+     * }</pre>
      *
      * @param despawnPacketHandler the consumer to handle despawn packets
+     * @throws NullPointerException if {@code despawnPacketHandler} is null
      * @since 1.15.2
      */
     public void despawnPacketHandler(@NotNull Consumer<PacketBundler> despawnPacketHandler) {
@@ -190,30 +258,57 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Adds a handler for hide packets.
+     * Adds a handler invoked when hide packets are bundled for a player.
+     * <p>
+     * Additional handlers are executed sequentially via {@link Consumer#andThen(Consumer)}.
+     * </p>
      *
-     * @param despawnPacketHandler the consumer to handle hide packets
+     * <pre>{@code
+     * pipeline.hidePacketHandler(bundler -> {
+     *     // append custom packets when model is hidden
+     * });
+     * }</pre>
+     *
+     * @param hidePacketHandler the consumer to handle hide packets
+     * @throws NullPointerException if {@code hidePacketHandler} is null
      * @since 1.15.2
      */
-    public void hidePacketHandler(@NotNull Consumer<PacketBundler> despawnPacketHandler) {
-        this.hidePacketHandler = this.hidePacketHandler.andThen(Objects.requireNonNull(despawnPacketHandler));
+    public void hidePacketHandler(@NotNull Consumer<PacketBundler> hidePacketHandler) {
+        this.hidePacketHandler = this.hidePacketHandler.andThen(Objects.requireNonNull(hidePacketHandler));
     }
 
     /**
-     * Adds a handler for show packets.
+     * Adds a handler invoked when show packets are bundled for a player.
+     * <p>
+     * Additional handlers are executed sequentially via {@link Consumer#andThen(Consumer)}.
+     * </p>
      *
-     * @param despawnPacketHandler the consumer to handle show packets
+     * <pre>{@code
+     * pipeline.showPacketHandler(bundler -> {
+     *     // append custom packets when model is shown
+     * });
+     * }</pre>
+     *
+     * @param showPacketHandler the consumer to handle show packets
+     * @throws NullPointerException if {@code showPacketHandler} is null
      * @since 1.15.2
      */
-    public void showPacketHandler(@NotNull Consumer<PacketBundler> despawnPacketHandler) {
-        this.showPacketHandler = this.showPacketHandler.andThen(Objects.requireNonNull(despawnPacketHandler));
+    public void showPacketHandler(@NotNull Consumer<PacketBundler> showPacketHandler) {
+        this.showPacketHandler = this.showPacketHandler.andThen(Objects.requireNonNull(showPacketHandler));
     }
 
     /**
-     * Checks if the model is spawned for a specific player.
+     * Checks if the model is currently spawned for a specific player.
+     *
+     * <pre>{@code
+     * if (pipeline.isSpawned(player.uuid())) {
+     *     // player is currently tracked
+     * }
+     * }</pre>
      *
      * @param uuid the UUID of the player
-     * @return true if spawned, false otherwise
+     * @return {@code true} if spawned for the player, {@code false} otherwise
+     * @throws NullPointerException if {@code uuid} is null
      * @since 1.15.2
      */
     public boolean isSpawned(@NotNull UUID uuid) {
@@ -221,9 +316,16 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Retrieves the currently running animation, if any.
+     * Retrieves the currently running animation across bones, if any.
      *
-     * @return the running animation, or null if none
+     * <pre>{@code
+     * RunningAnimation animation = pipeline.runningAnimation();
+     * if (animation != null) {
+     *     // query running animation details
+     * }
+     * }</pre>
+     *
+     * @return the running animation, or {@code null} if none is playing
      * @since 1.15.2
      */
     public @Nullable RunningAnimation runningAnimation() {
@@ -233,6 +335,10 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     /**
      * Returns the name of the model.
      *
+     * <pre>{@code
+     * String name = pipeline.name();
+     * }</pre>
+     *
      * @return the model name
      * @since 1.15.2
      */
@@ -241,7 +347,11 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Despawns the model for all players and clears internal state.
+     * Despawns the model for all viewing players, removes all hitboxes, and clears internal state.
+     *
+     * <pre>{@code
+     * pipeline.despawn();
+     * }</pre>
      *
      * @since 1.15.2
      */
@@ -254,11 +364,19 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Rotates the model to a new orientation.
+     * Rotates the model to a new orientation and bundles transformation packets.
      *
-     * @param rotation the new rotation
-     * @param bundler the packet bundler to use
-     * @return true if the rotation changed, false otherwise
+     * <pre>{@code
+     * PacketBundler bundler = pipeline.createBundler();
+     * if (pipeline.rotate(newRotation, bundler)) {
+     *     pipeline.forEachAllPlayer(bundler::send);
+     * }
+     * }</pre>
+     *
+     * @param rotation the new model rotation
+     * @param bundler the packet bundler to receive rotation packets
+     * @return {@code true} if the rotation changed and packets were updated, {@code false} otherwise
+     * @throws NullPointerException if {@code rotation} or {@code bundler} is null
      * @since 1.15.2
      */
     public boolean rotate(@NotNull ModelRotation rotation, @NotNull PacketBundler bundler) {
@@ -268,10 +386,18 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Ticks the model, updating animations and IK.
+     * Ticks the model globally, updating bone animations, solving IK, and bundling transformations.
      *
-     * @param bundler the packet bundler to use
-     * @return true if any updates occurred
+     * <pre>{@code
+     * AnimationBundler bundler = pipeline.createAnimationBundler();
+     * if (pipeline.tick(bundler)) {
+     *     pipeline.forEachNonHidePlayer(bundler::send);
+     * }
+     * }</pre>
+     *
+     * @param bundler the animation packet bundler to use
+     * @return {@code true} if any bone or animation updates occurred, {@code false} otherwise
+     * @throws NullPointerException if {@code bundler} is null
      * @since 1.15.2
      */
     public boolean tick(@NotNull AnimationBundler bundler) {
@@ -284,11 +410,20 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Ticks the model for a specific player (e.g., for per-player animations).
+     * Ticks the model for a specific player, updating per-player animations, solving IK, and bundling transformations.
+     *
+     * <pre>{@code
+     * AnimationBundler bundler = pipeline.createAnimationBundler();
+     * if (pipeline.tick(playerUuid, bundler)) {
+     *     PlayerChannelHandler handler = pipeline.channel(playerUuid);
+     *     if (handler != null) bundler.send(handler);
+     * }
+     * }</pre>
      *
      * @param uuid the UUID of the player
-     * @param bundler the packet bundler to use
-     * @return true if any updates occurred
+     * @param bundler the animation packet bundler to use
+     * @return {@code true} if any bone or animation updates occurred for the player, {@code false} otherwise
+     * @throws NullPointerException if {@code uuid} or {@code bundler} is null
      * @since 1.15.2
      */
     public boolean tick(@NotNull UUID uuid, @NotNull AnimationBundler bundler) {
@@ -301,9 +436,14 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Sets the default position modifier for all bones.
+     * Sets the default position modifier for all bones in the pipeline.
      *
-     * @param movement the movement function
+     * <pre>{@code
+     * pipeline.defaultPosition(pos -> pos.add(0, 1.0f, 0));
+     * }</pre>
+     *
+     * @param movement the position transformation function
+     * @throws NullPointerException if {@code movement} is null
      * @since 1.15.2
      */
     public void defaultPosition(@NotNull Function<Vector3f, Vector3f> movement) {
@@ -313,9 +453,14 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Scales the model.
+     * Sets the scale supplier for all bones in the pipeline.
+     *
+     * <pre>{@code
+     * pipeline.scale(() -> 1.5f);
+     * }</pre>
      *
      * @param scale the scale supplier
+     * @throws NullPointerException if {@code scale} is null
      * @since 1.15.2
      */
     public void scale(@NotNull FloatSupplier scale) {
@@ -323,11 +468,16 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Adds a local rotation modifier to matching bones.
+     * Adds a local rotation modifier to bones matching the given predicate.
+     *
+     * <pre>{@code
+     * pipeline.addLocalRotModifier(BonePredicate.name("head"), rot -> rot.rotateX(0.1f));
+     * }</pre>
      *
      * @param predicate the predicate to select bones
-     * @param mapper the rotation mapping function
-     * @return true if any bones were modified
+     * @param mapper the local rotation mapping function
+     * @return {@code true} if any matching bones were modified, {@code false} otherwise
+     * @throws NullPointerException if {@code predicate} or {@code mapper} is null
      * @since 3.0.0
      */
     public boolean addLocalRotModifier(@NotNull BonePredicate predicate, @NotNull Function<Quaternionf, Quaternionf> mapper) {
@@ -335,11 +485,16 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Adds a global rotation modifier to matching bones.
+     * Adds a global rotation modifier to bones matching the given predicate.
+     *
+     * <pre>{@code
+     * pipeline.addGlobalRotModifier(BonePredicate.TRUE, rot -> rot.rotateY(0.2f));
+     * }</pre>
      *
      * @param predicate the predicate to select bones
-     * @param mapper the rotation mapping function
-     * @return true if any bones were modified
+     * @param mapper the global rotation mapping function
+     * @return {@code true} if any matching bones were modified, {@code false} otherwise
+     * @throws NullPointerException if {@code predicate} or {@code mapper} is null
      * @since 3.0.0
      */
     public boolean addGlobalRotModifier(@NotNull BonePredicate predicate, @NotNull Function<Quaternionf, Quaternionf> mapper) {
@@ -347,11 +502,16 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Adds a position modifier to matching bones.
+     * Adds a position modifier to bones matching the given predicate.
+     *
+     * <pre>{@code
+     * pipeline.addPositionModifier(BonePredicate.name("root"), pos -> pos.add(0, 0.5f, 0));
+     * }</pre>
      *
      * @param predicate the predicate to select bones
      * @param mapper the position mapping function
-     * @return true if any bones were modified
+     * @return {@code true} if any matching bones were modified, {@code false} otherwise
+     * @throws NullPointerException if {@code predicate} or {@code mapper} is null
      * @since 1.15.2
      */
     public boolean addPositionModifier(@NotNull BonePredicate predicate, @NotNull Function<Vector3f, Vector3f> mapper) {
@@ -359,9 +519,15 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Returns a collection of all bones in this pipeline.
+     * Returns an unmodifiable collection of all rendered bones in this pipeline.
      *
-     * @return the collection of bones
+     * <pre>{@code
+     * for (RenderedBone bone : pipeline.bones()) {
+     *     // process rendered bone
+     * }
+     * }</pre>
+     *
+     * @return the unmodifiable collection of bones
      * @since 1.15.2
      */
     public @NotNull @Unmodifiable Collection<RenderedBone> bones() {
@@ -369,9 +535,15 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Returns a stream of all hitboxes associated with this model.
+     * Returns a stream of all hitboxes associated with bones in this pipeline.
      *
-     * @return the stream of hitboxes
+     * <pre>{@code
+     * pipeline.hitboxes().forEach(hitbox -> {
+     *     // inspect hitbox
+     * });
+     * }</pre>
+     *
+     * @return the stream of non-null hitboxes
      * @since 1.15.2
      */
     public @NotNull Stream<HitBox> hitboxes() {
@@ -381,10 +553,15 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Retrieves a bone by its name.
+     * Retrieves a rendered bone by its name.
+     *
+     * <pre>{@code
+     * RenderedBone bone = pipeline.boneOf(BoneName.of("head"));
+     * }</pre>
      *
      * @param name the name of the bone
-     * @return the rendered bone, or null if not found
+     * @return the rendered bone, or {@code null} if not found
+     * @throws NullPointerException if {@code name} is null
      * @since 1.15.2
      */
     public @Nullable RenderedBone boneOf(@NotNull BoneName name) {
@@ -392,12 +569,19 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Spawns the model for a player.
+     * Spawns the model for a player and bundles initial packets.
+     *
+     * <pre>{@code
+     * pipeline.spawn(player, bundler, spawned -> {
+     *     spawned.load();
+     * });
+     * }</pre>
      *
      * @param player the player to spawn for
-     * @param bundler the packet bundler to use
-     * @param consumer a consumer for the spawned player object
-     * @return true if spawned successfully
+     * @param bundler the packet bundler to receive spawn packets
+     * @param consumer a consumer accepting the newly created {@link SpawnedPlayer}
+     * @return {@code true} if spawned successfully, {@code false} if the player is not registered in player manager
+     * @throws NullPointerException if {@code player}, {@code bundler}, or {@code consumer} is null
      * @since 1.15.2
      */
     @ApiStatus.Internal
@@ -414,10 +598,15 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Removes the model for a player.
+     * Removes the model for a player and sends despawn packets immediately.
      *
-     * @param player the player to remove for
-     * @return true if removed successfully
+     * <pre>{@code
+     * boolean removed = pipeline.remove(player);
+     * }</pre>
+     *
+     * @param player the player to remove the model for
+     * @return {@code true} if removed successfully, {@code false} if the player was not spawned
+     * @throws NullPointerException if {@code player} is null
      * @since 1.15.2
      */
     @ApiStatus.Internal
@@ -436,14 +625,21 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Applies a mapper to bones matching a predicate.
+     * Applies a matching predicate function to bones matching the given bone predicate.
      *
-     * @param predicate the bone predicate
-     * @param mapper the mapper function
-     * @return true if any bones matched
+     * <pre>{@code
+     * boolean matched = pipeline.matchTree(BonePredicate.name("head"), (bone, pred) -> {
+     *     return true;
+     * });
+     * }</pre>
+     *
+     * @param predicate the bone predicate to filter bones
+     * @param mapper the evaluation function applied to matching bones
+     * @return {@code true} if any matching bone satisfied the mapper, {@code false} otherwise
+     * @throws NullPointerException if {@code predicate} or {@code mapper} is null
      * @since 1.15.2
      */
-    public boolean matchTree(@NotNull BonePredicate predicate, BiPredicate<RenderedBone, BonePredicate> mapper) {
+    public boolean matchTree(@NotNull BonePredicate predicate, @NotNull BiPredicate<RenderedBone, BonePredicate> mapper) {
         Objects.requireNonNull(predicate);
         Objects.requireNonNull(mapper);
         if (predicate == BonePredicate.FALSE) return false;
@@ -456,10 +652,17 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Applies a mapper to bones matching an animation predicate.
+     * Applies an animation override evaluation to all bone hierarchies.
      *
-     * @param mapper the mapper function
-     * @return true if any bones matched
+     * <pre>{@code
+     * boolean matched = pipeline.matchAnimation((bone, state) -> {
+     *     return true;
+     * });
+     * }</pre>
+     *
+     * @param mapper the evaluation function applied to bones and override states
+     * @return {@code true} if any bone matched the animation predicate, {@code false} otherwise
+     * @throws NullPointerException if {@code mapper} is null
      * @since 1.15.2
      */
     public boolean matchAnimation(@NotNull BiPredicate<RenderedBone, AnimationOverrideState> mapper) {
@@ -472,10 +675,15 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Checks if any bones match a predicate.
+     * Checks if any bone in the flattened hierarchy matches the given predicate.
      *
-     * @param predicate the predicate
-     * @return true if any bones matched
+     * <pre>{@code
+     * boolean hasDisplays = pipeline.matchTree(bone -> bone.getDisplay() != null);
+     * }</pre>
+     *
+     * @param predicate the predicate to test each rendered bone
+     * @return {@code true} if at least one bone matched the predicate, {@code false} otherwise
+     * @throws NullPointerException if {@code predicate} is null
      * @since 1.15.2
      */
     public boolean matchTree(@NotNull Predicate<RenderedBone> predicate) {
@@ -488,11 +696,16 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Finds the first non-null result of applying a mapper to all bones.
+     * Finds the first non-null result of applying a mapping function across all flattened bones.
      *
-     * @param mapper the mapper function
+     * <pre>{@code
+     * RunningAnimation anim = pipeline.firstNotNull(RenderedBone::runningAnimation);
+     * }</pre>
+     *
+     * @param mapper the function to apply to each bone
      * @param <T> the result type
-     * @return the first non-null result, or null
+     * @return the first non-null result produced by {@code mapper}, or {@code null} if none
+     * @throws NullPointerException if {@code mapper} is null
      * @since 1.15.2
      */
     public <T> @Nullable T firstNotNull(@NotNull Function<RenderedBone, T> mapper) {
@@ -505,9 +718,13 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Returns the number of players currently viewing this model.
+     * Returns the number of players for whom the model is currently spawned.
      *
-     * @return the player count
+     * <pre>{@code
+     * int count = pipeline.playerCount();
+     * }</pre>
+     *
+     * @return the number of spawned players
      * @since 1.15.2
      */
     public int playerCount() {
@@ -515,9 +732,15 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Returns a stream of all players viewing this model.
+     * Returns a stream of channel handlers for all players for whom the model is spawned.
      *
-     * @return the stream of players
+     * <pre>{@code
+     * pipeline.allPlayer().forEach(handler -> {
+     *     // process player channel handler
+     * });
+     * }</pre>
+     *
+     * @return the stream of all spawned player channel handlers
      * @since 1.15.2
      */
     public @NotNull Stream<PlayerChannelHandler> allPlayer() {
@@ -526,6 +749,17 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
             .map(spawned -> spawned.handler);
     }
 
+    /**
+     * Performs the given action for each player channel handler for whom the model is spawned.
+     *
+     * <pre>{@code
+     * pipeline.forEachAllPlayer(handler -> bundler.send(handler));
+     * }</pre>
+     *
+     * @param consumer the action to perform on each player channel handler
+     * @throws NullPointerException if {@code consumer} is null
+     * @since 3.6.0
+     */
     public void forEachAllPlayer(@NotNull Consumer<PlayerChannelHandler> consumer) {
         Objects.requireNonNull(consumer);
         for (SpawnedPlayer value : playerMap.values()) {
@@ -534,9 +768,18 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Returns a stream of players who are not hidden and pass the view filter.
+     * Returns a stream of players who have finished initial load and are not hidden.
+     * <p>
+     * Note that this method checks {@link #isHide(PlatformPlayer)}, but does not evaluate the view filter.
+     * </p>
      *
-     * @return the stream of visible players
+     * <pre>{@code
+     * pipeline.nonHidePlayer().forEach(handler -> {
+     *     bundler.send(handler);
+     * });
+     * }</pre>
+     *
+     * @return the stream of non-hidden, loaded player channel handlers
      * @since 1.15.2
      */
     public @NotNull Stream<PlayerChannelHandler> nonHidePlayer() {
@@ -547,6 +790,17 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
             .filter(p -> !hideFilter.test(p.player()));
     }
 
+    /**
+     * Performs the given action for each player channel handler who has finished initial load and is not hidden.
+     *
+     * <pre>{@code
+     * pipeline.forEachNonHidePlayer(handler -> bundler.send(handler));
+     * }</pre>
+     *
+     * @param consumer the action to perform on each non-hidden player channel handler
+     * @throws NullPointerException if {@code consumer} is null
+     * @since 3.6.0
+     */
     public void forEachNonHidePlayer(@NotNull Consumer<PlayerChannelHandler> consumer) {
         Objects.requireNonNull(consumer);
         for (SpawnedPlayer value : playerMap.values()) {
@@ -558,15 +812,32 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Returns a stream of players who pass the view filter (regardless of hidden status).
+     * Returns a stream of player channel handlers who pass the view filter (regardless of hidden status).
      *
-     * @return the stream of viewed players
+     * <pre>{@code
+     * pipeline.viewedPlayer().forEach(handler -> {
+     *     // process viewed player
+     * });
+     * }</pre>
+     *
+     * @return the stream of viewed player channel handlers
      * @since 1.15.2
      */
     public @NotNull Stream<PlayerChannelHandler> viewedPlayer() {
         return allPlayer().filter(channel -> viewFilter.test(channel.player()));
     }
 
+    /**
+     * Performs the given action for each player channel handler who passes the view filter.
+     *
+     * <pre>{@code
+     * pipeline.forEachViewedPlayer(handler -> bundler.send(handler));
+     * }</pre>
+     *
+     * @param consumer the action to perform on each viewed player channel handler
+     * @throws NullPointerException if {@code consumer} is null
+     * @since 3.6.0
+     */
     public void forEachViewedPlayer(@NotNull Consumer<PlayerChannelHandler> consumer) {
         Objects.requireNonNull(consumer);
         for (SpawnedPlayer value : playerMap.values()) {
@@ -576,10 +847,15 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Hides the model from a specific player.
+     * Hides the model and its hitboxes from a specific player.
      *
-     * @param player the player to hide from
-     * @return true if the player was successfully hidden
+     * <pre>{@code
+     * boolean hidden = pipeline.hide(player);
+     * }</pre>
+     *
+     * @param player the player to hide the model from
+     * @return {@code true} if the player was newly hidden; {@code false} if already hidden
+     * @throws NullPointerException if {@code player} is null
      * @since 1.15.2
      */
     public boolean hide(@NotNull PlatformPlayer player) {
@@ -597,8 +873,15 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     /**
      * Checks if the model is hidden from a specific player.
      *
+     * <pre>{@code
+     * if (pipeline.isHide(player)) {
+     *     // model is hidden for this player
+     * }
+     * }</pre>
+     *
      * @param player the player to check
-     * @return true if hidden
+     * @return {@code true} if hidden, {@code false} otherwise
+     * @throws NullPointerException if {@code player} is null
      * @since 1.15.2
      */
     public boolean isHide(@NotNull PlatformPlayer player) {
@@ -606,10 +889,15 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Shows the model to a specific player (if previously hidden).
+     * Shows the model and its hitboxes to a specific player if previously hidden.
      *
-     * @param player the player to show to
-     * @return true if the player was successfully shown
+     * <pre>{@code
+     * boolean shown = pipeline.show(player);
+     * }</pre>
+     *
+     * @param player the player to show the model to
+     * @return {@code true} if the player was successfully shown; {@code false} if not previously hidden
+     * @throws NullPointerException if {@code player} is null
      * @since 1.15.2
      */
     public boolean show(@NotNull PlatformPlayer player) {
@@ -624,6 +912,19 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
         return true;
     }
 
+    /**
+     * Performs the given action for each rendered bone in this pipeline.
+     *
+     * <pre>{@code
+     * pipeline.forEach(bone -> {
+     *     // process rendered bone
+     * });
+     * }</pre>
+     *
+     * @param action the action to perform on each rendered bone
+     * @throws NullPointerException if {@code action} is null
+     * @since 1.15.2
+     */
     @Override
     public void forEach(@NotNull Consumer<? super RenderedBone> action) {
         for (RenderedBone bone : flattenBones) {
@@ -631,12 +932,35 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
         }
     }
 
+    /**
+     * Returns an iterator over the rendered bones in this pipeline.
+     *
+     * <pre>{@code
+     * Iterator<RenderedBone> iterator = pipeline.iterator();
+     * while (iterator.hasNext()) {
+     *     RenderedBone bone = iterator.next();
+     * }
+     * }</pre>
+     *
+     * @return an iterator over the rendered bones
+     * @since 1.15.2
+     */
     @Override
     @NotNull
     public Iterator<RenderedBone> iterator() {
         return bones().iterator();
     }
 
+    /**
+     * Returns a spliterator over the flattened rendered bones in this pipeline.
+     *
+     * <pre>{@code
+     * Spliterator<RenderedBone> spliterator = pipeline.spliterator();
+     * }</pre>
+     *
+     * @return a spliterator over the flattened rendered bones
+     * @since 1.15.2
+     */
     @Override
     @NotNull
     public Spliterator<RenderedBone> spliterator() {
@@ -645,6 +969,10 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
 
     /**
      * Returns a sequential {@code Stream} with the flattened bones as its source.
+     *
+     * <pre>{@code
+     * Stream<RenderedBone> boneStream = pipeline.stream();
+     * }</pre>
      *
      * @return a stream of all bones in this pipeline
      * @since 2.2.0
@@ -658,13 +986,31 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
      *
      * @since 1.15.2
      */
-    @RequiredArgsConstructor
     public class SpawnedPlayer {
         private final PlayerChannelHandler handler;
         private boolean initialLoad;
 
         /**
+         * Creates a new spawned player entry.
+         *
+         * <pre>{@code
+         * SpawnedPlayer spawnedPlayer = new SpawnedPlayer(handler);
+         * }</pre>
+         *
+         * @param handler the player channel handler
+         * @throws NullPointerException if {@code handler} is null
+         * @since 1.15.2
+         */
+        public SpawnedPlayer(@NotNull PlayerChannelHandler handler) {
+            this.handler = Objects.requireNonNull(handler);
+        }
+
+        /**
          * Loads the model for this player, sending initial packets.
+         *
+         * <pre>{@code
+         * spawnedPlayer.load();
+         * }</pre>
          *
          * @since 1.15.2
          */
