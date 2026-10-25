@@ -7,6 +7,7 @@
 
 package kr.toxicity.model.api.tracker;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.animation.AnimationStateHandler;
 import kr.toxicity.model.api.bone.BoneMovement;
@@ -117,7 +118,7 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
     private Supplier<ModelRotation> rotationSupplier = () -> ModelRotation.EMPTY;
     private BiConsumer<Tracker, CloseReason> closeEventHandler = (t, r) -> EventUtil.call(CloseTrackerEvent.class, () -> new CloseTrackerEvent(t, r));
 
-    private ScheduledPacketHandler handler = (_, _) -> animationTick();
+    private volatile List<ScheduledPacketHandler> tickHandlers = new ObjectArrayList<>();
     private BiConsumer<Tracker, PlatformPlayer> perPlayerHandler = null;
 
     /**
@@ -200,16 +201,19 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
     }
 
     private void tick() {
-        try {
-            if (frame % MINECRAFT_TICK_MULTIPLIER == 0) {
-                Runnable task;
-                while ((task = queuedTask.poll()) != null) task.run();
-            }
-            handler.handle(this, bundlerSet);
-            bundlerSet.send();
-        } catch (Throwable throwable) {
-            LogUtil.handleException("Ticking this tracker has been failed: " + name(), throwable);
+        if (frame % MINECRAFT_TICK_MULTIPLIER == 0) {
+            Runnable task;
+            while ((task = queuedTask.poll()) != null) task.run();
         }
+        animationTick();
+        tickHandlers.forEach(handler -> {
+            try {
+                handler.handle(this, bundlerSet);
+            } catch (Throwable throwable) {
+                LogUtil.handleException("Ticking this tracker has been failed: " + name(), throwable);
+            }
+        });
+        bundlerSet.send();
     }
 
     private void animationTick() {
@@ -286,7 +290,16 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
      * @since 1.15.2
      */
     public synchronized void frame(@NotNull ScheduledPacketHandler handler) {
-        this.handler = this.handler.then(Objects.requireNonNull(handler));
+        Objects.requireNonNull(handler);
+        var get = tickHandlers;
+        if (!isScheduled()) {
+            get.add(handler);
+        } else {
+            var newList = new ObjectArrayList<ScheduledPacketHandler>(get.size() + 1);
+            newList.addAll(get);
+            newList.add(handler);
+            tickHandlers = newList;
+        }
     }
     /**
      * Registers a handler to run every Minecraft tick (50ms).
