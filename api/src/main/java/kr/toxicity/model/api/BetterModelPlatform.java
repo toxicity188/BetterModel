@@ -11,6 +11,7 @@ import com.google.gson.annotations.SerializedName;
 import kr.toxicity.model.api.event.ModelEventApplication;
 import kr.toxicity.model.api.manager.*;
 import kr.toxicity.model.api.nms.NMS;
+import kr.toxicity.model.api.pack.PackByte;
 import kr.toxicity.model.api.pack.PackResult;
 import kr.toxicity.model.api.pack.PackZipper;
 import kr.toxicity.model.api.platform.PlatformAdapter;
@@ -318,7 +319,7 @@ public interface BetterModelPlatform extends ModelEventApplication {
              */
             public long length() {
                 var dir = packResult.directory();
-                return dir != null && dir.isFile() ? dir.length() : packResult.stream().mapToLong(b -> b.bytes().length).sum();
+                return dir != null && dir.isFile() ? dir.length() : packResult.stream().mapToLong(PackByte::length).sum();
             }
         }
 

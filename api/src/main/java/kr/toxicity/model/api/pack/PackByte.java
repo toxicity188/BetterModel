@@ -27,6 +27,15 @@ public record PackByte(@NotNull PackPath path, byte[] bytes) implements Comparab
         return path.equals(packByte.path);
     }
 
+    /**
+     * Gets byte length of that resources.
+     * @return byte length
+     * @since 3.6.0
+     */
+    public long length() {
+        return bytes.length;
+    }
+
     @Override
     public int hashCode() {
         return path.hashCode();
