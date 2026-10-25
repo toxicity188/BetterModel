@@ -242,9 +242,29 @@ public final class MathUtil {
      * @return xyz euler
      */
     public static @NotNull Vector3f toXYZEuler(@NotNull Vector3f vec) {
-        return toQuaternion(vec)
-            .getEulerAnglesXYZ(vec)
-            .mul(RADIANS_TO_DEGREES);
+        var q = toQuaternion(vec);
+        float qx = q.x(), qy = q.y(), qz = q.z(), qw = q.w();
+        // m20 = 2 * (x * z + w * y)
+        float sy = 2.0F * (qx * qz + qw * qy);
+        // m00 = 1 - 2 * (y^2 + z^2)
+        float m00 = 1.0F - 2.0F * (qy * qy + qz * qz);
+        // m10 = 2 * (x * y - w * z)
+        float m10 = 2.0F * (qx * qy - qw * qz);
+
+        float y = (float) Math.atan2(sy, Math.hypot(m00, m10));
+        float x, z;
+        if (Math.abs(sy) < 0.99999F) {
+            // -m21 = 2 * (w * x - y * z)
+            // m22 = 1 - 2 * (x^2 + y^2)
+            x = (float) Math.atan2(2.0F * (qw * qx - qy * qz), 1.0F - 2.0F * (qx * qx + qy * qy));
+            z = (float) Math.atan2(-m10, m00);
+        } else {
+            // m12 = 2 * (y * z + w * x)
+            // m11 = 1 - 2 * (x^2 + z^2)
+            x = (float) Math.atan2(2.0F * (qy * qz + qw * qx), 1.0F - 2.0F * (qx * qx + qz * qz));
+            z = 0F;
+        }
+        return vec.set(x, y, z).mul(RADIANS_TO_DEGREES);
     }
 
     /**
