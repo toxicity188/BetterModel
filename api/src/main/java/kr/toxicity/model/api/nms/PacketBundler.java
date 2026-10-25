@@ -48,6 +48,16 @@ public interface PacketBundler {
     int size();
 
     /**
+     * Sends all collected packets to the specified channel.
+     *
+     * @param channel the target channel
+     * @since 3.6.0
+     */
+    default void send(@NotNull PlayerChannelHandler channel) {
+        send(channel.player());
+    }
+
+    /**
      * Sends all collected packets to the specified player.
      *
      * @param player the target player

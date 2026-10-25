@@ -249,7 +249,7 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
         hitboxes().forEach(HitBox::removeHitBox);
         var bundler = createBundler();
         remove0(bundler);
-        if (bundler.isNotEmpty()) allPlayer().map(PlayerChannelHandler::player).forEach(bundler::send);
+        if (bundler.isNotEmpty()) forEachAllPlayer(bundler::send);
         playerMap.clear();
     }
 
@@ -526,6 +526,13 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
             .map(spawned -> spawned.handler);
     }
 
+    public void forEachAllPlayer(@NotNull Consumer<PlayerChannelHandler> consumer) {
+        Objects.requireNonNull(consumer);
+        for (SpawnedPlayer value : playerMap.values()) {
+            consumer.accept(value.handler);
+        }
+    }
+
     /**
      * Returns a stream of players who are not hidden and pass the view filter.
      *
@@ -540,6 +547,16 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
             .filter(p -> !hideFilter.test(p.player()));
     }
 
+    public void forEachNonHidePlayer(@NotNull Consumer<PlayerChannelHandler> consumer) {
+        Objects.requireNonNull(consumer);
+        for (SpawnedPlayer value : playerMap.values()) {
+            if (!value.initialLoad) continue;
+            var handler = value.handler;
+            if (hideFilter.test(handler.player())) continue;
+            consumer.accept(handler);
+        }
+    }
+
     /**
      * Returns a stream of players who pass the view filter (regardless of hidden status).
      *
@@ -548,6 +565,14 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
      */
     public @NotNull Stream<PlayerChannelHandler> viewedPlayer() {
         return allPlayer().filter(channel -> viewFilter.test(channel.player()));
+    }
+
+    public void forEachViewedPlayer(@NotNull Consumer<PlayerChannelHandler> consumer) {
+        Objects.requireNonNull(consumer);
+        for (SpawnedPlayer value : playerMap.values()) {
+            var handler = value.handler;
+            if (viewFilter.test(handler.player())) consumer.accept(handler);
+        }
     }
 
     /**
@@ -648,7 +673,7 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
             if (isHide(handler.player())) return;
             var b = createBundler();
             forEach(bone -> bone.forceUpdate(b));
-            if (b.isNotEmpty()) b.send(handler.player());
+            if (b.isNotEmpty()) b.send(handler);
         }
     }
 }

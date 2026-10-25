@@ -124,7 +124,7 @@ class BetterModelNMSImpl : NMS {
             val packet = if (registry.hideOption(channel.uuid()).equipment) target.toEmptyEquipmentPacket() else target.toEquipmentPacket()
             packet?.let { list += it }
         }
-        list.send(channel.player())
+        list.send(channel)
     }
 
     override fun createHitBox(

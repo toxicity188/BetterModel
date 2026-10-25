@@ -142,7 +142,7 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
         ));
         tick((t, _) -> {
             var perPlayer = perPlayerHandler;
-            if (perPlayer != null) pipeline.nonHidePlayer().forEach(p -> perPlayer.accept(t, p.player()));
+            if (perPlayer != null) pipeline.forEachNonHidePlayer(p -> perPlayer.accept(t, p.player()));
         });
         pipeline.spawnPacketHandler(_ -> start());
         pipeline.eventDispatcher().handleStateCreate((_, uuid) -> bundlerSet.perPlayerViewBundler
@@ -217,10 +217,9 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
     }
 
     private void animationTick() {
-        if (!tickPause.get()) {
-            scriptProcessor.tick();
-            pipeline.tick(bundlerSet.viewBundler);
-        }
+        if (tickPause.get()) return; // Pause
+        scriptProcessor.tick();
+        pipeline.tick(bundlerSet.viewBundler);
     }
 
     /**
@@ -969,20 +968,6 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
          * @since 1.15.2
          */
         void handle(@NotNull Tracker tracker, @NotNull BundlerSet bundlerSet);
-
-        /**
-         * Chains this handler with another.
-         *
-         * @param other the other handler
-         * @return the combined handler
-         * @since 1.15.2
-         */
-        default @NotNull ScheduledPacketHandler then(@NotNull ScheduledPacketHandler other) {
-            return (t, s) -> {
-                handle(t, s);
-                other.handle(t, s);
-            };
-        }
     }
 
     /**
@@ -1018,15 +1003,17 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
 
         private void globalSend() {
             if (tickBundler.isNotEmpty()) {
-                pipeline.allPlayer().map(PlayerChannelHandler::player).forEach(tickBundler::send);
+                pipeline.forEachAllPlayer(tickBundler::send);
                 tickBundler = pipeline.createBundler();
             }
             if (dataBundler.isNotEmpty()) {
-                pipeline.nonHidePlayer().map(PlayerChannelHandler::player).forEach(dataBundler::send);
+                pipeline.forEachNonHidePlayer(dataBundler::send);
                 dataBundler = pipeline.createBundler();
             }
             if (viewBundler.isNotEmpty()) {
-                pipeline.viewedPlayer().filter(p -> !perPlayerViewBundler.containsKey(p.uuid())).forEach(viewBundler::send);
+                pipeline.forEachViewedPlayer(p -> {
+                    if (!perPlayerViewBundler.containsKey(p.uuid())) viewBundler.send(p);
+                });
                 viewBundler = pipeline.createAnimationBundler();
             }
         }
@@ -1051,18 +1038,18 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
         public void remove() {
             if (counter.decrementAndGet() == 0) {
                 bundlerSet.perPlayerViewBundler.remove(uuid);
-                channel().ifPresent(handler -> {
+                channel().ifPresent(channel -> {
                     var bundler = pipeline.createBundler();
                     pipeline.forEach(bone -> bone.forceTransformation(bundler));
-                    bundler.send(handler.player());
-                    EventUtil.call(PlayerPerAnimationEndEvent.class, () -> new PlayerPerAnimationEndEvent(Tracker.this, handler.player()));
+                    bundler.send(channel);
+                    EventUtil.call(PlayerPerAnimationEndEvent.class, () -> new PlayerPerAnimationEndEvent(Tracker.this, channel.player()));
                 });
             }
         }
 
         private void send() {
             if (pipeline.tick(uuid, bundler) && bundler.isNotEmpty()) {
-                channel().ifPresent(handler -> bundler.send(handler));
+                channel().ifPresent(bundler::send);
                 bundler = pipeline.createAnimationBundler();
             }
         }

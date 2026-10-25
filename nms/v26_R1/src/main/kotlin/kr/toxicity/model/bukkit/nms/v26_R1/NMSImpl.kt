@@ -117,7 +117,7 @@ class NMSImpl : NMS {
             val packet = if (registry.hideOption(channel.uuid()).equipment) target.toEmptyEquipmentPacket() else target.toEquipmentPacket()
             packet?.let { list += it }
         }
-        list.send(channel.player())
+        list.send(channel)
     }
 
     private fun ClientboundSetEntityDataPacket.toRegistryDataPacket(uuid: UUID, registry: EntityTrackerRegistry) = ClientboundSetEntityDataPacket(id, packedItems().map {

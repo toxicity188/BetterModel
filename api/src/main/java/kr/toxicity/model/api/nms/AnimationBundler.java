@@ -38,7 +38,7 @@ public record AnimationBundler(
      * @param handler the player's channel handler used to determine mod status and send packets
      */
     public void send(@NotNull PlayerChannelHandler handler) {
-        if (handler.isModEnabled()) mod.send(handler.player());
-        else standard.send(handler.player());
+        if (handler.isModEnabled()) mod.send(handler);
+        else standard.send(handler);
     }
 }
