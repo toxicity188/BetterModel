@@ -124,7 +124,7 @@ public final class EntityUtil {
         var dy = target.y() - player.y();
         var dx = target.x() - player.x();
 
-        var ry = abs(atan2(dy, sqrt(MathUtil.fma(dz, dz, dx * dx))) - playerPitch);
+        var ry = abs(atan2(dy, hypot(dz, dx)) - playerPitch);
         var rz = abs(atan2(-dx, dz) - playerYaw);
         return (ry <= ty || ry >= TAU - ty) && (rz <= tz || rz >= TAU - tz);
     }
