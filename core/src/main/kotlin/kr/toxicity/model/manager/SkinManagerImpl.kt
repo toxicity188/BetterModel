@@ -626,12 +626,18 @@ object SkinManagerImpl : SkinManager, GlobalManager {
 
         val itemObf = PackObfuscator.order()
         val modelObf = PackObfuscator.order()
+        val textureName = PackObfuscator.order().let {
+            UVTextureName(
+                it.obfuscate(UVTextureName.DEFAULT.normalPixel),
+                it.obfuscate(UVTextureName.DEFAULT.translucentPixel)
+            )
+        }
 
         fun UVModel.parseAsJson(armorResource: ArmorResource? = null): Collection<UVByteBuilder> {
             val model = modelName()
             packName(itemObf.obfuscate(model))
             return asJson(UVLoadContext(
-                UVTextureName.DEFAULT,
+                textureName,
                 modelObf::obfuscate,
                 { indexer, _, array ->
                     armorResource
@@ -662,8 +668,8 @@ object SkinManagerImpl : SkinManager, GlobalManager {
         set += SLIM_RIGHT_FOREARM.parseAsJson()
         set += CAPE.parseAsJson()
 
-        set += UVTextureName.DEFAULT.normalPixel(uvNamespace)
-        set += UVTextureName.DEFAULT.translucentPixel(uvNamespace)
+        set += textureName.normalPixel(uvNamespace)
+        set += textureName.translucentPixel(uvNamespace)
 
         set.forEach(block)
     }
