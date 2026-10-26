@@ -638,17 +638,16 @@ object SkinManagerImpl : SkinManager, GlobalManager {
             packName(itemObf.obfuscate(model))
             return asJson(UVLoadContext(
                 textureName,
-                modelObf::obfuscate,
-                { indexer, _, array ->
-                    armorResource
-                        ?.takeIf { CONFIG.module().playerArmor }
-                        ?.let { ArmorManager.armor.resource(it) }
-                        ?.let {
-                            array += it.toJson()
-                            indexer.shiftColor(9)
-                        }
-                }
-            ))
+                modelObf::obfuscate
+            ) { indexer, _, array ->
+                armorResource
+                    ?.takeIf { CONFIG.module().playerArmor }
+                    ?.let { ArmorManager.armor.resource(it) }
+                    ?.let {
+                        array += it.toJson()
+                        indexer.shiftColor(9)
+                    }
+            })
         }
         set += HEAD.parseAsJson(ArmorResource.HELMET)
         set += CHEST.parseAsJson(ArmorResource.CHEST)
