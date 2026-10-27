@@ -25,7 +25,7 @@ import java.util.*;
  * Represents a raw element within a model file.
  * <p>
  * This interface is a sealed type that permits specific implementations for different element types
- * found in BlockBench models, such as cubes, locators, null objects, and cameras.
+ * found in Blockbench models, such as cubes, locators, null objects, and cameras.
  * </p>
  *
  * @since 1.15.2

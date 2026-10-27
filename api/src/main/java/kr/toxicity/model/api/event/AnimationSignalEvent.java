@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Triggered when an animation script emits a signal.
  * <p>
- * This event allows plugins/mods to react to custom signals defined within BlockBench animations.
+ * This event allows plugins/mods to react to custom signals defined within Blockbench animations.
  * </p>
  *
  * @param player the player associated with the animation

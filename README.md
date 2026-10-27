@@ -18,14 +18,14 @@
 ![](https://github.com/user-attachments/assets/ff515577-6a72-48ba-9943-81f00dddb375)
 
 * * *
-<sub>(In BlockBench / In Minecraft)</sub>
+<sub>(In Blockbench / In Minecraft)</sub>
 
 # ✨ Introduction
 
-**BetterModel** is a server-based engine that provides runtime [BlockBench](https://www.blockbench.net/) model rendering & animating for Minecraft Java Edition.
+**BetterModel** is a server-based engine that provides runtime [Blockbench](https://www.blockbench.net/) model rendering & animating for Minecraft Java Edition.
 
 - Built on the `item-display` packet.
-- Implements **essential BlockBench elements**, including `cubes`, `meshes`, `null objects`, and `locators`.
+- Implements **essential Blockbench elements**, including `cubes`, `meshes`, `null objects`, and `locators`.
 - Support for **model animations**, `Molang` expressions, and **IK** (Inverse Kinematics) rigging.
 - Supports **player skin models** and **custom armor**.
 - **Automated resource pack generation** with **zero reliance on core shaders**.

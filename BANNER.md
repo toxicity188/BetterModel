@@ -15,14 +15,14 @@
 ![](https://github.com/user-attachments/assets/ff515577-6a72-48ba-9943-81f00dddb375)
 
 * * *
-<sub>(In BlockBench / In Minecraft)</sub>
+<sub>(In Blockbench / In Minecraft)</sub>
 
 # ✨ What is BetterModel?
 
-**BetterModel** is a server-based engine that provides runtime [BlockBench](https://www.blockbench.net/) model rendering & animating for Minecraft Java Edition.  
+**BetterModel** is a server-based engine that provides runtime [Blockbench](https://www.blockbench.net/) model rendering & animating for Minecraft Java Edition.  
 
 - Built on the `item-display` packet.
-- Implements **essential BlockBench elements**, including `cubes`, `meshes`, `null objects`, and `locators`.
+- Implements **essential Blockbench elements**, including `cubes`, `meshes`, `null objects`, and `locators`.
 - Support for **model animations**, `Molang` expressions, and **IK** (Inverse Kinematics) rigging.
 - Supports **player skin models** and **custom armor**.
 - **Automated resource pack generation** with **zero reliance on core shaders**.
@@ -38,11 +38,11 @@ The main reason I created it is:
 
 Also, you can refer [my document](https://github.com/toxicity188/BetterModel/wiki/Compare-with-ModelEngine) to compare both ModelEngine and BetterModel.
 
-## 🌎 Generic BlockBench model with animation
+## 🌎 Generic Blockbench model with animation
 ![](https://github.com/user-attachments/assets/b4e69aef-a446-4ac3-b84e-eb42fe4f069d)
 * * *
 [![](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/social/youtube-singular_vector.svg)](https://youtu.be/f3U7Lmo3aA8?si=SnglL0YKn20CrR7Y)  
-BetterModel supports Generic BlockBench models with full animation.
+BetterModel supports Generic Blockbench models with full animation.
 
 #### Custom hitbox
 * * *

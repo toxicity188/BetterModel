@@ -16,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
  * Represents a group definition in the raw model data.
  * <p>
  * Groups are used to organize elements and other groups hierarchically.
- * This record corresponds to the group structure found in newer BlockBench versions (>= 5.0.0).
+ * This record corresponds to the group structure found in newer Blockbench versions (>= 5.0.0).
  * </p>
  *
  * @param name the name of the group

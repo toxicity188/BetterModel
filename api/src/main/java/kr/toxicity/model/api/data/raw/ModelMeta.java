@@ -20,7 +20,7 @@ import java.util.Objects;
 /**
  * Represents metadata about the model file, specifically the format version.
  * <p>
- * This record is used to handle differences in coordinate systems and animation data between different BlockBench versions.
+ * This record is used to handle differences in coordinate systems and animation data between different Blockbench versions.
  * </p>
  *
  * @param formatVersion the detected format version of the model file
@@ -38,13 +38,13 @@ public record ModelMeta(
     );
 
     /**
-     * Enumerates supported BlockBench format versions and their specific coordinate conversions.
+     * Enumerates supported Blockbench format versions and their specific coordinate conversions.
      * @since 1.15.2
      */
     @RequiredArgsConstructor
     public enum FormatVersion {
         /**
-         * BlockBench version 5.0.0 and later.
+         * Blockbench version 5.0.0 and later.
          * @since 1.15.2
          */
         BLOCKBENCH_5(5) {
@@ -63,7 +63,7 @@ public record ModelMeta(
             }
         },
         /**
-         * Legacy BlockBench versions (pre-5.0.0).
+         * Legacy Blockbench versions (pre-5.0.0).
          * @since 1.15.2
          */
         BLOCKBENCH_LEGACY(0) {
