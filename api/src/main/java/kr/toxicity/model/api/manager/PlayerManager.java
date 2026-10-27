@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.manager;
 
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
@@ -22,7 +23,7 @@ import java.util.UUID;
  *
  * @since 1.15.2
  */
-public interface PlayerManager {
+public interface PlayerManager extends Manager {
     /**
      * Retrieves the channel handler for a player by their UUID.
      *

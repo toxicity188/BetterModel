@@ -4,5 +4,5 @@ plugins {
 }
 
 dependencies {
-    api(project(":api"))
+    api(project(":bettermodel-api"))
 }

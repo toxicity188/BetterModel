@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.nms;
 
 import kr.toxicity.model.api.platform.PlatformPlayer;
@@ -45,6 +46,16 @@ public interface PacketBundler {
      * @since 1.15.2
      */
     int size();
+
+    /**
+     * Sends all collected packets to the specified channel.
+     *
+     * @param channel the target channel
+     * @since 3.6.0
+     */
+    default void send(@NotNull PlayerChannelHandler channel) {
+        send(channel.player());
+    }
 
     /**
      * Sends all collected packets to the specified player.

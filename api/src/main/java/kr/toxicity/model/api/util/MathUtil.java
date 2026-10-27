@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.util;
 
 import it.unimi.dsi.fastutil.floats.FloatComparator;
@@ -15,7 +16,8 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
-import static java.lang.Math.*;
+import static java.lang.Math.PI;
+import static java.lang.Math.abs;
 
 /**
  * Math
@@ -31,9 +33,19 @@ public final class MathUtil {
     }
 
     /**
+     * Minecraft ticks per seconds
+     */
+    public static final int MINECRAFT_TICKS_PER_SECOND = 20;
+
+    /**
      * Minecraft tick mills
      */
-    public static final int MINECRAFT_TICK_MILLS = 50;
+    public static final int MINECRAFT_TICK_MILLS = 1000 / MINECRAFT_TICKS_PER_SECOND;
+
+    /**
+     * Minecraft tick seconds
+     */
+    public static final float MINECRAFT_TICK_SECONDS = (float) MINECRAFT_TICK_MILLS / 1000;
 
     /**
      * Valid rotation degree
@@ -230,9 +242,29 @@ public final class MathUtil {
      * @return xyz euler
      */
     public static @NotNull Vector3f toXYZEuler(@NotNull Vector3f vec) {
-        return toQuaternion(vec)
-            .getEulerAnglesXYZ(vec)
-            .mul(RADIANS_TO_DEGREES);
+        var q = toQuaternion(vec);
+        float qx = q.x(), qy = q.y(), qz = q.z(), qw = q.w();
+        // m20 = 2 * (x * z + w * y)
+        float sy = 2.0F * (qx * qz + qw * qy);
+        // m00 = 1 - 2 * (y^2 + z^2)
+        float m00 = 1.0F - 2.0F * (qy * qy + qz * qz);
+        // m10 = 2 * (x * y - w * z)
+        float m10 = 2.0F * (qx * qy - qw * qz);
+
+        float y = (float) Math.atan2(sy, Math.hypot(m00, m10));
+        float x, z;
+        if (Math.abs(sy) < 0.99999F) {
+            // -m21 = 2 * (w * x - y * z)
+            // m22 = 1 - 2 * (x^2 + y^2)
+            x = (float) Math.atan2(2.0F * (qw * qx - qy * qz), 1.0F - 2.0F * (qx * qx + qy * qy));
+            z = (float) Math.atan2(-m10, m00);
+        } else {
+            // m12 = 2 * (y * z + w * x)
+            // m11 = 1 - 2 * (x^2 + z^2)
+            x = (float) Math.atan2(2.0F * (qy * qz + qw * qx), 1.0F - 2.0F * (qx * qx + qz * qz));
+            z = 0F;
+        }
+        return vec.set(x, y, z).mul(RADIANS_TO_DEGREES);
     }
 
     /**

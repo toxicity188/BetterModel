@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.util;
 
 import kr.toxicity.model.api.BetterModel;
@@ -123,7 +124,7 @@ public final class EntityUtil {
         var dy = target.y() - player.y();
         var dx = target.x() - player.x();
 
-        var ry = abs(atan2(dy, sqrt(MathUtil.fma(dz, dz, dx * dx))) - playerPitch);
+        var ry = abs(atan2(dy, hypot(dz, dx)) - playerPitch);
         var rz = abs(atan2(-dx, dz) - playerYaw);
         return (ry <= ty || ry >= TAU - ty) && (rz <= tz || rz >= TAU - tz);
     }

@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.bukkit;
 
 import kr.toxicity.model.api.bukkit.BetterModelBukkit;
@@ -77,7 +78,6 @@ public final class BetterModelLibrary {
                 "adventure-text-serializer-legacy",
                 "adventure-nbt",
                 "adventure-text-serializer-gson",
-                "adventure-text-serializer-gson-legacy-impl",
                 "adventure-text-serializer-json",
                 "adventure-text-serializer-json-legacy-impl"
             )
@@ -98,7 +98,7 @@ public final class BetterModelLibrary {
         builder -> builder.predicate(BooleanConstantSupplier.of(!BetterModelBukkit.IS_PAPER))
     );
     public static final LibraryData ADVENTURE_PLATFORM = register(
-        "net{}kyori",
+        "io{}github{}toxicity188",
         "adventure-platform-bukkit",
         builder -> builder
             .subModules(

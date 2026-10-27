@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.annotations.SerializedName;
@@ -15,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
  * Represents a group definition in the raw model data.
  * <p>
  * Groups are used to organize elements and other groups hierarchically.
- * This record corresponds to the group structure found in newer BlockBench versions (>= 5.0.0).
+ * This record corresponds to the group structure found in newer Blockbench versions (>= 5.0.0).
  * </p>
  *
  * @param name the name of the group

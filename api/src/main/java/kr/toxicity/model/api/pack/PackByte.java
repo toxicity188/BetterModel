@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.pack;
 
 import org.jetbrains.annotations.NotNull;
@@ -24,6 +25,15 @@ public record PackByte(@NotNull PackPath path, byte[] bytes) implements Comparab
     public boolean equals(Object o) {
         if (!(o instanceof PackByte packByte)) return false;
         return path.equals(packByte.path);
+    }
+
+    /**
+     * Gets byte length of that resources.
+     * @return byte length
+     * @since 3.6.0
+     */
+    public long length() {
+        return bytes.length;
     }
 
     @Override

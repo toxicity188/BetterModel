@@ -1,15 +1,14 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.bukkit.command
 
 import kr.toxicity.model.api.BetterModel
-import kr.toxicity.model.api.BetterModelPlatform.ReloadResult.Failure
-import kr.toxicity.model.api.BetterModelPlatform.ReloadResult.OnReload
-import kr.toxicity.model.api.BetterModelPlatform.ReloadResult.Success
+import kr.toxicity.model.api.BetterModelPlatform.ReloadResult.*
 import kr.toxicity.model.api.animation.AnimationIterator
 import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.tracker.EntityHideOption
@@ -23,28 +22,10 @@ import kr.toxicity.model.bukkit.util.PLUGIN
 import kr.toxicity.model.bukkit.util.toRegistry
 import kr.toxicity.model.bukkit.util.toTracker
 import kr.toxicity.model.bukkit.util.wrap
-import kr.toxicity.model.command.register
-import kr.toxicity.model.command.limb
-import kr.toxicity.model.command.model
-import kr.toxicity.model.command.nullable
-import kr.toxicity.model.command.nullableString
-import kr.toxicity.model.command.string
-import kr.toxicity.model.util.LATEST_VERSION
-import kr.toxicity.model.util.PLATFORM
-import kr.toxicity.model.util.componentOf
-import kr.toxicity.model.util.emptyComponentOf
-import kr.toxicity.model.util.handleException
-import kr.toxicity.model.util.info
-import kr.toxicity.model.util.infoNotNull
-import kr.toxicity.model.util.toByteFormat
-import kr.toxicity.model.util.toComponent
-import kr.toxicity.model.util.toHoverEvent
-import kr.toxicity.model.util.warn
-import kr.toxicity.model.util.withComma
+import kr.toxicity.model.command.*
+import kr.toxicity.model.util.*
 import net.kyori.adventure.audience.Audience
-import net.kyori.adventure.text.format.NamedTextColor.GRAY
-import net.kyori.adventure.text.format.NamedTextColor.GREEN
-import net.kyori.adventure.text.format.NamedTextColor.YELLOW
+import net.kyori.adventure.text.format.NamedTextColor.*
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
