@@ -124,6 +124,10 @@ object ModelManagerImpl : ModelManager, GlobalManager {
         private val zipper: PackZipper
     ) : AutoCloseable {
 
+        private var indexer = 0
+        private val legacyOverrides = jsonArrayOf()
+        private var estimatedTotalSize = 0L
+
         private val textures = zipper.assets().bettermodel().textures()
 
         private val modernModel = ModelBuilder(
@@ -143,6 +147,17 @@ object ModelManagerImpl : ModelManager, GlobalManager {
         )
 
         override fun close() {
+            if (!legacyOverrides.isEmpty) {
+                val itemName = CONFIG.itemModel()
+                val legacyJson = jsonObjectOf(
+                    "parent" to "minecraft:item/generated",
+                    "textures" to jsonObjectOf("layer0" to "minecraft:item/$itemName"),
+                    "overrides" to legacyOverrides
+                )
+                zipper.assets().minecraft().models().resolve("item").add("$itemName.json", estimatedTotalSize) {
+                    legacyJson.toByteArray()
+                }
+            }
         }
 
         fun addModelTo(
@@ -158,15 +173,23 @@ object ModelManagerImpl : ModelManager, GlobalManager {
         ) {
             val (size, type, blueprint) = importedModel
             val context = blueprint.context()
+            estimatedTotalSize += size
             targetMap[blueprint.name] = blueprint.toRenderer(type) render@ { group ->
                 if (!context.canBeRendered()) return@render null
                 modernModel.ifAvailable {
                     val json = group.buildModernJson(obfuscator, context)
                     val itemModel = group.buildMeshItemModel(context)
                     if (json != null || itemModel != null) {
+                        val cmd = ++indexer
+                        if (json != null && json.isNotEmpty()) {
+                            legacyOverrides += jsonObjectOf(
+                                "predicate" to jsonObjectOf("custom_model_data" to cmd),
+                                "model" to "${CONFIG.namespace()}:$namespace/${json.first().name}"
+                            )
+                        }
                         group.jsonName(context)
                             .also { name -> build("$name.json", json ?: emptyList(), itemModel, if (json != null) size / json.size else 0) }
-                            .let { "$namespace/$it" }
+                            .let { "$namespace/$it" to cmd }
                     } else null
                 }
             }.apply {
@@ -227,7 +250,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
             )
         )
 
-        private fun ModelBlueprint.toRenderer(type: ModelRenderer.Type, builder: (BlueprintElement.Group) -> String?): ModelRenderer {
+        private fun ModelBlueprint.toRenderer(type: ModelRenderer.Type, builder: (BlueprintElement.Group) -> Pair<String, Int>?): ModelRenderer {
             fun <T> Collection<BlueprintElement>.toBoneMap(mapper: (BlueprintElement.Bone) -> T) = filterIsInstance<BlueprintElement.Bone>().let { bone ->
                 bone.associateTo(sequencedAddressingMapOf(bone.size)) { it.name() to mapper(it) }
             }.toImmutableView()
@@ -235,8 +258,8 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                 if (this !is BlueprintElement.Group) return RendererGroup(1.0F, null, this, emptySequencedMap(), hitbox())
                 return RendererGroup(
                     scale(),
-                    if (name.toItemMapper() !== BoneItemMapper.EMPTY) null else builder(this)?.let { itemNamespace ->
-                        CONFIG.item().get().itemModel(PlatformNamespace(CONFIG.namespace(), itemNamespace))
+                    if (name.toItemMapper() !== BoneItemMapper.EMPTY) null else builder(this)?.let { (itemNamespace, cmd) ->
+                        CONFIG.item().get().modelData(cmd, PlatformNamespace(CONFIG.namespace(), itemNamespace))
                     },
                     this,
                     children.toBoneMap { it.parse() },

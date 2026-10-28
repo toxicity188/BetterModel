@@ -12,9 +12,12 @@ import kr.toxicity.model.api.platform.PlatformNamespace;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomModelData;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 /**
  * Represents a Mod item stack wrapped as a {@link PlatformItemStack}.
@@ -47,6 +50,17 @@ public record ModItemStack(@NotNull ItemStack source) implements PlatformItemSta
     public @NotNull PlatformItemStack enchant(boolean enchant) {
         source.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, enchant);
         return this;
+    }
+
+    @Override
+    public @NotNull PlatformItemStack modelData(int customModelData, @Nullable PlatformNamespace namespace) {
+        if (customModelData > 0) {
+            source.set(
+                DataComponents.CUSTOM_MODEL_DATA,
+                new CustomModelData(List.of((float) customModelData), List.of(), List.of(), List.of())
+            );
+        }
+        return itemModel(namespace);
     }
 
     @Override

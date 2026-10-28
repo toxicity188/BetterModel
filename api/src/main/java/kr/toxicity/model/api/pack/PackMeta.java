@@ -248,10 +248,10 @@ public record PackMeta(
         private String description = "BetterModel's default pack.";
         private final List<OverlayEntry> entries = new ArrayList<>();
         private VersionRange supportedFormats = new VersionRange(
-            NMSVersion.first().getMetaVersion(),
+            34,
             NMSVersion.latest().getMetaVersion() //<=1.21.8
         );
-        private PackVersion minFormat = new PackVersion(NMSVersion.first().getMetaVersion());
+        private PackVersion minFormat = new PackVersion(34);
         private PackVersion maxFormat = new PackVersion(NMSVersion.latest().getMetaVersion());
 
         /**

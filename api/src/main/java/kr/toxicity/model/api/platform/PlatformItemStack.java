@@ -48,6 +48,18 @@ public interface PlatformItemStack {
     @NotNull PlatformItemStack itemModel(@Nullable PlatformNamespace namespace);
 
     /**
+     * Sets the custom model data and item model namespace for the item.
+     *
+     * @param customModelData the custom model data integer for legacy clients
+     * @param namespace the item model namespace for modern clients
+     * @return this item stack
+     * @since 3.6.1
+     */
+    default @NotNull PlatformItemStack modelData(int customModelData, @Nullable PlatformNamespace namespace) {
+        return itemModel(namespace);
+    }
+
+    /**
      * Creates a copy of this item stack.
      *
      * @return the cloned item stack

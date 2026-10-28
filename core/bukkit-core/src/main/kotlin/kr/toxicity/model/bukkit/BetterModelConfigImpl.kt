@@ -21,6 +21,7 @@ import kr.toxicity.model.util.ifNull
 import org.bukkit.Material
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.inventory.ItemStack
+import org.bukkit.inventory.meta.LeatherArmorMeta
 import java.io.File
 import java.util.function.Supplier
 
@@ -46,7 +47,15 @@ class BetterModelConfigImpl(yaml: ConfigurationSection) : BetterModelConfig {
             Material.getMaterial(it.uppercase()).ifNull { "This item doesn't exist: $it" }
         }.getOrDefault(Material.LEATHER_HORSE_ARMOR)
     } ?: Material.LEATHER_HORSE_ARMOR
-    private val item = Supplier { BukkitAdapter.adapt(ItemStack(itemModel)) }
+    private val item = Supplier {
+        val stack = ItemStack(itemModel)
+        val meta = stack.itemMeta
+        if (meta is LeatherArmorMeta) {
+            meta.setColor(org.bukkit.Color.WHITE)
+            stack.itemMeta = meta
+        }
+        BukkitAdapter.adapt(stack)
+    }
     private val maxSight = yaml.getDouble("max-sight", -1.0).run {
         if (this <= 0.0) EntityUtil.renderDistance() else this
     }
@@ -78,6 +87,7 @@ class BetterModelConfigImpl(yaml: ConfigurationSection) : BetterModelConfig {
     override fun module(): ModuleConfig = module
     override fun pack(): PackConfig = pack
     override fun item(): Supplier<PlatformItemStack> = item
+    override fun itemModel(): String = itemModel.name.lowercase()
     override fun metrics(): Boolean = metrics
     override fun sightTrace(): Boolean = sightTrace
     override fun mergeWithExternalResources(): Boolean = mergeWithExternalResources

@@ -87,6 +87,7 @@ class BetterModelConfigImpl(yaml: ConfigurationNode) : BetterModelConfig {
     override fun module(): ModuleConfig = module
     override fun pack(): PackConfig = pack
     override fun item(): Supplier<PlatformItemStack> = item
+    override fun itemModel(): String = itemModel?.lowercase() ?: "leather_horse_armor"
     override fun metrics(): Boolean = false
     override fun sightTrace(): Boolean = sightTrace
     override fun mergeWithExternalResources(): Boolean = mergeWithExternalResources

@@ -101,6 +101,16 @@ public interface BetterModelConfig {
     @NotNull Supplier<PlatformItemStack> item();
 
     /**
+     * Returns the item model string identifier used for the resource pack target item.
+     *
+     * @return the item model string
+     * @since 2.0.0
+     */
+    default @NotNull String itemModel() {
+        return "leather_horse_armor";
+    }
+
+    /**
      * Returns the maximum range for sight tracing.
      *
      * @return the max range
