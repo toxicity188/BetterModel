@@ -71,7 +71,7 @@ internal class ModelNametagImpl(
 
     override fun send(player: PlatformPlayer) {
         if (display.text == VanillaComponent.empty()) return
-        val hb = bone.group.hitBoxPoint
+        val hb = bone.group.hitboxPosition.localOffset
         val pos = bone.worldPosition(BonePosition(emptyVector, hb, player.uuid()), posCache)
         display.moveTo(Vec3(
             location.x() + pos.x,

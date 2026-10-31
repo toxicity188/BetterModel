@@ -555,8 +555,8 @@ public final class RenderedBone implements BoneEventHandler {
 
     @NotNull
     public Vector3f hitBoxPosition(@NotNull BoneMovement cache) {
-        var box = getGroup().getHitBox();
-        if (box != null) return worldPosition(new BonePosition(EMPTY_VECTOR, group.getHitBoxPoint(), null), cache);
+        var box = group.getHitBox();
+        if (box != null) return worldPosition(group.getHitboxPosition(), cache);
         return worldPosition(cache);
     }
 

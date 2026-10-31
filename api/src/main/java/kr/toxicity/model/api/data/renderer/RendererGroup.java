@@ -46,7 +46,7 @@ public final class RendererGroup {
     @Getter
     private final @Nullable ModelBoundingBox hitBox;
     @Getter
-    private final @NotNull Vector3f hitBoxPoint;
+    private final @NotNull BonePosition hitboxPosition;
 
     @Getter
     private final @NotNull BoneItemMapper itemMapper;
@@ -80,7 +80,7 @@ public final class RendererGroup {
         this.itemMapper = name().toItemMapper();
         this.position = group.origin().toBlockScale().toVector();
         this.hitBox = box;
-        this.hitBoxPoint = box == null ? new Vector3f() : box.centerPoint();
+        this.hitboxPosition = new BonePosition(new Vector3f(), box == null ? new Vector3f() : box.centerPoint(), null);
         this.rotation = group.rotation().toVector();
         if (name().tagged(BoneTags.SEAT)) {
             mountController = BetterModel.config().defaultMountController();
