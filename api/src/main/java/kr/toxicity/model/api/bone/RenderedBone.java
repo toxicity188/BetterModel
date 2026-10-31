@@ -680,7 +680,7 @@ public final class RenderedBone implements BoneEventHandler {
 
         private @NotNull Vector3f worldPosition(@NotNull BonePosition position, @NotNull BoneMovement cache) {
             var progress = progress();
-            var interpolated = lock.accessToReadLock(() -> before.lerp(current, progress, cache));
+            var interpolated = lock.accessToReadLock(() -> updateCurrent.get() ? cache.set(current) : before.lerp(current, progress, cache));
             return MathUtil.fma(
                     interpolated.position()
                         .add(itemStack.offset())
