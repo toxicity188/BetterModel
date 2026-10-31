@@ -386,27 +386,42 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
-     * Ticks the model globally, updating bone animations, solving IK, and bundling transformations.
+     * Updates bone animations and ticks the model hierarchy.
+     *
+     * <p>This method only performs the logical animation tick without resolving IK
+     * or dispatching transform updates to players. To solve IK and bundle transformation
+     * packets after an update, call {@link #send(AnimationBundler)}.
      *
      * <pre>{@code
-     * AnimationBundler bundler = pipeline.createAnimationBundler();
-     * if (pipeline.tick(bundler)) {
+     * if (pipeline.tick()) {
+     *     AnimationBundler bundler = pipeline.createAnimationBundler();
+     *     pipeline.send(bundler);
      *     pipeline.forEachNonHidePlayer(bundler::send);
      * }
      * }</pre>
      *
-     * @param bundler the animation packet bundler to use
      * @return {@code true} if any bone or animation updates occurred, {@code false} otherwise
-     * @throws NullPointerException if {@code bundler} is null
-     * @since 1.15.2
+     * @see #send(AnimationBundler)
+     * @since 3.7.0
      */
-    public boolean tick(@NotNull AnimationBundler bundler) {
-        var match = matchTree(RenderedBone::tick);
-        if (match) {
-            ikSolver.solve();
-            forEach(b -> b.sendTransformation(null, bundler));
-        }
-        return match;
+    public boolean tick() {
+        return matchTree(RenderedBone::tick);
+    }
+
+    /**
+     * Solves inverse kinematics (IK) and bundles the current bone transformations into the given bundler.
+     *
+     * <p>This is typically invoked immediately after {@link #tick()} reports an animation update.
+     *
+     * @param bundler the animation packet bundler to receive transformation data
+     * @throws NullPointerException if {@code bundler} is null
+     * @see #tick()
+     * @since 3.7.0
+     */
+    public void send(@NotNull AnimationBundler bundler) {
+        Objects.requireNonNull(bundler);
+        ikSolver.solve();
+        forEach(b -> b.sendTransformation(null, bundler));
     }
 
     /**
