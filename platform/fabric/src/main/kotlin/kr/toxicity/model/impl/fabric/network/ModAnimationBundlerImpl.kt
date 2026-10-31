@@ -56,22 +56,27 @@ internal class ModAnimationBundlerImpl(initialCapacity: Int) : ModAnimationBundl
     }
 
     private val builderList = ArrayList<(FriendlyByteBuf) -> Unit>(initialCapacity)
+    private val appender = Appender()
 
     override fun send(player: PlatformPlayer) {
         player.unwarp().send(packet)
     }
 
     fun append(id: Int, scope: Appender.() -> Unit) {
-        val build = Appender(id).apply(scope).build()
+        val build = appender.init().apply(scope).build(id)
         if (build !== EMPTY_BUILD_TASK) builderList += build
     }
 
-    class Appender(
-        val entityId: Int,
-    ) {
+    class Appender {
         private var mask = 0
+        private val isEmpty get() = mask == 0
+
         private var buildTask = EMPTY_BUILD_TASK
-        private val isEmpty get() = buildTask === EMPTY_BUILD_TASK
+
+        fun init() = apply {
+            mask = 0
+            buildTask = EMPTY_BUILD_TASK
+        }
 
         fun appendPosition(vector: Vector3f) {
             mask = mask or FIELD_TRANSLATION
@@ -108,7 +113,7 @@ internal class ModAnimationBundlerImpl(initialCapacity: Int) : ModAnimationBundl
             }
         }
 
-        fun build(): (FriendlyByteBuf) -> Unit {
+        fun build(entityId: Int): (FriendlyByteBuf) -> Unit {
             if (isEmpty) return EMPTY_BUILD_TASK
             val m = mask
             val t = buildTask
