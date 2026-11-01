@@ -97,7 +97,7 @@ public final class RenderedBone implements BoneEventHandler {
     private volatile TransformedItemStack itemStack;
 
     //Animation
-    private final BoneStateHandler globalState;
+    private final BoneStateHandler globalState = new BoneStateHandler(null, _ -> {});
     private final Map<UUID, BoneStateHandler> perPlayerState = new ConcurrentHashMap<>();
     private volatile ModelRotation rotation = ModelRotation.EMPTY;
 
@@ -142,7 +142,6 @@ public final class RenderedBone implements BoneEventHandler {
                 applyItem(d);
             });
         } else display = null;
-        globalState = new BoneStateHandler(null, _ -> {});
     }
 
     public void locator(@NotNull BoneIKSolver solver) {
