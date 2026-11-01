@@ -237,7 +237,7 @@ public final class FightTester implements ModelTester, Listener {
                 after = new DrawerFrame(
                     bone.rotation().radianY(),
                     player.getLocation(),
-                    bone.hitBoxPosition().rotateY(bone.rotation().radianY())
+                    bone.worldPosition().rotateY(bone.rotation().radianY())
                 );
                 if (before == null) return;
                 var delta = toDeltaVector(
