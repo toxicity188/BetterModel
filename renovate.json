@@ -6,10 +6,29 @@
     "ignoreDeps": [
         "org.jetbrains:annotations",
         "net.fabricmc.fabric-api:fabric-api",
-        "net.fabricmc.fabric-loom-repositories",
-        "eu.pb4:polymer-resource-pack"
+        "net.fabricmc.fabric-loom-repositories"
     ],
     "baseBranches": [
         "v3-dev"
+    ],
+    "packageRules": [
+        {
+            "matchPackageNames": [
+                "com.viaversion:viaversion-api"
+            ],
+            "registryUrls": [
+                "https://repo.viaversion.com"
+            ],
+            "versioning": "semver"
+        },
+        {
+            "matchPackageNames": [
+                "com.github.SkriptLang:Skript"
+            ],
+            "registryUrls": [
+                "https://repo.skriptlang.org/releases"
+            ],
+            "versioning": "semver"
+        }
     ]
 }
