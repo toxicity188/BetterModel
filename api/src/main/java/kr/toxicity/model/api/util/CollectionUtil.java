@@ -20,6 +20,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -34,6 +35,15 @@ public final class CollectionUtil {
     private CollectionUtil() {
         throw new RuntimeException();
     }
+
+    private static final Collector<JsonElement, JsonArray, JsonArray> JSON_ARRAY_COLLECTOR = Collector.of(
+        JsonArray::new,
+        JsonArray::add,
+        (a, b) -> {
+            a.addAll(b);
+            return a;
+        }
+    );
 
     /**
      * Creates a new addressing hash map.
@@ -193,45 +203,20 @@ public final class CollectionUtil {
     }
 
     /**
-     * Maps stream to JSON
-     * @param collection collection
-     * @param mapper mapper
-     * @return JSON array
-     * @param <E> element
-     * @param <R> return value
+     * Returns a {@link Collector} that accumulates {@link JsonElement}s into a new {@link JsonArray}.
+     *
+     * <p>Example usage:
+     * <pre>{@code
+     * JsonArray jsonArray = elements.stream()
+     *     .map(JsonObject::new)
+     *     .collect(toJsonArray());
+     * }</pre>
+     *
+     * @return a collector that gathers elements into a {@link JsonArray}
+     * @since 3.7.0
      */
-    @NotNull
-    public static <E, R extends JsonElement> JsonArray mapToJson(@NotNull Collection<E> collection, @NotNull Function<E, R> mapper) {
-        return collection.isEmpty() ? new JsonArray() : mapToJson(collection.size(), collection.stream(), mapper);
-    }
-
-    /**
-     * Maps stream to JSON
-     * @param stream stream
-     * @param mapper mapper
-     * @return JSON array
-     * @param <E> element
-     * @param <R> return value
-     */
-    @NotNull
-    public static <E, R extends JsonElement> JsonArray mapToJson(@NotNull Stream<E> stream, @NotNull Function<E, R> mapper) {
-        return mapToJson(10, stream, mapper);
-    }
-
-    /**
-     * Maps stream to JSON
-     * @param capacity initial capacity
-     * @param stream stream
-     * @param mapper mapper
-     * @return JSON array
-     * @param <E> element
-     * @param <R> return value
-     */
-    @NotNull
-    public static <E, R extends JsonElement> JsonArray mapToJson(int capacity, @NotNull Stream<E> stream, @NotNull Function<E, R> mapper) {
-        var array = new JsonArray(capacity);
-        stream.map(mapper).forEach(array::add);
-        return array;
+    public static @NotNull Collector<JsonElement, JsonArray, JsonArray> toJsonArray() {
+        return JSON_ARRAY_COLLECTOR;
     }
 
     /**

@@ -8,10 +8,12 @@
 package kr.toxicity.model.api.data.blueprint;
 
 import com.google.gson.JsonObject;
+import com.google.gson.annotations.SerializedName;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.raw.ModelResolution;
 import kr.toxicity.model.api.pack.PackObfuscator;
 import kr.toxicity.model.api.util.json.JsonObjectBuilder;
+import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -21,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
  * </p>
  *
  * @param name the internal name of the texture
+ * @param renderMode the render mode of the texture
  * @param image the binary content of the texture image
  * @param width the original width of the texture in pixels
  * @param height the original height of the texture in pixels
@@ -33,6 +36,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public record BlueprintTexture(
     @NotNull String name,
+    @NotNull RenderMode renderMode,
     byte[] image,
     int width,
     int height,
@@ -42,6 +46,61 @@ public record BlueprintTexture(
     int frameTime,
     boolean frameInterpolate
 ) {
+
+    /**
+     * Represents a render mode of the texture
+     * @since 3.7.0
+     */
+    @RequiredArgsConstructor
+    public enum RenderMode {
+        /**
+         * Default render mode
+         * @since 3.7.0
+         */
+        @SerializedName("default")
+        DEFAULT(false),
+        /**
+         * Emissive render mode
+         * @since 3.7.0
+         */
+        @SerializedName("emissive")
+        EMISSIVE(true),
+        /**
+         * Additive render mode
+         * @since 3.7.0
+         */
+        @SerializedName("additive")
+        ADDITIVE(true)
+        ;
+
+        private final boolean glowing;
+
+        /**
+         * Returns whether this render mode causes the texture to glow or emit light.
+         *
+         * @return {@code true} if glowing/emissive, {@code false} otherwise
+         * @since 3.7.0
+         */
+        public boolean glowing() {
+            return glowing;
+        }
+    }
+
+    /**
+     * Checks whether this texture should render with an emissive or glowing effect.
+     *
+     * <p>A texture is considered glowing if its name ends with the {@code "_e"} suffix
+     * or if its {@link RenderMode} is set to glow (e.g., emissive or additive).
+     *
+     * @return {@code true} if the texture should render with a glow effect, {@code false} otherwise
+     * @see #renderMode()
+     * @see RenderMode#glowing()
+     * @since 3.7.0
+     */
+    public boolean isGlowingTexture() {
+        return name.endsWith("_e") || renderMode().glowing();
+    }
+
     /**
      * Checks if this texture is an animated texture (a texture atlas for animation).
      *

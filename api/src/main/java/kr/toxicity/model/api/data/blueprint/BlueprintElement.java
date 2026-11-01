@@ -16,7 +16,6 @@ import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.BoneTags;
 import kr.toxicity.model.api.data.Float2;
 import kr.toxicity.model.api.data.Float3;
-import kr.toxicity.model.api.data.raw.ModelFace;
 import kr.toxicity.model.api.pack.PackObfuscator;
 import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.PackUtil;
@@ -172,7 +171,7 @@ public sealed interface BlueprintElement {
                     filterIsInstance(children, Cube.class),
                     Cube::identifierDegree
                 ),
-                (i, entry) -> buildJson(i + 1, scale, obfuscator, context, entry.getKey(), entry.getValue().stream())
+                (i, entry) -> buildJson(i + 1, scale, obfuscator, context, entry.getKey(), entry.getValue())
             ).filter(Objects::nonNull)
                 .toList();
             return list.isEmpty() ? null : list;
@@ -204,13 +203,10 @@ public sealed interface BlueprintElement {
             @NotNull PackObfuscator.Pair obfuscator,
             @NotNull BlueprintLoadContext context,
             @NotNull Float3 identifier,
-            @NotNull Stream<Cube> cubes
+            @NotNull List<Cube> cubes
         ) {
-            var cubeElement = cubes
-                .filter(Cube::hasTexture)
-                .toList();
-            var selectedTextures = cubeElement.stream()
-                .flatMapToInt(tex -> tex.faces().textureIndex())
+            var selectedTextures = cubes.stream()
+                .flatMapToInt(tex -> tex.faces().textures())
                 .distinct()
                 .sorted()
                 .mapToObj(i -> Map.entry(Integer.toString(i), context.texture(i).packNamespace(obfuscator.textures())))
@@ -220,7 +216,7 @@ public sealed interface BlueprintElement {
                 .jsonObject("textures", textures -> textures
                     .stringProperties(selectedTextures)
                     .property("particle", selectedTextures.getFirst().getValue()))
-                .jsonArray("elements", mapToJson(cubeElement, cube -> cube.buildJson(scale, context, this, identifier)))
+                .jsonArray("elements", cubes.stream().flatMap(cube -> cube.buildJson(scale, context, this, identifier)).collect(toJsonArray()))
                 .jsonObject("display", display -> display.jsonObject("fixed", fixed -> {
                     if (!identifier.equals(Float3.ZERO)) {
                         fixed.jsonArray("rotation", identifier.convertToMinecraftDegree().toJson());
@@ -345,7 +341,7 @@ public sealed interface BlueprintElement {
         float inflate,
         @NotNull Float3 rotation,
         @NotNull Float3 origin,
-        @Nullable ModelFace faces,
+        @NotNull BlueprintFace faces,
         @Nullable Integer lightEmission,
         boolean visibility
     ) implements BlueprintElement {
@@ -362,41 +358,48 @@ public sealed interface BlueprintElement {
             return target.rotate(quaternionf).minus(target);
         }
 
-        private @NotNull JsonObject buildJson(
+        private @NotNull Stream<JsonObject> buildJson(
             float scale,
-            @NotNull BlueprintLoadContext parent,
+            @NotNull BlueprintLoadContext context,
             @NotNull BlueprintElement.Group group,
             @NotNull Float3 identifier
         ) {
-            var qua = identifier.toQuaternionZYX().invert();
             var centerOrigin = centralize(origin(), group.origin, scale);
-            var groupDelta = deltaPosition(centerOrigin, qua);
+            var relativeOrigin = deltaPosition(centerOrigin, identifier.toQuaternionZYX().invert()).plus(Float3.CENTER);
             var inflate = new Float3(inflate() / scale);
-            return JsonObjectBuilder.builder()
-                .property("light_emission", group.name.tagged(BoneTags.GLOW) ? Integer.valueOf(15) : lightEmission)
-                .jsonArray("from", centralize(from(), group.origin, scale)
-                    .plus(groupDelta)
-                    .plus(Float3.CENTER)
-                    .minus(inflate)
-                    .toJson())
-                .jsonArray("to", centralize(to(), group.origin, scale)
-                    .plus(groupDelta)
-                    .plus(Float3.CENTER)
-                    .plus(inflate)
-                    .toJson())
-                .jsonObject("faces", faces().toJson(parent))
-                .jsonObject("rotation", Optional.of(rotation().minus(identifier))
-                    .filter(r -> !Float3.ZERO.equals(r))
-                    .map(rot -> {
-                        var rotation = getRotation(rot);
-                        rotation.add("origin", centerOrigin
-                            .plus(groupDelta)
-                            .plus(Float3.CENTER)
-                            .toJson());
-                        return rotation;
-                    })
-                    .orElse(null))
-                .build();
+
+            var from = centralize(from(), group.origin, scale)
+                .plus(relativeOrigin)
+                .minus(inflate)
+                .toJson();
+            var to = centralize(to(), group.origin, scale)
+                .plus(relativeOrigin)
+                .plus(inflate)
+                .toJson();
+            var rotation = Optional.of(rotation().minus(identifier))
+                .filter(r -> !Float3.ZERO.equals(r))
+                .map(r -> parseToRotation(r, centerOrigin.plus(relativeOrigin)))
+                .orElse(null);
+
+            return group(
+                faces().uv(),
+                BlueprintUV::texture
+            ).entrySet()
+                .stream()
+                .map(entry -> {
+                    var texture = context.texture(entry.getKey());
+                    var json = BlueprintUV.toJson(texture.resolution(context.resolution()), entry.getValue());
+                    if (json == null) return null;
+                    return JsonObjectBuilder.builder()
+                        .property("light_emission", texture.isGlowingTexture() || group.name.tagged(BoneTags.GLOW) ? Integer.valueOf(15) : lightEmission)
+                        .jsonArray("from", from)
+                        .jsonArray("to", to)
+                        .jsonObject("faces", json)
+                        .jsonObject("rotation", rotation)
+                        .build();
+                })
+                .filter(Objects::nonNull)
+            ;
         }
 
         /**
@@ -419,22 +422,7 @@ public sealed interface BlueprintElement {
             return max;
         }
 
-        @Override
-        public @NotNull ModelFace faces() {
-            return Objects.requireNonNull(faces);
-        }
-
-        /**
-         * Checks if this cube has any textures defined.
-         *
-         * @return true if it has textures, false otherwise
-         * @since 1.15.2
-         */
-        public boolean hasTexture() {
-            return faces != null && faces.hasTexture();
-        }
-
-        private @NotNull JsonObject getRotation(@NotNull Float3 rot) {
+        private @NotNull JsonObject parseToRotation(@NotNull Float3 rot, @NotNull Float3 origin) {
             var rotation = new JsonObject();
             if (Math.abs(rot.x()) > 0) {
                 rotation.addProperty("angle", rot.x());
@@ -446,6 +434,7 @@ public sealed interface BlueprintElement {
                 rotation.addProperty("angle", rot.z());
                 rotation.addProperty("axis", "z");
             }
+            rotation.add("origin", origin.toJson());
             return rotation;
         }
     }

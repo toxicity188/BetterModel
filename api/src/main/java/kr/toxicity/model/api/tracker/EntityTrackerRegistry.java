@@ -475,7 +475,10 @@ public final class EntityTrackerRegistry {
      * @since 1.15.2
      */
     public @NotNull JsonArray serialize() {
-        return CollectionUtil.mapToJson(trackers().stream().filter(EntityTracker::canBeSaved), value -> value.asTrackerData().serialize());
+        return trackers().stream()
+            .filter(EntityTracker::canBeSaved)
+            .map(value -> value.asTrackerData().serialize())
+            .collect(CollectionUtil.toJsonArray());
     }
 
     /**

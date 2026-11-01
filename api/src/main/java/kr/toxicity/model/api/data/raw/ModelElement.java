@@ -14,6 +14,7 @@ import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.data.Float2;
 import kr.toxicity.model.api.data.Float3;
 import kr.toxicity.model.api.data.blueprint.BlueprintElement;
+import kr.toxicity.model.api.data.blueprint.BlueprintFace;
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -359,7 +360,7 @@ public sealed interface ModelElement {
                 inflate(),
                 rotation(),
                 origin(),
-                faces(),
+                faces != null ? faces.toBlueprint() : BlueprintFace.EMPTY,
                 Optional.of(lightEmission()).filter(i -> i > 0).orElse(null),
                 visibility()
             );

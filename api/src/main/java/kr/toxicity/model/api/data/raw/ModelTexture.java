@@ -12,6 +12,7 @@ import kr.toxicity.model.api.data.blueprint.BlueprintTexture;
 import kr.toxicity.model.api.util.PackUtil;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Base64;
 
@@ -22,6 +23,7 @@ import java.util.Base64;
  * </p>
  *
  * @param name the name of the texture file (e.g., "texture.png")
+ * @param renderMode the render mode of the texture image
  * @param source the Base64-encoded content of the texture image
  * @param width the width of the texture in pixels
  * @param height the height of the texture in pixels
@@ -34,6 +36,7 @@ import java.util.Base64;
 @ApiStatus.Internal
 public record ModelTexture(
     @NotNull String name,
+    @Nullable @SerializedName("render-mode") BlueprintTexture.RenderMode renderMode,
     @NotNull String source,
     int width,
     int height,
@@ -57,6 +60,7 @@ public record ModelTexture(
         var name = nameWithoutExtension();
         return new BlueprintTexture(
             PackUtil.toPackName(name.startsWith("global_") ? name : context.name + "_" + name),
+            renderMode(),
             Base64.getDecoder().decode(source().substring(source().indexOf(',') + 1)),
             width(),
             height(),
@@ -78,5 +82,10 @@ public record ModelTexture(
         var name = name();
         var nameIndex = name.lastIndexOf('.');
         return nameIndex >= 0 ? name.substring(0, nameIndex) : name;
+    }
+
+    @Override
+    public @NotNull BlueprintTexture.RenderMode renderMode() {
+        return renderMode != null ? renderMode : BlueprintTexture.RenderMode.DEFAULT;
     }
 }

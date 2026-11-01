@@ -8,9 +8,8 @@
 package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import kr.toxicity.model.api.data.Float4;
-import kr.toxicity.model.api.data.blueprint.BlueprintLoadContext;
+import kr.toxicity.model.api.data.blueprint.BlueprintUV;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,6 +33,21 @@ public record ModelUV(
 ) {
 
     /**
+     * Converts this raw uv into a processed {@link BlueprintUV}.
+     *
+     * @return the blueprint uv
+     * @since 3.7.0
+     */
+    public @NotNull BlueprintUV toBlueprint(@NotNull String faceId) {
+        return new BlueprintUV(
+            faceId,
+            uv(),
+            rotation(),
+            textureIndex()
+        );
+    }
+
+    /**
      * Checks if this UV mapping has a valid texture index.
      *
      * @return true if a texture is defined, false otherwise
@@ -52,24 +66,5 @@ public record ModelUV(
      */
     public int textureIndex() {
         return Objects.requireNonNull(texture).getAsInt();
-    }
-
-    /**
-     * Converts this UV data to a JSON object for the Minecraft model file.
-     *
-     * @param context the blueprint context, used for texture resolution
-     * @return the generated JSON object
-     * @since 1.15.2
-     */
-    public @Nullable JsonObject toJson(@NotNull BlueprintLoadContext context) {
-        if (!hasTexture()) return null;
-        var div = uv.div(context.texture(textureIndex()).resolution(context.resolution()));
-        if (!div.isValid()) return null;
-        var object = new JsonObject();
-        object.add("uv", div.toJson());
-        if (rotation != 0) object.addProperty("rotation", rotation);
-        object.addProperty("tintindex", 0);
-        object.addProperty("texture", "#" + texture);
-        return object;
     }
 }
