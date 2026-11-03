@@ -1,11 +1,13 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.util
 
+import it.unimi.dsi.fastutil.objects.*
 import kr.toxicity.model.api.util.CollectionUtil
 import java.util.*
 import java.util.concurrent.CompletableFuture
@@ -21,8 +23,21 @@ fun <K, V> sequencedAddressingMapOf(capacity: Int) = CollectionUtil.newSequenced
 
 fun <K, V> emptySequencedMap(): SequencedMap<K, V> = Collections.emptyNavigableMap()
 
-fun <K, V> MutableMap<K, V>.toImmutableView(): Map<K, V> = Collections.unmodifiableMap(this)
-fun <K, V> SequencedMap<K, V>.toImmutableView(): SequencedMap<K, V> = Collections.unmodifiableSequencedMap(this)
+fun <K, V> MutableMap<K, V>.toImmutableView(): Map<K, V> = when (this) {
+    is Object2ObjectMap<K, V> -> Object2ObjectMaps.unmodifiable(this)
+    is Object2ReferenceMap<K, V> -> Object2ReferenceMaps.unmodifiable(this)
+    is Reference2ObjectMap<K, V> -> Reference2ObjectMaps.unmodifiable(this)
+    is Reference2ReferenceMap<K, V> -> Reference2ReferenceMaps.unmodifiable(this)
+    else -> Collections.unmodifiableMap(this)
+}
+
+fun <K, V> SequencedMap<K, V>.toImmutableView(): SequencedMap<K, V> = when (this) {
+    is Object2ObjectSortedMap<K, V> -> Object2ObjectSortedMaps.unmodifiable(this)
+    is Object2ReferenceSortedMap<K, V> -> Object2ReferenceSortedMaps.unmodifiable(this)
+    is Reference2ObjectSortedMap<K, V> -> Reference2ObjectSortedMaps.unmodifiable(this)
+    is Reference2ReferenceSortedMap<K, V> -> Reference2ReferenceSortedMaps.unmodifiable(this)
+    else -> Collections.unmodifiableSequencedMap(this)
+}
 
 fun <T> Stream<T>.toSet(): Set<T> = collect(Collectors.toUnmodifiableSet())
 fun <T> Stream<T>.toMutableSet(): MutableSet<T> = collect(Collectors.toSet())
@@ -56,13 +71,13 @@ class ParallelIOThreadPool : AutoCloseable {
         val lastIndex = list.lastIndex
         val tasks = if (available >= size) {
             list.map {
-                {
+                Runnable {
                     block(it)
                 }
             }
         } else {
             val sorted = list.sortedBy(sizeAssume)
-            val queue = arrayListOf<() -> Unit>()
+            val queue = arrayListOf<Runnable>()
             var i = 0
             val add = (size.toDouble() / available).toInt()
             while (i <= size) {
@@ -71,7 +86,7 @@ class ParallelIOThreadPool : AutoCloseable {
                     val ht = t / 2
                     list += sorted[if (t % 2 == 0) ht else lastIndex - ht]
                 }
-                queue += {
+                queue += Runnable {
                     list.forEach(block)
                 }
                 i += add
@@ -80,9 +95,7 @@ class ParallelIOThreadPool : AutoCloseable {
         }
         CompletableFuture.allOf(
             *tasks.map {
-                CompletableFuture.runAsync({
-                    it()
-                }, pool)
+                CompletableFuture.runAsync(it, pool)
             }.toTypedArray()
         ).join()
     }

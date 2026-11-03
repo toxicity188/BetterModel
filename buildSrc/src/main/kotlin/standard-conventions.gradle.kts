@@ -2,7 +2,7 @@ plugins {
     java
     kotlin("jvm")
     id("org.jetbrains.dokka")
-    id("com.github.hierynomus.license")
+    id("dev.yumi.gradle.licenser")
 }
 
 group = "kr.toxicity.model"
@@ -14,12 +14,12 @@ configurations.implementation {
     extendsFrom(shade)
 }
 
-rootProject.dependencies.dokka(project)
-
 dependencies {
     testImplementation(kotlin("test"))
 
-    compileOnly(libs.bundles.library)
+    compileOnly(libs.bundles.library) {
+        exclude(module = "jspecify")
+    }
     testImplementation(libs.bundles.library)
 }
 
@@ -33,15 +33,13 @@ tasks {
 }
 
 license {
-    header = rootProject.file("LICENSE_HEADER")
-    includes(setOf(
-        "**/*.java",
-        "**/*.kt"
-    ))
-    strictCheck = true
+    rule(rootProject.file("LICENSE_HEADER"))
+    include("**/*.java", "**/*.kt")
+    exclude("**/*.properties")
 }
 
 java {
+    disableAutoTargetJvm()
     toolchain.languageVersion = JavaLanguageVersion.of(JAVA_VERSION)
 }
 

@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.util.collection;
 
 import org.jetbrains.annotations.ApiStatus;
@@ -37,11 +38,6 @@ public final class SingletonSequencedSet<E> extends AbstractSet<E> implements Se
 
     public boolean contains(Object o) {
         return element.equals(o);
-    }
-
-    @Override
-    public int hashCode() {
-        return element.hashCode();
     }
 
     @NotNull
@@ -99,6 +95,8 @@ public final class SingletonSequencedSet<E> extends AbstractSet<E> implements Se
     }
 
     @Override
+    @NotNull
+    @Unmodifiable
     public SequencedSet<E> reversed() {
         return this;
     }

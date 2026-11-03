@@ -1,24 +1,26 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonDeserializer;
-import com.vdurmont.semver4j.Semver;
 import kr.toxicity.model.api.util.MathUtil;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
+import org.semver4j.Semver;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * Represents metadata about the model file, specifically the format version.
  * <p>
- * This record is used to handle differences in coordinate systems and animation data between different BlockBench versions.
+ * This record is used to handle differences in coordinate systems and animation data between different Blockbench versions.
  * </p>
  *
  * @param formatVersion the detected format version of the model file
@@ -31,18 +33,18 @@ public record ModelMeta(
      * A JSON deserializer for parsing {@link ModelMeta} from the "meta" object in a .bbmodel file.
      * @since 1.15.2
      */
-    public static final JsonDeserializer<ModelMeta> PARSER = (json, type, context) -> new ModelMeta(
-        FormatVersion.find(new Semver(json.getAsJsonObject().getAsJsonPrimitive("format_version").getAsString(), Semver.SemverType.LOOSE).getMajor())
+    public static final JsonDeserializer<ModelMeta> PARSER = (json, _, _) -> new ModelMeta(
+        FormatVersion.find(Objects.requireNonNull(Semver.coerce(json.getAsJsonObject().getAsJsonPrimitive("format_version").getAsString())).getMajor())
     );
 
     /**
-     * Enumerates supported BlockBench format versions and their specific coordinate conversions.
+     * Enumerates supported Blockbench format versions and their specific coordinate conversions.
      * @since 1.15.2
      */
     @RequiredArgsConstructor
     public enum FormatVersion {
         /**
-         * BlockBench version 5.0.0 and later.
+         * Blockbench version 5.0.0 and later.
          * @since 1.15.2
          */
         BLOCKBENCH_5(5) {
@@ -61,7 +63,7 @@ public record ModelMeta(
             }
         },
         /**
-         * Legacy BlockBench versions (pre-5.0.0).
+         * Legacy Blockbench versions (pre-5.0.0).
          * @since 1.15.2
          */
         BLOCKBENCH_LEGACY(0) {

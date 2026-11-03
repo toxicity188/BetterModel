@@ -1,16 +1,19 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.bone;
 
 import it.unimi.dsi.fastutil.objects.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 
 import static kr.toxicity.model.api.util.CollectionUtil.newAddressingMap;
 

@@ -33,7 +33,7 @@ Scope: entire repository unless a deeper AGENTS.md overrides this file.
 ## 2) Language and File Placement Rules
 
 ### MUST
-- Use Modern Java (language level 21) and Kotlin.
+- Use Modern Java (language level 25) and Kotlin.
 - `api` module is Java-only for production code (Kotlin DSL build scripts are allowed).
 - Non-`api` modules should be Kotlin-first unless existing local code is explicitly Java-bound (e.g., mixin/accessor interop).
 - Follow existing package root `kr.toxicity.model...` and module-specific suffixes.

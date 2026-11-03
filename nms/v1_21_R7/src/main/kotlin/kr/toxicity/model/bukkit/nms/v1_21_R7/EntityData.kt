@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.bukkit.nms.v1_21_R7
 
 import kr.toxicity.model.api.nms.AnimationBundler
@@ -27,7 +28,7 @@ internal fun Class<*>.accessors() = declaredFields.filter { f ->
     EntityDataAccessor::class.java.isAssignableFrom(f.type)
 }.map {
     it.toEntityDataAccessor()
-}
+}.sortedBy { it.id }
 
 internal val DISPLAY_SET = Display::class.java.accessors()
 internal val SHARED_FLAG = Entity::class.java.accessors().first().id
@@ -99,12 +100,11 @@ internal class TransformationData {
     )
 
     private class Item<T : Any>(
-        initialValue: T,
+        private val initialValue: T,
         private val accessor: EntityDataAccessor<T>,
         private val dirtyChecker: (T, T) -> Boolean,
         private val setter: (T, T) -> Unit
     ) {
-        private val _t: T = initialValue
         private var _dirty = false
 
         val dirty get() = _dirty
@@ -113,13 +113,12 @@ internal class TransformationData {
             _dirty = false
             forceValue
         } else null
-        val forceValue get() = SynchedEntityData.DataValue(accessor.id, accessor.serializer, _t)
+        val forceValue get() = SynchedEntityData.DataValue(accessor.id, accessor.serializer, initialValue)
 
         fun set(other: T) {
-            if (dirtyChecker(_t, other)) return
+            if (dirtyChecker(initialValue, other)) return
             _dirty = true
-            setter(_t, other)
+            setter(initialValue, other)
         }
     }
 }
-

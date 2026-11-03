@@ -1,13 +1,14 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.impl.fabric.scheduler
 
-import kr.toxicity.model.api.fabric.platform.FabricRegionHolder
-import kr.toxicity.model.api.fabric.scheduler.FabricModelScheduler
+import kr.toxicity.model.api.mod.platform.ModRegionHolder
+import kr.toxicity.model.api.mod.scheduler.ModModelScheduler
 import kr.toxicity.model.api.scheduler.ModelTask
 import kr.toxicity.model.api.util.LogUtil
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
@@ -17,7 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 
-object FabricModelSchedulerImpl : FabricModelScheduler, FabricRegionHolder {
+object FabricModelSchedulerImpl : ModModelScheduler, ModRegionHolder {
 
     private val scheduler = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors(), object : ThreadFactory {
 
@@ -124,7 +125,7 @@ object FabricModelSchedulerImpl : FabricModelScheduler, FabricRegionHolder {
     }
 
     fun init() {
-        ServerTickEvents.START_WORLD_TICK.register {
+        ServerTickEvents.START_LEVEL_TICK.register {
             tick()
         }
 

@@ -1,12 +1,12 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.bone;
 
-import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.entity.BaseEntity;
 import kr.toxicity.model.api.nms.Profiled;
 import kr.toxicity.model.api.platform.PlatformItemTransform;
@@ -127,7 +127,7 @@ public enum BoneTags implements BoneTag {
         @Override
         public @NotNull TransformedItemStack apply(@NotNull BoneRenderContext context, @NotNull TransformedItemStack transformedItemStack) {
             TransformedItemStack cape = null;
-            if (BetterModel.platform().skinManager().supported() && context.source() instanceof Profiled profiled && profiled.skinParts().isCapeEnabled()) {
+            if (context.source() instanceof Profiled profiled && profiled.skinParts().isCapeEnabled()) {
                 cape = context.skin().cape(profiled.armors());
             }
             return cape != null ? cape : TransformedItemStack.empty();

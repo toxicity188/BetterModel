@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.script;
 
 import kr.toxicity.model.api.tracker.Tracker;
@@ -21,7 +22,7 @@ public interface AnimationScript extends Consumer<Tracker> {
     /**
      * Empty script
      */
-    AnimationScript EMPTY = of(s -> {});
+    AnimationScript EMPTY = of(_ -> {});
 
     @Override
     void accept(@NotNull Tracker tracker);
@@ -82,9 +83,9 @@ public interface AnimationScript extends Consumer<Tracker> {
             case 1 -> scriptList.getFirst();
             default -> {
                 var sync = false;
-                Consumer<Tracker> consumer = trigger -> {};
+                Consumer<Tracker> consumer = _ -> {};
                 for (AnimationScript entityScript : scriptList) {
-                    sync = sync || entityScript.isSync();
+                    sync |= entityScript.isSync();
                     consumer = consumer.andThen(entityScript);
                 }
                 yield of(sync, consumer);

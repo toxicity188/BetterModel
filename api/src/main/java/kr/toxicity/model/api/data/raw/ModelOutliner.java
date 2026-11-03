@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonDeserializer;
@@ -40,7 +41,7 @@ public sealed interface ModelOutliner {
      * </p>
      * @since 1.15.2
      */
-    JsonDeserializer<ModelOutliner> PARSER = (json, typeOfT, context) -> {
+    JsonDeserializer<ModelOutliner> PARSER = (json, _, context) -> {
         if (json.isJsonPrimitive()) return new Reference(json.getAsString());
         else if (json.isJsonObject()) {
             var children = json.getAsJsonObject().getAsJsonArray("children");

@@ -1,13 +1,15 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.bukkit.nms.v1_21_R7
 
 import com.mojang.authlib.GameProfile
 import kr.toxicity.model.api.BetterModel
+import kr.toxicity.model.api.manager.ProfileManager
 import kr.toxicity.model.api.profile.ModelProfile
 import kr.toxicity.model.api.profile.ModelProfileInfo
 import kr.toxicity.model.api.profile.ModelProfileSkin
@@ -19,7 +21,7 @@ internal data class ModelGameProfile(
     private val info = ModelProfileInfo(gameProfile.id, gameProfile.name)
     private val skin by lazy {
         gameProfile.properties["textures"].firstOrNull()?.let {
-            BetterModel.platform().profileManager().skin(it.value)
+            BetterModel.platform().manager(ProfileManager::class.java).skin(it.value)
         } ?: ModelProfileSkin.EMPTY
     }
 

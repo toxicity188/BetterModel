@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.util
 
 import net.kyori.adventure.audience.Audience
@@ -15,19 +16,18 @@ import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextColor
 import net.kyori.adventure.text.format.TextDecoration
 
-val INFO = " [!] ".toComponent {
+private val INFO = " [!] ".toComponent {
     decorate(TextDecoration.BOLD).color(NamedTextColor.GREEN)
 }
-val WARN = " [!] ".toComponent {
+private val WARN = " [!] ".toComponent {
     decorate(TextDecoration.BOLD).color(NamedTextColor.RED)
 }
 
-inline fun String.toComponent(builder: TextComponent.Builder.() -> TextComponent.Builder = { this }) = componentOf(this, builder)
+fun String.toComponent(builder: TextComponent.Builder.() -> Unit = {}) = componentOf(this, builder)
 fun String.toComponent(color: TextColor) = componentOf(this) {
     color(color)
 }
 
-fun componentOf() = Component.text()
 fun spaceComponentOf() = Component.space()
 fun emptyComponentOf() = Component.empty()
 fun lineComponentOf() = Component.newline()
@@ -39,12 +39,12 @@ fun componentWithLineOf(vararg like: ComponentLike) = componentOf {
         append(l)
         if (i < like.lastIndex) append(lineComponentOf())
     }
-    this
 }
-inline fun componentOf(content: String, builder: TextComponent.Builder.() -> TextComponent.Builder) = componentOf {
-    content(content).let(builder)
+fun componentOf(content: String, builder: TextComponent.Builder.() -> Unit) = componentOf {
+    content(content)
+    builder()
 }
-inline fun componentOf(builder: TextComponent.Builder.() -> TextComponent.Builder) = componentOf().let(builder).build()
+fun componentOf(builder: TextComponent.Builder.() -> Unit) = Component.text { it.builder() }
 fun ComponentLike.toHoverEvent() = HoverEvent.showText(this)
 
 fun Audience.info(message: String) = info(message.toComponent())

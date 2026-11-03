@@ -1,12 +1,14 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.event;
 
 import kr.toxicity.model.api.tracker.Tracker;
+import kr.toxicity.model.api.tracker.TrackerCloseReason;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -21,6 +23,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public record CloseTrackerEvent(
     @NotNull Tracker tracker,
-    @NotNull Tracker.CloseReason reason
+    @NotNull TrackerCloseReason reason
 ) implements ModelEvent {
 }
