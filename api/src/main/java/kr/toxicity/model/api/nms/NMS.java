@@ -238,9 +238,7 @@ public interface NMS {
      * @return the transformed item stack
      * @since 1.15.2
      */
-    default @NotNull TransformedItemStack createSkinItem(@NotNull String model, @NotNull List<Float> floats, @NotNull List<Boolean> flags, @NotNull List<String> strings, @NotNull List<Integer> colors) {
-        return TransformedItemStack.empty();
-    }
+    @NotNull TransformedItemStack createSkinItem(@NotNull String model, @NotNull List<Float> floats, @NotNull List<Boolean> flags, @NotNull List<String> strings, @NotNull List<Integer> colors);
 
     /**
      * Checks if the server is in online mode (either natively or via proxy).
