@@ -20,7 +20,6 @@ import java.util.zip.Deflater
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import kotlin.io.path.pathString
-import kotlin.io.use
 
 fun BetterModelConfig.PackType.toGenerator() = when (this) {
     FOLDER -> FolderGenerator()
