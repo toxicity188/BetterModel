@@ -161,12 +161,7 @@ class NMSImpl : NMS {
 
         private fun Int.toPlayerEntity() = toEntity(connection.player.serverLevel())
         private fun Entity.toRegistry() = BetterModel.registryOrNull(uuid)
-        private inline fun Int.toRegistry(
-            ifHitBox: (Entity) -> Unit = {}
-        ) = (EntityTrackerRegistry.registry(this) ?: toPlayerEntity()?.let {
-            if (it is HitBox) ifHitBox(it)
-            it.toRegistry()
-        })?.takeIf {
+        private fun Int.toRegistry() = (EntityTrackerRegistry.registry(this) ?: toPlayerEntity()?.toRegistry())?.takeIf {
             it.isSpawned(player.uniqueId)
         }
 
@@ -208,11 +203,8 @@ class NMSImpl : NMS {
                 is ClientboundRemoveEntitiesPacket -> {
                     entityIds
                         .asSequence()
-                        .mapNotNull map@ {
-                            if (hitBoxIds.remove(it)) return@map null
-                            it.toRegistry {
-                                return@map null
-                            }
+                        .mapNotNull {
+                            if (hitBoxIds.remove(it)) null else it.toRegistry()
                         }
                         .forEach {
                             it.remove()

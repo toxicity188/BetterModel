@@ -72,13 +72,9 @@ class PlayerChannelHandlerImpl(
 
     private fun Entity.toRegistry() = BetterModel.registryOrNull(uuid)
 
-    private inline fun Int.toRegistry(ifHitBox: (Entity) -> Unit = {}) =
-        (EntityTrackerRegistry.registry(this) ?: getPlayerEntity(this)?.let {
-            if (it is HitBox) ifHitBox(it)
-            it.toRegistry()
-        })?.takeIf {
-            it.isSpawned(player.uuid)
-        }
+    private fun Int.toRegistry() = (EntityTrackerRegistry.registry(this) ?: getPlayerEntity(this)?.toRegistry())?.takeIf {
+        it.isSpawned(player.uuid)
+    }
 
     override fun sendEntityData(registry: EntityTrackerRegistry) {
         val handle = registry.entity().handle() as? Entity ?: return
@@ -136,11 +132,8 @@ class PlayerChannelHandlerImpl(
             is ClientboundRemoveEntitiesPacket -> {
                 entityIds
                     .asSequence()
-                    .mapNotNull map@{
-                        if (hitBoxIds.remove(it)) return@map null
-                        it.toRegistry {
-                            return@map null
-                        }
+                    .mapNotNull {
+                        if (hitBoxIds.remove(it)) null else it.toRegistry()
                     }
                     .forEach {
                         it.remove()
