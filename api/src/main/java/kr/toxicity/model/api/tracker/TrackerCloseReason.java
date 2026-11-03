@@ -11,6 +11,18 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * Reason for closing a tracker.
+ * <p>
+ * Represents the cause of a tracker closure and indicates whether the tracker state
+ * should be persisted.
+ * </p>
+ * <p>Example:</p>
+ * <pre>{@code
+ * tracker.handleCloseEvent((t, reason) -> {
+ *     if (reason.shouldBeSave()) {
+ *         // persist state
+ *     }
+ * });
+ * }</pre>
  *
  * @since 3.7.0
  */
@@ -37,7 +49,7 @@ public enum TrackerCloseReason {
     /**
      * Checks if the tracker state should be saved.
      *
-     * @return true if it should be saved
+     * @return true if the tracker state should be saved, false otherwise
      * @since 3.7.0
      */
     public boolean shouldBeSave() {
