@@ -347,7 +347,7 @@ public final class EntityTrackerRegistry {
      * @since 1.15.2
      */
     public boolean close() {
-        return close(Tracker.CloseReason.REMOVE);
+        return close(TrackerCloseReason.REMOVE);
     }
 
     /**
@@ -357,7 +357,7 @@ public final class EntityTrackerRegistry {
      * @return true if closed successfully
      * @since 1.15.2
      */
-    public boolean close(@NotNull Tracker.CloseReason reason) {
+    public boolean close(@NotNull TrackerCloseReason reason) {
         if (!closed.compareAndSet(false, true)) return false;
         viewedPlayer().forEach(value -> value.sendEntityData(this));
         viewedPlayerMap.clear();

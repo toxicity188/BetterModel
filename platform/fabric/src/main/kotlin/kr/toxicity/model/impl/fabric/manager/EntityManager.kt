@@ -13,7 +13,7 @@ import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
-import kr.toxicity.model.api.tracker.Tracker
+import kr.toxicity.model.api.tracker.TrackerCloseReason
 import kr.toxicity.model.api.tracker.TrackerExtraAnimation
 import kr.toxicity.model.impl.fabric.events.ServerEntityDismountCallback
 import kr.toxicity.model.impl.fabric.events.ServerLivingEntityJumpCallback
@@ -44,7 +44,7 @@ object EntityManager : GlobalManager {
     override fun end() {
         EntityTrackerRegistry.registries { registry ->
             registry.save()
-            registry.close(Tracker.CloseReason.PLUGIN_DISABLE)
+            registry.close(TrackerCloseReason.PLUGIN_DISABLE)
         }
     }
 

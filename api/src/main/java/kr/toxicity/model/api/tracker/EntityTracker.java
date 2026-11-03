@@ -108,13 +108,13 @@ public sealed class EntityTracker extends Tracker permits PlayerTracker {
                 });
                 var baseScale = (float) (box.x() + box.z()) / 4F;
                 var posCache = new BoneMovement();
-                tick(((_, s) -> {
+                tick((set -> {
                     var wPos = bone.hitBoxPosition(posCache);
                     shadow.shadowRadius(scale.getAsFloat() * baseScale);
                     shadow.syncPotionEffect(entity);
                     shadow.syncPosition(location().add(wPos.x, wPos.y, wPos.z));
-                    shadow.sendDirtyEntityData(s.getDataBundler());
-                    shadow.sendPosition(entity, s.getTickBundler());
+                    shadow.sendDirtyEntityData(set.dataBundler());
+                    shadow.sendPosition(entity, set.tickBundler());
                 }));
                 pipeline.spawnPacketHandler(shadow::spawnWithEntityData);
                 pipeline.showPacketHandler(shadow::spawnWithEntityData);
@@ -153,8 +153,8 @@ public sealed class EntityTracker extends Tracker permits PlayerTracker {
             if (isClosed()) return;
             createHitBox(null, CREATE_HITBOX_PREDICATE);
         });
-        tick((_, _) -> updateLocation());
-        tick((_, _) -> {
+        tick(_ -> updateLocation());
+        tick(_ -> {
             if (damageTint.getAndDecrement() == 0) update(TrackerUpdateAction.previousTint());
         });
         rotation(bodyRotator::bodyRotation);
@@ -259,7 +259,7 @@ public sealed class EntityTracker extends Tracker permits PlayerTracker {
     @Override
     public void despawn() {
         if (sourceEntity().dead()) {
-            close(CloseReason.DESPAWN);
+            close(TrackerCloseReason.DESPAWN);
             return;
         }
         super.despawn();

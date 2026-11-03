@@ -30,7 +30,6 @@ import kr.toxicity.model.api.util.*;
 import kr.toxicity.model.api.util.function.BonePredicate;
 import kr.toxicity.model.api.util.function.FloatSupplier;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -88,8 +87,8 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
     private final AtomicBoolean forRemoval = new AtomicBoolean();
     private final AtomicBoolean firstStart = new AtomicBoolean();
     protected final TrackerModifier modifier;
-    private final AnimationTicker animationTicker;
-    private final BundlerSet bundlerSet;
+    private final TrackerAnimationTicker animationTicker;
+    private final TrackerBundlerSet bundlerSet;
     private final FloatSupplier heightSupplier = FunctionUtil.throttleTickFloat(TRACKER_TICK_INTERVAL, new FloatSupplier() {
 
         private final BoneMovement heightCache = new BoneMovement();
@@ -117,9 +116,9 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
     protected ModelRotator rotator = ModelRotator.YAW;
     protected ModelScaler scaler = ModelScaler.entity();
     private Supplier<ModelRotation> rotationSupplier = () -> ModelRotation.EMPTY;
-    private BiConsumer<Tracker, CloseReason> closeEventHandler = (t, r) -> EventUtil.call(CloseTrackerEvent.class, () -> new CloseTrackerEvent(t, r));
+    private BiConsumer<Tracker, TrackerCloseReason> closeEventHandler = (t, r) -> EventUtil.call(CloseTrackerEvent.class, () -> new CloseTrackerEvent(t, r));
 
-    private volatile List<ScheduledPacketHandler> tickHandlers = new ObjectArrayList<>();
+    private volatile List<Consumer<TrackerBundlerSet>> tickHandlers = new ObjectArrayList<>();
     private BiConsumer<Tracker, PlatformPlayer> perPlayerHandler = null;
 
     /**
@@ -132,28 +131,29 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
     public Tracker(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier) {
         this.pipeline = pipeline;
         this.modifier = modifier;
-        bundlerSet = new BundlerSet();
-        animationTicker = new AnimationTicker();
+        this.animationTicker = new TrackerAnimationTicker(pipeline);
+        this.bundlerSet = new TrackerBundlerSet(pipeline);
         if (modifier.sightTrace()) pipeline.viewFilter(p -> EntityUtil.canSee(p.eyeLocation(), location()));
-        frame((t, s) -> {
-            if (readyForForceUpdate.compareAndSet(true, false)) t.pipeline.forEach(b -> b.dirtyUpdate(s.dataBundler));
+        frame(set -> {
+            if (readyForForceUpdate.compareAndSet(true, false)) pipeline.forEach(b -> b.dirtyUpdate(set.dataBundler()));
         });
-        tick((t, s) -> pipeline.rotate(
-            t.rotation(),
-            s.tickBundler
+        tick(set -> pipeline.rotate(
+            rotation(),
+            set.tickBundler()
         ));
-        tick((t, _) -> {
+        tick(_ -> {
             var perPlayer = perPlayerHandler;
-            if (perPlayer != null) pipeline.forEachNonHidePlayer(p -> perPlayer.accept(t, p.player()));
+            if (perPlayer != null) pipeline.forEachNonHidePlayer(p -> perPlayer.accept(this, p.player()));
         });
         pipeline.spawnPacketHandler(_ -> start());
-        pipeline.eventDispatcher().handleStateCreate((_, uuid) -> animationTicker.perPlayerAnimationCache
-            .computeIfAbsent(uuid, PerPlayerCache::new)
-            .add());
-        pipeline.eventDispatcher().handleStateRemove((_, uuid) -> {
-            var get = animationTicker.perPlayerAnimationCache.get(uuid);
-            if (get != null) get.remove();
-        });
+        pipeline.eventDispatcher().handleStateCreate((_, uuid) -> animationTicker.countAdd(
+            uuid,
+            channel -> EventUtil.call(PlayerPerAnimationStartEvent.class, () -> new PlayerPerAnimationStartEvent(this, channel.player())))
+        );
+        pipeline.eventDispatcher().handleStateRemove((_, uuid) -> animationTicker.countRemove(
+            uuid,
+            channel -> EventUtil.call(PlayerPerAnimationEndEvent.class, () -> new PlayerPerAnimationEndEvent(this, channel.player()))
+        ));
         LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " tracker created: " + name());
         pipeline.getSource().completeContext().thenAccept(context -> {
             if (pipeline.matchTree(bone -> bone.updateItem(context))) forceUpdate(true);
@@ -210,7 +210,7 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
         animationTick();
         tickHandlers.forEach(handler -> {
             try {
-                handler.handle(this, bundlerSet);
+                handler.accept(bundlerSet);
             } catch (Throwable throwable) {
                 LogUtil.handleException("Ticking this tracker has been failed: " + name(), throwable);
             }
@@ -290,13 +290,13 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
      * @param handler the packet handler
      * @since 1.15.2
      */
-    public synchronized void frame(@NotNull ScheduledPacketHandler handler) {
+    public synchronized void frame(@NotNull Consumer<TrackerBundlerSet> handler) {
         Objects.requireNonNull(handler);
         var get = tickHandlers;
         if (!isScheduled()) {
             get.add(handler);
         } else {
-            var newList = new ObjectArrayList<ScheduledPacketHandler>(get.size() + 1);
+            var newList = new ObjectArrayList<Consumer<TrackerBundlerSet>>(get.size() + 1);
             newList.addAll(get);
             newList.add(handler);
             tickHandlers = newList;
@@ -308,7 +308,7 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
      * @param handler the packet handler
      * @since 1.15.2
      */
-    public void tick(@NotNull ScheduledPacketHandler handler) {
+    public void tick(@NotNull Consumer<TrackerBundlerSet> handler) {
         tick(1, handler);
     }
     /**
@@ -318,7 +318,7 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
      * @param handler the packet handler
      * @since 1.15.2
      */
-    public void tick(long tick, @NotNull ScheduledPacketHandler handler) {
+    public void tick(long tick, @NotNull Consumer<TrackerBundlerSet> handler) {
         schedule(MINECRAFT_TICK_MULTIPLIER * tick, handler);
     }
 
@@ -340,11 +340,11 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
      * @param handler the packet handler
      * @since 1.15.2
      */
-    public void schedule(long period, @NotNull ScheduledPacketHandler handler) {
+    public void schedule(long period, @NotNull Consumer<TrackerBundlerSet> handler) {
         Objects.requireNonNull(handler);
         if (period <= 0) throw new RuntimeException("period cannot be <= 0");
-        frame(period == 1 ? handler : (t, s) -> {
-            if (frame % period == 0) handler.handle(t, s);
+        frame(period == 1 ? handler : set -> {
+            if (frame % period == 0) handler.accept(set);
         });
     }
 
@@ -380,10 +380,10 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
 
     @Override
     public void close() {
-        close(CloseReason.REMOVE);
+        close(TrackerCloseReason.REMOVE);
     }
 
-    protected void close(@NotNull CloseReason reason) {
+    protected void close(@NotNull TrackerCloseReason reason) {
         if (isClosed.compareAndSet(false, true)) {
             closeEventHandler.accept(this, reason);
             shutdown();
@@ -885,7 +885,7 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
      * @param consumer the handler
      * @since 1.15.2
      */
-    public void handleCloseEvent(@NotNull BiConsumer<Tracker, CloseReason> consumer) {
+    public void handleCloseEvent(@NotNull BiConsumer<Tracker, TrackerCloseReason> consumer) {
         closeEventHandler = closeEventHandler.andThen(Objects.requireNonNull(consumer));
     }
 
@@ -955,154 +955,8 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
         return name().hashCode();
     }
 
-    /**
-     * Functional interface for handling scheduled packets.
-     *
-     * @since 1.15.2
-     */
-    @FunctionalInterface
-    public interface ScheduledPacketHandler {
-        /**
-         * Handles packets for a tracker.
-         *
-         * @param tracker the tracker
-         * @param bundlerSet the set of packet bundlers
-         * @since 1.15.2
-         */
-        void handle(@NotNull Tracker tracker, @NotNull BundlerSet bundlerSet);
-    }
-
-    /**
-     * Holds different types of packet bundlers for a tracker tick.
-     *
-     * @since 1.15.2
-     */
-    public final class BundlerSet {
-        @Getter
-        private PacketBundler tickBundler = pipeline.createBundler();
-        @Getter
-        private PacketBundler dataBundler = pipeline.createBundler();
-
-        private BundlerSet() {
-        }
-
-        private void send() {
-            if (tickBundler.isNotEmpty()) {
-                pipeline.forEachAllPlayer(tickBundler::send);
-                tickBundler = pipeline.createBundler();
-            }
-            if (dataBundler.isNotEmpty()) {
-                pipeline.forEachNonHidePlayer(dataBundler::send);
-                dataBundler = pipeline.createBundler();
-            }
-        }
-    }
-
-    private final class AnimationTicker {
-
-        private final List<PlayerChannelHandler> viewedPlayers = new ObjectArrayList<>();
-        private final Map<UUID, PerPlayerCache> perPlayerAnimationCache = new ConcurrentHashMap<>();
-        private AnimationBundler animationBundler = pipeline.createAnimationBundler();
-
-        private void tick() {
-            if (!pipeline.tick()) return;
-            recalculateViewedPlayers();
-            if (viewedPlayers.isEmpty()) return;
-            sendAnimation();
-        }
-
-        private void recalculateViewedPlayers() {
-            viewedPlayers.clear();
-            pipeline.forEachViewedPlayer(channel -> {
-                if (!perPlayerAnimationCache.containsKey(channel.uuid())) viewedPlayers.add(channel);
-            });
-        }
-
-        private void sendAnimation() {
-            pipeline.send(animationBundler);
-            if (animationBundler.isNotEmpty()) {
-                viewedPlayers.forEach(animationBundler::send);
-                animationBundler = pipeline.createAnimationBundler();
-            }
-            if (perPlayerAnimationCache.isEmpty()) return;
-            perPlayerAnimationCache.values().forEach(PerPlayerCache::send);
-        }
-    }
-
-    @RequiredArgsConstructor
-    private final class PerPlayerCache {
-        private final UUID uuid;
-        private final AtomicInteger counter = new AtomicInteger();
-        private AnimationBundler bundler = pipeline.createAnimationBundler();
-
-        private @NotNull Optional<PlayerChannelHandler> channel() {
-            return Optional.ofNullable(pipeline.channel(uuid));
-        }
-
-        public void add() {
-            if (counter.getAndIncrement() == 0) {
-                channel().ifPresent(handler -> EventUtil.call(PlayerPerAnimationStartEvent.class, () -> new PlayerPerAnimationStartEvent(Tracker.this, handler.player())));
-            }
-        }
-
-        public void remove() {
-            if (counter.decrementAndGet() == 0) {
-                animationTicker.perPlayerAnimationCache.remove(uuid);
-                channel().ifPresent(channel -> {
-                    var bundler = pipeline.createBundler();
-                    pipeline.forEach(bone -> bone.forceTransformation(bundler));
-                    bundler.send(channel);
-                    EventUtil.call(PlayerPerAnimationEndEvent.class, () -> new PlayerPerAnimationEndEvent(Tracker.this, channel.player()));
-                });
-            }
-        }
-
-        private void send() {
-            if (pipeline.tick(uuid, bundler) && bundler.isNotEmpty()) {
-                channel().ifPresent(bundler::send);
-                bundler = pipeline.createAnimationBundler();
-            }
-        }
-    }
-
     @Override
     public String toString() {
         return name();
-    }
-
-    /**
-     * Reason for closing a tracker.
-     *
-     * @since 1.15.2
-     */
-    @RequiredArgsConstructor
-    public enum CloseReason {
-        /**
-         * The tracker was manually removed.
-         * @since 1.15.2
-         */
-        REMOVE(false),
-        /**
-         * The plugin is being disabled.
-         * @since 1.15.2
-         */
-        PLUGIN_DISABLE(true),
-        /**
-         * The entity or tracker was despawned.
-         * @since 1.15.2
-         */
-        DESPAWN(true)
-        ;
-        private final boolean save;
-
-        /**
-         * Checks if the tracker state should be saved.
-         *
-         * @return true if it should be saved
-         * @since 1.15.2
-         */
-        public boolean shouldBeSave() {
-            return save;
-        }
     }
 }
