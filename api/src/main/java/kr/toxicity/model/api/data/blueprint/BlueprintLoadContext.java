@@ -103,6 +103,17 @@ public final class BlueprintLoadContext {
         return Objects.requireNonNull(textureRefs[index]).texture();
     }
 
+    /**
+     * Gets a texture resolution by its index.
+     *
+     * @param index the index
+     * @return the texture resolution
+     * @since 3.7.0
+     */
+    public @NotNull ModelResolution resolution(int index) {
+        return texture(index).resolution(resolution);
+    }
+
     @NotNull
     @Unmodifiable
     Map<String, MeshImage> imageByIndex() {

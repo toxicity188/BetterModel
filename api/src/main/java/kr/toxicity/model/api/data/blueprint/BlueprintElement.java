@@ -380,23 +380,21 @@ public sealed interface BlueprintElement {
                 .map(r -> parseToRotation(r, centerOrigin.plus(relativeOrigin)))
                 .orElse(null);
 
-            return group(faces().uv(), BlueprintUV::texture)
+            return group(faces().uv(), uv -> forceGlow || context.texture(uv.texture()).isGlowingTexture())
                 .entrySet()
                 .stream()
                 .map(entry -> {
-                    var texture = context.texture(entry.getKey());
-                    var face = BlueprintUV.toJson(texture.resolution(context.resolution()), entry.getValue());
+                    var face = BlueprintUV.toJson(entry.getValue(), uv -> context.resolution(uv.texture()));
                     if (face == null) return null;
                     return JsonObjectBuilder.builder()
-                        .property("light_emission", forceGlow || texture.isGlowingTexture() ? Integer.valueOf(15) : lightEmission)
+                        .property("light_emission", entry.getKey() ? Integer.valueOf(15) : lightEmission)
                         .jsonArray("from", from)
                         .jsonArray("to", to)
                         .jsonObject("faces", face)
                         .jsonObject("rotation", rotation)
                         .build();
                 })
-                .filter(Objects::nonNull)
-            ;
+                .filter(Objects::nonNull);
         }
 
         /**

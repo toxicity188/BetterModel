@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * Represents a processed face UV mapping blueprint ready for Minecraft model JSON serialization.
@@ -87,16 +88,16 @@ public record BlueprintUV(
      * Serializes a list of {@link BlueprintUV} instances into a combined JSON object representing
      * the "faces" section of a Minecraft element JSON.
      *
-     * @param resolution the texture resolution used to normalize UV coordinates
      * @param uvs the list of UV mappings to serialize
+     * @param function the mapper of the texture resolution used to normalize UV coordinates
      * @return a {@link JsonObject} containing each face mapped to its serialized UV object,
      *         or {@code null} if all mappings are omitted or invalid
      * @since 3.7.0
      */
-    public static @Nullable JsonObject toJson(@NotNull ModelResolution resolution, @NotNull List<BlueprintUV> uvs) {
+    public static @Nullable JsonObject toJson(@NotNull List<BlueprintUV> uvs, @NotNull Function<BlueprintUV, ModelResolution> function) {
         var object = new JsonObject();
         for (BlueprintUV uv : uvs) {
-            var json = uv.toJson(resolution);
+            var json = uv.toJson(function.apply(uv));
             if (json == null) continue;
             object.add(uv.faceId(), json);
         }

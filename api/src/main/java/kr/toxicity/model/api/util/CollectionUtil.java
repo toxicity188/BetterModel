@@ -237,15 +237,32 @@ public final class CollectionUtil {
      * Groups stream by some key
      * @param stream stream
      * @param keyMapper key mapper
-     * @return unmodifiable grouped map
+     * @return grouped map
      * @param <K> key
      * @param <E> element
      */
     @NotNull
     @Unmodifiable
     public static <K, E> Map<K, List<E>> group(@NotNull Stream<E> stream, @NotNull Function<E, K> keyMapper) {
-        return Collections.unmodifiableMap(stream.collect(Collectors.groupingBy(keyMapper)));
+        return group(stream, keyMapper, CollectionUtil::newAddressingMap);
     }
+
+    /**
+     * Groups stream by some key
+     * @param stream stream
+     * @param keyMapper key mapper
+     * @param mapSupplier map supplier
+     * @return grouped map
+     * @param <K> key
+     * @param <E> element
+     * @param <M> map
+     */
+    @NotNull
+    @Unmodifiable
+    public static <K, E, M extends Map<K, List<E>>> M group(@NotNull Stream<E> stream, @NotNull Function<E, K> keyMapper, @NotNull Supplier<M> mapSupplier) {
+        return stream.collect(Collectors.groupingBy(keyMapper, mapSupplier, Collectors.toList()));
+    }
+
 
     /**
      * Maps some collection with map index
