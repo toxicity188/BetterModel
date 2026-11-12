@@ -181,6 +181,13 @@ public record Float3(
             );
     }
 
+    public boolean isWithinElementBounds() {
+        // Legacy item models reject element coordinates outside this range.
+        return x >= -16F && x <= 32F
+            && y >= -16F && y <= 32F
+            && z >= -16F && z <= 32F;
+    }
+
     /**
      * Converts floats to vector.
      * @return vector

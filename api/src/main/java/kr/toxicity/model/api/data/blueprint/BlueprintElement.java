@@ -167,10 +167,14 @@ public sealed interface BlueprintElement {
         ) {
             var scale = scale();
             var list = mapIndexed(
-                group(filterIsInstance(children, Cube.class), Cube::identifierDegree),
-                (i, entry) -> buildJson(i + 1, scale, obfuscator, context, entry.getKey(), entry.getValue())
-            ).filter(Objects::nonNull)
-                .toList();
+                CubeRotationGroups.group(
+                    filterIsInstance(children, Cube.class)
+                        .filter(cube -> cube.faces().textures().findAny().isPresent())
+                        .toList(),
+                    origin,
+                    scale),
+                (i, model) -> buildJson(i + 1, scale, obfuscator, context, model)
+            ).toList();
             return list.isEmpty() ? null : list;
         }
 
@@ -194,30 +198,34 @@ public sealed interface BlueprintElement {
             return builder.toJson();
         }
 
-        private @Nullable BlueprintJson buildJson(
+        private @NotNull BlueprintJson buildJson(
             int number,
             float scale,
             @NotNull PackObfuscator.Pair obfuscator,
             @NotNull BlueprintLoadContext context,
-            @NotNull Float3 identifier,
-            @NotNull List<Cube> cubes
+            @NotNull CubeRotationGroups.Model model
         ) {
-            var selectedTextures = cubes.stream()
-                .flatMapToInt(tex -> tex.faces().textures())
+            var selectedTextures = model.elements().stream()
+                .flatMapToInt(element -> element.cube().faces().textures())
                 .distinct()
                 .sorted()
                 .mapToObj(i -> Map.entry(Integer.toString(i), context.texture(i).packNamespace(obfuscator.textures())))
                 .toList();
-            if (selectedTextures.isEmpty()) return null;
             var forceGlow = name().tagged(BoneTags.GLOW);
+            var identifier = model.identifier();
+            var inverse = identifier.invert(new Quaternionf());
+            var displayRotation = identifier.x() == 0F && identifier.y() == 0F && identifier.z() == 0F
+                ? null : MathUtil.toMinecraftDegree(identifier);
             return new BlueprintJson(obfuscator.models().obfuscate(jsonName(context) + "_" + number), () -> JsonObjectBuilder.builder()
                 .jsonObject("textures", textures -> textures
                     .stringProperties(selectedTextures)
                     .property("particle", selectedTextures.getFirst().getValue()))
-                .jsonArray("elements", cubes.stream().flatMap(cube -> cube.buildJson(context, scale, origin, identifier, forceGlow)).collect(toJsonArray()))
+                .jsonArray("elements", model.elements().stream()
+                    .flatMap(element -> element.cube().buildJson(context, scale, origin, inverse, element.rotation(), forceGlow))
+                    .collect(toJsonArray()))
                 .jsonObject("display", display -> display.jsonObject("fixed", fixed -> {
-                    if (!identifier.equals(Float3.ZERO)) {
-                        fixed.jsonArray("rotation", identifier.convertToMinecraftDegree().toJson());
+                    if (displayRotation != null) {
+                        fixed.jsonArray("rotation", displayRotation.toJson());
                     }
                 }))
                 .build());
@@ -344,27 +352,31 @@ public sealed interface BlueprintElement {
         boolean visibility
     ) implements BlueprintElement {
 
-        private @NotNull Float3 identifierDegree() {
-            return MathUtil.identifier(rotation());
-        }
-
         private static @NotNull Float3 centralize(@NotNull Float3 target, @NotNull Float3 groupOrigin, float scale) {
             return target.minus(groupOrigin).div(scale);
         }
 
-        private static @NotNull Float3 deltaPosition(@NotNull Float3 target, @NotNull Quaternionf quaternionf) {
-            return target.rotate(quaternionf).minus(target);
+        private static @NotNull Float3 translatedOrigin(@NotNull Float3 origin, @NotNull Quaternionf inverseIdentifier) {
+            return origin.rotate(inverseIdentifier).minus(origin).plus(Float3.CENTER);
+        }
+
+        boolean fitsElementBounds(@NotNull Float3 groupOrigin, float scale, @NotNull Quaternionf inverseIdentifier) {
+            var translation = translatedOrigin(centralize(origin(), groupOrigin, scale), inverseIdentifier);
+            var inflate = new Float3(inflate() / scale);
+            return centralize(from(), groupOrigin, scale).plus(translation).minus(inflate).isWithinElementBounds()
+                && centralize(to(), groupOrigin, scale).plus(translation).plus(inflate).isWithinElementBounds();
         }
 
         private @NotNull Stream<JsonObject> buildJson(
             @NotNull BlueprintLoadContext context,
             float scale,
             @NotNull Float3 groupOrigin,
-            @NotNull Float3 identifier,
+            @NotNull Quaternionf inverseIdentifier,
+            @NotNull Float3 relativeRotation,
             boolean forceGlow
         ) {
             var centerOrigin = centralize(origin(), groupOrigin, scale);
-            var relativeOrigin = deltaPosition(centerOrigin, identifier.toQuaternionZYX().invert()).plus(Float3.CENTER);
+            var relativeOrigin = translatedOrigin(centerOrigin, inverseIdentifier);
             var inflate = new Float3(inflate() / scale);
 
             var from = centralize(from(), groupOrigin, scale)
@@ -375,10 +387,9 @@ public sealed interface BlueprintElement {
                 .plus(relativeOrigin)
                 .plus(inflate)
                 .toJson();
-            var rotation = Optional.of(rotation().minus(identifier))
-                .filter(r -> !Float3.ZERO.equals(r))
-                .map(r -> parseToRotation(r, centerOrigin.plus(relativeOrigin)))
-                .orElse(null);
+            var rotation = Float3.ZERO.equals(relativeRotation)
+                ? null
+                : parseToRotation(relativeRotation, centerOrigin.plus(relativeOrigin));
 
             return group(faces().uv(), uv -> forceGlow || context.texture(uv.texture()).isGlowingTexture())
                 .entrySet()
