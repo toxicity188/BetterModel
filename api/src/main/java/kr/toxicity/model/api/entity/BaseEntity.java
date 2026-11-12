@@ -8,6 +8,7 @@
 package kr.toxicity.model.api.entity;
 
 import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.animation.keyframe.KeyframeRuntimeContext;
 import kr.toxicity.model.api.manager.PlayerManager;
 import kr.toxicity.model.api.nms.Identifiable;
 import kr.toxicity.model.api.platform.PlatformEntity;
@@ -214,4 +215,8 @@ public interface BaseEntity extends Identifiable {
      * @param modelData model data
      */
     void modelData(@Nullable String modelData);
+
+    default void updateTo(@NotNull KeyframeRuntimeContext context) {
+
+    }
 }

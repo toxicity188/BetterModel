@@ -97,6 +97,7 @@ public sealed class EntityTracker extends Tracker permits PlayerTracker {
         bodyRotator = new EntityBodyRotator(registry);
 
         var entity = registry.entity();
+        entity.updateTo(context);
         var scale = FunctionUtil.throttleTickFloat(() -> scaler().scale(this));
         //Shadow
         Optional.ofNullable(bone("shadow"))
