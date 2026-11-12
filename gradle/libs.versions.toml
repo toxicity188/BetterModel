@@ -60,7 +60,7 @@ bStats = "org.bstats:bstats-bukkit:3.2.1"
 dynamicUV = "io.github.toxicity188:dynamicuv:1.4.1"
 armormodel = "io.github.toxicity188:armormodel:1.2.0"
 javamesh = "io.github.toxicity188:java-mesh:0.0.1"
-mochfloats = "org.redlance.mochafloats:runtime-compiler:6.1.1"
+mochfloats = "org.redlance.mochafloats:runtime-compiler:6.2.0"
 libby = "net.byteflux:libby-bukkit:1.3.2"
 
 build-kotlin-jvm = { module = "org.jetbrains.kotlin.jvm:org.jetbrains.kotlin.jvm.gradle.plugin", version.ref = "kotlin" }
