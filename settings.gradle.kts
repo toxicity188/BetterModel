@@ -29,7 +29,7 @@ dependencyResolutionManagement {
         maven("https://maven.neoforged.net/releases/")
         maven("https://repo.codemc.org/repository/maven-public/")
         maven("https://repo.alessiodp.com/releases/")
-        maven("https://maven.blamejared.com/")
+        maven("https://repo.redlance.org/public")
         maven("https://repo.purpurmc.org/snapshots")
         maven("https://maven.citizensnpcs.co/repo/")
         maven("https://mvn.lumine.io/repository/maven-public/")

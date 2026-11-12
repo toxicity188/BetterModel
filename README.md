@@ -76,7 +76,7 @@ BetterModel aims to be a reliable engine that provides stable, high-quality anim
 - [DynamicUV](https://github.com/toxicity188/DynamicUV): player model
 - [ArmorModel](https://github.com/toxicity188/ArmorModel): armor in player model
 - [java-mesh](https://github.com/toxicity188/java-mesh): mesh rendering
-- [molang-compiler](https://github.com/Ocelot5836/molang-compiler): compiling and evaluating molang expression
+- [mochafloats](https://github.com/PlayerAnimationLibrary/mochafloats): compiling and evaluating molang expression
 - [libby](https://github.com/AlessioDP/libby): runtime library downloader
 
 #### Tested Bukkit Server Platform

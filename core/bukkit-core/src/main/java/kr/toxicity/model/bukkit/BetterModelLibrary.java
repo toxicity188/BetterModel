@@ -63,10 +63,15 @@ public final class BetterModelLibrary {
         "geantyref",
         builder -> builder.predicate(BooleanConstantSupplier.of(!BetterModelBukkit.IS_PAPER))
     );
-    public static final LibraryData MOLANG_COMPILER = register(
-        "gg{}moonflower",
-        "molang-compiler",
+    public static final LibraryData MOCHAFLOATS = register(
+        "org{}redlance{}mochafloats",
+        "runtime-compiler",
         builder -> builder
+            .subModules(
+                "lexer",
+                "parser",
+                "runtime"
+            )
     );
     public static final LibraryData ADVENTURE_API = register(
         "net{}kyori",
@@ -118,7 +123,7 @@ public final class BetterModelLibrary {
     public void load(@NotNull AbstractBetterModelPlugin plugin) {
         var manager = new BetterModelLibraryManager(plugin);
         manager.addRepository("https://maven-central.storage-download.googleapis.com/maven2/");
-        manager.addRepository("https://maven.blamejared.com/");
+        manager.addRepository("https://repo.redlance.org/public");
         manager.addMavenCentral();
         LIBRARY_DATA.stream()
             .filter(LibraryData::isLoaded)
