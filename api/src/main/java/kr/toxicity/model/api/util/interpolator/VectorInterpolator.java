@@ -91,7 +91,7 @@ public enum VectorInterpolator {
             var a = alpha(t1, t2, time);
 
             var rightTime = p1.bezier().rightTime();
-            var rightValue = p1.bezier().rightTime();
+            var rightValue = p1.bezier().rightValue();
             var leftTime = p2.bezier().leftTime();
             var leftValue = p2.bezier().leftValue();
 
