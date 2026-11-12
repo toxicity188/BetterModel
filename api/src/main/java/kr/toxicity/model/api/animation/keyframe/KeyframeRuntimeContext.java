@@ -7,6 +7,7 @@
 
 package kr.toxicity.model.api.animation.keyframe;
 
+import kr.toxicity.model.api.util.function.FloatSupplier;
 import org.jetbrains.annotations.NotNull;
 
 public interface KeyframeRuntimeContext {
@@ -16,6 +17,8 @@ public interface KeyframeRuntimeContext {
     }
 
     default void set(@NotNull String key, float value) {}
+
+    default void setFunction(@NotNull String key, FloatSupplier supplier) {}
 
     enum Empty implements KeyframeRuntimeContext {
         INSTANCE

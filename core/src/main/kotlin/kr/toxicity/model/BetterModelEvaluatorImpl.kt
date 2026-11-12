@@ -10,6 +10,7 @@ package kr.toxicity.model
 import kr.toxicity.model.api.BetterModelEvaluator
 import kr.toxicity.model.api.animation.keyframe.Keyframe
 import kr.toxicity.model.api.animation.keyframe.KeyframeRuntimeContext
+import kr.toxicity.model.api.util.function.FloatSupplier
 import org.redlance.mocha.parser.MolangParser
 import org.redlance.mocha.runtime.IsConstantExpression
 import org.redlance.mocha.runtime.MolangInterpreter
@@ -27,6 +28,10 @@ class BetterModelEvaluatorImpl : BetterModelEvaluator {
 
         override fun set(key: String, value: Float) {
             bind.set(key, NumberValue.of(value))
+        }
+
+        override fun setFunction(key: String, supplier: FloatSupplier) {
+            bind.setFunction(key) { _ -> supplier.asFloat }
         }
     }
 
