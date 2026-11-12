@@ -15,6 +15,8 @@ public interface KeyframeRuntimeContext {
         return Empty.INSTANCE;
     }
 
+    default void set(@NotNull String key, float value) {}
+
     enum Empty implements KeyframeRuntimeContext {
         INSTANCE
     }

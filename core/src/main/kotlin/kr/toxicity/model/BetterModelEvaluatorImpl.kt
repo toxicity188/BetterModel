@@ -14,6 +14,7 @@ import org.redlance.mocha.parser.MolangParser
 import org.redlance.mocha.runtime.IsConstantExpression
 import org.redlance.mocha.runtime.MolangInterpreter
 import org.redlance.mocha.runtime.value.MutableObjectBinding
+import org.redlance.mocha.runtime.value.NumberValue
 
 class BetterModelEvaluatorImpl : BetterModelEvaluator {
 
@@ -23,6 +24,10 @@ class BetterModelEvaluatorImpl : BetterModelEvaluator {
 
     private class KeyframeRuntimeContextImpl : KeyframeRuntimeContext {
         val bind = MutableObjectBinding()
+
+        override fun set(key: String, value: Float) {
+            bind.set(key, NumberValue.of(value))
+        }
     }
 
     override fun compile(expression: String): Keyframe {
