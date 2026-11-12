@@ -13,6 +13,7 @@ import kr.toxicity.model.api.data.Float3;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
+import org.joml.Quaternionfc;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
@@ -242,29 +243,42 @@ public final class MathUtil {
      * @return xyz euler
      */
     public static @NotNull Vector3f toXYZEuler(@NotNull Vector3f vec) {
-        var q = toQuaternion(vec);
-        float qx = q.x(), qy = q.y(), qz = q.z(), qw = q.w();
-        // m20 = 2 * (x * z + w * y)
-        float sy = 2.0F * (qx * qz + qw * qy);
-        // m00 = 1 - 2 * (y^2 + z^2)
-        float m00 = 1.0F - 2.0F * (qy * qy + qz * qz);
-        // m10 = 2 * (x * y - w * z)
-        float m10 = 2.0F * (qx * qy - qw * qz);
+        var degrees = toMinecraftDegree(toQuaternion(vec));
+        return vec.set(degrees.x(), degrees.y(), degrees.z());
+    }
 
-        float y = (float) Math.atan2(sy, Math.hypot(m00, m10));
-        float x, z;
-        if (Math.abs(sy) < 0.99999F) {
-            // -m21 = 2 * (w * x - y * z)
-            // m22 = 1 - 2 * (x^2 + y^2)
-            x = (float) Math.atan2(2.0F * (qw * qx - qy * qz), 1.0F - 2.0F * (qx * qx + qy * qy));
-            z = (float) Math.atan2(-m10, m00);
+    /**
+     * Converts a rotation quaternion to the XYZ Euler angles used by Minecraft item display transforms.
+     * <pre>{@code
+     * var degrees = MathUtil.toMinecraftDegree(new Quaternionf());
+     * }</pre>
+     *
+     * @param rotation the rotation quaternion
+     * @return the XYZ Euler angles in degrees
+     * @since 3.7.0
+     */
+    public static @NotNull Float3 toMinecraftDegree(@NotNull Quaternionfc rotation) {
+        double qx = rotation.x(), qy = rotation.y(), qz = rotation.z(), qw = rotation.w();
+        var xx = qx * qx;
+        var yy = qy * qy;
+        var zz = qz * qz;
+        var ww = qw * qw;
+        var sinY = 2 * (qx * qz + qw * qy);
+        var m00 = ww + xx - yy - zz;
+        var m01 = 2 * (qx * qy - qw * qz);
+        var cosY = Math.hypot(m00, m01);
+
+        var y = Math.atan2(sinY, cosY);
+        double x, z;
+        // Use the singular solution only within quaternion rounding error.
+        if (cosY > 1E-6 * (ww + xx + yy + zz)) {
+            x = Math.atan2(2 * (qw * qx - qy * qz), ww - xx - yy + zz);
+            z = Math.atan2(-m01, m00);
         } else {
-            // m12 = 2 * (y * z + w * x)
-            // m11 = 1 - 2 * (x^2 + z^2)
-            x = (float) Math.atan2(2.0F * (qy * qz + qw * qx), 1.0F - 2.0F * (qx * qx + qz * qz));
-            z = 0F;
+            x = Math.atan2(2 * (qw * qx + qy * qz), ww - xx + yy - zz);
+            z = 0;
         }
-        return vec.set(x, y, z).mul(RADIANS_TO_DEGREES);
+        return new Float3((float) Math.toDegrees(x), (float) Math.toDegrees(y), (float) Math.toDegrees(z));
     }
 
     /**
