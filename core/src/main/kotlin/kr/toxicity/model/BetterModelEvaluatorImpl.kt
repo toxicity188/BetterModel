@@ -8,28 +8,33 @@
 package kr.toxicity.model
 
 import kr.toxicity.model.api.BetterModelEvaluator
-import kr.toxicity.model.api.util.function.Float2FloatFunction
+import kr.toxicity.model.api.animation.keyframe.Keyframe
+import kr.toxicity.model.api.animation.keyframe.KeyframeRuntimeContext
 import org.redlance.mocha.parser.MolangParser
+import org.redlance.mocha.runtime.IsConstantExpression
 import org.redlance.mocha.runtime.MolangInterpreter
 import org.redlance.mocha.runtime.value.MutableObjectBinding
-import org.redlance.mocha.runtime.value.NumberValue
 
 class BetterModelEvaluatorImpl : BetterModelEvaluator {
 
     private val molang = MolangInterpreter.standard()
 
-    override fun compile(expression: String): Float2FloatFunction {
-        val compiled = MolangParser.parseAll(expression)
+    override fun newContext(): KeyframeRuntimeContext = KeyframeRuntimeContextImpl()
+
+    private class KeyframeRuntimeContextImpl : KeyframeRuntimeContext {
         val bind = MutableObjectBinding()
-        return Float2FloatFunction {
-            NumberValue.of(it).let { value ->
-                bind.set("anim_time", value)
-                bind.set("life_time", value)
-            }
-            molang.eval(compiled) { scope ->
-                scope.set("query", bind)
-                scope.set("q", bind)
-            }
+    }
+
+    override fun compile(expression: String): Keyframe {
+        val compiled = MolangParser.parseAll(expression)
+        return if (compiled.all { IsConstantExpression.test(it) }) Keyframe.of(molang.eval(compiled))
+        else Keyframe {
+            (it as? KeyframeRuntimeContextImpl)?.bind?.let { bind ->
+                molang.eval(compiled) { scope ->
+                    scope.set("query", bind)
+                    scope.set("q", bind)
+                }
+            } ?: molang.eval(compiled)
         }
     }
 }

@@ -20,6 +20,11 @@ public interface Float2FloatFunction {
     Float2FloatConstantFunction ZERO = of(0);
 
     /**
+     * None
+     */
+    Float2FloatFunction NONE = f -> f;
+
+    /**
      * Applies float value
      * @param value value
      * @return applied value
@@ -33,5 +38,9 @@ public interface Float2FloatFunction {
      */
     static @NotNull Float2FloatConstantFunction of(float value) {
         return new Float2FloatConstantFunction(value);
+    }
+
+    default @NotNull Float2FloatFunction andThen(@NotNull Float2FloatFunction function) {
+        return f -> function.applyAsFloat(applyAsFloat(f));
     }
 }

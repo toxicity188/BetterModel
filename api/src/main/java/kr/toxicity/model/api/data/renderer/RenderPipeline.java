@@ -10,6 +10,7 @@ package kr.toxicity.model.api.data.renderer;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationOverrideState;
 import kr.toxicity.model.api.animation.RunningAnimation;
+import kr.toxicity.model.api.animation.keyframe.KeyframeRuntimeContext;
 import kr.toxicity.model.api.bone.*;
 import kr.toxicity.model.api.manager.PlayerManager;
 import kr.toxicity.model.api.nms.AnimationBundler;
@@ -385,25 +386,7 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
         return matchTree(b -> b.rotate(rotation, bundler));
     }
 
-    /**
-     * Updates bone animations and ticks the model hierarchy.
-     *
-     * <p>This method only performs the logical animation tick without resolving IK
-     * or dispatching transform updates to players. To solve IK and bundle transformation
-     * packets after an update, call {@link #send(AnimationBundler)}.
-     *
-     * <pre>{@code
-     * if (pipeline.tick()) {
-     *     AnimationBundler bundler = pipeline.createAnimationBundler();
-     *     pipeline.send(bundler);
-     *     pipeline.forEachNonHidePlayer(bundler::send);
-     * }
-     * }</pre>
-     *
-     * @return {@code true} if any bone or animation updates occurred, {@code false} otherwise
-     * @see #send(AnimationBundler)
-     * @since 3.7.0
-     */
+
     public boolean tick() {
         return matchTree(RenderedBone::tick);
     }
@@ -418,10 +401,10 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
      * @see #tick()
      * @since 3.7.0
      */
-    public void send(@NotNull AnimationBundler bundler) {
+    public void send(@NotNull KeyframeRuntimeContext context, @NotNull AnimationBundler bundler) {
         Objects.requireNonNull(bundler);
-        ikSolver.solve();
-        forEach(b -> b.sendTransformation(null, bundler));
+        ikSolver.solve(context);
+        forEach(b -> b.sendTransformation(context, null, bundler));
     }
 
     /**
@@ -441,11 +424,11 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
      * @throws NullPointerException if {@code uuid} or {@code bundler} is null
      * @since 1.15.2
      */
-    public boolean tick(@NotNull UUID uuid, @NotNull AnimationBundler bundler) {
+    public boolean tick(@NotNull KeyframeRuntimeContext context, @NotNull UUID uuid, @NotNull AnimationBundler bundler) {
         var match = matchTree(b -> b.tick(uuid));
         if (match) {
-            ikSolver.solve(uuid);
-            forEach(b -> b.sendTransformation(uuid, bundler));
+            ikSolver.solve(context, uuid);
+            forEach(b -> b.sendTransformation(context, uuid, bundler));
         }
         return match;
     }

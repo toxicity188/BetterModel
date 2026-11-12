@@ -8,10 +8,10 @@
 package kr.toxicity.model.api.util.interpolator;
 
 import com.google.gson.annotations.SerializedName;
-import kr.toxicity.model.api.animation.VectorPoint;
+import kr.toxicity.model.api.animation.keyframe.KeyframePoint;
+import kr.toxicity.model.api.animation.keyframe.KeyframeVector;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Vector3f;
 
 import java.util.List;
 
@@ -29,16 +29,17 @@ public enum VectorInterpolator {
     LINEAR {
         @NotNull
         @Override
-        public Vector3f interpolate(@NotNull List<VectorPoint> points, int p2Index, float time) {
+        public KeyframeVector interpolate(@NotNull List<KeyframePoint> points, int p2Index, float time) {
             var p1 = p2Index > 0 ? points.get(p2Index - 1) : points.getFirst();
             var p2 = points.get(p2Index);
             var t1 = p1.time();
             var t2 = p2.time();
             var a = alpha(t1, t2, time);
-            return lerp(
+
+            return KeyframeVector.operate(
                 p1.vector(lerp(t1, t2, a)),
                 p2.vector(),
-                a
+                (a1, a2) -> lerp(a1, a2, a)
             );
         }
     },
@@ -47,7 +48,7 @@ public enum VectorInterpolator {
      */
     @SerializedName("catmullrom")
     CATMULLROM {
-        private static @NotNull VectorPoint indexOf(@NotNull List<VectorPoint> list, int index, int relative) {
+        private static @NotNull KeyframePoint indexOf(@NotNull List<KeyframePoint> list, int index, int relative) {
             var i = index + relative;
             while (i < 0) i += list.size();
             return list.get(i % list.size());
@@ -55,7 +56,7 @@ public enum VectorInterpolator {
 
         @NotNull
         @Override
-        public Vector3f interpolate(@NotNull List<VectorPoint> points, int p2Index, float time) {
+        public KeyframeVector interpolate(@NotNull List<KeyframePoint> points, int p2Index, float time) {
             var p0 = indexOf(points, p2Index, -2);
             var p1 = indexOf(points, p2Index, -1);
             var p2 = points.get(p2Index);
@@ -65,12 +66,12 @@ public enum VectorInterpolator {
             var t2 = p2.time();
             var a = alpha(t1, t2, time);
 
-            return catmull_rom(
+            return KeyframeVector.operate(
                 p0.vector(),
                 p1.vector(lerp(t1, t2, a)),
                 p2.vector(),
                 p3.vector(),
-                a
+                (a0, a1, a2, a3) -> catmull_rom(a0, a1, a2, a3, a)
             );
         }
     },
@@ -81,7 +82,7 @@ public enum VectorInterpolator {
     BEZIER {
         @NotNull
         @Override
-        public Vector3f interpolate(@NotNull List<VectorPoint> points, int p2Index, float time) {
+        public KeyframeVector interpolate(@NotNull List<KeyframePoint> points, int p2Index, float time) {
             var p1 = p2Index > 0 ? points.get(p2Index - 1) : points.getFirst();
             var p2 = points.get(p2Index);
 
@@ -89,14 +90,17 @@ public enum VectorInterpolator {
             var t2 = p2.time();
             var a = alpha(t1, t2, time);
 
-            return bezier(
-                a,
+            var rightTime = p1.bezier().rightTime();
+            var rightValue = p1.bezier().rightTime();
+            var leftTime = p2.bezier().leftTime();
+            var leftValue = p2.bezier().leftValue();
+
+            return KeyframeVector.operate(
                 p1.vector(lerp(t1, t2, a)),
                 p2.vector(),
-                p1.bezier().rightTime(),
-                p1.bezier().rightValue(),
-                p2.bezier().leftTime(),
-                p2.bezier().leftValue()
+                (x1, x2) -> bezier(a, x1, x2, rightTime.x, rightValue.x, leftTime.x, leftValue.x),
+                (y1, y2) -> bezier(a, y1, y2, rightTime.y, rightValue.y, leftTime.y, leftValue.y),
+                (z1, z2) -> bezier(a, z1, z2, rightTime.z, rightValue.z, leftTime.z, leftValue.z)
             );
         }
     },
@@ -107,7 +111,7 @@ public enum VectorInterpolator {
     STEP {
         @NotNull
         @Override
-        public Vector3f interpolate(@NotNull List<VectorPoint> points, int p2Index, float time) {
+        public KeyframeVector interpolate(@NotNull List<KeyframePoint> points, int p2Index, float time) {
             return (p2Index > 0 ? points.get(p2Index - 1) : points.getFirst()).vector(time);
         }
 
@@ -126,7 +130,7 @@ public enum VectorInterpolator {
      * @return interpolated vector
      */
     @NotNull
-    public abstract Vector3f interpolate(@NotNull List<VectorPoint> points, int p2Index, float time);
+    public abstract KeyframeVector interpolate(@NotNull List<KeyframePoint> points, int p2Index, float time);
 
     /**
      * Checks this interpolator is continuous

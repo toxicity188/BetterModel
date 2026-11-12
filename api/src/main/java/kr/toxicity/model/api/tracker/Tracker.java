@@ -8,8 +8,10 @@
 package kr.toxicity.model.api.tracker;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.animation.AnimationStateHandler;
+import kr.toxicity.model.api.animation.keyframe.KeyframeRuntimeContext;
 import kr.toxicity.model.api.bone.BoneMovement;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.BoneTags;
@@ -112,6 +114,7 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
             } else b.accept(this);
         }
     );
+    protected final KeyframeRuntimeContext context = BetterModel.platform().evaluator().newContext();
     private volatile ScheduledFuture<?> task;
     protected ModelRotator rotator = ModelRotator.YAW;
     protected ModelScaler scaler = ModelScaler.entity();
@@ -131,7 +134,7 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
     public Tracker(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier) {
         this.pipeline = pipeline;
         this.modifier = modifier;
-        this.animationTicker = new TrackerAnimationTicker(pipeline);
+        this.animationTicker = new TrackerAnimationTicker(pipeline, context);
         this.bundlerSet = new TrackerBundlerSet(pipeline);
         if (modifier.sightTrace()) pipeline.viewFilter(p -> EntityUtil.canSee(p.eyeLocation(), location()));
         frame(set -> {

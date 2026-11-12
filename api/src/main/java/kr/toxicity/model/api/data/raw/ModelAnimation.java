@@ -11,7 +11,7 @@ import it.unimi.dsi.fastutil.objects.ObjectAVLTreeSet;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationProgress;
-import kr.toxicity.model.api.animation.VectorPoint;
+import kr.toxicity.model.api.animation.keyframe.KeyframePoint;
 import kr.toxicity.model.api.data.blueprint.AnimationGenerator;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimator;
@@ -144,15 +144,15 @@ public record ModelAnimation(
 
     @NotNull
     private BlueprintAnimator.AnimatorData buildAnimationData(@NotNull ModelLoadContext context, @NotNull ModelAnimator animator) {
-        var position = new ArrayList<VectorPoint>();
-        var rotation = new ArrayList<VectorPoint>();
-        var scale = new ArrayList<VectorPoint>();
+        var position = new ArrayList<KeyframePoint>();
+        var rotation = new ArrayList<KeyframePoint>();
+        var scale = new ArrayList<KeyframePoint>();
         var version = context.meta.formatVersion();
         animator.stream().filter(keyframe -> keyframe.time() <= length()).forEach(keyframe -> {
             switch (keyframe.channel()) {
-                case POSITION -> position.add(keyframe.point(context, version::convertAnimationPosition));
-                case ROTATION -> rotation.add(keyframe.point(context, version::convertAnimationRotation));
-                case SCALE -> scale.add(keyframe.point(context, version::convertAnimationScale));
+                case POSITION -> position.add(keyframe.point(context, version.positionAxis()));
+                case ROTATION -> rotation.add(keyframe.point(context, version.rotationAxis()));
+                case SCALE -> scale.add(keyframe.point(context, version.scaleAxis()));
             }
         });
         return new BlueprintAnimator.AnimatorData(

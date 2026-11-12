@@ -7,6 +7,8 @@
 
 package kr.toxicity.model.api;
 
+import kr.toxicity.model.api.animation.keyframe.Keyframe;
+import kr.toxicity.model.api.animation.keyframe.KeyframeRuntimeContext;
 import kr.toxicity.model.api.util.function.Float2FloatFunction;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,11 +27,14 @@ import org.jetbrains.annotations.NotNull;
  * }</pre>
  */
 public interface BetterModelEvaluator {
+
+    @NotNull KeyframeRuntimeContext newContext();
+
     /**
      * Compiles a Molang expression string into a high-performance evaluation function.
      *
      * @param expression the Molang expression string to compile (e.g., {@code "query.anim_time * 20"})
      * @return the compiled {@link Float2FloatFunction} that evaluates the expression at runtime
      */
-    @NotNull Float2FloatFunction compile(@NotNull String expression);
+    @NotNull Keyframe compile(@NotNull String expression);
 }

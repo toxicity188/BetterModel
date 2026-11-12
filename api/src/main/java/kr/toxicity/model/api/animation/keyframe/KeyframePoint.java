@@ -5,28 +5,21 @@
  * See LICENSE.md file for full license text.
  */
 
-package kr.toxicity.model.api.animation;
+package kr.toxicity.model.api.animation.keyframe;
 
-import kr.toxicity.model.api.util.function.FloatFunction;
+import kr.toxicity.model.api.animation.Timed;
 import kr.toxicity.model.api.util.interpolator.VectorInterpolator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
-/**
- * Represents a keyframe point in an animation timeline.
- * <p>
- * This record holds the value of a vector (position, rotation, or scale) at a specific time,
- * along with interpolation information to create smooth transitions between keyframes.
- * </p>
- *
- * @param function a function to get the vector value, which may be dynamic (e.g., based on Molang expressions)
- * @param time the time of this keyframe in seconds
- * @param bezier the bezier curve configuration for interpolation, if applicable
- * @param interpolator the interpolation method to use (e.g., linear, bezier, catmull-rom)
- * @since 1.15.2
- */
-public record VectorPoint(@NotNull FloatFunction<Vector3f> function, float time, @NotNull BezierConfig bezier, @NotNull VectorInterpolator interpolator) implements Timed {
+public record KeyframePoint(
+    @NotNull KeyframeDatapointVector datapoint,
+    @NotNull KeyframeAxis axis,
+    float time,
+    @NotNull BezierConfig bezier,
+    @NotNull VectorInterpolator interpolator
+) implements Timed {
 
     private static final Vector3f ZERO = new Vector3f();
 
@@ -34,32 +27,24 @@ public record VectorPoint(@NotNull FloatFunction<Vector3f> function, float time,
      * An empty, default vector point at time 0 with linear interpolation.
      * @since 1.15.2
      */
-    public static final VectorPoint EMPTY = new VectorPoint(
-        FloatFunction.of(ZERO),
+    public static final KeyframePoint EMPTY = new KeyframePoint(
+        KeyframeDatapointVector.ZERO,
+        KeyframeAxis.NONE,
         0F,
         new BezierConfig(null, null, null, null),
         VectorInterpolator.LINEAR
     );
 
-    /**
-     * Gets the vector value at this keyframe's specific time.
-     *
-     * @return the vector value
-     * @since 1.15.2
-     */
-    public @NotNull Vector3f vector() {
+    public @NotNull KeyframeVector vector(float time) {
+        return datapoint.compile(new KeyframeCompileContext(time)).withAxis(axis);
+    }
+
+    public @NotNull KeyframeVector vector() {
         return vector(time);
     }
 
-    /**
-     * Gets the vector value at a specific time, evaluating the function if necessary.
-     *
-     * @param time the time to evaluate at
-     * @return the calculated vector
-     * @since 1.15.2
-     */
-    public @NotNull Vector3f vector(float time) {
-        return function.apply(time);
+    public boolean isConstant() {
+        return vector().isConstant();
     }
 
     /**
@@ -130,7 +115,7 @@ public record VectorPoint(@NotNull FloatFunction<Vector3f> function, float time,
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof VectorPoint that)) return false;
+        if (!(o instanceof KeyframePoint that)) return false;
         return Float.compare(time, that.time) == 0;
     }
 
