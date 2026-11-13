@@ -10,13 +10,13 @@ package kr.toxicity.model.api.data.raw;
 import com.google.gson.annotations.SerializedName;
 import kr.toxicity.model.api.animation.Timed;
 import kr.toxicity.model.api.animation.keyframe.KeyframeAxis;
-import kr.toxicity.model.api.animation.keyframe.KeyframeCompileContext;
 import kr.toxicity.model.api.animation.keyframe.KeyframePoint;
 import kr.toxicity.model.api.data.Float3;
 import kr.toxicity.model.api.util.interpolator.VectorInterpolator;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3f;
 
 import java.util.List;
 import java.util.Optional;
@@ -77,10 +77,10 @@ public record ModelKeyframe(
             axis,
             time(),
             new KeyframePoint.BezierConfig(
-                Optional.ofNullable(bezierLeftTime).map(Float3::toVector).orElse(null),
-                Optional.ofNullable(bezierLeftValue).map(Float3::toVector).map(axis).orElse(null),
-                Optional.ofNullable(bezierRightTime).map(Float3::toVector).orElse(null),
-                Optional.ofNullable(bezierRightValue).map(Float3::toVector).map(axis).orElse(null)
+                Optional.ofNullable(bezierLeftTime).map(Float3::toVector).orElse(new Vector3f()),
+                Optional.ofNullable(bezierLeftValue).map(Float3::toVector).map(axis).orElse(new Vector3f()),
+                Optional.ofNullable(bezierRightTime).map(Float3::toVector).orElse(new Vector3f()),
+                Optional.ofNullable(bezierRightValue).map(Float3::toVector).map(axis).orElse(new Vector3f())
             ),
             interpolation()
         );

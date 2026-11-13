@@ -11,7 +11,6 @@ import kr.toxicity.model.api.animation.Timed;
 import kr.toxicity.model.api.util.interpolator.VectorInterpolator;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.util.Map;
@@ -25,7 +24,7 @@ public final class KeyframePoint implements Timed {
         KeyframeDatapointVector.ZERO,
         KeyframeAxis.NONE,
         0F,
-        new BezierConfig(null, null, null, null),
+        new BezierConfig(ZERO, ZERO, ZERO, ZERO),
         VectorInterpolator.LINEAR
     );
 
@@ -69,26 +68,30 @@ public final class KeyframePoint implements Timed {
         return time;
     }
 
-    public record BezierConfig(@Nullable Vector3f leftTime, @Nullable Vector3f leftValue, @Nullable Vector3f rightTime, @Nullable Vector3f rightValue) {
-
-        @Override
-        public @NotNull Vector3f leftTime() {
-            return leftTime != null ? leftTime : ZERO;
+    public record BezierConfig(
+        @NotNull Value x,
+        @NotNull Value y,
+        @NotNull Value z
+    ) {
+        public BezierConfig(
+            @NotNull Vector3f leftTime,
+            @NotNull Vector3f leftValue,
+            @NotNull Vector3f rightTime,
+            @NotNull Vector3f rightValue
+        ) {
+            this(
+                new Value(leftTime.x, leftValue.x, rightTime.x, rightValue.x),
+                new Value(leftTime.y, leftValue.y, rightTime.y, rightValue.y),
+                new Value(leftTime.z, leftValue.z, rightTime.z, rightValue.z)
+            );
         }
 
-        @Override
-        public @NotNull Vector3f leftValue() {
-            return leftValue != null ? leftValue : ZERO;
-        }
-
-        @Override
-        public @NotNull Vector3f rightTime() {
-            return rightTime != null ? rightTime : ZERO;
-        }
-
-        @Override
-        public @NotNull Vector3f rightValue() {
-            return rightValue != null ? rightValue : ZERO;
-        }
+        public record Value(
+            float leftTime,
+            float leftValue,
+            float rightTime,
+            float rightValue
+        ) {}
     }
+
 }

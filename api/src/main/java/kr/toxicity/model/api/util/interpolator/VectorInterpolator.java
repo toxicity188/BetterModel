@@ -90,17 +90,19 @@ public enum VectorInterpolator {
             var t2 = p2.time();
             var a = alpha(t1, t2, time);
 
-            var rightTime = p1.bezier().rightTime();
-            var rightValue = p1.bezier().rightValue();
-            var leftTime = p2.bezier().leftTime();
-            var leftValue = p2.bezier().leftValue();
+            var p1b = p1.bezier();
+            var p2b = p2.bezier();
+
+            float xrt = p1b.x().rightTime(), xrv = p1b.x().rightValue(), xlt = p2b.x().leftTime(), xlv = p2b.x().leftValue();
+            float yrt = p1b.y().rightTime(), yrv = p1b.y().rightValue(), ylt = p2b.y().leftTime(), ylv = p2b.y().leftValue();
+            float zrt = p1b.z().rightTime(), zrv = p1b.z().rightValue(), zlt = p2b.z().leftTime(), zlv = p2b.z().leftValue();
 
             return KeyframeVector.operate(
                 p1.vector(lerp(t1, t2, a)),
                 p2.vector(),
-                (x1, x2) -> bezier(a, x1, x2, rightTime.x, rightValue.x, leftTime.x, leftValue.x),
-                (y1, y2) -> bezier(a, y1, y2, rightTime.y, rightValue.y, leftTime.y, leftValue.y),
-                (z1, z2) -> bezier(a, z1, z2, rightTime.z, rightValue.z, leftTime.z, leftValue.z)
+                (x1, x2) -> bezier(a, x1, x2, xrt, xrv, xlt, xlv),
+                (y1, y2) -> bezier(a, y1, y2, yrt, yrv, ylt, ylv),
+                (z1, z2) -> bezier(a, z1, z2, zrt, zrv, zlt, zlv)
             );
         }
     },
