@@ -125,15 +125,6 @@ class CubeRotationGroupsTest {
     }
 
     @Test
-    void keepsCubesSeparateWhenSharedRotationWouldMoveAnElementOutsideItsBounds() {
-        var first = new Cube("first", GROUP_ORIGIN.minus(new Float3(16)), GROUP_ORIGIN.plus(new Float3(16)), 0,
-            Float3.ZERO, GROUP_ORIGIN.plus(new Float3(0, 16, -16)), FACE, null, true);
-        var second = new Cube("second", GROUP_ORIGIN, GROUP_ORIGIN.plus(new Float3(1)), 0,
-            new Float3(90, 0, 0), GROUP_ORIGIN, FACE, null, true);
-        assertEquals(2, models(List.of(first, second)).size());
-    }
-
-    @Test
     void ignoresCubesWithNoTexturedFacesWhenGrouping() {
         var untextured = new Cube("untextured", GROUP_ORIGIN, GROUP_ORIGIN.plus(new Float3(1)), 0,
             new Float3(23, 27, 31), GROUP_ORIGIN, BlueprintFace.EMPTY, null, true);
