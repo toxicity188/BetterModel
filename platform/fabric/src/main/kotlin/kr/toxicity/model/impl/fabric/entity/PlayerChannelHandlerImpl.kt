@@ -1,17 +1,19 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.impl.fabric.entity
 
 import io.netty.channel.ChannelDuplexHandler
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.entity.BasePlayer
-import kr.toxicity.model.api.fabric.BetterModelFabric
+import kr.toxicity.model.api.mod.BetterModelMod
 import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.nms.PlayerChannelHandler
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry
@@ -22,6 +24,7 @@ import kr.toxicity.model.mixin.DisplayAccessor
 import kr.toxicity.model.mixin.EntityAccessor
 import kr.toxicity.model.util.CONFIG
 import kr.toxicity.model.util.PLATFORM
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.minecraft.network.Connection
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.*
@@ -29,7 +32,7 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.network.ServerPlayerConnection
 import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.item.ItemStack
 import java.util.stream.IntStream
@@ -41,6 +44,9 @@ class PlayerChannelHandlerImpl(
     private val uuid = player.uuid
 
     private val basePlayer = PLATFORM.nms().adapt(connection.wrap())
+    // Follow the client's entity types until removal is written, even after world lookup stops finding them.
+    private val hitBoxIds = IntOpenHashSet()
+    private var dimension = connection.player.level().dimension()
 
     init {
         val pipeline = connection.player.connection.connection.channel.pipeline()
@@ -50,12 +56,13 @@ class PlayerChannelHandlerImpl(
     override fun close() {
         val channel = connection.player.connection.connection.channel
         channel.eventLoop().submit {
+            hitBoxIds.clear()
             channel.pipeline().remove(INJECT_NAME)
         }
     }
 
     override fun base(): BasePlayer = basePlayer
-    override fun isModEnabled(): Boolean = false
+    override fun isModEnabled(): Boolean = ServerPlayNetworking.getReceived(player).contains(ModAnimationBundlerImpl.IDENTIFIER)
 
     private val playerModel get() = connection.player.id.toRegistry()
 
@@ -65,13 +72,9 @@ class PlayerChannelHandlerImpl(
 
     private fun Entity.toRegistry() = BetterModel.registryOrNull(uuid)
 
-    private inline fun Int.toRegistry(ifHitBox: (Entity) -> Unit = {}) =
-        (EntityTrackerRegistry.registry(this) ?: getPlayerEntity(this)?.let {
-            if (it is HitBox) ifHitBox(it)
-            it.toRegistry()
-        })?.takeIf {
-            it.isSpawned(player.uuid)
-        }
+    private fun Int.toRegistry() = (EntityTrackerRegistry.registry(this) ?: getPlayerEntity(this)?.toRegistry())?.takeIf {
+        it.isSpawned(player.uuid)
+    }
 
     override fun sendEntityData(registry: EntityTrackerRegistry) {
         val handle = registry.entity().handle() as? Entity ?: return
@@ -97,7 +100,7 @@ class PlayerChannelHandlerImpl(
         uuid,
         x, y, z,
         xRot, yRot,
-        EntityType.ITEM_DISPLAY,
+        EntityTypes.ITEM_DISPLAY,
         0,
         deltaMovement,
         yHeadRot.toDouble()
@@ -112,8 +115,12 @@ class PlayerChannelHandlerImpl(
             }
 
             is ClientboundAddEntityPacket -> {
+                hitBoxIds.remove(id)
                 val entity = getPlayerEntity(id) ?: return this
-                if (entity is HitBox) return entity.toFakeAddPacket()
+                if (entity is HitBox) {
+                    hitBoxIds.add(id)
+                    return entity.toFakeAddPacket()
+                }
                 val wrap = entity.wrap()
                 BetterModel.registry(wrap).ifPresent {
                     wrap.taskLater(1) {
@@ -125,10 +132,8 @@ class PlayerChannelHandlerImpl(
             is ClientboundRemoveEntitiesPacket -> {
                 entityIds
                     .asSequence()
-                    .mapNotNull map@{
-                        it.toRegistry {
-                            return@map null
-                        }
+                    .mapNotNull {
+                        if (hitBoxIds.remove(it)) null else it.toRegistry()
                     }
                     .forEach {
                         it.remove()
@@ -144,27 +149,34 @@ class PlayerChannelHandlerImpl(
                 }
             }
 
-            is ClientboundUpdateAttributesPacket if getPlayerEntity(entityId) is HitBox -> return null
-            is ClientboundSetEntityDataPacket -> id.toRegistry {
-                return ClientboundSetEntityDataPacket(id, hitBoxData)
-            }?.let { registry ->
-                return toRegistryDataPacket(uuid, registry)
-            }
-
-            is ClientboundSetEquipmentPacket -> entity.toRegistry {
-                return null
-            }?.let { registry ->
-                if (registry.hideOption(uuid).equipment()) {
-                    (registry.entity().handle() as? LivingEntity)
-                        ?.toEquipmentPacket { ItemStack.EMPTY }
-                        ?.let { packet ->
-                            return packet
-                        }
+            is ClientboundUpdateAttributesPacket if hitBoxIds.contains(entityId) -> return null
+            is ClientboundSetEntityDataPacket -> {
+                if (hitBoxIds.contains(id)) return ClientboundSetEntityDataPacket(id, hitBoxData)
+                id.toRegistry()?.let { registry ->
+                    return toRegistryDataPacket(uuid, registry)
                 }
             }
 
-            is ClientboundRespawnPacket -> playerModel?.let {
-                bundlerOf(it.mountPacket(connection.player)).send(connection.wrap())
+            is ClientboundSetEquipmentPacket -> {
+                if (hitBoxIds.contains(entity)) return null
+                entity.toRegistry()?.let { registry ->
+                    if (registry.hideOption(uuid).equipment()) {
+                        (registry.entity().handle() as? LivingEntity)
+                            ?.toEquipmentPacket { ItemStack.EMPTY }
+                            ?.let { packet ->
+                                return packet
+                            }
+                    }
+                }
+            }
+
+            is ClientboundRespawnPacket -> {
+                val nextDimension = commonPlayerSpawnInfo().dimension()
+                if (dimension != nextDimension) hitBoxIds.clear()
+                dimension = nextDimension
+                playerModel?.let {
+                    bundlerOf(it.mountPacket(connection.player)).send(connection.wrap())
+                }
             }
 
             is ClientboundContainerSetSlotPacket if isEquipment(connection.player) && playerModel?.hideOption(uuid)?.equipment() == true -> {
@@ -187,7 +199,9 @@ class PlayerChannelHandlerImpl(
     }
 
     override fun write(ctx: ChannelHandlerContext, msg: Any, promise: ChannelPromise) {
-        super.write(ctx, if (msg is Packet<*>) msg.handle() ?: return else msg, promise)
+        val packet = if (msg is Packet<*>) msg.handle() else msg
+        if (packet == null) promise.trySuccess()
+        else super.write(ctx, packet, promise)
     }
 
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
@@ -232,8 +246,8 @@ class PlayerChannelHandlerImpl(
 
         private val hitBoxData by lazy {
             Display.ItemDisplay(
-                EntityType.ITEM_DISPLAY,
-                (PLATFORM as BetterModelFabric).server().overworld()
+                EntityTypes.ITEM_DISPLAY,
+                (PLATFORM as BetterModelMod).server().overworld()
             ).run {
                 entityData.set(DisplayAccessor.`bettermodel$getDataPosRotInterpolationDurationId`(), 3)
                 entityData.nonDefaultValues!!

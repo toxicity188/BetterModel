@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.bukkit.nms.v1_21_R7
 
 import kr.toxicity.model.api.nms.ModAnimationBundler
@@ -11,7 +12,6 @@ import kr.toxicity.model.api.platform.PlatformPlayer
 import kr.toxicity.model.api.util.MathUtil
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.network.RegistryFriendlyByteBuf
-import net.minecraft.network.codec.StreamCodec
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket
 import net.minecraft.server.MinecraftServer
 import org.bukkit.craftbukkit.entity.CraftPlayer
@@ -31,18 +31,12 @@ internal class ModAnimationBundlerImpl(initialCapacity: Int) : ModAnimationBundl
         const val FIELD_SCALE = 1 shl 2
         const val FIELD_TRANSFORM_DURATION = 1 shl 4
 
-        @Suppress("UNCHECKED_CAST")
-        private val createPayload = (ClientboundCustomPayloadPacket::class.java.fields[0].apply {
-            isAccessible = true
-        }.get(null) as StreamCodec<RegistryFriendlyByteBuf, ClientboundCustomPayloadPacket>).let {
-            { buf: RegistryFriendlyByteBuf -> it.decode(buf) }
-        }
         private val EMPTY_BUILD_TASK: (FriendlyByteBuf) -> Unit = {}
     }
 
     private val packet by lazy {
         useByteBuf { buffer ->
-            createPayload(
+            ClientboundCustomPayloadPacket.GAMEPLAY_STREAM_CODEC.decode(
                 RegistryFriendlyByteBuf(
                     buffer,
                     MinecraftServer.getServer().registryAccess()
@@ -60,22 +54,27 @@ internal class ModAnimationBundlerImpl(initialCapacity: Int) : ModAnimationBundl
     }
 
     private val builderList = ArrayList<(FriendlyByteBuf) -> Unit>(initialCapacity)
+    private val appender = Appender()
 
     override fun send(player: PlatformPlayer) {
         (player.unwarp() as CraftPlayer).handle.connection.send(packet)
     }
 
     fun append(id: Int, scope: Appender.() -> Unit) {
-        val build = Appender(id).apply(scope).build()
+        val build = appender.init().apply(scope).build(id)
         if (build !== EMPTY_BUILD_TASK) builderList += build
     }
 
-    class Appender(
-        val entityId: Int,
-    ) {
+    class Appender {
         private var mask = 0
+        private val isEmpty get() = mask == 0
+
         private var buildTask = EMPTY_BUILD_TASK
-        private val isEmpty get() = buildTask === EMPTY_BUILD_TASK
+
+        fun init() = apply {
+            mask = 0
+            buildTask = EMPTY_BUILD_TASK
+        }
 
         fun appendPosition(vector: Vector3f) {
             mask = mask or FIELD_TRANSLATION
@@ -112,7 +111,7 @@ internal class ModAnimationBundlerImpl(initialCapacity: Int) : ModAnimationBundl
             }
         }
 
-        fun build(): (FriendlyByteBuf) -> Unit {
+        fun build(entityId: Int): (FriendlyByteBuf) -> Unit {
             if (isEmpty) return EMPTY_BUILD_TASK
             val m = mask
             val t = buildTask

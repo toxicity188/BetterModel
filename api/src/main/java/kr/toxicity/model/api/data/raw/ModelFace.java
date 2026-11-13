@@ -1,22 +1,24 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.data.raw;
 
-import com.google.gson.JsonObject;
-import kr.toxicity.model.api.data.blueprint.ModelBlueprint;
+import kr.toxicity.model.api.data.blueprint.BlueprintFace;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+
+import static kr.toxicity.model.api.data.blueprint.BlueprintUV.*;
 
 /**
  * Represents the UV mappings for all six faces of a cube element.
  *
  * @param north the UV mapping for the north face
- * @param east the UV mapping for the east face
  * @param south the UV mapping for the south face
+ * @param east the UV mapping for the east face
  * @param west the UV mapping for the west face
  * @param up the UV mapping for the up face
  * @param down the UV mapping for the down face
@@ -25,46 +27,26 @@ import org.jetbrains.annotations.NotNull;
 @ApiStatus.Internal
 public record ModelFace(
     @NotNull ModelUV north,
-    @NotNull ModelUV east,
     @NotNull ModelUV south,
+    @NotNull ModelUV east,
     @NotNull ModelUV west,
     @NotNull ModelUV up,
     @NotNull ModelUV down
 ) {
     /**
-     * Converts the face UV data to a JSON object for the Minecraft model file.
-     * <p>
-     * Only faces with a defined texture will be included in the output.
-     * </p>
+     * Converts this raw face into a processed {@link BlueprintFace}.
      *
-     * @param parent the parent model blueprint, used for texture resolution
-     * @param tint the tint index to apply
-     * @return the generated JSON object
-     * @since 1.15.2
+     * @return the blueprint face
+     * @since 3.7.0
      */
-    public @NotNull JsonObject toJson(@NotNull ModelBlueprint parent, int tint) {
-        var object = new JsonObject();
-        if (north.hasTexture()) object.add("north", north.toJson(parent, tint));
-        if (east.hasTexture()) object.add("east", east.toJson(parent, tint));
-        if (south.hasTexture()) object.add("south", south.toJson(parent, tint));
-        if (west.hasTexture()) object.add("west", west.toJson(parent, tint));
-        if (up.hasTexture()) object.add("up", up.toJson(parent, tint));
-        if (down.hasTexture()) object.add("down", down.toJson(parent, tint));
-        return object;
-    }
-
-    /**
-     * Checks if any face has a texture defined.
-     *
-     * @return true if at least one face has a texture, false otherwise
-     * @since 1.15.2
-     */
-    public boolean hasTexture() {
-        return north.hasTexture()
-            || east.hasTexture()
-            || south.hasTexture()
-            || west.hasTexture()
-            || up.hasTexture()
-            || down.hasTexture();
+    public @NotNull BlueprintFace toBlueprint() {
+        return new BlueprintFace(
+            north.hasTexture() ? north.toBlueprint(NORTH) : null,
+            south.hasTexture() ? south.toBlueprint(SOUTH) : null,
+            east.hasTexture() ? east.toBlueprint(EAST) : null,
+            west.hasTexture() ? west.toBlueprint(WEST) : null,
+            up.hasTexture() ? up.toBlueprint(UP) : null,
+            down.hasTexture() ? down.toBlueprint(DOWN) : null
+        );
     }
 }

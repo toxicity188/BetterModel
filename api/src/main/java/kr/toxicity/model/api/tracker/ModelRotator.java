@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.tracker;
 
 import com.google.gson.JsonElement;
@@ -223,7 +224,7 @@ public sealed interface ModelRotator extends BiFunction<Tracker, ModelRotation, 
          * @since 1.15.2
          */
         static @NotNull Getter of(@NotNull ModelRotation rotator) {
-            return (t, r) -> rotator;
+            return (_, _) -> rotator;
         }
         /**
          * Creates a supplier-based rotation getter.
@@ -233,7 +234,7 @@ public sealed interface ModelRotator extends BiFunction<Tracker, ModelRotation, 
          * @since 1.15.2
          */
         static @NotNull Getter of(@NotNull Supplier<ModelRotation> rotator) {
-            return (t, r) -> rotator.get();
+            return (_, _) -> rotator.get();
         }
         /**
          * Creates a function-based rotation getter.
@@ -243,7 +244,7 @@ public sealed interface ModelRotator extends BiFunction<Tracker, ModelRotation, 
          * @since 1.15.2
          */
         static @NotNull Getter of(@NotNull Function<ModelRotation, ModelRotation> rotator) {
-            return (t, r) -> rotator.apply(r);
+            return (_, r) -> rotator.apply(r);
         }
     }
 
@@ -303,10 +304,10 @@ public sealed interface ModelRotator extends BiFunction<Tracker, ModelRotation, 
     final class Deserializer {
         private final Map<String, Builder> builderMap = CollectionUtil.newAddressingMap();
 
-        private final BuiltInDeserializer _default = register("default", j -> Getter.of(r -> r));
-        private final BuiltInDeserializer empty = register("empty", j -> Getter.of(ModelRotation.EMPTY));
-        private final BuiltInDeserializer yaw = register("yaw", j -> Getter.of(ModelRotation::yaw));
-        private final BuiltInDeserializer pitch = register("pitch", j -> Getter.of(ModelRotation::pitch));
+        private final BuiltInDeserializer _default = register("default", _ -> Getter.of(r -> r));
+        private final BuiltInDeserializer empty = register("empty", _ -> Getter.of(ModelRotation.EMPTY));
+        private final BuiltInDeserializer yaw = register("yaw", _ -> Getter.of(ModelRotation::yaw));
+        private final BuiltInDeserializer pitch = register("pitch", _ -> Getter.of(ModelRotation::pitch));
         private final BuiltInDeserializer lazy = register("lazy", j -> {
             if (j.isJsonPrimitive()) {
                 var f = j.getAsLong();

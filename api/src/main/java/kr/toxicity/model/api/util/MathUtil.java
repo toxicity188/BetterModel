@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.util;
 
 import it.unimi.dsi.fastutil.floats.FloatComparator;
@@ -12,10 +13,12 @@ import kr.toxicity.model.api.data.Float3;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
+import org.joml.Quaternionfc;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
-import static java.lang.Math.*;
+import static java.lang.Math.PI;
+import static java.lang.Math.abs;
 
 /**
  * Math
@@ -31,9 +34,19 @@ public final class MathUtil {
     }
 
     /**
+     * Minecraft ticks per seconds
+     */
+    public static final int MINECRAFT_TICKS_PER_SECOND = 20;
+
+    /**
      * Minecraft tick mills
      */
-    public static final int MINECRAFT_TICK_MILLS = 50;
+    public static final int MINECRAFT_TICK_MILLS = 1000 / MINECRAFT_TICKS_PER_SECOND;
+
+    /**
+     * Minecraft tick seconds
+     */
+    public static final float MINECRAFT_TICK_SECONDS = (float) MINECRAFT_TICK_MILLS / 1000;
 
     /**
      * Valid rotation degree
@@ -230,9 +243,42 @@ public final class MathUtil {
      * @return xyz euler
      */
     public static @NotNull Vector3f toXYZEuler(@NotNull Vector3f vec) {
-        return toQuaternion(vec)
-            .getEulerAnglesXYZ(vec)
-            .mul(RADIANS_TO_DEGREES);
+        var degrees = toMinecraftDegree(toQuaternion(vec));
+        return vec.set(degrees.x(), degrees.y(), degrees.z());
+    }
+
+    /**
+     * Converts a rotation quaternion to the XYZ Euler angles used by Minecraft item display transforms.
+     * <pre>{@code
+     * var degrees = MathUtil.toMinecraftDegree(new Quaternionf());
+     * }</pre>
+     *
+     * @param rotation the rotation quaternion
+     * @return the XYZ Euler angles in degrees
+     * @since 3.7.0
+     */
+    public static @NotNull Float3 toMinecraftDegree(@NotNull Quaternionfc rotation) {
+        double qx = rotation.x(), qy = rotation.y(), qz = rotation.z(), qw = rotation.w();
+        var xx = qx * qx;
+        var yy = qy * qy;
+        var zz = qz * qz;
+        var ww = qw * qw;
+        var sinY = 2 * (qx * qz + qw * qy);
+        var m00 = ww + xx - yy - zz;
+        var m01 = 2 * (qx * qy - qw * qz);
+        var cosY = Math.hypot(m00, m01);
+
+        var y = Math.atan2(sinY, cosY);
+        double x, z;
+        // Use the singular solution only within quaternion rounding error.
+        if (cosY > 1E-6 * (ww + xx + yy + zz)) {
+            x = Math.atan2(2 * (qw * qx - qy * qz), ww - xx - yy + zz);
+            z = Math.atan2(-m01, m00);
+        } else {
+            x = Math.atan2(2 * (qw * qx + qy * qz), ww - xx + yy - zz);
+            z = 0;
+        }
+        return new Float3((float) Math.toDegrees(x), (float) Math.toDegrees(y), (float) Math.toDegrees(z));
     }
 
     /**
