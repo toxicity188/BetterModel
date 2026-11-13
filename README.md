@@ -104,7 +104,7 @@ BetterModel aims to be a reliable engine that provides stable, high-quality anim
 ```kotlin
 repositories {
     mavenCentral()
-    maven("https://maven.blamejared.com/") // For transitive dependency in bettermodel-fabric
+    maven("https://repo.redlance.org/public") // For transitive dependency in bettermodel-fabric
     maven("https://maven.nucleoid.xyz/") // For transitive dependency in bettermodel-fabric
 }
 
@@ -123,7 +123,7 @@ repositories {
             password = YOUR_GITHUB_TOKEN
         }
     }
-    maven("https://maven.blamejared.com/") // For transitive dependency in bettermodel-fabric
+    maven("https://repo.redlance.org/public") // For transitive dependency in bettermodel-fabric
     maven("https://maven.nucleoid.xyz/") // For transitive dependency in bettermodel-fabric
 }
 
@@ -141,7 +141,7 @@ dependencies {
 ```groovy
 repositories {
     mavenCentral()
-    maven 'https://maven.blamejared.com/' // For transitive dependency in bettermodel-fabric
+    maven 'https://repo.redlance.org/public' // For transitive dependency in bettermodel-fabric
     maven 'https://maven.nucleoid.xyz/' // For transitive dependency in bettermodel-fabric
 }
 
@@ -161,7 +161,7 @@ repositories {
             password = YOUR_GITHUB_TOKEN
         }
     }
-    maven 'https://maven.blamejared.com/' // For transitive dependency in bettermodel-fabric
+    maven 'https://repo.redlance.org/public' // For transitive dependency in bettermodel-fabric
     maven 'https://maven.nucleoid.xyz/' // For transitive dependency in bettermodel-fabric
 }
 
