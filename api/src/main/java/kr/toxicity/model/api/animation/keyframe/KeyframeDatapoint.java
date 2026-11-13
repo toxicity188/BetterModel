@@ -9,13 +9,13 @@ package kr.toxicity.model.api.animation.keyframe;
 
 import com.google.gson.JsonPrimitive;
 import kr.toxicity.model.api.BetterModel;
-import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public sealed interface KeyframeDatapoint {
 
@@ -50,23 +50,21 @@ public sealed interface KeyframeDatapoint {
         }
     }
 
-    @RequiredArgsConstructor
-    final class Expression implements KeyframeDatapoint {
+    record Expression(@NotNull String expression) implements KeyframeDatapoint {
 
-        private final String expression;
-        private final Map<KeyframeCompileContext, Keyframe> memoized = new HashMap<>();
+        private static final Pattern QUERY_PATTERN = Pattern.compile("\\b(?:q|query)\\.([a-zA-Z_][a-zA-Z0-9_]*)\\b");
+        private static final Map<String, Function<KeyframeCompileContext, Object>> QUERIES =
+            Map.of(
+                "anim_time", KeyframeCompileContext::animTime,
+                "life_time", KeyframeCompileContext::animTime
+            );
 
         @Override
         public @NotNull Keyframe compile(@NotNull KeyframeCompileContext context) {
-            return memoized.computeIfAbsent(context, _ -> {
-                var expr = expression;
-                var time = Float.toString(context.animTime());
-                expr = expr.replace("q.anim_time", time);
-                expr = expr.replace("query.life_time", time);
-                expr = expr.replace("q.anim_time", time);
-                expr = expr.replace("query.life_time", time);
-                return BetterModel.platform().evaluator().compile(expr);
-            });
+            return BetterModel.platform().evaluator().compile(QUERY_PATTERN.matcher(expression).replaceAll(result -> {
+                var query = QUERIES.get(result.group(1));
+                return query != null ? Matcher.quoteReplacement(String.valueOf(query.apply(context))) : Matcher.quoteReplacement(result.group());
+            }));
         }
     }
 }

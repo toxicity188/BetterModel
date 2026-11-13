@@ -37,7 +37,7 @@ class BetterModelEvaluatorImpl : BetterModelEvaluator {
 
     override fun compile(expression: String): Keyframe {
         val compiled = MolangParser.parseAll(expression)
-        return if (compiled.all { IsConstantExpression.test(it) }) Keyframe.of(molang.eval(compiled))
+        return if (compiled.all { IsConstantExpression.test(it, molang.scope()) }) Keyframe.of(molang.eval(compiled))
         else Keyframe {
             (it as? KeyframeRuntimeContextImpl)?.bind?.let { bind ->
                 molang.eval(compiled) { scope ->
