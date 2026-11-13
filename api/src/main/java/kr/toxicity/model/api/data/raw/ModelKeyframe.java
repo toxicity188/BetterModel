@@ -71,6 +71,19 @@ public record ModelKeyframe(
         return dataPoints.getFirst();
     }
 
+    /**
+     * Converts the first data point into an animation point with per-axis Bézier offsets.
+     * Missing handle vectors default to zero.
+     * <pre>{@code
+     * var point = keyframe.point(context, axis);
+     * }</pre>
+     *
+     * @param context the load context used to resolve placeholders in the data point
+     * @param axis the axis mapping applied to the vector and Bézier value offsets
+     * @return the animation point for this keyframe
+     * @throws java.util.NoSuchElementException if this keyframe has no data points
+     * @since 3.7.0
+     */
     public @NotNull KeyframePoint point(@NotNull ModelLoadContext context, @NotNull KeyframeAxis axis) {
         return new KeyframePoint(
             point().toVector(context),

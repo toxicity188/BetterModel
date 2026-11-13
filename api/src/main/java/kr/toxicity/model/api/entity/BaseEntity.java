@@ -216,6 +216,17 @@ public interface BaseEntity extends Identifiable {
      */
     void modelData(@Nullable String modelData);
 
+    /**
+     * Registers this entity's Molang queries in an animation context.
+     * The default implementation leaves the context untouched.
+     * <pre>{@code
+     * var context = evaluator.newContext();
+     * entity.updateTo(context);
+     * }</pre>
+     *
+     * @param context the runtime context that receives the entity queries
+     * @since 3.7.0
+     */
     default void updateTo(@NotNull KeyframeRuntimeContext context) {
 
     }

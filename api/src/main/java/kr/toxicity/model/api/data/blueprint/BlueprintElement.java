@@ -152,11 +152,14 @@ public sealed interface BlueprintElement {
         }
 
         /**
-         * Builds the JSON representation for modern clients.
+         * Builds item model JSON for modern clients, grouping textured cubes by compatible display rotations.
+         * <pre>{@code
+         * var models = group.buildModernJson(obfuscator, context);
+         * }</pre>
          *
          * @param obfuscator the obfuscator for model and texture names
          * @param context the load context
-         * @return a list of generated blueprint JSONs, or null if not applicable
+         * @return a list of generated blueprint JSONs, or null if no cubes have textured faces
          * @since 1.15.2
          */
         @Nullable

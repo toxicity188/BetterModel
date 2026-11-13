@@ -238,9 +238,13 @@ public final class MathUtil {
     }
 
     /**
-     * Converts zyx euler to xyz euler
-     * @param vec zyx euler
-     * @return xyz euler
+     * Converts ZYX Euler angles in degrees to XYZ Euler angles in degrees in place.
+     * <pre>{@code
+     * var angles = MathUtil.toXYZEuler(new Vector3f(10F, 20F, 30F));
+     * }</pre>
+     *
+     * @param vec the input angles, overwritten with the converted angles
+     * @return {@code vec} with the converted angles
      */
     public static @NotNull Vector3f toXYZEuler(@NotNull Vector3f vec) {
         var degrees = toMinecraftDegree(toQuaternion(vec));
