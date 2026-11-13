@@ -24,6 +24,8 @@ import java.util.*;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static kr.toxicity.model.api.util.MathUtil.fma;
+
 final class CubeRotationGroups {
 
     private static final float ROTATION_EPSILON = 1E-5F;
@@ -200,12 +202,12 @@ final class CubeRotationGroups {
     }
 
     private static boolean sameRotation(Quaternionf a, Quaternionf b) {
-        var sign = a.dot(b) < 0 ? -1F : 1F;
+        var sign = fma(a.x, b.x, fma(a.y, b.y, fma(a.z, b.z, a.w * b.w))) < 0 ? -1F : 1F;
         var x = a.x - sign * b.x;
         var y = a.y - sign * b.y;
         var z = a.z - sign * b.z;
         var w = a.w - sign * b.w;
-        return x * x + y * y + z * z + w * w <= ROTATION_EPSILON * ROTATION_EPSILON;
+        return fma(x, x, fma(y, y, fma(z, z, w * w))) <= ROTATION_EPSILON * ROTATION_EPSILON;
     }
 
     private static void addCandidate(Candidate candidate, Set<IntList> coverages, List<List<Candidate>> options) {
