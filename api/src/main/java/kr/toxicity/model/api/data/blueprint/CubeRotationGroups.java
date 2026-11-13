@@ -12,6 +12,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectSortedMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import kr.toxicity.model.api.data.Float3;
 import kr.toxicity.model.api.data.blueprint.BlueprintElement.Cube;
 import kr.toxicity.model.api.util.MathUtil;
@@ -40,7 +41,7 @@ final class CubeRotationGroups {
     private CubeRotationGroups() {
     }
 
-    static List<Model> group(List<Cube> cubes, Float3 origin, float scale) {
+    static List<Model> group(List<Cube> cubes) {
         if (cubes.isEmpty()) return List.of();
         if (cubes.stream().allMatch(cube -> MathUtil.checkValidDegree(cube.rotation()))) {
             return List.of(new Model(new Quaternionf(), cubes.stream()
@@ -62,7 +63,7 @@ final class CubeRotationGroups {
             .toList();
         var coverages = new HashSet<IntList>();
 
-        var complete = collectCandidates(seeds, cells, cubes, origin, scale, coverages, options);
+        var complete = collectCandidates(seeds, cells, cubes, coverages, options);
         if (complete != null) return models(cubes, List.of(complete));
 
         addFallbackCandidates(byRotation, coverages, options);
@@ -97,12 +98,12 @@ final class CubeRotationGroups {
 
     private static Candidate collectCandidates(
         List<Seed> seeds, Long2ObjectOpenHashMap<List<Seed>> cells, List<Cube> cubes,
-        Float3 origin, float scale, Set<IntList> coverages, List<List<Candidate>> options
+        Set<IntList> coverages, List<List<Candidate>> options
     ) {
         var seenIdentifiers = new HashSet<Quaternionf>();
         for (var seed : seeds) {
             if (!seenIdentifiers.add(seed.identifier)) continue;
-            var placements = placements(seed.identifier, cells, cubes, origin, scale);
+            var placements = placements(seed.identifier, cells);
             if (placements.isEmpty()) continue;
             var candidate = new Candidate(seed.identifier, placements);
             if (placements.size() == cubes.size()) return candidate;
@@ -153,15 +154,14 @@ final class CubeRotationGroups {
                     }
                 }
             }
-            selected.addAll(new CoverSearch(options, candidates, component).best);
+            selected.addAll(bestCover(options, candidates, component));
         }
         return selected;
     }
 
     private static Int2ObjectSortedMap<Float3> placements(
-        Quaternionf identifier, Long2ObjectOpenHashMap<List<Seed>> cells, List<Cube> cubes, Float3 origin, float scale
+        Quaternionf identifier, Long2ObjectOpenHashMap<List<Seed>> cells
     ) {
-        var inverse = identifier.invert(new Quaternionf());
         var placements = new Int2ObjectAVLTreeMap<Float3>();
         for (var x = firstCell(identifier.x); x <= lastCell(identifier.x); x++) {
             for (var y = firstCell(identifier.y); y <= lastCell(identifier.y); y++) {
@@ -172,7 +172,7 @@ final class CubeRotationGroups {
                         for (var match : matches) {
                             if (!sameRotation(identifier, match.identifier)) continue;
                             for (int index : match.cubes) {
-                                if (cubes.get(index).fitsElementBounds(origin, scale, inverse)) placements.put(index, match.relative);
+                                placements.put(index, match.relative);
                             }
                         }
                     }
@@ -256,58 +256,55 @@ final class CubeRotationGroups {
         }
     }
 
-    private static final class CoverSearch {
-        private final List<List<Candidate>> options;
-        private final int maxCoverage;
-        private final Map<BitSet, Integer> visited = new HashMap<>();
-        private List<Candidate> best;
-
-        private CoverSearch(List<List<Candidate>> options, Set<Candidate> candidates, BitSet component) {
-            this.options = options;
-            maxCoverage = candidates.stream().mapToInt(candidate -> candidate.count(component)).max().orElseThrow();
-            best = new ArrayList<>();
-            var remaining = (BitSet) component.clone();
-            while (!remaining.isEmpty()) {
-                var largest = candidates.stream().max(Comparator.comparingInt(candidate -> candidate.count(remaining))).orElseThrow();
-                largest.cover(remaining);
-                best.add(largest);
-            }
-            search(component, new ArrayList<>());
+    private static List<Candidate> bestCover(List<List<Candidate>> options, Set<Candidate> candidates, BitSet component) {
+        var maxCoverage = candidates.stream().mapToInt(candidate -> candidate.count(component)).max().orElseThrow();
+        var best = new ArrayList<Candidate>();
+        var remaining = (BitSet) component.clone();
+        while (!remaining.isEmpty()) {
+            var largest = candidates.stream().max(Comparator.comparingInt(candidate -> candidate.count(remaining))).orElseThrow();
+            largest.cover(remaining);
+            best.add(largest);
         }
 
-        private void search(BitSet remaining, ArrayList<Candidate> path) {
-            if (remaining.isEmpty()) {
-                if (path.size() < best.size()) best = List.copyOf(path);
-                return;
-            }
-            var budget = best.size() - path.size();
-            if (Math.ceilDiv(remaining.cardinality(), maxCoverage) >= budget) return;
-            var previous = visited.get(remaining);
-            if (previous != null && previous <= path.size()) return;
-            visited.put(remaining, path.size());
-            if (needsAtLeast(remaining, budget)) return;
+        var visited = new Object2IntOpenHashMap<BitSet>();
+        visited.defaultReturnValue(Integer.MAX_VALUE);
+        return searchCover(options, component, new ArrayList<>(), best, maxCoverage, visited);
+    }
 
-            var pivot = remaining.nextSetBit(0);
-            for (var index = remaining.nextSetBit(pivot + 1); index >= 0; index = remaining.nextSetBit(index + 1)) {
-                if (options.get(index).size() < options.get(pivot).size()) pivot = index;
-            }
-            for (var candidate : options.get(pivot)) {
-                var next = (BitSet) remaining.clone();
-                candidate.cover(next);
-                path.add(candidate);
-                search(next, path);
-                path.removeLast();
-            }
+    private static List<Candidate> searchCover(
+        List<List<Candidate>> options, BitSet remaining, ArrayList<Candidate> path,
+        List<Candidate> best, int maxCoverage, Object2IntOpenHashMap<BitSet> visited
+    ) {
+        if (remaining.isEmpty()) {
+            return path.size() < best.size() ? List.copyOf(path) : best;
         }
+        var budget = best.size() - path.size();
+        if (Math.ceilDiv(remaining.cardinality(), maxCoverage) >= budget) return best;
+        if (visited.getInt(remaining) <= path.size()) return best;
+        visited.put(remaining, path.size());
+        if (needsAtLeast(options, remaining, budget)) return best;
 
-        private boolean needsAtLeast(BitSet remaining, int budget) {
-            // Every picked cube needs a different model from the ones picked before it.
-            var separate = (BitSet) remaining.clone();
-            for (var index = separate.nextSetBit(0); index >= 0; index = separate.nextSetBit(index + 1)) {
-                if (--budget == 0) return true;
-                for (var candidate : options.get(index)) candidate.cover(separate);
-            }
-            return false;
+        var pivot = remaining.nextSetBit(0);
+        for (var index = remaining.nextSetBit(pivot + 1); index >= 0; index = remaining.nextSetBit(index + 1)) {
+            if (options.get(index).size() < options.get(pivot).size()) pivot = index;
         }
+        for (var candidate : options.get(pivot)) {
+            var next = (BitSet) remaining.clone();
+            candidate.cover(next);
+            path.add(candidate);
+            best = searchCover(options, next, path, best, maxCoverage, visited);
+            path.removeLast();
+        }
+        return best;
+    }
+
+    private static boolean needsAtLeast(List<List<Candidate>> options, BitSet remaining, int budget) {
+        // Every picked cube needs a different model from the ones picked before it.
+        var separate = (BitSet) remaining.clone();
+        for (var index = separate.nextSetBit(0); index >= 0; index = separate.nextSetBit(index + 1)) {
+            if (--budget == 0) return true;
+            for (var candidate : options.get(index)) candidate.cover(separate);
+        }
+        return false;
     }
 }

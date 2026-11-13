@@ -170,9 +170,7 @@ public sealed interface BlueprintElement {
                 CubeRotationGroups.group(
                     filterIsInstance(children, Cube.class)
                         .filter(cube -> cube.faces().textures().findAny().isPresent())
-                        .toList(),
-                    origin,
-                    scale),
+                        .toList()),
                 (i, model) -> buildJson(i + 1, scale, obfuscator, context, model)
             ).toList();
             return list.isEmpty() ? null : list;
@@ -358,13 +356,6 @@ public sealed interface BlueprintElement {
 
         private static @NotNull Float3 translatedOrigin(@NotNull Float3 origin, @NotNull Quaternionf inverseIdentifier) {
             return origin.rotate(inverseIdentifier).minus(origin).plus(Float3.CENTER);
-        }
-
-        boolean fitsElementBounds(@NotNull Float3 groupOrigin, float scale, @NotNull Quaternionf inverseIdentifier) {
-            var translation = translatedOrigin(centralize(origin(), groupOrigin, scale), inverseIdentifier);
-            var inflate = new Float3(inflate() / scale);
-            return centralize(from(), groupOrigin, scale).plus(translation).minus(inflate).isWithinElementBounds()
-                && centralize(to(), groupOrigin, scale).plus(translation).plus(inflate).isWithinElementBounds();
         }
 
         private @NotNull Stream<JsonObject> buildJson(
