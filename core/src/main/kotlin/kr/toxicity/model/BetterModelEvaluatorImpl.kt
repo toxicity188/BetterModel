@@ -16,6 +16,7 @@ import org.redlance.mocha.runtime.IsConstantExpression
 import org.redlance.mocha.runtime.MolangInterpreter
 import org.redlance.mocha.runtime.value.MutableObjectBinding
 import org.redlance.mocha.runtime.value.NumberValue
+import org.redlance.mocha.runtime.value.ObjectValue
 
 class BetterModelEvaluatorImpl : BetterModelEvaluator {
 
@@ -31,7 +32,7 @@ class BetterModelEvaluatorImpl : BetterModelEvaluator {
         }
 
         override fun setFunction(key: String, supplier: FloatSupplier) {
-            bind.setFunction(key) { _ -> supplier.asFloat }
+            bind.setFunction(key, ObjectValue.FloatFunction { supplier.asFloat })
         }
     }
 

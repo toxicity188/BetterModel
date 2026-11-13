@@ -14,6 +14,7 @@ import kr.toxicity.model.api.platform.PlatformLocation
 import kr.toxicity.model.api.platform.PlatformPlayer
 import kr.toxicity.model.api.util.MathUtil.MINECRAFT_TICKS_PER_SECOND
 import net.minecraft.server.level.ServerPlayer
+import net.minecraft.tags.FluidTags
 import net.minecraft.util.Mth
 import net.minecraft.world.effect.MobEffects
 import net.minecraft.world.entity.Entity
@@ -45,8 +46,10 @@ import net.minecraft.world.entity.monster.Creeper
 import net.minecraft.world.entity.monster.ElderGuardian
 import net.minecraft.world.entity.monster.Enderman
 import net.minecraft.world.entity.monster.Ravager
+import net.minecraft.world.entity.monster.cubemob.AbstractCubeMob
 import net.minecraft.world.entity.monster.illager.AbstractIllager
 import net.minecraft.world.entity.monster.illager.SpellcasterIllager
+import net.minecraft.world.entity.monster.spider.Spider
 import net.minecraft.world.entity.monster.warden.Warden
 import net.minecraft.world.entity.monster.zombie.Zombie
 import org.bukkit.craftbukkit.entity.CraftEntity
@@ -136,10 +139,19 @@ internal data class BaseEntityImpl(
             context.setFlag("is_in_lava") { entity.vanillaEntity.isInLava }
             context.setFlag("is_in_water") { entity.vanillaEntity.isInWater }
             context.setFlag("is_in_water_or_rain") { entity.vanillaEntity.isInWaterOrRain }
+            context.setFlag("head_is_in_water") { entity.vanillaEntity.isEyeInFluid(FluidTags.WATER) }
             context.setFlag("is_swimming") { entity.vanillaEntity.isSwimming }
             context.setFlag("is_crawling") { entity.vanillaEntity.isVisuallyCrawling }
             context.setFlag("is_sneaking") { entity.vanillaEntity.isShiftKeyDown }
             context.setFlag("is_sprinting") { entity.vanillaEntity.isSprinting }
+            context.setFlag("is_jumping") {
+                when (val handle = entity.vanillaEntity) {
+                    is ServerPlayer -> handle.lastClientInput.jump()
+                    is LivingEntity -> handle.isJumping
+                    else -> false
+                }
+            }
+            context.setFlag("is_wall_climbing") { (entity.vanillaEntity as? Spider)?.isClimbing == true }
             context.setFlag("is_gliding") { (entity.vanillaEntity as? LivingEntity)?.isFallFlying == true }
             context.setFlag("is_levitating") {
                 (entity.vanillaEntity as? LivingEntity)?.hasEffect(MobEffects.LEVITATION) == true
@@ -259,6 +271,19 @@ internal data class BaseEntityImpl(
             context.setFunction("vertical_speed") {
                 (entity.vanillaEntity.knownSpeed.y * MINECRAFT_TICKS_PER_SECOND).toFloat()
             }
+            context.setFunction("current_squish_value") { (entity.vanillaEntity as? AbstractCubeMob)?.squish ?: 0F }
+            context.setFunction("previous_squish_value") { (entity.vanillaEntity as? AbstractCubeMob)?.oSquish ?: 0F }
+            context.setFunction("swell_amount") { (entity.vanillaEntity as? Creeper)?.getSwelling(1F) ?: 0F }
+            context.setFunction("swelling_dir") { (entity.vanillaEntity as? Creeper)?.swellDir?.toFloat() ?: 0F }
+            context.setFunction("head_roll_angle") {
+                ((entity.vanillaEntity as? Wolf)?.getHeadRollAngle(1F) ?: 0F) * Mth.RAD_TO_DEG
+            }
+            context.setFunction("tail_angle") {
+                ((entity.vanillaEntity as? Wolf)?.tailAngle ?: 0F) * Mth.RAD_TO_DEG
+            }
+            context.setFunction("sit_amount") { (entity.vanillaEntity as? Panda)?.getSitAmount(1F) ?: 0F }
+            context.setFunction("lie_amount") { (entity.vanillaEntity as? Panda)?.getLieOnBackAmount(1F) ?: 0F }
+            context.setFunction("roll_counter") { (entity.vanillaEntity as? Panda)?.rollCounter?.toFloat() ?: 0F }
         }
 
         private fun Entity.bodyYawDegrees(): Float = Mth.wrapDegrees(if (this is LivingEntity) yBodyRot else yRot)
