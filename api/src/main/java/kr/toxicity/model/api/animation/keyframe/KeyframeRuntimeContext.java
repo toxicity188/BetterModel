@@ -7,7 +7,6 @@
 
 package kr.toxicity.model.api.animation.keyframe;
 
-import kr.toxicity.model.api.util.function.FloatSupplier;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -49,18 +48,60 @@ public interface KeyframeRuntimeContext {
     default void set(@NotNull String key, float value) {}
 
     /**
-     * Binds a zero-argument Molang query to a supplier called when the query is evaluated.
-     * The default implementation ignores the binding.
+     * Binds a Molang query that accepts no arguments.
+     * The function runs when Molang evaluates the query. The default implementation ignores the binding.
      * <pre>{@code
      * context.setFunction("health", () -> 20F);
-     * float health = evaluator.compile("q.health()").eval(context);
+     * float value = evaluator.compile("q.health()").eval(context);
      * }</pre>
      *
      * @param key the query name without the {@code query.} or {@code q.} prefix
-     * @param supplier the supplier that computes the query value
+     * @param function the function that computes the query value
      * @since 3.7.0
      */
-    default void setFunction(@NotNull String key, FloatSupplier supplier) {}
+    default void setFunction(@NotNull String key, @NotNull FloatFunction0 function) {}
+
+    /**
+     * Binds a Molang query that accepts one numeric argument.
+     * The function runs when Molang evaluates the query. The default implementation ignores the binding.
+     * <pre>{@code
+     * context.setFunction("echo", x -> x);
+     * float value = evaluator.compile("q.echo(1)").eval(context);
+     * }</pre>
+     *
+     * @param key the query name without the {@code query.} or {@code q.} prefix
+     * @param function the function that computes the query value
+     * @since 3.7.0
+     */
+    default void setFunction(@NotNull String key, @NotNull FloatFunction1 function) {}
+
+    /**
+     * Binds a Molang query that accepts two numeric arguments.
+     * The function runs when Molang evaluates the query. The default implementation ignores the binding.
+     * <pre>{@code
+     * context.setFunction("sum_two", (x, y) -> x + y);
+     * float value = evaluator.compile("q.sum_two(1, 2)").eval(context);
+     * }</pre>
+     *
+     * @param key the query name without the {@code query.} or {@code q.} prefix
+     * @param function the function that computes the query value
+     * @since 3.7.0
+     */
+    default void setFunction(@NotNull String key, @NotNull FloatFunction2 function) {}
+
+    /**
+     * Binds a Molang query that accepts three numeric arguments.
+     * The function runs when Molang evaluates the query. The default implementation ignores the binding.
+     * <pre>{@code
+     * context.setFunction("sum_three", (x, y, z) -> x + y + z);
+     * float value = evaluator.compile("q.sum_three(1, 2, 3)").eval(context);
+     * }</pre>
+     *
+     * @param key the query name without the {@code query.} or {@code q.} prefix
+     * @param function the function that computes the query value
+     * @since 3.7.0
+     */
+    default void setFunction(@NotNull String key, @NotNull FloatFunction3 function) {}
 
     /**
      * The shared runtime context that ignores query registrations.
@@ -76,5 +117,99 @@ public interface KeyframeRuntimeContext {
          * @since 3.7.0
          */
         INSTANCE
+    }
+
+    /**
+     * Computes a numeric query result from no arguments.
+     * <pre>{@code
+     * FloatFunction0 function = () -> 20F;
+     * }</pre>
+     *
+     * @since 3.7.0
+     */
+    @FunctionalInterface
+    interface FloatFunction0 {
+        /**
+         * Evaluates the query.
+         * <pre>{@code
+         * float value = function.get();
+         * }</pre>
+         *
+         * @return the numeric query result
+         * @since 3.7.0
+         */
+        float get();
+    }
+
+    /**
+     * Computes a numeric query result from one numeric argument.
+     * <pre>{@code
+     * FloatFunction1 function = (p1) -> p1;
+     * }</pre>
+     *
+     * @since 3.7.0
+     */
+    @FunctionalInterface
+    interface FloatFunction1 {
+        /**
+         * Evaluates the query.
+         * <pre>{@code
+         * float value = function.get(1F);
+         * }</pre>
+         *
+         * @param p1 the first numeric argument
+         * @return the numeric query result
+         * @since 3.7.0
+         */
+        float get(float p1);
+    }
+
+    /**
+     * Computes a numeric query result from two numeric arguments.
+     * <pre>{@code
+     * FloatFunction2 function = (p1, p2) -> p1 + p2;
+     * }</pre>
+     *
+     * @since 3.7.0
+     */
+    @FunctionalInterface
+    interface FloatFunction2 {
+        /**
+         * Evaluates the query.
+         * <pre>{@code
+         * float value = function.get(1F, 2F);
+         * }</pre>
+         *
+         * @param p1 the first numeric argument
+         * @param p2 the second numeric argument
+         * @return the numeric query result
+         * @since 3.7.0
+         */
+        float get(float p1, float p2);
+    }
+
+    /**
+     * Computes a numeric query result from three numeric arguments.
+     * <pre>{@code
+     * FloatFunction3 function = (p1, p2, p3) -> p1 + p2 + p3;
+     * }</pre>
+     *
+     * @since 3.7.0
+     */
+    @FunctionalInterface
+    interface FloatFunction3 {
+        /**
+         * Evaluates the query.
+         * <pre>{@code
+         * float value = function.get(1F, 2F, 3F);
+         * }</pre>
+         *
+         * @param p1 the first numeric argument
+         * @param p2 the second numeric argument
+         * @param p3 the third numeric argument
+         * @return the numeric query result
+         * @since 3.7.0
+         */
+        float get(float p1, float p2, float p3);
     }
 }

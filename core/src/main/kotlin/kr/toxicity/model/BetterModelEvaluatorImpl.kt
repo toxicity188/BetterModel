@@ -10,13 +10,11 @@ package kr.toxicity.model
 import kr.toxicity.model.api.BetterModelEvaluator
 import kr.toxicity.model.api.animation.keyframe.Keyframe
 import kr.toxicity.model.api.animation.keyframe.KeyframeRuntimeContext
-import kr.toxicity.model.api.util.function.FloatSupplier
 import org.redlance.mocha.parser.MolangParser
 import org.redlance.mocha.runtime.IsConstantExpression
 import org.redlance.mocha.runtime.MolangInterpreter
 import org.redlance.mocha.runtime.value.MutableObjectBinding
 import org.redlance.mocha.runtime.value.NumberValue
-import org.redlance.mocha.runtime.value.ObjectValue
 
 class BetterModelEvaluatorImpl : BetterModelEvaluator {
 
@@ -31,8 +29,17 @@ class BetterModelEvaluatorImpl : BetterModelEvaluator {
             bind.set(key, NumberValue.of(value))
         }
 
-        override fun setFunction(key: String, supplier: FloatSupplier) {
-            bind.setFunction(key, ObjectValue.FloatFunction { supplier.asFloat })
+        override fun setFunction(key: String, function: KeyframeRuntimeContext.FloatFunction0) {
+            bind.setFunction(key, function::get)
+        }
+        override fun setFunction(key: String, function: KeyframeRuntimeContext.FloatFunction1) {
+            bind.setFunction(key, function::get)
+        }
+        override fun setFunction(key: String, function: KeyframeRuntimeContext.FloatFunction2) {
+            bind.setFunction(key, function::get)
+        }
+        override fun setFunction(key: String, function: KeyframeRuntimeContext.FloatFunction3) {
+            bind.setFunction(key, function::get)
         }
     }
 

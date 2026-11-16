@@ -49,10 +49,10 @@ internal data class BasePlayerImpl(
 
     override fun updateTo(context: KeyframeRuntimeContext) {
         BaseEntityImpl.registerEntityQueries(delegate, context)
-        context.setFunction("is_spectator") { if (delegate.handle.isSpectator) 1F else 0F }
-        context.setFunction("player_level") { delegate.level.toFloat() }
-        context.setFunction("cardinal_facing") { delegate.handle.nearestViewDirection.get3DDataValue().toFloat() }
-        context.setFunction("cardinal_player_facing") { delegate.handle.nearestViewDirection.get3DDataValue().toFloat() }
-        context.setFunction("cardinal_facing_2d") { delegate.handle.direction.get3DDataValue().toFloat() }
+        context.setFunction("is_spectator") { -> if (delegate.handle.isSpectator) 1F else 0F }
+        context.setFunction("player_level") { -> delegate.level.toFloat() }
+        context.setFunction("cardinal_facing") { -> delegate.handle.nearestViewDirection.get3DDataValue().toFloat() }
+        context.setFunction("cardinal_player_facing") { -> delegate.handle.nearestViewDirection.get3DDataValue().toFloat() }
+        context.setFunction("cardinal_facing_2d") { -> delegate.handle.direction.get3DDataValue().toFloat() }
     }
 }

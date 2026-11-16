@@ -32,6 +32,7 @@ import net.minecraft.world.entity.animal.Animal
 import net.minecraft.world.entity.animal.allay.Allay
 import net.minecraft.world.entity.animal.axolotl.Axolotl
 import net.minecraft.world.entity.animal.dolphin.Dolphin
+import net.minecraft.world.entity.animal.equine.AbstractHorse
 import net.minecraft.world.entity.animal.fox.Fox
 import net.minecraft.world.entity.animal.frog.Frog
 import net.minecraft.world.entity.animal.goat.Goat
@@ -52,6 +53,7 @@ import net.minecraft.world.entity.monster.illager.SpellcasterIllager
 import net.minecraft.world.entity.monster.spider.Spider
 import net.minecraft.world.entity.monster.warden.Warden
 import net.minecraft.world.entity.monster.zombie.Zombie
+import net.minecraft.world.phys.Vec3
 import org.bukkit.craftbukkit.entity.CraftEntity
 import org.bukkit.entity.ChestedHorse
 import org.bukkit.entity.Sittable
@@ -245,51 +247,103 @@ internal data class BaseEntityImpl(
             context.setFlag("has_head_gear") {
                 (entity.vanillaEntity as? LivingEntity)?.hasItemInSlot(EquipmentSlot.HEAD) == true
             }
-            context.setFunction("equipment_count") {
+            context.setFunction("equipment_count") { ->
                 val handle = entity.vanillaEntity as? LivingEntity ?: return@setFunction 0F
                 EquipmentSlot.VALUES.count { it.isArmor && handle.hasItemInSlot(it) }.toFloat()
             }
-            context.setFunction("health") { (entity.vanillaEntity as? LivingEntity)?.health ?: 0F }
-            context.setFunction("max_health") { (entity.vanillaEntity as? LivingEntity)?.maxHealth ?: 0F }
-            context.setFunction("death_ticks") { (entity.vanillaEntity as? LivingEntity)?.deathTime?.toFloat() ?: 0F }
-            context.setFunction("hurt_time") { (entity.vanillaEntity as? LivingEntity)?.hurtTime?.toFloat() ?: 0F }
-            context.setFunction("item_in_use_duration") {
+            context.setFunction("health") { -> (entity.vanillaEntity as? LivingEntity)?.health ?: 0F }
+            context.setFunction("max_health") { -> (entity.vanillaEntity as? LivingEntity)?.maxHealth ?: 0F }
+            context.setFunction("death_ticks") { -> (entity.vanillaEntity as? LivingEntity)?.deathTime?.toFloat() ?: 0F }
+            context.setFunction("hurt_time") { -> (entity.vanillaEntity as? LivingEntity)?.hurtTime?.toFloat() ?: 0F }
+            context.setFunction("item_in_use_duration") { ->
                 val ticks = (entity.vanillaEntity as? LivingEntity)?.ticksUsingItem ?: 0
                 ticks.toFloat() / MINECRAFT_TICKS_PER_SECOND
             }
-            context.setFunction("model_scale") { (entity.vanillaEntity as? LivingEntity)?.scale ?: 1F }
-            context.setFunction("body_y_rotation") {
+            context.setFunction("model_scale") { -> (entity.vanillaEntity as? LivingEntity)?.scale ?: 1F }
+            context.setFunction("body_y_rotation") { ->
                 entity.vanillaEntity.bodyYawDegrees()
             }
-            context.setFunction("ride_body_y_rotation") {
+            context.setFunction("ride_body_y_rotation") { ->
                 entity.vanillaEntity.vehicle?.bodyYawDegrees() ?: 0F
             }
+            context.setFunction("position") { axis -> entity.vanillaEntity.position().component(axis) }
+            context.setFunction("position_delta") { axis -> entity.vanillaEntity.knownSpeed.component(axis) }
+            context.setFunction("movement_direction") { axis -> entity.vanillaEntity.knownSpeed.normalize().component(axis) }
+            context.setFunction("head_x_rotation") { index ->
+                when (val handle = entity.vanillaEntity) {
+                    is LivingEntity -> if (index == 0F) handle.xRot else {
+                        (handle as? WitherBoss)?.headXRots?.let { head ->
+                            when (index) {
+                                1F -> head[0]
+                                2F -> head[1]
+                                else -> 0F
+                            }
+                        } ?: 0F
+                    }
+                    else -> 0F
+                }
+            }
+            context.setFunction("head_y_rotation") { index ->
+                val handle = entity.vanillaEntity as? LivingEntity ?: return@setFunction 0F
+                // Equine queries require a separate clamp argument.
+                if (handle is AbstractHorse) return@setFunction 0F
+                val yaw = when (index) {
+                    0F -> handle.yHeadRot
+                    1F -> (handle as? WitherBoss)?.headYRots?.get(0) ?: return@setFunction 0F
+                    2F -> (handle as? WitherBoss)?.headYRots?.get(1) ?: return@setFunction 0F
+                    else -> return@setFunction 0F
+                }
+                // Bedrock head yaw winds opposite to body yaw in model expressions.
+                Mth.wrapDegrees(-yaw)
+            }
+            context.setFunction("rider_body_y_rotation") { index ->
+                entity.vanillaEntity.rider(index)?.bodyYawDegrees() ?: 0F
+            }
+            context.setFunction("rider_head_x_rotation") { index ->
+                (entity.vanillaEntity.rider(index) as? LivingEntity)?.xRot ?: 0F
+            }
+            context.setFunction("rider_head_y_rotation") { index ->
+                val rider = entity.vanillaEntity.rider(index) as? LivingEntity ?: return@setFunction 0F
+                if (rider is AbstractHorse) 0F else Mth.wrapDegrees(rider.yHeadRot)
+            }
             // Known speed is position change in blocks per tick, including client-controlled movement.
-            context.setFunction("ground_speed") {
+            context.setFunction("ground_speed") { ->
                 (entity.vanillaEntity.knownSpeed.horizontalDistance() * MINECRAFT_TICKS_PER_SECOND).toFloat()
             }
-            context.setFunction("vertical_speed") {
+            context.setFunction("vertical_speed") { ->
                 (entity.vanillaEntity.knownSpeed.y * MINECRAFT_TICKS_PER_SECOND).toFloat()
             }
-            context.setFunction("current_squish_value") { (entity.vanillaEntity as? AbstractCubeMob)?.squish ?: 0F }
-            context.setFunction("previous_squish_value") { (entity.vanillaEntity as? AbstractCubeMob)?.oSquish ?: 0F }
-            context.setFunction("swell_amount") { (entity.vanillaEntity as? Creeper)?.getSwelling(1F) ?: 0F }
-            context.setFunction("swelling_dir") { (entity.vanillaEntity as? Creeper)?.swellDir?.toFloat() ?: 0F }
-            context.setFunction("head_roll_angle") {
+            context.setFunction("current_squish_value") { -> (entity.vanillaEntity as? AbstractCubeMob)?.squish ?: 0F }
+            context.setFunction("previous_squish_value") { -> (entity.vanillaEntity as? AbstractCubeMob)?.oSquish ?: 0F }
+            context.setFunction("swell_amount") { -> (entity.vanillaEntity as? Creeper)?.getSwelling(1F) ?: 0F }
+            context.setFunction("swelling_dir") { -> (entity.vanillaEntity as? Creeper)?.swellDir?.toFloat() ?: 0F }
+            context.setFunction("head_roll_angle") { ->
                 ((entity.vanillaEntity as? Wolf)?.getHeadRollAngle(1F) ?: 0F) * Mth.RAD_TO_DEG
             }
-            context.setFunction("tail_angle") {
+            context.setFunction("tail_angle") { ->
                 ((entity.vanillaEntity as? Wolf)?.tailAngle ?: 0F) * Mth.RAD_TO_DEG
             }
-            context.setFunction("sit_amount") { (entity.vanillaEntity as? Panda)?.getSitAmount(1F) ?: 0F }
-            context.setFunction("lie_amount") { (entity.vanillaEntity as? Panda)?.getLieOnBackAmount(1F) ?: 0F }
-            context.setFunction("roll_counter") { (entity.vanillaEntity as? Panda)?.rollCounter?.toFloat() ?: 0F }
+            context.setFunction("sit_amount") { -> (entity.vanillaEntity as? Panda)?.getSitAmount(1F) ?: 0F }
+            context.setFunction("lie_amount") { -> (entity.vanillaEntity as? Panda)?.getLieOnBackAmount(1F) ?: 0F }
+            context.setFunction("roll_counter") { -> (entity.vanillaEntity as? Panda)?.rollCounter?.toFloat() ?: 0F }
         }
 
         private fun Entity.bodyYawDegrees(): Float = Mth.wrapDegrees(if (this is LivingEntity) yBodyRot else yRot)
 
+        private fun Vec3.component(axis: Float): Float = when (axis) {
+            0F -> x.toFloat()
+            1F -> y.toFloat()
+            2F -> z.toFloat()
+            else -> 0F
+        }
+
+        private fun Entity.rider(index: Float): Entity? {
+            val slot = index.toInt()
+            return if (index == slot.toFloat()) passengers.getOrNull(slot) else null
+        }
+
         private inline fun KeyframeRuntimeContext.setFlag(key: String, crossinline state: () -> Boolean) {
-            setFunction(key) { if (state()) 1F else 0F }
+            setFunction(key) { -> if (state()) 1F else 0F }
         }
     }
 }
