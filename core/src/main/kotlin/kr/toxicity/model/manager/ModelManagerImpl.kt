@@ -11,6 +11,7 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import kr.toxicity.model.api.bone.BoneItemMapper
 import kr.toxicity.model.api.data.ModelAsset
+import kr.toxicity.model.api.data.ModelImporter
 import kr.toxicity.model.api.data.blueprint.BlueprintElement
 import kr.toxicity.model.api.data.blueprint.BlueprintJson
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint
@@ -34,7 +35,10 @@ object ModelManagerImpl : ModelManager, GlobalManager {
     private val generalModelView = generalModelMap.toImmutableView()
     private val playerModelMap = addressingMapOf<String, ModelRenderer>()
     private val playerModelView = playerModelMap.toImmutableView()
-    private val modelExtensions = setOf("bbmodel", "ajmodel")
+    private val importerMap = ConcurrentHashMap(mapOf(
+        "bbmodel" to ModelImporter.BBMODEL,
+        "ajmodel" to ModelImporter.BBMODEL
+    ))
 
     private fun importModels(
         type: ModelRenderer.Type,
@@ -42,7 +46,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
         dir: File
     ): Sequence<ImportedModel> {
         val targetAssets = ModelAssetsEvent(type, dir.fileTrees().use { stream ->
-            stream.filter { it.extension.lowercase() in modelExtensions }
+            stream.filter { it.extension.lowercase() in importerMap.keys }
                 .map(ModelAsset::of)
                 .toMutableSet()
         }).apply { call() }
@@ -260,6 +264,12 @@ object ModelManagerImpl : ModelManager, GlobalManager {
         playerModelMap.clear()
         loadModels(pipeline, zipper)
     }
+
+    override fun addImporter(extension: String, importer: ModelImporter) {
+        importerMap[extension.lowercase()] = importer
+    }
+
+    override fun importer(extension: String): ModelImporter? = importerMap[extension.lowercase()]
 
     override fun model(name: String): ModelRenderer? = generalModelView[name]
     override fun models(): Collection<ModelRenderer> = generalModelView.values
