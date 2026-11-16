@@ -55,6 +55,14 @@ import java.util.stream.Stream;
  * This registry handles the lifecycle of trackers attached to an entity, including loading, saving,
  * spawning, and despawning. It acts as a central hub for accessing and manipulating models on an entity.
  * </p>
+ * <p>
+ * The registry registers the entity's Molang queries when it is created. All trackers in this
+ * registry use the same runtime context through {@link Tracker#keyframeContext()}.
+ * </p>
+ *
+ * <pre>{@code
+ * var registry = EntityTrackerRegistry.registry(entity.uuid());
+ * }</pre>
  *
  * @since 1.15.2
  */

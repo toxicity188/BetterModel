@@ -32,12 +32,18 @@ public final class DummyTracker extends Tracker {
     private volatile PlatformLocation location;
 
     /**
-     * Creates a new dummy tracker.
+     * Creates a new dummy tracker with its own Molang runtime context.
+     *
+     * <pre>{@code
+     * var tracker = new DummyTracker(location, pipeline, modifier,
+     *     dummy -> dummy.keyframeContext().set("custom_weight", 0.5F));
+     * }</pre>
      *
      * @param location the initial location
      * @param pipeline the render pipeline
      * @param modifier the tracker modifier
      * @param preUpdateConsumer a consumer to run before the first update
+     * @throws NullPointerException if the BetterModel platform has not been initialized
      * @since 1.15.2
      */
     public DummyTracker(@NotNull PlatformLocation location, @NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<DummyTracker> preUpdateConsumer) {

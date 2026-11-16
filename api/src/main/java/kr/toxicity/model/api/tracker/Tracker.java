@@ -124,11 +124,18 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
     private BiConsumer<Tracker, PlatformPlayer> perPlayerHandler = null;
 
     /**
-     * Creates a new tracker.
+     * Creates a new tracker with the context used for runtime animation evaluation.
+     * The tracker retains the supplied context.
+     *
+     * <pre>{@code
+     * // Inside an entity tracker constructor
+     * super(pipeline, modifier, registry.keyframeContext);
+     * }</pre>
      *
      * @param pipeline the render pipeline
      * @param modifier the tracker modifier
-     * @since 1.15.2
+     * @param keyframeContext the runtime context for this tracker's Molang queries
+     * @since 3.7.0
      */
     public Tracker(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull KeyframeRuntimeContext keyframeContext) {
         this.pipeline = pipeline;
@@ -946,6 +953,18 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
         return forRemoval.get();
     }
 
+    /**
+     * Returns the runtime context used by this tracker's animations.
+     * Entity trackers in the same registry share a context. Each dummy tracker has its own context.
+     *
+     * <pre>{@code
+     * var context = tracker.keyframeContext();
+     * context.set("custom_weight", 0.5F);
+     * }</pre>
+     *
+     * @return the live context used to evaluate runtime keyframes
+     * @since 3.7.0
+     */
     public final @NotNull KeyframeRuntimeContext keyframeContext() {
         return keyframeContext;
     }
