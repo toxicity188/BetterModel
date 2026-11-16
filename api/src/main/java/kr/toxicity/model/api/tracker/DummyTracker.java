@@ -7,6 +7,7 @@
 
 package kr.toxicity.model.api.tracker;
 
+import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.renderer.RenderPipeline;
 import kr.toxicity.model.api.event.CreateDummyTrackerEvent;
 import kr.toxicity.model.api.platform.PlatformLocation;
@@ -40,7 +41,7 @@ public final class DummyTracker extends Tracker {
      * @since 1.15.2
      */
     public DummyTracker(@NotNull PlatformLocation location, @NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<DummyTracker> preUpdateConsumer) {
-        super(pipeline, modifier);
+        super(pipeline, modifier, BetterModel.platform().evaluator().newContext());
         this.location = location;
         pipeline.scale(() -> scaler().scale(this));
         rotation(() -> new ModelRotation(this.location.pitch(), this.location.yaw()));

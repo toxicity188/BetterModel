@@ -8,7 +8,6 @@
 package kr.toxicity.model.api.tracker;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.animation.AnimationStateHandler;
 import kr.toxicity.model.api.animation.keyframe.KeyframeRuntimeContext;
@@ -114,13 +113,13 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
             } else b.accept(this);
         }
     );
-    protected final KeyframeRuntimeContext context = BetterModel.platform().evaluator().newContext();
     private volatile ScheduledFuture<?> task;
     protected ModelRotator rotator = ModelRotator.YAW;
     protected ModelScaler scaler = ModelScaler.entity();
     private Supplier<ModelRotation> rotationSupplier = () -> ModelRotation.EMPTY;
     private BiConsumer<Tracker, TrackerCloseReason> closeEventHandler = (t, r) -> EventUtil.call(CloseTrackerEvent.class, () -> new CloseTrackerEvent(t, r));
 
+    private final KeyframeRuntimeContext keyframeContext;
     private volatile List<Consumer<TrackerBundlerSet>> tickHandlers = new ObjectArrayList<>();
     private BiConsumer<Tracker, PlatformPlayer> perPlayerHandler = null;
 
@@ -131,10 +130,11 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
      * @param modifier the tracker modifier
      * @since 1.15.2
      */
-    public Tracker(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier) {
+    public Tracker(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull KeyframeRuntimeContext keyframeContext) {
         this.pipeline = pipeline;
         this.modifier = modifier;
-        this.animationTicker = new TrackerAnimationTicker(pipeline, context);
+        this.keyframeContext = keyframeContext;
+        this.animationTicker = new TrackerAnimationTicker(pipeline, this.keyframeContext);
         this.bundlerSet = new TrackerBundlerSet(pipeline);
         if (modifier.sightTrace()) pipeline.viewFilter(p -> EntityUtil.canSee(p.eyeLocation(), location()));
         frame(set -> {
@@ -944,6 +944,10 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
     @ApiStatus.Internal
     public boolean forRemoval() {
         return forRemoval.get();
+    }
+
+    public final @NotNull KeyframeRuntimeContext keyframeContext() {
+        return keyframeContext;
     }
 
     @Override

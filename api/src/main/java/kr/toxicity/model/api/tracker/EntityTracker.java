@@ -91,13 +91,12 @@ public sealed class EntityTracker extends Tracker permits PlayerTracker {
      */
     @ApiStatus.Internal
     public EntityTracker(@NotNull EntityTrackerRegistry registry, @NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
-        super(pipeline, modifier);
+        super(pipeline, modifier, registry.keyframeContext);
         this.registry = registry;
         this.location = registry.entity().location();
         bodyRotator = new EntityBodyRotator(registry);
 
         var entity = registry.entity();
-        entity.updateTo(context);
         var scale = FunctionUtil.throttleTickFloat(() -> scaler().scale(this));
         //Shadow
         Optional.ofNullable(bone("shadow"))

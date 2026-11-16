@@ -16,6 +16,7 @@ import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
 import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.animation.keyframe.KeyframeRuntimeContext;
 import kr.toxicity.model.api.config.DebugConfig;
 import kr.toxicity.model.api.entity.BaseEntity;
 import kr.toxicity.model.api.entity.BasePlayer;
@@ -76,6 +77,7 @@ public final class EntityTrackerRegistry {
     private final Collection<EntityTracker> trackers = Collections.unmodifiableCollection(trackerMap.values());
     private final Map<UUID, PlayerChannelCache> viewedPlayerMap = new ConcurrentHashMap<>();
 
+    final KeyframeRuntimeContext keyframeContext = BetterModel.platform().evaluator().newContext();
     final AnimationProperty animationProperty;
 
     final Map<UUID, HitBox> hitBoxCache = new ConcurrentHashMap<>();
@@ -180,6 +182,7 @@ public final class EntityTrackerRegistry {
         this.entity = entity;
         this.uuid = entity.uuid();
         this.id = entity.id();
+        entity.updateTo(keyframeContext);
         animationProperty = new AnimationProperty();
     }
 
