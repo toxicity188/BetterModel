@@ -13,6 +13,7 @@ import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSortedSets;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.*;
+import kr.toxicity.model.api.animation.keyframe.KeyframeRuntimeContext;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.data.blueprint.BlueprintElement;
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox;
@@ -361,8 +362,8 @@ public final class RenderedBone implements BoneEventHandler {
         if (d != null) d.sendEntityData(!d.invisible(), bundler);
     }
 
-    public void sendTransformation(@Nullable UUID uuid, @NotNull AnimationBundler bundler) {
-        state(uuid).sendTransformation(bundler);
+    public void sendTransformation(@NotNull KeyframeRuntimeContext context, @Nullable UUID uuid, @NotNull AnimationBundler bundler) {
+        state(uuid).sendTransformation(context, bundler);
     }
 
     public void forceTransformation(@NotNull PacketBundler bundler) {
@@ -602,13 +603,13 @@ public final class RenderedBone implements BoneEventHandler {
             );
         }
 
-        @NotNull BoneMovement after() {
+        @NotNull BoneMovement after(@NotNull KeyframeRuntimeContext context) {
             if (!updateAfter.compareAndSet(true, false)) return after;
             var keyframe = state.afterKeyframe(AnimationProgress.EMPTY);
             var preventModifierUpdate = interpolationDuration() < 1;
-            var def = keyframe.animate(defaultFrame, after);
+            var def = keyframe.animate(context, defaultFrame, after);
             if (parent != null) {
-                var p = parent.state(uuid).after();
+                var p = parent.state(uuid).after(context);
                 MathUtil.fma(
                         def.position().rotate(p.rotation()),
                         p.scale(),
@@ -655,9 +656,9 @@ public final class RenderedBone implements BoneEventHandler {
             return Math.round(frame + MathUtil.FLOAT_COMPARISON_EPSILON);
         }
 
-        private void sendTransformation(@NotNull AnimationBundler bundler) {
+        private void sendTransformation(@NotNull KeyframeRuntimeContext context, @NotNull AnimationBundler bundler) {
             if (!updateCurrent.compareAndSet(true, false)) return;
-            var after = after();
+            var after = after(context);
             var movement = lock.accessToWriteLock(() -> current.set(after));
             if (transformer == null) return;
             var mul = scale.getAsFloat();

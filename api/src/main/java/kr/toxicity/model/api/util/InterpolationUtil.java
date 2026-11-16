@@ -11,7 +11,8 @@ import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import it.unimi.dsi.fastutil.floats.FloatSortedSet;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationKeyframe;
-import kr.toxicity.model.api.animation.VectorPoint;
+import kr.toxicity.model.api.animation.keyframe.KeyframePoint;
+import kr.toxicity.model.api.animation.keyframe.KeyframeVector;
 import kr.toxicity.model.api.tracker.Tracker;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -48,30 +49,33 @@ public final class InterpolationUtil {
      */
     @NotNull
     public static AnimationKeyframe buildAnimation(
-        @NotNull List<VectorPoint> position,
-        @NotNull List<VectorPoint> rotation,
-        @NotNull List<VectorPoint> scale,
+        @NotNull List<KeyframePoint> position,
+        @NotNull List<KeyframePoint> rotation,
+        @NotNull List<KeyframePoint> scale,
         boolean rotationGlobal,
         @NotNull FloatSortedSet points
     ) {
         var pp = interpolatorFor(position);
-        var sp = interpolatorFor(scale);
         var rp = interpolatorFor(rotation);
-        var keyframe = AnimationKeyframe.builder(points.size(), rotationGlobal);
+        var sp = interpolatorFor(scale);
+        var keyframe = AnimationKeyframe.builder(
+            points.size(),
+            rotationGlobal,
+            position.stream().allMatch(KeyframePoint::isConstant),
+            rotation.stream().allMatch(KeyframePoint::isConstant),
+            scale.stream().allMatch(KeyframePoint::isConstant)
+        );
         var before = 0F;
         var iterator = points.iterator();
         while (iterator.hasNext()) {
             var f = iterator.nextFloat();
             var pr = pp.build(f);
-            var sr = sp.build(f);
             var rr = rp.build(f);
-            keyframe.write(
-                roundTime(f - before),
-                pr.vector,
-                sr.vector,
-                rr.vector,
-                pr.skipInterpolation || sr.skipInterpolation || rr.skipInterpolation
-            );
+            var sr = sp.build(f);
+            keyframe.writePosition(pr.vector);
+            keyframe.writeRotation(rr.vector);
+            keyframe.writeScale(sr.vector);
+            keyframe.writeExtra(roundTime(f - before), pr.skipInterpolation || sr.skipInterpolation || rr.skipInterpolation);
             before = f;
         }
         return keyframe.build();
@@ -82,11 +86,11 @@ public final class InterpolationUtil {
      * @param vectors target vector list
      * @return point builder
      */
-    public static @NotNull VectorPointBuilder interpolatorFor(@NotNull List<VectorPoint> vectors) {
-        var last = vectors.isEmpty() ? VectorPoint.EMPTY : vectors.getLast();
+    public static @NotNull VectorPointBuilder interpolatorFor(@NotNull List<KeyframePoint> vectors) {
+        var last = vectors.isEmpty() ? KeyframePoint.EMPTY : vectors.getLast();
         return vectors.size() < 2 ? f -> new VectorResult(last.vector(f)) : new VectorPointBuilder() {
-            private VectorPoint p1 = VectorPoint.EMPTY;
-            private VectorPoint p2 = vectors.getFirst();
+            private KeyframePoint p1 = KeyframePoint.EMPTY;
+            private KeyframePoint p2 = vectors.getFirst();
             private int i = 0;
             private float t = p2.time();
 
@@ -228,62 +232,32 @@ public final class InterpolationUtil {
         return t;
     }
 
-    /**
-     * Interpolates two vectors as bezier
-     * @param alpha alpha time
-     * @param start start keyframe
-     * @param end end keyframe
-     * @param bezierRightTime bezier right time
-     * @param bezierRightValue bezier right value
-     * @param bezierLeftTime bezier left time
-     * @param bezierLeftValue bezier left value
-     * @return interpolated vector
-     */
-    public static @NotNull Vector3f bezier(
+    public static float bezier(
         float alpha,
-        @NotNull Vector3f start,
-        @NotNull Vector3f end,
-        @NotNull Vector3f bezierRightTime,
-        @NotNull Vector3f bezierRightValue,
-        @NotNull Vector3f bezierLeftTime,
-        @NotNull Vector3f bezierLeftValue
+        float start,
+        float end,
+        float bezierRightTime,
+        float bezierRightValue,
+        float bezierLeftTime,
+        float bezierLeftValue
     ) {
-        return new Vector3f(
-            cubicBezier(start.x, start.x + bezierRightValue.x, end.x + bezierLeftValue.x, end.x, solveBezierTForTime(
-                alpha,
-                bezierRightTime.x,
-                1 + bezierLeftTime.x
-            )),
-            cubicBezier(start.y, start.y + bezierRightValue.y, end.y + bezierLeftValue.y, end.y, solveBezierTForTime(
-                alpha,
-                bezierRightTime.y,
-                1 + bezierLeftTime.y
-            )),
-            cubicBezier(start.z, start.z + bezierRightValue.z, end.z + bezierLeftValue.z, end.z, solveBezierTForTime(
-                alpha,
-                bezierRightTime.z,
-                1 + bezierLeftTime.z
-            ))
-        );
+        return cubicBezier(start, start + bezierRightValue, end + bezierLeftValue, end, solveBezierTForTime(
+            alpha,
+            bezierRightTime,
+            1 + bezierLeftTime
+        ));
     }
 
-    /**
-     * Interpolates four vectors as catmull-rom.
-     * @param p0 p0
-     * @param p1 p1
-     * @param p2 p2
-     * @param p3 p3
-     * @param t alpha
-     * @return interpolated vector
-     */
-    public static @NotNull Vector3f catmull_rom(@NotNull Vector3f p0, @NotNull Vector3f p1, @NotNull Vector3f p2, @NotNull Vector3f p3, float t) {
+    public static float catmull_rom(
+        float p0,
+        float p1,
+        float p2,
+        float p3,
+        float t
+    ) {
         var t2 = t * t;
         var t3 = t2 * t;
-        return new Vector3f(
-            fma(t3, fma(-1F, p0.x, fma(3F, p1.x, fma(-3F, p2.x, p3.x))), fma(t2, fma(2F, p0.x, fma(-5F, p1.x, fma(4F, p2.x, -p3.x))), fma(t, -p0.x + p2.x, 2F * p1.x))),
-            fma(t3, fma(-1F, p0.y, fma(3F, p1.y, fma(-3F, p2.y, p3.y))), fma(t2, fma(2F, p0.y, fma(-5F, p1.y, fma(4F, p2.y, -p3.y))), fma(t, -p0.y + p2.y, 2F * p1.y))),
-            fma(t3, fma(-1F, p0.z, fma(3F, p1.z, fma(-3F, p2.z, p3.z))), fma(t2, fma(2F, p0.z, fma(-5F, p1.z, fma(4F, p2.z, -p3.z))), fma(t, -p0.z + p2.z, 2F * p1.z)))
-        ).mul(0.5F);
+        return 0.5F * fma(t3, fma(-1F, p0, fma(3F, p1, fma(-3F, p2, p3))), fma(t2, fma(2F, p0, fma(-5F, p1, fma(4F, p2, -p3))), fma(t, -p0 + p2, 2F * p1)));
     }
 
     /**
@@ -304,12 +278,12 @@ public final class InterpolationUtil {
      * @param vector vector
      * @param skipInterpolation skip interpolation
      */
-    public record VectorResult(@NotNull Vector3f vector, boolean skipInterpolation) {
+    public record VectorResult(@NotNull KeyframeVector vector, boolean skipInterpolation) {
         /**
          * Vector result
          * @param vector vector
          */
-        public VectorResult(@NotNull Vector3f vector) {
+        public VectorResult(@NotNull KeyframeVector vector) {
             this(vector, false);
         }
     }

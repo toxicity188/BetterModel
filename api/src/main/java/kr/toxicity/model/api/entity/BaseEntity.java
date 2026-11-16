@@ -8,6 +8,7 @@
 package kr.toxicity.model.api.entity;
 
 import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.animation.keyframe.KeyframeRuntimeContext;
 import kr.toxicity.model.api.manager.PlayerManager;
 import kr.toxicity.model.api.nms.Identifiable;
 import kr.toxicity.model.api.platform.PlatformEntity;
@@ -214,4 +215,19 @@ public interface BaseEntity extends Identifiable {
      * @param modelData model data
      */
     void modelData(@Nullable String modelData);
+
+    /**
+     * Registers this entity's Molang queries in an animation context.
+     * The default implementation leaves the context untouched.
+     * <pre>{@code
+     * var context = evaluator.newContext();
+     * entity.updateTo(context);
+     * }</pre>
+     *
+     * @param context the runtime context that receives the entity queries
+     * @since 3.7.0
+     */
+    default void updateTo(@NotNull KeyframeRuntimeContext context) {
+
+    }
 }

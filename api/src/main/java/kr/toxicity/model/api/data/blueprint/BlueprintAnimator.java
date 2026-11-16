@@ -10,7 +10,7 @@ package kr.toxicity.model.api.data.blueprint;
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationKeyframe;
 import kr.toxicity.model.api.animation.AnimationProgress;
-import kr.toxicity.model.api.animation.VectorPoint;
+import kr.toxicity.model.api.animation.keyframe.KeyframePoint;
 import kr.toxicity.model.api.bone.BoneName;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,9 +44,9 @@ public record BlueprintAnimator(
      */
     public record AnimatorData(
         @NotNull BoneName name,
-        @NotNull List<VectorPoint> position,
-        @NotNull List<VectorPoint> scale,
-        @NotNull List<VectorPoint> rotation,
+        @NotNull List<KeyframePoint> position,
+        @NotNull List<KeyframePoint> scale,
+        @NotNull List<KeyframePoint> rotation,
         boolean rotationGlobal
     ) {
         /**
@@ -55,7 +55,7 @@ public record BlueprintAnimator(
          * @return a stream of all vector points
          * @since 1.15.2
          */
-        public @NotNull Stream<VectorPoint> allPoints() {
+        public @NotNull Stream<KeyframePoint> allPoints() {
             return Stream.concat(
                 Stream.concat(
                     position.stream(),

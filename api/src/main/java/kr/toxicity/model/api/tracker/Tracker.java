@@ -10,6 +10,7 @@ package kr.toxicity.model.api.tracker;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import kr.toxicity.model.api.animation.AnimationModifier;
 import kr.toxicity.model.api.animation.AnimationStateHandler;
+import kr.toxicity.model.api.animation.keyframe.KeyframeRuntimeContext;
 import kr.toxicity.model.api.bone.BoneMovement;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.BoneTags;
@@ -118,20 +119,29 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
     private Supplier<ModelRotation> rotationSupplier = () -> ModelRotation.EMPTY;
     private BiConsumer<Tracker, TrackerCloseReason> closeEventHandler = (t, r) -> EventUtil.call(CloseTrackerEvent.class, () -> new CloseTrackerEvent(t, r));
 
+    private final KeyframeRuntimeContext keyframeContext;
     private volatile List<Consumer<TrackerBundlerSet>> tickHandlers = new ObjectArrayList<>();
     private BiConsumer<Tracker, PlatformPlayer> perPlayerHandler = null;
 
     /**
-     * Creates a new tracker.
+     * Creates a new tracker with the context used for runtime animation evaluation.
+     * The tracker retains the supplied context.
+     *
+     * <pre>{@code
+     * // Inside an entity tracker constructor
+     * super(pipeline, modifier, registry.keyframeContext);
+     * }</pre>
      *
      * @param pipeline the render pipeline
      * @param modifier the tracker modifier
-     * @since 1.15.2
+     * @param keyframeContext the runtime context for this tracker's Molang queries
+     * @since 3.7.0
      */
-    public Tracker(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier) {
+    public Tracker(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull KeyframeRuntimeContext keyframeContext) {
         this.pipeline = pipeline;
         this.modifier = modifier;
-        this.animationTicker = new TrackerAnimationTicker(pipeline);
+        this.keyframeContext = keyframeContext;
+        this.animationTicker = new TrackerAnimationTicker(pipeline, this.keyframeContext);
         this.bundlerSet = new TrackerBundlerSet(pipeline);
         if (modifier.sightTrace()) pipeline.viewFilter(p -> EntityUtil.canSee(p.eyeLocation(), location()));
         frame(set -> {
@@ -941,6 +951,22 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
     @ApiStatus.Internal
     public boolean forRemoval() {
         return forRemoval.get();
+    }
+
+    /**
+     * Returns the runtime context used by this tracker's animations.
+     * Entity trackers in the same registry share a context. Each dummy tracker has its own context.
+     *
+     * <pre>{@code
+     * var context = tracker.keyframeContext();
+     * context.set("custom_weight", 0.5F);
+     * }</pre>
+     *
+     * @return the live context used to evaluate runtime keyframes
+     * @since 3.7.0
+     */
+    public final @NotNull KeyframeRuntimeContext keyframeContext() {
+        return keyframeContext;
     }
 
     @Override

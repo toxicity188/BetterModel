@@ -81,9 +81,14 @@ public sealed class EntityTracker extends Tracker permits PlayerTracker {
     private volatile PlatformLocation location;
 
     /**
-     * Creates a new entity tracker.
+     * Creates a new entity tracker using the registry's shared Molang runtime context.
      *
-     * @param registry the entity tracker registry
+     * <pre>{@code
+     * var tracker = new EntityTracker(registry, pipeline, modifier,
+     *     entityTracker -> entityTracker.keyframeContext().set("custom_weight", 0.5F));
+     * }</pre>
+     *
+     * @param registry the entity tracker registry that supplies the shared context
      * @param pipeline the render pipeline
      * @param modifier the tracker modifier
      * @param preUpdateConsumer a consumer to run before the first update
@@ -91,7 +96,7 @@ public sealed class EntityTracker extends Tracker permits PlayerTracker {
      */
     @ApiStatus.Internal
     public EntityTracker(@NotNull EntityTrackerRegistry registry, @NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull Consumer<EntityTracker> preUpdateConsumer) {
-        super(pipeline, modifier);
+        super(pipeline, modifier, registry.keyframeContext);
         this.registry = registry;
         this.location = registry.entity().location();
         bodyRotator = new EntityBodyRotator(registry);

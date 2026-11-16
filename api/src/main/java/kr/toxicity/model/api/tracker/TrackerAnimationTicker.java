@@ -8,6 +8,7 @@
 package kr.toxicity.model.api.tracker;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import kr.toxicity.model.api.animation.keyframe.KeyframeRuntimeContext;
 import kr.toxicity.model.api.data.renderer.RenderPipeline;
 import kr.toxicity.model.api.nms.AnimationBundler;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
@@ -40,6 +41,7 @@ import java.util.function.Consumer;
 final class TrackerAnimationTicker {
 
     private final RenderPipeline pipeline;
+    private final KeyframeRuntimeContext context;
 
     private final List<PlayerChannelHandler> viewedPlayers = new ObjectArrayList<>();
     private final Map<UUID, PerPlayerCache> perPlayerAnimationCache = new ConcurrentHashMap<>();
@@ -49,10 +51,12 @@ final class TrackerAnimationTicker {
      * Constructs a new animation ticker.
      *
      * @param pipeline the render pipeline
+     * @param context the keyframe runtime context
      * @since 3.7.0
      */
-    TrackerAnimationTicker(@NotNull RenderPipeline pipeline) {
+    TrackerAnimationTicker(@NotNull RenderPipeline pipeline, @NotNull KeyframeRuntimeContext context) {
         this.pipeline = Objects.requireNonNull(pipeline, "pipeline");
+        this.context = context;
         this.animationBundler = pipeline.createAnimationBundler();
     }
 
@@ -108,7 +112,7 @@ final class TrackerAnimationTicker {
     }
 
     private void sendAnimation() {
-        pipeline.send(animationBundler);
+        pipeline.send(context, animationBundler);
         if (animationBundler.isNotEmpty()) {
             viewedPlayers.forEach(animationBundler::send);
             animationBundler = pipeline.createAnimationBundler();
@@ -146,7 +150,7 @@ final class TrackerAnimationTicker {
         }
 
         private void send() {
-            if (pipeline.tick(uuid, bundler) && bundler.isNotEmpty()) {
+            if (pipeline.tick(context, uuid, bundler) && bundler.isNotEmpty()) {
                 channel().ifPresent(bundler::send);
                 bundler = pipeline.createAnimationBundler();
             }

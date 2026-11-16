@@ -8,10 +8,9 @@
 package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonDeserializer;
-import kr.toxicity.model.api.util.MathUtil;
+import kr.toxicity.model.api.animation.keyframe.KeyframeAxis;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Vector3f;
 import org.semver4j.Semver;
 
 import java.util.Arrays;
@@ -48,18 +47,27 @@ public record ModelMeta(
          * @since 1.15.2
          */
         BLOCKBENCH_5(5) {
+
+            private final KeyframeAxis pos = KeyframeAxis.of(
+                KeyframeAxis.OPERATOR_INVERT.andThen(KeyframeAxis.OPERATOR_NORMALIZE_SCALE),
+                KeyframeAxis.OPERATOR_NORMALIZE_SCALE,
+                KeyframeAxis.OPERATOR_INVERT.andThen(KeyframeAxis.OPERATOR_NORMALIZE_SCALE)
+            );
+
+            private final KeyframeAxis rot = KeyframeAxis.of(
+                KeyframeAxis.OPERATOR_INVERT,
+                KeyframeAxis.OPERATOR_NONE,
+                KeyframeAxis.OPERATOR_INVERT
+            );
+
             @Override
-            public @NotNull Vector3f convertAnimationRotation(@NotNull Vector3f vector) {
-                vector.x = -vector.x;
-                vector.z = -vector.z;
-                return vector;
+            public @NotNull KeyframeAxis positionAxis() {
+                return pos;
             }
 
             @Override
-            public @NotNull Vector3f convertAnimationPosition(@NotNull Vector3f vector) {
-                vector.x = -vector.x;
-                vector.z = -vector.z;
-                return vector.div(MathUtil.MODEL_TO_BLOCK_MULTIPLIER);
+            public @NotNull KeyframeAxis rotationAxis() {
+                return rot;
             }
         },
         /**
@@ -67,17 +75,27 @@ public record ModelMeta(
          * @since 1.15.2
          */
         BLOCKBENCH_LEGACY(0) {
+
+            private final KeyframeAxis pos = KeyframeAxis.of(
+                KeyframeAxis.OPERATOR_NORMALIZE_SCALE,
+                KeyframeAxis.OPERATOR_NORMALIZE_SCALE,
+                KeyframeAxis.OPERATOR_INVERT.andThen(KeyframeAxis.OPERATOR_NORMALIZE_SCALE)
+            );
+
+            private final KeyframeAxis rot = KeyframeAxis.of(
+                KeyframeAxis.OPERATOR_NONE,
+                KeyframeAxis.OPERATOR_INVERT,
+                KeyframeAxis.OPERATOR_INVERT
+            );
+
             @Override
-            public @NotNull Vector3f convertAnimationRotation(@NotNull Vector3f vector) {
-                vector.y = -vector.y;
-                vector.z = -vector.z;
-                return vector;
+            public @NotNull KeyframeAxis positionAxis() {
+                return pos;
             }
 
             @Override
-            public @NotNull Vector3f convertAnimationPosition(@NotNull Vector3f vector) {
-                vector.z = -vector.z;
-                return vector.div(MathUtil.MODEL_TO_BLOCK_MULTIPLIER);
+            public @NotNull KeyframeAxis rotationAxis() {
+                return rot;
             }
         },
         ;
@@ -99,34 +117,13 @@ public record ModelMeta(
                 .orElseThrow();
         }
 
-        /**
-         * Converts animation rotation values to the engine's coordinate system.
-         *
-         * @param vector the raw rotation vector
-         * @return the converted rotation vector
-         * @since 1.15.2
-         */
-        public abstract @NotNull Vector3f convertAnimationRotation(@NotNull Vector3f vector);
 
-        /**
-         * Converts animation position values to the engine's coordinate system.
-         *
-         * @param vector the raw position vector
-         * @return the converted position vector
-         * @since 1.15.2
-         */
-        public abstract @NotNull Vector3f convertAnimationPosition(@NotNull Vector3f vector);
+        public abstract @NotNull KeyframeAxis positionAxis();
 
-        /**
-         * Converts animation scale values to the engine's format (relative to 1.0).
-         *
-         * @param vector the raw scale vector
-         * @return the converted scale vector
-         * @since 1.15.2
-         */
-        public @NotNull Vector3f convertAnimationScale(@NotNull Vector3f vector) {
-            vector.sub(1F, 1F, 1F);
-            return vector;
+        public abstract @NotNull KeyframeAxis rotationAxis();
+
+        public @NotNull KeyframeAxis scaleAxis() {
+            return KeyframeAxis.SCALE;
         }
     }
 }

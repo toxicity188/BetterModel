@@ -8,6 +8,7 @@
 package kr.toxicity.model.api.bone;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
+import kr.toxicity.model.api.animation.keyframe.KeyframeRuntimeContext;
 import kr.toxicity.model.api.util.InterpolationUtil;
 import kr.toxicity.model.api.util.MathUtil;
 import lombok.RequiredArgsConstructor;
@@ -58,25 +59,25 @@ public final class BoneIKSolver {
     /**
      * Solves ik
      */
-    public void solve() {
-        solve(null);
+    public void solve(@NotNull KeyframeRuntimeContext context) {
+        solve(context, null);
     }
 
     /**
      * Solves ik
      * @param uuid player uuid
      */
-    public void solve(@Nullable UUID uuid) {
+    public void solve(@NotNull KeyframeRuntimeContext context, @Nullable UUID uuid) {
         if (locators.isEmpty()) return;
         locators.object2ObjectEntrySet().fastForEach(entry -> {
             var locator = entry.getKey();
             var value = entry.getValue();
             fabrik(
-                value.pole(uuid),
-                value.movements(uuid),
-                value.invertedFirstRotation(uuid),
+                value.pole(context, uuid),
+                value.movements(context, uuid),
+                value.invertedFirstRotation(context, uuid),
                 value.cache.lengths,
-                locator.state(uuid).after().position().get(value.cache.destination)
+                locator.state(uuid).after(context).position().get(value.cache.destination)
                     .add(locator.rootPosition())
                     .sub(value.rootPosition()),
                 value.lockIkTargetRotation,
@@ -91,8 +92,8 @@ public final class BoneIKSolver {
             this(pole, bones, lockIkTargetRotation, new IKCache(bones.length));
         }
 
-        private @Nullable Vector3f pole(@Nullable UUID uuid) {
-            return pole != null ? pole.state(uuid).after().position().get(cache.pole)
+        private @Nullable Vector3f pole(@NotNull KeyframeRuntimeContext context, @Nullable UUID uuid) {
+            return pole != null ? pole.state(uuid).after(context).position().get(cache.pole)
                 .add(pole.rootPosition())
                 .sub(rootPosition()): null;
         }
@@ -105,14 +106,14 @@ public final class BoneIKSolver {
             return first().rootPosition();
         }
 
-        private @NotNull Quaternionf invertedFirstRotation(@Nullable UUID uuid) {
-            return first().state(uuid).after().rotation().invert(cache.rotation);
+        private @NotNull Quaternionf invertedFirstRotation(@NotNull KeyframeRuntimeContext context, @Nullable UUID uuid) {
+            return first().state(uuid).after(context).rotation().invert(cache.rotation);
         }
 
-        private @NotNull BoneMovement[] movements(@Nullable UUID uuid) {
+        private @NotNull BoneMovement[] movements(@NotNull KeyframeRuntimeContext context, @Nullable UUID uuid) {
             var movements = cache.movements;
             for (int i = 0; i < bones.length; i++) {
-                movements[i] = bones[i].state(uuid).after();
+                movements[i] = bones[i].state(uuid).after(context);
             }
             return movements;
         }

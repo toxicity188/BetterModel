@@ -16,6 +16,7 @@ import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
 import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.animation.keyframe.KeyframeRuntimeContext;
 import kr.toxicity.model.api.config.DebugConfig;
 import kr.toxicity.model.api.entity.BaseEntity;
 import kr.toxicity.model.api.entity.BasePlayer;
@@ -54,6 +55,14 @@ import java.util.stream.Stream;
  * This registry handles the lifecycle of trackers attached to an entity, including loading, saving,
  * spawning, and despawning. It acts as a central hub for accessing and manipulating models on an entity.
  * </p>
+ * <p>
+ * The registry registers the entity's Molang queries when it is created. All trackers in this
+ * registry use the same runtime context through {@link Tracker#keyframeContext()}.
+ * </p>
+ *
+ * <pre>{@code
+ * var registry = EntityTrackerRegistry.registry(entity.uuid());
+ * }</pre>
  *
  * @since 1.15.2
  */
@@ -76,6 +85,7 @@ public final class EntityTrackerRegistry {
     private final Collection<EntityTracker> trackers = Collections.unmodifiableCollection(trackerMap.values());
     private final Map<UUID, PlayerChannelCache> viewedPlayerMap = new ConcurrentHashMap<>();
 
+    final KeyframeRuntimeContext keyframeContext = BetterModel.platform().evaluator().newContext();
     final AnimationProperty animationProperty;
 
     final Map<UUID, HitBox> hitBoxCache = new ConcurrentHashMap<>();
@@ -180,6 +190,7 @@ public final class EntityTrackerRegistry {
         this.entity = entity;
         this.uuid = entity.uuid();
         this.id = entity.id();
+        entity.updateTo(keyframeContext);
         animationProperty = new AnimationProperty();
     }
 

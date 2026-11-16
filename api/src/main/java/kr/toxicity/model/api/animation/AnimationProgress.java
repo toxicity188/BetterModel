@@ -7,6 +7,7 @@
 
 package kr.toxicity.model.api.animation;
 
+import kr.toxicity.model.api.animation.keyframe.KeyframeRuntimeContext;
 import kr.toxicity.model.api.bone.BoneMovement;
 import org.jetbrains.annotations.NotNull;
 
@@ -92,28 +93,12 @@ public interface AnimationProgress extends Timed {
         ));
     }
 
-    /**
-     * Applies this keyframe's animation to a bone's movement.
-     *
-     * @param movement the current bone movement
-     * @param dest the destination object to store the result
-     * @return the resulting bone movement
-     * @since 2.0.0
-     */
-    @NotNull BoneMovement animate(@NotNull BoneMovement movement, @NotNull BoneMovement dest);
+    @NotNull BoneMovement animate(@NotNull KeyframeRuntimeContext context, @NotNull BoneMovement movement, @NotNull BoneMovement dest);
 
-    /**
-     * An implementation of {@link AnimationProgress} that represents an empty keyframe.
-     *
-     * @param time the time of the keyframe
-     * @param skipInterpolation whether to skip interpolation
-     * @param globalRotation the rotation mode
-     * @since 2.0.0
-     */
     record EmptyProgress(float time, boolean skipInterpolation, boolean globalRotation) implements AnimationProgress {
 
         @Override
-        public @NotNull BoneMovement animate(@NotNull BoneMovement movement, @NotNull BoneMovement dest) {
+        public @NotNull BoneMovement animate(@NotNull KeyframeRuntimeContext context, @NotNull BoneMovement movement, @NotNull BoneMovement dest) {
             return dest.set(movement);
         }
 

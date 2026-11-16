@@ -9,6 +9,8 @@ package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonPrimitive;
 import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.animation.keyframe.KeyframeDatapoint;
+import kr.toxicity.model.api.animation.keyframe.KeyframeDatapointVector;
 import kr.toxicity.model.api.util.function.Float2FloatConstantFunction;
 import kr.toxicity.model.api.util.function.Float2FloatFunction;
 import kr.toxicity.model.api.util.function.FloatFunction;
@@ -61,50 +63,11 @@ public record ModelDatapoint(
         return Objects.requireNonNull(script);
     }
 
-    /**
-     * Converts this data point into a function that returns a {@link Vector3f}.
-     * <p>
-     * If the data point contains static values, it returns a constant function.
-     * If it contains Molang expressions, it compiles them into a function that evaluates the expressions.
-     * </p>
-     *
-     * @param context the model loading context
-     * @return a function to get the vector value
-     * @since 1.15.2
-     */
-    public @NotNull FloatFunction<Vector3f> toFunction(@NotNull ModelLoadContext context) {
-        var xb = build(x, context);
-        var yb = build(y, context);
-        var zb = build(z, context);
-        if (xb instanceof Float2FloatConstantFunction(float xc)
-            && yb instanceof Float2FloatConstantFunction(float yc)
-            && zb instanceof Float2FloatConstantFunction(float zc)
-        ) {
-            return FloatFunction.of(new Vector3f(xc, yc, zc));
-        } else {
-            return f -> new Vector3f(
-                xb.applyAsFloat(f),
-                yb.applyAsFloat(f),
-                zb.applyAsFloat(f)
-            );
-        }
-    }
-
-    private static @NotNull Float2FloatFunction build(@Nullable JsonPrimitive primitive, @NotNull ModelLoadContext context) {
-        if (primitive == null) return Float2FloatFunction.ZERO;
-        if (primitive.isNumber()) return Float2FloatFunction.of(primitive.getAsFloat());
-        var string = primitive.getAsString().trim();
-        if (string.isEmpty()) return Float2FloatFunction.ZERO;
-        try {
-            return Float2FloatFunction.of(Float.parseFloat(string));
-        } catch (NumberFormatException _) {
-            return context.trySupply(
-                () -> BetterModel.platform().evaluator().compile(context.placeholder.parseVariable(string)),
-                error -> new ModelLoadContext.Fallback<>(
-                    Float2FloatFunction.ZERO,
-                    "Cannot parse this datapoint: " + primitive + ", reason: " + error.getMessage()
-                )
-            );
-        }
+    public @NotNull KeyframeDatapointVector toVector(@NotNull ModelLoadContext context) {
+        return KeyframeDatapointVector.of(
+            KeyframeDatapoint.fromJson(x, context.placeholder::parseVariable),
+            KeyframeDatapoint.fromJson(y, context.placeholder::parseVariable),
+            KeyframeDatapoint.fromJson(z, context.placeholder::parseVariable)
+        );
     }
 }
