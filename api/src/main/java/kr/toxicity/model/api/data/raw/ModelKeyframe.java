@@ -11,6 +11,7 @@ import com.google.gson.annotations.SerializedName;
 import kr.toxicity.model.api.animation.Timed;
 import kr.toxicity.model.api.animation.keyframe.KeyframeAxis;
 import kr.toxicity.model.api.animation.keyframe.KeyframePoint;
+import kr.toxicity.model.api.animation.keyframe.KeyframeVector;
 import kr.toxicity.model.api.data.Float3;
 import kr.toxicity.model.api.util.interpolator.VectorInterpolator;
 import org.jetbrains.annotations.ApiStatus;
@@ -85,9 +86,12 @@ public record ModelKeyframe(
      * @since 3.7.0
      */
     public @NotNull KeyframePoint point(@NotNull ModelLoadContext context, @NotNull KeyframeAxis axis) {
+        var vec = point().toVector(context);
         return new KeyframePoint(
-            point().toVector(context),
-            axis,
+            ctx -> context.trySupply(
+                () -> vec.compile(ctx).withAxis(axis),
+                ex -> new ModelLoadContext.Fallback<>(KeyframeVector.ZERO, "Unable to parse this keyframe: " + vec + ", Reason: " + ex.getMessage())
+            ),
             time(),
             new KeyframePoint.BezierConfig(
                 Optional.ofNullable(bezierLeftTime).map(Float3::toVector).orElse(new Vector3f()),

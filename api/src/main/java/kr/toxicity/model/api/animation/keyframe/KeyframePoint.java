@@ -15,6 +15,7 @@ import org.joml.Vector3f;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 /**
  * Represents a vector keyframe point at a specific time in an animation.
@@ -35,15 +36,13 @@ public final class KeyframePoint implements Timed {
      * @since 1.15.2
      */
     public static final KeyframePoint EMPTY = new KeyframePoint(
-        KeyframeDatapointVector.ZERO,
-        KeyframeAxis.NONE,
+        _ -> KeyframeVector.ZERO,
         0F,
         new BezierConfig(ZERO, ZERO, ZERO, ZERO),
         VectorInterpolator.LINEAR
     );
 
-    private final @NotNull KeyframeDatapointVector datapoint;
-    private final @NotNull KeyframeAxis axis;
+    private final Function<KeyframeCompileContext, KeyframeVector> vectorFunction;
     private final float time;
     private final @NotNull BezierConfig bezier;
     private final @NotNull VectorInterpolator interpolator;
@@ -64,7 +63,7 @@ public final class KeyframePoint implements Timed {
     public @NotNull KeyframeVector vector(float time) {
         return memoize.computeIfAbsent(
             new KeyframeCompileContext(time),
-            ctx -> datapoint.compile(ctx).withAxis(axis)
+            vectorFunction
         );
     }
 

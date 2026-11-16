@@ -68,4 +68,9 @@ public record KeyframeDatapointVector(
             z.compile(context)
         );
     }
+
+    @Override
+    public @NotNull String toString() {
+        return x + ", " + y + ", " + z;
+    }
 }

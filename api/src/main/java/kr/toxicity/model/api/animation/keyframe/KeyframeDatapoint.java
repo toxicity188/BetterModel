@@ -115,6 +115,11 @@ public sealed interface KeyframeDatapoint {
         public @NotNull Keyframe compile(@NotNull KeyframeCompileContext context) {
             return Keyframe.of(value);
         }
+
+        @Override
+        public @NotNull String toString() {
+            return Float.toString(value);
+        }
     }
 
     /**
@@ -143,6 +148,11 @@ public sealed interface KeyframeDatapoint {
                 var query = QUERIES.get(result.group(1));
                 return query != null ? Matcher.quoteReplacement(String.valueOf(query.apply(context))) : Matcher.quoteReplacement(result.group());
             }));
+        }
+
+        @Override
+        public @NotNull String toString() {
+            return expression;
         }
     }
 }
