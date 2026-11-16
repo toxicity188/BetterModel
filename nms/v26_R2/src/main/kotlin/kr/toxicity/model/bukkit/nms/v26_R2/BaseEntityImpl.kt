@@ -24,8 +24,6 @@ import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.Mob
 import net.minecraft.world.entity.Pose
 import net.minecraft.world.entity.ai.attributes.Attributes
-import net.minecraft.world.entity.ai.behavior.RamTarget
-import net.minecraft.world.entity.ai.behavior.warden.SonicBoom
 import net.minecraft.world.entity.ai.memory.MemoryModuleType
 import net.minecraft.world.entity.ambient.Bat
 import net.minecraft.world.entity.animal.Animal
@@ -235,11 +233,12 @@ internal data class BaseEntityImpl(
                     else -> false
                 }
             }
-            context.setFlag("is_sonic_boom") {
-                (entity.vanillaEntity as? Warden)?.brain?.runningBehaviors?.any { it is SonicBoom } == true
-            }
+            // Sonic boom has no equivalent server-side running flag.
+            // context.setFlag("is_sonic_boom") {
+            //     (entity.vanillaEntity as? Warden)?.brain?.runningBehaviors?.any { it is SonicBoom } == true
+            // }
             context.setFlag("is_ram_attacking") {
-                (entity.vanillaEntity as? Goat)?.brain?.runningBehaviors?.any { it is RamTarget } == true
+                (entity.vanillaEntity as? Goat)?.brain?.hasMemoryValue(MemoryModuleType.RAM_TARGET) == true
             }
             context.setFlag("has_target") { (entity.vanillaEntity as? Mob)?.target != null }
             context.setFlag("blocking") { (entity.vanillaEntity as? LivingEntity)?.isBlocking == true }

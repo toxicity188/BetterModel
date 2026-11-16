@@ -28,8 +28,6 @@ import net.minecraft.world.entity.Mob
 import net.minecraft.world.entity.Pose
 import net.minecraft.world.entity.TamableAnimal
 import net.minecraft.world.entity.ai.attributes.Attributes
-import net.minecraft.world.entity.ai.behavior.RamTarget
-import net.minecraft.world.entity.ai.behavior.warden.SonicBoom
 import net.minecraft.world.entity.ai.memory.MemoryModuleType
 import net.minecraft.world.entity.ambient.Bat
 import net.minecraft.world.entity.animal.Animal
@@ -312,11 +310,12 @@ class BaseFabricEntityImpl(private var entity: Entity) : BaseModEntity {
                     else -> false
                 }
             }
-            context.setFlag("is_sonic_boom") {
-                (entity() as? Warden)?.brain?.runningBehaviors?.any { it is SonicBoom } == true
-            }
+            // Sonic boom has no equivalent server-side running flag.
+            // context.setFlag("is_sonic_boom") {
+            //     (entity() as? Warden)?.brain?.runningBehaviors?.any { it is SonicBoom } == true
+            // }
             context.setFlag("is_ram_attacking") {
-                (entity() as? Goat)?.brain?.runningBehaviors?.any { it is RamTarget } == true
+                (entity() as? Goat)?.brain?.hasMemoryValue(MemoryModuleType.RAM_TARGET) == true
             }
             context.setFlag("has_target") { (entity() as? Mob)?.target != null }
             context.setFlag("blocking") { (entity() as? LivingEntity)?.isBlocking == true }
