@@ -41,5 +41,6 @@ bin/
 ### Minecraft ###
 run/
 plugins/
+references/
 
 .projectmem/
