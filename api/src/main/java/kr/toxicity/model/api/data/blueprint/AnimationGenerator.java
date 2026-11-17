@@ -10,6 +10,7 @@ package kr.toxicity.model.api.data.blueprint;
 import it.unimi.dsi.fastutil.floats.FloatAVLTreeSet;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import it.unimi.dsi.fastutil.floats.FloatSortedSet;
+import kr.toxicity.model.api.animation.AnimationKeyframe;
 import kr.toxicity.model.api.animation.keyframe.KeyframePoint;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.util.InterpolationUtil;
@@ -72,7 +73,7 @@ public final class AnimationGenerator {
                 .parallel()
                 .map(v -> new BlueprintAnimator(
                     v.name(),
-                    InterpolationUtil.buildAnimation(
+                    AnimationKeyframe.build(
                         v.position(),
                         v.rotation(),
                         v.scale(),

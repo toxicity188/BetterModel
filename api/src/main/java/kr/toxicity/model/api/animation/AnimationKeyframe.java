@@ -7,25 +7,69 @@
 
 package kr.toxicity.model.api.animation;
 
-import kr.toxicity.model.api.animation.keyframe.KeyframeOperator;
-import kr.toxicity.model.api.animation.keyframe.KeyframeRuntimeContext;
-import kr.toxicity.model.api.animation.keyframe.KeyframeTimeline;
-import kr.toxicity.model.api.animation.keyframe.KeyframeVector;
+import it.unimi.dsi.fastutil.floats.FloatSortedSet;
+import kr.toxicity.model.api.animation.keyframe.*;
 import kr.toxicity.model.api.bone.BoneMovement;
 import kr.toxicity.model.api.util.MathUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.List;
+
+import static kr.toxicity.model.api.util.InterpolationUtil.interpolatorFor;
+import static kr.toxicity.model.api.util.InterpolationUtil.roundTime;
 
 public record AnimationKeyframe(
     @NotNull AnimationProgress[] progresses
 ) implements TimedStorage<AnimationProgress> {
 
-    public static @NotNull Builder builder(int size, boolean rotateGlobal, boolean positionConstant, boolean rotationConstant, boolean scaleConstant) {
-        return new Builder(size, rotateGlobal, positionConstant, rotationConstant, scaleConstant);
+    /**
+     * Builds animation keyframe
+     * @param position position point
+     * @param rotation rotation point
+     * @param scale scale point
+     * @param rotationGlobal rotation global
+     * @param points keyframe time set
+     * @return animation keyframe
+     */
+    @NotNull
+    public static AnimationKeyframe build(
+        @NotNull List<KeyframePoint> position,
+        @NotNull List<KeyframePoint> rotation,
+        @NotNull List<KeyframePoint> scale,
+        boolean rotationGlobal,
+        @NotNull FloatSortedSet points
+    ) {
+        var pp = interpolatorFor(position);
+        var rp = interpolatorFor(rotation);
+        var sp = interpolatorFor(scale);
+        var keyframe = new Builder(
+            points.size(),
+            rotationGlobal,
+            position.stream().allMatch(KeyframePoint::isConstant),
+            rotation.stream().allMatch(KeyframePoint::isConstant),
+            scale.stream().allMatch(KeyframePoint::isConstant)
+        );
+        var before = 0F;
+        var iterator = points.iterator();
+        while (iterator.hasNext()) {
+            var f = iterator.nextFloat();
+            var pr = pp.build(f);
+            var rr = rp.build(f);
+            var sr = sp.build(f);
+            keyframe.write(
+                pr.vector(),
+                rr.vector(),
+                sr.vector(),
+                roundTime(f - before),
+                pr.skipInterpolation() || sr.skipInterpolation() || rr.skipInterpolation()
+            );
+            before = f;
+        }
+        return keyframe.build();
     }
 
-    public static final class Builder {
+    private static final class Builder {
         private final int size;
         private final boolean rotateGlobal;
         private final boolean[] skipInterpolation;
