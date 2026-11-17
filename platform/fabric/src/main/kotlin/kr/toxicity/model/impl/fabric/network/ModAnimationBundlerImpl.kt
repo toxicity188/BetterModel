@@ -69,7 +69,7 @@ internal class ModAnimationBundlerImpl(initialCapacity: Int) : ModAnimationBundl
 
     class Appender {
         private var mask = 0
-        private val isEmpty get() = mask == 0
+        private val isEmpty get() = buildTask === EMPTY_BUILD_TASK
 
         private var buildTask = EMPTY_BUILD_TASK
 
