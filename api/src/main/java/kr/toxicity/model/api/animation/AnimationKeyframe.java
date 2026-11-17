@@ -45,22 +45,17 @@ public record AnimationKeyframe(
             scale = scaleConstant ? KeyframeTimeline.constantBuilder(size) : KeyframeTimeline.runtimeBuilder(size);
         }
 
-        public void writePosition(@NotNull KeyframeVector keyframe) {
-            position.append(keyframe);
-        }
-
-        public void writeRotation(@NotNull KeyframeVector keyframe) {
-            rotation.append(keyframe);
-        }
-
-        public void writeScale(@NotNull KeyframeVector keyframe) {
-            scale.append(keyframe);
-        }
-
-        public void writeExtra(
+        public void write(
+            @NotNull KeyframeVector pos,
+            @NotNull KeyframeVector rot,
+            @NotNull KeyframeVector scl,
             float time,
             boolean skipInterpolation
         ) {
+            position.append(pos);
+            rotation.append(rot);
+            scale.append(scl);
+
             var i = index++;
 
             this.times[i] = time;

@@ -72,10 +72,13 @@ public final class InterpolationUtil {
             var pr = pp.build(f);
             var rr = rp.build(f);
             var sr = sp.build(f);
-            keyframe.writePosition(pr.vector);
-            keyframe.writeRotation(rr.vector);
-            keyframe.writeScale(sr.vector);
-            keyframe.writeExtra(roundTime(f - before), pr.skipInterpolation || sr.skipInterpolation || rr.skipInterpolation);
+            keyframe.write(
+                pr.vector,
+                rr.vector,
+                sr.vector,
+                roundTime(f - before),
+                pr.skipInterpolation || sr.skipInterpolation || rr.skipInterpolation
+            );
             before = f;
         }
         return keyframe.build();
