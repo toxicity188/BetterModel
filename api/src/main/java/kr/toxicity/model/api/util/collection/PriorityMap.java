@@ -14,7 +14,19 @@ import java.util.*;
 import java.util.function.Function;
 
 /**
- * A map that maintains the order of values based on priority, insertion order, and key comparison.
+ * A map that visits higher priorities first and the most recently inserted value first within a priority.
+ * Replacing a value preserves its position; putting an existing key inserts it again.
+ * Traversal starts in constant time; insertion can take linear time.
+ * This map is not thread-safe. Its independent iterators support removal and are fail-fast
+ * on a best-effort basis after structural changes outside that iterator.
+ * <pre>{@code
+ * var animations = new PriorityMap<String, String>();
+ * animations.put("idle", "idle animation", 0);
+ * var iterator = animations.valueIterator();
+ * while (iterator.hasNext()) {
+ *     if (iterator.next().isEmpty()) iterator.remove();
+ * }
+ * }</pre>
  *
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
@@ -22,9 +34,9 @@ import java.util.function.Function;
  */
 public final class PriorityMap<K extends Comparable<K>, V> {
 
-    private final Map<K, Identifier<K>> keyMap = new HashMap<>();
-    private final TreeMap<Identifier<K>, V> valueMap = new TreeMap<>();
-    private long counter;
+    private final Map<K, Node<K, V>> keyMap = new HashMap<>();
+    private Node<K, V> first;
+    private int modifications;
 
     /**
      * Returns true if this map contains no key-value mappings.
@@ -32,88 +44,111 @@ public final class PriorityMap<K extends Comparable<K>, V> {
      * @return true if this map contains no key-value mappings
      */
     public boolean isEmpty() {
-        return valueMap.isEmpty();
+        return first == null;
     }
 
-    /**
-     * Internal identifier used to sort entries in the value map.
-     */
-    private record Identifier<K extends Comparable<K>>(
-        int priority,
-        long count,
-        @NotNull K key
-    ) implements Comparable<Identifier<K>> {
+    private static final class Node<K, V> {
+        private final K key;
+        private final int priority;
+        private V value;
+        private Node<K, V> previous;
+        private Node<K, V> next;
 
-        /**
-         * Compares this identifier with another based on priority (descending),
-         * then insertion count (descending), and finally the key itself.
-         *
-         * @param o the object to be compared.
-         * @return a negative integer, zero, or a positive integer as this object
-         * is less than, equal to, or greater than the specified object.
-         */
-        @Override
-        public int compareTo(@NotNull Identifier<K> o) {
-            int c;
-            if ((c = Integer.compare(o.priority, priority)) != 0) return c;
-            if ((c = Long.compare(o.count, count)) != 0) return c;
-            return key.compareTo(o.key);
+        private Node(K key, V value, int priority) {
+            this.key = key;
+            this.value = value;
+            this.priority = priority;
         }
     }
 
     /**
      * Associates the specified value with the specified key and priority in this map.
      *
-     * @param key      key with which the specified value is to be associated
-     * @param value    value to be associated with the specified key
+     * @param key key with which the specified value is to be associated
+     * @param value value to be associated with the specified key
      * @param priority priority of the entry
-     * @return the previous value associated with key, or null if there was no mapping for key.
+     * @return the previous value associated with key, or null if there was no mapping for key
+     * @throws NullPointerException if the key or value is null
      */
     public @Nullable V put(@NotNull K key, @NotNull V value, int priority) {
         Objects.requireNonNull(key);
         Objects.requireNonNull(value);
-        Identifier<K> newIdentifier, oldIdentifier;
-        if ((oldIdentifier = keyMap.put(key, newIdentifier = new Identifier<>(priority, counter++, key))) != null) valueMap.remove(oldIdentifier);
-        return valueMap.put(newIdentifier, value);
+        var node = new Node<>(key, value, priority);
+        var old = keyMap.put(key, node);
+        if (old != null) unlink(old);
+        Node<K, V> previous = null;
+        var next = first;
+        while (next != null && next.priority > priority) {
+            previous = next;
+            next = next.next;
+        }
+        node.previous = previous;
+        node.next = next;
+        if (previous == null) first = node;
+        else previous.next = node;
+        if (next != null) next.previous = node;
+        modifications++;
+        return old == null ? null : old.value;
     }
 
     /**
-     * Returns the value to which the specified key is mapped, or null if this map contains no mapping for the key.
+     * Returns the value to which the specified key is mapped.
      *
-     * @param key the key whose associated value is to be returned
-     * @return the value to which the specified key is mapped, or null if this map contains no mapping for the key
+     * @param key key whose associated value is to be returned
+     * @return the mapped value, or null if this map contains no mapping for the key
+     * @throws NullPointerException if the key is null
      */
     public @Nullable V get(@NotNull K key) {
-        Identifier<K> identifier;
-        return (identifier = keyMap.get(Objects.requireNonNull(key))) == null ? null : valueMap.get(identifier);
+        var node = keyMap.get(Objects.requireNonNull(key));
+        return node == null ? null : node.value;
     }
 
     /**
      * Removes the mapping for a key from this map if it is present.
      *
-     * @param key key whose mapping is to be removed from the map
-     * @return the previous value associated with key, or null if there was no mapping for key.
+     * @param key key whose mapping is to be removed from this map
+     * @return the previous value, or null if there was no mapping for the key
+     * @throws NullPointerException if the key is null
      */
     public @Nullable V remove(@NotNull K key) {
-        Identifier<K> identifier;
-        return (identifier = keyMap.remove(Objects.requireNonNull(key))) == null ? null : valueMap.remove(identifier);
+        var node = keyMap.remove(Objects.requireNonNull(key));
+        if (node == null) return null;
+        unlink(node);
+        modifications++;
+        return node.value;
+    }
+
+    private void unlink(Node<K, V> node) {
+        if (node.previous == null) first = node.next;
+        else node.previous.next = node.next;
+        if (node.next != null) node.next.previous = node.previous;
     }
 
     /**
      * Replaces the entry for the specified key only if it is currently mapped to some value.
+     * Preserves its priority and insertion order. A null result removes the mapping.
      *
-     * @param Key      key with which the specified value is associated
-     * @param function the function to compute a value
-     * @return the previous value associated with the specified key, or null if there was no mapping for the key.
+     * @param key key with which the specified value is associated
+     * @param function function to compute the value
+     * @return the previous value, or null if there was no mapping for the key
+     * @throws NullPointerException if the key is null, or the function is null for an existing key
+     * @throws ConcurrentModificationException if the function structurally modifies this map
      */
-    public @Nullable V replace(@NotNull K Key, @NotNull Function<V, V> function) {
-        Identifier<K> identifier;
-        if ((identifier = keyMap.get(Objects.requireNonNull(Key))) == null) return null;
-        return valueMap.computeIfPresent(identifier, (_, v) -> function.apply(v));
+    public @Nullable V replace(@NotNull K key, @NotNull Function<V, V> function) {
+        var node = keyMap.get(Objects.requireNonNull(key));
+        if (node == null) return null;
+        var previous = node.value;
+        var expected = modifications;
+        var value = function.apply(previous);
+        if (expected != modifications) throw new ConcurrentModificationException();
+        if (value == null) remove(key);
+        else node.value = value;
+        return previous;
     }
 
     /**
-     * Returns an iterator over the values in this map in priority order.
+     * Returns a new, independent iterator over the values in priority order.
+     * The iterator supports {@link Iterator#remove()} and starts at the first value in constant time.
      *
      * @return a value iterator
      * @since 3.0.1
@@ -122,27 +157,33 @@ public final class PriorityMap<K extends Comparable<K>, V> {
         return new ValueIterator();
     }
 
-    private class ValueIterator implements Iterator<V> {
-
-        private final Iterator<Map.Entry<Identifier<K>, V>> delegate = valueMap.entrySet().iterator();
-        private Identifier<K> identifier;
+    private final class ValueIterator implements Iterator<V> {
+        private Node<K, V> next = first;
+        private Node<K, V> last;
+        private int expected = modifications;
 
         @Override
         public boolean hasNext() {
-            return delegate.hasNext();
+            return next != null;
         }
 
         @Override
         public V next() {
-            var next = delegate.next();
-            identifier = next.getKey();
-            return next.getValue();
+            if (next == null) throw new NoSuchElementException();
+            if (expected != modifications) throw new ConcurrentModificationException();
+            last = next;
+            next = next.next;
+            return last.value;
         }
 
         @Override
         public void remove() {
-            delegate.remove();
-            keyMap.remove(Objects.requireNonNull(identifier).key);
+            if (last == null) throw new IllegalStateException();
+            if (expected != modifications) throw new ConcurrentModificationException();
+            keyMap.remove(last.key);
+            unlink(last);
+            expected = ++modifications;
+            last = null;
         }
     }
 }
