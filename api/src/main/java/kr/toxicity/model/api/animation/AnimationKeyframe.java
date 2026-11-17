@@ -19,18 +19,31 @@ import java.util.List;
 import static kr.toxicity.model.api.util.InterpolationUtil.interpolatorFor;
 import static kr.toxicity.model.api.util.InterpolationUtil.roundTime;
 
+/**
+ * Stores the ordered animation progresses for a keyframe timeline.
+ *
+ * <pre>{@code
+ * AnimationKeyframe keyframe = new AnimationKeyframe(new AnimationProgress[0]);
+ * int count = keyframe.size();
+ * }</pre>
+ *
+ * @param progresses the ordered animation progresses
+ * @since 3.7.0
+ */
 public record AnimationKeyframe(
     @NotNull AnimationProgress[] progresses
 ) implements TimedStorage<AnimationProgress> {
 
     /**
-     * Builds animation keyframe
-     * @param position position point
-     * @param rotation rotation point
-     * @param scale scale point
-     * @param rotationGlobal rotation global
-     * @param points keyframe time set
-     * @return animation keyframe
+     * Builds a timeline by sampling the transform channels at the supplied points.
+     *
+     * @param position position keyframe points
+     * @param rotation rotation keyframe points
+     * @param scale scale keyframe points
+     * @param rotationGlobal whether rotation is global
+     * @param points sorted sample times
+     * @return the sampled animation keyframe
+     * @since 3.7.0
      */
     @NotNull
     public static AnimationKeyframe build(
@@ -45,7 +58,6 @@ public record AnimationKeyframe(
         var sp = interpolatorFor(scale);
         var keyframe = new Builder(
             points.size(),
-            rotationGlobal,
             position.stream().allMatch(KeyframePoint::isConstant),
             rotation.stream().allMatch(KeyframePoint::isConstant),
             scale.stream().allMatch(KeyframePoint::isConstant)
@@ -66,22 +78,20 @@ public record AnimationKeyframe(
             );
             before = f;
         }
-        return keyframe.build();
+        return keyframe.build(rotationGlobal);
     }
 
     private static final class Builder {
-        private final int size;
-        private final boolean rotateGlobal;
-        private final boolean[] skipInterpolation;
-        private final float[] times;
+        final int size;
+        final boolean[] skipInterpolation;
+        final float[] times;
 
-        private final KeyframeTimeline.Builder position, rotation, scale;
+        final KeyframeTimeline.Builder position, rotation, scale;
 
-        private int index = 0;
+        int index = 0;
 
-        private Builder(int size, boolean rotateGlobal, boolean positionConstant, boolean rotationConstant, boolean scaleConstant) {
+        Builder(int size, boolean positionConstant, boolean rotationConstant, boolean scaleConstant) {
             this.size = size;
-            this.rotateGlobal = rotateGlobal;
             times = new float[size];
             skipInterpolation = new boolean[size];
             position = positionConstant ? KeyframeTimeline.constantBuilder(size) : KeyframeTimeline.runtimeBuilder(size);
@@ -89,7 +99,7 @@ public record AnimationKeyframe(
             scale = scaleConstant ? KeyframeTimeline.constantBuilder(size) : KeyframeTimeline.runtimeBuilder(size);
         }
 
-        public void write(
+        void write(
             @NotNull KeyframeVector pos,
             @NotNull KeyframeVector rot,
             @NotNull KeyframeVector scl,
@@ -106,7 +116,7 @@ public record AnimationKeyframe(
             this.skipInterpolation[i] = skipInterpolation;
         }
 
-        public @NotNull AnimationKeyframe build() {
+        @NotNull AnimationKeyframe build(boolean rotateGlobal) {
             var progresses = new AnimationProgress[size];
             var posBuild = position.build();
             var rotBuild = rotation.build();
@@ -156,21 +166,45 @@ public record AnimationKeyframe(
         }
     }
 
+    /**
+     * Returns the progress at the specified index.
+     *
+     * @param i the progress index
+     * @return the progress at the index
+     * @throws IndexOutOfBoundsException if the index is outside the timeline
+     */
     @Override
     public @NotNull AnimationProgress get(int i) {
         return progresses[i];
     }
 
+    /**
+     * Returns the last progress.
+     *
+     * @return the last progress
+     * @throws IndexOutOfBoundsException if the timeline is empty
+     */
     @Override
     public @NotNull AnimationProgress getLast() {
         return get(progresses.length - 1);
     }
 
+    /**
+     * Returns the number of progresses.
+     *
+     * @return the number of progresses
+     */
     @Override
     public int size() {
         return progresses.length;
     }
 
+    /**
+     * Returns a timeline containing an empty equivalent of each progress.
+     *
+     * @return the empty progress timeline
+     * @since 3.7.0
+     */
     public @NotNull TimedStorage<AnimationProgress> toEmpty() {
         return TimedStorage.listOf(Arrays.stream(progresses)
             .map(AnimationProgress::toEmpty)
