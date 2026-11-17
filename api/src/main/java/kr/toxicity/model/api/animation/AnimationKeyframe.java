@@ -122,10 +122,12 @@ public record AnimationKeyframe(
                 position.build(),
                 rotation.build(),
                 scale.build(),
+                times,
+                skipInterpolation,
                 rotateGlobal
             );
             return new AnimationKeyframe(IntStream.range(0, size)
-                .mapToObj(i -> data.isZero(i) ? AnimationProgress.empty(times[i], this.skipInterpolation[i], rotateGlobal) : new ArrayProgress(data, i, times[i], this.skipInterpolation[i]))
+                .mapToObj(i -> data.isZero(i) ? AnimationProgress.empty(times[i], this.skipInterpolation[i], rotateGlobal) : new ArrayProgress(data, i))
                 .toArray(AnimationProgress[]::new));
         }
     }
@@ -134,6 +136,8 @@ public record AnimationKeyframe(
         @NotNull KeyframeTimeline position,
         @NotNull KeyframeTimeline rotation,
         @NotNull KeyframeTimeline scale,
+        float[] times,
+        boolean[] skipInterpolation,
         boolean rotateGlobal
     ) {
         boolean isZero(int index) {
@@ -141,12 +145,7 @@ public record AnimationKeyframe(
         }
     }
 
-    private record ArrayProgress(
-        @NotNull ProgressData data,
-        int index,
-        float time,
-        boolean skipInterpolation
-    ) implements AnimationProgress {
+    private record ArrayProgress(@NotNull ProgressData data, int index) implements AnimationProgress {
 
         @Override
         public @NotNull BoneMovement animate(@NotNull KeyframeRuntimeContext context, @NotNull BoneMovement movement, @NotNull BoneMovement dest) {
@@ -164,8 +163,13 @@ public record AnimationKeyframe(
         }
 
         @Override
+        public float time() {
+            return data.times[index];
+        }
+
+        @Override
         public boolean skipInterpolation() {
-            return skipInterpolation;
+            return data.skipInterpolation[index];
         }
 
         @Override
