@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import static kr.toxicity.model.api.util.InterpolationUtil.interpolatorFor;
 import static kr.toxicity.model.api.util.InterpolationUtil.roundTime;
@@ -117,27 +118,34 @@ public record AnimationKeyframe(
         }
 
         @NotNull AnimationKeyframe build(boolean rotateGlobal) {
-            var progresses = new AnimationProgress[size];
-            var posBuild = position.build();
-            var rotBuild = rotation.build();
-            var scaleBuild = scale.build();
-            for (int i = 0; i < size; i++) {
-            progresses[i] = posBuild.isZero(i) && rotBuild.isZero(i) && scaleBuild.isZero(i)
-                ? AnimationProgress.empty(times[i], this.skipInterpolation[i], rotateGlobal)
-                : new ArrayProgress(posBuild, rotBuild, scaleBuild, i, times[i], this.skipInterpolation[i], rotateGlobal);
-            }
-            return new AnimationKeyframe(progresses);
+            var data = new ProgressData(
+                position.build(),
+                rotation.build(),
+                scale.build(),
+                rotateGlobal
+            );
+            return new AnimationKeyframe(IntStream.range(0, size)
+                .mapToObj(i -> data.isZero(i) ? AnimationProgress.empty(times[i], this.skipInterpolation[i], rotateGlobal) : new ArrayProgress(data, i, times[i], this.skipInterpolation[i]))
+                .toArray(AnimationProgress[]::new));
+        }
+    }
+
+    private record ProgressData(
+        @NotNull KeyframeTimeline position,
+        @NotNull KeyframeTimeline rotation,
+        @NotNull KeyframeTimeline scale,
+        boolean rotateGlobal
+    ) {
+        boolean isZero(int index) {
+            return position.isZero(index) && rotation.isZero(index) && scale.isZero(index);
         }
     }
 
     private record ArrayProgress(
-        @NotNull KeyframeTimeline posTimeline,
-        @NotNull KeyframeTimeline rotTimeline,
-        @NotNull KeyframeTimeline scaleTimeline,
+        @NotNull ProgressData data,
         int index,
         float time,
-        boolean skipInterpolation,
-        boolean rotateGlobal
+        boolean skipInterpolation
     ) implements AnimationProgress {
 
         @Override
@@ -148,9 +156,9 @@ public record AnimationKeyframe(
             var destRot = movement.rotation().get(dest.rotation());
             var destRawRot = movement.rawRotation().get(dest.rawRotation());
 
-            posTimeline.apply(index, context, destPos, KeyframeOperator.ADD);
-            scaleTimeline.apply(index, context, destScl, KeyframeOperator.SCALE_MUL);
-            MathUtil.toQuaternion(rotTimeline.apply(index, context, destRawRot, KeyframeOperator.ADD), destRot);
+            data.position.apply(index, context, destPos, KeyframeOperator.ADD);
+            data.scale.apply(index, context, destScl, KeyframeOperator.SCALE_MUL);
+            MathUtil.toQuaternion(data.rotation.apply(index, context, destRawRot, KeyframeOperator.ADD), destRot);
 
             return dest;
         }
@@ -162,7 +170,7 @@ public record AnimationKeyframe(
 
         @Override
         public boolean globalRotation() {
-            return rotateGlobal;
+            return data.rotateGlobal;
         }
     }
 
