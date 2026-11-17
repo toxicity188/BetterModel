@@ -67,36 +67,46 @@ class ParallelIOThreadPool : AutoCloseable {
 
     fun <T> forEachParallel(list: List<T>, sizeAssume: (T) -> Long, block: (T) -> Unit) {
         if (list.isEmpty()) return
-        val size = list.size
-        val lastIndex = list.lastIndex
-        val tasks = if (available >= size) {
-            list.map {
-                Runnable {
-                    block(it)
-                }
-            }
+
+        val tasks: List<Runnable> = if (list.size <= available) {
+            list.map { element -> Runnable { block(element) } }
         } else {
-            val sorted = list.sortedBy(sizeAssume)
-            val queue = arrayListOf<Runnable>()
-            var i = 0
-            val add = (size.toDouble() / available).toInt()
-            while (i <= size) {
-                val list = ArrayList<T>(add)
-                for (t in i..<(i + add).coerceAtMost(size)) {
-                    val ht = t / 2
-                    list += sorted[if (t % 2 == 0) ht else lastIndex - ht]
-                }
-                queue += Runnable {
-                    list.forEach(block)
-                }
-                i += add
+            // LPT: assign the largest estimated work to the least-loaded bucket.
+            // Evaluate sizeAssume only once per element.
+            val sorted = list.map { element ->
+                element to sizeAssume(element).coerceAtLeast(0L)
+            }.sortedByDescending { it.second }
+
+            class Bucket<T>(val index: Int) {
+                val elements = ArrayList<T>()
+                var load = 0L
             }
-            queue
+
+            val buckets = Array(available) { Bucket<T>(it) }
+            val leastLoaded = PriorityQueue<Bucket<T>>(
+                compareBy<Bucket<T>> { it.load }.thenBy { it.index }
+            )
+            leastLoaded.addAll(buckets)
+
+            for ((element, weight) in sorted) {
+                val bucket = leastLoaded.remove()
+                bucket.elements += element
+                // Saturate on overflow to preserve the load ordering.
+                bucket.load = if (Long.MAX_VALUE - bucket.load < weight) {
+                    Long.MAX_VALUE
+                } else {
+                    bucket.load + weight
+                }
+                leastLoaded += bucket
+            }
+
+            buckets.map { bucket ->
+                Runnable { bucket.elements.forEach(block) }
+            }
         }
+
         CompletableFuture.allOf(
-            *tasks.map {
-                CompletableFuture.runAsync(it, pool)
-            }.toTypedArray()
+            *Array(tasks.size) { index -> CompletableFuture.runAsync(tasks[index], pool) }
         ).join()
     }
 }
