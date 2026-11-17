@@ -16,8 +16,8 @@ import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.network.RegistryFriendlyByteBuf
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket
 import net.minecraft.resources.Identifier
-import org.joml.Quaternionf
-import org.joml.Vector3f
+import org.joml.Quaternionfc
+import org.joml.Vector3fc
 
 internal class ModAnimationBundlerImpl(initialCapacity: Int) : ModAnimationBundler {
 
@@ -78,31 +78,31 @@ internal class ModAnimationBundlerImpl(initialCapacity: Int) : ModAnimationBundl
             buildTask = EMPTY_BUILD_TASK
         }
 
-        fun appendPosition(vector: Vector3f) {
+        fun appendPosition(vector: Vector3fc) {
             mask = mask or FIELD_TRANSLATION
             task {
-                writeFloat(it, vector.x)
-                writeFloat(it, vector.y)
-                writeFloat(it, vector.z)
+                writeFloat(it, vector.x())
+                writeFloat(it, vector.y())
+                writeFloat(it, vector.z())
             }
         }
 
-        fun appendScale(vector: Vector3f) {
+        fun appendScale(vector: Vector3fc) {
             mask = mask or FIELD_SCALE
             task {
-                writeFloat(it, vector.x)
-                writeFloat(it, vector.y)
-                writeFloat(it, vector.z)
+                writeFloat(it, vector.x())
+                writeFloat(it, vector.y())
+                writeFloat(it, vector.z())
             }
         }
 
-        fun appendRotation(quaternion: Quaternionf) {
+        fun appendRotation(quaternion: Quaternionfc) {
             mask = mask or FIELD_LEFT_ROTATION
             task {
-                writeFloat(it, quaternion.x)
-                writeFloat(it, quaternion.y)
-                writeFloat(it, quaternion.z)
-                writeFloat(it, quaternion.w)
+                writeFloat(it, quaternion.x())
+                writeFloat(it, quaternion.y())
+                writeFloat(it, quaternion.z())
+                writeFloat(it, quaternion.w())
             }
         }
 
