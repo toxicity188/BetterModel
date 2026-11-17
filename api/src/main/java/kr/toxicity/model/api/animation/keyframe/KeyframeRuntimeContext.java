@@ -48,6 +48,28 @@ public interface KeyframeRuntimeContext {
     default void set(@NotNull String key, float value) {}
 
     /**
+     * Binds a Molang query to a function that accepts zero to three numeric arguments.
+     * The matching {@code setFunction} overload handles the function according to its arity.
+     * The default implementation ignores the binding.
+     * <pre>{@code
+     * context.set("distance", (x, y, z) -> (float) Math.sqrt(x * x + y * y + z * z));
+     * }</pre>
+     *
+     * @param key query name without {@code query.} or {@code q.} prefix
+     * @param function function that computes the query value
+     * @since 3.7.0
+     */
+    default void set(@NotNull String key, @NotNull FloatFunction function) {
+        switch (function) {
+            case FloatFunction0 function0 -> setFunction(key, function0);
+            case FloatFunction1 function1 -> setFunction(key, function1);
+            case FloatFunction2 function2 -> setFunction(key, function2);
+            case FloatFunction3 function3 -> setFunction(key, function3);
+            default -> throw new IllegalStateException("Unexpected value: " + function);
+        }
+    }
+
+    /**
      * Binds a Molang query that accepts no arguments.
      * The function runs when Molang evaluates the query. The default implementation ignores the binding.
      * <pre>{@code
@@ -120,6 +142,19 @@ public interface KeyframeRuntimeContext {
     }
 
     /**
+     * Common type for Molang query functions accepting zero to three numeric arguments.
+     * Use one of {@link FloatFunction0}, {@link FloatFunction1}, {@link FloatFunction2}, or
+     * {@link FloatFunction3} to provide a function with a specific arity.
+     * <pre>{@code
+     * KeyframeRuntimeContext.FloatFunction function = value -> value;
+     * context.set("echo", function);
+     * }</pre>
+     *
+     * @since 3.7.0
+     */
+    interface FloatFunction {}
+
+    /**
      * Computes a numeric query result from no arguments.
      * <pre>{@code
      * FloatFunction0 function = () -> 20F;
@@ -128,7 +163,7 @@ public interface KeyframeRuntimeContext {
      * @since 3.7.0
      */
     @FunctionalInterface
-    interface FloatFunction0 {
+    interface FloatFunction0 extends FloatFunction {
         /**
          * Evaluates the query.
          * <pre>{@code
@@ -150,7 +185,7 @@ public interface KeyframeRuntimeContext {
      * @since 3.7.0
      */
     @FunctionalInterface
-    interface FloatFunction1 {
+    interface FloatFunction1 extends FloatFunction {
         /**
          * Evaluates the query.
          * <pre>{@code
@@ -173,7 +208,7 @@ public interface KeyframeRuntimeContext {
      * @since 3.7.0
      */
     @FunctionalInterface
-    interface FloatFunction2 {
+    interface FloatFunction2 extends FloatFunction {
         /**
          * Evaluates the query.
          * <pre>{@code
@@ -197,7 +232,7 @@ public interface KeyframeRuntimeContext {
      * @since 3.7.0
      */
     @FunctionalInterface
-    interface FloatFunction3 {
+    interface FloatFunction3 extends FloatFunction {
         /**
          * Evaluates the query.
          * <pre>{@code

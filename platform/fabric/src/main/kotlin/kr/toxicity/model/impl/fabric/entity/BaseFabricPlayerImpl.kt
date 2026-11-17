@@ -49,12 +49,5 @@ class BaseFabricPlayerImpl(
         return Mth.wrapDegrees(handle.yHeadRot + yaw)
     }
 
-    override fun updateTo(context: KeyframeRuntimeContext) {
-        BaseFabricEntityImpl.registerEntityQueries(context) { connection.player }
-        context.setFunction("is_spectator") { -> if (connection.player.isSpectator) 1F else 0F }
-        context.setFunction("player_level") { -> connection.player.experienceLevel.toFloat() }
-        context.setFunction("cardinal_facing") { -> connection.player.nearestViewDirection.get3DDataValue().toFloat() }
-        context.setFunction("cardinal_player_facing") { -> connection.player.nearestViewDirection.get3DDataValue().toFloat() }
-        context.setFunction("cardinal_facing_2d") { -> connection.player.direction.get3DDataValue().toFloat() }
-    }
+    override fun updateTo(context: KeyframeRuntimeContext) = registerPlayerQueries(context) { connection.player }
 }
