@@ -11,11 +11,13 @@ import io.lumine.mythic.api.adapters.AbstractEntity
 import io.lumine.mythic.api.config.MythicLineConfig
 import io.lumine.mythic.api.skills.SkillMetadata
 import io.lumine.mythic.core.skills.placeholders.PlaceholderContext
+import kr.toxicity.model.api.nms.HitBox
 import kr.toxicity.model.api.util.function.BonePredicate
 import kr.toxicity.model.bukkit.util.toRegistry
 import kr.toxicity.model.bukkit.util.toTracker
 import kr.toxicity.model.util.boneName
 import kr.toxicity.model.util.toPackName
+import org.bukkit.entity.Entity
 
 val MM_MODEL_ID = arrayOf("mid", "m", "model")
 val MM_PART_ID = arrayOf("partid", "p", "pid", "part")
@@ -27,6 +29,16 @@ fun SkillMetadata.toRegistry() = caster.entity.toRegistry()
 fun SkillMetadata.toTracker(model: String?) = caster.entity.toTracker(model)
 fun AbstractEntity.toTracker(model: String?) = bukkitEntity.toTracker(model)
 fun AbstractEntity.toRegistry() = bukkitEntity.toRegistry()
+
+internal val MythicLineConfig.megModelId
+    get() = toPlaceholderString(arrayOf("m", "mid", "model", "modelid")) { it?.lowercase()?.toPackName() }
+
+internal fun AbstractEntity.selectedTrackers(id: String?) = toRegistry()?.let { registry ->
+    if (id == null) registry.trackers() else listOfNotNull(registry.tracker(id))
+}.orEmpty()
+
+internal val Entity.modelVehicle get() = vehicle as? HitBox
+internal val Entity.drivesModel get() = modelVehicle?.hasBeenControlled() == true && vehicle?.passengers?.firstOrNull() == this
 
 fun MythicLineConfig.toPlaceholderString(array: Array<String>, defaultValue: String? = null) = toPlaceholderString(array, defaultValue) { it }
 fun <T> MythicLineConfig.toPlaceholderStringList(array: Array<String>, mapper: (List<String>) -> T) = toPlaceholderString(array) {
