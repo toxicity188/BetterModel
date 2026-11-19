@@ -15,7 +15,7 @@ import kr.toxicity.model.bukkit.compatibility.mythicmobs.*
 import kr.toxicity.model.script.ChangePartScript
 import kr.toxicity.model.util.boneName
 
-class ChangePartMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
+internal class ChangePartMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
 
     private val model = mlc.modelPlaceholder
     private val predicate = mlc.bonePredicate

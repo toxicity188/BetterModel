@@ -7,18 +7,12 @@
 
 package kr.toxicity.model.bukkit.compatibility.mythicmobs
 
-import io.lumine.mythic.api.skills.conditions.IEntityCondition
-import io.lumine.mythic.api.skills.targeters.IEntityTargeter
-import io.lumine.mythic.bukkit.BukkitAdapter
+
 import io.lumine.mythic.bukkit.MythicBukkit
 import io.lumine.mythic.bukkit.events.MythicConditionLoadEvent
 import io.lumine.mythic.bukkit.events.MythicMechanicLoadEvent
 import io.lumine.mythic.bukkit.events.MythicReloadedEvent
 import io.lumine.mythic.bukkit.events.MythicTargeterLoadEvent
-import io.lumine.mythic.core.skills.placeholders.PlaceholderContext
-import io.lumine.mythic.core.skills.placeholders.types.GenericPlaceholder
-import io.lumine.mythic.core.skills.placeholders.types.GenericPlaceholderTypes.StringPlaceholder
-import io.lumine.mythic.core.utils.annotations.MythicPlaceholder
 import kr.toxicity.model.api.bukkit.BetterModelBukkit
 import kr.toxicity.model.api.bukkit.entity.BaseBukkitEntity
 import kr.toxicity.model.api.script.AnimationScript
@@ -26,10 +20,12 @@ import kr.toxicity.model.api.tracker.EntityTracker
 import kr.toxicity.model.bukkit.compatibility.Compatibility
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.condition.*
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.mechanic.*
+import kr.toxicity.model.bukkit.compatibility.mythicmobs.placeholder.CasterModelYawPlaceholder
+import kr.toxicity.model.bukkit.compatibility.mythicmobs.targeter.ModelDriverTargeter
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.targeter.ModelPartTargeter
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.targeter.ModelPassengersTargeter
+import kr.toxicity.model.bukkit.compatibility.mythicmobs.targeter.MountedModelTargeter
 import kr.toxicity.model.bukkit.util.registerListener
-import kr.toxicity.model.bukkit.util.unwarp
 import kr.toxicity.model.manager.ScriptManagerImpl
 import kr.toxicity.model.util.CONFIG
 import kr.toxicity.model.util.componentOf
@@ -39,13 +35,6 @@ import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
-
-@MythicPlaceholder(placeholder = "caster.model.yaw")
-internal class CasterModelYawPlaceholder(args: GenericPlaceholderArguments) :
-    GenericPlaceholder<String>(args), StringPlaceholder {
-    override fun applyWithMetaKeywords(context: PlaceholderContext): String =
-        context.meta()?.caster?.entity?.toRegistry()?.first()?.rotation()?.y()?.toString() ?: "[No Model]"
-}
 
 class MythicMobsCompatibility : Compatibility {
 
@@ -123,13 +112,13 @@ class MythicMobsCompatibility : Compatibility {
                 if (!CONFIG.module().model) return
                 when (conditionName.componentName()) {
                     "modelhaspassenger" -> register(ModelHasPassengerCondition(config))
-                    "modelhaspassengers", "modelpassengers", "modelpassenger" -> register(ModelPassengersCondition(config))
+                    "modelhaspassengers", "modelpassengers", "modelpassenger" -> register(ModelHasPassengersCondition(config))
                     "hasmodel" -> register(HasModelCondition(config))
                     "partvisibility", "partvis" -> register(PartVisibilityCondition(config))
-                    "hitbox", "hitboxissubhitbox", "issubhitbox" -> register(HitboxCondition(config, argument))
-                    "modelhasdriver", "modeldriver" -> register(IEntityCondition { it.toRegistry()?.hasControllingPassenger() == true })
-                    "drivingmodel" -> register(IEntityCondition { it.bukkitEntity.drivesModel })
-                    "ridingmodel" -> register(IEntityCondition { it.bukkitEntity.modelVehicle != null && !it.bukkitEntity.drivesModel })
+                    "hitbox", "hitboxissubhitbox", "issubhitbox" -> register(HitBoxCondition(config, argument))
+                    "modelhasdriver", "modeldriver" -> register(ModelHasDriverCondition())
+                    "drivingmodel" -> register(DrivingModelCondition())
+                    "ridingmodel" -> register(RidingModelCondition())
                 }
             }
 
@@ -138,16 +127,9 @@ class MythicMobsCompatibility : Compatibility {
                 if (!CONFIG.module().model) return
                 when (targeterName.componentName()) {
                     "modelpart" -> register(ModelPartTargeter(config))
-                    "mountedmodel" -> register(IEntityTargeter { meta ->
-                        listOfNotNull(meta.caster.entity.bukkitEntity.modelVehicle?.source()?.unwarp()?.let(BukkitAdapter::adapt))
-                    })
+                    "mountedmodel" -> register(MountedModelTargeter())
                     "modelpassengers" -> register(ModelPassengersTargeter(config))
-                    "modeldriver" -> register(IEntityTargeter { meta ->
-                        meta.toRegistry()?.mountedHitBox()?.values.orEmpty().mapNotNullTo(mutableSetOf()) {
-                            val entity = it.entity().unwarp()
-                            if (entity.drivesModel) BukkitAdapter.adapt(entity) else null
-                        }
-                    })
+                    "modeldriver" -> register(ModelDriverTargeter())
                 }
             }
         })

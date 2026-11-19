@@ -19,7 +19,7 @@ import kr.toxicity.model.bukkit.compatibility.mythicmobs.toTracker
 import kr.toxicity.model.bukkit.util.wrap
 import org.bukkit.entity.Player
 
-class PairModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), ITargetedEntitySkill {
+internal class PairModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), ITargetedEntitySkill {
 
     private val model = mlc.modelPlaceholder
     private val remove = mlc.toPlaceholderBoolean(arrayOf("remove", "r"), false)

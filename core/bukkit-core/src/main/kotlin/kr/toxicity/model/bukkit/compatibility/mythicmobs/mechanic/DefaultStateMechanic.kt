@@ -15,7 +15,7 @@ import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.util.function.FloatSupplier
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.*
 
-class DefaultStateMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
+internal class DefaultStateMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
 
     private val model = mlc.modelPlaceholder
     private val type = mlc.toPlaceholderString(arrayOf("t", "type"))

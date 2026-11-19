@@ -15,7 +15,7 @@ import io.lumine.mythic.api.skills.SkillResult
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.*
 import kr.toxicity.model.util.boneName
 
-class DismountModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), ITargetedEntitySkill {
+internal class DismountModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), ITargetedEntitySkill {
 
     private val driver = mlc.toPlaceholderBoolean(arrayOf("driver", "d", "drive"), true)
     private val seat = mlc.toPlaceholderStringList(MM_SEAT) {

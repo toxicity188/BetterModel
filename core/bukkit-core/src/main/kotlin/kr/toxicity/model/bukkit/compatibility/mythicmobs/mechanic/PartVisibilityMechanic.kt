@@ -14,7 +14,7 @@ import io.lumine.mythic.api.skills.SkillResult
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.*
 import kr.toxicity.model.script.PartVisibilityScript
 
-class PartVisibilityMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
+internal class PartVisibilityMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
 
     private val model = mlc.modelPlaceholder
     private val predicate = mlc.bonePredicateNullable

@@ -19,7 +19,7 @@ import kr.toxicity.model.bukkit.compatibility.mythicmobs.*
 import kr.toxicity.model.bukkit.util.wrap
 import org.bukkit.entity.Player
 
-class StateMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill, ITargetedEntitySkill {
+internal class StateMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill, ITargetedEntitySkill {
 
     private val model = mlc.modelPlaceholder
     private val state = mlc.toPlaceholderString(arrayOf("state", "s"))

@@ -18,7 +18,7 @@ import kr.toxicity.model.bukkit.compatibility.mythicmobs.toPlaceholderStringList
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.toRegistry
 import kr.toxicity.model.util.boneName
 
-class DismountAllModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), ITargetedEntitySkill {
+internal class DismountAllModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), ITargetedEntitySkill {
 
     private val seat = mlc.toPlaceholderStringList(MM_SEAT) {
         it.map { s -> s.boneName.name }.toSet()

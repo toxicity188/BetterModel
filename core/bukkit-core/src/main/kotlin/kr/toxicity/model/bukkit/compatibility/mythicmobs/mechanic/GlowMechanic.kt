@@ -14,7 +14,7 @@ import io.lumine.mythic.api.skills.SkillResult
 import kr.toxicity.model.api.tracker.TrackerUpdateAction
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.*
 
-class GlowMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
+internal class GlowMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
 
     private val model = mlc.modelPlaceholder
     private val predicate = mlc.bonePredicateNullable

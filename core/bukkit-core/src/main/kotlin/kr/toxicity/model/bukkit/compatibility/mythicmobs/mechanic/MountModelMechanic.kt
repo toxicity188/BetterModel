@@ -17,7 +17,7 @@ import kr.toxicity.model.api.nms.HitBoxListener
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.*
 import kr.toxicity.model.bukkit.util.wrap
 
-class MountModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), ITargetedEntitySkill {
+internal class MountModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), ITargetedEntitySkill {
 
     companion object {
         private val dismountListener = HitBoxListener.builder()

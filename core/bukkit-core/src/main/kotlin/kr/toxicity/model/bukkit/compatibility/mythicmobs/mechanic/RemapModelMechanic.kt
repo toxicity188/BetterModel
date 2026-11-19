@@ -17,7 +17,7 @@ import kr.toxicity.model.bukkit.compatibility.mythicmobs.toPlaceholderString
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.toTracker
 import kr.toxicity.model.script.RemapScript
 
-class RemapModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
+internal class RemapModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
 
     private val modelId = mlc.modelPlaceholder
     private val newModelId = mlc.toPlaceholderString(arrayOf("newmodelid", "n", "nid", "newmodel"))

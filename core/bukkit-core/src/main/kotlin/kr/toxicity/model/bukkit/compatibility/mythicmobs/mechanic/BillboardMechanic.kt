@@ -15,7 +15,7 @@ import kr.toxicity.model.api.platform.PlatformBillboard
 import kr.toxicity.model.api.tracker.TrackerUpdateAction
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.*
 
-class BillboardMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
+internal class BillboardMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
 
     private val model = mlc.modelPlaceholder
     private val predicate = mlc.bonePredicateNullable

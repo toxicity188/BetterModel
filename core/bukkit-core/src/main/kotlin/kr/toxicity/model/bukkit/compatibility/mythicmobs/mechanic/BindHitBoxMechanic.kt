@@ -18,7 +18,7 @@ import kr.toxicity.model.bukkit.util.unwarp
 import org.bukkit.entity.Damageable
 import org.bukkit.entity.Entity
 
-class BindHitBoxMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
+internal class BindHitBoxMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
 
     private val model = mlc.modelPlaceholder
     private val predicate = mlc.bonePredicate

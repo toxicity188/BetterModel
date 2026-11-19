@@ -16,7 +16,7 @@ import kr.toxicity.model.bukkit.compatibility.mythicmobs.toPlaceholderArgs
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.toPlaceholderBoolean
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.toTracker
 
-class LockModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
+internal class LockModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
 
     private val model = mlc.modelPlaceholder
     private val lock = mlc.toPlaceholderBoolean(arrayOf("lock", "l"), true)

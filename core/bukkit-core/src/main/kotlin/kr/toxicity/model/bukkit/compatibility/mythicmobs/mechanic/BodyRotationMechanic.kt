@@ -13,7 +13,7 @@ import io.lumine.mythic.api.skills.SkillMetadata
 import io.lumine.mythic.api.skills.SkillResult
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.*
 
-class BodyRotationMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
+internal class BodyRotationMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
 
     private val model = mlc.modelPlaceholder
     private val headUneven = mlc.toNullablePlaceholderBoolean(arrayOf("headuneven", "hu", "head"))

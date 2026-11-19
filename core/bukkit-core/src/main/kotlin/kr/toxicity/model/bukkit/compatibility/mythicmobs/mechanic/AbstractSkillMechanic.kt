@@ -12,7 +12,7 @@ import io.lumine.mythic.bukkit.MythicBukkit
 import io.lumine.mythic.core.skills.SkillMechanic
 import kr.toxicity.model.api.bukkit.BetterModelBukkit
 
-abstract class AbstractSkillMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, null, mlc) {
+internal abstract class AbstractSkillMechanic(mlc: MythicLineConfig) : SkillMechanic(MythicBukkit.inst().skillManager, null, null, mlc) {
     init {
         isAsyncSafe = !BetterModelBukkit.IS_FOLIA
     }

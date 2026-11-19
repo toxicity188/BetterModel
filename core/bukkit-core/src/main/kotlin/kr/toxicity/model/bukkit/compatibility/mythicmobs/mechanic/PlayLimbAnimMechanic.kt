@@ -24,7 +24,7 @@ import kr.toxicity.model.util.warn
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.entity.Player
 
-class PlayLimbAnimMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), ITargetedEntitySkill {
+internal class PlayLimbAnimMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), ITargetedEntitySkill {
 
     private val modelId = mlc.modelPlaceholder
     private val animationId = mlc.toPlaceholderString(arrayOf("animation", "anim", "a"))
