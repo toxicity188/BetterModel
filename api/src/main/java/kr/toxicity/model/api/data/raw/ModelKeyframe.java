@@ -74,12 +74,13 @@ public record ModelKeyframe(
 
     /**
      * Converts the first data point into an animation point with per-axis Bézier offsets.
-     * Missing handle vectors default to zero.
+     * Missing handle vectors default to zero. The animation blend weight multiplies the mapped
+     * data point components; Bézier handle offsets are not weighted.
      * <pre>{@code
      * var point = keyframe.point(context, axis);
      * }</pre>
      *
-     * @param context the load context used to resolve placeholders in the data point
+     * @param context the model loading context and animation blend weight
      * @param axis the axis mapping applied to the vector and Bézier value offsets
      * @return the animation point for this keyframe
      * @throws java.util.NoSuchElementException if this keyframe has no data points

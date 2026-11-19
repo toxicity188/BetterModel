@@ -34,6 +34,10 @@ public sealed interface KeyframeDatapoint {
      */
     KeyframeDatapoint ZERO = of(0F);
 
+    /**
+     * The shared numeric one datapoint.
+     * @since 3.7.0
+     */
     KeyframeDatapoint ONE = of(1F);
 
     /**
@@ -53,6 +57,20 @@ public sealed interface KeyframeDatapoint {
         return fromJson(primitive, ZERO, stringFunction);
     }
 
+    /**
+     * Reads a number or Molang expression, using the supplied default for null or blank input.
+     * The string transformation applies only to trimmed input that cannot be parsed as a float.
+     * <pre>{@code
+     * var weight = KeyframeDatapoint.fromJson(null, KeyframeDatapoint.ONE, text -> text);
+     * }</pre>
+     *
+     * @param primitive the source primitive, or null
+     * @param defDatapoint the default for null or blank input
+     * @param stringFunction the transformation applied to expression text
+     * @return the numeric, expression, or default datapoint
+     * @throws RuntimeException if the string transformation throws
+     * @since 3.7.0
+     */
     static @NotNull KeyframeDatapoint fromJson(@Nullable JsonPrimitive primitive, @NotNull KeyframeDatapoint defDatapoint, @NotNull Function<String, String> stringFunction) {
         if (primitive == null) return defDatapoint;
         if (primitive.isNumber()) return of(primitive.getAsFloat());

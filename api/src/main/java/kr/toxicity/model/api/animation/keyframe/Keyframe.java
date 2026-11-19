@@ -28,6 +28,10 @@ public interface Keyframe {
      */
     Keyframe ZERO = new Constant(0F);
 
+    /**
+     * The shared constant one keyframe.
+     * @since 3.7.0
+     */
     Keyframe ONE = new Constant(1F);
 
     /**
@@ -84,6 +88,17 @@ public interface Keyframe {
         return function == Float2FloatFunction.NONE ? this : ctx -> function.applyAsFloat(eval(ctx));
     }
 
+    /**
+     * Multiplies this value by a weight evaluated with the same runtime context.
+     * Constant operands are folded when this keyframe is a {@link Constant}.
+     * <pre>{@code
+     * var weighted = Keyframe.of(2F).weight(Keyframe.of(0.5F));
+     * }</pre>
+     *
+     * @param keyframe the weight
+     * @return this keyframe for the shared {@link #ONE}, or the weighted keyframe
+     * @since 3.7.0
+     */
     default @NotNull Keyframe weight(@NotNull Keyframe keyframe) {
         return keyframe == ONE ? this : ctx -> eval(ctx) * keyframe.eval(ctx);
     }
@@ -95,7 +110,7 @@ public interface Keyframe {
      * }</pre>
      *
      * @param value the scalar value
-     * @return the shared zero if the value is approximately zero, or a constant keyframe
+     * @return the shared zero or one if the value is approximately zero or one, respectively; otherwise a constant keyframe
      * @since 3.7.0
      */
     static @NotNull Keyframe of(float value) {

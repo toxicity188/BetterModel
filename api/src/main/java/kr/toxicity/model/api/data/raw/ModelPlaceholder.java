@@ -62,6 +62,16 @@ public record ModelPlaceholder(
         return expression;
     }
 
+    /**
+     * Replaces placeholder variables in an expression, as in {@link #parseVariable(String)}.
+     * <pre>{@code
+     * String resolved = ModelPlaceholder.EMPTY.apply("query.anim_time");
+     * }</pre>
+     *
+     * @param s the expression containing placeholders
+     * @return the expression with placeholders substituted
+     * @since 3.7.0
+     */
     @Override
     @NotNull
     public String apply(@NotNull String s) {

@@ -58,6 +58,17 @@ public record ModelDatapoint(
         return Objects.requireNonNull(script);
     }
 
+    /**
+     * Converts the coordinates to datapoints, resolving placeholders in Molang expressions.
+     * Null or blank coordinates default to zero.
+     * <pre>{@code
+     * var vector = datapoint.toVector(context);
+     * }</pre>
+     *
+     * @param context the model loading context containing placeholders
+     * @return the coordinate datapoints
+     * @since 3.7.0
+     */
     public @NotNull KeyframeDatapointVector toVector(@NotNull ModelLoadContext context) {
         return KeyframeDatapointVector.of(
             KeyframeDatapoint.fromJson(x, context.placeholder),

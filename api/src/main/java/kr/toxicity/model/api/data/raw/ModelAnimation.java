@@ -44,6 +44,7 @@ import static kr.toxicity.model.api.util.CollectionUtil.associate;
  * @param override whether this animation should override others
  * @param uuid the unique identifier of the animation
  * @param length the total length of the animation in seconds
+ * @param blendWeight the optional numeric or Molang blend weight; null defaults to one
  * @param animators a map of animators, keyed by the UUID of the bone group they affect
  * @since 1.15.2
  */
@@ -58,6 +59,16 @@ public record ModelAnimation(
     @Nullable Map<String, ModelAnimator> animators
 ) {
 
+    /**
+     * Supplies model loading state and blend weight while converting animation keyframes.
+     * <pre>{@code
+     * var context = new ModelAnimation.AnimationContext(model, KeyframeDatapoint.ONE);
+     * }</pre>
+     *
+     * @param model the model loading context
+     * @param blendWeight the animation blend weight
+     * @since 3.7.0
+     */
     public record AnimationContext(
         @NotNull ModelLoadContext model,
         @NotNull KeyframeDatapoint blendWeight
@@ -65,6 +76,7 @@ public record ModelAnimation(
 
     /**
      * Converts this raw animation data into a processed {@link BlueprintAnimation}.
+     * A null or blank blend weight defaults to one; other values are applied to transform keyframes.
      *
      * @param context the model loading context
      * @param elements the list of root blueprint elements

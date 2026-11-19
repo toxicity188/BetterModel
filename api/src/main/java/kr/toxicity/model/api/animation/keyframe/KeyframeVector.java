@@ -240,6 +240,16 @@ public record KeyframeVector(
         );
     }
 
+    /**
+     * Multiplies each component by the supplied scalar weight.
+     * <pre>{@code
+     * var weighted = KeyframeVector.ZERO.weight(Keyframe.of(0.5F));
+     * }</pre>
+     *
+     * @param keyframe the weight applied to each component
+     * @return the weighted vector
+     * @since 3.7.0
+     */
     public @NotNull KeyframeVector weight(@NotNull Keyframe keyframe) {
         return of(
             x.weight(keyframe),
