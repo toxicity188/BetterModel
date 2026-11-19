@@ -1,15 +1,16 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.test
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.animation.AnimationModifier
-import kr.toxicity.model.api.fabric.platform.FabricPlayer
+import kr.toxicity.model.api.mod.platform.ModPlayer
 import kr.toxicity.model.api.tracker.ModelRotation
 import kr.toxicity.model.api.tracker.TrackerModifier
 import net.fabricmc.api.ModInitializer
@@ -84,7 +85,7 @@ class RollTest : ModInitializer {
 
         val yaw = player.lastClientInput.toYaw()
         val tracker = renderer.getOrCreate(
-            FabricPlayer.of(player.connection),
+            ModPlayer.of(player.connection),
             TrackerModifier.DEFAULT
         ) { tracker ->
             tracker.rotation {
@@ -96,7 +97,6 @@ class RollTest : ModInitializer {
         }
 
         val isAnimated = tracker.animate(
-            { true },
             "roll",
             AnimationModifier.DEFAULT_WITH_PLAY_ONCE
         ) {
@@ -111,8 +111,8 @@ class RollTest : ModInitializer {
     }
 
     private fun Input.toYaw(): Float {
-        val forward = (if (forward) 1 else 0) - (if (backward) 1 else 0)
-        val right = (if (right) 1 else 0) - (if (left) 1 else 0)
+        val forward = (if (forward) 1 else 0) - if (backward) 1 else 0
+        val right = (if (right) 1 else 0) - if (left) 1 else 0
 
         return if (forward == 0 && right == 0) {
             0f

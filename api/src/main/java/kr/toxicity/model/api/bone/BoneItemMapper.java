@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.bone;
 
 import kr.toxicity.model.api.data.renderer.RenderSource;
@@ -60,8 +61,8 @@ public interface BoneItemMapper extends BiFunction<BoneRenderContext, Transforme
 
             @Override
             public @NotNull TransformedItemStack apply(@NotNull BoneRenderContext context, @NotNull TransformedItemStack transformedItemStack) {
-                if (context.source() instanceof RenderSource.BasePlayer(PlatformPlayer player)) {
-                    var get = mapper.apply(player);
+                if (context.source() instanceof RenderSource.Player player) {
+                    var get = mapper.apply(player.entity().platform());
                     return get == null ? AIR : get;
                 }
                 return transformedItemStack;

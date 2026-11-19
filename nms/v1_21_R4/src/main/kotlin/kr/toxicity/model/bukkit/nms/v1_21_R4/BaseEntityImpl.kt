@@ -1,11 +1,13 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.bukkit.nms.v1_21_R4
 
+import kr.toxicity.model.api.animation.keyframe.KeyframeRuntimeContext
 import kr.toxicity.model.api.bukkit.entity.BaseBukkitEntity
 import kr.toxicity.model.api.platform.PlatformEntity
 import kr.toxicity.model.api.platform.PlatformLocation
@@ -81,4 +83,6 @@ internal data class BaseEntityImpl(
     override fun platform(): PlatformEntity = delegate.wrap()
     override fun trackedBy(): Stream<PlatformPlayer> = delegate.trackedBy.stream().map { it.wrap() }
     override fun location(): PlatformLocation = delegate.location.wrap()
+
+    override fun updateTo(context: KeyframeRuntimeContext) = registerEntityQueries(context, delegate)
 }

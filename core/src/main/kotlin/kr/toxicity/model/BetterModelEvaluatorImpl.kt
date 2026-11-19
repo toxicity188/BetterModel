@@ -1,29 +1,58 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model
 
-import gg.moonflower.molangcompiler.api.MolangCompiler
-import gg.moonflower.molangcompiler.api.MolangRuntime
 import kr.toxicity.model.api.BetterModelEvaluator
-import kr.toxicity.model.api.util.function.Float2FloatFunction
+import kr.toxicity.model.api.animation.keyframe.Keyframe
+import kr.toxicity.model.api.animation.keyframe.KeyframeRuntimeContext
+import org.redlance.mocha.parser.MolangParser
+import org.redlance.mocha.runtime.IsConstantExpression
+import org.redlance.mocha.runtime.MolangInterpreter
+import org.redlance.mocha.runtime.value.MutableObjectBinding
+import org.redlance.mocha.runtime.value.NumberValue
 
 class BetterModelEvaluatorImpl : BetterModelEvaluator {
 
-    private val molang = MolangCompiler.create(MolangCompiler.DEFAULT_FLAGS, javaClass.classLoader)
+    private val molang = MolangInterpreter.standard()
 
-    private fun Float.query() = MolangRuntime.runtime()
-        .setQuery("life_time", this)
-        .setQuery("anim_time", this)
-        .create()
+    override fun newContext(): KeyframeRuntimeContext = KeyframeRuntimeContextImpl()
 
-    override fun compile(expression: String): Float2FloatFunction {
-        val compiled = molang.compile(expression)
-        return Float2FloatFunction {
-            it.query().safeResolve(compiled)
+    private class KeyframeRuntimeContextImpl : KeyframeRuntimeContext {
+        val bind = MutableObjectBinding()
+
+        override fun set(key: String, value: Float) {
+            bind.set(key, NumberValue.of(value))
+        }
+
+        override fun setFunction(key: String, function: KeyframeRuntimeContext.FloatFunction0) {
+            bind.setFunction(key, function::get)
+        }
+        override fun setFunction(key: String, function: KeyframeRuntimeContext.FloatFunction1) {
+            bind.setFunction(key, function::get)
+        }
+        override fun setFunction(key: String, function: KeyframeRuntimeContext.FloatFunction2) {
+            bind.setFunction(key, function::get)
+        }
+        override fun setFunction(key: String, function: KeyframeRuntimeContext.FloatFunction3) {
+            bind.setFunction(key, function::get)
+        }
+    }
+
+    override fun compile(expression: String): Keyframe {
+        val compiled = MolangParser.parseAll(expression)
+        return if (compiled.all { IsConstantExpression.test(it, molang.scope()) }) Keyframe.of(molang.eval(compiled))
+        else Keyframe {
+            (it as? KeyframeRuntimeContextImpl)?.bind?.let { bind ->
+                molang.eval(compiled) { scope ->
+                    scope.set("query", bind)
+                    scope.set("q", bind)
+                }
+            } ?: molang.eval(compiled)
         }
     }
 }

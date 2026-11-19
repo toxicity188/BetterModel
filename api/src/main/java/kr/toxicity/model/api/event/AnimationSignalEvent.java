@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.event;
 
 import kr.toxicity.model.api.platform.PlatformPlayer;
@@ -12,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Triggered when an animation script emits a signal.
  * <p>
- * This event allows plugins/mods to react to custom signals defined within BlockBench animations.
+ * This event allows plugins/mods to react to custom signals defined within Blockbench animations.
  * </p>
  *
  * @param player the player associated with the animation

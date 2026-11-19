@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.bukkit.nms.v1_21_R7
 
 import com.mojang.math.Transformation
@@ -70,7 +71,7 @@ internal class ModelNametagImpl(
 
     override fun send(player: PlatformPlayer) {
         if (display.text == VanillaComponent.empty()) return
-        val hb = bone.group.hitBoxPoint
+        val hb = bone.group.hitboxPosition.localOffset
         val pos = bone.worldPosition(BonePosition(emptyVector, hb, player.uuid()), posCache)
         display.moveTo(Vec3(
             location.x() + pos.x,

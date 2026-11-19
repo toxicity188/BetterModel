@@ -1,11 +1,13 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.bukkit.nms.v1_21_R5
 
+import kr.toxicity.model.api.animation.keyframe.KeyframeRuntimeContext
 import kr.toxicity.model.api.bukkit.entity.BaseBukkitEntity
 import kr.toxicity.model.api.bukkit.entity.BaseBukkitPlayer
 import kr.toxicity.model.api.nms.Profiled
@@ -44,5 +46,7 @@ internal data class BasePlayerImpl(
         if (handle.zMovement() < 0) yaw *= -1
         return Mth.wrapDegrees(handle.yHeadRot + yaw)
     }
+
+    override fun updateTo(context: KeyframeRuntimeContext) = registerPlayerQueries(context, delegate)
 }
 

@@ -1,24 +1,23 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.bukkit.nms.v1_21_R7
 
 import ca.spottedleaf.moonrise.patches.chunk_system.level.entity.EntityLookup
-import com.google.common.collect.ImmutableMultimap
 import com.mojang.authlib.GameProfile
-import com.mojang.authlib.properties.Property
-import com.mojang.authlib.properties.PropertyMap
 import io.netty.channel.ChannelDuplexHandler
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet
 import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.bone.RenderedBone
 import kr.toxicity.model.api.bukkit.BetterModelBukkit
-import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import kr.toxicity.model.api.bukkit.entity.BaseBukkitEntity
+import kr.toxicity.model.api.data.blueprint.ModelBoundingBox
 import kr.toxicity.model.api.entity.BaseEntity
 import kr.toxicity.model.api.entity.BasePlayer
 import kr.toxicity.model.api.mount.MountController
@@ -52,8 +51,6 @@ import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.Items
 import net.minecraft.world.item.component.CustomModelData
-import net.minecraft.world.item.component.DyedItemColor
-import net.minecraft.world.item.component.ResolvableProfile
 import net.minecraft.world.level.entity.LevelEntityGetter
 import net.minecraft.world.level.entity.LevelEntityGetterAdapter
 import net.minecraft.world.level.entity.PersistentEntitySectionManager
@@ -63,6 +60,7 @@ import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.joml.Vector3d
 import java.util.*
 import java.util.function.Consumer
+import java.util.function.IntConsumer
 
 class NMSImpl : NMS {
 
@@ -120,7 +118,7 @@ class NMSImpl : NMS {
             val packet = if (registry.hideOption(channel.uuid()).equipment) target.toEmptyEquipmentPacket() else target.toEquipmentPacket()
             packet?.let { list += it }
         }
-        list.send(channel.player())
+        list.send(channel)
     }
 
     private fun ClientboundSetEntityDataPacket.toRegistryDataPacket(uuid: UUID, registry: EntityTrackerRegistry) = ClientboundSetEntityDataPacket(id, packedItems().map {
@@ -137,6 +135,9 @@ class NMSImpl : NMS {
         private val connection = player.handle.connection
         private val uuid = player.uniqueId
         private val base = adapt(player.wrap())
+        // Follow the client's entity types until removal is written, even after world lookup stops finding them.
+        private val hitBoxIds = IntOpenHashSet()
+        private var dimension = connection.player.level().dimension()
 
         init {
             val pipeline = getConnection(connection).channel.pipeline()
@@ -146,23 +147,19 @@ class NMSImpl : NMS {
         override fun close() {
             val channel = getConnection(connection).channel
             channel.eventLoop().submit {
+                hitBoxIds.clear()
                 channel.pipeline().remove(INJECT_NAME)
             }
         }
 
         override fun base(): BasePlayer = base
-        override fun isModEnabled(): Boolean = player.channels().contains(ModAnimationBundlerImpl.KEY)
+        override fun isModEnabled(): Boolean = (if (BetterModelBukkit.IS_PAPER) player.channels() else player.listeningPluginChannels).contains(ModAnimationBundlerImpl.KEY)
 
         private val playerModel get() = connection.player.id.toRegistry()
 
         private fun Int.toPlayerEntity() = toEntity(connection.player.level())
         private fun Entity.toRegistry() = BetterModel.registryOrNull(uuid)
-        private inline fun Int.toRegistry(
-            ifHitBox: (Entity) -> Unit = {}
-        ) = (EntityTrackerRegistry.registry(this) ?: toPlayerEntity()?.let {
-            if (it is HitBox) ifHitBox(it)
-            it.toRegistry()
-        })?.takeIf {
+        private fun Int.toRegistry() = (EntityTrackerRegistry.registry(this) ?: toPlayerEntity()?.toRegistry())?.takeIf {
             it.isSpawned(player.uniqueId)
         }
 
@@ -188,8 +185,12 @@ class NMSImpl : NMS {
                     it.handle()
                 })
                 is ClientboundAddEntityPacket -> {
+                    hitBoxIds.remove(id)
                     val entity = id.toPlayerEntity() ?: return this
-                    if (entity is HitBox) return entity.toFakeAddPacket()
+                    if (entity is HitBox) {
+                        hitBoxIds.add(id)
+                        return entity.toFakeAddPacket()
+                    }
                     val wrap = entity.bukkitEntity.wrap()
                     BetterModel.registry(wrap).ifPresent {
                         wrap.taskLater(1) {
@@ -200,10 +201,8 @@ class NMSImpl : NMS {
                 is ClientboundRemoveEntitiesPacket -> {
                     entityIds
                         .asSequence()
-                        .mapNotNull map@ {
-                            it.toRegistry {
-                                return@map null
-                            }
+                        .mapNotNull {
+                            if (hitBoxIds.remove(it)) null else it.toRegistry()
                         }
                         .forEach {
                             it.remove()
@@ -214,21 +213,28 @@ class NMSImpl : NMS {
                         return it.mountPacket(it.entity().handle() as? Entity ?: return this, array = passengers)
                     }
                 }
-                is ClientboundUpdateAttributesPacket if entityId.toPlayerEntity() is HitBox -> return null
-                is ClientboundSetEntityDataPacket -> id.toRegistry {
-                    return ClientboundSetEntityDataPacket(id, hitBoxData)
-                }?.let { registry ->
-                    return toRegistryDataPacket(uuid, registry)
-                }
-                is ClientboundSetEquipmentPacket -> entity.toRegistry {
-                    return null
-                }?.let {
-                    if (it.hideOption(uuid).equipment()) (it.entity().handle() as? LivingEntity)?.toEmptyEquipmentPacket()?.let { packet ->
-                        return packet
+                is ClientboundUpdateAttributesPacket if hitBoxIds.contains(entityId) -> return null
+                is ClientboundSetEntityDataPacket -> {
+                    if (hitBoxIds.contains(id)) return ClientboundSetEntityDataPacket(id, hitBoxData)
+                    id.toRegistry()?.let { registry ->
+                        return toRegistryDataPacket(uuid, registry)
                     }
                 }
-                is ClientboundRespawnPacket -> playerModel?.let {
-                    bundlerOf(it.mountPacket(connection.player)).send(player.wrap())
+                is ClientboundSetEquipmentPacket -> {
+                    if (hitBoxIds.contains(entity)) return null
+                    entity.toRegistry()?.let {
+                        if (it.hideOption(uuid).equipment()) (it.entity().handle() as? LivingEntity)?.toEmptyEquipmentPacket()?.let { packet ->
+                            return packet
+                        }
+                    }
+                }
+                is ClientboundRespawnPacket -> {
+                    val nextDimension = commonPlayerSpawnInfo().dimension()
+                    if (dimension != nextDimension) hitBoxIds.clear()
+                    dimension = nextDimension
+                    playerModel?.let {
+                        bundlerOf(it.mountPacket(connection.player)).send(player.wrap())
+                    }
                 }
                 is ClientboundContainerSetSlotPacket if isEquipment(connection.player) && playerModel?.hideOption(uuid)?.equipment() == true -> {
                     return ClientboundContainerSetSlotPacket(containerId, stateId, slot, EMPTY_ITEM)
@@ -238,7 +244,7 @@ class NMSImpl : NMS {
                         containerId,
                         stateId,
                         items.apply {
-                            PLAYER_EQUIPMENT_SLOT.forEach { set(it, EMPTY_ITEM) }
+                            PLAYER_EQUIPMENT_SLOT.forEach(IntConsumer { set(it, EMPTY_ITEM) })
                             set(connection.player.hotbarSlot, EMPTY_ITEM)
                         },
                         carriedItem
@@ -249,7 +255,9 @@ class NMSImpl : NMS {
         }
 
         override fun write(ctx: ChannelHandlerContext, msg: Any, promise: ChannelPromise) {
-            super.write(ctx, if (msg is Packet<*>) msg.handle() ?: return else msg, promise)
+            val packet = if (msg is Packet<*>) msg.handle() else msg
+            if (packet == null) promise.trySuccess()
+            else super.write(ctx, packet, promise)
         }
 
         override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
@@ -334,7 +342,6 @@ class NMSImpl : NMS {
 
     override fun tint(itemStack: PlatformItemStack, rgb: Int): PlatformItemStack {
         return itemStack.unwarp().asVanilla().apply {
-            set(DataComponents.DYED_COLOR, DyedItemColor(rgb))
             set(DataComponents.CUSTOM_MODEL_DATA, get(DataComponents.CUSTOM_MODEL_DATA)?.let {
                 CustomModelData(it.floats, it.flags, it.strings, it.colors
                     .run {
@@ -343,7 +350,7 @@ class NMSImpl : NMS {
                         }
                     }
                     .ifEmpty { listOf(rgb) })
-            })
+            } ?: CustomModelData(emptyList(), emptyList(), emptyList(), listOf(rgb)))
         }.asBukkit().wrap()
     }
 
@@ -374,16 +381,6 @@ class NMSImpl : NMS {
     }
 
     override fun profile(player: PlatformPlayer): ModelProfile = ModelGameProfile(getGameProfile((player.unwarp() as CraftPlayer).handle))
-
-    override fun createPlayerHead(profile: ModelProfile): PlatformItemStack = VanillaItemStack(Items.PLAYER_HEAD).apply {
-        set(DataComponents.PROFILE, ResolvableProfile.createResolved(GameProfile(
-            profile.info().id,
-            profile.info().name ?: "",
-            PropertyMap(ImmutableMultimap.of(
-                "textures", Property("textures", profile.skin().raw)
-            ))
-        )))
-    }.asBukkit().wrap()
 
     override fun createSkinItem(model: String, floats: List<Float>, flags: List<Boolean>, strings: List<String>, colors: List<Int>): TransformedItemStack {
         return VanillaItemStack(Items.PLAYER_HEAD).run {

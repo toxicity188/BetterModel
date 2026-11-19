@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.bukkit;
 
 import kr.toxicity.model.api.bukkit.BetterModelBukkit;
@@ -62,10 +63,14 @@ public final class BetterModelLibrary {
         "geantyref",
         builder -> builder.predicate(BooleanConstantSupplier.of(!BetterModelBukkit.IS_PAPER))
     );
-    public static final LibraryData MOLANG_COMPILER = register(
-        "gg{}moonflower",
-        "molang-compiler",
+    public static final LibraryData MOCHAFLOATS = register(
+        "org{}redlance{}mochafloats",
+        "runtime",
         builder -> builder
+            .subModules(
+                "lexer",
+                "parser"
+            )
     );
     public static final LibraryData ADVENTURE_API = register(
         "net{}kyori",
@@ -77,7 +82,6 @@ public final class BetterModelLibrary {
                 "adventure-text-serializer-legacy",
                 "adventure-nbt",
                 "adventure-text-serializer-gson",
-                "adventure-text-serializer-gson-legacy-impl",
                 "adventure-text-serializer-json",
                 "adventure-text-serializer-json-legacy-impl"
             )
@@ -98,7 +102,7 @@ public final class BetterModelLibrary {
         builder -> builder.predicate(BooleanConstantSupplier.of(!BetterModelBukkit.IS_PAPER))
     );
     public static final LibraryData ADVENTURE_PLATFORM = register(
-        "net{}kyori",
+        "io{}github{}toxicity188",
         "adventure-platform-bukkit",
         builder -> builder
             .subModules(
@@ -118,7 +122,7 @@ public final class BetterModelLibrary {
     public void load(@NotNull AbstractBetterModelPlugin plugin) {
         var manager = new BetterModelLibraryManager(plugin);
         manager.addRepository("https://maven-central.storage-download.googleapis.com/maven2/");
-        manager.addRepository("https://maven.blamejared.com/");
+        manager.addRepository("https://repo.redlance.org/public");
         manager.addMavenCentral();
         LIBRARY_DATA.stream()
             .filter(LibraryData::isLoaded)

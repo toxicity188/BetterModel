@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonDeserializer;
@@ -13,6 +14,7 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
+import java.util.function.Function;
 
 import static kr.toxicity.model.api.util.CollectionUtil.associate;
 
@@ -27,7 +29,7 @@ import static kr.toxicity.model.api.util.CollectionUtil.associate;
  */
 public record ModelPlaceholder(
     @NotNull @Unmodifiable Map<String, String> variables
-) {
+) implements Function<String, String> {
     /**
      * An empty placeholder instance with no variables.
      * @since 1.15.2
@@ -38,7 +40,7 @@ public record ModelPlaceholder(
      * A JSON deserializer for parsing placeholders from a multi-line string.
      * @since 1.15.2
      */
-    public static final JsonDeserializer<ModelPlaceholder> PARSER = (json, typeOfT, context) -> new ModelPlaceholder(associate(
+    public static final JsonDeserializer<ModelPlaceholder> PARSER = (json, _, _) -> new ModelPlaceholder(associate(
         Arrays.stream(json.getAsString().split("\n"))
             .map(line -> line.split("=", 2))
             .filter(array -> array.length == 2),
@@ -58,5 +60,21 @@ public record ModelPlaceholder(
             expression = expression.replace(entry.getKey(), entry.getValue());
         }
         return expression;
+    }
+
+    /**
+     * Replaces placeholder variables in an expression, as in {@link #parseVariable(String)}.
+     * <pre>{@code
+     * String resolved = ModelPlaceholder.EMPTY.apply("query.anim_time");
+     * }</pre>
+     *
+     * @param s the expression containing placeholders
+     * @return the expression with placeholders substituted
+     * @since 3.7.0
+     */
+    @Override
+    @NotNull
+    public String apply(@NotNull String s) {
+        return parseVariable(s);
     }
 }

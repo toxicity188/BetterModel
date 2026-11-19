@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.bukkit;
 
 import kr.toxicity.model.api.BetterModel;
@@ -20,6 +21,15 @@ import static kr.toxicity.model.api.util.ReflectionUtil.classExists;
  * This interface extends {@link BetterModelPlatform} to provide Bukkit-specific implementations
  * for scheduling and entity adaptation.
  * </p>
+ *
+ * <p>Example usage:</p>
+ * <pre>{@code
+ * BetterModelBukkit platform = BetterModelBukkit.platform();
+ * BukkitModelScheduler scheduler = platform.scheduler();
+ * if (BetterModelBukkit.IS_FOLIA) {
+ *     // Folia region-aware scheduling
+ * }
+ * }</pre>
  *
  * @since 2.0.0
  */

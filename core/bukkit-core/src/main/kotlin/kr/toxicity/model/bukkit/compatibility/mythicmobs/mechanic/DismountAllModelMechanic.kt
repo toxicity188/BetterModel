@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.bukkit.compatibility.mythicmobs.mechanic
 
 import io.lumine.mythic.api.adapters.AbstractEntity
@@ -17,7 +18,7 @@ import kr.toxicity.model.bukkit.compatibility.mythicmobs.toPlaceholderStringList
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.toRegistry
 import kr.toxicity.model.util.boneName
 
-class DismountAllModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), ITargetedEntitySkill {
+internal class DismountAllModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), ITargetedEntitySkill {
 
     private val seat = mlc.toPlaceholderStringList(MM_SEAT) {
         it.map { s -> s.boneName.name }.toSet()
