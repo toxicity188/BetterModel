@@ -65,12 +65,11 @@ public final class BetterModelLibrary {
     );
     public static final LibraryData MOCHAFLOATS = register(
         "org{}redlance{}mochafloats",
-        "runtime-compiler",
+        "runtime",
         builder -> builder
             .subModules(
                 "lexer",
-                "parser",
-                "runtime"
+                "parser"
             )
     );
     public static final LibraryData ADVENTURE_API = register(
