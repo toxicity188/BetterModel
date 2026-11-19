@@ -170,10 +170,9 @@ public sealed interface BlueprintElement {
         ) {
             var scale = scale();
             var list = mapIndexed(
-                CubeRotationGroups.group(
-                    filterIsInstance(children, Cube.class)
-                        .filter(cube -> cube.faces().textures().findAny().isPresent())
-                        .toList()),
+                CubeRotationGroups.group(filterIsInstance(children, Cube.class)
+                    .filter(cube -> cube.faces().uv().findAny().isPresent())
+                    .toList()),
                 (i, model) -> buildJson(i + 1, scale, obfuscator, context, model)
             ).toList();
             return list.isEmpty() ? null : list;
