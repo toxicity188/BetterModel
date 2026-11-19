@@ -34,6 +34,8 @@ public sealed interface KeyframeDatapoint {
      */
     KeyframeDatapoint ZERO = of(0F);
 
+    KeyframeDatapoint ONE = of(1F);
+
     /**
      * Reads a numeric value or a Molang expression from a JSON primitive. Null and blank inputs yield zero.
      * The string transformation runs only for trimmed input that cannot be parsed as a float.
@@ -48,10 +50,14 @@ public sealed interface KeyframeDatapoint {
      * @since 3.7.0
      */
     static @NotNull KeyframeDatapoint fromJson(@Nullable JsonPrimitive primitive, @NotNull Function<String, String> stringFunction) {
-        if (primitive == null) return ZERO;
+        return fromJson(primitive, ZERO, stringFunction);
+    }
+
+    static @NotNull KeyframeDatapoint fromJson(@Nullable JsonPrimitive primitive, @NotNull KeyframeDatapoint defDatapoint, @NotNull Function<String, String> stringFunction) {
+        if (primitive == null) return defDatapoint;
         if (primitive.isNumber()) return of(primitive.getAsFloat());
         var string = primitive.getAsString().trim();
-        if (string.isEmpty()) return ZERO;
+        if (string.isEmpty()) return defDatapoint;
         try {
             return of(Float.parseFloat(string));
         } catch (NumberFormatException _) {

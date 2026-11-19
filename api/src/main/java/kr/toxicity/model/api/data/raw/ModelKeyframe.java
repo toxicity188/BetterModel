@@ -85,11 +85,13 @@ public record ModelKeyframe(
      * @throws java.util.NoSuchElementException if this keyframe has no data points
      * @since 3.7.0
      */
-    public @NotNull KeyframePoint point(@NotNull ModelLoadContext context, @NotNull KeyframeAxis axis) {
-        var vec = point().toVector(context);
+    public @NotNull KeyframePoint point(@NotNull ModelAnimation.AnimationContext context, @NotNull KeyframeAxis axis) {
+        var model = context.model();
+        var blendWeight = context.blendWeight();
+        var vec = point().toVector(model);
         return new KeyframePoint(
-            ctx -> context.trySupply(
-                () -> vec.compile(ctx).withAxis(axis),
+            ctx -> model.trySupply(
+                () -> vec.compile(ctx).withAxis(axis).weight(blendWeight.compile(ctx)),
                 ex -> new ModelLoadContext.Fallback<>(KeyframeVector.ZERO, "Unable to parse this keyframe: " + vec + ", Reason: " + ex.getMessage())
             ),
             time(),

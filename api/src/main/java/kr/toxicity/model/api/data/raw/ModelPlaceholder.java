@@ -14,6 +14,7 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
+import java.util.function.Function;
 
 import static kr.toxicity.model.api.util.CollectionUtil.associate;
 
@@ -28,7 +29,7 @@ import static kr.toxicity.model.api.util.CollectionUtil.associate;
  */
 public record ModelPlaceholder(
     @NotNull @Unmodifiable Map<String, String> variables
-) {
+) implements Function<String, String> {
     /**
      * An empty placeholder instance with no variables.
      * @since 1.15.2
@@ -59,5 +60,11 @@ public record ModelPlaceholder(
             expression = expression.replace(entry.getKey(), entry.getValue());
         }
         return expression;
+    }
+
+    @Override
+    @NotNull
+    public String apply(@NotNull String s) {
+        return parseVariable(s);
     }
 }

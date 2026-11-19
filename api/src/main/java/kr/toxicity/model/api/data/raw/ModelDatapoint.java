@@ -8,16 +8,11 @@
 package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonPrimitive;
-import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.keyframe.KeyframeDatapoint;
 import kr.toxicity.model.api.animation.keyframe.KeyframeDatapointVector;
-import kr.toxicity.model.api.util.function.Float2FloatConstantFunction;
-import kr.toxicity.model.api.util.function.Float2FloatFunction;
-import kr.toxicity.model.api.util.function.FloatFunction;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Vector3f;
 
 import java.util.Objects;
 
@@ -65,9 +60,9 @@ public record ModelDatapoint(
 
     public @NotNull KeyframeDatapointVector toVector(@NotNull ModelLoadContext context) {
         return KeyframeDatapointVector.of(
-            KeyframeDatapoint.fromJson(x, context.placeholder::parseVariable),
-            KeyframeDatapoint.fromJson(y, context.placeholder::parseVariable),
-            KeyframeDatapoint.fromJson(z, context.placeholder::parseVariable)
+            KeyframeDatapoint.fromJson(x, context.placeholder),
+            KeyframeDatapoint.fromJson(y, context.placeholder),
+            KeyframeDatapoint.fromJson(z, context.placeholder)
         );
     }
 }

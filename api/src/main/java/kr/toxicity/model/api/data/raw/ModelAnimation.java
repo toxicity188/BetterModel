@@ -7,10 +7,13 @@
 
 package kr.toxicity.model.api.data.raw;
 
+import com.google.gson.JsonPrimitive;
+import com.google.gson.annotations.SerializedName;
 import it.unimi.dsi.fastutil.objects.ObjectAVLTreeSet;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationProgress;
+import kr.toxicity.model.api.animation.keyframe.KeyframeDatapoint;
 import kr.toxicity.model.api.animation.keyframe.KeyframePoint;
 import kr.toxicity.model.api.data.blueprint.AnimationGenerator;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
@@ -51,26 +54,34 @@ public record ModelAnimation(
     boolean override,
     @NotNull String uuid,
     float length,
+    @Nullable @SerializedName("blend_weight") JsonPrimitive blendWeight,
     @Nullable Map<String, ModelAnimator> animators
 ) {
+
+    public record AnimationContext(
+        @NotNull ModelLoadContext model,
+        @NotNull KeyframeDatapoint blendWeight
+    ) {}
+
     /**
      * Converts this raw animation data into a processed {@link BlueprintAnimation}.
      *
      * @param context the model loading context
-     * @param children the list of root blueprint elements
+     * @param elements the list of root blueprint elements
      * @return the blueprint animation
      * @since 1.15.2
      */
     public @NotNull BlueprintAnimation toBlueprint(
         @NotNull ModelLoadContext context,
-        @NotNull List<BlueprintElement> children
+        @NotNull List<BlueprintElement> elements
     ) {
-        var animators = AnimationGenerator.generate(length(), children, associate(
+        var ctx = new AnimationContext(context, KeyframeDatapoint.fromJson(blendWeight(), KeyframeDatapoint.ONE, context.placeholder));
+        var animators = AnimationGenerator.generate(length(), elements, associate(
             animators().entrySet().stream()
-                .filter(e -> context.availableUUIDs.contains(e.getKey()))
+                .filter(e -> ctx.model.availableUUIDs.contains(e.getKey()))
                 .map(Map.Entry::getValue)
                 .filter(ModelAnimator::isAvailable)
-                .map(a -> buildAnimationData(context, a)),
+                .map(a -> buildAnimationData(ctx, a)),
             BlueprintAnimator.AnimatorData::name
         ));
         return new BlueprintAnimation(
@@ -143,11 +154,11 @@ public record ModelAnimation(
     }
 
     @NotNull
-    private BlueprintAnimator.AnimatorData buildAnimationData(@NotNull ModelLoadContext context, @NotNull ModelAnimator animator) {
+    private BlueprintAnimator.AnimatorData buildAnimationData(@NotNull AnimationContext context, @NotNull ModelAnimator animator) {
         var position = new ArrayList<KeyframePoint>();
         var rotation = new ArrayList<KeyframePoint>();
         var scale = new ArrayList<KeyframePoint>();
-        var version = context.meta.formatVersion();
+        var version = context.model.meta.formatVersion();
         animator.stream().filter(keyframe -> keyframe.time() <= length()).forEach(keyframe -> {
             switch (keyframe.channel()) {
                 case POSITION -> position.add(keyframe.point(context, version.positionAxis()));

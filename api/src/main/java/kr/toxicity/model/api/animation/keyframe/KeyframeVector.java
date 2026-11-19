@@ -239,4 +239,12 @@ public record KeyframeVector(
             z.map(axis.z())
         );
     }
+
+    public @NotNull KeyframeVector weight(@NotNull Keyframe keyframe) {
+        return of(
+            x.weight(keyframe),
+            y.weight(keyframe),
+            z.weight(keyframe)
+        );
+    }
 }

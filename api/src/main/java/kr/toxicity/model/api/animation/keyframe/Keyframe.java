@@ -28,6 +28,8 @@ public interface Keyframe {
      */
     Keyframe ZERO = new Constant(0F);
 
+    Keyframe ONE = new Constant(1F);
+
     /**
      * Evaluates this keyframe with the supplied runtime context.
      * <pre>{@code
@@ -82,6 +84,10 @@ public interface Keyframe {
         return function == Float2FloatFunction.NONE ? this : ctx -> function.applyAsFloat(eval(ctx));
     }
 
+    default @NotNull Keyframe weight(@NotNull Keyframe keyframe) {
+        return keyframe == ONE ? this : ctx -> eval(ctx) * keyframe.eval(ctx);
+    }
+
     /**
      * Creates a constant scalar keyframe.
      * <pre>{@code
@@ -93,7 +99,9 @@ public interface Keyframe {
      * @since 3.7.0
      */
     static @NotNull Keyframe of(float value) {
-        return MathUtil.isSimilar(value, 0F) ? ZERO : new Constant(value);
+        if (MathUtil.isSimilar(value, 0F)) return ZERO;
+        if (MathUtil.isSimilar(value, 1F)) return ONE;
+        return new Constant(value);
     }
 
     /**
@@ -165,6 +173,13 @@ public interface Keyframe {
         @Override
         public @NotNull Keyframe map(@NotNull Float2FloatFunction function) {
             return function == Float2FloatFunction.NONE ? this : of(function.applyAsFloat(value));
+        }
+
+        @Override
+        public @NotNull Keyframe weight(@NotNull Keyframe keyframe) {
+            if (keyframe == ONE) return this;
+            if (keyframe instanceof Constant(float weightValue)) return of(value * weightValue);
+            return ctx -> value * keyframe.eval(ctx);
         }
     }
 
