@@ -317,30 +317,50 @@ public final class AnimationGenerator {
     }
 
     private static void addRotationSplits(@NotNull List<RotationSample> samples, @NotNull FloatSortedSet floats) {
-        var last = samples.size() - 1;
-        var next = new int[samples.size()];
-        var segments = new int[samples.size()];
-        var unsafeTime = new double[samples.size()];
-        for (int i = last - 1; i >= 0; i--) {
+        var size = samples.size();
+        var next = new int[size];
+        var segments = new int[size];
+        var unsafeTime = new double[size];
+
+        for (int i = size - 2; i >= 0; i--) {
             var start = samples.get(i).time;
-            if (i != 0 && !frameSpacing(start, samples.get(last).time)) continue;
+            var last = samples.getLast().time;
+            if (i != 0 && !frameSpacing(start, last)) continue;
+
             unsafeTime[i] = Double.POSITIVE_INFINITY;
-            for (int j = last; j > i; j--) {
+
+            for (int j = size - 1; j > i; j--) {
                 var end = samples.get(j).time;
                 if (!frameSpacing(start, end)) break;
-                if (j != last && !frameSpacing(end, samples.get(last).time)) continue;
+                if (j != size - 1 && !frameSpacing(end, last)) continue;
+
                 var count = segments[j] + 1;
-                if (unsafeTime[j] > unsafeTime[i] || unsafeTime[j] == unsafeTime[i] && count >= segments[i]) continue;
-                // If tick spacing prevents a safe path, minimize the duration of unsafe segments.
+                if (!isBetterSplit(unsafeTime[j], count, unsafeTime[i], segments[i])) continue;
+
                 var cost = unsafeTime[j] + (canInterpolateRotation(samples, i, j) ? 0D : (double) end - start);
-                if (cost > unsafeTime[i] || cost == unsafeTime[i] && count >= segments[i]) continue;
+
+                if (!isBetterSplit(cost, count, unsafeTime[i], segments[i])) continue;
+
                 unsafeTime[i] = cost;
                 segments[i] = count;
                 next[i] = j;
-                if (cost == 0 && j == last) break;
+
+                if (cost == 0 && j == size - 1) break;
             }
         }
-        for (int i = next[0]; i > 0 && i < last; i = next[i]) floats.add(samples.get(i).time);
+
+        addSplitTimes(samples, next, floats);
+    }
+
+    private static boolean isBetterSplit(double cost, int count, double currentCost, int currentCount) {
+        return cost < currentCost || cost == currentCost && count < currentCount;
+    }
+
+    private static void addSplitTimes(@NotNull List<RotationSample> samples, int[] next, @NotNull FloatSortedSet floats) {
+        var last = samples.size() - 1;
+        for (int i = next[0]; i > 0 && i < last; i = next[i]) {
+            floats.add(samples.get(i).time);
+        }
     }
 
     /**
