@@ -30,7 +30,7 @@ internal class PartVisibilityCondition(config: MythicLineConfig) : IEntityCondit
             val display = bone.display ?: continue
             if (generateSequence(bone) { if (child) it.parent else null }.none {
                 val name = it.name().name
-                id.isEmpty() || (if (exact) name == id else name.contains(id))
+                id.isEmpty() || if (exact) name == id else name.contains(id)
             }) continue
             matched = true
             if (display.invisible() == visible) return false

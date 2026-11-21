@@ -43,18 +43,6 @@ class MythicMobsCompatibility : Compatibility {
     }
 
     override fun start() {
-        fun hasModelEngine() = Bukkit.getPluginManager().getPlugin("ModelEngine") != null
-        fun String.componentName(): String {
-            val name = lowercase().substringAfter(NAMESPACE)
-            return if (name.startsWith("meg:") && !hasModelEngine()) name.removePrefix("meg:") else name
-        }
-
-        fun registerYaw() {
-            if (!CONFIG.module().model || hasModelEngine()) return
-            MythicBukkit.inst().placeholderManager.register(CasterModelYawPlaceholder::class.java)
-        }
-
-        registerYaw()
         ScriptManagerImpl.addBuilder("mm") { name ->
             val args = name.args() ?: return@addBuilder AnimationScript.EMPTY
             AnimationScript.of(BetterModelBukkit.IS_FOLIA) script@ { tracker ->
@@ -75,63 +63,78 @@ class MythicMobsCompatibility : Compatibility {
                 ))
             }
         }
-        registerListener(object : Listener {
-            @EventHandler
-            fun MythicReloadedEvent.reloadYaw() = registerYaw()
+        registerListener(MythicListener())
+    }
 
-            @EventHandler
-            fun MythicMechanicLoadEvent.load() {
-                if (!CONFIG.module().model) return
-                when (mechanicName.componentName()) {
-                    "playlimbanim" -> register(PlayLimbAnimMechanic(config))
-                    "model" -> register(ModelMechanic(config))
-                    "state", "animation" -> register(StateMechanic(config))
-                    "defaultstate", "defaultanimation" -> register(DefaultStateMechanic(config))
-                    "partvisibility", "partvis" -> register(PartVisibilityMechanic(config))
-                    "bindhitbox" -> register(BindHitBoxMechanic(config))
-                    "changepart" -> register(ChangePartMechanic(config))
-                    "tint", "color" -> register(TintMechanic(config))
-                    "brightness", "light" -> register(BrightnessMechanic(config))
-                    "enchant" -> register(EnchantMechanic(config))
-                    "billboard" -> register(BillboardMechanic(config))
-                    "glow", "glowbone" -> register(GlowMechanic(config))
-                    "mountmodel" -> register(MountModelMechanic(config))
-                    "dismountmodel" -> register(DismountModelMechanic(config))
-                    "dismountallmodel", "dismountall" -> register(DismountAllModelMechanic(config))
-                    "lockmodel", "lockrotation" -> register(LockModelMechanic(config))
-                    "bodyrotation", "bodyclamp" -> register(BodyRotationMechanic(config))
-                    "remapmodel", "remap" -> register(RemapModelMechanic(config))
-                    "pairmodel" -> register(PairModelMechanic(config))
-                    "scale" -> register(ScaleMechanic(config))
-                    "nofall", "cancelfall", "cancelfalldamage" -> register(NoFallMechanic(config))
-                }
-            }
+    private class MythicListener : Listener {
 
-            @EventHandler
-            fun MythicConditionLoadEvent.load() {
-                if (!CONFIG.module().model) return
-                when (conditionName.componentName()) {
-                    "modelhaspassenger" -> register(ModelHasPassengerCondition(config))
-                    "modelhaspassengers", "modelpassengers", "modelpassenger" -> register(ModelHasPassengersCondition(config))
-                    "hasmodel" -> register(HasModelCondition(config))
-                    "partvisibility", "partvis" -> register(PartVisibilityCondition(config))
-                    "hitbox", "hitboxissubhitbox", "issubhitbox" -> register(HitBoxCondition(config, argument))
-                    "modelhasdriver", "modeldriver" -> register(ModelHasDriverCondition())
-                    "drivingmodel" -> register(DrivingModelCondition())
-                    "ridingmodel" -> register(RidingModelCondition())
-                }
-            }
+        private fun hasModelEngine() = Bukkit.getPluginManager().getPlugin("ModelEngine") != null
 
-            @EventHandler
-            fun MythicTargeterLoadEvent.load() {
-                if (!CONFIG.module().model) return
-                when (targeterName.componentName()) {
-                    "modelpart" -> register(ModelPartTargeter(config))
-                    "mountedmodel" -> register(MountedModelTargeter())
-                    "modelpassengers" -> register(ModelPassengersTargeter(config))
-                    "modeldriver" -> register(ModelDriverTargeter())
-                }
+        private fun registerYaw() {
+            if (!CONFIG.module().model || hasModelEngine()) return
+            MythicBukkit.inst().placeholderManager.register(CasterModelYawPlaceholder::class.java)
+        }
+
+        private fun String.componentName(): String {
+            val name = lowercase().substringAfter(NAMESPACE)
+            return if (name.startsWith("meg:") && !hasModelEngine()) name.removePrefix("meg:") else name
+        }
+
+        @EventHandler
+        fun MythicReloadedEvent.reloadYaw() = registerYaw()
+
+        @EventHandler
+        fun MythicMechanicLoadEvent.load() {
+            if (!CONFIG.module().model) return
+            when (mechanicName.componentName()) {
+                "playlimbanim" -> register(PlayLimbAnimMechanic(config))
+                "model" -> register(ModelMechanic(config))
+                "state", "animation" -> register(StateMechanic(config))
+                "defaultstate", "defaultanimation" -> register(DefaultStateMechanic(config))
+                "partvisibility", "partvis" -> register(PartVisibilityMechanic(config))
+                "bindhitbox" -> register(BindHitBoxMechanic(config))
+                "changepart" -> register(ChangePartMechanic(config))
+                "tint", "color" -> register(TintMechanic(config))
+                "brightness", "light" -> register(BrightnessMechanic(config))
+                "enchant" -> register(EnchantMechanic(config))
+                "billboard" -> register(BillboardMechanic(config))
+                "glow", "glowbone" -> register(GlowMechanic(config))
+                "mountmodel" -> register(MountModelMechanic(config))
+                "dismountmodel" -> register(DismountModelMechanic(config))
+                "dismountallmodel", "dismountall" -> register(DismountAllModelMechanic(config))
+                "lockmodel", "lockrotation" -> register(LockModelMechanic(config))
+                "bodyrotation", "bodyclamp" -> register(BodyRotationMechanic(config))
+                "remapmodel", "remap" -> register(RemapModelMechanic(config))
+                "pairmodel" -> register(PairModelMechanic(config))
+                "scale" -> register(ScaleMechanic(config))
+                "nofall", "cancelfall", "cancelfalldamage" -> register(NoFallMechanic(config))
             }
-        })
+        }
+
+        @EventHandler
+        fun MythicConditionLoadEvent.load() {
+            if (!CONFIG.module().model) return
+            when (conditionName.componentName()) {
+                "modelhaspassenger" -> register(ModelHasPassengerCondition(config))
+                "modelhaspassengers", "modelpassengers", "modelpassenger" -> register(ModelHasPassengersCondition(config))
+                "hasmodel" -> register(HasModelCondition(config))
+                "partvisibility", "partvis" -> register(PartVisibilityCondition(config))
+                "hitbox", "hitboxissubhitbox", "issubhitbox" -> register(HitBoxCondition(config, argument))
+                "modelhasdriver", "modeldriver" -> register(ModelHasDriverCondition())
+                "drivingmodel" -> register(DrivingModelCondition())
+                "ridingmodel" -> register(RidingModelCondition())
+            }
+        }
+
+        @EventHandler
+        fun MythicTargeterLoadEvent.load() {
+            if (!CONFIG.module().model) return
+            when (targeterName.componentName()) {
+                "modelpart" -> register(ModelPartTargeter(config))
+                "mountedmodel" -> register(MountedModelTargeter())
+                "modelpassengers" -> register(ModelPassengersTargeter(config))
+                "modeldriver" -> register(ModelDriverTargeter())
+            }
+        }
     }
 }
