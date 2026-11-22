@@ -76,7 +76,11 @@ public record ModelAnimation(
 
     /**
      * Converts this raw animation data into a processed {@link BlueprintAnimation}.
-     * A null or blank blend weight defaults to one; other values are applied to transform keyframes.
+     * The transform timeline uses the tick-rounded duration, and effect keyframes are scheduled on the same tick grid.
+     * A null or blank blend weight defaults to one. Other values are applied to transform keyframes.
+     * <pre>{@code
+     * var blueprint = animation.toBlueprint(loadContext, roots);
+     * }</pre>
      *
      * @param context the model loading context
      * @param elements the list of root blueprint elements
@@ -88,7 +92,7 @@ public record ModelAnimation(
         @NotNull List<BlueprintElement> elements
     ) {
         var ctx = new AnimationContext(context, KeyframeDatapoint.fromJson(blendWeight(), KeyframeDatapoint.ONE, context.placeholder));
-        var animators = AnimationGenerator.generate(length(), elements, associate(
+        var animators = AnimationGenerator.generate(tickTime(), elements, associate(
             animators().entrySet().stream()
                 .filter(e -> ctx.model.availableUUIDs.contains(e.getKey()))
                 .map(Map.Entry::getValue)
@@ -99,14 +103,14 @@ public record ModelAnimation(
         return new BlueprintAnimation(
             name(),
             loop(),
-            length(),
+            tickTime(),
             override(),
             animators,
             Optional.ofNullable(animators().get("effects"))
                 .filter(ModelAnimator::isNotEmpty)
                 .map(a -> toScript(a, context.placeholder))
                 .orElseGet(() -> BlueprintScript.fromEmpty(this)),
-            animators.isEmpty() ? AnimationProgress.emptyStorage(length()) : animators.values()
+            animators.isEmpty() ? AnimationProgress.emptyStorage(tickTime()) : animators.values()
                 .iterator()
                 .next()
                 .keyframe()
@@ -114,24 +118,31 @@ public record ModelAnimation(
         );
     }
 
+    /**
+     * Builds an effect timeline from tick-rounded times and stores successive delays in seconds.
+     *
+     * @param animator the raw effect track
+     * @param placeholder the model placeholder used to resolve script variables
+     * @return the effect script with its original duration metadata
+     */
     private @NotNull BlueprintScript toScript(@NotNull ModelAnimator animator, @NotNull ModelPlaceholder placeholder) {
         var set = new ObjectAVLTreeSet<TimeScript>();
         set.add(TimeScript.EMPTY);
-        set.add(TimeScript.EMPTY.time(length()));
+        set.add(TimeScript.EMPTY.time(tickTime()));
         animator.stream()
             .filter(f -> f.point().hasScript())
             .map(d -> AnimationScript.of(Arrays.stream(placeholder.parseVariable(d.point().script()).split("\n"))
                 .map(BetterModel.platform().manager(ScriptManager.class)::build)
                 .filter(Objects::nonNull)
                 .toList())
-                .time(d.time()))
+                .time(d.tickTime()))
             .forEach(set::add);
         var array = new TimeScript[set.size()];
         var before = 0F;
         var i = 0;
         for (TimeScript timeScript : set) {
             var t = timeScript.time();
-            array[i++] = timeScript.time(InterpolationUtil.roundTime(t - before));
+            array[i++] = timeScript.time(t - before);
             before = t;
         }
         return new BlueprintScript(
@@ -140,6 +151,19 @@ public record ModelAnimation(
             length(),
             List.of(array)
         );
+    }
+
+    /**
+     * Returns the animation length rounded to the nearest 50 ms Minecraft tick.
+     * <pre>{@code
+     * float playbackLength = animation.tickTime();
+     * }</pre>
+     *
+     * @return the rounded length in seconds
+     * @since 3.7.2
+     */
+    public float tickTime() {
+        return InterpolationUtil.roundTick(length());
     }
 
     /**
@@ -171,7 +195,7 @@ public record ModelAnimation(
         var rotation = new ArrayList<KeyframePoint>();
         var scale = new ArrayList<KeyframePoint>();
         var version = context.model.meta.formatVersion();
-        animator.stream().filter(keyframe -> keyframe.time() <= length()).forEach(keyframe -> {
+        animator.stream().filter(keyframe -> keyframe.time() <= tickTime()).forEach(keyframe -> {
             switch (keyframe.channel()) {
                 case POSITION -> position.add(keyframe.point(context, version.positionAxis()));
                 case ROTATION -> rotation.add(keyframe.point(context, version.rotationAxis()));

@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import static kr.toxicity.model.api.util.InterpolationUtil.interpolatorFor;
-import static kr.toxicity.model.api.util.InterpolationUtil.roundTime;
 
 /**
  * Stores the ordered animation progresses for a keyframe timeline.
@@ -37,12 +36,17 @@ public record AnimationKeyframe(
 
     /**
      * Builds a timeline by sampling the transform channels at the supplied points.
+     * Each frame stores the time elapsed since the previous sample, starting at zero seconds.
+     * A discontinuity reported by any channel marks the frame to skip display interpolation.
+     * <pre>{@code
+     * var timeline = AnimationKeyframe.build(position, rotation, scale, rotationGlobal, sampleTimes);
+     * }</pre>
      *
      * @param position position keyframe points
      * @param rotation rotation keyframe points
      * @param scale scale keyframe points
      * @param rotationGlobal whether rotation is global
-     * @param points sorted sample times
+     * @param points sorted sample times in seconds
      * @return the sampled animation keyframe
      * @since 3.7.0
      */
@@ -74,7 +78,7 @@ public record AnimationKeyframe(
                 pr.vector(),
                 rr.vector(),
                 sr.vector(),
-                roundTime(f - before),
+                f - before,
                 pr.skipInterpolation() || sr.skipInterpolation() || rr.skipInterpolation()
             );
             before = f;

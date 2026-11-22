@@ -7,12 +7,8 @@
 
 package kr.toxicity.model.api.util;
 
-import it.unimi.dsi.fastutil.floats.FloatArrayList;
-import it.unimi.dsi.fastutil.floats.FloatSortedSet;
-import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.keyframe.KeyframePoint;
 import kr.toxicity.model.api.animation.keyframe.KeyframeVector;
-import kr.toxicity.model.api.tracker.Tracker;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
@@ -34,13 +30,17 @@ public final class InterpolationUtil {
         throw new RuntimeException();
     }
 
-    private static final float FRAME_HASH = (float) Tracker.TRACKER_TICK_INTERVAL / 1000F;
-    private static final float FRAME_HASH_REVERT = 1 / FRAME_HASH;
-
     /**
-     * Creates interpolator
-     * @param vectors target vector list
-     * @return point builder
+     * Creates a vector sampler for nondecreasing sample times in seconds.
+     * For a track with at least two points, the sampler flags a discontinuous transition
+     * at the next keyframe's floored tick. Samples past the last point use that point's continuity.
+     * <pre>{@code
+     * var sampler = InterpolationUtil.interpolatorFor(points);
+     * var sample = sampler.build(0.05F);
+     * }</pre>
+     *
+     * @param vectors keyframe points in time order
+     * @return the vector sampler with interpolation flags
      */
     public static @NotNull VectorPointBuilder interpolatorFor(@NotNull List<KeyframePoint> vectors) {
         var last = vectors.isEmpty() ? KeyframePoint.EMPTY : vectors.getLast();
@@ -57,48 +57,40 @@ public final class InterpolationUtil {
                     t = (p2 = vectors.get(++i)).time();
                 }
                 if (nextFloat > last.time()) return new VectorResult(last.vector(nextFloat), !last.isContinuous());
-                else return nextFloat == t ? new VectorResult(p2.vector(), !p1.isContinuous()) : new VectorResult(p1.interpolator().interpolate(vectors, i, nextFloat));
+                else return new VectorResult(
+                    nextFloat == t ? p2.vector() : p1.interpolator().interpolate(vectors, i, nextFloat),
+                    nextFloat == floorTick(t) && !p1.isContinuous()
+                );
             }
         };
     }
 
     /**
-     * Rounds float to frame time
-     * @param time time
-     * @return rounded time
+     * Rounds a time to the nearest 50 ms Minecraft tick. Half-ticks round toward positive infinity.
+     * <pre>{@code
+     * float time = InterpolationUtil.roundTick(0.08F); // 0.10 seconds
+     * }</pre>
+     *
+     * @param time the time in seconds
+     * @return the rounded time in seconds
+     * @since 3.7.2
      */
-    public static float roundTime(float time) {
-        return (int) fma(time, FRAME_HASH_REVERT, FRAME_EPSILON) * FRAME_HASH;
+    public static float roundTick(float time) {
+        return (float) Math.round(time / MINECRAFT_TICK_SECONDS) * MINECRAFT_TICK_SECONDS;
     }
 
     /**
-     * Inserts lerp frame to given set
-     * @param frames target set
+     * Rounds a time down to a 50 ms Minecraft tick.
+     * <pre>{@code
+     * float time = InterpolationUtil.floorTick(0.08F); // 0.05 seconds
+     * }</pre>
+     *
+     * @param time the time in seconds
+     * @return the rounded-down time in seconds
+     * @since 3.7.2
      */
-    public static void insertLerpFrame(@NotNull FloatSortedSet frames) {
-        insertLerpFrame(frames, (float) BetterModel.config().lerpFrameTime() / MINECRAFT_TICKS_PER_SECOND);
-    }
-
-    /**
-     * Inserts lerp frame to given set
-     * @param frames target set
-     * @param frame frame
-     */
-    public static void insertLerpFrame(@NotNull FloatSortedSet frames, float frame) {
-        if (frame <= 0F) return;
-        var first = 0F;
-        var second = 0F;
-        var iterator = new FloatArrayList(frames).iterator();
-        while (iterator.hasNext()) {
-            first = second;
-            second = iterator.nextFloat();
-            var max = (int) ((second - first) / frame);
-            for (int i = 0; i < max; i++) {
-                var add = fma(frame, i + 1, first);
-                if (second - add < frame + FRAME_EPSILON) continue;
-                frames.add(add);
-            }
-        }
+    public static float floorTick(float time) {
+        return (float) Math.floor(time / MINECRAFT_TICK_SECONDS) * MINECRAFT_TICK_SECONDS;
     }
 
     /**
