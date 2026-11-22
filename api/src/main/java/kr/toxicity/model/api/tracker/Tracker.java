@@ -323,7 +323,7 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
      * @since 1.15.2
      */
     public void tick(@NotNull Consumer<TrackerBundlerSet> handler) {
-        tick(1, handler);
+        schedule(1, handler);
     }
 
     /**
@@ -341,7 +341,7 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
      * Registers a periodic handler on the tracker's 50 ms tick schedule.
      * The handler runs when the tracker tick count is a multiple of the period.
      * <pre>{@code
-     * tracker.tick(20, handler); // Every second
+     * tracker.schedule(20, handler); // Every second
      * }</pre>
      *
      * @param period the positive period in Minecraft ticks
@@ -350,7 +350,7 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
      * @throws RuntimeException if the period is zero or negative
      * @since 1.15.2
      */
-    public void tick(long period, @NotNull Consumer<TrackerBundlerSet> handler) {
+    public void schedule(long period, @NotNull Consumer<TrackerBundlerSet> handler) {
         Objects.requireNonNull(handler);
         if (period <= 0) throw new RuntimeException("period cannot be <= 0");
         frame(period == 1 ? handler : set -> {
