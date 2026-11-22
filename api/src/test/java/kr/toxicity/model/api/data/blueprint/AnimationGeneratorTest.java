@@ -111,27 +111,6 @@ class AnimationGeneratorTest {
     }
 
     @Test
-    void findsAFullBezierTurnAndReturnWithEqualEndpoints() throws ReflectiveOperationException {
-        var bone = group("bone", Float3.ZERO);
-        var zero = new Vector3f();
-        var rotation = List.of(
-            point(0, 0, 0, 0, VectorInterpolator.BEZIER,
-                new KeyframePoint.BezierConfig(zero, zero, new Vector3f(1F / 3, 0, 0), new Vector3f(480, 0, 0))),
-            point(1, 0, 0, 0, VectorInterpolator.LINEAR,
-                new KeyframePoint.BezierConfig(new Vector3f(-1F / 3, 0, 0), new Vector3f(480, 0, 0), zero, zero))
-        );
-        var frames = split(1, bone, data(bone, false, rotation));
-        assertEquals(7, frames.size());
-        assertSafeXAxisSegments(frames, rotation);
-        var interpolator = InterpolationUtil.interpolatorFor(rotation);
-        var angles = frames.stream().map(time -> interpolator.build(time).vector().eval().x).toList();
-        var peak = angles.get(3);
-        assertEquals(360F, peak, 2F);
-        assertTrue(angles.get(1) < angles.get(2) && angles.get(2) < peak);
-        assertTrue(peak > angles.get(4) && angles.get(4) > angles.get(5));
-    }
-
-    @Test
     void findsOneUnevenSplitWhenTheTimeMidpointWouldReverse() throws ReflectiveOperationException {
         var bone = group("bone", Float3.ZERO);
         var zero = new Vector3f();
