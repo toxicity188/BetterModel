@@ -157,10 +157,9 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
      * @since 2.2.1
      */
     public @NotNull AnimationBundler createAnimationBundler() {
-        var size = BetterModel.config().packetBundlingSize();
         var nms = BetterModel.nms();
         return new AnimationBundler(
-            size <= 0 ? createBundler() : nms.createParallelBundler(size),
+            createBundler(),
             nms.createModAnimationBuilder(displayAmount)
         );
     }

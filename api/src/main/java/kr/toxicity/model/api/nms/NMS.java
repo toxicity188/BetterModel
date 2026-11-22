@@ -114,15 +114,6 @@ public interface NMS {
     @NotNull PacketBundler createBundler(int initialCapacity);
 
     /**
-     * Creates a parallel packet bundler with a size threshold.
-     *
-     * @param threshold the size threshold for parallel processing
-     * @return the packet bundler
-     * @since 1.15.2
-     */
-    @NotNull PacketBundler createParallelBundler(int threshold);
-
-    /**
      * Creates a mod animation bundler.
      *
      * @param initialCapacity the initial capacity

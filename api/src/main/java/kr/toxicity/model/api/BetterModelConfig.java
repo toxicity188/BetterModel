@@ -198,14 +198,6 @@ public interface BetterModelConfig {
     long playerHideDelay();
 
     /**
-     * Returns the threshold size for packet bundling.
-     *
-     * @return the packet bundling size
-     * @since 1.15.2
-     */
-    int packetBundlingSize();
-
-    /**
      * Checks if strict loading mode is enabled.
      * <p>
      * Strict loading causes the platform to fail fast on model loading errors.

@@ -90,10 +90,6 @@ cancel-player-model-inventory: false
 # This can help prevent visual glitches.
 player-hide-delay: 3
 
-# The number of packets to bundle together before sending.
-# Higher values can reduce network overhead but may increase perceived latency. 0 to disable.
-packet-bundling-size: 16
-
 # Enables strict loading mode. If true, the plugin will fail to load models with unsupported features.
 # If false, it will attempt to load them by ignoring unsupported parts, which may cause visual issues.
 enable-strict-loading: false

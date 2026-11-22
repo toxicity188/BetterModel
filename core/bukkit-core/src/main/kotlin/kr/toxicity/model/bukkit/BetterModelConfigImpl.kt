@@ -70,7 +70,6 @@ class BetterModelConfigImpl(yaml: ConfigurationSection) : BetterModelConfig {
     private val lerpFrameTime = yaml.getInt("lerp-frame-time", 5)
     private val cancelPlayerModelInventory = yaml.getBoolean("cancel-player-model-inventory")
     private val playerHideDelay = yaml.getLong("player-hide-delay", 3L).coerceAtLeast(1L)
-    private val packetBundlingSize = yaml.getInt("packet-bundling-size", 16)
     private val enableStrictLoading = yaml.getBoolean("enable-strict-loading")
 
     override fun debug(): DebugConfig = debug
@@ -93,6 +92,5 @@ class BetterModelConfigImpl(yaml: ConfigurationSection) : BetterModelConfig {
     override fun lerpFrameTime(): Int = lerpFrameTime
     override fun cancelPlayerModelInventory(): Boolean = cancelPlayerModelInventory
     override fun playerHideDelay(): Long = playerHideDelay
-    override fun packetBundlingSize(): Int = packetBundlingSize
     override fun enableStrictLoading(): Boolean = enableStrictLoading
 }
