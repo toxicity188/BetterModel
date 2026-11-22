@@ -13,6 +13,7 @@ import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.BetterModelConfig;
 import kr.toxicity.model.api.BetterModelPlatform;
 import kr.toxicity.model.api.bone.BoneName;
+import kr.toxicity.model.api.config.PackConfig;
 import kr.toxicity.model.api.data.Float3;
 import kr.toxicity.model.api.data.Float4;
 import kr.toxicity.model.api.data.blueprint.BlueprintElement.Cube;
@@ -45,7 +46,7 @@ class CubeRotationGroupsTest {
 
     @BeforeAll
     static void registerPlatform() {
-        var config = stub(BetterModelConfig.class, Map.of("namespace", "bettermodel"));
+        var config = stub(BetterModelConfig.class, Map.of("namespace", "bettermodel", "pack", PackConfig.DEFAULT));
         var air = stub(PlatformItemStack.class, Map.of());
         var adapter = stub(PlatformAdapter.class, Map.of("air", air));
         BetterModel.register(stub(BetterModelPlatform.class, Map.of("config", config, "adapter", adapter)));
