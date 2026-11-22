@@ -12,6 +12,8 @@ import io.github.toxicity188.javamesh.MeshTriangleName;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.data.raw.ModelResolution;
 import kr.toxicity.model.api.pack.PackObfuscator;
+import kr.toxicity.model.api.util.CollectionUtil;
+import kr.toxicity.model.api.util.PackUtil;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
@@ -19,6 +21,9 @@ import org.jetbrains.annotations.Unmodifiable;
 import javax.imageio.ImageIO;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -44,6 +49,8 @@ public final class BlueprintLoadContext {
         BetterModel.config().namespace() + ":" + BlueprintElement.MESH_TRIANGLE_SINGLE,
         BetterModel.config().namespace() + ":" + BlueprintElement.MESH_TRIANGLE_DUPLEX
     );
+
+    private final Map<String, String> groupJsonNameMap = CollectionUtil.newAddressingMap();
 
     BlueprintLoadContext(
         @NotNull String name,
@@ -112,6 +119,21 @@ public final class BlueprintLoadContext {
      */
     public @NotNull ModelResolution resolution(int index) {
         return texture(index).resolution(resolution);
+    }
+
+    public @NotNull String groupJsonName(@NotNull String group) {
+        return groupJsonNameMap.computeIfAbsent(group, g -> {
+            var pack = name() + "_" + g;
+            return BetterModel.config().pack().useObfuscation() ? encode(pack) : PackUtil.toPackName(pack);
+        });
+    }
+
+    private static @NotNull String encode(@NotNull String raw) {
+        try {
+            return new BigInteger(1, MessageDigest.getInstance("MD5").digest(raw.getBytes(StandardCharsets.UTF_8))).toString(36);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @NotNull

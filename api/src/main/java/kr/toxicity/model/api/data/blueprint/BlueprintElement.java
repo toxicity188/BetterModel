@@ -18,7 +18,6 @@ import kr.toxicity.model.api.data.Float2;
 import kr.toxicity.model.api.data.Float3;
 import kr.toxicity.model.api.pack.PackObfuscator;
 import kr.toxicity.model.api.util.MathUtil;
-import kr.toxicity.model.api.util.PackUtil;
 import kr.toxicity.model.api.util.json.JsonObjectBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -148,7 +147,7 @@ public sealed interface BlueprintElement {
          * @return the JSON name
          */
         public @NotNull String jsonName(@NotNull BlueprintLoadContext context) {
-            return PackUtil.toPackName(context.name() + "_" + name.rawName());
+            return context.groupJsonName(name.rawName());
         }
 
         /**
