@@ -68,15 +68,10 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
         }
     });
     /**
-     * The interval in milliseconds between tracker ticks.
+     * The interval in milliseconds between tracker ticks, matching one Minecraft tick.
      * @since 1.15.2
      */
-    public static final int TRACKER_TICK_INTERVAL = 25;
-    /**
-     * The multiplier to convert tracker ticks to Minecraft ticks (50ms).
-     * @since 1.15.2
-     */
-    public static final int MINECRAFT_TICK_MULTIPLIER = MathUtil.MINECRAFT_TICK_MILLS / TRACKER_TICK_INTERVAL;
+    public static final int TRACKER_TICK_INTERVAL = 50;
 
     @Getter
     protected final RenderPipeline pipeline;
@@ -212,11 +207,12 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
         }
     }
 
+    /**
+     * Runs queued work before advancing animations and invoking tick handlers.
+     */
     private void tick() {
-        if (frame % MINECRAFT_TICK_MULTIPLIER == 0) {
-            Runnable task;
-            while ((task = queuedTask.poll()) != null) task.run();
-        }
+        Runnable task;
+        while ((task = queuedTask.poll()) != null) task.run();
         animationTick();
         tickHandlers.forEach(handler -> {
             try {
@@ -295,9 +291,13 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
     }
 
     /**
-     * Registers a handler to run every frame (tracker tick).
+     * Registers a handler to run every 50 ms tracker tick.
+     * <pre>{@code
+     * tracker.frame(handler);
+     * }</pre>
      *
      * @param handler the packet handler
+     * @throws NullPointerException if the handler is null
      * @since 1.15.2
      */
     public synchronized void frame(@NotNull Consumer<TrackerBundlerSet> handler) {
@@ -313,23 +313,17 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
         }
     }
     /**
-     * Registers a handler to run every Minecraft tick (50ms).
+     * Registers a handler to run every tracker tick (50 ms).
+     * <pre>{@code
+     * tracker.tick(handler);
+     * }</pre>
      *
      * @param handler the packet handler
+     * @throws NullPointerException if the handler is null
      * @since 1.15.2
      */
     public void tick(@NotNull Consumer<TrackerBundlerSet> handler) {
         tick(1, handler);
-    }
-    /**
-     * Registers a handler to run every N Minecraft ticks.
-     *
-     * @param tick the interval in Minecraft ticks
-     * @param handler the packet handler
-     * @since 1.15.2
-     */
-    public void tick(long tick, @NotNull Consumer<TrackerBundlerSet> handler) {
-        schedule(MINECRAFT_TICK_MULTIPLIER * tick, handler);
     }
 
     /**
@@ -344,13 +338,19 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
     }
 
     /**
-     * Schedules a handler to run periodically.
+     * Registers a periodic handler on the tracker's 50 ms tick schedule.
+     * The handler runs when the tracker tick count is a multiple of the period.
+     * <pre>{@code
+     * tracker.tick(20, handler); // Every second
+     * }</pre>
      *
-     * @param period the period in tracker ticks
+     * @param period the positive period in Minecraft ticks
      * @param handler the packet handler
+     * @throws NullPointerException if the handler is null
+     * @throws RuntimeException if the period is zero or negative
      * @since 1.15.2
      */
-    public void schedule(long period, @NotNull Consumer<TrackerBundlerSet> handler) {
+    public void tick(long period, @NotNull Consumer<TrackerBundlerSet> handler) {
         Objects.requireNonNull(handler);
         if (period <= 0) throw new RuntimeException("period cannot be <= 0");
         frame(period == 1 ? handler : set -> {

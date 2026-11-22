@@ -96,17 +96,27 @@ public final class AnimationStateHandler<T extends Timed> {
     }
 
     /**
-     * Ticks this state handler
-     * @return keyframe has been shifted or not
+     * Advances playback by one 50 ms Minecraft tick.
+     * <pre>{@code
+     * boolean shifted = state.tick();
+     * }</pre>
+     *
+     * @return whether the active keyframe changed
      */
     public boolean tick() {
         return tick(() -> {});
     }
 
     /**
-     * Ticks this state handler
-     * @param ifEmpty callback if animator is empty
-     * @return keyframe has been shifted or not
+     * Advances playback by one 50 ms Minecraft tick.
+     * Checks for a keyframe change when the active keyframe ends or an update is requested.
+     * <pre>{@code
+     * boolean shifted = state.tick(onEmpty);
+     * }</pre>
+     *
+     * @param ifEmpty the callback to run when no animators are registered
+     * @return whether the active keyframe changed
+     * @throws NullPointerException if the callback is null and no animators are registered
      */
     public boolean tick(@NotNull Runnable ifEmpty) {
         delay--;
@@ -127,7 +137,7 @@ public final class AnimationStateHandler<T extends Timed> {
     }
 
     private boolean shouldUpdateAnimation() {
-        return (afterKeyframe != null && keyframeFinished()) || delay % Tracker.MINECRAFT_TICK_MULTIPLIER == 0 || forceUpdate;
+        return (afterKeyframe != null && keyframeFinished()) || forceUpdate;
     }
 
     private boolean updateAnimation() {
@@ -224,11 +234,15 @@ public final class AnimationStateHandler<T extends Timed> {
     }
 
     /**
-     * Gets ticking frame of current keyframe
-     * @return ticking frame
+     * Returns the active keyframe duration in Minecraft ticks. One tick is 50 ms.
+     * <pre>{@code
+     * float durationTicks = state.frame();
+     * }</pre>
+     *
+     * @return the duration in ticks, or zero when no keyframe is active
      */
     public float frame() {
-        return afterKeyframe != null ? MathUtil.MINECRAFT_TICKS_PER_SECOND * Tracker.MINECRAFT_TICK_MULTIPLIER * (currentIterator.time + MathUtil.FRAME_EPSILON) : 0F;
+        return afterKeyframe != null ? MathUtil.MINECRAFT_TICKS_PER_SECOND * (currentIterator.time + MathUtil.FRAME_EPSILON) : 0F;
     }
 
     private class TreeIterator implements BooleanSupplier {

@@ -11,12 +11,12 @@ import it.unimi.dsi.fastutil.floats.FloatAVLTreeSet;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import it.unimi.dsi.fastutil.floats.FloatSortedSet;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
+import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationKeyframe;
 import kr.toxicity.model.api.animation.keyframe.KeyframePoint;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.util.InterpolationUtil;
 import kr.toxicity.model.api.util.MathUtil;
-import kr.toxicity.model.api.util.interpolator.VectorInterpolator;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,6 +28,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static kr.toxicity.model.api.util.CollectionUtil.*;
+import static kr.toxicity.model.api.util.MathUtil.*;
 
 /**
  * Generates animation data by interpolating keyframes and calculating bone movements.
@@ -43,18 +44,19 @@ public final class AnimationGenerator {
 
     private static final float MIN_ROTATION_DOT = (float) Math.cos(Math.toRadians(179.9 / 2));
     private static final double REVERSAL_TOLERANCE = Math.toRadians(2.0 / 2);
-    private static final int MAX_ROTATION_SAMPLES = 128;
 
     private final @NotNull AnimationTree[] trees;
     private final int[] parents;
 
     /**
      * Creates a map of blueprint animators from the provided animation data.
-     * <p>
-     * This method calculates all necessary interpolation frames and builds the final animation structures for each bone.
-     * </p>
+     * The bones share a timeline built from tick-rounded keyframe times and the supplied endpoints.
+     * Configured interpolation frames are added first, followed by rotation splits and step frames.
+     * <pre>{@code
+     * var animators = AnimationGenerator.generate(animation.tickTime(), roots, pointsByBone);
+     * }</pre>
      *
-     * @param length the total length of the animation in seconds
+     * @param length the animation end time in seconds, normally aligned to a Minecraft tick
      * @param children the list of root blueprint elements (bones)
      * @param pointMap a map containing raw animation data for each bone
      * @return a map of generated blueprint animators keyed by bone name
@@ -67,11 +69,11 @@ public final class AnimationGenerator {
     ) {
         var floatSet = mapFloat(pointMap.values()
             .stream()
-            .flatMap(BlueprintAnimator.AnimatorData::allPoints), KeyframePoint::time, () -> new FloatAVLTreeSet(MathUtil.FRAME_COMPARATOR));
+            .flatMap(BlueprintAnimator.AnimatorData::allPoints), KeyframePoint::tickTime, () -> new FloatAVLTreeSet(MathUtil.FRAME_COMPARATOR));
         floatSet.add(0F);
         floatSet.add(length);
         var generator = new AnimationGenerator(g -> pointMap.get(g.name()), children);
-        InterpolationUtil.insertLerpFrame(floatSet);
+        insertLerpFrame(floatSet);
         generator.interpolateRotation(floatSet);
         generator.interpolateStep(floatSet);
         return associate(
@@ -118,6 +120,8 @@ public final class AnimationGenerator {
 
     /**
      * Inserts shared keyframes where display interpolation would lose the sampled rotation path.
+     * Samples intervening Minecraft ticks and checks the resulting world-space quaternion path.
+     * Prefers splits that preserve the path and uses fewer frames when split costs are equal.
      * <pre>{@code
      * generator.interpolateRotation(frameTimes);
      * }</pre>
@@ -127,11 +131,11 @@ public final class AnimationGenerator {
      */
     public void interpolateRotation(@NotNull FloatSortedSet floats) {
         if (Arrays.stream(trees).noneMatch(t -> t.data != null && !t.data.rotation().isEmpty())) return;
-        var frames = sampleEuler(new FloatArrayList(floats), true);
+        var frames = sampleEuler(new FloatArrayList(floats));
         var candidates = rotationCandidates(frames);
         if (candidates.times().isEmpty()) return;
 
-        var extraFrames = sampleEuler(candidates.times(), false);
+        var extraFrames = sampleEuler(candidates.times());
         for (int i = 1; i < frames.size(); i++) {
             if (candidates.from(i) == candidates.to(i)) continue;
             var samples = rotationSamples(i, frames, candidates, extraFrames);
@@ -142,8 +146,7 @@ public final class AnimationGenerator {
 
     private record EulerFrames(
         @NotNull FloatArrayList times,
-        @NotNull Vector3f[][] rotations,
-        boolean[] nonlinear
+        @NotNull Vector3f[][] rotations
     ) {
         int size() {
             return times.size();
@@ -155,10 +158,6 @@ public final class AnimationGenerator {
 
         @NotNull Vector3f[] rotation(int index) {
             return rotations[index];
-        }
-
-        boolean isNonlinear(int index) {
-            return nonlinear[index];
         }
     }
 
@@ -174,45 +173,29 @@ public final class AnimationGenerator {
 
     private record RotationSample(float time, @NotNull Quaternionf[] world) {}
 
+    /**
+     * Collects candidate ticks that leave room for at least one tick on either side.
+     *
+     * @param frames the existing sample times and rotations
+     * @return candidate times and their offsets for each interval
+     */
     private @NotNull RotationCandidates rotationCandidates(@NotNull EulerFrames frames) {
         var candidates = new FloatArrayList();
         var offsets = new int[frames.size()];
         for (int i = 1; i < frames.size(); i++) {
             var start = frames.time(i - 1);
             var end = frames.time(i);
-            var earliest = start + MathUtil.MINECRAFT_TICK_SECONDS;
-            var latest = end - MathUtil.MINECRAFT_TICK_SECONDS;
-            if (frameSpacing(start, earliest) && frameSpacing(earliest, end)) {
-                var travel = rotationTravel(frames.rotation(i - 1), frames.rotation(i));
-                if (frames.isNonlinear(i) || travel > 2F) {
-                    // Keep Euler turns in the sampling budget before converting poses to quaternions.
-                    var segments = Math.clamp((int) Math.ceil(travel / 45F), frames.isNonlinear(i) ? 16 : 2, MAX_ROTATION_SAMPLES);
-                    var interval = new FloatAVLTreeSet();
-                    interval.add(earliest);
-                    if (latest > earliest) interval.add(latest);
-                    for (int j = 1; j < segments; j++) {
-                        var time = InterpolationUtil.lerp(start, end, (float) j / segments);
-                        if (time > start && time < end) interval.add(time);
-                    }
-                    candidates.addAll(interval);
+            // Check the actual gap with frameSpacing to tolerate float error at tick boundaries.
+            for (long tick = Math.round((double) start * MathUtil.MINECRAFT_TICKS_PER_SECOND) + 1; ; tick++) {
+                var time = tick * MathUtil.MINECRAFT_TICK_SECONDS;
+                if (!frameSpacing(time, end)) break;
+                if (frameSpacing(start, time) && (candidates.isEmpty() || time > candidates.getFloat(candidates.size() - 1))) {
+                    candidates.add(time);
                 }
             }
             offsets[i] = candidates.size();
         }
         return new RotationCandidates(candidates, offsets);
-    }
-
-    private float rotationTravel(@NotNull Vector3f[] start, @NotNull Vector3f[] end) {
-        var travel = new float[trees.length];
-        var max = 0F;
-        for (int i = 0; i < trees.length; i++) {
-            var a = start[i];
-            var b = end[i];
-            travel[i] = Math.abs(b.x - a.x) + Math.abs(b.y - a.y) + Math.abs(b.z - a.z);
-            if (inheritsRotation(i)) travel[i] += travel[parents[i]];
-            max = Math.max(max, travel[i]);
-        }
-        return max;
     }
 
     private @NotNull List<RotationSample> rotationSamples(
@@ -247,9 +230,8 @@ public final class AnimationGenerator {
             && end - start > MathUtil.FRAME_EPSILON;
     }
 
-    private @NotNull EulerFrames sampleEuler(@NotNull FloatArrayList times, boolean inspectNonlinear) {
+    private @NotNull EulerFrames sampleEuler(@NotNull FloatArrayList times) {
         var rotations = new Vector3f[times.size()][trees.length];
-        var nonlinear = new boolean[times.size()];
         for (int bone = 0; bone < trees.length; bone++) {
             var tree = trees[bone];
             var points = tree.data == null ? List.<KeyframePoint>of() : tree.data.rotation();
@@ -258,26 +240,14 @@ public final class AnimationGenerator {
                 continue;
             }
             var interpolator = InterpolationUtil.interpolatorFor(points);
-            var point = 0;
             for (int i = 0; i < times.size(); i++) {
                 var time = times.getFloat(i);
                 var result = interpolator.build(time);
                 var vector = result.vector();
                 rotations[i][bone] = vector.eval().add(tree.boneRotation);
-                if (!inspectNonlinear) continue;
-                if (!vector.isConstant()) {
-                    nonlinear[i] = true;
-                    if (i + 1 < times.size()) nonlinear[i + 1] = true;
-                }
-                if (i == 0 || points.size() < 2) continue;
-                var start = times.getFloat(i - 1);
-                while (point + 1 < points.size() && points.get(point + 1).time() <= start) point++;
-                if (point + 1 < points.size() && time > points.get(point).time()) {
-                    nonlinear[i] |= points.get(point).interpolator() != VectorInterpolator.LINEAR;
-                }
             }
         }
-        return new EulerFrames(times, rotations, nonlinear);
+        return new EulerFrames(times, rotations);
     }
 
     private boolean inheritsRotation(int bone) {
@@ -364,7 +334,11 @@ public final class AnimationGenerator {
     }
 
     /**
-     * Inserts keyframes for step interpolation (non-continuous transitions).
+     * Inserts a frame one Minecraft tick before the next tick-rounded keyframe on discontinuous channels.
+     * The frame must be at or after both zero and the preceding tick-rounded keyframe.
+     * <pre>{@code
+     * generator.interpolateStep(frameTimes);
+     * }</pre>
      *
      * @param floats the set of keyframe times to update
      * @since 1.15.2
@@ -385,9 +359,30 @@ public final class AnimationGenerator {
         for (int i = 1; i < points.size(); i++) {
             var before = points.get(i - 1);
             if (before.isContinuous()) continue;
-            var time = points.get(i).time() - MathUtil.MINECRAFT_TICK_SECONDS;
-            if (time < 0 || time - before.time() < 0) continue;
+            var time = points.get(i).tickTime() - MathUtil.MINECRAFT_TICK_SECONDS;
+            if (time < 0 || time - before.tickTime() < 0) continue;
             floats.add(time);
+        }
+    }
+
+    private static void insertLerpFrame(@NotNull FloatSortedSet frames) {
+        insertLerpFrame(frames, (float) BetterModel.config().lerpFrameTime() / MINECRAFT_TICKS_PER_SECOND);
+    }
+
+    private static void insertLerpFrame(@NotNull FloatSortedSet frames, float frame) {
+        if (frame <= 0F) return;
+        var first = 0F;
+        var second = 0F;
+        var iterator = new FloatArrayList(frames).iterator();
+        while (iterator.hasNext()) {
+            first = second;
+            second = iterator.nextFloat();
+            var max = (int) ((second - first) / frame);
+            for (int i = 0; i < max; i++) {
+                var add = fma(frame, i + 1, first);
+                if (second - add < frame + FRAME_EPSILON) continue;
+                frames.add(add);
+            }
         }
     }
 

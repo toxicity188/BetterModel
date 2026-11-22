@@ -32,6 +32,38 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class AnimationGeneratorTest {
     @Test
+    void samplesAndInsertsEveryRequiredTick() throws ReflectiveOperationException {
+        var bone = group("bone", Float3.ZERO);
+        for (int ticks : new int[]{1, 2, 3, 5, 14}) {
+            var end = ticks * MathUtil.MINECRAFT_TICK_SECONDS;
+            var frames = split(end, bone, data(bone, false, axis(end, ticks * 150))).toFloatArray();
+            assertEquals(ticks + 1, frames.length);
+            for (int i = 0; i <= ticks; i++) assertEquals(i * MathUtil.MINECRAFT_TICK_SECONDS, frames[i]);
+        }
+    }
+
+    @Test
+    void acceptsNearTickGapsAndKeepsOffGridEndpoints() throws ReflectiveOperationException {
+        var bone = group("bone", Float3.ZERO);
+        for (float end : new float[]{0.09999999F, 0.13F}) {
+            var frames = split(end, bone, data(bone, false, axis(end, 270))).toFloatArray();
+            assertArrayEquals(new float[]{0F, 0.05F, end}, frames);
+        }
+        var rotation = List.of(point(0.13F, 0, 0, 0), point(0.26F, 270, 0, 0));
+        assertArrayEquals(new float[]{0F, 0.13F, 0.2F, 0.26F}, split(0.26F, bone, data(bone, false, rotation)).toFloatArray());
+    }
+
+    @Test
+    void samplesTimeDependentRotationEvenWhenBothEndpointsAreZero() throws ReflectiveOperationException {
+        var bone = group("bone", Float3.ZERO);
+        var pulse = new KeyframePoint(context -> KeyframeVector.of(
+            Keyframe.of(context.animTime() == 0.25F ? 160F : 0F), Keyframe.ZERO, Keyframe.ZERO
+        ), 0F, KeyframePoint.EMPTY.bezier(), VectorInterpolator.LINEAR);
+        var frames = split(1F, bone, data(bone, false, List.of(pulse, point(1F, 0, 0, 0))));
+        assertTrue(frames.contains(0.25F));
+    }
+
+    @Test
     void insertsTheMinimumForSingleAxisTurns() throws ReflectiveOperationException {
         var bone = group("bone", Float3.ZERO);
         for (int angle : new int[]{90, 179, 180, 270, 360}) {

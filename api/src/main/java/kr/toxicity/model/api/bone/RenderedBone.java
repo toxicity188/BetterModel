@@ -650,9 +650,14 @@ public final class RenderedBone implements BoneEventHandler {
             return 1F - state.progress();
         }
 
+        /**
+         * Returns the duration sent to the item display.
+         *
+         * @return the duration in whole Minecraft ticks, or zero when interpolation is skipped
+         */
         private int interpolationDuration() {
             if (skipInterpolation) return 0;
-            var frame = state.frame() / (float) Tracker.MINECRAFT_TICK_MULTIPLIER;
+            var frame = state.frame();
             return Math.round(frame + MathUtil.FLOAT_COMPARISON_EPSILON);
         }
 
