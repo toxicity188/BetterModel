@@ -44,24 +44,26 @@ public final class InterpolationUtil {
      */
     public static @NotNull VectorPointBuilder interpolatorFor(@NotNull List<KeyframePoint> vectors) {
         var last = vectors.isEmpty() ? KeyframePoint.EMPTY : vectors.getLast();
-        return vectors.size() < 2 ? f -> new VectorResult(last.vector(f)) : new VectorPointBuilder() {
-            private KeyframePoint p1 = KeyframePoint.EMPTY;
-            private KeyframePoint p2 = vectors.getFirst();
-            private int i = 0;
-            private float t = p2.time();
-
-            @Override
-            public @NotNull VectorResult build(float nextFloat) {
-                while (i < vectors.size() - 1 && t < nextFloat) {
-                    p1 = p2;
-                    t = (p2 = vectors.get(++i)).time();
+        return vectors.size() < 2 ? f -> new VectorResult(last.vector(f)) : nextFloat -> {
+            if (nextFloat > last.time()) return new VectorResult(last.vector(nextFloat), !last.isContinuous());
+            int low = 0;
+            int high = vectors.size() - 1;
+            while (low < high) {
+                int mid = (low + high) >>> 1;
+                if (vectors.get(mid).time() < nextFloat) {
+                    low = mid + 1;
+                } else {
+                    high = mid;
                 }
-                if (nextFloat > last.time()) return new VectorResult(last.vector(nextFloat), !last.isContinuous());
-                else return new VectorResult(
-                    nextFloat == t ? p2.vector() : p1.interpolator().interpolate(vectors, i, nextFloat),
-                    nextFloat == floorTick(t) && !p1.isContinuous()
-                );
             }
+            var i = low;
+            var p1 = i == 0 ? KeyframePoint.EMPTY : vectors.get(i - 1);
+            var p2 = vectors.get(i);
+            var t = p2.time();
+            return new VectorResult(
+                nextFloat == t ? p2.vector() : p1.interpolator().interpolate(vectors, i, nextFloat),
+                nextFloat == floorTick(t) && !p1.isContinuous()
+            );
         };
     }
 

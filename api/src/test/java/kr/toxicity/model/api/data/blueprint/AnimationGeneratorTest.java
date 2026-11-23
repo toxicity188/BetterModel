@@ -8,6 +8,8 @@
 package kr.toxicity.model.api.data.blueprint;
 
 import it.unimi.dsi.fastutil.floats.FloatAVLTreeSet;
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
+import it.unimi.dsi.fastutil.ints.Int2ObjectFunction;
 import it.unimi.dsi.fastutil.floats.FloatSortedSet;
 import kr.toxicity.model.api.animation.keyframe.Keyframe;
 import kr.toxicity.model.api.animation.keyframe.KeyframePoint;
@@ -20,6 +22,7 @@ import kr.toxicity.model.api.util.InterpolationUtil;
 import kr.toxicity.model.api.util.MathUtil;
 import kr.toxicity.model.api.util.interpolator.VectorInterpolator;
 import org.joml.Vector3f;
+import org.joml.Quaternionf;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -31,6 +34,16 @@ import java.util.function.Function;
 import static org.junit.jupiter.api.Assertions.*;
 
 class AnimationGeneratorTest {
+    @Test
+    void interpolatesEarlierSegmentsAfterLaterSamples() {
+        var sampler = InterpolationUtil.interpolatorFor(List.of(
+            point(0, 0, 0, 0), point(1, 360, 0, 0), point(2, 0, 0, 0)
+        ));
+        assertEquals(90F, sampler.build(1.75F).vector().eval().x);
+        assertEquals(90F, sampler.build(0.25F).vector().eval().x);
+        assertEquals(360F, sampler.build(1F).vector().eval().x);
+    }
+
     @Test
     void samplesAndInsertsEveryRequiredTick() throws ReflectiveOperationException {
         var bone = group("bone", Float3.ZERO);
@@ -50,7 +63,31 @@ class AnimationGeneratorTest {
             assertArrayEquals(new float[]{0F, 0.05F, end}, frames);
         }
         var rotation = List.of(point(0.13F, 0, 0, 0), point(0.26F, 270, 0, 0));
-        assertArrayEquals(new float[]{0F, 0.13F, 0.2F, 0.26F}, split(0.26F, bone, data(bone, false, rotation)).toFloatArray());
+        var frames = split(0.26F, bone, data(bone, false, rotation)).toFloatArray();
+        assertArrayEquals(new float[]{0F, 0.13F, 0.2F, 0.26F}, frames, Arrays.toString(frames));
+    }
+
+    @Test
+    void composingAStaticChildKeepsCachedParentAndEarlierPosesIntact() throws ReflectiveOperationException {
+        var child = group("child", new Float3(90, 0, 0));
+        var parent = group("parent", Float3.ZERO, child);
+        var rotation = List.of(KeyframePoint.EMPTY, point(1, 0, 90, 0));
+        var ctor = AnimationGenerator.class.getDeclaredConstructor(Function.class, List.class);
+        ctor.setAccessible(true);
+        Function<Group, AnimatorData> lookup = group -> group == parent ? data(parent, false, rotation) : null;
+        var generator = ctor.newInstance(lookup, List.of(parent));
+        var method = AnimationGenerator.class.getDeclaredMethod("samplerFunction", FloatArrayList.class);
+        method.setAccessible(true);
+        var sampler = (Int2ObjectFunction<?>) method.invoke(generator, new FloatArrayList(new float[]{0, 1}));
+        var first = (Quaternionf[]) sampler.get(0);
+        var snapshot = new Quaternionf(first[1]);
+        var last = (Quaternionf[]) sampler.get(1);
+        assertNotSame(first[1], last[1]);
+        assertEquals(snapshot, first[1]);
+        assertSame(first, sampler.get(0));
+        var parentEnd = MathUtil.toQuaternion(new Vector3f(0, 90, 0));
+        assertEquals(parentEnd, last[0]);
+        assertEquals(parentEnd.mul(snapshot), last[1]);
     }
 
     @Test
