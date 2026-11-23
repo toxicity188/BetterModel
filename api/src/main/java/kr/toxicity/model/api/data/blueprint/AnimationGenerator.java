@@ -8,7 +8,6 @@
 package kr.toxicity.model.api.data.blueprint;
 
 import it.unimi.dsi.fastutil.floats.*;
-import it.unimi.dsi.fastutil.ints.Int2ObjectFunction;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationKeyframe;
 import kr.toxicity.model.api.animation.keyframe.KeyframePoint;
@@ -116,7 +115,7 @@ public final class AnimationGenerator {
 
     /**
      * Inserts shared keyframes where display interpolation would lose the sampled rotation path.
-     * Samples intervening Minecraft ticks and checks the resulting world-space quaternion path.
+     * Samples intervening Minecraft ticks only for unsafe endpoint rotations or complete local Euler turns.
      * Prefers splits that preserve the path and uses fewer frames when split costs are equal.
      * <pre>{@code
      * generator.interpolateRotation(frameTimes);
@@ -128,61 +127,43 @@ public final class AnimationGenerator {
     public void interpolateRotation(@NotNull FloatSortedSet floats) {
         if (Arrays.stream(trees).noneMatch(t -> t.data != null && !t.data.rotation().isEmpty())) return;
         if (floats.size() < 2) return;
-        var timeline = new FloatArrayList();
-        var boundaries = new int[floats.size()];
-        var iterator = floats.iterator();
-        var start = iterator.nextFloat();
-        timeline.add(start);
-        long tick = (long) Math.floor((double) start * MINECRAFT_TICKS_PER_SECOND) + 1;
-        for (int i = 1; iterator.hasNext(); i++) {
-            var end = iterator.nextFloat();
-            for (; tick * MINECRAFT_TICK_SECONDS < end; tick++) {
-                var time = tick * MINECRAFT_TICK_SECONDS;
-                if (time > timeline.getFloat(timeline.size() - 1)) {
-                    timeline.add(time);
-                }
-            }
-            boundaries[i] = timeline.size();
-            timeline.add(end);
-        }
-        if (timeline.size() == boundaries.length) return;
-
-        var frames = sampleEuler(timeline);
-        var splits = IntStream.range(1, boundaries.length).parallel()
-            .mapToObj(i -> rotationSplits(frames, boundaries[i - 1], boundaries[i]))
+        var times = new FloatArrayList(floats);
+        var sampler = samplerFunction();
+        var splits = IntStream.range(1, times.size()).parallel()
+            .mapToObj(i -> rotationSplits(sampler, times.getFloat(i - 1), times.getFloat(i)))
             .toArray(FloatList[]::new);
-        for (var times : splits) floats.addAll(times);
+        for (var selected : splits) floats.addAll(selected);
     }
 
-    private @NotNull FloatList rotationSplits(@NotNull EulerFrames frames, int from, int to) {
-        var first = from + 1;
-        var end = to;
-        while (first < end && !frameSpacing(frames.time(from), frames.time(first))) first++;
-        while (first < end && !frameSpacing(frames.time(end - 1), frames.time(to))) end--;
-        if (first == end) return FloatList.of();
+    private static @NotNull FloatList rotationSplits(@NotNull Float2ObjectFunction<RotationFrame> sampler, float from, float to) {
+        var start = sampler.get(from);
+        var end = sampler.get(to);
+        var first = new RotationSample(from, start.world);
+        var last = new RotationSample(to, end.world);
+        if (canInterpolateRotation(List.of(first, last), 0, 1) && !start.hasFullTurnTo(end)) return FloatList.of();
 
-        var samples = new ArrayList<RotationSample>(end - first + 2);
-        samples.add(frames.rotationSample(from));
-        for (int j = first; j < end; j++) samples.add(frames.rotationSample(j));
-        samples.add(frames.rotationSample(to));
+        var samples = new ArrayList<RotationSample>();
+        samples.add(first);
+        for (long tick = (long) Math.floor((double) from * MINECRAFT_TICKS_PER_SECOND) + 1; ; tick++) {
+            var time = tick * MINECRAFT_TICK_SECONDS;
+            if (!frameSpacing(time, to)) break;
+            if (frameSpacing(from, time) && time > samples.getLast().time) {
+                samples.add(new RotationSample(time, sampler.get(time).world));
+            }
+        }
+        if (samples.size() == 1) return FloatList.of();
+        samples.add(last);
         return canInterpolateRotation(samples, 0, samples.size() - 1) ? FloatList.of() : rotationSplits(samples);
     }
 
-
-    private record EulerFrames(
-        @NotNull FloatArrayList times,
-        @NotNull Int2ObjectFunction<Quaternionf[]> function
-    ) {
-        float time(int index) {
-            return times.getFloat(index);
-        }
-
-        @NotNull Quaternionf[] rotation(int time) {
-            return function.apply(time);
-        }
-
-        @NotNull RotationSample rotationSample(int time) {
-            return new RotationSample(time(time), rotation(time));
+    private record RotationFrame(@NotNull Vector3f[] localEuler, @NotNull Quaternionf[] world) {
+        boolean hasFullTurnTo(@NotNull RotationFrame end) {
+            for (int i = 0; i < localEuler.length; i++) {
+                var a = localEuler[i];
+                var b = end.localEuler[i];
+                if (Math.abs(b.x - a.x) >= 360F || Math.abs(b.y - a.y) >= 360F || Math.abs(b.z - a.z) >= 360F) return true;
+            }
+            return false;
         }
     }
 
@@ -194,37 +175,29 @@ public final class AnimationGenerator {
             && end - start > MathUtil.FRAME_EPSILON;
     }
 
-    private @NotNull EulerFrames sampleEuler(@NotNull FloatArrayList times) {
-        return new EulerFrames(times, samplerFunction(times));
-    }
-
-    private @NotNull Int2ObjectFunction<Quaternionf[]> samplerFunction(@NotNull FloatArrayList times) {
+    private @NotNull Float2ObjectFunction<RotationFrame> samplerFunction() {
         var functions = Arrays.stream(trees)
             .map(tree -> {
-                var data = tree.data;
-                if (data == null) {
-                    var value = MathUtil.toQuaternion(tree.boneRotation);
-                    return (SamplerFunction) _ -> value.get(new Quaternionf());
-                }
-                var interpolator = InterpolationUtil.interpolatorFor(data.rotation());
-                return (SamplerFunction) f -> MathUtil.toQuaternion(interpolator.build(f).vector().eval().add(tree.boneRotation));
+                if (tree.data == null) return (SamplerFunction) _ -> tree.boneRotation;
+                var interpolator = InterpolationUtil.interpolatorFor(tree.data.rotation());
+                return (SamplerFunction) f -> interpolator.build(f).vector().eval().add(tree.boneRotation);
             })
             .toArray(SamplerFunction[]::new);
-        var memoize = new ConcurrentHashMap<Integer, Quaternionf[]>();
-        return k -> memoize.computeIfAbsent(k, key -> {
-            var array = new Quaternionf[trees.length];
-            var i = 0;
-            var time = times.getFloat(key);
-            for (SamplerFunction function : functions) {
-                var value = function.get(time);
-                if (inheritsRotation(i)) array[parents[i]].mul(value, value);
-                array[i++] = value;
+        var memoize = new ConcurrentHashMap<Float, RotationFrame>();
+        return time -> memoize.computeIfAbsent(time, key -> {
+            var local = new Vector3f[trees.length];
+            var world = new Quaternionf[trees.length];
+            for (int i = 0; i < trees.length; i++) {
+                local[i] = functions[i].get(key.floatValue());
+                var value = MathUtil.toQuaternion(local[i]);
+                if (inheritsRotation(i)) world[parents[i]].mul(value, value);
+                world[i] = value;
             }
-            return array;
+            return new RotationFrame(local, world);
         });
     }
 
-    private interface SamplerFunction extends Float2ObjectFunction<Quaternionf> {}
+    private interface SamplerFunction extends Float2ObjectFunction<Vector3f> {}
 
     private boolean inheritsRotation(int bone) {
         var data = trees[bone].data;

@@ -8,8 +8,7 @@
 package kr.toxicity.model.api.data.blueprint;
 
 import it.unimi.dsi.fastutil.floats.FloatAVLTreeSet;
-import it.unimi.dsi.fastutil.floats.FloatArrayList;
-import it.unimi.dsi.fastutil.ints.Int2ObjectFunction;
+import it.unimi.dsi.fastutil.floats.Float2ObjectFunction;
 import it.unimi.dsi.fastutil.floats.FloatSortedSet;
 import kr.toxicity.model.api.animation.keyframe.Keyframe;
 import kr.toxicity.model.api.animation.keyframe.KeyframePoint;
@@ -76,37 +75,40 @@ class AnimationGeneratorTest {
         ctor.setAccessible(true);
         Function<Group, AnimatorData> lookup = group -> group == parent ? data(parent, false, rotation) : null;
         var generator = ctor.newInstance(lookup, List.of(parent));
-        var method = AnimationGenerator.class.getDeclaredMethod("samplerFunction", FloatArrayList.class);
+        var method = AnimationGenerator.class.getDeclaredMethod("samplerFunction");
         method.setAccessible(true);
-        var sampler = (Int2ObjectFunction<?>) method.invoke(generator, new FloatArrayList(new float[]{0, 1}));
-        var first = (Quaternionf[]) sampler.get(0);
+        var sampler = (Float2ObjectFunction<?>) method.invoke(generator);
+        var frame = sampler.get(0F);
+        var world = frame.getClass().getDeclaredMethod("world");
+        world.setAccessible(true);
+        var first = (Quaternionf[]) world.invoke(frame);
         var snapshot = new Quaternionf(first[1]);
-        var last = (Quaternionf[]) sampler.get(1);
+        var last = (Quaternionf[]) world.invoke(sampler.get(1F));
         assertNotSame(first[1], last[1]);
         assertEquals(snapshot, first[1]);
-        assertSame(first, sampler.get(0));
+        assertSame(frame, sampler.get(0F));
         var parentEnd = MathUtil.toQuaternion(new Vector3f(0, 90, 0));
         assertEquals(parentEnd, last[0]);
         assertEquals(parentEnd.mul(snapshot), last[1]);
     }
 
     @Test
-    void samplesTimeDependentRotationEvenWhenBothEndpointsAreZero() throws ReflectiveOperationException {
+    void skipsIntermediateTicksWhenBothEndpointsAreSafe() throws ReflectiveOperationException {
         var bone = group("bone", Float3.ZERO);
         var pulse = new KeyframePoint(context -> KeyframeVector.of(
             Keyframe.of(context.animTime() == 0.25F ? 160F : 0F), Keyframe.ZERO, Keyframe.ZERO
         ), 0F, KeyframePoint.EMPTY.bezier(), VectorInterpolator.LINEAR);
         var frames = split(1F, bone, data(bone, false, List.of(pulse, point(1F, 0, 0, 0))));
-        assertTrue(frames.contains(0.25F));
+        assertArrayEquals(new float[]{0F, 1F}, frames.toFloatArray());
     }
 
     @Test
     void insertsTheMinimumForSingleAxisTurns() throws ReflectiveOperationException {
         var bone = group("bone", Float3.ZERO);
-        for (int angle : new int[]{90, 179, 180, 270, 360}) {
+        for (int angle : new int[]{90, 179, 180, 270, 360, 720}) {
             var rotation = axis(1, angle);
             var frames = split(1, bone, data(bone, false, rotation));
-            var count = angle >= 360 ? 2 : angle >= 180 ? 1 : 0;
+            var count = angle == 720 ? 4 : angle >= 360 ? 2 : angle >= 180 ? 1 : 0;
             assertEquals(count + 2, frames.size(), () -> "Angle " + angle + ": " + frames);
             assertSafeXAxisSegments(frames, rotation);
         }
@@ -190,6 +192,23 @@ class AnimationGeneratorTest {
             var angle = interpolate.build(time).vector().eval().x;
             assertTrue(Math.abs(angle - previous) < 179.9F, () -> "Unsafe frame at " + time);
             previous = angle;
+        }
+    }
+
+    @Test
+    void evaluatesOnlyEndpointsUnlessTheRotationNeedsTickSamples() throws ReflectiveOperationException {
+        var bone = group("bone", Float3.ZERO);
+        for (int angle : new int[]{90, 270, 720}) {
+            var evaluated = new FloatAVLTreeSet();
+            var end = point(1F, angle, 0, 0);
+            var start = new KeyframePoint(context -> {
+                evaluated.add(context.animTime());
+                return KeyframeVector.ZERO;
+            }, 0F, KeyframePoint.EMPTY.bezier(), VectorInterpolator.LINEAR);
+            var frames = split(1F, bone, data(bone, false, List.of(start, end)));
+            // The end point is evaluated separately. The start supplies every interior linear sample.
+            assertEquals(angle == 90 ? 1 : 20, evaluated.size());
+            for (var time : frames) assertEquals(Math.round(time * 20F) * 0.05F, time);
         }
     }
 
