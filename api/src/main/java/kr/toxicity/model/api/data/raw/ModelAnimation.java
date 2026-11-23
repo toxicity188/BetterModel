@@ -9,7 +9,8 @@ package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonPrimitive;
 import com.google.gson.annotations.SerializedName;
-import it.unimi.dsi.fastutil.objects.ObjectAVLTreeSet;
+import it.unimi.dsi.fastutil.floats.Float2ObjectAVLTreeMap;
+import it.unimi.dsi.fastutil.floats.Float2ObjectMap;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.AnimationIterator;
 import kr.toxicity.model.api.animation.AnimationProgress;
@@ -126,23 +127,21 @@ public record ModelAnimation(
      * @return the effect script with its original duration metadata
      */
     private @NotNull BlueprintScript toScript(@NotNull ModelAnimator animator, @NotNull ModelPlaceholder placeholder) {
-        var set = new ObjectAVLTreeSet<TimeScript>();
-        set.add(TimeScript.EMPTY);
-        set.add(TimeScript.EMPTY.time(tickTime()));
+        var set = new Float2ObjectAVLTreeMap<List<AnimationScript>>();
+        set.computeIfAbsent(0F, _ -> new ArrayList<>()).add(AnimationScript.EMPTY);
+        set.computeIfAbsent(tickTime(), _ -> new ArrayList<>()).add(AnimationScript.EMPTY);
         animator.stream()
             .filter(f -> f.point().hasScript())
-            .map(d -> AnimationScript.of(Arrays.stream(placeholder.parseVariable(d.point().script()).split("\n"))
+            .forEach(d -> Arrays.stream(placeholder.parseVariable(d.point().script()).split("\n"))
                 .map(BetterModel.platform().manager(ScriptManager.class)::build)
                 .filter(Objects::nonNull)
-                .toList())
-                .time(d.tickTime()))
-            .forEach(set::add);
+                .forEach(script -> set.computeIfAbsent(d.tickTime(), _ -> new ArrayList<>()).add(script)));
         var array = new TimeScript[set.size()];
         var before = 0F;
         var i = 0;
-        for (TimeScript timeScript : set) {
-            var t = timeScript.time();
-            array[i++] = timeScript.time(t - before);
+        for (Float2ObjectMap.Entry<List<AnimationScript>> entry : set.float2ObjectEntrySet()) {
+            var t = entry.getFloatKey();
+            array[i++] = AnimationScript.of(entry.getValue()).time(t - before);
             before = t;
         }
         return new BlueprintScript(

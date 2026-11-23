@@ -338,6 +338,19 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
     }
 
     /**
+     * Registers a handler to run every N Minecraft ticks.
+     *
+     * @deprecated use Tracker#schedule instead.
+     * @param tick the interval in Minecraft ticks
+     * @param handler the packet handler
+     * @since 1.15.2
+     */
+    @Deprecated
+    public void tick(long tick, @NotNull Consumer<TrackerBundlerSet> handler) {
+        schedule(tick, handler);
+    }
+
+    /**
      * Registers a periodic handler on the tracker's 50 ms tick schedule.
      * The handler runs when the tracker tick count is a multiple of the period.
      * <pre>{@code
