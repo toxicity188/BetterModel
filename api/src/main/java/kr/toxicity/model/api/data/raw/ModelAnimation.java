@@ -195,7 +195,7 @@ public record ModelAnimation(
         var rotation = new ArrayList<KeyframePoint>();
         var scale = new ArrayList<KeyframePoint>();
         var version = context.model.meta.formatVersion();
-        animator.stream().filter(keyframe -> keyframe.time() <= tickTime()).forEach(keyframe -> {
+        animator.stream().filter(keyframe -> keyframe.time() <= length()).forEach(keyframe -> {
             switch (keyframe.channel()) {
                 case POSITION -> position.add(keyframe.point(context, version.positionAxis()));
                 case ROTATION -> rotation.add(keyframe.point(context, version.rotationAxis()));
