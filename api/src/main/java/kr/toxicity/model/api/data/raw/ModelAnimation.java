@@ -132,7 +132,8 @@ public record ModelAnimation(
         set.computeIfAbsent(tickTime(), _ -> new ArrayList<>()).add(AnimationScript.EMPTY);
         animator.stream()
             .filter(f -> f.point().hasScript())
-            .forEach(d -> Arrays.stream(placeholder.parseVariable(d.point().script()).split("\n"))
+            .forEach(d -> Arrays.stream(d.point().script().split("\n"))
+                .map(placeholder)
                 .map(BetterModel.platform().manager(ScriptManager.class)::build)
                 .filter(Objects::nonNull)
                 .forEach(script -> set.computeIfAbsent(d.tickTime(), _ -> new ArrayList<>()).add(script)));

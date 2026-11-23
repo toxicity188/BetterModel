@@ -83,10 +83,11 @@ public interface AnimationScript extends Consumer<Tracker> {
             case 1 -> scriptList.getFirst();
             default -> {
                 var sync = false;
-                Consumer<Tracker> consumer = _ -> {};
-                for (AnimationScript entityScript : scriptList) {
-                    sync |= entityScript.isSync();
-                    consumer = consumer.andThen(entityScript);
+                Consumer<Tracker> consumer = EMPTY;
+                for (AnimationScript script : scriptList) {
+                    if (script == EMPTY) continue;
+                    sync |= script.isSync();
+                    consumer = consumer == EMPTY ? script : consumer.andThen(script);
                 }
                 yield of(sync, consumer);
             }
