@@ -121,6 +121,17 @@ fabricModJson {
         issues = "https://github.com/toxicity188/BetterModel/issues"
         homepage = "https://modrinth.com/plugin/bettermodel"
     }
+    modMenu {
+        links = mapOf(
+            "modmenu.modrinth" to "https://modrinth.com/plugin/bettermodel",
+            "modmenu.github_releases" to "https://github.com/toxicity188/BetterModel/releases",
+            "modmenu.wiki" to "https://github.com/toxicity188/BetterModel/wiki",
+            "modmenu.discord" to "https://discord.com/invite/rePyFESDbk",
+            "modmenu.github_sponsors" to "https://github.com/sponsors/toxicity188",
+            "modmenu.buymeacoffee" to "https://buymeacoffee.com/toxicity188",
+            "modmenu.paypal" to "https://www.paypal.com/paypalme/toxicity188?country.x=KR&locale.x=en_US"
+        )
+    }
     icon("assets/icon.png")
     mitLicense()
 
