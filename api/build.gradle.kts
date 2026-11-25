@@ -4,4 +4,5 @@ plugins {
 
 dependencies {
     compileOnly(libs.bundles.minecraft)
+    testImplementation(libs.bundles.minecraft)
 }

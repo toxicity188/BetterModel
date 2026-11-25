@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.nms;
 
 import kr.toxicity.model.api.BetterModel;
@@ -45,7 +46,7 @@ public interface NMS {
      * @since 1.15.2
      */
     default @NotNull ModelDisplay create(@NotNull PlatformLocation location) {
-        return create(location, 0, d -> {});
+        return create(location, 0, _ -> {});
     }
 
     /**
@@ -111,15 +112,6 @@ public interface NMS {
      * @since 1.15.2
      */
     @NotNull PacketBundler createBundler(int initialCapacity);
-
-    /**
-     * Creates a parallel packet bundler with a size threshold.
-     *
-     * @param threshold the size threshold for parallel processing
-     * @return the packet bundler
-     * @since 1.15.2
-     */
-    @NotNull PacketBundler createParallelBundler(int threshold);
 
     /**
      * Creates a mod animation bundler.
@@ -227,15 +219,6 @@ public interface NMS {
     @NotNull ModelProfile profile(@NotNull PlatformPlayer player);
 
     /**
-     * Creates a player head item stack from a model profile.
-     *
-     * @param profile the model profile
-     * @return the player head item
-     * @since 1.15.2
-     */
-    @NotNull PlatformItemStack createPlayerHead(@NotNull ModelProfile profile);
-
-    /**
      * Creates a custom skin item stack.
      *
      * @param model the model name
@@ -246,9 +229,7 @@ public interface NMS {
      * @return the transformed item stack
      * @since 1.15.2
      */
-    default @NotNull TransformedItemStack createSkinItem(@NotNull String model, @NotNull List<Float> floats, @NotNull List<Boolean> flags, @NotNull List<String> strings, @NotNull List<Integer> colors) {
-        return TransformedItemStack.empty();
-    }
+    @NotNull TransformedItemStack createSkinItem(@NotNull String model, @NotNull List<Float> floats, @NotNull List<Boolean> flags, @NotNull List<String> strings, @NotNull List<Integer> colors);
 
     /**
      * Checks if the server is in online mode (either natively or via proxy).

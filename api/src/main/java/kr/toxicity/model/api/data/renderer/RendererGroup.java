@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.data.renderer;
 
 import kr.toxicity.model.api.BetterModel;
@@ -45,7 +46,7 @@ public final class RendererGroup {
     @Getter
     private final @Nullable ModelBoundingBox hitBox;
     @Getter
-    private final @NotNull Vector3f hitBoxPoint;
+    private final @NotNull BonePosition hitboxPosition;
 
     @Getter
     private final @NotNull BoneItemMapper itemMapper;
@@ -79,7 +80,7 @@ public final class RendererGroup {
         this.itemMapper = name().toItemMapper();
         this.position = group.origin().toBlockScale().toVector();
         this.hitBox = box;
-        this.hitBoxPoint = box == null ? new Vector3f() : box.centerPoint();
+        this.hitboxPosition = new BonePosition(new Vector3f(), box == null ? new Vector3f() : box.centerPoint(), null);
         this.rotation = group.rotation().toVector();
         if (name().tagged(BoneTags.SEAT)) {
             mountController = BetterModel.config().defaultMountController();
@@ -113,11 +114,11 @@ public final class RendererGroup {
 
     /**
      * Creates entity.
-     * @param source source
+     * @param context context
      * @return entity
      */
-    public @NotNull RenderedBone create(@NotNull RenderSource<?> source) {
-        return create(source.fallbackContext(), null);
+    public @NotNull RenderedBone create(@NotNull BoneRenderContext context) {
+        return create(context, null);
     }
 
     private @NotNull RenderedBone create(@NotNull BoneRenderContext context, @Nullable RenderedBone parentBone) {

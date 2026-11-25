@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.bukkit.compatibility.mythicmobs.mechanic
 
 import io.lumine.mythic.api.adapters.AbstractEntity
@@ -14,7 +15,7 @@ import io.lumine.mythic.api.skills.SkillResult
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.*
 import kr.toxicity.model.util.boneName
 
-class DismountModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), ITargetedEntitySkill {
+internal class DismountModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), ITargetedEntitySkill {
 
     private val driver = mlc.toPlaceholderBoolean(arrayOf("driver", "d", "drive"), true)
     private val seat = mlc.toPlaceholderStringList(MM_SEAT) {

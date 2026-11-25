@@ -1,20 +1,18 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonPrimitive;
-import kr.toxicity.model.api.BetterModel;
-import kr.toxicity.model.api.util.function.Float2FloatConstantFunction;
-import kr.toxicity.model.api.util.function.Float2FloatFunction;
-import kr.toxicity.model.api.util.function.FloatFunction;
+import kr.toxicity.model.api.animation.keyframe.KeyframeDatapoint;
+import kr.toxicity.model.api.animation.keyframe.KeyframeDatapointVector;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Vector3f;
 
 import java.util.Objects;
 
@@ -61,49 +59,21 @@ public record ModelDatapoint(
     }
 
     /**
-     * Converts this data point into a function that returns a {@link Vector3f}.
-     * <p>
-     * If the data point contains static values, it returns a constant function.
-     * If it contains Molang expressions, it compiles them into a function that evaluates the expressions.
-     * </p>
+     * Converts the coordinates to datapoints, resolving placeholders in Molang expressions.
+     * Null or blank coordinates default to zero.
+     * <pre>{@code
+     * var vector = datapoint.toVector(context);
+     * }</pre>
      *
-     * @param context the model loading context
-     * @return a function to get the vector value
-     * @since 1.15.2
+     * @param context the model loading context containing placeholders
+     * @return the coordinate datapoints
+     * @since 3.7.0
      */
-    public @NotNull FloatFunction<Vector3f> toFunction(@NotNull ModelLoadContext context) {
-        var xb = build(x, context);
-        var yb = build(y, context);
-        var zb = build(z, context);
-        if (xb instanceof Float2FloatConstantFunction(float xc)
-            && yb instanceof Float2FloatConstantFunction(float yc)
-            && zb instanceof Float2FloatConstantFunction(float zc)
-        ) {
-            return FloatFunction.of(new Vector3f(xc, yc, zc));
-        } else {
-            return f -> new Vector3f(
-                xb.applyAsFloat(f),
-                yb.applyAsFloat(f),
-                zb.applyAsFloat(f)
-            );
-        }
-    }
-
-    private static @NotNull Float2FloatFunction build(@Nullable JsonPrimitive primitive, @NotNull ModelLoadContext context) {
-        if (primitive == null) return Float2FloatFunction.ZERO;
-        if (primitive.isNumber()) return Float2FloatFunction.of(primitive.getAsFloat());
-        var string = primitive.getAsString().trim();
-        if (string.isEmpty()) return Float2FloatFunction.ZERO;
-        try {
-            return Float2FloatFunction.of(Float.parseFloat(string));
-        } catch (NumberFormatException ignored) {
-            return context.trySupply(
-                () -> BetterModel.platform().evaluator().compile(context.placeholder.parseVariable(string)),
-                error -> new ModelLoadContext.Fallback<>(
-                    Float2FloatFunction.ZERO,
-                    "Cannot parse this datapoint: " + primitive + ", reason: " + error.getMessage()
-                )
-            );
-        }
+    public @NotNull KeyframeDatapointVector toVector(@NotNull ModelLoadContext context) {
+        return KeyframeDatapointVector.of(
+            KeyframeDatapoint.fromJson(x, context.placeholder),
+            KeyframeDatapoint.fromJson(y, context.placeholder),
+            KeyframeDatapoint.fromJson(z, context.placeholder)
+        );
     }
 }

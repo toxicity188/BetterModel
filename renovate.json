@@ -5,14 +5,30 @@
     ],
     "ignoreDeps": [
         "org.jetbrains:annotations",
-        "org.incendo:cloud-paper",
-        "org.incendo:cloud-fabric",
-        "io.papermc.parchment.data:parchment",
         "net.fabricmc.fabric-api:fabric-api",
-        "fabric-loom",
-        "eu.pb4:polymer-resource-pack"
+        "net.fabricmc.fabric-loom-repositories"
     ],
     "baseBranches": [
-        "v2-dev"
+        "v3-dev"
+    ],
+    "packageRules": [
+        {
+            "matchPackageNames": [
+                "com.viaversion:viaversion-api"
+            ],
+            "registryUrls": [
+                "https://repo.viaversion.com"
+            ],
+            "versioning": "semver"
+        },
+        {
+            "matchPackageNames": [
+                "com.github.SkriptLang:Skript"
+            ],
+            "registryUrls": [
+                "https://repo.skriptlang.org/releases"
+            ],
+            "versioning": "semver"
+        }
     ]
 }

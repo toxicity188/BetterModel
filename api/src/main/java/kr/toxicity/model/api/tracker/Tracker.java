@@ -1,12 +1,16 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.tracker;
 
-import kr.toxicity.model.api.animation.*;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import kr.toxicity.model.api.animation.AnimationModifier;
+import kr.toxicity.model.api.animation.AnimationStateHandler;
+import kr.toxicity.model.api.animation.keyframe.KeyframeRuntimeContext;
 import kr.toxicity.model.api.bone.BoneMovement;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.bone.BoneTags;
@@ -27,7 +31,6 @@ import kr.toxicity.model.api.util.*;
 import kr.toxicity.model.api.util.function.BonePredicate;
 import kr.toxicity.model.api.util.function.FloatSupplier;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,7 +52,7 @@ import java.util.stream.Stream;
  *
  * @since 1.15.2
  */
-public abstract class Tracker implements AutoCloseable {
+public sealed abstract class Tracker implements AutoCloseable permits EntityTracker, DummyTracker {
 
     private static final ScheduledExecutorService EXECUTOR = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() * 2, new ThreadFactory() {
 
@@ -65,15 +68,10 @@ public abstract class Tracker implements AutoCloseable {
         }
     });
     /**
-     * The interval in milliseconds between tracker ticks.
+     * The interval in milliseconds between tracker ticks, matching one Minecraft tick.
      * @since 1.15.2
      */
-    public static final int TRACKER_TICK_INTERVAL = 25;
-    /**
-     * The multiplier to convert tracker ticks to Minecraft ticks (50ms).
-     * @since 1.15.2
-     */
-    public static final int MINECRAFT_TICK_MULTIPLIER = MathUtil.MINECRAFT_TICK_MILLS / TRACKER_TICK_INTERVAL;
+    public static final int TRACKER_TICK_INTERVAL = 50;
 
     @Getter
     protected final RenderPipeline pipeline;
@@ -85,8 +83,8 @@ public abstract class Tracker implements AutoCloseable {
     private final AtomicBoolean forRemoval = new AtomicBoolean();
     private final AtomicBoolean firstStart = new AtomicBoolean();
     protected final TrackerModifier modifier;
-    private final Runnable updater;
-    private final BundlerSet bundlerSet;
+    private final TrackerAnimationTicker animationTicker;
+    private final TrackerBundlerSet bundlerSet;
     private final FloatSupplier heightSupplier = FunctionUtil.throttleTickFloat(TRACKER_TICK_INTERVAL, new FloatSupplier() {
 
         private final BoneMovement heightCache = new BoneMovement();
@@ -103,7 +101,7 @@ public abstract class Tracker implements AutoCloseable {
     });
     private final AnimationStateHandler<TimeScript> scriptProcessor = new AnimationStateHandler<>(
         TimeScript.EMPTY,
-        (b, a) -> {
+        (b, _) -> {
             if (b == null) return;
             if (b.isSync()) {
                 location().task(() -> b.accept(this));
@@ -114,59 +112,53 @@ public abstract class Tracker implements AutoCloseable {
     protected ModelRotator rotator = ModelRotator.YAW;
     protected ModelScaler scaler = ModelScaler.entity();
     private Supplier<ModelRotation> rotationSupplier = () -> ModelRotation.EMPTY;
-    private BiConsumer<Tracker, CloseReason> closeEventHandler = (t, r) -> EventUtil.call(CloseTrackerEvent.class, () -> new CloseTrackerEvent(t, r));
+    private BiConsumer<Tracker, TrackerCloseReason> closeEventHandler = (t, r) -> EventUtil.call(CloseTrackerEvent.class, () -> new CloseTrackerEvent(t, r));
 
-    private ScheduledPacketHandler handler = (t, s) -> {
-        if (!tickPause.get()) {
-            scriptProcessor.tick();
-            t.pipeline.tick(s.getViewBundler());
-        }
-    };
+    private final KeyframeRuntimeContext keyframeContext;
+    private volatile List<Consumer<TrackerBundlerSet>> tickHandlers = new ObjectArrayList<>();
     private BiConsumer<Tracker, PlatformPlayer> perPlayerHandler = null;
 
     /**
-     * Creates a new tracker.
+     * Creates a new tracker with the context used for runtime animation evaluation.
+     * The tracker retains the supplied context.
+     *
+     * <pre>{@code
+     * // Inside an entity tracker constructor
+     * super(pipeline, modifier, registry.keyframeContext);
+     * }</pre>
      *
      * @param pipeline the render pipeline
      * @param modifier the tracker modifier
-     * @since 1.15.2
+     * @param keyframeContext the runtime context for this tracker's Molang queries
+     * @since 3.7.0
      */
-    public Tracker(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier) {
+    public Tracker(@NotNull RenderPipeline pipeline, @NotNull TrackerModifier modifier, @NotNull KeyframeRuntimeContext keyframeContext) {
         this.pipeline = pipeline;
         this.modifier = modifier;
-        bundlerSet = new BundlerSet();
-        updater = () -> {
-            try {
-                if (frame % MINECRAFT_TICK_MULTIPLIER == 0) {
-                    Runnable task;
-                    while ((task = queuedTask.poll()) != null) task.run();
-                }
-                handler.handle(this, bundlerSet);
-                bundlerSet.send();
-            } catch (Throwable throwable) {
-                LogUtil.handleException("Ticking this tracker has been failed: " + name(), throwable);
-            }
-        };
+        this.keyframeContext = keyframeContext;
+        this.animationTicker = new TrackerAnimationTicker(pipeline, this.keyframeContext);
+        this.bundlerSet = new TrackerBundlerSet(pipeline);
         if (modifier.sightTrace()) pipeline.viewFilter(p -> EntityUtil.canSee(p.eyeLocation(), location()));
-        frame((t, s) -> {
-            if (readyForForceUpdate.compareAndSet(true, false)) t.pipeline.forEach(b -> b.dirtyUpdate(s.dataBundler));
+        frame(set -> {
+            if (readyForForceUpdate.compareAndSet(true, false)) pipeline.forEach(b -> b.dirtyUpdate(set.dataBundler()));
         });
-        tick((t, s) -> pipeline.rotate(
-            t.rotation(),
-            s.tickBundler
+        tick(set -> pipeline.rotate(
+            rotation(),
+            set.tickBundler()
         ));
-        tick((t, s) -> {
+        tick(_ -> {
             var perPlayer = perPlayerHandler;
-            if (perPlayer != null) pipeline.nonHidePlayer().forEach(p -> perPlayer.accept(t, p.player()));
+            if (perPlayer != null) pipeline.forEachNonHidePlayer(p -> perPlayer.accept(this, p.player()));
         });
-        pipeline.spawnPacketHandler(p -> start());
-        pipeline.eventDispatcher().handleStateCreate((bone, uuid) -> bundlerSet.perPlayerViewBundler
-            .computeIfAbsent(uuid, PerPlayerCache::new)
-            .add());
-        pipeline.eventDispatcher().handleStateRemove((bone, uuid) -> {
-            var get = bundlerSet.perPlayerViewBundler.get(uuid);
-            if (get != null) get.remove();
-        });
+        pipeline.spawnPacketHandler(_ -> start());
+        pipeline.eventDispatcher().handleStateCreate((_, uuid) -> animationTicker.countAdd(
+            uuid,
+            channel -> EventUtil.call(PlayerPerAnimationStartEvent.class, () -> new PlayerPerAnimationStartEvent(this, channel.player())))
+        );
+        pipeline.eventDispatcher().handleStateRemove((_, uuid) -> animationTicker.countRemove(
+            uuid,
+            channel -> EventUtil.call(PlayerPerAnimationEndEvent.class, () -> new PlayerPerAnimationEndEvent(this, channel.player()))
+        ));
         LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " tracker created: " + name());
         pipeline.getSource().completeContext().thenAccept(context -> {
             if (pipeline.matchTree(bone -> bone.updateItem(context))) forceUpdate(true);
@@ -191,14 +183,14 @@ public abstract class Tracker implements AutoCloseable {
             if (firstStart.compareAndSet(false, true)) {
                 TrackerBuiltInAnimation.play(this);
             }
-            updater.run();
+            tick();
             task = EXECUTOR.scheduleAtFixedRate(() -> {
                 if (playerCount() == 0 && !forRemoval.get()) {
                     shutdown();
                     return;
                 }
                 frame++;
-                updater.run();
+                tick();
             }, TRACKER_TICK_INTERVAL, TRACKER_TICK_INTERVAL, TimeUnit.MILLISECONDS);
             LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " scheduler started: " + name());
         }
@@ -213,6 +205,29 @@ public abstract class Tracker implements AutoCloseable {
             frame = 0;
             LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> getClass().getSimpleName() + " scheduler shutdown: " + name());
         }
+    }
+
+    /**
+     * Runs queued work before advancing animations and invoking tick handlers.
+     */
+    private void tick() {
+        Runnable task;
+        while ((task = queuedTask.poll()) != null) task.run();
+        animationTick();
+        tickHandlers.forEach(handler -> {
+            try {
+                handler.accept(bundlerSet);
+            } catch (Throwable throwable) {
+                LogUtil.handleException("Ticking this tracker has been failed: " + name(), throwable);
+            }
+        });
+        bundlerSet.send();
+    }
+
+    private void animationTick() {
+        if (tickPause.get()) return; // Pause
+        scriptProcessor.tick();
+        animationTicker.tick();
     }
 
     /**
@@ -276,32 +291,39 @@ public abstract class Tracker implements AutoCloseable {
     }
 
     /**
-     * Registers a handler to run every frame (tracker tick).
+     * Registers a handler to run every 50 ms tracker tick.
+     * <pre>{@code
+     * tracker.frame(handler);
+     * }</pre>
      *
      * @param handler the packet handler
+     * @throws NullPointerException if the handler is null
      * @since 1.15.2
      */
-    public synchronized void frame(@NotNull ScheduledPacketHandler handler) {
-        this.handler = this.handler.then(Objects.requireNonNull(handler));
+    public synchronized void frame(@NotNull Consumer<TrackerBundlerSet> handler) {
+        Objects.requireNonNull(handler);
+        var get = tickHandlers;
+        if (!isScheduled()) {
+            get.add(handler);
+        } else {
+            var newList = new ObjectArrayList<Consumer<TrackerBundlerSet>>(get.size() + 1);
+            newList.addAll(get);
+            newList.add(handler);
+            tickHandlers = newList;
+        }
     }
     /**
-     * Registers a handler to run every Minecraft tick (50ms).
+     * Registers a handler to run every tracker tick (50 ms).
+     * <pre>{@code
+     * tracker.tick(handler);
+     * }</pre>
      *
      * @param handler the packet handler
+     * @throws NullPointerException if the handler is null
      * @since 1.15.2
      */
-    public void tick(@NotNull ScheduledPacketHandler handler) {
-        tick(1, handler);
-    }
-    /**
-     * Registers a handler to run every N Minecraft ticks.
-     *
-     * @param tick the interval in Minecraft ticks
-     * @param handler the packet handler
-     * @since 1.15.2
-     */
-    public void tick(long tick, @NotNull ScheduledPacketHandler handler) {
-        schedule(MINECRAFT_TICK_MULTIPLIER * tick, handler);
+    public void tick(@NotNull Consumer<TrackerBundlerSet> handler) {
+        schedule(1, handler);
     }
 
     /**
@@ -316,17 +338,36 @@ public abstract class Tracker implements AutoCloseable {
     }
 
     /**
-     * Schedules a handler to run periodically.
+     * Registers a handler to run every N Minecraft ticks.
      *
-     * @param period the period in tracker ticks
+     * @deprecated use Tracker#schedule instead.
+     * @param tick the interval in Minecraft ticks
      * @param handler the packet handler
      * @since 1.15.2
      */
-    public void schedule(long period, @NotNull ScheduledPacketHandler handler) {
+    @Deprecated
+    public void tick(long tick, @NotNull Consumer<TrackerBundlerSet> handler) {
+        schedule(tick, handler);
+    }
+
+    /**
+     * Registers a periodic handler on the tracker's 50 ms tick schedule.
+     * The handler runs when the tracker tick count is a multiple of the period.
+     * <pre>{@code
+     * tracker.schedule(20, handler); // Every second
+     * }</pre>
+     *
+     * @param period the positive period in Minecraft ticks
+     * @param handler the packet handler
+     * @throws NullPointerException if the handler is null
+     * @throws RuntimeException if the period is zero or negative
+     * @since 1.15.2
+     */
+    public void schedule(long period, @NotNull Consumer<TrackerBundlerSet> handler) {
         Objects.requireNonNull(handler);
         if (period <= 0) throw new RuntimeException("period cannot be <= 0");
-        frame(period == 1 ? handler : (t, s) -> {
-            if (frame % period == 0) handler.handle(t, s);
+        frame(period == 1 ? handler : set -> {
+            if (frame % period == 0) handler.accept(set);
         });
     }
 
@@ -362,10 +403,10 @@ public abstract class Tracker implements AutoCloseable {
 
     @Override
     public void close() {
-        close(CloseReason.REMOVE);
+        close(TrackerCloseReason.REMOVE);
     }
 
-    protected void close(@NotNull CloseReason reason) {
+    protected void close(@NotNull TrackerCloseReason reason) {
         if (isClosed.compareAndSet(false, true)) {
             closeEventHandler.accept(this, reason);
             shutdown();
@@ -537,9 +578,15 @@ public abstract class Tracker implements AutoCloseable {
      * @since 1.15.2
      */
     public boolean animate(@NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
+        var match = false;
         var script = animation.script(modifier);
-        if (script != null) scriptProcessor.addAnimation(animation.name(), script.iterator(modifier), modifier, () -> {});
-        return pipeline.matchAnimation((b, a) -> b.addAnimation(a, animation, modifier, removeTask));
+        if (script != null) {
+            scriptProcessor.addAnimation(animation.name(), script.iterator(modifier), modifier, () -> {});
+            match = true;
+        }
+        match |= pipeline.matchAnimation((b, a) -> b.addAnimation(a, animation, modifier, removeTask));
+        if (match && isScheduled()) animationTick();
+        return match;
     }
 
     /**
@@ -550,7 +597,7 @@ public abstract class Tracker implements AutoCloseable {
      * @since 1.15.2
      */
     public boolean stopAnimation(@NotNull String animation) {
-        return stopAnimation(e -> true, animation);
+        return stopAnimation(_ -> true, animation);
     }
 
     /**
@@ -575,8 +622,11 @@ public abstract class Tracker implements AutoCloseable {
      * @since 1.15.2
      */
     public boolean stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String animation, @Nullable PlatformPlayer player) {
-        var script = scriptProcessor.stopAnimation(animation);
-        return pipeline.matchTree(b -> b.stopAnimation(filter, animation, player)) || script;
+        var match = false;
+        match |= scriptProcessor.stopAnimation(animation);
+        match |= pipeline.matchTree(b -> b.stopAnimation(filter, animation, player));
+        if (match && isScheduled()) animationTick();
+        return match;
     }
 
     /**
@@ -604,9 +654,15 @@ public abstract class Tracker implements AutoCloseable {
      * @since 1.15.2
      */
     public boolean replace(@NotNull String target, @NotNull BlueprintAnimation animation, @NotNull AnimationModifier modifier) {
+        var match = false;
         var script = animation.script(modifier);
-        if (script != null) scriptProcessor.replaceAnimation(target, script.iterator(modifier), modifier);
-        return pipeline.matchAnimation((b, a) -> b.replaceAnimation(a, target, animation, modifier));
+        if (script != null) {
+            scriptProcessor.replaceAnimation(target, script.iterator(modifier), modifier);
+            match = true;
+        }
+        match |= pipeline.matchAnimation((b, a) -> b.replaceAnimation(a, target, animation, modifier));
+        if (match && isScheduled()) animationTick();
+        return match;
     }
 
     //--- Listener ---
@@ -628,6 +684,10 @@ public abstract class Tracker implements AutoCloseable {
      * @since 2.1.0
      */
     public void listenHitBox(@NotNull BiFunction<RenderedBone, HitBoxListener.Builder, HitBoxListener.Builder> function) {
+        pipeline.hitboxes().forEach(hb -> {
+            var bone = hb.positionSource();
+            hb.listener(b -> function.apply(bone, b));
+        });
         pipeline.eventDispatcher().handleCreateHitBox(function);
     }
 
@@ -649,7 +709,7 @@ public abstract class Tracker implements AutoCloseable {
      * @since 2.1.0
      */
     public <T extends HitBoxEvent> void listenHitBox(@NotNull Class<T> eventClass, @NotNull Consumer<T> consumer) {
-        listenHitBox((bone, builder) -> builder.listen(eventClass, consumer));
+        listenHitBox((_, builder) -> builder.listen(eventClass, consumer));
     }
 
     /**
@@ -848,7 +908,7 @@ public abstract class Tracker implements AutoCloseable {
      * @param consumer the handler
      * @since 1.15.2
      */
-    public void handleCloseEvent(@NotNull BiConsumer<Tracker, CloseReason> consumer) {
+    public void handleCloseEvent(@NotNull BiConsumer<Tracker, TrackerCloseReason> consumer) {
         closeEventHandler = closeEventHandler.andThen(Objects.requireNonNull(consumer));
     }
 
@@ -906,6 +966,22 @@ public abstract class Tracker implements AutoCloseable {
         return forRemoval.get();
     }
 
+    /**
+     * Returns the runtime context used by this tracker's animations.
+     * Entity trackers in the same registry share a context. Each dummy tracker has its own context.
+     *
+     * <pre>{@code
+     * var context = tracker.keyframeContext();
+     * context.set("custom_weight", 0.5F);
+     * }</pre>
+     *
+     * @return the live context used to evaluate runtime keyframes
+     * @since 3.7.0
+     */
+    public final @NotNull KeyframeRuntimeContext keyframeContext() {
+        return keyframeContext;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == this) return true;
@@ -918,158 +994,8 @@ public abstract class Tracker implements AutoCloseable {
         return name().hashCode();
     }
 
-    /**
-     * Functional interface for handling scheduled packets.
-     *
-     * @since 1.15.2
-     */
-    @FunctionalInterface
-    public interface ScheduledPacketHandler {
-        /**
-         * Handles packets for a tracker.
-         *
-         * @param tracker the tracker
-         * @param bundlerSet the set of packet bundlers
-         * @since 1.15.2
-         */
-        void handle(@NotNull Tracker tracker, @NotNull BundlerSet bundlerSet);
-
-        /**
-         * Chains this handler with another.
-         *
-         * @param other the other handler
-         * @return the combined handler
-         * @since 1.15.2
-         */
-        default @NotNull ScheduledPacketHandler then(@NotNull ScheduledPacketHandler other) {
-            return (t, s) -> {
-                handle(t, s);
-                other.handle(t, s);
-            };
-        }
-    }
-
-    /**
-     * Holds different types of packet bundlers for a tracker tick.
-     *
-     * @since 1.15.2
-     */
-    public final class BundlerSet {
-        @Getter
-        private PacketBundler tickBundler = pipeline.createBundler();
-        @Getter
-        private PacketBundler dataBundler = pipeline.createBundler();
-        @Getter
-        private AnimationBundler viewBundler = pipeline.createAnimationBundler();
-
-        private final Map<UUID, PerPlayerCache> perPlayerViewBundler = new ConcurrentHashMap<>();
-
-        /**
-         * Private initializer
-         */
-        private BundlerSet() {
-        }
-
-        private void send() {
-            globalSend();
-            perPlayerSend();
-        }
-
-        private void perPlayerSend() {
-            if (perPlayerViewBundler.isEmpty()) return;
-            perPlayerViewBundler.values().forEach(PerPlayerCache::send);
-        }
-
-        private void globalSend() {
-            if (tickBundler.isNotEmpty()) {
-                pipeline.allPlayer().map(PlayerChannelHandler::player).forEach(tickBundler::send);
-                tickBundler = pipeline.createBundler();
-            }
-            if (dataBundler.isNotEmpty()) {
-                pipeline.nonHidePlayer().map(PlayerChannelHandler::player).forEach(dataBundler::send);
-                dataBundler = pipeline.createBundler();
-            }
-            if (viewBundler.isNotEmpty()) {
-                pipeline.viewedPlayer().filter(p -> !perPlayerViewBundler.containsKey(p.uuid())).forEach(viewBundler::send);
-                viewBundler = pipeline.createAnimationBundler();
-            }
-        }
-    }
-
-    @RequiredArgsConstructor
-    private final class PerPlayerCache {
-        private final UUID uuid;
-        private final AtomicInteger counter = new AtomicInteger();
-        private AnimationBundler bundler = pipeline.createAnimationBundler();
-
-        private @NotNull Optional<PlayerChannelHandler> channel() {
-            return Optional.ofNullable(pipeline.channel(uuid));
-        }
-
-        public void add() {
-            if (counter.getAndIncrement() == 0) {
-                channel().ifPresent(handler -> EventUtil.call(PlayerPerAnimationStartEvent.class, () -> new PlayerPerAnimationStartEvent(Tracker.this, handler.player())));
-            }
-        }
-
-        public void remove() {
-            if (counter.decrementAndGet() == 0) {
-                bundlerSet.perPlayerViewBundler.remove(uuid);
-                channel().ifPresent(handler -> {
-                    var bundler = pipeline.createBundler();
-                    pipeline.forEach(bone -> bone.forceTransformation(bundler));
-                    bundler.send(handler.player());
-                    EventUtil.call(PlayerPerAnimationEndEvent.class, () -> new PlayerPerAnimationEndEvent(Tracker.this, handler.player()));
-                });
-            }
-        }
-
-        private void send() {
-            if (pipeline.tick(uuid, bundler) && bundler.isNotEmpty()) {
-                channel().ifPresent(handler -> bundler.send(handler));
-                bundler = pipeline.createAnimationBundler();
-            }
-        }
-    }
-
     @Override
     public String toString() {
         return name();
-    }
-
-    /**
-     * Reason for closing a tracker.
-     *
-     * @since 1.15.2
-     */
-    @RequiredArgsConstructor
-    public enum CloseReason {
-        /**
-         * The tracker was manually removed.
-         * @since 1.15.2
-         */
-        REMOVE(false),
-        /**
-         * The plugin is being disabled.
-         * @since 1.15.2
-         */
-        PLUGIN_DISABLE(true),
-        /**
-         * The entity or tracker was despawned.
-         * @since 1.15.2
-         */
-        DESPAWN(true)
-        ;
-        private final boolean save;
-
-        /**
-         * Checks if the tracker state should be saved.
-         *
-         * @return true if it should be saved
-         * @since 1.15.2
-         */
-        public boolean shouldBeSave() {
-            return save;
-        }
     }
 }

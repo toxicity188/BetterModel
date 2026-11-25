@@ -1,12 +1,14 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.manager;
 
 import kr.toxicity.model.api.animation.AnimationModifier;
+import kr.toxicity.model.api.data.ModelImporter;
 import kr.toxicity.model.api.data.renderer.ModelRenderer;
 import kr.toxicity.model.api.platform.PlatformPlayer;
 import kr.toxicity.model.api.tracker.EntityTracker;
@@ -28,7 +30,29 @@ import java.util.function.Consumer;
  *
  * @since 1.15.2
  */
-public interface ModelManager {
+public interface ModelManager extends Manager {
+
+    /**
+     * Registers an importer for an extension, replacing any existing registration.
+     * Registrations survive model reloads. Importers must support concurrent loading.
+     * <p>Example: {@code manager.addImporter("custom", asset -> loadCustom(asset))}.</p>
+     *
+     * @param extension the extension without a leading dot, matched without case sensitivity
+     * @param importer the importer
+     * @since 3.7.0
+     */
+    void addImporter(@NotNull String extension, @NotNull ModelImporter importer);
+
+    /**
+     * Retrieves the importer registered for an extension.
+     * The built-in bbmodel importer is initially registered for {@code bbmodel} and {@code ajmodel}.
+     * <p>Example: {@code ModelImporter importer = manager.importer("bbmodel")}.</p>
+     *
+     * @param extension the extension without a leading dot, matched without case sensitivity
+     * @return the registered importer, or null if none is registered
+     * @since 3.7.0
+     */
+    @Nullable ModelImporter importer(@NotNull String extension);
 
     /**
      * Retrieves a model renderer by its name.
@@ -122,7 +146,7 @@ public interface ModelManager {
      * @since 1.15.2
      */
     default boolean animate(@NotNull PlatformPlayer player, @NotNull String model, @NotNull String animation, @NotNull AnimationModifier modifier) {
-        return animate(player, model, animation, modifier, t -> {});
+        return animate(player, model, animation, modifier, _ -> {});
     }
 
     /**

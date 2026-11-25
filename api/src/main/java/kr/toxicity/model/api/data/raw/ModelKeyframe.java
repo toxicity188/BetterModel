@@ -1,14 +1,17 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.annotations.SerializedName;
 import kr.toxicity.model.api.animation.Timed;
-import kr.toxicity.model.api.animation.VectorPoint;
+import kr.toxicity.model.api.animation.keyframe.KeyframeAxis;
+import kr.toxicity.model.api.animation.keyframe.KeyframePoint;
+import kr.toxicity.model.api.animation.keyframe.KeyframeVector;
 import kr.toxicity.model.api.data.Float3;
 import kr.toxicity.model.api.util.interpolator.VectorInterpolator;
 import org.jetbrains.annotations.ApiStatus;
@@ -18,7 +21,6 @@ import org.joml.Vector3f;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 
 /**
  * Represents a single keyframe in an animation timeline.
@@ -71,22 +73,34 @@ public record ModelKeyframe(
     }
 
     /**
-     * Converts this keyframe into a processed {@link VectorPoint}.
+     * Converts the first data point into an animation point with per-axis Bézier offsets.
+     * Missing handle vectors default to zero. The animation blend weight multiplies the mapped
+     * data point components; Bézier handle offsets are not weighted.
+     * <pre>{@code
+     * var point = keyframe.point(context, axis);
+     * }</pre>
      *
-     * @param context the model loading context
-     * @param function a transformation function to apply to the vector values (e.g., coordinate conversion)
-     * @return the vector point
-     * @since 1.15.2
+     * @param context the model loading context and animation blend weight
+     * @param axis the axis mapping applied to the vector and Bézier value offsets
+     * @return the animation point for this keyframe
+     * @throws java.util.NoSuchElementException if this keyframe has no data points
+     * @since 3.7.0
      */
-    public @NotNull VectorPoint point(@NotNull ModelLoadContext context, @NotNull Function<Vector3f, Vector3f> function) {
-        return new VectorPoint(
-            point().toFunction(context).map(function).memoize(),
+    public @NotNull KeyframePoint point(@NotNull ModelAnimation.AnimationContext context, @NotNull KeyframeAxis axis) {
+        var model = context.model();
+        var blendWeight = context.blendWeight();
+        var vec = point().toVector(model);
+        return new KeyframePoint(
+            ctx -> model.trySupply(
+                () -> vec.compile(ctx).withAxis(axis).weight(blendWeight.compile(ctx)),
+                ex -> new ModelLoadContext.Fallback<>(KeyframeVector.ZERO, "Unable to parse this keyframe: " + vec + ", Reason: " + ex.getMessage())
+            ),
             time(),
-            new VectorPoint.BezierConfig(
-                Optional.ofNullable(bezierLeftTime).map(Float3::toVector).orElse(null),
-                Optional.ofNullable(bezierLeftValue).map(Float3::toVector).map(function).orElse(null),
-                Optional.ofNullable(bezierRightTime).map(Float3::toVector).orElse(null),
-                Optional.ofNullable(bezierRightValue).map(Float3::toVector).map(function).orElse(null)
+            new KeyframePoint.BezierConfig(
+                Optional.ofNullable(bezierLeftTime).map(Float3::toVector).orElse(new Vector3f()),
+                Optional.ofNullable(bezierLeftValue).map(Float3::toVector).map(axis).orElse(new Vector3f()),
+                Optional.ofNullable(bezierRightTime).map(Float3::toVector).orElse(new Vector3f()),
+                Optional.ofNullable(bezierRightValue).map(Float3::toVector).map(axis).orElse(new Vector3f())
             ),
             interpolation()
         );

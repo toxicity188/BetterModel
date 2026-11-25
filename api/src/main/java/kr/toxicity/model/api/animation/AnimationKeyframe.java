@@ -1,195 +1,225 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.animation;
 
+import it.unimi.dsi.fastutil.floats.FloatSortedSet;
+import kr.toxicity.model.api.animation.keyframe.*;
 import kr.toxicity.model.api.bone.BoneMovement;
 import kr.toxicity.model.api.util.MathUtil;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Vector3f;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.IntStream;
 
-import static kr.toxicity.model.api.util.MathUtil.isNotZero;
+import static kr.toxicity.model.api.util.InterpolationUtil.interpolatorFor;
 
 /**
- * Represents a collection of animation keyframes, optimized for efficient storage and access.
- * <p>
- * This record stores an array of {@link AnimationProgress} objects, which define the state of a bone
- * at specific time intervals. It implements {@link TimedStorage} for indexed access.
- * </p>
+ * Stores the ordered animation progresses for a keyframe timeline.
  *
- * @param progresses the array of animation progresses
- * @since 2.0.0
+ * <pre>{@code
+ * AnimationKeyframe keyframe = new AnimationKeyframe(new AnimationProgress[0]);
+ * int count = keyframe.size();
+ * }</pre>
+ *
+ * @param progresses the ordered animation progresses
+ * @since 3.7.0
  */
 public record AnimationKeyframe(
     @NotNull AnimationProgress[] progresses
 ) implements TimedStorage<AnimationProgress> {
 
     /**
-     * Creates a new builder for constructing an AnimationKeyframe.
+     * Builds a timeline by sampling the transform channels at the supplied points.
+     * Each frame stores the time elapsed since the previous sample, starting at zero seconds.
+     * A discontinuity reported by any channel marks the frame to skip display interpolation.
+     * <pre>{@code
+     * var timeline = AnimationKeyframe.build(position, rotation, scale, rotationGlobal, sampleTimes);
+     * }</pre>
      *
-     * @param size the number of keyframes
-     * @param rotateGlobal whether rotation should be applied globally
-     * @return a new builder instance
-     * @since 2.0.0
+     * @param position position keyframe points
+     * @param rotation rotation keyframe points
+     * @param scale scale keyframe points
+     * @param rotationGlobal whether rotation is global
+     * @param points sorted sample times in seconds
+     * @return the sampled animation keyframe
+     * @since 3.7.0
      */
-    public static @NotNull Builder builder(int size, boolean rotateGlobal) {
-        return new Builder(size, rotateGlobal);
-    }
-
-    private record AnimationArray(
-        boolean rotateGlobal,
-        boolean[] skipInterpolation,
-        float[] times,
-        float[] position,
-        float[] scale,
-        float[] rotation
+    @NotNull
+    public static AnimationKeyframe build(
+        @NotNull List<KeyframePoint> position,
+        @NotNull List<KeyframePoint> rotation,
+        @NotNull List<KeyframePoint> scale,
+        boolean rotationGlobal,
+        @NotNull FloatSortedSet points
     ) {
-        AnimationArray(int size, boolean rotateGlobal) {
-            this(
-                rotateGlobal,
-                new boolean[size],
-                new float[size],
-                new float[size * 3],
-                new float[size * 3],
-                new float[size * 3]
+        var pp = interpolatorFor(position);
+        var rp = interpolatorFor(rotation);
+        var sp = interpolatorFor(scale);
+        var keyframe = new Builder(
+            points.size(),
+            position.stream().allMatch(KeyframePoint::isConstant),
+            rotation.stream().allMatch(KeyframePoint::isConstant),
+            scale.stream().allMatch(KeyframePoint::isConstant)
+        );
+        var before = 0F;
+        var iterator = points.iterator();
+        while (iterator.hasNext()) {
+            var f = iterator.nextFloat();
+            var pr = pp.build(f);
+            var rr = rp.build(f);
+            var sr = sp.build(f);
+            keyframe.write(
+                pr.vector(),
+                rr.vector(),
+                sr.vector(),
+                f - before,
+                pr.skipInterpolation() || sr.skipInterpolation() || rr.skipInterpolation()
             );
+            before = f;
         }
+        return keyframe.build(rotationGlobal);
     }
 
-    /**
-     * Builder for {@link AnimationKeyframe}.
-     * <p>
-     * This builder allows for efficient population of keyframe data using primitive arrays.
-     * </p>
-     *
-     * @since 2.0.0
-     */
-    public static final class Builder {
-        private final AnimationArray set;
-        private final AnimationProgress[] progresses;
+    private static final class Builder {
+        final int size;
+        final boolean[] skipInterpolation;
+        final float[] times;
 
-        private int index = 0;
+        final KeyframeTimeline.Builder position, rotation, scale;
 
-        private Builder(int size, boolean rotateGlobal) {
-            set = new AnimationArray(size, rotateGlobal);
-            progresses = new AnimationProgress[size];
+        int index = 0;
+
+        Builder(int size, boolean positionConstant, boolean rotationConstant, boolean scaleConstant) {
+            this.size = size;
+            times = new float[size];
+            skipInterpolation = new boolean[size];
+            position = positionConstant ? KeyframeTimeline.constantBuilder(size) : KeyframeTimeline.runtimeBuilder(size);
+            rotation = rotationConstant ? KeyframeTimeline.constantBuilder(size) : KeyframeTimeline.runtimeBuilder(size);
+            scale = scaleConstant ? KeyframeTimeline.constantBuilder(size) : KeyframeTimeline.runtimeBuilder(size);
         }
 
-        /**
-         * Writes a keyframe data point.
-         *
-         * @param time the time of the keyframe
-         * @param position the position vector
-         * @param scale the scale vector
-         * @param rotation the rotation vector
-         * @param skipInterpolation whether to skip interpolation for this keyframe
-         * @since 2.0.0
-         */
-        public void write(
+        void write(
+            @NotNull KeyframeVector pos,
+            @NotNull KeyframeVector rot,
+            @NotNull KeyframeVector scl,
             float time,
-            @NotNull Vector3f position,
-            @NotNull Vector3f scale,
-            @NotNull Vector3f rotation,
             boolean skipInterpolation
         ) {
+            position.append(pos);
+            rotation.append(rot);
+            scale.append(scl);
+
             var i = index++;
 
-            var x = i * 3;
-            var y = x + 1;
-            var z = x + 2;
-
-            set.times[i] = time;
-            set.position[x] = position.x;
-            set.position[y] = position.y;
-            set.position[z] = position.z;
-            set.scale[x] = scale.x + 1;
-            set.scale[y] = scale.y + 1;
-            set.scale[z] = scale.z + 1;
-            set.rotation[x] = rotation.x;
-            set.rotation[y] = rotation.y;
-            set.rotation[z] = rotation.z;
-            set.skipInterpolation[i] = skipInterpolation;
-
-            this.progresses[i] = isNotZero(position) || isNotZero(scale) || isNotZero(rotation) ? new ArrayProgress(set, i) : AnimationProgress.empty(time);
+            this.times[i] = time;
+            this.skipInterpolation[i] = skipInterpolation;
         }
 
-        /**
-         * Builds the {@link AnimationKeyframe}.
-         *
-         * @return the created keyframe collection
-         * @since 2.0.0
-         */
-        public @NotNull AnimationKeyframe build() {
-            return new AnimationKeyframe(progresses);
+        @NotNull AnimationKeyframe build(boolean rotateGlobal) {
+            var data = new ProgressData(
+                position.build(),
+                rotation.build(),
+                scale.build(),
+                times,
+                skipInterpolation,
+                rotateGlobal
+            );
+            return new AnimationKeyframe(IntStream.range(0, size)
+                .mapToObj(i -> data.isZero(i) ? AnimationProgress.empty(times[i], this.skipInterpolation[i], rotateGlobal) : new ArrayProgress(data, i))
+                .toArray(AnimationProgress[]::new));
         }
     }
 
-    private record ArrayProgress(@NotNull AnimationArray array, int index) implements AnimationProgress {
+    private record ProgressData(
+        @NotNull KeyframeTimeline position,
+        @NotNull KeyframeTimeline rotation,
+        @NotNull KeyframeTimeline scale,
+        float[] times,
+        boolean[] skipInterpolation,
+        boolean rotateGlobal
+    ) {
+        boolean isZero(int index) {
+            return position.isZero(index) && rotation.isZero(index) && scale.isZero(index);
+        }
+    }
+
+    private record ArrayProgress(@NotNull ProgressData data, int index) implements AnimationProgress {
 
         @Override
-        public @NotNull BoneMovement animate(@NotNull BoneMovement movement, @NotNull BoneMovement dest) {
+        public @NotNull BoneMovement animate(@NotNull KeyframeRuntimeContext context, @NotNull BoneMovement movement, @NotNull BoneMovement dest) {
 
             var destPos = movement.position().get(dest.position());
             var destScl = movement.scale().get(dest.scale());
             var destRot = movement.rotation().get(dest.rotation());
             var destRawRot = movement.rawRotation().get(dest.rawRotation());
 
-            var position = array.position;
-            var scale = array.scale;
-            var rotation = array.rotation;
-
-            var x = index * 3;
-            var y = x + 1;
-            var z = x + 2;
-
-            destPos.add(position[x], position[y], position[z]);
-            destScl.mul(scale[x], scale[y], scale[z]);
-            MathUtil.toQuaternion(destRawRot.add(rotation[x], rotation[y], rotation[z]), destRot);
+            data.position.apply(index, context, destPos, KeyframeOperator.ADD);
+            data.scale.apply(index, context, destScl, KeyframeOperator.SCALE_MUL);
+            MathUtil.toQuaternion(data.rotation.apply(index, context, destRawRot, KeyframeOperator.ADD), destRot);
 
             return dest;
         }
 
         @Override
+        public float time() {
+            return data.times[index];
+        }
+
+        @Override
         public boolean skipInterpolation() {
-            return array.skipInterpolation[index];
+            return data.skipInterpolation[index];
         }
 
         @Override
         public boolean globalRotation() {
-            return array.rotateGlobal;
-        }
-
-        @Override
-        public float time() {
-            return array.times[index];
+            return data.rotateGlobal;
         }
     }
 
+    /**
+     * Returns the progress at the specified index.
+     *
+     * @param i the progress index
+     * @return the progress at the index
+     * @throws IndexOutOfBoundsException if the index is outside the timeline
+     */
     @Override
     public @NotNull AnimationProgress get(int i) {
         return progresses[i];
     }
 
+    /**
+     * Returns the last progress.
+     *
+     * @return the last progress
+     * @throws IndexOutOfBoundsException if the timeline is empty
+     */
     @Override
     public @NotNull AnimationProgress getLast() {
         return get(progresses.length - 1);
     }
 
+    /**
+     * Returns the number of progresses.
+     *
+     * @return the number of progresses
+     */
     @Override
     public int size() {
         return progresses.length;
     }
 
     /**
-     * Converts this keyframe collection to a storage of empty progresses.
+     * Returns a timeline containing an empty equivalent of each progress.
      *
-     * @return a new timed storage with empty progresses
-     * @since 2.0.0
+     * @return the empty progress timeline
+     * @since 3.7.0
      */
     public @NotNull TimedStorage<AnimationProgress> toEmpty() {
         return TimedStorage.listOf(Arrays.stream(progresses)

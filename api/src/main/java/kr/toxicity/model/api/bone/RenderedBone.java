@@ -1,16 +1,19 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.bone;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ObjectSortedSets;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.*;
+import kr.toxicity.model.api.animation.keyframe.KeyframeRuntimeContext;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.data.blueprint.BlueprintElement;
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox;
@@ -38,7 +41,10 @@ import org.jetbrains.annotations.Unmodifiable;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.SequencedSet;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.*;
@@ -52,7 +58,6 @@ public final class RenderedBone implements BoneEventHandler {
 
     private static final int INITIAL_TINT_VALUE = 0xFFFFFF;
     private static final Vector3f EMPTY_VECTOR = new Vector3f();
-    private static final Quaternionf EMPTY_QUATERNION = new Quaternionf();
     private static final BonePosition EMPTY_POSITION = new BonePosition(EMPTY_VECTOR, EMPTY_VECTOR, null);
 
     @Getter
@@ -105,8 +110,8 @@ public final class RenderedBone implements BoneEventHandler {
 
     private Function<Vector3f, Vector3f> positionModifier = p -> p;
     private Vector3f lastModifiedPosition = new Vector3f();
-    private Function<Quaternionf, Quaternionf> rotationModifier = r -> r;
-    private Quaternionf lastModifiedRotation = new Quaternionf();
+    private Function<Quaternionf, Quaternionf> localRotModifier = r -> r, globalRotModifier = r -> r;
+    private Quaternionf lastModifiedLocalRot = new Quaternionf(), lastModifiedGlobalRot = new Quaternionf();
 
     /**
      * Creates entity.
@@ -141,14 +146,14 @@ public final class RenderedBone implements BoneEventHandler {
                 applyItem(d);
             });
         } else display = null;
-        globalState = new BoneStateHandler(null, uuid -> {});
+        globalState = new BoneStateHandler(null, _ -> {});
     }
 
     public void locator(@NotNull BoneIKSolver solver) {
         if (getGroup().getParent() instanceof BlueprintElement.NullObject nullObject) {
-            var ikTarget = nullObject.ikTarget();
-            if (ikTarget == null) return;
-            solver.addLocator(nullObject.ikSource(), ikTarget, this);
+            var ikChainConfig = nullObject.config();
+            if (ikChainConfig == null) return;
+            solver.addLocator(ikChainConfig, this);
         }
     }
 
@@ -188,7 +193,7 @@ public final class RenderedBone implements BoneEventHandler {
         synchronized (this) {
             renderContext = context;
         }
-        return updateItem(bone -> true);
+        return updateItem(_ -> true);
     }
 
     /**
@@ -283,14 +288,28 @@ public final class RenderedBone implements BoneEventHandler {
     }
 
     /**
-     * Adds rotation modifier.
+     * Adds local rot modifier.
      * @param predicate predicate
      * @param function animation consumer
      * @return whether to success
      */
-    public synchronized boolean addRotationModifier(@NotNull Predicate<RenderedBone> predicate, @NotNull Function<Quaternionf, Quaternionf> function) {
+    public synchronized boolean addLocalRotModifier(@NotNull Predicate<RenderedBone> predicate, @NotNull Function<Quaternionf, Quaternionf> function) {
         if (predicate.test(this)) {
-            rotationModifier = rotationModifier.andThen(function);
+            localRotModifier = localRotModifier.andThen(function);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Adds global rot modifier.
+     * @param predicate predicate
+     * @param function animation consumer
+     * @return whether to success
+     */
+    public synchronized boolean addGlobalRotModifier(@NotNull Predicate<RenderedBone> predicate, @NotNull Function<Quaternionf, Quaternionf> function) {
+        if (predicate.test(this)) {
+            globalRotModifier = globalRotModifier.andThen(function);
             return true;
         }
         return false;
@@ -343,8 +362,8 @@ public final class RenderedBone implements BoneEventHandler {
         if (d != null) d.sendEntityData(!d.invisible(), bundler);
     }
 
-    public void sendTransformation(@Nullable UUID uuid, @NotNull AnimationBundler bundler) {
-        state(uuid).sendTransformation(bundler);
+    public void sendTransformation(@NotNull KeyframeRuntimeContext context, @Nullable UUID uuid, @NotNull AnimationBundler bundler) {
+        state(uuid).sendTransformation(context, bundler);
     }
 
     public void forceTransformation(@NotNull PacketBundler bundler) {
@@ -388,8 +407,12 @@ public final class RenderedBone implements BoneEventHandler {
         return preventModifierUpdate ? lastModifiedPosition : (lastModifiedPosition = positionModifier.apply(lastModifiedPosition.set(EMPTY_VECTOR)));
     }
 
-    private @NotNull Quaternionf modifiedRotation(boolean preventModifierUpdate) {
-        return preventModifierUpdate ? lastModifiedRotation : (lastModifiedRotation = rotationModifier.apply(lastModifiedRotation.set(EMPTY_QUATERNION)));
+    private @NotNull Quaternionf modifiedLocalRot(boolean preventModifierUpdate) {
+        return preventModifierUpdate ? lastModifiedLocalRot : (lastModifiedLocalRot = localRotModifier.apply(lastModifiedLocalRot.identity()));
+    }
+
+    private @NotNull Quaternionf modifiedGlobalRot(boolean preventModifierUpdate) {
+        return preventModifierUpdate ? lastModifiedGlobalRot : (lastModifiedGlobalRot = globalRotModifier.apply(lastModifiedGlobalRot.identity()));
     }
 
     public boolean tint(@NotNull Predicate<RenderedBone> predicate) {
@@ -467,6 +490,29 @@ public final class RenderedBone implements BoneEventHandler {
         if (nametag != null) nametag.remove(bundler);
     }
 
+    /**
+     * Tests whether the parent element is derived from (an instance of) the specified class type.
+     *
+     * <pre>{@code
+     * // Instead of:
+     * boolean isDerived = getGroup().getParent() instanceof BlueprintElement.class;
+     *
+     * // You can write:
+     * boolean isDerived = isDerivedFrom(BlueprintElement.class);
+     * }</pre>
+     *
+     * @param elementClass the expected class type
+     * @return {@code true} if the parent is an instance of {@code elementClass}; {@code false} otherwise
+     * @since 3.6.0
+     */
+    public boolean isDerivedFrom(@NotNull Class<? extends BlueprintElement> elementClass) {
+        return elementClass.isInstance(getGroup().getParent());
+    }
+
+    public @NotNull Vector3f rootPosition() {
+        return root.group.getPosition();
+    }
+
     public @NotNull Stream<RenderedBone> flatten() {
         return flattenBones().stream();
     }
@@ -474,15 +520,16 @@ public final class RenderedBone implements BoneEventHandler {
     @Unmodifiable
     @NotNull
     public SequencedSet<RenderedBone> flattenBones() {
-        if (flattenBones != null) return flattenBones;
+        SequencedSet<RenderedBone> set;
+        if ((set = flattenBones) != null) return set;
         synchronized (this) {
-            if (flattenBones != null) return flattenBones;
+            if ((set = flattenBones) != null) return set;
             return flattenBones = children.length == 0 ? SingletonSequencedSet.of(this) : Stream.concat(
                 Stream.of(this),
                 Arrays.stream(children).flatMap(RenderedBone::flatten)
             ).collect(Collectors.collectingAndThen(
                 Collectors.toCollection(ObjectLinkedOpenHashSet::new),
-                Collections::unmodifiableSequencedSet
+                ObjectSortedSets::unmodifiable
             ));
         }
     }
@@ -512,9 +559,7 @@ public final class RenderedBone implements BoneEventHandler {
 
     @NotNull
     public Vector3f hitBoxPosition(@NotNull BoneMovement cache) {
-        var box = getGroup().getHitBox();
-        if (box != null) return worldPosition(new BonePosition(EMPTY_VECTOR, group.getHitBoxPoint(), null), cache);
-        return worldPosition(cache);
+        return worldPosition(group.getHitboxPosition(), cache);
     }
 
     public float hitBoxScale() {
@@ -544,7 +589,7 @@ public final class RenderedBone implements BoneEventHandler {
 
         //Caches
         private final Vector3f positionCache = new Vector3f(), scaleCache = new Vector3f();
-        private final Quaternionf rotationCache = new Quaternionf();
+        private final Quaternionf localRotCache = new Quaternionf(), globalRotCache = new Quaternionf();
 
         //Lock
         private final DuplexLock lock = new DuplexLock();
@@ -554,17 +599,17 @@ public final class RenderedBone implements BoneEventHandler {
             this.consumer = consumer;
             state = new AnimationStateHandler<>(
                 AnimationProgress.EMPTY,
-                (b, a) -> skipInterpolation = (a != null && a.skipInterpolation()) || (parent != null && parent.state(uuid).skipInterpolation)
+                (_, a) -> skipInterpolation = (a != null && a.skipInterpolation()) || (parent != null && parent.state(uuid).skipInterpolation)
             );
         }
 
-        @NotNull BoneMovement after() {
+        @NotNull BoneMovement after(@NotNull KeyframeRuntimeContext context) {
             if (!updateAfter.compareAndSet(true, false)) return after;
             var keyframe = state.afterKeyframe(AnimationProgress.EMPTY);
             var preventModifierUpdate = interpolationDuration() < 1;
-            var def = keyframe.animate(defaultFrame, after);
+            var def = keyframe.animate(context, defaultFrame, after);
             if (parent != null) {
-                var p = parent.state(uuid).after();
+                var p = parent.state(uuid).after(context);
                 MathUtil.fma(
                         def.position().rotate(p.rotation()),
                         p.scale(),
@@ -572,12 +617,16 @@ public final class RenderedBone implements BoneEventHandler {
                     ).sub(parent.lastModifiedPosition)
                     .add(modifiedPosition(preventModifierUpdate));
                 def.scale().mul(p.scale());
-                def.rotation().set((keyframe.globalRotation() ? rotationCache.identity() : p.rotation().div(parent.lastModifiedRotation, rotationCache))
-                    .mul(def.rotation())
-                    .mul(modifiedRotation(preventModifierUpdate)));
+                def.rotation().set(parent.lastModifiedGlobalRot.invert(globalRotCache)
+                    .mul(modifiedGlobalRot(preventModifierUpdate))
+                    .mul((keyframe.globalRotation() ? localRotCache.identity() : p.rotation().div(parent.lastModifiedLocalRot, localRotCache)).mul(def.rotation()))
+                    .mul(modifiedLocalRot(preventModifierUpdate))
+                );
             } else {
                 def.position().add(modifiedPosition(preventModifierUpdate));
-                def.rotation().mul(modifiedRotation(preventModifierUpdate));
+                def.rotation().set(modifiedGlobalRot(preventModifierUpdate).get(globalRotCache)
+                    .mul(def.rotation())
+                    .mul(modifiedLocalRot(preventModifierUpdate)));
             }
             return def;
         }
@@ -601,15 +650,20 @@ public final class RenderedBone implements BoneEventHandler {
             return 1F - state.progress();
         }
 
+        /**
+         * Returns the duration sent to the item display.
+         *
+         * @return the duration in whole Minecraft ticks, or zero when interpolation is skipped
+         */
         private int interpolationDuration() {
             if (skipInterpolation) return 0;
-            var frame = state.frame() / (float) Tracker.MINECRAFT_TICK_MULTIPLIER;
+            var frame = state.frame();
             return Math.round(frame + MathUtil.FLOAT_COMPARISON_EPSILON);
         }
 
-        private void sendTransformation(@NotNull AnimationBundler bundler) {
+        private void sendTransformation(@NotNull KeyframeRuntimeContext context, @NotNull AnimationBundler bundler) {
             if (!updateCurrent.compareAndSet(true, false)) return;
-            var after = after();
+            var after = after(context);
             var movement = lock.accessToWriteLock(() -> current.set(after));
             if (transformer == null) return;
             var mul = scale.getAsFloat();
@@ -633,7 +687,7 @@ public final class RenderedBone implements BoneEventHandler {
 
         private @NotNull Vector3f worldPosition(@NotNull BonePosition position, @NotNull BoneMovement cache) {
             var progress = progress();
-            var interpolated = lock.accessToReadLock(() -> before.lerp(current, progress, cache));
+            var interpolated = lock.accessToReadLock(() -> updateCurrent.get() ? cache.set(current) : before.lerp(current, progress, cache));
             return MathUtil.fma(
                     interpolated.position()
                         .add(itemStack.offset())

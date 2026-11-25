@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.util.function;
 
 import org.jetbrains.annotations.NotNull;
@@ -19,6 +20,11 @@ public interface Float2FloatFunction {
     Float2FloatConstantFunction ZERO = of(0);
 
     /**
+     * None
+     */
+    Float2FloatFunction NONE = f -> f;
+
+    /**
      * Applies float value
      * @param value value
      * @return applied value
@@ -32,5 +38,9 @@ public interface Float2FloatFunction {
      */
     static @NotNull Float2FloatConstantFunction of(float value) {
         return new Float2FloatConstantFunction(value);
+    }
+
+    default @NotNull Float2FloatFunction andThen(@NotNull Float2FloatFunction function) {
+        return f -> function.applyAsFloat(applyAsFloat(f));
     }
 }

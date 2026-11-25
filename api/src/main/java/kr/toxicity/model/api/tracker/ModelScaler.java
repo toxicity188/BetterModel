@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.tracker;
 
 import com.google.gson.*;
@@ -165,7 +166,7 @@ public sealed interface ModelScaler {
          * Default getter returning 1.0.
          * @since 1.15.2
          */
-        Getter DEFAULT = t -> 1F;
+        Getter DEFAULT = _ -> 1F;
         /**
          * Getter using entity scale.
          * @since 1.15.2
@@ -189,7 +190,7 @@ public sealed interface ModelScaler {
          * @since 1.15.2
          */
         static @NotNull Getter value(float value) {
-            return t -> value;
+            return _ -> value;
         }
     }
 
@@ -295,8 +296,8 @@ public sealed interface ModelScaler {
 
         private final Map<String, Builder> getterMap = CollectionUtil.newAddressingMap();
 
-        private final BuiltInDeserializer def = addScaler("default", d -> Getter.DEFAULT);
-        private final BuiltInDeserializer entity = addScaler("entity", d -> Getter.ENTITY);
+        private final BuiltInDeserializer def = addScaler("default", _ -> Getter.DEFAULT);
+        private final BuiltInDeserializer entity = addScaler("entity", _ -> Getter.ENTITY);
         private final BuiltInDeserializer value = addScaler("value", d -> d.isJsonPrimitive() ? Getter.value(d.getAsFloat()) : Getter.DEFAULT);
 
         private Deserializer() {

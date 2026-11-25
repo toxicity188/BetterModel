@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.tracker;
 
 import com.google.common.collect.ImmutableList;
@@ -15,9 +16,11 @@ import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
 import kr.toxicity.model.api.BetterModel;
+import kr.toxicity.model.api.animation.keyframe.KeyframeRuntimeContext;
 import kr.toxicity.model.api.config.DebugConfig;
 import kr.toxicity.model.api.entity.BaseEntity;
 import kr.toxicity.model.api.entity.BasePlayer;
+import kr.toxicity.model.api.manager.PlayerManager;
 import kr.toxicity.model.api.nms.HitBox;
 import kr.toxicity.model.api.nms.ModelDisplay;
 import kr.toxicity.model.api.nms.PacketBundler;
@@ -52,6 +55,14 @@ import java.util.stream.Stream;
  * This registry handles the lifecycle of trackers attached to an entity, including loading, saving,
  * spawning, and despawning. It acts as a central hub for accessing and manipulating models on an entity.
  * </p>
+ * <p>
+ * The registry registers the entity's Molang queries when it is created. All trackers in this
+ * registry use the same runtime context through {@link Tracker#keyframeContext()}.
+ * </p>
+ *
+ * <pre>{@code
+ * var registry = EntityTrackerRegistry.registry(entity.uuid());
+ * }</pre>
  *
  * @since 1.15.2
  */
@@ -74,6 +85,7 @@ public final class EntityTrackerRegistry {
     private final Collection<EntityTracker> trackers = Collections.unmodifiableCollection(trackerMap.values());
     private final Map<UUID, PlayerChannelCache> viewedPlayerMap = new ConcurrentHashMap<>();
 
+    final KeyframeRuntimeContext keyframeContext = BetterModel.platform().evaluator().newContext();
     final AnimationProperty animationProperty;
 
     final Map<UUID, HitBox> hitBoxCache = new ConcurrentHashMap<>();
@@ -178,6 +190,7 @@ public final class EntityTrackerRegistry {
         this.entity = entity;
         this.uuid = entity.uuid();
         this.id = entity.id();
+        entity.updateTo(keyframeContext);
         animationProperty = new AnimationProperty();
     }
 
@@ -277,9 +290,9 @@ public final class EntityTrackerRegistry {
 
     private boolean putTracker(@NotNull String key, @NotNull EntityTracker created) {
         if (isClosed() || created.isClosed()) return false;
-        created.handleCloseEvent((t, r) -> {
+        created.handleCloseEvent((_, r) -> {
             if (isClosed()) return;
-            if (trackerMap.compute(key, (k, v) -> v == created ? null : v) == null) {
+            if (trackerMap.compute(key, (_, v) -> v == created ? null : v) == null) {
                 LogUtil.debug(DebugConfig.DebugOption.TRACKER, () -> uuid + "'s tracker " + key + " has been removed. (" + trackerMap.size() + ")");
             }
             if (trackerMap.isEmpty()) close(r);
@@ -345,7 +358,7 @@ public final class EntityTrackerRegistry {
      * @since 1.15.2
      */
     public boolean close() {
-        return close(Tracker.CloseReason.REMOVE);
+        return close(TrackerCloseReason.REMOVE);
     }
 
     /**
@@ -355,7 +368,7 @@ public final class EntityTrackerRegistry {
      * @return true if closed successfully
      * @since 1.15.2
      */
-    public boolean close(@NotNull Tracker.CloseReason reason) {
+    public boolean close(@NotNull TrackerCloseReason reason) {
         if (!closed.compareAndSet(false, true)) return false;
         viewedPlayer().forEach(value -> value.sendEntityData(this));
         viewedPlayerMap.clear();
@@ -382,9 +395,8 @@ public final class EntityTrackerRegistry {
         closed.set(true);
         var data = new ArrayList<TrackerData>(trackerMap.size());
         for (EntityTracker value : trackers()) {
-            if (!value.canBeSaved()) continue;
-            data.add(value.asTrackerData());
             value.close();
+            if (value.canBeSaved()) data.add(value.asTrackerData());
         }
         trackerMap.clear();
         closed.set(false);
@@ -474,7 +486,10 @@ public final class EntityTrackerRegistry {
      * @since 1.15.2
      */
     public @NotNull JsonArray serialize() {
-        return CollectionUtil.mapToJson(trackers().stream().filter(EntityTracker::canBeSaved), value -> value.asTrackerData().serialize());
+        return trackers().stream()
+            .filter(EntityTracker::canBeSaved)
+            .map(value -> value.asTrackerData().serialize())
+            .collect(CollectionUtil.toJsonArray());
     }
 
     /**
@@ -524,7 +539,7 @@ public final class EntityTrackerRegistry {
     }
     private boolean spawn(@NotNull PlatformPlayer player, boolean shouldNotSpawned) {
         var handler = BetterModel.platform()
-            .playerManager()
+            .manager(PlayerManager.class)
             .player(player.uuid());
         if (handler == null) return false;
         var cache = registerPlayer(handler);
@@ -541,7 +556,7 @@ public final class EntityTrackerRegistry {
     }
 
     private @NotNull PlayerChannelCache registerPlayer(@NotNull PlayerChannelHandler handler) {
-        return viewedPlayerMap.computeIfAbsent(handler.uuid(), u -> new PlayerChannelCache(handler));
+        return viewedPlayerMap.computeIfAbsent(handler.uuid(), _ -> new PlayerChannelCache(handler));
     }
 
     /**

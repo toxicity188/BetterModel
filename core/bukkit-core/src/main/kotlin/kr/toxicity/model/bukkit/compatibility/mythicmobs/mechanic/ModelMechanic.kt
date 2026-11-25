@@ -1,10 +1,12 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.bukkit.compatibility.mythicmobs.mechanic
+
 
 import io.lumine.mythic.api.config.MythicLineConfig
 import io.lumine.mythic.api.skills.INoTargetSkill
@@ -19,7 +21,7 @@ import kr.toxicity.model.bukkit.compatibility.mythicmobs.toPlaceholderBoolean
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.toPlaceholderFloat
 import kr.toxicity.model.bukkit.util.wrap
 
-class ModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
+internal class ModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), INoTargetSkill {
 
     private val mid = mlc.modelPlaceholder
     private val s = mlc.toPlaceholderFloat(arrayOf("scale", "s"), 1F)

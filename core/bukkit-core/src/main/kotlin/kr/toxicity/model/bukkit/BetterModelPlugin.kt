@@ -1,12 +1,12 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.bukkit
 
-import com.vdurmont.semver4j.Semver
 import kr.toxicity.model.api.BetterModelConfig
 import kr.toxicity.model.api.BetterModelEvaluator
 import kr.toxicity.model.api.BetterModelLogger
@@ -14,17 +14,18 @@ import kr.toxicity.model.api.BetterModelPlatform.ReloadResult
 import kr.toxicity.model.api.BetterModelPlatform.ReloadResult.*
 import kr.toxicity.model.api.bukkit.BukkitModelEventBus
 import kr.toxicity.model.api.bukkit.scheduler.BukkitModelScheduler
-import kr.toxicity.model.api.manager.*
+import kr.toxicity.model.api.manager.Manager
+import kr.toxicity.model.api.manager.ReloadInfo
 import kr.toxicity.model.api.nms.NMS
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.version.MinecraftVersion
 import kr.toxicity.model.bukkit.command.startBukkitCommand
 import kr.toxicity.model.bukkit.configuration.PluginConfiguration
-import kr.toxicity.model.bukkit.manager.PlayerManagerImpl
 import kr.toxicity.model.bukkit.util.ADVENTURE_PLATFORM
 import kr.toxicity.model.bukkit.util.audience
 import kr.toxicity.model.bukkit.util.registerListener
-import kr.toxicity.model.manager.*
+import kr.toxicity.model.manager.GlobalManager
+import kr.toxicity.model.manager.ReloadPipeline
 import kr.toxicity.model.util.*
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.format.NamedTextColor.*
@@ -33,6 +34,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.server.ServerLoadEvent
+import org.semver4j.Semver
 import java.io.File
 import java.io.InputStream
 import java.util.function.BiConsumer
@@ -60,7 +62,8 @@ abstract class BetterModelPlugin : AbstractBetterModelPlugin() {
     }
 
     override fun onEnable() {
-        props.managers.forEach(GlobalManager::start)
+        props.managers.values.forEach(GlobalManager::start)
+        ADVENTURE_PLATFORM
         if (isSnapshot) warn(
             "This build is dev version: be careful to use it!".toComponent(),
             "Build number: ${props.snapshot}".toComponent(LIGHT_PURPLE)
@@ -108,7 +111,7 @@ abstract class BetterModelPlugin : AbstractBetterModelPlugin() {
 
     override fun onDisable() {
         if (!firstLoad.get()) return
-        props.managers.forEach(GlobalManager::end)
+        props.managers.values.forEach(GlobalManager::end)
         ADVENTURE_PLATFORM?.close()
     }
 
@@ -121,7 +124,7 @@ abstract class BetterModelPlugin : AbstractBetterModelPlugin() {
                 config().indicator().options.toIndicator(info)
             ).use { pipeline ->
                 val time = System.currentTimeMillis()
-                props.managers.forEach {
+                props.managers.values.forEach {
                     it.reload(pipeline, zipper)
                 }
                 Success(
@@ -164,11 +167,7 @@ abstract class BetterModelPlugin : AbstractBetterModelPlugin() {
     override fun scheduler(): BukkitModelScheduler = props.scheduler
     override fun evaluator(): BetterModelEvaluator = props.evaluator
     override fun eventBus(): BukkitModelEventBus = props.eventbus
-    override fun modelManager(): ModelManager = ModelManagerImpl
-    override fun playerManager(): PlayerManager = PlayerManagerImpl
-    override fun scriptManager(): ScriptManager = ScriptManagerImpl
-    override fun skinManager(): SkinManager = SkinManagerImpl
-    override fun profileManager(): ProfileManager = ProfileManagerImpl
+    override fun <T : Manager> manager(managerClass: Class<T>): T = managerClass.cast(props.managers[managerClass])
 
     override fun config(): BetterModelConfig = props.config
     override fun version(): MinecraftVersion = props.version

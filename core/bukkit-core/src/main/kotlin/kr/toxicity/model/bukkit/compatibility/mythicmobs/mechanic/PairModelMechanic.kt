@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.bukkit.compatibility.mythicmobs.mechanic
 
 import io.lumine.mythic.api.adapters.AbstractEntity
@@ -18,7 +19,7 @@ import kr.toxicity.model.bukkit.compatibility.mythicmobs.toTracker
 import kr.toxicity.model.bukkit.util.wrap
 import org.bukkit.entity.Player
 
-class PairModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), ITargetedEntitySkill {
+internal class PairModelMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), ITargetedEntitySkill {
 
     private val model = mlc.modelPlaceholder
     private val remove = mlc.toPlaceholderBoolean(arrayOf("remove", "r"), false)

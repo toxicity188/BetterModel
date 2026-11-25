@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.util.function;
 
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
@@ -53,6 +54,6 @@ public interface FloatFunction<T> {
      */
     default @NotNull FloatFunction<T> memoize() {
         var map = new Int2ReferenceOpenHashMap<T>();
-        return f -> map.computeIfAbsent(MathUtil.similarHashCode(f), i -> apply(f));
+        return f -> map.computeIfAbsent(MathUtil.similarHashCode(f), _ -> apply(f));
     }
 }

@@ -33,7 +33,7 @@ Scope: entire repository unless a deeper AGENTS.md overrides this file.
 ## 2) Language and File Placement Rules
 
 ### MUST
-- Use Modern Java (language level 21) and Kotlin.
+- Use Modern Java (language level 25) and Kotlin.
 - `api` module is Java-only for production code (Kotlin DSL build scripts are allowed).
 - Non-`api` modules should be Kotlin-first unless existing local code is explicitly Java-bound (e.g., mixin/accessor interop).
 - Follow existing package root `kr.toxicity.model...` and module-specific suffixes.
@@ -74,6 +74,12 @@ Scope: entire repository unless a deeper AGENTS.md overrides this file.
 - Declare classes `final` when inheritance is not intended.
 - Use `of(...)` for factory method naming.
 - Prefer enum-based singleton pattern when a singleton is required.
+- Apply JetBrains `@NotNull` and `@Nullable` to Java declarations, including classes, constructors, record components, and public and internal methods, according to actual behavior.
+- Use `@Nullable` only when null is accepted or returned; keep annotations and Javadoc consistent with implementation.
+- Treat generic type arguments as non-null; do not annotate them, including nested arguments.
+- Use `@Contract` only when it aids static analysis and its guarantees are proven, including `null -> fail`, `!null -> !null`, `pure = true`, and `mutates = "this"`.
+- Match `@Unmodifiable` and `@UnmodifiableView` to actual guarantees; distinguish method purity from returning mutable objects such as `Matrix4f`, collections, or arrays.
+- When updating annotations, review related Java sources and contracts; run relevant module compilation, tests, Javadoc, and `git diff --check`, and report mismatches, results, and ambiguity.
 
 #### RECOMMENDED
 - Prefer `record` for immutable data carriers.
@@ -84,6 +90,8 @@ Scope: entire repository unless a deeper AGENTS.md overrides this file.
 
 #### FORBIDDEN
 - Do not depend on Kotlin classes from Java in `api`.
+- Do not guess contracts or change algorithms, logic, API signatures, or runtime behavior during annotation cleanup.
+- Do not add unnecessary refactoring or dependencies during annotation cleanup; prefer Kotlin's native nullability types.
 
 ### Kotlin rules
 

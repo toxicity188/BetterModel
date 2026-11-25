@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.tracker;
 
 import com.google.gson.JsonArray;
@@ -137,10 +138,10 @@ public record EntityHideOption(
          * @since 1.15.2
          */
         public @NotNull Builder or(@NotNull EntityHideOption option) {
-            equipment = equipment || option.equipment;
-            fire = fire || option.fire;
-            visibility = visibility || option.visibility;
-            glowing = glowing || option.glowing;
+            equipment |= option.equipment;
+            fire |= option.fire;
+            visibility |= option.visibility;
+            glowing |= option.glowing;
             return this;
         }
 

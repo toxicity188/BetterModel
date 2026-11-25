@@ -4,8 +4,8 @@ plugins {
 }
 
 dependencies {
-    compileOnly(project(":api"))
-    compileOnly(project(":api:bukkit-api"))
+    compileOnly(project(":bettermodel-api"))
+    compileOnly(project(":bettermodel-api:bettermodel-bukkit-api"))
 
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
@@ -14,7 +14,7 @@ dependencies {
     testAnnotationProcessor(libs.lombok)
 }
 
-val pluginName = "${rootProject.name}-TestPlugin"
+val pluginName = "BetterModel-TestPlugin"
 
 tasks.jar {
     archiveBaseName = pluginName

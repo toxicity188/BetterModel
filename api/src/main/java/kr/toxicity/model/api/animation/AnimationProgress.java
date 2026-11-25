@@ -1,11 +1,13 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.animation;
 
+import kr.toxicity.model.api.animation.keyframe.KeyframeRuntimeContext;
 import kr.toxicity.model.api.bone.BoneMovement;
 import org.jetbrains.annotations.NotNull;
 
@@ -50,7 +52,20 @@ public interface AnimationProgress extends Timed {
      * @since 2.0.0
      */
     static @NotNull AnimationProgress empty(float time) {
-        return new EmptyProgress(time);
+        return new EmptyProgress(time, false, false);
+    }
+
+    /**
+     * Creates an empty animation progress at a specific time.
+     *
+     * @param time the time of the keyframe
+     * @param skipInterpolation whether to skip interpolation
+     * @param globalRotation the rotation mode
+     * @return an empty progress
+     * @since 3.4.0
+     */
+    static @NotNull AnimationProgress empty(float time, boolean skipInterpolation, boolean globalRotation) {
+        return new EmptyProgress(time, skipInterpolation, globalRotation);
     }
 
     /**
@@ -61,7 +76,7 @@ public interface AnimationProgress extends Timed {
      */
     default @NotNull AnimationProgress toEmpty() {
         var time = time();
-        return time <= 0 ? EMPTY : empty(time);
+        return time <= 0 ? EMPTY : empty(time, skipInterpolation(), globalRotation());
     }
 
     /**
@@ -78,42 +93,18 @@ public interface AnimationProgress extends Timed {
         ));
     }
 
-    /**
-     * Applies this keyframe's animation to a bone's movement.
-     *
-     * @param movement the current bone movement
-     * @param dest the destination object to store the result
-     * @return the resulting bone movement
-     * @since 2.0.0
-     */
-    @NotNull BoneMovement animate(@NotNull BoneMovement movement, @NotNull BoneMovement dest);
+    @NotNull BoneMovement animate(@NotNull KeyframeRuntimeContext context, @NotNull BoneMovement movement, @NotNull BoneMovement dest);
 
-    /**
-     * An implementation of {@link AnimationProgress} that represents an empty keyframe.
-     *
-     * @param time the time of the keyframe
-     * @since 2.0.0
-     */
-    record EmptyProgress(float time) implements AnimationProgress {
+    record EmptyProgress(float time, boolean skipInterpolation, boolean globalRotation) implements AnimationProgress {
 
         @Override
-        public @NotNull BoneMovement animate(@NotNull BoneMovement movement, @NotNull BoneMovement dest) {
+        public @NotNull BoneMovement animate(@NotNull KeyframeRuntimeContext context, @NotNull BoneMovement movement, @NotNull BoneMovement dest) {
             return dest.set(movement);
         }
 
         @Override
         public @NotNull AnimationProgress toEmpty() {
             return this;
-        }
-
-        @Override
-        public boolean skipInterpolation() {
-            return false;
-        }
-
-        @Override
-        public boolean globalRotation() {
-            return false;
         }
     }
 }

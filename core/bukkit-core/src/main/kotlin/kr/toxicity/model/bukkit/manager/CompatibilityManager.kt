@@ -1,13 +1,15 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.bukkit.manager
 
 import kr.toxicity.model.api.bukkit.BetterModelBukkit
 import kr.toxicity.model.api.pack.PackZipper
+import kr.toxicity.model.bukkit.compatibility.Compatibility
 import kr.toxicity.model.bukkit.compatibility.citizens.CitizensCompatibility
 import kr.toxicity.model.bukkit.compatibility.mythicmobs.MythicMobsCompatibility
 import kr.toxicity.model.bukkit.compatibility.nexo.NexoCompatibility
@@ -16,6 +18,7 @@ import kr.toxicity.model.bukkit.purpur.PurpurHook
 import kr.toxicity.model.bukkit.util.registerListener
 import kr.toxicity.model.manager.GlobalManager
 import kr.toxicity.model.manager.ReloadPipeline
+import kr.toxicity.model.util.handleFailure
 import kr.toxicity.model.util.info
 import kr.toxicity.model.util.toComponent
 import net.kyori.adventure.text.format.NamedTextColor
@@ -46,8 +49,7 @@ object CompatibilityManager : GlobalManager {
         Bukkit.getPluginManager().run {
             compatibilities.entries.removeIf { (k, v) ->
                 if (isPluginEnabled(k)) {
-                    v().start()
-                    k.hookMessage()
+                    tryHook(k, v)
                     true
                 } else false
             }
@@ -57,14 +59,20 @@ object CompatibilityManager : GlobalManager {
             fun PluginEnableEvent.enable() {
                 val name = plugin.name
                 compatibilities.remove(name)?.let {
-                    it().start()
-                    name.hookMessage()
+                    tryHook(name, it)
                 }
             }
         })
     }
 
-    private fun String.hookMessage() = info("Plugin hooks $this".toComponent(NamedTextColor.AQUA))
+    private fun tryHook(name: String, hooker: () -> Compatibility) {
+        runCatching {
+            hooker().start()
+            info("Plugin hooks $name".toComponent(NamedTextColor.AQUA))
+        }.handleFailure {
+            "Unable to hook $name."
+        }
+    }
 
     override fun reload(pipeline: ReloadPipeline, zipper: PackZipper) {
     }

@@ -1,0 +1,36 @@
+/*
+ * This source file is part of BetterModel.
+ * Copyright (c) 2026 toxicity188
+ * Licensed under the MIT License.
+ * See LICENSE.md file for full license text.
+ */
+
+package kr.toxicity.model.api.mod.platform;
+
+import kr.toxicity.model.api.platform.PlatformWorld;
+import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+
+/**
+ * Represents a Fabric world wrapped as a {@link PlatformWorld}.
+ *
+ * @param level the source NMS level
+ * @since 2.0.0
+ */
+public record ModWorld(@NotNull Level level) implements PlatformWorld {
+    @ApiStatus.Internal
+    public ModWorld {
+    }
+
+    /**
+     * Creates a FabricWorld from the level.
+     *
+     * @param level the source level
+     * @return the instance
+     * @since 2.0.0
+     */
+    public static @NotNull ModWorld of(@NotNull Level level) {
+        return new ModWorld(level);
+    }
+}

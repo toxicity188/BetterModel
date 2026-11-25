@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.impl.fabric.config
 
 import kr.toxicity.model.api.BetterModelConfig
@@ -16,7 +17,7 @@ import kr.toxicity.model.api.mount.MountControllers
 import kr.toxicity.model.api.platform.PlatformItemStack
 import kr.toxicity.model.api.util.EntityUtil
 import kr.toxicity.model.impl.fabric.wrap
-import kr.toxicity.model.util.toPackName
+import net.minecraft.core.Holder
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.Identifier
 import net.minecraft.world.item.ItemStack
@@ -51,9 +52,8 @@ class BetterModelConfigImpl(yaml: ConfigurationNode) : BetterModelConfig {
             Identifier.withDefaultNamespace(itemModel)
         )
     }.getOrDefault(Items.LEATHER_HORSE_ARMOR).let {
-        Supplier { ItemStack(it).wrap() }
+        Supplier { ItemStack(Holder.direct(it)).wrap() }
     }
-    private val itemNamespace = yaml.node("item-namespace").getString("bm_models").toPackName()
     private val maxSight by lazy {
         yaml.node("max-sight").getDouble(-1.0).run {
             if (this <= 0.0) EntityUtil.renderDistance() else this
@@ -67,7 +67,7 @@ class BetterModelConfigImpl(yaml: ConfigurationNode) : BetterModelConfig {
             BetterModelConfig.PackType.valueOf(it.uppercase())
         }.getOrNull()
     } ?: BetterModelConfig.PackType.ZIP
-    private val buildFolderLocation = (yaml.node("build-folder-location").getString("BetterModel/build")).replace('/', File.separatorChar)
+    private val buildFolderLocation = yaml.node("build-folder-location").getString("BetterModel/build").replace('/', File.separatorChar)
     private val followMobInvisibility = yaml.node("follow-mob-invisibility").getBoolean(true)
     private val versionCheck = yaml.node("version-check").getBoolean(true)
     private val defaultMountController = when (yaml.node("default-mount-controller").getString("walk")?.lowercase()) {
@@ -79,7 +79,6 @@ class BetterModelConfigImpl(yaml: ConfigurationNode) : BetterModelConfig {
     private val lerpFrameTime = yaml.node("lerp-frame-time").getInt(5)
     private val cancelPlayerModelInventory = yaml.node("cancel-player-model-inventory").getBoolean(false)
     private val playerHideDelay = yaml.node("player-hide-delay").getLong(3L).coerceAtLeast(1L)
-    private val packetBundlingSize = yaml.node("packet-bundling-size").getInt(16)
     private val enableStrictLoading = yaml.node("enable-strict-loading").getBoolean(false)
 
     override fun debug(): DebugConfig = debug
@@ -87,8 +86,6 @@ class BetterModelConfigImpl(yaml: ConfigurationNode) : BetterModelConfig {
     override fun module(): ModuleConfig = module
     override fun pack(): PackConfig = pack
     override fun item(): Supplier<PlatformItemStack> = item
-    override fun itemModel(): String = itemModel
-    override fun itemNamespace(): String = itemNamespace
     override fun metrics(): Boolean = false
     override fun sightTrace(): Boolean = sightTrace
     override fun mergeWithExternalResources(): Boolean = mergeWithExternalResources
@@ -104,7 +101,6 @@ class BetterModelConfigImpl(yaml: ConfigurationNode) : BetterModelConfig {
     override fun lerpFrameTime(): Int = lerpFrameTime
     override fun cancelPlayerModelInventory(): Boolean = cancelPlayerModelInventory
     override fun playerHideDelay(): Long = playerHideDelay
-    override fun packetBundlingSize(): Int = packetBundlingSize
     override fun enableStrictLoading(): Boolean = enableStrictLoading
 }
 

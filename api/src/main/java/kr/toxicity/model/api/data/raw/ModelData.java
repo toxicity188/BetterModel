@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.Gson;
@@ -11,6 +12,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.bone.BoneName;
+import kr.toxicity.model.api.data.Float2;
 import kr.toxicity.model.api.data.Float3;
 import kr.toxicity.model.api.data.Float4;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
@@ -27,7 +29,7 @@ import static kr.toxicity.model.api.util.CollectionUtil.*;
 /**
  * Represents the raw data structure of a model file, typically parsed from a .bbmodel JSON file.
  * <p>
- * This record holds all the top-level components of a BlockBench model, including metadata, elements, textures, and animations.
+ * This record holds all the top-level components of a Blockbench model, including metadata, elements, textures, and animations.
  * It serves as the initial data container before being processed into a {@link ModelBlueprint}.
  * </p>
  *
@@ -37,7 +39,7 @@ import static kr.toxicity.model.api.util.CollectionUtil.*;
  * @param outliner the hierarchical structure of the model
  * @param textures the list of textures used in the model
  * @param animations the list of animations
- * @param groups the list of groups (used in BlockBench 5.0.0+)
+ * @param groups the list of groups (used in Blockbench 5.0.0+)
  * @param placeholder the animation variable placeholders
  * @since 1.15.2
  */
@@ -57,6 +59,7 @@ public record ModelData(
      * @since 1.15.2
      */
     public static final Gson GSON = new GsonBuilder()
+        .registerTypeAdapter(Float2.class, Float2.PARSER)
         .registerTypeAdapter(Float3.class, Float3.PARSER)
         .registerTypeAdapter(Float4.class, Float4.PARSER)
         .registerTypeAdapter(BoneName.class, BoneName.PARSER)
@@ -102,7 +105,12 @@ public record ModelData(
                 resolution(),
                 mapToList(textures(), texture -> texture.toBlueprint(context)),
                 group,
-                associate(animations().stream().map(raw -> raw.toBlueprint(context, group)), BlueprintAnimation::name)
+                associate(
+                    animations().stream()
+                        .parallel()
+                        .map(raw -> raw.toBlueprint(context, group)),
+                    BlueprintAnimation::name
+                )
             ),
             context.errors
         );

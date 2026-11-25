@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.nms;
 
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +38,7 @@ public record AnimationBundler(
      * @param handler the player's channel handler used to determine mod status and send packets
      */
     public void send(@NotNull PlayerChannelHandler handler) {
-        if (handler.isModEnabled()) mod.send(handler.player());
-        else standard.send(handler.player());
+        if (handler.isModEnabled()) mod.send(handler);
+        else standard.send(handler);
     }
 }

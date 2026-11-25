@@ -1,25 +1,24 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2025 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.api.animation;
 
 import kr.toxicity.model.api.tracker.Tracker;
 import kr.toxicity.model.api.util.MathUtil;
+import kr.toxicity.model.api.util.collection.PriorityMap;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Iterator;
 import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
-
-import static kr.toxicity.model.api.util.CollectionUtil.newSequencedChainingMap;
 
 /**
  * Animation state handler
@@ -32,9 +31,9 @@ public final class AnimationStateHandler<T extends Timed> {
     private final T initialValue;
     private final BiConsumer<T, T> setConsumer;
 
-    private final SequencedMap<String, TreeIterator> animators = newSequencedChainingMap();
-    private final SequencedCollection<TreeIterator> reversedView = animators.sequencedValues().reversed();
-    private final AtomicBoolean forceUpdateAnimation = new AtomicBoolean();
+    private final PriorityMap<String, TreeIterator> animators = new PriorityMap<>();
+
+    private volatile boolean forceUpdate;
 
     @Getter
     private int delay;
@@ -97,17 +96,27 @@ public final class AnimationStateHandler<T extends Timed> {
     }
 
     /**
-     * Ticks this state handler
-     * @return keyframe has been shifted or not
+     * Advances playback by one 50 ms Minecraft tick.
+     * <pre>{@code
+     * boolean shifted = state.tick();
+     * }</pre>
+     *
+     * @return whether the active keyframe changed
      */
     public boolean tick() {
         return tick(() -> {});
     }
 
     /**
-     * Ticks this state handler
-     * @param ifEmpty callback if animator is empty
-     * @return keyframe has been shifted or not
+     * Advances playback by one 50 ms Minecraft tick.
+     * Checks for a keyframe change when the active keyframe ends or an update is requested.
+     * <pre>{@code
+     * boolean shifted = state.tick(onEmpty);
+     * }</pre>
+     *
+     * @param ifEmpty the callback to run when no animators are registered
+     * @return whether the active keyframe changed
+     * @throws NullPointerException if the callback is null and no animators are registered
      */
     public boolean tick(@NotNull Runnable ifEmpty) {
         delay--;
@@ -128,12 +137,12 @@ public final class AnimationStateHandler<T extends Timed> {
     }
 
     private boolean shouldUpdateAnimation() {
-        return forceUpdateAnimation.compareAndSet(true, false) || (afterKeyframe != null && keyframeFinished()) || delay % Tracker.MINECRAFT_TICK_MULTIPLIER == 0;
+        return (afterKeyframe != null && keyframeFinished()) || forceUpdate;
     }
 
     private boolean updateAnimation() {
         synchronized (animators) {
-            var iterator = reversedView.iterator();
+            var iterator = animators.valueIterator();
             while (iterator.hasNext()) {
                 var next = iterator.next();
                 if (!next.getAsBoolean()) continue;
@@ -189,9 +198,9 @@ public final class AnimationStateHandler<T extends Timed> {
      */
     public void addAnimation(@NotNull String name, @NotNull AnimationIterator<T> iterator, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
         synchronized (animators) {
-            animators.putLast(name, new TreeIterator(name, iterator, modifier, removeTask));
+            animators.put(name, new TreeIterator(name, iterator, modifier, removeTask), modifier.priority());
+            forceUpdate = true;
         }
-        forceUpdateAnimation.set(true);
     }
 
     /**
@@ -202,11 +211,11 @@ public final class AnimationStateHandler<T extends Timed> {
      */
     public void replaceAnimation(@NotNull String name, @NotNull AnimationIterator<T> iterator, @NotNull AnimationModifier modifier) {
         synchronized (animators) {
-            animators.computeIfPresent(name, (k, v) -> new TreeIterator(k, iterator, v.modifier.toBuilder()
+            animators.replace(name, v -> new TreeIterator(name, iterator, v.modifier.toBuilder()
                 .mergeNotDefault(modifier)
                 .build(), v.removeTask));
+            forceUpdate = true;
         }
-        forceUpdateAnimation.set(true);
     }
 
     /**
@@ -217,7 +226,7 @@ public final class AnimationStateHandler<T extends Timed> {
     public boolean stopAnimation(@NotNull String name) {
         synchronized (animators) {
             if (animators.remove(name) != null) {
-                forceUpdateAnimation.set(true);
+                forceUpdate = true;
                 return true;
             }
         }
@@ -225,11 +234,15 @@ public final class AnimationStateHandler<T extends Timed> {
     }
 
     /**
-     * Gets ticking frame of current keyframe
-     * @return ticking frame
+     * Returns the active keyframe duration in Minecraft ticks. One tick is 50 ms.
+     * <pre>{@code
+     * float durationTicks = state.frame();
+     * }</pre>
+     *
+     * @return the duration in ticks, or zero when no keyframe is active
      */
     public float frame() {
-        return afterKeyframe != null ? 20 * Tracker.MINECRAFT_TICK_MULTIPLIER * (currentIterator.time + MathUtil.FRAME_EPSILON) : 0F;
+        return afterKeyframe != null ? MathUtil.MINECRAFT_TICKS_PER_SECOND * (currentIterator.time + MathUtil.FRAME_EPSILON) : 0F;
     }
 
     private class TreeIterator implements BooleanSupplier {
@@ -266,12 +279,12 @@ public final class AnimationStateHandler<T extends Timed> {
         public @NotNull T next() {
             if (!started) {
                 started = true;
-                time = (float) modifier.start() / 20;
+                time = (float) modifier.start() / MathUtil.MINECRAFT_TICKS_PER_SECOND;
                 return iterator.next();
             }
             if (!iterator.hasNext()) {
                 ended = true;
-                time = (float) modifier.end() / 20;
+                time = (float) modifier.end() / MathUtil.MINECRAFT_TICKS_PER_SECOND;
                 return previous;
             }
             var nxt = iterator.next();

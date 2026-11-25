@@ -1,11 +1,13 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2024 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.util
 
+import it.unimi.dsi.fastutil.objects.*
 import kr.toxicity.model.api.util.CollectionUtil
 import java.util.*
 import java.util.concurrent.CompletableFuture
@@ -21,8 +23,21 @@ fun <K, V> sequencedAddressingMapOf(capacity: Int) = CollectionUtil.newSequenced
 
 fun <K, V> emptySequencedMap(): SequencedMap<K, V> = Collections.emptyNavigableMap()
 
-fun <K, V> MutableMap<K, V>.toImmutableView(): Map<K, V> = Collections.unmodifiableMap(this)
-fun <K, V> SequencedMap<K, V>.toImmutableView(): SequencedMap<K, V> = Collections.unmodifiableSequencedMap(this)
+fun <K, V> MutableMap<K, V>.toImmutableView(): Map<K, V> = when (this) {
+    is Object2ObjectMap<K, V> -> Object2ObjectMaps.unmodifiable(this)
+    is Object2ReferenceMap<K, V> -> Object2ReferenceMaps.unmodifiable(this)
+    is Reference2ObjectMap<K, V> -> Reference2ObjectMaps.unmodifiable(this)
+    is Reference2ReferenceMap<K, V> -> Reference2ReferenceMaps.unmodifiable(this)
+    else -> Collections.unmodifiableMap(this)
+}
+
+fun <K, V> SequencedMap<K, V>.toImmutableView(): SequencedMap<K, V> = when (this) {
+    is Object2ObjectSortedMap<K, V> -> Object2ObjectSortedMaps.unmodifiable(this)
+    is Object2ReferenceSortedMap<K, V> -> Object2ReferenceSortedMaps.unmodifiable(this)
+    is Reference2ObjectSortedMap<K, V> -> Reference2ObjectSortedMaps.unmodifiable(this)
+    is Reference2ReferenceSortedMap<K, V> -> Reference2ReferenceSortedMaps.unmodifiable(this)
+    else -> Collections.unmodifiableSequencedMap(this)
+}
 
 fun <T> Stream<T>.toSet(): Set<T> = collect(Collectors.toUnmodifiableSet())
 fun <T> Stream<T>.toMutableSet(): MutableSet<T> = collect(Collectors.toSet())
@@ -52,38 +67,46 @@ class ParallelIOThreadPool : AutoCloseable {
 
     fun <T> forEachParallel(list: List<T>, sizeAssume: (T) -> Long, block: (T) -> Unit) {
         if (list.isEmpty()) return
-        val size = list.size
-        val lastIndex = list.lastIndex
-        val tasks = if (available >= size) {
-            list.map {
-                {
-                    block(it)
-                }
-            }
+
+        val tasks: List<Runnable> = if (list.size <= available) {
+            list.map { element -> Runnable { block(element) } }
         } else {
-            val sorted = list.sortedBy(sizeAssume)
-            val queue = arrayListOf<() -> Unit>()
-            var i = 0
-            val add = (size.toDouble() / available).toInt()
-            while (i <= size) {
-                val list = ArrayList<T>(add)
-                for (t in i..<(i + add).coerceAtMost(size)) {
-                    val ht = t / 2
-                    list += sorted[if (t % 2 == 0) ht else lastIndex - ht]
-                }
-                queue += {
-                    list.forEach(block)
-                }
-                i += add
+            // LPT: assign the largest estimated work to the least-loaded bucket.
+            // Evaluate sizeAssume only once per element.
+            val sorted = list.map { element ->
+                element to sizeAssume(element).coerceAtLeast(0L)
+            }.sortedByDescending { it.second }
+
+            class Bucket<T>(val index: Int) {
+                val elements = ArrayList<T>()
+                var load = 0L
             }
-            queue
+
+            val buckets = Array(available) { Bucket<T>(it) }
+            val leastLoaded = PriorityQueue<Bucket<T>>(
+                compareBy<Bucket<T>> { it.load }.thenBy { it.index }
+            )
+            leastLoaded.addAll(buckets)
+
+            for ((element, weight) in sorted) {
+                val bucket = leastLoaded.remove()
+                bucket.elements += element
+                // Saturate on overflow to preserve the load ordering.
+                bucket.load = if (Long.MAX_VALUE - bucket.load < weight) {
+                    Long.MAX_VALUE
+                } else {
+                    bucket.load + weight
+                }
+                leastLoaded += bucket
+            }
+
+            buckets.map { bucket ->
+                Runnable { bucket.elements.forEach(block) }
+            }
         }
+
         CompletableFuture.allOf(
-            *tasks.map {
-                CompletableFuture.runAsync({
-                    it()
-                }, pool)
-            }.toTypedArray()
+            *Array(tasks.size) { index -> CompletableFuture.runAsync(tasks[index], pool) }
         ).join()
     }
 }

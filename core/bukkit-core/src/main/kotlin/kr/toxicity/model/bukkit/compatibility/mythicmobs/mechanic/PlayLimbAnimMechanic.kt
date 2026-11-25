@@ -1,9 +1,10 @@
-/**
+/*
  * This source file is part of BetterModel.
- * Copyright (c) 2024–2026 toxicity188
+ * Copyright (c) 2026 toxicity188
  * Licensed under the MIT License.
  * See LICENSE.md file for full license text.
  */
+
 package kr.toxicity.model.bukkit.compatibility.mythicmobs.mechanic
 
 import io.lumine.mythic.api.adapters.AbstractEntity
@@ -23,7 +24,7 @@ import kr.toxicity.model.util.warn
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.entity.Player
 
-class PlayLimbAnimMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), ITargetedEntitySkill {
+internal class PlayLimbAnimMechanic(mlc: MythicLineConfig) : AbstractSkillMechanic(mlc), ITargetedEntitySkill {
 
     private val modelId = mlc.modelPlaceholder
     private val animationId = mlc.toPlaceholderString(arrayOf("animation", "anim", "a"))
