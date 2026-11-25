@@ -13,7 +13,6 @@ import kr.toxicity.model.api.animation.AnimationKeyframe;
 import kr.toxicity.model.api.animation.keyframe.KeyframePoint;
 import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.util.InterpolationUtil;
-import kr.toxicity.model.api.util.MathUtil;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -69,7 +68,7 @@ public final class AnimationGenerator {
     ) {
         var floatSet = mapFloat(pointMap.values()
             .stream()
-            .flatMap(BlueprintAnimator.AnimatorData::allPoints), KeyframePoint::tickTime, () -> new FloatAVLTreeSet(MathUtil.FRAME_COMPARATOR));
+            .flatMap(BlueprintAnimator.AnimatorData::allPoints), KeyframePoint::tickTime, () -> new FloatAVLTreeSet(FRAME_COMPARATOR));
         floatSet.add(0F);
         floatSet.add(length);
         var generator = new AnimationGenerator(g -> pointMap.get(g.name()), children);
@@ -136,6 +135,7 @@ public final class AnimationGenerator {
     }
 
     private static @NotNull FloatList rotationSplits(@NotNull Float2ObjectFunction<RotationFrame> sampler, float from, float to) {
+        if (to - from < MINECRAFT_TICK_SECONDS * 2 - FLOAT_COMPARISON_EPSILON) return FloatList.of();
         var start = sampler.get(from);
         var end = sampler.get(to);
         var first = new RotationSample(from, start.world);
@@ -171,8 +171,7 @@ public final class AnimationGenerator {
 
 
     private static boolean frameSpacing(float start, float end) {
-        return end - start + MathUtil.FLOAT_COMPARISON_EPSILON >= MathUtil.MINECRAFT_TICK_SECONDS
-            && end - start > MathUtil.FRAME_EPSILON;
+        return end - start + FLOAT_COMPARISON_EPSILON >= MINECRAFT_TICK_SECONDS;
     }
 
     private @NotNull Float2ObjectFunction<RotationFrame> samplerFunction() {
@@ -189,7 +188,7 @@ public final class AnimationGenerator {
             var world = new Quaternionf[trees.length];
             for (int i = 0; i < trees.length; i++) {
                 local[i] = functions[i].get(key.floatValue());
-                var value = MathUtil.toQuaternion(local[i]);
+                var value = toQuaternion(local[i]);
                 if (inheritsRotation(i)) world[parents[i]].mul(value, value);
                 world[i] = value;
             }
@@ -313,7 +312,7 @@ public final class AnimationGenerator {
         for (int i = 1; i < points.size(); i++) {
             var before = points.get(i - 1);
             if (before.isContinuous()) continue;
-            var time = points.get(i).tickTime() - MathUtil.MINECRAFT_TICK_SECONDS;
+            var time = points.get(i).tickTime() - MINECRAFT_TICK_SECONDS;
             if (time < 0 || time - before.tickTime() < 0) continue;
             floats.add(time);
         }
