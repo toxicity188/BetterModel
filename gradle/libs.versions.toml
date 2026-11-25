@@ -21,7 +21,7 @@ configurate = "4.2.0"
 neoform = "26.3-1"
 
 # For test server
-viaversion = "5.12.2"
+viaversion = "5.12.3"
 skript = "2.17.1"
 
 [libraries]
