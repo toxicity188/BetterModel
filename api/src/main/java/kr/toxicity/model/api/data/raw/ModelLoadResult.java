@@ -9,7 +9,6 @@ package kr.toxicity.model.api.data.raw;
 
 import kr.toxicity.model.api.data.blueprint.ModelBlueprint;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
@@ -21,8 +20,8 @@ import java.util.List;
  * </p>
  *
  * @param blueprint the processed model blueprint
- * @param errors a list of error or warning messages generated during loading
+ * @param errors a list of error or warning messages generated during loading (retained by reference)
  * @since 1.15.2
  */
-public record ModelLoadResult(@NotNull ModelBlueprint blueprint, @NotNull @Unmodifiable List<String> errors) {
+public record ModelLoadResult(@NotNull ModelBlueprint blueprint, @NotNull List<String> errors) {
 }

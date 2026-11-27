@@ -9,6 +9,7 @@ package kr.toxicity.model.api.event;
 
 import kr.toxicity.model.api.data.ModelAsset;
 import kr.toxicity.model.api.data.renderer.ModelRenderer;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -20,17 +21,19 @@ import java.util.Set;
  * </p>
  *
  * @param type the renderer type
- * @param assets the set of assets to be loaded
+ * @param assets the mutable set of assets to be loaded
  * @since 2.0.0
  */
 public record ModelAssetsEvent(@NotNull ModelRenderer.Type type, @NotNull Set<ModelAsset> assets) implements ModelEvent {
     /**
-     * Adds a new model asset to the loading queue.
+     * Adds a model asset to the current load. {@link ModelAsset} identifies assets by their normalized name.
+     * <p>Example: {@code event.addAsset(ModelAsset.of("my_model", bytes));}</p>
      *
      * @param asset the asset to add
      * @throws IllegalArgumentException if an asset with the same name already exists
      * @since 2.0.0
      */
+    @Contract(mutates = "this")
     public void addAsset(@NotNull ModelAsset asset) {
         if (!assets.add(asset)) throw new IllegalArgumentException("Asset " + asset.name() + " already exists.");
     }

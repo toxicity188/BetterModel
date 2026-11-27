@@ -39,10 +39,11 @@ public interface BetterModelEventBus {
      * Subscribes a consumer to a specific event type.
      *
      * @param application the application that subscribes to the event
-     * @param eventClass the class of the event to subscribe to
+     * @param eventClass the exact class to subscribe to. Register each event class separately.
      * @param consumer the consumer to handle the event
      * @param <T> the type of the event
-     * @return a listener handle that can be used to unregister the subscription
+     * @return a handle for unregistering the subscription, or {@link ModelEventListener#NONE}
+     * if the application is disabled
      * @since 2.0.0
      */
     @NotNull
@@ -51,7 +52,8 @@ public interface BetterModelEventBus {
     /**
      * Publishes an event to all registered subscribers.
      * <p>
-     * The event is created lazily using the provided supplier if there are subscribers.
+     * The supplier is evaluated when the dispatch path needs the event. A native platform
+     * bridge may also request the event.
      * </p>
      *
      * @param eventClass the class of the event
@@ -81,7 +83,7 @@ public interface BetterModelEventBus {
     @RequiredArgsConstructor
     enum Result {
         /**
-         * The event was successfully processed by at least one subscriber.
+         * Dispatch completed and the event was not cancelled.
          * @since 2.0.0
          */
         SUCCESS(true),

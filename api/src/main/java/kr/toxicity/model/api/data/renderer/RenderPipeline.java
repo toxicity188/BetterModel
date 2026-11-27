@@ -386,6 +386,11 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
 
+    /**
+     * Advances the shared animation state of every bone.
+     *
+     * @return whether any bone reported an animation update
+     */
     public boolean tick() {
         return matchTree(RenderedBone::tick);
     }
@@ -395,6 +400,7 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
      *
      * <p>This is typically invoked immediately after {@link #tick()} reports an animation update.
      *
+     * @param context the runtime context for evaluating keyframes and inverse kinematics
      * @param bundler the animation packet bundler to receive transformation data
      * @throws NullPointerException if {@code bundler} is null
      * @see #tick()
@@ -411,12 +417,13 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
      *
      * <pre>{@code
      * AnimationBundler bundler = pipeline.createAnimationBundler();
-     * if (pipeline.tick(playerUuid, bundler)) {
+     * if (pipeline.tick(context, playerUuid, bundler)) {
      *     PlayerChannelHandler handler = pipeline.channel(playerUuid);
      *     if (handler != null) bundler.send(handler);
      * }
      * }</pre>
      *
+     * @param context the runtime context for evaluating keyframes and inverse kinematics
      * @param uuid the UUID of the player
      * @param bundler the animation packet bundler to use
      * @return {@code true} if any bone or animation updates occurred for the player, {@code false} otherwise

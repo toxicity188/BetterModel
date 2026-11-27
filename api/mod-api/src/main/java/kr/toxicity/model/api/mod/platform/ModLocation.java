@@ -16,13 +16,14 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents a Mod location wrapped as a {@link PlatformLocation}.
  *
- * @param level the NMS level
+ * @param level the Minecraft level, or {@code null} for a worldless location
  * @param x the x coordinate
  * @param y the y coordinate
  * @param z the z coordinate
@@ -31,6 +32,9 @@ import org.jetbrains.annotations.Nullable;
  * @since 2.0.0
  */
 public record ModLocation(@Nullable Level level, double x, double y, double z, float pitch, float yaw) implements PlatformLocation {
+    /**
+     * Creates a coordinate snapshot. Prefer the {@code of} factories when adapting platform objects.
+     */
     @ApiStatus.Internal
     public ModLocation {
     }
@@ -38,7 +42,7 @@ public record ModLocation(@Nullable Level level, double x, double y, double z, f
     /**
      * Creates a ModLocation from the coordinates.
      *
-     * @param level the NMS level
+     * @param level the Minecraft level, or {@code null} for a worldless location
      * @param x     the x coordinate
      * @param y     the y coordinate
      * @param z     the z coordinate
@@ -61,7 +65,7 @@ public record ModLocation(@Nullable Level level, double x, double y, double z, f
     /**
      * Creates a ModLocation from the coordinates with zero pitch and yaw.
      *
-     * @param level the NMS level
+     * @param level the Minecraft level, or {@code null} for a worldless location
      * @param x     the x coordinate
      * @param y     the y coordinate
      * @param z     the z coordinate
@@ -89,7 +93,7 @@ public record ModLocation(@Nullable Level level, double x, double y, double z, f
      * @return the instance
      * @since 2.0.0
      */
-    public static @NotNull ModLocation of(@Nullable Level level, Vec3 position, float pitch, float yaw) {
+    public static @NotNull ModLocation of(@Nullable Level level, @NotNull Vec3 position, float pitch, float yaw) {
         return new ModLocation(
             level,
             position.x,
@@ -108,7 +112,7 @@ public record ModLocation(@Nullable Level level, double x, double y, double z, f
      * @return the instance
      * @since 2.0.0
      */
-    public static @NotNull ModLocation of(@Nullable Level level, Vec3 position) {
+    public static @NotNull ModLocation of(@Nullable Level level, @NotNull Vec3 position) {
         return new ModLocation(
             level,
             position.x,
@@ -155,6 +159,11 @@ public record ModLocation(@Nullable Level level, double x, double y, double z, f
         );
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @throws IllegalStateException if this location has no level
+     */
     @Override
     public @NotNull PlatformWorld world() {
         if (level == null) {
@@ -165,6 +174,7 @@ public record ModLocation(@Nullable Level level, double x, double y, double z, f
     }
 
     @Override
+    @Contract(value = "_, _, _ -> new", pure = true)
     public @NotNull PlatformLocation add(double x, double y, double z) {
         return new ModLocation(
             this.level,

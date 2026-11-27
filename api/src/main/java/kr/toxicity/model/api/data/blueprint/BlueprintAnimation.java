@@ -15,7 +15,6 @@ import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.script.BlueprintScript;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Map;
 
@@ -30,7 +29,7 @@ import java.util.Map;
  * @param loop the default loop mode
  * @param length the length of the animation in seconds
  * @param override whether this animation overrides others
- * @param animator a map of animators for each bone
+ * @param animator a map of animators for each bone (retained by reference)
  * @param script the script associated with this animation, if any
  * @param emptyAnimator a list of empty movements, used as a fallback or for initialization
  * @since 1.15.2
@@ -40,7 +39,7 @@ public record BlueprintAnimation(
     @NotNull AnimationIterator.Type loop,
     float length,
     boolean override,
-    @NotNull @Unmodifiable Map<BoneName, BlueprintAnimator> animator,
+    @NotNull Map<BoneName, BlueprintAnimator> animator,
     @Nullable BlueprintScript script,
     @NotNull TimedStorage<AnimationProgress> emptyAnimator
 ) {

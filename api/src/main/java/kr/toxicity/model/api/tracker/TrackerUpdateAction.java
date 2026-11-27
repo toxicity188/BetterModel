@@ -13,7 +13,6 @@ import kr.toxicity.model.api.util.TransformedItemStack;
 import kr.toxicity.model.api.util.function.BonePredicate;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -169,7 +168,7 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
     /**
      * Combines multiple actions into a single composite action.
      *
-     * @param actions the actions to combine
+     * @param actions the actions to combine (retained by reference)
      * @return the composite action
      * @since 1.15.2
      */
@@ -436,7 +435,7 @@ public sealed interface TrackerUpdateAction extends BiPredicate<RenderedBone, Bo
      * @param actions the list of actions
      * @since 1.15.2
      */
-    record Composite(@NotNull @Unmodifiable List<TrackerUpdateAction> actions) implements TrackerUpdateAction {
+    record Composite(@NotNull List<TrackerUpdateAction> actions) implements TrackerUpdateAction {
         @Override
         public boolean test(@NotNull RenderedBone bone, @NotNull BonePredicate predicate) {
             var result = false;

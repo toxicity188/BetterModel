@@ -35,7 +35,8 @@ public record ModelUV(
     /**
      * Converts this raw uv into a processed {@link BlueprintUV}.
      *
-     * @return the blueprint uv
+     * @param faceId the face identifier written to the blueprint
+     * @return the blueprint UV
      * @since 3.7.0
      */
     public @NotNull BlueprintUV toBlueprint(@NotNull String faceId) {

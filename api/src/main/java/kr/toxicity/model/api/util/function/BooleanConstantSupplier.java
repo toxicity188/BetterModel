@@ -29,6 +29,12 @@ public enum BooleanConstantSupplier implements BooleanSupplier {
 
     private final boolean value;
 
+    /**
+     * Selects a supplier that always returns the requested value.
+     *
+     * @param value the constant value
+     * @return the supplier for that value
+     */
     public static @NotNull BooleanConstantSupplier of(boolean value) {
         return value ? TRUE : FALSE;
     }

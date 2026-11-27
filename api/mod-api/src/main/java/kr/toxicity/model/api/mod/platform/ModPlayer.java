@@ -11,6 +11,7 @@ import kr.toxicity.model.api.platform.PlatformLocation;
 import kr.toxicity.model.api.platform.PlatformPlayer;
 import net.minecraft.server.network.ServerPlayerConnection;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -22,6 +23,9 @@ import java.util.UUID;
  * @since 2.0.0
  */
 public record ModPlayer(@NotNull ServerPlayerConnection source) implements PlatformPlayer {
+    /**
+     * Wraps the connection of a server player. Prefer {@link #of} when adapting platform objects.
+     */
     @ApiStatus.Internal
     public ModPlayer {
     }
@@ -33,6 +37,7 @@ public record ModPlayer(@NotNull ServerPlayerConnection source) implements Platf
      * @return the instance
      * @since 2.0.0
      */
+    @Contract(value = "_ -> new", pure = true)
     public static @NotNull ModPlayer of(@NotNull ServerPlayerConnection source) {
         return new ModPlayer(source);
     }

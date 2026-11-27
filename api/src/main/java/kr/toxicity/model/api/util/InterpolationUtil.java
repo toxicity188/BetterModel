@@ -10,6 +10,7 @@ package kr.toxicity.model.api.util;
 import kr.toxicity.model.api.animation.keyframe.KeyframePoint;
 import kr.toxicity.model.api.animation.keyframe.KeyframeVector;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
@@ -182,6 +183,19 @@ public final class InterpolationUtil {
         return t;
     }
 
+    /**
+     * Interpolates a scalar channel with a cubic Bézier curve, solving the time curve first.
+     *
+     * @param alpha normalized sample time between the two keyframes
+     * @param start the starting value
+     * @param end the ending value
+     * @param bezierRightTime the outgoing handle time offset from the start
+     * @param bezierRightValue the outgoing handle value offset from the start
+     * @param bezierLeftTime the incoming handle time offset from the end
+     * @param bezierLeftValue the incoming handle value offset from the end
+     * @return the interpolated value
+     */
+    @Contract(pure = true)
     public static float bezier(
         float alpha,
         float start,
@@ -198,6 +212,17 @@ public final class InterpolationUtil {
         ));
     }
 
+    /**
+     * Interpolates a scalar channel on the Catmull–Rom segment between two keyframes.
+     *
+     * @param p0 the value before the segment
+     * @param p1 the starting value
+     * @param p2 the ending value
+     * @param p3 the value after the segment
+     * @param t the normalized position within the segment
+     * @return the interpolated value
+     */
+    @Contract(pure = true)
     public static float catmull_rom(
         float p0,
         float p1,

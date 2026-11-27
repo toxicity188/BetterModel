@@ -26,16 +26,36 @@ public interface ScriptBuilder {
      */
     @NotNull AnimationScript build(@NotNull ScriptData data);
 
+    /**
+     * Contains the arguments and metadata available to a script builder.
+     *
+     * @param args the raw argument text, or {@code null} if absent
+     * @param metadata the properties from the model
+     */
     record ScriptData(
         @Nullable String args,
         @NotNull ScriptMetaData metadata
     ) {}
 
+    /**
+     * Provides string properties from the model and typed access to their values.
+     */
     interface ScriptMetaData {
 
+        /**
+         * Returns the script metadata properties.
+         *
+         * @return an unmodifiable map of property names to values
+         */
         @NotNull @Unmodifiable
         Map<String, String> toMap();
 
+        /**
+         * Reads the exact strings {@code true} and {@code false} as Boolean values.
+         *
+         * @param key the property name
+         * @return the parsed value, or {@code null} for a missing or unrecognized value
+         */
         default @Nullable Boolean asBoolean(@NotNull String key) {
             var get = toMap().get(key);
             if (get == null) return null;
@@ -46,6 +66,12 @@ public interface ScriptBuilder {
             };
         }
 
+        /**
+         * Parses a property as a {@link BigDecimal}.
+         *
+         * @param key the property name
+         * @return the parsed decimal, or {@code null} for a missing or invalid value
+         */
         default @Nullable Number asNumber(@NotNull String key) {
             var get = toMap().get(key);
             if (get == null) return null;
@@ -56,6 +82,12 @@ public interface ScriptBuilder {
             }
         }
 
+        /**
+         * Looks up a property without conversion.
+         *
+         * @param key the property name
+         * @return the property value, or {@code null} if absent
+         */
         default @Nullable String asString(@NotNull String key) {
             return toMap().get(key);
         }

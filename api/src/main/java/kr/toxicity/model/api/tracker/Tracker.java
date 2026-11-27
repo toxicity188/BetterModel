@@ -73,6 +73,9 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
      */
     public static final int TRACKER_TICK_INTERVAL = 50;
 
+    /**
+     * The render pipeline that owns this tracker’s bones and viewers.
+     */
     @Getter
     protected final RenderPipeline pipeline;
     private long frame = 0;
@@ -82,6 +85,9 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
     private final AtomicBoolean readyForForceUpdate = new AtomicBoolean();
     private final AtomicBoolean forRemoval = new AtomicBoolean();
     private final AtomicBoolean firstStart = new AtomicBoolean();
+    /**
+     * The options supplied when constructing this tracker.
+     */
     protected final TrackerModifier modifier;
     private final TrackerAnimationTicker animationTicker;
     private final TrackerBundlerSet bundlerSet;
@@ -109,7 +115,13 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
         }
     );
     private volatile ScheduledFuture<?> task;
+    /**
+     * The strategy used to derive model rotation.
+     */
     protected ModelRotator rotator = ModelRotator.YAW;
+    /**
+     * The strategy used to derive model scale.
+     */
     protected ModelScaler scaler = ModelScaler.entity();
     private Supplier<ModelRotation> rotationSupplier = () -> ModelRotation.EMPTY;
     private BiConsumer<Tracker, TrackerCloseReason> closeEventHandler = (t, r) -> EventUtil.call(CloseTrackerEvent.class, () -> new CloseTrackerEvent(t, r));
@@ -406,6 +418,11 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
         close(TrackerCloseReason.REMOVE);
     }
 
+    /**
+     * Closes the tracker, stops updates, and despawns its model.
+     *
+     * @param reason the reason passed to the close event
+     */
     protected void close(@NotNull TrackerCloseReason reason) {
         if (isClosed.compareAndSet(false, true)) {
             closeEventHandler.accept(this, reason);
@@ -559,10 +576,23 @@ public sealed abstract class Tracker implements AutoCloseable permits EntityTrac
         return animate(animation, modifier, () -> {});
     }
 
+    /**
+     * Attempts to play a registered tracker animation.
+     *
+     * @param animation the animation and its playback rules
+     * @return whether playback started
+     */
     public boolean animate(@NotNull TrackerAnimation<?> animation) {
         return animation.play(this);
     }
 
+    /**
+     * Attempts to play a tracker animation with a removal callback.
+     *
+     * @param animation the animation and its playback rules
+     * @param removeTask the callback run when the animation is removed
+     * @return whether playback started
+     */
     public boolean animate(@NotNull TrackerAnimation<?> animation, @NotNull Runnable removeTask) {
         return animation.play(this, removeTask);
     }

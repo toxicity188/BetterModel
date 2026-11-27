@@ -13,19 +13,37 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
 
+/**
+ * Serializes operations using a Java monitor.
+ */
 @ApiStatus.Internal
 public final class SingleLock {
 
     private final Object lock;
 
+    /**
+     * Creates a lock with an independent monitor.
+     */
     public SingleLock() {
         this(null);
     }
 
+    /**
+     * Creates a lock using the supplied monitor.
+     *
+     * @param lock the monitor, or {@code null} to use an independent monitor
+     */
     public SingleLock(@Nullable Object lock) {
         this.lock = lock != null ? lock : this;
     }
 
+    /**
+     * Executes an operation while holding the monitor.
+     *
+     * @param supplier the operation to run
+     * @param <T> the result type
+     * @return the result from the supplier
+     */
     public <T> T accessToLock(@NotNull Supplier<T> supplier) {
         synchronized (lock) {
             return supplier.get();

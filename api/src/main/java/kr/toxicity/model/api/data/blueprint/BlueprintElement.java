@@ -39,10 +39,19 @@ import static kr.toxicity.model.api.util.CollectionUtil.*;
  */
 public sealed interface BlueprintElement {
 
+    /**
+     * Resource-pack model name for a single-sided mesh triangle.
+     */
     String MESH_TRIANGLE_SINGLE = "mesh_triangle_single";
 
+    /**
+     * Resource-pack model name for a double-sided mesh triangle.
+     */
     String MESH_TRIANGLE_DUPLEX = "mesh_triangle_duplex";
 
+    /**
+     * Resource-pack model name used to render a mesh pixel.
+     */
     String MESH_PIXEL = "mesh_pixel";
 
     /**
@@ -486,11 +495,11 @@ public sealed interface BlueprintElement {
         /**
          * Represents a single face of a mesh.
          *
-         * @param points the vertices and UV coordinates of the face
+         * @param points the vertices and UV coordinates of the face (retained by reference)
          * @param texture the index of the texture used by this face
          * @since 3.0.0
          */
-        public record Face(@NotNull @Unmodifiable List<Point> points, int texture) {}
+        public record Face(@NotNull List<Point> points, int texture) {}
 
         /**
          * Represents a single point (vertex) in a mesh face.

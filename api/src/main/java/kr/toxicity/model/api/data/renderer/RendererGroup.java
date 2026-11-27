@@ -89,6 +89,11 @@ public final class RendererGroup {
         } else mountController = MountControllers.INVALID;
     }
 
+    /**
+     * Visits this group followed by its descendants in depth-first order.
+     *
+     * @return a stream starting with this group
+     */
     public @NotNull Stream<RendererGroup> flatten() {
         return children.isEmpty() ? Stream.of(this) : Stream.concat(
             Stream.of(this),

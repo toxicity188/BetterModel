@@ -16,6 +16,11 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+/**
+ * An unmodifiable sequenced set containing one element.
+ *
+ * @param <E> the element type
+ */
 @Unmodifiable
 @ApiStatus.Internal
 public final class SingletonSequencedSet<E> extends AbstractSet<E> implements SequencedSet<E> {
@@ -23,6 +28,13 @@ public final class SingletonSequencedSet<E> extends AbstractSet<E> implements Se
     private final E element;
     private final Set<E> delegate;
 
+    /**
+     * Creates a sequenced set whose first and last elements are the same.
+     *
+     * @param element the sole element
+     * @param <E> the element type
+     * @return the singleton set
+     */
     public static <E> @NotNull SingletonSequencedSet<E> of(@NotNull E element) {
         return new SingletonSequencedSet<>(element);
     }

@@ -118,10 +118,25 @@ public record ModelMeta(
         }
 
 
+        /**
+         * Returns the coordinate conversion for position keyframes.
+         *
+         * @return the position axis conversion
+         */
         public abstract @NotNull KeyframeAxis positionAxis();
 
+        /**
+         * Returns the coordinate conversion for rotation keyframes.
+         *
+         * @return the rotation axis conversion
+         */
         public abstract @NotNull KeyframeAxis rotationAxis();
 
+        /**
+         * Returns the coordinate conversion for scale keyframes.
+         *
+         * @return the scale axis conversion
+         */
         public @NotNull KeyframeAxis scaleAxis() {
             return KeyframeAxis.SCALE;
         }

@@ -57,15 +57,19 @@ public final class BoneIKSolver {
     }
 
     /**
-     * Solves ik
+     * Solves inverse kinematics for the shared animation state.
+     *
+     * @param context the keyframe runtime context
      */
     public void solve(@NotNull KeyframeRuntimeContext context) {
         solve(context, null);
     }
 
     /**
-     * Solves ik
-     * @param uuid player uuid
+     * Solves inverse kinematics for the selected viewer or shared state.
+     *
+     * @param context the keyframe runtime context
+     * @param uuid the viewer UUID, or {@code null} for the shared state
      */
     public void solve(@NotNull KeyframeRuntimeContext context, @Nullable UUID uuid) {
         if (locators.isEmpty()) return;

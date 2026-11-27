@@ -93,8 +93,23 @@ public interface AnimationProgress extends Timed {
         ));
     }
 
+    /**
+     * Evaluates this keyframe using the supplied base movement.
+     *
+     * @param context the runtime context for evaluating keyframe expressions
+     * @param movement the base movement
+     * @param dest mutable storage for the result
+     * @return the destination containing the evaluated movement
+     */
     @NotNull BoneMovement animate(@NotNull KeyframeRuntimeContext context, @NotNull BoneMovement movement, @NotNull BoneMovement dest);
 
+    /**
+     * Represents a keyframe that copies the base movement to the destination.
+     *
+     * @param time the time in seconds
+     * @param skipInterpolation whether to skip interpolation
+     * @param globalRotation whether the rotation is in global coordinates
+     */
     record EmptyProgress(float time, boolean skipInterpolation, boolean globalRotation) implements AnimationProgress {
 
         @Override

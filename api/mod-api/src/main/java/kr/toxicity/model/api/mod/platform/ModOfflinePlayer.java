@@ -9,6 +9,7 @@ package kr.toxicity.model.api.mod.platform;
 
 import kr.toxicity.model.api.platform.PlatformOfflinePlayer;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,6 +23,9 @@ import java.util.UUID;
  * @since 2.0.0
  */
 public record ModOfflinePlayer(@NotNull UUID uuid, @Nullable String name) implements PlatformOfflinePlayer {
+    /**
+     * Stores the player UUID and the name, when known. Prefer {@link #of} when adapting platform objects.
+     */
     @ApiStatus.Internal
     public ModOfflinePlayer {
     }
@@ -30,10 +34,11 @@ public record ModOfflinePlayer(@NotNull UUID uuid, @Nullable String name) implem
      * Creates a ModOfflinePlayer from the UUID and name.
      *
      * @param uuid the player uuid
-     * @param name the player name
+     * @param name the player name, or {@code null} if unknown
      * @return the instance
      * @since 2.0.0
      */
+    @Contract(value = "_, _ -> new", pure = true)
     public static @NotNull ModOfflinePlayer of(@NotNull UUID uuid, @Nullable String name) {
         return new ModOfflinePlayer(uuid, name);
     }

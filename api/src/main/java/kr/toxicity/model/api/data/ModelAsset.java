@@ -22,6 +22,7 @@ import java.util.Locale;
 /**
  * Represents a raw model asset that can be loaded into the engine.
  * <p>
+ * An asset is identified and ordered by its pack name, even when extensions differ.
  * This record encapsulates the source of the model data (e.g., a file or stream), its name, and metadata.
  * It provides methods to load and parse the model data into a usable format.
  * </p>
@@ -31,7 +32,7 @@ import java.util.Locale;
  * @param name the sanitized, pack-compliant name of the asset
  * @param extension the model extension without a leading dot, matched without case sensitivity
  * @param sizeAssume the estimated size of the asset in bytes (0 if unknown)
- * @param supplier a supplier for the input stream containing the model data
+ * @param supplier a supplier that opens a fresh input stream for each load
  * @since 2.0.0
  */
 public record ModelAsset(
@@ -69,11 +70,12 @@ public record ModelAsset(
      * Creates a new ModelAsset from a name and byte array using the default {@code bbmodel} extension.
      *
      * @param name the name of the asset
-     * @param bytes the byte array containing the model data
+     * @param bytes model data retained by reference for subsequent loads
      * @return the created asset
+     * @throws IllegalArgumentException if the name is not pack-compliant
      * @since 2.0.0
      */
-    public static @NotNull ModelAsset of(@NotNull String name, byte[] bytes) {
+    public static @NotNull ModelAsset of(@NotNull String name, byte @NotNull [] bytes) {
         return of(name, bytes.length, () -> new ByteArrayInputStream(bytes));
     }
 
@@ -83,6 +85,7 @@ public record ModelAsset(
      * @param name the name of the asset
      * @param supplier the stream supplier
      * @return the created asset
+     * @throws IllegalArgumentException if the name is not pack-compliant
      * @since 2.0.0
      */
     public static @NotNull ModelAsset of(@NotNull String name, @NotNull StreamSupplier supplier) {
@@ -96,6 +99,7 @@ public record ModelAsset(
      * @param sizeAssume the estimated size in bytes
      * @param supplier the stream supplier
      * @return the created asset
+     * @throws IllegalArgumentException if the name is not pack-compliant
      * @since 2.0.0
      */
     public static @NotNull ModelAsset of(@NotNull String name, long sizeAssume, @NotNull StreamSupplier supplier) {
@@ -113,7 +117,7 @@ public record ModelAsset(
      * @throws IllegalArgumentException if the name is not pack-compliant
      * @since 3.7.0
      */
-    public static @NotNull ModelAsset of(@NotNull String name, @NotNull String extension, byte[] bytes) {
+    public static @NotNull ModelAsset of(@NotNull String name, @NotNull String extension, byte @NotNull [] bytes) {
         return of(name, extension, bytes.length, () -> new ByteArrayInputStream(bytes));
     }
 

@@ -62,6 +62,9 @@ public record TrackerAnimation<T extends Tracker>(
         return new Builder<>(name, Tracker.class);
     }
 
+    /**
+     * Creates an internal animation definition. Use the builder to configure playback.
+     */
     @ApiStatus.Internal
     public TrackerAnimation {
     }

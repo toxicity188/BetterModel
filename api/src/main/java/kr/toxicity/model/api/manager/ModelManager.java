@@ -15,7 +15,7 @@ import kr.toxicity.model.api.tracker.EntityTracker;
 import kr.toxicity.model.api.tracker.TrackerModifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.Unmodifiable;
+import org.jetbrains.annotations.UnmodifiableView;
 
 import java.util.Collection;
 import java.util.Set;
@@ -79,28 +79,28 @@ public interface ModelManager extends Manager {
     /**
      * Returns a collection of all loaded model renderers.
      *
-     * @return an unmodifiable collection of models
+     * @return an unmodifiable view of the loaded models
      * @since 1.15.2
      */
-    @NotNull @Unmodifiable
+    @NotNull @UnmodifiableView
     Collection<ModelRenderer> models();
 
     /**
      * Returns a set of all loaded model names.
      *
-     * @return an unmodifiable set of model keys
+     * @return an unmodifiable view of the loaded model names
      * @since 1.15.2
      */
-    @NotNull @Unmodifiable
+    @NotNull @UnmodifiableView
     Set<String> modelKeys();
 
     /**
      * Returns a collection of all renderers designated for player limb animations.
      *
-     * @return an unmodifiable collection of limb models
+     * @return an unmodifiable view of the loaded limb models
      * @since 1.15.2
      */
-    @NotNull @Unmodifiable
+    @NotNull @UnmodifiableView
     Collection<ModelRenderer> limbs();
 
     /**
@@ -115,10 +115,10 @@ public interface ModelManager extends Manager {
     /**
      * Returns a set of all loaded player limb model names.
      *
-     * @return an unmodifiable set of limb keys
+     * @return an unmodifiable view of the loaded limb model names
      * @since 1.15.2
      */
-    @NotNull @Unmodifiable
+    @NotNull @UnmodifiableView
     Set<String> limbKeys();
 
 

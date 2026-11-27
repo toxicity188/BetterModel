@@ -25,10 +25,18 @@ import java.util.UUID;
  * This class implements {@link PlatformAdapter} and offers static utility methods for adapting
  * entities, players, items, locations, and worlds.
  * </p>
+ * <pre>{@code
+ * PlatformPlayer platformPlayer = BukkitAdapter.adapt(player);
+ * }</pre>
  *
  * @since 2.0.0
  */
 public final class BukkitAdapter implements PlatformAdapter {
+    /**
+     * Creates the adapter used to access platform services.
+     */
+    public BukkitAdapter() {
+    }
 
     /**
      * Adapts a Bukkit entity to a {@link PlatformEntity}.

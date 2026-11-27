@@ -9,6 +9,7 @@ package kr.toxicity.model.api.bukkit.event;
 
 import kr.toxicity.model.api.event.ModelEventApplication;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.ref.WeakReference;
@@ -17,7 +18,8 @@ import java.lang.ref.WeakReference;
  * An implementation of {@link ModelEventApplication} for Bukkit plugins.
  * <p>
  * This record holds a weak reference to a Bukkit plugin to prevent memory leaks
- * and checks if the plugin is enabled.
+ * and reports the application as enabled while the plugin is reachable and enabled.
+ * Equality and hash codes use the plugin name.
  * </p>
  *
  * @param name the name of the plugin
@@ -44,7 +46,7 @@ public record BukkitEventApplication(@NotNull String name, @NotNull WeakReferenc
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (!(o instanceof BukkitEventApplication that)) return false;
         return name.equals(that.name);
     }

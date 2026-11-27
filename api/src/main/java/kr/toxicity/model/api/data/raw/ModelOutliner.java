@@ -12,7 +12,6 @@ import kr.toxicity.model.api.bone.BoneName;
 import kr.toxicity.model.api.data.blueprint.BlueprintElement;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 import java.util.Objects;
@@ -103,12 +102,12 @@ public sealed interface ModelOutliner {
      * Represents a branch node (Group) in the outliner, containing child nodes.
      *
      * @param group the group definition
-     * @param children the list of child outliner nodes
+     * @param children the list of child outliner nodes (retained by reference)
      * @since 1.15.2
      */
     record Tree(
         @NotNull ModelGroup group,
-        @NotNull @Unmodifiable List<ModelOutliner> children
+        @NotNull List<ModelOutliner> children
     ) implements ModelOutliner {
 
         @Override

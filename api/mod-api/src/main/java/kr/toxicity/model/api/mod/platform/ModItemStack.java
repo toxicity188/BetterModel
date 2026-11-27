@@ -13,16 +13,21 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Represents a Mod item stack wrapped as a {@link PlatformItemStack}.
+ * Wraps a Minecraft item stack as a {@link PlatformItemStack}. Changes are applied
+ * to the supplied stack. Use {@link #clone()} to edit a copy.
  *
  * @param source the source NMS item stack
  * @since 2.0.0
  */
 public record ModItemStack(@NotNull ItemStack source) implements PlatformItemStack {
+    /**
+     * Wraps the supplied Minecraft stack by reference. Prefer {@link #of} when adapting platform objects.
+     */
     @ApiStatus.Internal
     public ModItemStack {
     }
@@ -34,6 +39,7 @@ public record ModItemStack(@NotNull ItemStack source) implements PlatformItemSta
      * @return the instance
      * @since 2.0.0
      */
+    @Contract(value = "_ -> new", pure = true)
     public static @NotNull ModItemStack of(@NotNull ItemStack source) {
         return new ModItemStack(source);
     }

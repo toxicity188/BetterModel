@@ -9,7 +9,6 @@ package kr.toxicity.model.api.config;
 
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -20,9 +19,9 @@ import java.util.stream.Collectors;
 
 /**
  * Debug config
- * @param options options
+ * @param options options (retained by reference)
  */
-public record DebugConfig(@NotNull @Unmodifiable Set<DebugOption> options) {
+public record DebugConfig(@NotNull Set<DebugOption> options) {
     /**
      * Debug option
      */

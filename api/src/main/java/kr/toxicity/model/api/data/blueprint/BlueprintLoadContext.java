@@ -121,6 +121,12 @@ public final class BlueprintLoadContext {
         return texture(index).resolution(resolution);
     }
 
+    /**
+     * Resolves and caches the resource-pack name for a group in this model.
+     *
+     * @param group the group name
+     * @return the sanitized or obfuscated pack name according to the current pack configuration
+     */
     public @NotNull String groupJsonName(@NotNull String group) {
         return groupJsonNameMap.computeIfAbsent(group, g -> {
             var pack = name() + "_" + g;

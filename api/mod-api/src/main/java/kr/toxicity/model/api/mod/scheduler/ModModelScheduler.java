@@ -24,20 +24,20 @@ import org.jetbrains.annotations.Nullable;
 public interface ModModelScheduler extends ModelScheduler {
 
     /**
-     * Schedules a task to run on the next tick.
+     * Queues a task on the Minecraft server thread for the next scheduler tick.
      *
      * @param runnable the task to run
-     * @return the scheduled task, or null if scheduling failed
+     * @return the scheduled task, or {@code null} if the scheduler is disabled
      * @since 2.0.0
      */
     @Nullable ModelTask task(@NotNull Runnable runnable);
 
     /**
-     * Schedules a task to run after a delay.
+     * Queues a task on the Minecraft server thread after a delay.
      *
      * @param delay the delay in ticks
      * @param runnable the task to run
-     * @return the scheduled task, or null if scheduling failed
+     * @return the scheduled task, or {@code null} if the scheduler is disabled
      * @since 2.0.0
      */
     @Nullable ModelTask taskLater(long delay, @NotNull Runnable runnable);

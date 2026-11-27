@@ -28,6 +28,11 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface BetterModelEvaluator {
 
+    /**
+     * Creates a runtime context for evaluating animation keyframes.
+     *
+     * @return the keyframe evaluation context
+     */
     @NotNull KeyframeRuntimeContext newContext();
 
     /**

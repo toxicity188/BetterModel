@@ -10,26 +10,31 @@ package kr.toxicity.model.api.mod.platform;
 import kr.toxicity.model.api.platform.PlatformWorld;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents a Fabric world wrapped as a {@link PlatformWorld}.
+ * Represents a Minecraft level wrapped as a {@link PlatformWorld}.
  *
  * @param level the source NMS level
  * @since 2.0.0
  */
 public record ModWorld(@NotNull Level level) implements PlatformWorld {
+    /**
+     * Wraps the supplied Minecraft level. Prefer {@link #of} when adapting platform objects.
+     */
     @ApiStatus.Internal
     public ModWorld {
     }
 
     /**
-     * Creates a FabricWorld from the level.
+     * Wraps a Minecraft level as a platform world.
      *
      * @param level the source level
      * @return the instance
      * @since 2.0.0
      */
+    @Contract(value = "_ -> new", pure = true)
     public static @NotNull ModWorld of(@NotNull Level level) {
         return new ModWorld(level);
     }

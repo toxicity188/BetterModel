@@ -9,7 +9,6 @@ package kr.toxicity.model.api.data.raw;
 
 import com.google.gson.JsonDeserializer;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,11 +23,11 @@ import static kr.toxicity.model.api.util.CollectionUtil.associate;
  * These placeholders allow for defining reusable values or expressions that can be referenced within Molang scripts in animations.
  * </p>
  *
- * @param variables a map of placeholder variable names to their string values
+ * @param variables a map of placeholder variable names to their string values (retained by reference)
  * @since 1.15.2
  */
 public record ModelPlaceholder(
-    @NotNull @Unmodifiable Map<String, String> variables
+    @NotNull Map<String, String> variables
 ) implements Function<String, String> {
     /**
      * An empty placeholder instance with no variables.

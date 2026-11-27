@@ -28,10 +28,18 @@ import java.util.UUID;
  * This class implements {@link PlatformAdapter} and offers static utility methods for adapting
  * entities, players, items, and worlds.
  * </p>
+ * <pre>{@code
+ * PlatformPlayer platformPlayer = ModAdapter.adapt(serverPlayer);
+ * }</pre>
  *
  * @since 2.0.0
  */
 public final class ModAdapter implements PlatformAdapter {
+    /**
+     * Creates the adapter used to access platform services.
+     */
+    public ModAdapter() {
+    }
 
     /**
      * Adapts an NMS entity to a {@link PlatformEntity}.

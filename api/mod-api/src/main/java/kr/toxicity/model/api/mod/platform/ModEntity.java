@@ -11,6 +11,7 @@ import kr.toxicity.model.api.platform.PlatformEntity;
 import kr.toxicity.model.api.platform.PlatformLocation;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -22,6 +23,9 @@ import java.util.UUID;
  * @since 2.0.0
  */
 public record ModEntity(@NotNull Entity source) implements PlatformEntity {
+    /**
+     * Wraps the supplied Minecraft entity. Prefer {@link #of} when adapting platform objects.
+     */
     @ApiStatus.Internal
     public ModEntity {
     }
@@ -33,6 +37,7 @@ public record ModEntity(@NotNull Entity source) implements PlatformEntity {
      * @return the instance
      * @since 2.0.0
      */
+    @Contract(value = "_ -> new", pure = true)
     public static @NotNull ModEntity of(@NotNull Entity source) {
         return new ModEntity(source);
     }

@@ -12,6 +12,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,13 +51,15 @@ public final class BetterModelBukkitEvent extends Event {
     }
 
     /**
-     * Checks if the wrapped event is an instance of the specified class.
+     * Checks whether the declared event class is assignable to the requested type.
+     * This check does not initialize the event.
      *
      * @param eventClass the class to check against
      * @param <T> the type of the event
      * @return true if the wrapped event is assignable to the class
      * @since 2.0.0
      */
+    @Contract(pure = true)
     public <T extends ModelEvent> boolean is(@NotNull Class<T> eventClass) {
         return eventClass.isAssignableFrom(this.eventClass);
     }
@@ -64,12 +67,13 @@ public final class BetterModelBukkitEvent extends Event {
     /**
      * Casts the wrapped event to the specified class if possible.
      * <p>
-     * This method initializes the underlying event if it hasn't been created yet.
+     * The supplier is invoked only after the declared type matches.
+     * The wrapper reuses the event instance once it has been created.
      * </p>
      *
      * @param eventClass the class to cast to
      * @param <T> the type of the event
-     * @return the cast event, or null if the cast is not possible
+     * @return the cast event, or {@code null} if the declared event class does not match
      * @since 2.0.0
      */
     public <T extends ModelEvent> @Nullable T as(@NotNull Class<T> eventClass) {
@@ -104,6 +108,7 @@ public final class BetterModelBukkitEvent extends Event {
      * @since 2.0.0
      */
     @ApiStatus.Internal
+    @Contract(pure = true)
     public @Nullable ModelEvent source() {
         return source;
     }
@@ -119,7 +124,7 @@ public final class BetterModelBukkitEvent extends Event {
      * @return the handler list
      * @since 2.0.0
      */
-    public static HandlerList getHandlerList() {
+    public static @NotNull HandlerList getHandlerList() {
         return HANDLER_LIST;
     }
 }

@@ -25,11 +25,13 @@ public interface PlatformLocation extends PlatformRegionHolder {
 
     /**
      * Returns the world associated with this location.
+     * Synthetic locations, such as {@link PlatformAdapter#zero()}, may have no world.
      *
-     * @return the world
+     * @return the associated world
+     * @throws IllegalStateException if the location cannot resolve an associated world
      * @since 2.0.0
      */
-    PlatformWorld world();
+    @NotNull PlatformWorld world();
 
     /**
      * Returns the X coordinate.
@@ -77,13 +79,13 @@ public interface PlatformLocation extends PlatformRegionHolder {
      * @param x the X offset
      * @param y the Y offset
      * @param z the Z offset
-     * @return the new location
+     * @return the new location with the same rotation and world association
      * @since 2.0.0
      */
     @NotNull PlatformLocation add(double x, double y, double z);
 
     /**
-     * Calculates the distance between this location and another location.
+     * Calculates the Euclidean distance from the coordinates of both locations.
      *
      * @param other the other location
      * @return the distance
@@ -94,7 +96,8 @@ public interface PlatformLocation extends PlatformRegionHolder {
     }
 
     /**
-     * Calculates the squared distance between this location and another location.
+     * Calculates the squared Euclidean distance from the coordinates of both locations.
+     * The calculation ignores the world and rotation of each location.
      *
      * @param other the other location
      * @return the squared distance

@@ -34,7 +34,9 @@ public interface BetterModelMod extends BetterModelPlatform {
     /**
      * Returns the current {@link BetterModelMod} instance.
      *
-     * @return the current platform instance
+     * @return the current BetterModelMod platform instance
+     * @throws NullPointerException if BetterModel has not been initialized
+     * @throws ClassCastException if BetterModel is running on another platform
      * @since 2.0.0
      */
     static @NotNull BetterModelMod platform() {

@@ -84,6 +84,11 @@ public record ModelTexture(
         return nameIndex >= 0 ? name.substring(0, nameIndex) : name;
     }
 
+    /**
+     * Resolves the render mode declared by the texture.
+     *
+     * @return the declared render mode, or {@link BlueprintTexture.RenderMode#DEFAULT} if omitted
+     */
     @Override
     public @NotNull BlueprintTexture.RenderMode renderMode() {
         return renderMode != null ? renderMode : BlueprintTexture.RenderMode.DEFAULT;

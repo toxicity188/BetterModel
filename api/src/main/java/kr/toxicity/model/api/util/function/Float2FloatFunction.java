@@ -40,6 +40,12 @@ public interface Float2FloatFunction {
         return new Float2FloatConstantFunction(value);
     }
 
+    /**
+     * Composes this function with a function that receives its result.
+     *
+     * @param function the second function
+     * @return a function that applies both operations in sequence
+     */
     default @NotNull Float2FloatFunction andThen(@NotNull Float2FloatFunction function) {
         return f -> function.applyAsFloat(applyAsFloat(f));
     }

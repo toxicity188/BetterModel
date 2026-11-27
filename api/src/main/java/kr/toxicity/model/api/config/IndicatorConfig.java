@@ -9,7 +9,6 @@ package kr.toxicity.model.api.config;
 
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -20,9 +19,9 @@ import java.util.stream.Collectors;
 
 /**
  * Indicator config
- * @param options options
+ * @param options options (retained by reference)
  */
-public record IndicatorConfig(@NotNull @Unmodifiable Set<IndicatorOption> options) {
+public record IndicatorConfig(@NotNull Set<IndicatorOption> options) {
     /**
      * Indicator option
      */

@@ -149,6 +149,11 @@ public final class RenderedBone implements BoneEventHandler {
         globalState = new BoneStateHandler(null, _ -> {});
     }
 
+    /**
+     * Registers this bone as an inverse-kinematics locator if its blueprint defines a chain.
+     *
+     * @param solver the solver that receives the chain
+     */
     public void locator(@NotNull BoneIKSolver solver) {
         if (getGroup().getParent() instanceof BlueprintElement.NullObject nullObject) {
             var ikChainConfig = nullObject.config();
@@ -176,6 +181,11 @@ public final class RenderedBone implements BoneEventHandler {
         });
     }
 
+    /**
+     * Returns the animation currently selected for the shared bone state.
+     *
+     * @return the active animation, or {@code null} if no animation is selected
+     */
     public @Nullable RunningAnimation runningAnimation() {
         return globalState.state.runningAnimation();
     }
@@ -185,10 +195,22 @@ public final class RenderedBone implements BoneEventHandler {
         return eventDispatcher;
     }
 
+    /**
+     * Re-evaluates the item mapper for this bone with its current render context.
+     *
+     * @param predicate selects the bone whose item can be replaced
+     * @return whether the update was applied to the display
+     */
     public boolean updateItem(@NotNull Predicate<RenderedBone> predicate) {
         return itemStack(predicate, itemMapper.apply(renderContext, itemStack));
     }
 
+    /**
+     * Stores a render context and refreshes the mapped item.
+     *
+     * @param context the context used by the item mapper
+     * @return whether the update was applied to the display
+     */
     public boolean updateItem(@NotNull BoneRenderContext context) {
         synchronized (this) {
             renderContext = context;
@@ -329,6 +351,13 @@ public final class RenderedBone implements BoneEventHandler {
         return false;
     }
 
+    /**
+     * Stores the model rotation and updates the display when one exists.
+     *
+     * @param rotation the model rotation
+     * @param bundler receives the display rotation packet
+     * @return whether this bone has a display
+     */
     public boolean rotate(@NotNull ModelRotation rotation, @NotNull PacketBundler bundler) {
         this.rotation = rotation;
         if (display != null) {
@@ -338,67 +367,151 @@ public final class RenderedBone implements BoneEventHandler {
         return false;
     }
 
+    /**
+     * Advances the shared animation state by one update.
+     *
+     * @return whether this is the first update or the animation state advanced
+     */
     public boolean tick() {
         return globalState.tick();
     }
 
+    /**
+     * Advances an existing viewer-specific animation state.
+     *
+     * @param uuid the viewer UUID
+     * @return whether that state exists and is on its first update or advanced
+     */
     public boolean tick(@NotNull UUID uuid) {
         var get = perPlayerState.get(uuid);
         return get != null && get.tick();
     }
 
+    /**
+     * Queues changed display metadata, if this bone has a display.
+     *
+     * @param bundler receives the metadata packet
+     */
     public void dirtyUpdate(@NotNull PacketBundler bundler) {
         var d = display;
         if (d != null) d.sendDirtyEntityData(bundler);
     }
 
+    /**
+     * Queues the full display metadata with an explicit item visibility flag.
+     *
+     * @param showItem whether to show the item
+     * @param bundler receives the metadata packet
+     */
     public void forceUpdate(boolean showItem, @NotNull PacketBundler bundler) {
         var d = display;
         if (d != null) d.sendEntityData(showItem, bundler);
     }
 
+    /**
+     * Queues the full display metadata using the current display visibility.
+     *
+     * @param bundler receives the metadata packet
+     */
     public void forceUpdate(@NotNull PacketBundler bundler) {
         var d = display;
         if (d != null) d.sendEntityData(!d.invisible(), bundler);
     }
 
+    /**
+     * Queues an animation transform for the chosen state. A viewer without an override uses the shared state.
+     *
+     * @param context the runtime context for keyframe evaluation
+     * @param uuid the viewer UUID, or {@code null} for the shared state
+     * @param bundler receives the animation data
+     */
     public void sendTransformation(@NotNull KeyframeRuntimeContext context, @Nullable UUID uuid, @NotNull AnimationBundler bundler) {
         state(uuid).sendTransformation(context, bundler);
     }
 
+    /**
+     * Queues the shared display transform if the bone has a display transformer.
+     *
+     * @param bundler receives the transformation packet
+     */
     public void forceTransformation(@NotNull PacketBundler bundler) {
         var d = globalState.transformer;
         if (d != null) d.sendTransformation(bundler);
     }
 
+    /**
+     * Returns the interpolation duration of the shared animation state.
+     *
+     * @return the duration in ticks
+     */
     public int interpolationDuration() {
         return globalState.interpolationDuration();
     }
 
+    /**
+     * Calculates the transformed bone position with zero additional offsets.
+     *
+     * @return the position relative to the tracker origin
+     */
     public @NotNull Vector3f worldPosition() {
         return worldPosition(EMPTY_POSITION);
     }
 
+    /**
+     * Calculates the transformed bone position with the given offsets.
+     *
+     * @param position the offset and animation state selection
+     * @return the position relative to the tracker origin
+     */
     public @NotNull Vector3f worldPosition(@NotNull BonePosition position) {
         return worldPosition(position, new BoneMovement());
     }
 
+    /**
+     * Calculates the transformed bone position using caller-provided scratch storage.
+     *
+     * @param cache mutable storage overwritten during evaluation
+     * @return the position vector backed by {@code cache}
+     */
     public @NotNull Vector3f worldPosition(@NotNull BoneMovement cache) {
         return worldPosition(EMPTY_POSITION, cache);
     }
 
+    /**
+     * Calculates the transformed bone position with the given offsets and scratch storage.
+     *
+     * @param position the offset and animation state selection
+     * @param cache mutable storage overwritten during evaluation
+     * @return the position vector backed by {@code cache}
+     */
     public @NotNull Vector3f worldPosition(@NotNull BonePosition position, @NotNull BoneMovement cache) {
         return state(position.state()).worldPosition(position, cache);
     }
 
+    /**
+     * Interpolates the Euler rotation of the shared animation state.
+     *
+     * @return the interpolated rotation
+     */
     public @NotNull Vector3f worldRotation() {
         return worldRotation(null);
     }
 
+    /**
+     * Interpolates the Euler rotation for a viewer, falling back to the shared state.
+     *
+     * @param uuid the viewer UUID, or {@code null} for the shared state
+     * @return the interpolated rotation
+     */
     public @NotNull Vector3f worldRotation(@Nullable UUID uuid) {
         return state(uuid).worldRotation();
     }
 
+    /**
+     * Sets the supplier used to obtain the base offset when updating the display transform.
+     *
+     * @param movement supplies the base offset
+     */
     public void defaultPosition(@NotNull Supplier<Vector3f> movement) {
         defaultPosition = movement;
     }
@@ -415,10 +528,23 @@ public final class RenderedBone implements BoneEventHandler {
         return preventModifierUpdate ? lastModifiedGlobalRot : (lastModifiedGlobalRot = globalRotModifier.apply(lastModifiedGlobalRot.identity()));
     }
 
+    /**
+     * Restores the previous tint if the bone matches the predicate.
+     *
+     * @param predicate selects eligible bones
+     * @return whether a tint change was applied to the display
+     */
     public boolean tint(@NotNull Predicate<RenderedBone> predicate) {
         return tint(predicate, previousTint);
     }
 
+    /**
+     * Updates the tint when the bone matches and the tint differs from the current value.
+     *
+     * @param predicate selects eligible bones
+     * @param tint the new tint
+     * @return whether a tint change was applied to the display
+     */
     public boolean tint(@NotNull Predicate<RenderedBone> predicate, int tint) {
         if (this.tint != tint && predicate.test(this)) {
             synchronized (itemLock) {
@@ -443,16 +569,37 @@ public final class RenderedBone implements BoneEventHandler {
         targetDisplay.item(itemStack.isAir() ? itemStack.itemStack() : tintCacheMap.computeIfAbsent(tint, i -> BetterModel.nms().tint(itemStack.itemStack(), i)));
     }
 
+    /**
+     * Queues a teleport for this bone’s display if one exists.
+     *
+     * @param location the target location
+     * @param bundler receives the teleport packet
+     */
     public void teleport(@NotNull PlatformLocation location, @NotNull PacketBundler bundler) {
         if (display != null) display.teleport(location, bundler);
     }
 
+    /**
+     * Queues the display spawn and the current shared transform when available.
+     *
+     * @param hide whether to hide the item when spawning the display
+     * @param bundler receives the spawn and transformation packets
+     */
     public void spawn(boolean hide, @NotNull PacketBundler bundler) {
         if (display != null) display.spawn(!hide && !display.invisible(), bundler);
         var transformer = globalState.transformer;
         if (transformer != null) transformer.sendTransformation(bundler);
     }
 
+    /**
+     * Adds an animation to the state selected by the modifier. A missing track can use the animation’s empty track.
+     *
+     * @param overrideState the inherited override state
+     * @param animator the animation to add
+     * @param modifier selects the viewer and playback options
+     * @param removeTask callback passed to the animation state for removal
+     * @return whether an animation track was added
+     */
     public boolean addAnimation(@NotNull AnimationOverrideState overrideState, @NotNull BlueprintAnimation animator, @NotNull AnimationModifier modifier, @NotNull Runnable removeTask) {
         var get = animator.animator().get(name());
         if (get == null && modifier.override(animator.override()) && overrideState.shouldSkip()) return false;
@@ -462,6 +609,15 @@ public final class RenderedBone implements BoneEventHandler {
         return true;
     }
 
+    /**
+     * Attempts to replace a named animation using the state selected by the modifier.
+     *
+     * @param overrideState the inherited override state
+     * @param target the name of the animation to replace
+     * @param animator the replacement animation
+     * @param modifier selects the viewer and playback options
+     * @return whether the replacement was attempted after applying the override rules
+     */
     public boolean replaceAnimation(@NotNull AnimationOverrideState overrideState, @NotNull String target, @NotNull BlueprintAnimation animator, @NotNull AnimationModifier modifier) {
         var get = animator.animator().get(name());
         if (get == null && modifier.override(animator.override()) && overrideState.shouldSkip()) return false;
@@ -475,14 +631,15 @@ public final class RenderedBone implements BoneEventHandler {
      * Stops bone's animation
      * @param filter filter
      * @param name animation's name
-     * @param player player
+     * @param player the viewer, or {@code null} for the shared state
+     * @return whether the filter matched and the named animation was stopped
      */
     public boolean stopAnimation(@NotNull Predicate<RenderedBone> filter, @NotNull String name, @Nullable PlatformPlayer player) {
         return filter.test(this) && state(player).state.stopAnimation(name);
     }
 
     /**
-     * Removes model's display
+     * Queues removal of the display and nametag, if present.
      * @param bundler packet bundler
      */
     public void remove(@NotNull PacketBundler bundler) {
@@ -494,11 +651,7 @@ public final class RenderedBone implements BoneEventHandler {
      * Tests whether the parent element is derived from (an instance of) the specified class type.
      *
      * <pre>{@code
-     * // Instead of:
-     * boolean isDerived = getGroup().getParent() instanceof BlueprintElement.class;
-     *
-     * // You can write:
-     * boolean isDerived = isDerivedFrom(BlueprintElement.class);
+     * boolean locator = bone.isDerivedFrom(BlueprintElement.NullObject.class);
      * }</pre>
      *
      * @param elementClass the expected class type
@@ -509,14 +662,29 @@ public final class RenderedBone implements BoneEventHandler {
         return elementClass.isInstance(getGroup().getParent());
     }
 
+    /**
+     * Returns the model-space position of this bone’s root group.
+     *
+     * @return the root group position
+     */
     public @NotNull Vector3f rootPosition() {
         return root.group.getPosition();
     }
 
+    /**
+     * Streams this bone and its descendants in depth-first order.
+     *
+     * @return a stream beginning with this bone
+     */
     public @NotNull Stream<RenderedBone> flatten() {
         return flattenBones().stream();
     }
 
+    /**
+     * Returns this bone and its descendants in depth-first order.
+     *
+     * @return the cached unmodifiable set, beginning with this bone
+     */
     @Unmodifiable
     @NotNull
     public SequencedSet<RenderedBone> flattenBones() {
@@ -534,6 +702,13 @@ public final class RenderedBone implements BoneEventHandler {
         }
     }
 
+    /**
+     * Visits this bone and its descendants, deriving the child predicate from each parent result.
+     *
+     * @param predicate the initial predicate
+     * @param mapper evaluates each bone with its inherited predicate
+     * @return whether any evaluation returned {@code true}
+     */
     public boolean matchTree(@NotNull BonePredicate predicate, @NotNull BiPredicate<RenderedBone, BonePredicate> mapper) {
         var parentResult = mapper.test(this, predicate);
         var childPredicate = predicate.children(parentResult);
@@ -543,6 +718,13 @@ public final class RenderedBone implements BoneEventHandler {
         return parentResult;
     }
 
+    /**
+     * Visits the animation tree and passes a matched state to descendants of a matching bone.
+     *
+     * @param overrideState the initial override state
+     * @param mapper evaluates each bone with its inherited override state
+     * @return whether any evaluation returned {@code true}
+     */
     public boolean matchAnimation(@NotNull AnimationOverrideState overrideState, @NotNull BiPredicate<RenderedBone, AnimationOverrideState> mapper) {
         var parentResult = mapper.test(this, overrideState);
         if (parentResult) overrideState = AnimationOverrideState.MATCHED;
@@ -552,20 +734,41 @@ public final class RenderedBone implements BoneEventHandler {
         return parentResult;
     }
 
+    /**
+     * Calculates the transformed position of the group hitbox offset.
+     *
+     * @return the hitbox position relative to the tracker origin
+     */
     @NotNull
     public Vector3f hitBoxPosition() {
         return hitBoxPosition(new BoneMovement());
     }
 
+    /**
+     * Calculates the transformed hitbox position using caller-provided scratch storage.
+     *
+     * @param cache mutable storage overwritten during evaluation
+     * @return the hitbox position vector backed by {@code cache}
+     */
     @NotNull
     public Vector3f hitBoxPosition(@NotNull BoneMovement cache) {
         return worldPosition(group.getHitboxPosition(), cache);
     }
 
+    /**
+     * Returns the current scale used by the hitbox.
+     *
+     * @return the scale factor
+     */
     public float hitBoxScale() {
         return scale.getAsFloat();
     }
 
+    /**
+     * Returns the bone’s current model rotation.
+     *
+     * @return the model rotation
+     */
     @NotNull
     public ModelRotation rotation() {
         return rotation;
@@ -708,10 +911,20 @@ public final class RenderedBone implements BoneEventHandler {
         }
     }
 
+    /**
+     * Returns the name and parsed tags of the renderer group.
+     *
+     * @return the group name
+     */
     public @NotNull BoneName name() {
         return getGroup().name();
     }
 
+    /**
+     * Returns the UUID of the renderer group.
+     *
+     * @return the group UUID
+     */
     public @NotNull UUID uuid() {
         return getGroup().uuid();
     }

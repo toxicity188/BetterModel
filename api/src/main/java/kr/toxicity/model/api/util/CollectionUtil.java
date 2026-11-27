@@ -234,31 +234,29 @@ public final class CollectionUtil {
     }
 
     /**
-     * Groups stream by some key
+     * Groups stream elements by the key produced for each element.
      * @param stream stream
      * @param keyMapper key mapper
-     * @return grouped map
+     * @return a mutable map of keys to lists of elements in encounter order
      * @param <K> key
      * @param <E> element
      */
     @NotNull
-    @Unmodifiable
     public static <K, E> Map<K, List<E>> group(@NotNull Stream<E> stream, @NotNull Function<E, K> keyMapper) {
         return group(stream, keyMapper, CollectionUtil::newAddressingMap);
     }
 
     /**
-     * Groups stream by some key
+     * Groups stream elements by the key produced for each element.
      * @param stream stream
      * @param keyMapper key mapper
-     * @param mapSupplier map supplier
-     * @return grouped map
+     * @param mapSupplier creates the mutable result map
+     * @return the supplied map of keys to lists of elements in encounter order
      * @param <K> key
      * @param <E> element
      * @param <M> map
      */
     @NotNull
-    @Unmodifiable
     public static <K, E, M extends Map<K, List<E>>> M group(@NotNull Stream<E> stream, @NotNull Function<E, K> keyMapper, @NotNull Supplier<M> mapSupplier) {
         return stream.collect(Collectors.groupingBy(keyMapper, mapSupplier, Collectors.toList()));
     }

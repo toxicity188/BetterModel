@@ -11,6 +11,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializer;
 import kr.toxicity.model.api.util.MathUtil;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -163,6 +164,12 @@ public record Float3(
         return array;
     }
 
+    /**
+     * Converts these Euler angles in degrees to a quaternion with ZYX composition.
+     *
+     * @return a new mutable quaternion containing the rotation
+     */
+    @Contract(pure = true, value = "-> new")
     public @NotNull Quaternionf toQuaternionZYX() {
         return new Quaternionf()
             .rotateZYX(
@@ -172,6 +179,12 @@ public record Float3(
             );
     }
 
+    /**
+     * Converts these Euler angles in degrees to a quaternion with XYZ composition.
+     *
+     * @return a new mutable quaternion containing the rotation
+     */
+    @Contract(pure = true, value = "-> new")
     public @NotNull Quaternionf toQuaternionXYZ() {
         return new Quaternionf()
             .rotateXYZ(

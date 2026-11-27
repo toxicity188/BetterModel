@@ -21,7 +21,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Map;
 import java.util.Objects;
@@ -35,14 +34,14 @@ import java.util.stream.Stream;
  *
  * @param name name
  * @param type type
- * @param rendererGroups group map
- * @param animations animations
+ * @param rendererGroups group map (retained by reference)
+ * @param animations animations (retained by reference)
  */
 public record ModelRenderer(
     @NotNull String name,
     @NotNull Type type,
-    @NotNull @Unmodifiable SequencedMap<BoneName, RendererGroup> rendererGroups,
-    @NotNull @Unmodifiable Map<String, BlueprintAnimation> animations
+    @NotNull SequencedMap<BoneName, RendererGroup> rendererGroups,
+    @NotNull Map<String, BlueprintAnimation> animations
 ) {
     /**
      * Gets a renderer group by tree

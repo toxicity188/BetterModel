@@ -7,15 +7,20 @@
 
 package kr.toxicity.model.api.platform;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Represents an item stack in the underlying platform.
+ * Represents a mutable item stack in the underlying platform.
  * <p>
- * This interface provides methods for manipulating item properties like custom model data,
- * enchantment glint, and cloning.
+ * This interface provides methods for manipulating item properties like the item model for resource-pack rendering,
+ * enchantment glint, and cloning. Clone the stack before editing if the original must be preserved.
  * </p>
+ *
+ * <pre>{@code
+ * var preview = stack.clone().enchant(true);
+ * }</pre>
  *
  * @since 2.0.0
  */
@@ -24,7 +29,7 @@ public interface PlatformItemStack {
     /**
      * Checks if the item stack is empty or air.
      *
-     * @return true if air, false otherwise
+     * @return whether this stack is empty or represents air
      * @since 2.0.0
      */
     boolean isAir();
@@ -36,15 +41,17 @@ public interface PlatformItemStack {
      * @return this item stack
      * @since 2.0.0
      */
+    @Contract(value = "_ -> this", mutates = "this")
     @NotNull PlatformItemStack enchant(boolean enchant);
 
     /**
-     * Sets the item model namespace for the item.
+     * Sets the resource-pack item model on this stack.
      *
-     * @param namespace the item model namespace (optional)
+     * @param namespace the item model identifier, or {@code null} to clear the override
      * @return this item stack
      * @since 3.4.0
      */
+    @Contract(value = "_ -> this", mutates = "this")
     @NotNull PlatformItemStack itemModel(@Nullable PlatformNamespace namespace);
 
     /**

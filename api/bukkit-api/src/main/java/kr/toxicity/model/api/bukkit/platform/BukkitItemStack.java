@@ -15,7 +15,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Represents a Bukkit item stack wrapped as a {@link PlatformItemStack}.
+ * Wraps a Bukkit item stack as a {@link PlatformItemStack}. Changes are applied to
+ * the supplied stack when Bukkit provides item metadata. Use {@link #clone()} to edit a copy.
  *
  * @param source the source Bukkit item stack
  * @since 2.0.0

@@ -18,7 +18,7 @@ import kr.toxicity.model.api.tracker.EntityTrackerRegistry;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.Unmodifiable;
+import org.jetbrains.annotations.UnmodifiableView;
 
 import java.util.*;
 
@@ -191,40 +191,40 @@ public final class BetterModel {
     /**
      * Returns a collection of all loaded model renderers.
      *
-     * @return an unmodifiable collection of models
+     * @return an unmodifiable view of the loaded models
      * @since 1.15.2
      */
-    public static @NotNull @Unmodifiable Collection<ModelRenderer> models() {
+    public static @NotNull @UnmodifiableView Collection<ModelRenderer> models() {
         return platform().manager(ModelManager.class).models();
     }
 
     /**
      * Returns a collection of all loaded player limb renderers.
      *
-     * @return an unmodifiable collection of limb models
+     * @return an unmodifiable view of the loaded limb models
      * @since 1.15.2
      */
-    public static @NotNull @Unmodifiable Collection<ModelRenderer> limbs() {
+    public static @NotNull @UnmodifiableView Collection<ModelRenderer> limbs() {
         return platform().manager(ModelManager.class).limbs();
     }
 
     /**
      * Returns a set of all loaded model names.
      *
-     * @return an unmodifiable set of model keys
+     * @return an unmodifiable view of the loaded model names
      * @since 1.15.2
      */
-    public static @NotNull @Unmodifiable Set<String> modelKeys() {
+    public static @NotNull @UnmodifiableView Set<String> modelKeys() {
         return platform().manager(ModelManager.class).modelKeys();
     }
 
     /**
      * Returns a set of all loaded player limb model names.
      *
-     * @return an unmodifiable set of limb keys
+     * @return an unmodifiable view of the loaded limb model names
      * @since 1.15.2
      */
-    public static @NotNull @Unmodifiable Set<String> limbKeys() {
+    public static @NotNull @UnmodifiableView Set<String> limbKeys() {
         return platform().manager(ModelManager.class).limbKeys();
     }
 

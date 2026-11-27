@@ -16,13 +16,19 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Represents a Bukkit location wrapped as a {@link PlatformLocation}.
+ * Wraps a Bukkit location as a {@link PlatformLocation}. This wrapper reads coordinates
+ * from the supplied location. {@link #add(double, double, double)} offsets a copy.
  *
  * @param source the source Bukkit location
  * @since 2.0.0
  */
 public record BukkitLocation(@NotNull Location source) implements PlatformLocation {
 
+    /**
+     * {@inheritDoc}
+     *
+     * @throws IllegalArgumentException if the Bukkit world is unloaded
+     */
     @Override
     public @NotNull PlatformWorld world() {
         return BukkitAdapter.adapt(source.getWorld());

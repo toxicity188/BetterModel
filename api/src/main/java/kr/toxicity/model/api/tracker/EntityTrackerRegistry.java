@@ -38,6 +38,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
+import org.jetbrains.annotations.UnmodifiableView;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -227,10 +228,10 @@ public final class EntityTrackerRegistry {
     /**
      * Returns all trackers in this registry.
      *
-     * @return the trackers
+     * @return an unmodifiable view of the trackers in this registry
      * @since 1.15.2
      */
-    public @NotNull @Unmodifiable Collection<EntityTracker> trackers() {
+    public @NotNull @UnmodifiableView Collection<EntityTracker> trackers() {
         return trackers;
     }
 
@@ -602,11 +603,11 @@ public final class EntityTrackerRegistry {
     /**
      * Returns the map of currently mounted hitboxes.
      *
-     * @return the mounted hitboxes
+     * @return an unmodifiable view of mounted hitboxes keyed by passenger UUID
      * @since 1.15.2
      */
     @NotNull
-    @Unmodifiable
+    @UnmodifiableView
     public Map<UUID, MountedHitBox> mountedHitBox() {
         return mountedHitBox;
     }
@@ -614,11 +615,11 @@ public final class EntityTrackerRegistry {
     /**
      * Returns a collection of all active hitboxes for this registry.
      *
-     * @return the hitboxes
+     * @return an unmodifiable view of the active hitboxes in this registry
      * @since 2.2.0
      */
     @NotNull
-    @Unmodifiable
+    @UnmodifiableView
     public Collection<HitBox> hitBoxes() {
         return hitBox;
     }

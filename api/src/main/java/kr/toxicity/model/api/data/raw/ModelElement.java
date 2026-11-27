@@ -419,6 +419,11 @@ public sealed interface ModelElement {
             return MESH;
         }
 
+        /**
+         * Returns whether this mesh is visible. An omitted visibility flag defaults to visible.
+         *
+         * @return whether the mesh is visible
+         */
         public boolean visibility() {
             return !Boolean.FALSE.equals(_visibility);
         }

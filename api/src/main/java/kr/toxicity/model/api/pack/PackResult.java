@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.Unmodifiable;
+import org.jetbrains.annotations.UnmodifiableView;
 
 import java.io.File;
 import java.security.MessageDigest;
@@ -159,11 +159,10 @@ public final class PackResult {
      * Returns the resources for a specific overlay.
      *
      * @param overlay the overlay
-     * @return the set of resources
+     * @return an unmodifiable view of the overlay resources, or an empty set if the overlay has no resources
      * @since 1.15.2
      */
-    @NotNull
-    @Unmodifiable
+    @NotNull @UnmodifiableView
     public SortedSet<PackByte> overlays(@NotNull PackOverlay overlay) {
         var get = overlays.get(overlay);
         return get != null ? Collections.unmodifiableSortedSet(get) : Collections.emptySortedSet();
@@ -185,11 +184,10 @@ public final class PackResult {
     /**
      * Returns the base assets of the pack.
      *
-     * @return the set of assets
+     * @return an unmodifiable view of the base pack assets
      * @since 1.15.2
      */
-    @NotNull
-    @Unmodifiable
+    @NotNull @UnmodifiableView
     public SortedSet<PackByte> assets() {
         return assetsView;
     }

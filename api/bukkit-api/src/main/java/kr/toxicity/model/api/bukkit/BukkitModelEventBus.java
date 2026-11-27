@@ -9,6 +9,7 @@ package kr.toxicity.model.api.bukkit;
 
 import kr.toxicity.model.api.BetterModelEventBus;
 import kr.toxicity.model.api.bukkit.event.BukkitEventApplication;
+import kr.toxicity.model.api.event.ModelAssetsEvent;
 import kr.toxicity.model.api.event.ModelEvent;
 import kr.toxicity.model.api.event.ModelEventListener;
 import org.bukkit.plugin.Plugin;
@@ -25,7 +26,7 @@ import java.util.function.Consumer;
  * <p>Example usage:</p>
  * <pre>{@code
  * BukkitModelEventBus eventBus = BetterModelBukkit.platform().eventBus();
- * eventBus.subscribe(plugin, ModelEvent.class, event -> {
+ * eventBus.subscribe(plugin, kr.toxicity.model.api.event.ModelAssetsEvent.class, event -> {
  *     // Handle Bukkit event
  * });
  * }</pre>
@@ -35,13 +36,14 @@ import java.util.function.Consumer;
 public interface BukkitModelEventBus extends BetterModelEventBus {
 
     /**
-     * Subscribes a consumer to a specific event type, associated with a Bukkit plugin.
+     * Subscribes a consumer to the exact event class using the Bukkit plugin as its owner.
      *
      * @param plugin the plugin that subscribes to the event
      * @param eventClass the class of the event to subscribe to
      * @param consumer the consumer to handle the event
      * @param <T> the type of the event
-     * @return a listener handle that can be used to unregister the subscription
+     * @return a handle for unregistering the subscription, or {@link ModelEventListener#NONE}
+     * if the plugin is disabled
      * @since 2.0.0
      */
     @NotNull
