@@ -32,6 +32,8 @@ signing {
 dependencies {
     api(libs.bundles.library) {
         exclude(module = "jspecify")
+        exclude(module = "fastutil")
+        exclude(module = "gson")
     }
 
     compileOnly(libs.lombok)
